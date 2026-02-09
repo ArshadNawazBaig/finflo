@@ -27,15 +27,17 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middleware to ensure DB connection
-let isConnected = false;
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api') && !isConnected) {
+  if (req.path.startsWith('/api')) {
     try {
       await connectDB();
-      isConnected = true;
       next();
     } catch (error) {
-      res.status(500).json({ message: 'Database connection failed' });
+      console.error('Database middleware error:', error.message);
+      res.status(500).json({
+        message: 'Database connection failed',
+        error: error.message,
+      });
     }
   } else {
     next();
