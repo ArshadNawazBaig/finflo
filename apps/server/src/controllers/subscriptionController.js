@@ -174,8 +174,13 @@ const getBillingInfo = async (req, res) => {
       isDefault: pm.id === defaultPaymentMethodId,
     }));
 
+    console.log(
+      `Found ${invoices.data.length} invoices for customer ${user.stripeCustomerId}`,
+    );
+
     const formattedInvoices = invoices.data.map((inv) => ({
-      id: inv.number,
+      _id: inv.id,
+      number: inv.number,
       date: new Date(inv.created * 1000),
       amount: inv.total / 100, // Show total amount (even if not paid)
       status: inv.status, // paid, open, void, uncollectible, draft

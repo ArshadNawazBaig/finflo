@@ -317,11 +317,11 @@ const Billing = () => {
                       {paginatedInvoices.length > 0 ? (
                         paginatedInvoices.map((inv) => (
                           <tr
-                            key={inv.id}
+                            key={inv._id}
                             className="group hover:bg-muted/30 transition-colors border-b border-border/50 last:border-none"
                           >
                             <td className="px-4 py-4 font-semibold text-foreground text-sm">
-                              {inv.id}
+                              {inv.number || inv._id}
                             </td>
                             <td className="px-4 py-4 text-sm text-muted-foreground">
                               {formatDate(inv.date)}
@@ -337,9 +337,9 @@ const Billing = () => {
                               <span
                                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide
                                 ${
-                                  inv.status === 'paid'
+                                  inv.status?.toLowerCase() === 'paid'
                                     ? 'bg-emerald-500/10 text-emerald-600'
-                                    : inv.status === 'open'
+                                    : inv.status?.toLowerCase() === 'open'
                                       ? 'bg-blue-500/10 text-blue-600'
                                       : 'bg-destructive/10 text-destructive'
                                 }`}
@@ -373,7 +373,7 @@ const Billing = () => {
                       ) : (
                         <tr>
                           <td
-                            colSpan="5"
+                            colSpan="6"
                             className="px-4 py-12 text-center text-muted-foreground"
                           >
                             No invoices found.
