@@ -61,6 +61,7 @@ app.use('/api/system-settings', require('./routes/systemSettingsRoutes'));
 app.use('/api/revenue', require('./routes/revenueRoutes'));
 app.use('/api/backup', require('./routes/backupRoutes'));
 app.use('/api/tickets', require('./routes/supportTicketRoutes'));
+app.use('/api/public', require('./routes/publicRoutes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');

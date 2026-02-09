@@ -14,6 +14,12 @@ const customerSchema = new mongoose.Schema(
       ref: 'Member',
       default: null,
     },
+    trustRating: {
+      type: Number,
+      default: 5.0,
+      min: 0,
+      max: 10,
+    },
   },
   { timestamps: true },
 );

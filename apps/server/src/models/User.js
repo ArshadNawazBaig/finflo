@@ -44,6 +44,12 @@ const userSchema = new mongoose.Schema(
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    customerPortalPin: {
+      type: String,
+      default: null,
+      minlength: 6,
+      maxlength: 6,
+    },
   },
   { timestamps: true },
 );

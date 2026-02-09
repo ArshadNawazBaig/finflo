@@ -15,6 +15,8 @@ import {
   Smartphone,
   X,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -299,6 +301,7 @@ const Settings = () => {
                     Change Password
                   </Button>
                 </div>
+                <CustomerPortalPIN />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <LogOut size={18} className="text-muted-foreground" />
@@ -531,6 +534,108 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         </form>
       </DialogContent>
     </Dialog>
+  );
+};
+
+// Customer Portal PIN Component
+const CustomerPortalPIN = () => {
+  const [pin, setPin] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+
+  useEffect(() => {
+    fetchPin();
+  }, []);
+
+  const fetchPin = async () => {
+    try {
+      const { data } = await api.get('/auth/customer-portal-pin');
+      setPin(data.pin);
+    } catch (error) {
+      console.error('Failed to fetch PIN:', error);
+    }
+  };
+
+  const generatePin = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.post('/auth/customer-portal-pin');
+      setPin(data.pin);
+      toast.success('Customer portal PIN generated successfully');
+    } catch (error) {
+      toast.error('Failed to generate PIN');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyPin = () => {
+    if (pin) {
+      navigator.clipboard.writeText(pin);
+      toast.success('PIN copied to clipboard');
+    }
+  };
+
+  return (
+    <div className="pb-4 border-b border-border/50">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <Lock size={18} className="text-muted-foreground" />
+          <div>
+            <p className="font-medium text-sm">Customer Portal PIN</p>
+            <p className="text-xs text-muted-foreground">
+              6-digit PIN for customers to view their loans
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={generatePin}
+          disabled={loading}
+        >
+          {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+          {pin ? 'Regenerate' : 'Generate'} PIN
+        </Button>
+      </div>
+
+      {pin && (
+        <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Current PIN:
+              </span>
+              <code className="px-3 py-1.5 rounded-md bg-background border border-border font-mono text-lg font-bold tracking-widest">
+                {showPin ? pin : '••••••'}
+              </code>
+              <button
+                onClick={() => setShowPin(!showPin)}
+                className="p-1.5 hover:bg-background rounded-md transition-colors"
+              >
+                {showPin ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+            <button
+              onClick={copyPin}
+              className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Share this PIN with your customers to access the{' '}
+            <a
+              href="/loan-lookup"
+              target="_blank"
+              className="text-primary hover:underline"
+            >
+              loan lookup portal
+            </a>
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 

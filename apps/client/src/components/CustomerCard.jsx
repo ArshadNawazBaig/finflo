@@ -27,20 +27,26 @@ const CustomerCard = ({ customer, onEdit, onDelete }) => {
             >
               {capitalize(customer.name)}
             </Link>
-            <span className="text-[10px] text-muted-foreground/60 font-medium">
+            <span className="text-[10px] text-muted-foreground/60 font-medium whitespace-nowrap">
               ID: {customer._id.slice(-6).toUpperCase()}
             </span>
           </div>
         </div>
-        <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-            customer.status?.toLowerCase() === 'active'
-              ? 'bg-emerald-500/10 text-emerald-600'
-              : 'bg-destructive/10 text-destructive'
-          }`}
-        >
-          {customer.status || 'Inactive'}
-        </span>
+        <div className="flex flex-col items-end gap-1.5">
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+              customer.status?.toLowerCase() === 'active'
+                ? 'bg-emerald-500/10 text-emerald-600'
+                : 'bg-destructive/10 text-destructive'
+            }`}
+          >
+            {customer.status || 'Inactive'}
+          </span>
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20 shadow-sm">
+            <span className="text-amber-500">★</span>
+            <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3 mb-5">

@@ -58,6 +58,15 @@ const CustomerTable = ({
                   {renderSortIcon('status')}
                 </div>
               </th>
+              <th
+                className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onSort('trustRating')}
+              >
+                <div className="flex items-center gap-1">
+                  Trust Rating
+                  {renderSortIcon('trustRating')}
+                </div>
+              </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap">
                 Actions
               </th>
@@ -119,6 +128,12 @@ const CustomerTable = ({
                       ? 'Active'
                       : 'Inactive'}
                   </span>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20 w-fit">
+                    <span className="text-amber-500">★</span>
+                    <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
+                  </div>
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex items-center justify-end gap-1">

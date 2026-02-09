@@ -166,7 +166,7 @@ const getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id).populate(
       'customer',
-      'name email',
+      'name email phone trustRating',
     );
     if (loan && loan.user.toString() === req.user._id.toString()) {
       res.json(loan);
@@ -203,6 +203,7 @@ const addRepayment = async (req, res) => {
     await repayment.save();
 
     // Update loan stats
+    const repaymentsCount = await Repayment.countDocuments({ loan: loanId });
     loan.paidAmount += Number(amount);
     loan.remainingAmount = Math.max(0, loan.totalAmount - loan.paidAmount);
 
@@ -211,6 +212,41 @@ const addRepayment = async (req, res) => {
     }
 
     await loan.save();
+
+    // Update Customer Trust Rating
+    try {
+      const customer = await Customer.findById(loan.customer);
+      if (customer) {
+        // Calculate how many installments this payment covers
+        const installmentsCovered = Math.floor(Number(amount) / loan.emi);
+        const previouslyPaidInstallments = Math.floor(
+          (loan.paidAmount - Number(amount)) / loan.emi,
+        );
+
+        // Apply rating adjustment for each installment covered
+        let totalRatingAdjustment = 0;
+        const paymentDate = new Date(date || new Date());
+
+        for (let i = 0; i < installmentsCovered; i++) {
+          const installmentNumber = previouslyPaidInstallments + i + 1;
+          const dueDate = new Date(loan.startDate);
+          dueDate.setMonth(dueDate.getMonth() + installmentNumber);
+
+          const isOnTime = paymentDate <= dueDate;
+          totalRatingAdjustment += isOnTime ? 0.2 : -0.5;
+        }
+
+        customer.trustRating = Math.min(
+          10,
+          Math.max(0, (customer.trustRating || 5) + totalRatingAdjustment),
+        );
+
+        await customer.save();
+      }
+    } catch (ratingError) {
+      console.error('Error updating trust rating:', ratingError);
+      // Don't fail the repayment if rating update fails
+    }
 
     res.status(201).json(repayment);
   } catch (error) {
@@ -319,10 +355,17 @@ const updateLoan = async (req, res) => {
 
 const getUpcomingRepayments = async (req, res) => {
   try {
-    const loans = await Loan.find({
+    const { loanId } = req.query;
+    const query = {
       user: req.user._id,
       status: 'active',
-    }).populate('customer', 'name');
+    };
+
+    if (loanId) {
+      query._id = loanId;
+    }
+
+    const loans = await Loan.find(query).populate('customer', 'name');
 
     const upcoming = [];
     const today = new Date();
@@ -337,26 +380,57 @@ const getUpcomingRepayments = async (req, res) => {
         loan: loan._id,
       });
 
-      // Project all due dates
+      const unpaidInstallments = [];
       for (let i = 1; i <= loan.duration; i++) {
-        const dueDate = new Date(loan.startDate);
-        dueDate.setMonth(dueDate.getMonth() + i);
-
-        // If this installment index is greater than the total repayments made, it's unpaid
         if (i > repaymentsCount) {
-          // Only return if it's within our window (overdue or within next 90 days)
-          if (dueDate <= ninetyDaysAhead) {
+          const dueDate = new Date(loan.startDate);
+          dueDate.setMonth(dueDate.getMonth() + i);
+
+          unpaidInstallments.push({
+            installment: i,
+            dueDate: dueDate,
+            isOverdue: dueDate < today,
+          });
+        }
+      }
+
+      const overdue = unpaidInstallments.filter((inst) => inst.isOverdue);
+      const remaining = unpaidInstallments.filter((inst) => !inst.isOverdue);
+
+      const overdueAmount = overdue.length * loan.emi;
+      const redistributionAmount =
+        remaining.length > 0 ? overdueAmount / remaining.length : 0;
+
+      // If we have remaining installments, redistribute overdue amounts to them
+      if (remaining.length > 0) {
+        remaining.forEach((inst) => {
+          if (inst.dueDate <= ninetyDaysAhead) {
             upcoming.push({
-              _id: `${loan._id}-${i}`,
+              _id: `${loan._id}-${inst.installment}`,
+              loanId: loan._id,
+              customer: loan.customer,
+              amount: loan.emi + redistributionAmount,
+              dueDate: inst.dueDate,
+              installment: inst.installment,
+              isOverdue: false,
+            });
+          }
+        });
+      } else {
+        // If no future installments left, keep overdue as is
+        overdue.forEach((inst) => {
+          if (inst.dueDate <= ninetyDaysAhead) {
+            upcoming.push({
+              _id: `${loan._id}-${inst.installment}`,
               loanId: loan._id,
               customer: loan.customer,
               amount: loan.emi,
-              dueDate: dueDate,
-              installment: i,
-              isOverdue: dueDate < today,
+              dueDate: inst.dueDate,
+              installment: inst.installment,
+              isOverdue: true,
             });
           }
-        }
+        });
       }
     }
 

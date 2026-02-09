@@ -143,6 +143,10 @@ const CustomerProfile = () => {
                   Member
                 </span>
               )}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
+                <span className="text-amber-500">★</span>
+                <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
               <div className="flex items-center gap-1.5 text-sm font-medium">

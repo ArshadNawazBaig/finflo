@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { formatPKR } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
+import Tooltip from '@/components/ui/Tooltip';
 
 const RepaymentCalendar = ({ upcomingPayments = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -148,7 +149,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
 
       {/* Details Side-pane */}
       <div className="w-full lg:w-80 flex flex-col gap-6">
-        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-4 sm:p-6 shadow-sm flex flex-col max-h-[674px]">
+        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-4 sm:p-6 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h4 className="font-black text-sm tracking-tight capitalize">
@@ -163,7 +164,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto space-y-4">
+          <div className="flex-1 space-y-4 py-8 -my-8 px-1">
             {selectedPayments.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
                 <AlertCircle size={32} className="mb-3 text-muted-foreground" />
@@ -192,38 +193,42 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                     </p>
                   </div>
                   <h5 className="font-bold text-sm mb-1">{p.customer?.name}</h5>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] text-muted-foreground font-medium">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-[10px] text-muted-foreground font-medium truncate">
                       Loan Settlement
                     </p>
-                    <a
-                      href={generateWhatsAppLink(
-                        p.customer?.phone || '',
-                        p.customer?.name || '',
-                        p.amount,
-                        p.dueDate,
-                        p.isOverdue,
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
-                      title="Send WhatsApp Reminder"
-                    >
-                      <MessageSquare size={16} />
-                    </a>
-                    <a
-                      href={generateEmailLink(
-                        p.customer?.email || '',
-                        p.customer?.name || '',
-                        p.amount,
-                        p.dueDate,
-                        p.isOverdue,
-                      )}
-                      className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
-                      title="Send Email Reminder"
-                    >
-                      <Mail size={16} />
-                    </a>
+                    <div className="flex items-center gap-1">
+                      <Tooltip content="Send WhatsApp Reminder" position="top">
+                        <a
+                          href={generateWhatsAppLink(
+                            p.customer?.phone || '',
+                            p.customer?.name || '',
+                            p.amount,
+                            p.dueDate,
+                            p.isOverdue,
+                          )}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
+                        >
+                          <MessageSquare size={16} />
+                        </a>
+                      </Tooltip>
+                      <Tooltip content="Send Email Reminder" position="top">
+                        <a
+                          href={generateEmailLink(
+                            p.customer?.email || '',
+                            p.customer?.name || '',
+                            p.amount,
+                            p.dueDate,
+                            p.isOverdue,
+                          )}
+                          className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
+                        >
+                          <Mail size={16} />
+                        </a>
+                      </Tooltip>
+                    </div>
                   </div>
                 </div>
               ))

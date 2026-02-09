@@ -779,6 +779,7 @@ const Landing = () => {
             {
               title: 'Support',
               items: [
+                'Loan Lookup Portal',
                 'Technical Logs',
                 'Integration Wiki',
                 'Network Status',
@@ -795,6 +796,7 @@ const Landing = () => {
                   const linkMap = {
                     'Global Policy': '/privacy',
                     'Terms of Service': '/terms',
+                    'Loan Lookup Portal': '/loan-lookup',
                   };
                   const path = linkMap[item];
 

@@ -29,6 +29,7 @@ const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const Support = lazy(() => import('@/pages/Support'));
+const LoanLookup = lazy(() => import('@/pages/LoanLookup'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
 const LoanDetail = lazy(() => import('@/pages/LoanDetail'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPage'));
@@ -69,6 +70,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/loan-lookup" element={<LoanLookup />} />
 
           {/* Regular Admin Routes */}
           <Route element={<RequireAuth />}>

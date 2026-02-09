@@ -35,6 +35,8 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import RepaymentCalendar from '@/components/RepaymentCalendar';
+
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     <div className="h-40 bg-card/30 rounded-[2.5rem] border border-border/50" />
@@ -60,6 +62,8 @@ const LoanDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [upcomingPayments, setUpcomingPayments] = useState([]);
+  const [paidInstallmentsCount, setPaidInstallmentsCount] = useState(0);
 
   // Pagination State
   const [repaymentPage, setRepaymentPage] = useState(1);
@@ -89,6 +93,14 @@ const LoanDetail = () => {
 
       const repaymentsRes = await api.get(`/repayments?loanId=${id}`);
       const allRepayments = repaymentsRes.data.data || [];
+
+      // Calculate actual installments paid based on amount, not just record count
+      const actualInstallmentsPaid = Math.min(
+        Math.floor(loanRes.data.paidAmount / loanRes.data.emi),
+        loanRes.data.duration,
+      );
+      setPaidInstallmentsCount(actualInstallmentsPaid);
+
       if (isMobile) {
         setRepayments(allRepayments.slice(0, itemsPerPage));
         setHasMoreRepayments(allRepayments.length > itemsPerPage);
@@ -112,6 +124,10 @@ const LoanDetail = () => {
           setInvestments(allInvestments);
         }
       }
+
+      const upcomingRes = await api.get(`/loans/upcoming?loanId=${id}`);
+      setUpcomingPayments(upcomingRes.data);
+
       setRepaymentPage(1);
       setInvestmentPage(1);
     } catch (error) {
@@ -443,7 +459,14 @@ const LoanDetail = () => {
                 <User size={14} className="text-primary" />
                 {loan.customer?.name}
               </div>
-              <div className="w-1 h-1 bg-border rounded-full" />
+              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
+                <span className="text-amber-500">★</span>
+                <span>
+                  {(loan.customer?.trustRating || 5).toFixed(1)}/10 Trust
+                </span>
+              </div>
+              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
               <div className="flex items-center gap-1.5 text-sm font-medium">
                 <Calendar size={14} className="text-primary" />
                 Issued {new Date(loan.startDate).toLocaleDateString()}
@@ -507,12 +530,27 @@ const LoanDetail = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-4">
         <StatsCard
           title="Total Repayable"
           amount={formatPKR(loan.totalAmount)}
           icon={<DollarSign size={18} />}
           color="bg-primary/10 text-primary border-primary/20"
+          isGlass
+        />
+        <StatsCard
+          title="Monthly Installment"
+          amount={formatPKR(
+            loan.remainingAmount <= 0 || loan.status === 'completed'
+              ? 0
+              : paidInstallmentsCount < loan.duration
+                ? loan.remainingAmount / (loan.duration - paidInstallmentsCount)
+                : loan.emi,
+          )}
+          icon={<Zap size={18} />}
+          color="bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
+          badge={`${paidInstallmentsCount}/${loan.duration}`}
+          badgeTooltip={`${paidInstallmentsCount} Installments Paid`}
           isGlass
         />
         <StatsCard
@@ -529,6 +567,11 @@ const LoanDetail = () => {
           color="bg-red-500/10 text-red-600 border-red-500/20"
           isGlass
         />
+      </div>
+
+      {/* Calendar Section */}
+      <div className="w-full">
+        <RepaymentCalendar upcomingPayments={upcomingPayments} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
