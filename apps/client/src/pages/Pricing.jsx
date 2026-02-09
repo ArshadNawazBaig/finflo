@@ -50,7 +50,10 @@ const Pricing = () => {
       }
     } catch (error) {
       console.error('Failed to update plan', error);
-      toast.error('Failed to initiate subscription update');
+      const message =
+        error.response?.data?.message ||
+        'Failed to initiate subscription update';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

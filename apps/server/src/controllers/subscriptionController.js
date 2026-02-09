@@ -18,10 +18,17 @@ const createCheckoutSession = async (req, res) => {
       return res.status(400).json({ message: 'Invalid plan selected' });
     }
 
+    console.log(`Initiating checkout for plan: ${plan}, Price ID: ${priceId}`);
+
     if (!priceId) {
+      console.error(
+        `Price ID for plan "${plan}" is not defined in environment variables.`,
+      );
       return res
         .status(500)
-        .json({ message: 'Price ID not configured in server' });
+        .json({
+          message: `Price ID for ${plan} is not configured on the server.`,
+        });
     }
 
     // Create customer if not exists
@@ -55,8 +62,16 @@ const createCheckoutSession = async (req, res) => {
 
     res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    console.error('Checkout Session Error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Checkout Session Error Detail:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      param: error.param,
+    });
+    res.status(500).json({
+      message: 'Failed to initiate checkout session',
+      error: error.message,
+    });
   }
 };
 
