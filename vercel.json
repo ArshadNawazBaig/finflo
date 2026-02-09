@@ -18,11 +18,11 @@
     },
     {
       "src": "/assets/(.*)",
-      "dest": "apps/client/assets/$1"
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "apps/client/index.html"
+      "dest": "/index.html"
     }
   ]
 }
