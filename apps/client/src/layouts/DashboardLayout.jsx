@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
+import MobileBottomNav from '@/components/MobileBottomNav';
 
 const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -57,12 +59,20 @@ const DashboardLayout = () => {
           onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
           isSidebarExpanded={isSidebarExpanded}
         />
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 w-full">
+        <div
+          className={cn(
+            'flex-1 overflow-y-auto p-4 md:p-8 w-full transition-all duration-500',
+            isMobile ? 'pb-32' : '',
+          )}
+        >
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </div>
       </div>
+
+      {/* Mobile-First Navigation */}
+      <MobileBottomNav />
     </div>
   );
 };
