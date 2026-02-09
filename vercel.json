@@ -14,16 +14,12 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "api/index.js"
     },
+    { "handle": "filesystem" },
     {
       "src": "/(.*)",
-      "dest": "/apps/client/$1",
-      "continue": true
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/apps/client/index.html"
+      "dest": "/index.html"
     }
   ]
 }
