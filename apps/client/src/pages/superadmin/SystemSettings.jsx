@@ -138,10 +138,11 @@ const SystemSettings = () => {
             <RotateCcw size={14} className="stroke-[3]" />
             Reset Defaults
           </button>
-          <button
+          <Button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2.5 bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-8 h-11 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="gradient"
+            className="px-8 h-11 rounded-full text-[11px] font-black uppercase tracking-widest"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -149,7 +150,7 @@ const SystemSettings = () => {
               <Save size={14} className="stroke-[3]" />
             )}
             {saving ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </PageHeader>
 

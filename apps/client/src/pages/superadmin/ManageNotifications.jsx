@@ -131,13 +131,14 @@ const ManageNotifications = () => {
           <span className="px-4 py-2 rounded-full bg-muted text-sm font-bold">
             {pagination.total} Total Sent
           </span>
-          <button
+          <Button
             onClick={() => setIsNotificationModalOpen(true)}
-            className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full sm:w-auto"
+            variant="gradient"
+            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
           >
             <Send className="w-4 h-4" />
             Send New
-          </button>
+          </Button>
         </div>
       </PageHeader>
 

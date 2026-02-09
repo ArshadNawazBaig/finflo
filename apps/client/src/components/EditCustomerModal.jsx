@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -150,13 +151,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110 px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
+              variant="gradient"
+              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading ? 'Updating...' : 'Save Changes'}
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

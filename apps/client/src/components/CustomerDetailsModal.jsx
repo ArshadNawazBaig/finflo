@@ -10,6 +10,7 @@ import { formatPKR } from '@/lib/utils';
 import { Mail, Phone, MapPin, DollarSign, UserPlus } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
   const [loans, setLoans] = useState([]);
@@ -212,13 +213,14 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
 
           {/* Make Member Section */}
           {!customer.isMember && !showMemberForm && (
-            <button
+            <Button
               onClick={() => setShowMemberForm(true)}
-              className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110 px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-300 active:scale-95"
+              variant="gradient"
+              className="w-full px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em]"
             >
               <UserPlus className="w-4 h-4" />
               Upgrade to Member
-            </button>
+            </Button>
           )}
 
           {showMemberForm && (
@@ -278,12 +280,13 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                 >
                   Cancel
                 </button>
-                <button
+                <Button
                   type="submit"
-                  className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+                  variant="gradient"
+                  className="px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest"
                 >
                   Confirm Membership
-                </button>
+                </Button>
               </div>
             </form>
           )}

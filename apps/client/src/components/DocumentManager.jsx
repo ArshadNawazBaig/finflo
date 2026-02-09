@@ -73,7 +73,7 @@ const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
             disabled={uploading}
             accept=".pdf,.jpg,.jpeg,.png"
           />
-          <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95 disabled:opacity-50">
+          <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 disabled:opacity-50">
             {uploading ? (
               <Loader2 size={14} className="animate-spin" />
             ) : (

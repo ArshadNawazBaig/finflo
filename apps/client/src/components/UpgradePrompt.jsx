@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
   const getUpgradeMessage = () => {
@@ -84,14 +85,16 @@ const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
               </strong>{' '}
               to continue adding more {feature || 'resources'}.
             </p>
-            <Link
-              to="/pricing"
-              onClick={onClose}
-              className="w-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-3 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+            <Button
+              variant="gradient"
+              asChild
+              className="w-full px-6 py-3 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest"
             >
-              View Pricing Plans
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+              <Link to="/pricing" onClick={onClose}>
+                View Pricing Plans
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
             <button
               onClick={onClose}
               className="w-full border border-border bg-background hover:bg-muted px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300"

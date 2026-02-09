@@ -194,16 +194,17 @@ const BackupExport = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <button
+                  <Button
                     onClick={() => handleExport(card.type, card.label)}
                     disabled={exporting[card.type]}
-                    className="w-full h-11 flex items-center justify-center gap-2.5 rounded-full font-black text-[11px] uppercase tracking-widest bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 hover:brightness-110 transition-all duration-300 active:scale-95 disabled:opacity-50"
+                    variant="success"
+                    className="w-full h-11 rounded-full text-[11px] font-black uppercase tracking-widest"
                   >
                     <Download size={16} />
                     {exporting[card.type]
                       ? 'Processing...'
                       : `Download ${format.toUpperCase()}`}
-                  </button>
+                  </Button>
                 </CardContent>
               </Card>
             );
@@ -241,16 +242,17 @@ const BackupExport = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <button
+                  <Button
                     onClick={() => handleExport(card.type, card.label)}
                     disabled={exporting[card.type]}
-                    className="w-full h-10 flex items-center justify-center gap-2.5 rounded-full font-black text-[10px] uppercase tracking-widest bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 transition-all duration-300 active:scale-95 disabled:opacity-50"
+                    variant="gradient"
+                    className="w-full h-10 rounded-full text-[10px] font-black uppercase tracking-widest"
                   >
                     <Download size={14} />
                     {exporting[card.type]
                       ? 'Exporting...'
                       : format.toUpperCase()}
-                  </button>
+                  </Button>
                 </CardContent>
               </Card>
             );

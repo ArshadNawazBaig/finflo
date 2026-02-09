@@ -24,6 +24,7 @@ import {
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
@@ -326,7 +327,7 @@ const LoanDetail = () => {
                 new Date(),
                 false,
               )}
-              className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-white transition-all active:scale-95"
+              className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
             >
               <Mail size={20} />
             </a>
@@ -343,13 +344,14 @@ const LoanDetail = () => {
               />
             </button>
           </Tooltip>
-          <button
+          <Button
             onClick={() => navigate(`/customers/${loan.customer?._id}`)}
-            className="px-6 py-3 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2"
+            variant="gradient"
+            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
           >
             <Activity className="w-3.5 h-3.5" />
             Full Profile
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -647,9 +649,12 @@ const LoanDetail = () => {
                 </div>
 
                 {netBalance >= loan.remainingAmount && (
-                  <button className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all">
+                  <Button
+                    variant="success"
+                    className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]"
+                  >
                     Execute Internal Settlement
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

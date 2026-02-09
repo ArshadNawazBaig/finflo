@@ -168,10 +168,11 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-8 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
+              variant="gradient"
+              className="px-8 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -179,7 +180,7 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
                 <Send className="w-4 h-4 mr-2" />
               )}
               Send Notification
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

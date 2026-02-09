@@ -20,6 +20,7 @@ import {
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const [investments, setInvestments] = useState([]);
@@ -206,12 +207,13 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         >
                           Cancel
                         </button>
-                        <button
+                        <Button
                           type="submit"
-                          className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                          variant="gradient"
+                          className="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest"
                         >
                           Update Rate
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   )}
@@ -221,26 +223,28 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                 <div className="space-y-3">
                   {!showInvestmentForm ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <button
+                      <Button
                         onClick={() => {
                           setInvestmentType('deposit');
                           setShowInvestmentForm(true);
                         }}
-                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 hover:brightness-110 px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 transition-all duration-300 active:scale-95"
+                        variant="success"
+                        className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
                       >
                         <ArrowUpCircle className="w-5 h-5 mb-1" />
                         Deposit Funds
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => {
                           setInvestmentType('withdrawal');
                           setShowInvestmentForm(true);
                         }}
-                        className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 transition-all duration-300 active:scale-95"
+                        variant="gradient"
+                        className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
                       >
                         <ArrowDownCircle className="w-5 h-5 mb-1" />
                         Withdraw Funds
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <form
@@ -302,12 +306,17 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                         >
                           Cancel
                         </button>
-                        <button
+                        <Button
                           type="submit"
-                          className={`shadow-xl px-10 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${investmentType === 'deposit' ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-indigo-600 text-white shadow-indigo-500/20'}`}
+                          variant={
+                            investmentType === 'deposit'
+                              ? 'success'
+                              : 'gradient'
+                          }
+                          className="px-10 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
                         >
                           Process Transaction
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   )}

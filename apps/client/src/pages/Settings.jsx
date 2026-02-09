@@ -414,14 +414,15 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md hover:shadow-lg hover:brightness-110 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+              variant="gradient"
+              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Save Changes
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -517,14 +518,15 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md hover:shadow-lg hover:brightness-110 px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+              variant="gradient"
+              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Update Password
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

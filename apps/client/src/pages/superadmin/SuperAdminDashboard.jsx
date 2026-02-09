@@ -96,7 +96,7 @@ const SuperAdminDashboard = () => {
   const getPlanColor = (plan) => {
     switch (plan) {
       case 'Pro':
-        return 'bg-gradient-to-r from-primary to-indigo-600 text-white';
+        return 'btn-gradient text-white';
       case 'Basic':
         return 'bg-indigo-500/10 text-indigo-600';
       default:
@@ -141,13 +141,14 @@ const SuperAdminDashboard = () => {
           title="Platform Overview"
           description="Welcome back, Super Admin. Here's a real-time summary of the platform."
         />
-        <button
+        <Button
           onClick={() => setIsNotificationModalOpen(true)}
-          className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-8 py-4 rounded-full flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full md:w-auto"
+          variant="gradient"
+          className="px-8 py-4 rounded-full flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest w-full md:w-auto"
         >
           <Send className="w-4 h-4" />
           Global Notification
-        </button>
+        </Button>
       </div>
 
       {/* Stats Cards */}

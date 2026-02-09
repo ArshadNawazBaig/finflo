@@ -27,6 +27,7 @@ import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const CustomerProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -187,13 +188,14 @@ const CustomerProfile = () => {
             Issue Loan
           </button>
           {!customer.isMember && (
-            <button
+            <Button
               onClick={() => setShowMemberForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2"
+              variant="gradient"
+              className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
             >
               <UserPlus className="w-3.5 h-3.5" />
               Upgrade to Member
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -294,12 +296,13 @@ const CustomerProfile = () => {
                   >
                     Cancel
                   </button>
-                  <button
+                  <Button
                     type="submit"
-                    className="px-12 py-4 bg-primary text-white shadow-xl shadow-primary/20 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+                    variant="gradient"
+                    className="px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest"
                   >
                     Confirm Membership
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

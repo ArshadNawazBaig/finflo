@@ -25,6 +25,7 @@ import {
 } from 'recharts';
 import api from '@/lib/axios';
 import { formatPKR, formatCompactValue } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const Reports = () => {
   const [data, setData] = useState({
@@ -95,13 +96,14 @@ const Reports = () => {
         title="Insight & Analytics"
         description="Deep dive into your lending performance and trends."
       >
-        <button
+        <Button
           onClick={handleExport}
-          className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md hover:shadow-lg hover:brightness-110 px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full sm:w-auto"
+          variant="gradient"
+          className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
         >
           <Download size={16} strokeWidth={3} />
           Export Insights
-        </button>
+        </Button>
       </PageHeader>
 
       {loading ? (

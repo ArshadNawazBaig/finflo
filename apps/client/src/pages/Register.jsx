@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, UserPlus, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -137,12 +138,11 @@ const Register = () => {
               </div>
             </div>
 
-            <button
+            <Button
+              type="submit"
               disabled={loading}
-              className={cn(
-                'relative h-12 w-full inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 font-black text-[11px] uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none overflow-hidden group',
-                !loading && 'hover:brightness-110',
-              )}
+              variant="gradient"
+              className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group"
             >
               <span
                 className={cn(
@@ -158,7 +158,7 @@ const Register = () => {
                   <Loader2 className="w-5 h-5 animate-spin" />
                 </div>
               )}
-            </button>
+            </Button>
 
             <div className="text-center pt-4">
               <p className="text-sm text-muted-foreground font-medium">

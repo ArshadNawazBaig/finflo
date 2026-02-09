@@ -242,7 +242,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                   )}
                 </p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 font-black text-xs">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 font-black text-xs">
                 {selectedPayments.length}
               </div>
             </div>

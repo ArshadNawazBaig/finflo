@@ -32,6 +32,12 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
+    --btn-gradient-from: 226.2 75.3% 64.5%; /* indigo-500 */
+    --btn-gradient-to: 221.2 83.2% 53.3%; /* primary */
+
+    --btn-success-gradient-from: 142.1 70.6% 45.3%; /* emerald-500 */
+    --btn-success-gradient-to: 142.1 76.2% 36.3%; /* emerald-600 */
+
     --radius: 0.75rem;
   }
 
@@ -63,6 +69,13 @@
     --border: 216 34% 17%;
     --input: 216 34% 17%;
     --ring: 212.7 26.8% 83.9%;
+
+    --btn-gradient-from: 189 94% 43%; /* cyan-400 - more vibrant */
+    --btn-gradient-to: 221.2 83.2% 53.3%; /* primary blue */
+
+    --btn-success-gradient-from: 142.1 70.6% 45.3%; /* emerald-500 */
+    --btn-success-gradient-to: 142.1 70.6% 45.3%; /* emerald-500 - more vibrant */
+    --btn-gradient-to: 221.2 83.2% 53.3%; /* primary blue */
   }
 }
 
@@ -88,6 +101,20 @@
   }
   .glass-dark {
     @apply bg-black/50 backdrop-blur-md border border-white/10;
+  }
+  .btn-gradient {
+    background: linear-gradient(
+      to right,
+      hsl(var(--btn-gradient-from)),
+      hsl(var(--btn-gradient-to))
+    );
+  }
+  .btn-success-gradient {
+    background: linear-gradient(
+      to right,
+      hsl(var(--btn-success-gradient-from)),
+      hsl(var(--btn-success-gradient-to))
+    );
   }
 }
 

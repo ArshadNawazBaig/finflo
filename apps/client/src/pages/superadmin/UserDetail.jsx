@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -236,12 +237,13 @@ const UserDetail = () => {
 
         <div className="flex items-center gap-3 relative z-10">
           {!editing ? (
-            <button
+            <Button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+              variant="gradient"
+              className="px-8 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               <Edit size={14} /> Edit User
-            </button>
+            </Button>
           ) : (
             <>
               <button
@@ -250,12 +252,13 @@ const UserDetail = () => {
               >
                 <X size={14} /> Cancel
               </button>
-              <button
+              <Button
                 onClick={handleSave}
-                className="flex items-center gap-2.5 px-10 py-3.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 hover:brightness-110 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+                variant="success"
+                className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
               >
                 <Save size={14} /> Save Changes
-              </button>
+              </Button>
             </>
           )}
         </div>

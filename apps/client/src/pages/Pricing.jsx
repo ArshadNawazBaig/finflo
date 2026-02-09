@@ -6,6 +6,7 @@ import PricingSkeleton from '@/components/PricingSkeleton';
 import ContactModal from '@/components/ContactModal';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const Pricing = () => {
   const [loading, setLoading] = useState(true);
@@ -109,8 +110,7 @@ const Pricing = () => {
       ],
       icon: <Crown className="w-5 h-5 text-primary" />,
       buttonText: 'Upgrade to Pro',
-      buttonClass:
-        'bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 font-black uppercase tracking-widest text-[11px]',
+      buttonClass: 'variant-gradient', // Custom marker to identify gradient variant
       highlight: true,
       badge: 'Most Popular',
     },
@@ -179,17 +179,20 @@ const Pricing = () => {
                   ))}
                 </ul>
 
-                <button
+                <Button
                   onClick={() => handleUpdatePlan(plan.name)}
                   disabled={loading || currentPlan === plan.name}
-                  className={`w-full py-4 rounded-full font-black uppercase tracking-widest text-[11px] transition-all duration-300 active:scale-95 ${
-                    currentPlan === plan.name
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-70'
-                      : plan.buttonClass
+                  variant={
+                    plan.buttonClass === 'variant-gradient'
+                      ? 'gradient'
+                      : 'outline'
+                  }
+                  className={`w-full py-4 rounded-full font-black uppercase tracking-widest text-[11px] ${
+                    currentPlan === plan.name ? 'opacity-70' : ''
                   }`}
                 >
                   {currentPlan === plan.name ? 'Current Plan' : plan.buttonText}
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -211,12 +214,13 @@ const Pricing = () => {
               >
                 View Documentation
               </a>
-              <button
+              <Button
                 onClick={() => setShowContactModal(true)}
-                className="px-8 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all"
+                variant="gradient"
+                className="px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest"
               >
                 Schedule a Strategy Call
-              </button>
+              </Button>
             </div>
           </div>
 

@@ -20,6 +20,7 @@ import EditLoanModal from '@/components/EditLoanModal';
 import TableSkeleton from '@/components/TableSkeleton';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -90,13 +91,14 @@ const Loans = () => {
         title="Loans"
         description="Monitor active loans and track repayment status."
       >
-        <button
+        <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md hover:shadow-lg hover:brightness-110 px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full sm:w-auto"
+          variant="gradient"
+          className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
         >
           <Plus size={16} strokeWidth={3} />
           New Loan
-        </button>
+        </Button>
       </PageHeader>
 
       <div className="relative w-full sm:max-w-sm">

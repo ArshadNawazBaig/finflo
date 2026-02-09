@@ -419,17 +419,18 @@ const ManageTickets = () => {
                     />
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={sendingReply || !reply.trim()}
-                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 flex items-center justify-center p-0"
+                    variant="gradient"
+                    className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center p-0"
                   >
                     {sendingReply ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <Send className="w-4 h-4" />
                     )}
-                  </button>
+                  </Button>
                 </form>
                 <div className="text-center mt-2">
                   <span className="text-[10px] text-muted-foreground font-medium opacity-60">

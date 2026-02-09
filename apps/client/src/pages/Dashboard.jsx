@@ -13,6 +13,7 @@ import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/CardsSkeleton';
 import ChartSkeleton from '@/components/ChartSkeleton';
 import CalendarSkeleton from '@/components/CalendarSkeleton';
+import { Button } from '@/components/ui/button';
 // import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Unused
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
@@ -98,12 +99,13 @@ const Dashboard = () => {
                         />
                       </div>
                     </div>
-                    <button
+                    <Button
                       onClick={() => navigate('/pricing')}
-                      className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 whitespace-nowrap"
+                      variant="gradient"
+                      className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
                     >
                       Upgrade Now
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

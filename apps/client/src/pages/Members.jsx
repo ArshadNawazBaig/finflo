@@ -16,6 +16,7 @@ import MemberTable from '@/components/MemberTable';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatPKR } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -98,13 +99,14 @@ const Members = () => {
         title="Members"
         description="Manage investors and track their investments and profits."
         action={
-          <button
+          <Button
             onClick={handleAddMember}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white text-[11px] font-black uppercase tracking-wider rounded-full hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+            variant="gradient"
+            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider w-full sm:w-auto"
           >
             <Plus size={16} />
             Add Member
-          </button>
+          </Button>
         }
       />
 

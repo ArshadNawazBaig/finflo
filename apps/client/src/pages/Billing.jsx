@@ -132,12 +132,13 @@ const Billing = () => {
                       .
                     </p>
                   </div>
-                  <button
+                  <Button
                     onClick={handleManageSubscription}
-                    className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-2.5 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+                    variant="gradient"
+                    className="px-6 py-2.5 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest"
                   >
                     Manage Subscription
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-border/50">

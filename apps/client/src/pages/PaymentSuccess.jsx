@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Button } from '@/components/ui/button';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -58,13 +59,16 @@ const PaymentSuccess = () => {
         </div>
 
         <div className="pt-6">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-primary text-white px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:scale-105 transition-all"
+          <Button
+            asChild
+            variant="gradient"
+            className="px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px]"
           >
-            Go to Dashboard
-            <ArrowRight className="w-3 h-3" />
-          </Link>
+            <Link to="/dashboard">
+              Go to Dashboard
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </Button>
         </div>
 
         {sessionId && (

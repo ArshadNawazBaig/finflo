@@ -8,6 +8,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
+import { Button } from '@/components/ui/button';
 
 const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -134,10 +135,11 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110 px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+              variant="gradient"
+              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
             >
               {loading ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -145,7 +147,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                 <UserPlus size={16} />
               )}
               Register Customer
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

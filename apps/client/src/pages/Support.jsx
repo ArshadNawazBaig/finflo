@@ -165,7 +165,8 @@ const Support = () => {
         >
           <Button
             onClick={() => setShowNewTicketModal(true)}
-            className="bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md hover:shadow-lg hover:brightness-110 px-6 py-2.5 rounded-full flex items-center gap-2.5 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+            variant="gradient"
+            className="px-6 py-2.5 rounded-full flex items-center gap-2.5 text-[11px] font-black uppercase tracking-widest"
           >
             <Plus size={16} strokeWidth={3} />
             New Ticket
@@ -390,7 +391,8 @@ const Support = () => {
                     <Button
                       type="submit"
                       disabled={sendingReply || !reply.trim()}
-                      className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-r from-primary to-indigo-600 text-white shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center p-0"
+                      variant="gradient"
+                      className="h-10 w-10 shrink-0 rounded-xl p-0 flex items-center justify-center"
                     >
                       {sendingReply ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -533,7 +535,8 @@ const Support = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all duration-300 active:scale-95"
+                  variant="gradient"
+                  className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
                 >
                   Submit Ticket
                 </Button>

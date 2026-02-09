@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
   const [formData, setFormData] = useState({
@@ -270,10 +271,11 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all duration-300 active:scale-95 disabled:opacity-50"
+              variant="gradient"
+              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
             >
               {loading ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -281,7 +283,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 <PlusCircle size={16} />
               )}
               Create Loan Agreement
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>

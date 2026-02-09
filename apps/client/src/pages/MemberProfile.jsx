@@ -28,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -441,16 +442,17 @@ const MemberProfile = () => {
             <Zap className="w-3.5 h-3.5" />
             Adjust Rates
           </button>
-          <button
+          <Button
             onClick={() => {
               setInvestmentType('deposit');
               setShowInvestmentForm(true);
             }}
-            className="px-6 py-3 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2"
+            variant="gradient"
+            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
           >
             <ArrowUpCircle className="w-3.5 h-3.5" />
             Transfer Funds
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -537,12 +539,13 @@ const MemberProfile = () => {
                     >
                       Cancel
                     </button>
-                    <button
+                    <Button
                       type="submit"
-                      className="flex-1 bg-primary text-white shadow-xl shadow-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                      variant="gradient"
+                      className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
                       Apply Rate
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -743,7 +746,7 @@ const MemberProfile = () => {
                       </div>
                       <button
                         onClick={() => navigate(`/loans/${loan._id}`)}
-                        className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all"
+                        className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all"
                       >
                         <ChevronRight size={18} />
                       </button>

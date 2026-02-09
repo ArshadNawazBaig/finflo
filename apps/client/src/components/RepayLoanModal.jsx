@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Wallet,
   Loader2,
@@ -171,10 +172,11 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             >
               Cancel
             </button>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:shadow-emerald-500/30 hover:brightness-110 px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
+              variant="success"
+              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
@@ -184,7 +186,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               ) : (
                 'Confirm Payment'
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </DialogContent>
