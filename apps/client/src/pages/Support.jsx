@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   MessageSquare,
   Plus,
@@ -10,6 +10,7 @@ import {
   Send,
   LifeBuoy,
   Trash2,
+  ChevronLeft,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
@@ -56,14 +57,25 @@ const Support = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (selectedTicket) {
+      scrollToBottom();
+    }
+  }, [selectedTicket, selectedTicket?.replies]);
 
   useEffect(() => {
     fetchTickets();
   }, []);
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const { data } = await api.get('/tickets');
       setTickets(data);
     } catch (error) {
@@ -112,6 +124,7 @@ const Support = () => {
       });
       setReply('');
       fetchTicketDetails(selectedTicket._id);
+      fetchTickets(false);
     } catch (error) {
       toast.error('Failed to send reply');
     } finally {
@@ -173,9 +186,11 @@ const Support = () => {
           </Button>
         </PageHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-280px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-280px)] lg:h-[calc(100vh-280px)] min-h-[500px]">
           {/* Ticket List */}
-          <div className="lg:col-span-4 flex flex-col gap-4 overflow-hidden rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4">
+          <div
+            className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 h-full`}
+          >
             <div className="relative group">
               <Search className="absolute left-4 z-10 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
               <input
@@ -246,43 +261,55 @@ const Support = () => {
           </div>
 
           {/* Ticket Details / Chat */}
-          <div className="lg:col-span-8 overflow-hidden flex flex-col">
+          <div
+            className={`${selectedTicket ? 'flex' : 'hidden lg:flex'} lg:col-span-8 overflow-hidden flex-col h-full`}
+          >
             {selectedTicket ? (
-              <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-                <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-xl font-black tracking-tight text-foreground">
-                          {selectedTicket.subject}
-                        </CardTitle>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-                          #{selectedTicket._id.slice(-6)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                        <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50">
-                          <div
-                            className={`w-1.5 h-1.5 rounded-full ${
+              <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden min-h-0">
+                <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-4 lg:p-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="lg:hidden shrink-0 -ml-2 h-9 w-9 rounded-xl"
+                        onClick={() => setSelectedTicket(null)}
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <CardTitle className="text-xl font-black tracking-tight text-foreground">
+                            {selectedTicket.subject}
+                          </CardTitle>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                            #{selectedTicket._id.slice(-6)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+                          <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50">
+                            <div
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                selectedTicket.priority === 'High' ||
+                                selectedTicket.priority === 'Urgent'
+                                  ? 'bg-destructive'
+                                  : 'bg-emerald-500'
+                              }`}
+                            />
+                            {selectedTicket.category}
+                          </span>
+                          <span
+                            className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
                               selectedTicket.priority === 'High' ||
                               selectedTicket.priority === 'Urgent'
-                                ? 'bg-destructive'
-                                : 'bg-emerald-500'
+                                ? 'bg-destructive/10 text-destructive border-destructive/20'
+                                : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                             }`}
-                          />
-                          {selectedTicket.category}
-                        </span>
-                        <span
-                          className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
-                            selectedTicket.priority === 'High' ||
-                            selectedTicket.priority === 'Urgent'
-                              ? 'bg-destructive/10 text-destructive border-destructive/20'
-                              : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                          }`}
-                        >
-                          <AlertCircle className="w-3 h-3" />
-                          {selectedTicket.priority} Priority
-                        </span>
+                          >
+                            <AlertCircle className="w-3 h-3" />
+                            {selectedTicket.priority} Priority
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -290,17 +317,17 @@ const Support = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => setShowDeleteModal(true)}
-                      className="rounded-xl h-10 border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group"
+                      className="rounded-xl h-9 lg:h-10 border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group shrink-0"
                     >
-                      <div className="bg-destructive/10 p-1.5 rounded-md mr-2 group-hover:bg-destructive/20 transition-colors">
+                      <div className="bg-destructive/10 p-1 lg:p-1.5 rounded-md mr-1.5 lg:mr-2 group-hover:bg-destructive/20 transition-colors">
                         <Trash2 className="w-3 h-3" />
                       </div>
-                      Delete
+                      <span className="hidden sm:inline">Delete</span>
                     </Button>
                   </div>
                 </CardHeader>
 
-                <CardContent className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                <CardContent className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 custom-scrollbar min-h-0">
                   {/* Initial Post */}
                   <div className="flex flex-col gap-2 max-w-[85%]">
                     <div className="flex items-center gap-2 mb-1 pl-1">
@@ -364,6 +391,7 @@ const Support = () => {
                       </div>
                     );
                   })}
+                  <div ref={messagesEndRef} />
                 </CardContent>
 
                 {/* Chat Input */}
