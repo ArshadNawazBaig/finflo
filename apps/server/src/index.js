@@ -62,6 +62,24 @@ app.use('/api/revenue', require('./routes/revenueRoutes'));
 app.use('/api/backup', require('./routes/backupRoutes'));
 app.use('/api/tickets', require('./routes/supportTicketRoutes'));
 
+app.get('/api/health', async (req, res) => {
+  const mongoose = require('mongoose');
+  try {
+    await connectDB();
+    res.json({
+      status: 'ok',
+      db: mongoose.connection.readyState,
+      mongoUriSet: !!process.env.MONGO_URI,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      mongoUriSet: !!process.env.MONGO_URI,
+    });
+  }
+});
+
 app.get('/', (req, res) => {
   res.json({ message: 'Loan Management API is running' });
 });
