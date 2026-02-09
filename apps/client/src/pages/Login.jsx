@@ -28,6 +28,7 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
+      console.error('Login error full details:', err);
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);

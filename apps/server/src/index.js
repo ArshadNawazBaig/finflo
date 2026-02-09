@@ -26,8 +26,21 @@ app.use(
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Database
-connectDB();
+// Middleware to ensure DB connection
+let isConnected = false;
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api') && !isConnected) {
+    try {
+      await connectDB();
+      isConnected = true;
+      next();
+    } catch (error) {
+      res.status(500).json({ message: 'Database connection failed' });
+    }
+  } else {
+    next();
+  }
+});
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
