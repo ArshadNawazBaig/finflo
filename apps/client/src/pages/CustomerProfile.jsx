@@ -191,7 +191,7 @@ const CustomerProfile = () => {
             <Button
               onClick={() => setShowMemberForm(true)}
               variant="gradient"
-              className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
+              className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
             >
               <UserPlus className="w-3.5 h-3.5" />
               Upgrade to Member

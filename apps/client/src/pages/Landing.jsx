@@ -298,10 +298,10 @@ const Landing = () => {
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
-                  className="relative w-full max-w-[220px] lg:max-w-[340px] mx-auto"
+                  className="relative w-full max-w-[280px] lg:max-w-[850px] mx-auto"
                 >
                   <img
-                    src="/screenshots/app-hero-mobile.png"
+                    src="/screenshots/d2.png"
                     alt="LoanMaster Mobile App"
                     className="w-full relative z-20 drop-shadow-[0_0_100px_rgba(99,102,241,0.3)]"
                   />
@@ -444,9 +444,9 @@ const Landing = () => {
                 className="relative group"
               >
                 <div className="absolute -inset-4 bg-primary/30 blur-[100px] opacity-50 group-hover:opacity-80 transition-opacity" />
-                <div className="relative rounded-[2.5rem] border border-white/10 overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+                <div className="relative rounded-[2.5rem] max-w-[500px]">
                   <img
-                    src="/screenshots/real-dashboard.png"
+                    src="/screenshots/d1.png"
                     alt="Command Center"
                     className="w-full transition-transform duration-1000 group-hover:scale-105"
                   />
@@ -463,9 +463,9 @@ const Landing = () => {
                 className="relative group order-2 lg:order-1"
               >
                 <div className="absolute -inset-4 bg-emerald-500/30 blur-[100px] opacity-50 group-hover:opacity-80 transition-opacity" />
-                <div className="relative rounded-[2.5rem] border border-white/10 overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+                <div className="relative rounded-[2.5rem] max-w-[500px]">
                   <img
-                    src="/screenshots/real-loans.png"
+                    src="/screenshots/d3.png"
                     alt="Ledger Management"
                     className="w-full transition-transform duration-1000 group-hover:scale-105"
                   />
@@ -521,9 +521,9 @@ const Landing = () => {
                 className="relative z-10"
               >
                 <img
-                  src="/screenshots/analytics-scroll.png"
+                  src="/screenshots/m1.png"
                   alt="Mobile Analytics"
-                  className="w-full max-w-[320px] mx-auto rounded-[2.5rem] shadow-2xl border-4 border-white dark:border-slate-800 rotate-[-5deg] hover:rotate-0 transition-transform duration-700"
+                  className="w-full max-w-[320px] mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-700"
                 />
               </motion.div>
             </div>
