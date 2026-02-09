@@ -1,0 +1,190 @@
+// Force update
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+import { Button } from '@/components/ui/button';
+import { Loader2, Send } from 'lucide-react';
+import api from '@/lib/axios';
+import { toast } from 'sonner';
+
+const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
+  const [loading, setLoading] = useState(false);
+  const [fetchingUsers, setFetchingUsers] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [formData, setFormData] = useState({
+    recipientId: userId || 'all',
+    title: '',
+    message: '',
+    type: 'info',
+  });
+
+  useEffect(() => {
+    if (isOpen && !userId) {
+      // Fetch users for dropdown if specific user not provided
+      const fetchUsers = async () => {
+        try {
+          setFetchingUsers(true);
+          // Assuming we have an endpoint to get basic user list for admin
+          const { data } = await api.get('/super-admin/users?limit=100'); // Simplified
+          setUsers(data.users || []);
+        } catch (error) {
+          console.error('Failed to fetch users', error);
+        } finally {
+          setFetchingUsers(false);
+        }
+      };
+      fetchUsers();
+    }
+    if (userId) {
+      setFormData((prev) => ({ ...prev, recipientId: userId }));
+    }
+  }, [isOpen, userId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await api.post('/notifications/send', formData);
+      toast.success('Notification sent successfully');
+      setFormData({
+        recipientId: userId || 'all',
+        title: '',
+        message: '',
+        type: 'info',
+      });
+      onClose();
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to send notification',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Send Notification</DialogTitle>
+          <DialogDescription>
+            Send a message to {userId ? 'this user' : 'users'}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!userId && (
+            <div className="space-y-2">
+              <Label>Recipient</Label>
+              <Select
+                value={formData.recipientId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, recipientId: value })
+                }
+                disabled={fetchingUsers}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  {users.map((u) => (
+                    <SelectItem key={u._id} value={u._id}>
+                      {u.name} ({u.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              required
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              placeholder="Notification Title"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Message</Label>
+            <Textarea
+              required
+              value={formData.message}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
+              placeholder="Type your message here..."
+              rows={4}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-2 px-6 py-2 rounded-full border border-border text-muted-foreground hover:bg-muted text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 px-8 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Send Notification
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default SendNotificationModal;

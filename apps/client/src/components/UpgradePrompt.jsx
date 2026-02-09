@@ -1,0 +1,108 @@
+import { Link } from 'react-router-dom';
+import { Zap, ArrowRight, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+
+const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
+  const getUpgradeMessage = () => {
+    if (feature === 'loans') {
+      return `You've reached your ${plan} plan limit of ${limit} loans.`;
+    }
+    if (feature === 'users') {
+      return `You've reached your ${plan} plan limit of ${limit} user(s).`;
+    }
+    return `This feature requires a higher plan.`;
+  };
+
+  const getRecommendedPlan = () => {
+    if (plan === 'Free') return 'Basic';
+    if (plan === 'Basic') return 'Pro';
+    return 'Pro';
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500">
+                <Zap className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Upgrade Required
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Unlock more with a higher plan
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Current Status */}
+          <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              Current Status
+            </p>
+            <p className="text-base font-semibold text-foreground">
+              {getUpgradeMessage()}
+            </p>
+            {current !== undefined && limit !== undefined && (
+              <div className="mt-3">
+                <div className="flex justify-between text-xs font-bold mb-1.5">
+                  <span className="text-muted-foreground">Usage</span>
+                  <span className="text-foreground">
+                    {current} / {limit}
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+                    style={{
+                      width: `${Math.min(100, (current / limit) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Upgrade CTA */}
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground font-medium">
+              Upgrade to{' '}
+              <strong className="text-foreground">
+                {getRecommendedPlan()}
+              </strong>{' '}
+              to continue adding more {feature || 'resources'}.
+            </p>
+            <Link
+              to="/pricing"
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-indigo-500 to-primary text-white shadow-xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/30 hover:brightness-110 px-6 py-3 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+            >
+              View Pricing Plans
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <button
+              onClick={onClose}
+              className="w-full border border-border bg-background hover:bg-muted px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default UpgradePrompt;
