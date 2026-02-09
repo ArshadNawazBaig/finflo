@@ -286,7 +286,7 @@ const Support = () => {
                       </Button>
                       <div className="space-y-1.5 min-w-0">
                         <div className="flex items-center gap-3">
-                          <CardTitle className="text-xl font-black tracking-tight text-foreground">
+                          <CardTitle className="text-xl font-black tracking-tight text-foreground truncate">
                             {selectedTicket.subject}
                           </CardTitle>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">

@@ -129,11 +129,12 @@ const SystemSettings = () => {
         title="System Settings"
         description="Configure platform-wide settings and defaults"
         className="relative z-10"
+        bodyClassName="w-full"
       >
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-col-reverse md:flex-row w-full">
           <button
             onClick={() => setShowResetDialog(true)}
-            className="flex items-center gap-2.5 px-6 h-11 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm"
+            className="flex items-center px-6 h-11 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm w-full md:w-auto justify-center gap-2"
           >
             <RotateCcw size={14} className="stroke-[3]" />
             Reset Defaults
@@ -142,7 +143,7 @@ const SystemSettings = () => {
             onClick={handleSave}
             disabled={saving}
             variant="gradient"
-            className="px-8 h-11 rounded-full text-[11px] font-black uppercase tracking-widest"
+            className="px-8 h-11 rounded-full text-[11px] font-black uppercase tracking-widest gap-2"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -192,7 +193,7 @@ const SystemSettings = () => {
 
         {/* Tab Content */}
         <div className="lg:col-span-3">
-          <div className="rounded-[2.5rem] border border-border/50 bg-card/50 backdrop-blur-md p-8 shadow-sm relative overflow-hidden">
+          <div className="rounded-[2.5rem] border border-border/50 bg-card/50 backdrop-blur-md p-6 sm:p-8 shadow-sm relative overflow-hidden">
             {activeTab === 'plans' && (
               <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
                 <div className="flex items-center gap-3 text-muted-foreground pb-6 border-b border-border/50">
@@ -529,7 +530,7 @@ const SystemSettings = () => {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-14 h-8 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+                      <div className="w-14 h-8 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-primary after:border-muted after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-foreground shadow-inner"></div>
                     </label>
                   </div>
                 </div>

@@ -279,7 +279,7 @@ const ManageTickets = () => {
             <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden min-h-0">
               <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-4 lg:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <div className="flex items-start sm:gap-4 flex-1 min-w-0">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -290,7 +290,7 @@ const ManageTickets = () => {
                     </Button>
                     <div className="space-y-1.5 min-w-0">
                       <div className="flex items-center gap-3">
-                        <CardTitle className="text-xl font-black tracking-tight text-foreground">
+                        <CardTitle className="text-xl font-black tracking-tight text-foreground truncate">
                           {selectedTicket.subject}
                         </CardTitle>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">

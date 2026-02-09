@@ -81,14 +81,14 @@ const UserDetail = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-4 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
         {/* Decorative Background Icon */}
         <Users className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
 
         <div className="flex items-center gap-6 relative z-10 transition-all duration-500">
           <button
             onClick={() => navigate(-1)}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group shrink-0"
+            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group shrink-0 hidden sm:block"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>
@@ -235,12 +235,12 @@ const UserDetail = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-3 relative z-10">
+        <div className="flex items-center gap-3 relative z-10 flex-col-reverse sm:flex-row">
           {!editing ? (
             <Button
               onClick={() => setEditing(true)}
               variant="gradient"
-              className="px-8 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+              className="px-8 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest w-full sm:w-auto gap-2"
             >
               <Edit size={14} /> Edit User
             </Button>
@@ -248,14 +248,14 @@ const UserDetail = () => {
             <>
               <button
                 onClick={() => setEditing(false)}
-                className="flex items-center gap-2.5 px-6 py-3.5 rounded-full border border-border text-muted-foreground hover:bg-muted text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
+                className="flex items-center px-6 py-3.5 rounded-full border border-border text-muted-foreground hover:bg-muted text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center gap-2"
               >
                 <X size={14} /> Cancel
               </button>
               <Button
                 onClick={handleSave}
                 variant="success"
-                className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+                className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
               >
                 <Save size={14} /> Save Changes
               </Button>

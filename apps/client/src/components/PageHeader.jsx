@@ -1,4 +1,4 @@
-const PageHeader = ({ title, description, children }) => {
+const PageHeader = ({ title, description, bodyClassName, children }) => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 sm:mb-6">
       <div>
@@ -9,7 +9,11 @@ const PageHeader = ({ title, description, children }) => {
           <p className="text-muted-foreground mt-1 text-sm">{description}</p>
         )}
       </div>
-      {children && <div className="flex items-center gap-2">{children}</div>}
+      {children && (
+        <div className={`flex items-center gap-2 ${bodyClassName}`}>
+          {children}
+        </div>
+      )}
     </div>
   );
 };

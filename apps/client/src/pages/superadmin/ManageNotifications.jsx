@@ -128,7 +128,7 @@ const ManageNotifications = () => {
         description="View all notifications sent to business owners"
       >
         <div className="flex items-center gap-3">
-          <span className="px-4 py-2 rounded-full bg-muted text-sm font-bold">
+          <span className="px-4 py-3 rounded-full bg-muted text-sm font-bold min-w-[120px] justify-center flex">
             {pagination.total} Total Sent
           </span>
           <Button
