@@ -109,7 +109,7 @@ const Reports = () => {
       {loading ? (
         <CardsSkeleton />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Volume"
             amount={formatPKR(summary.totalVolume)}
@@ -141,9 +141,9 @@ const Reports = () => {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+          <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-black tracking-tight">
@@ -225,8 +225,8 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+          <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-black tracking-tight">

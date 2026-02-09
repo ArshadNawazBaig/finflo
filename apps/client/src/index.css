@@ -88,6 +88,8 @@
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+    /* Prevent Radix UI from adding padding-right to body */
+    padding-right: 0 !important;
   }
   button {
     box-shadow: none !important;

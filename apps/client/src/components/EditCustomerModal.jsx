@@ -55,16 +55,21 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Customer</DialogTitle>
-          <DialogDescription>
+        <DialogHeader className="p-0 sm:p-0">
+          <DialogTitle className="text-lg sm:text-xl font-black p-0 sm:p-0">
+            Edit Customer
+          </DialogTitle>
+          <DialogDescription className="text-[11px] sm:text-sm px-0 sm:px-0">
             Update customer information for {customer.name}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-5">
-            <div className="space-y-2">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
+        >
+          <div className="grid grid-cols-1 gap-4 sm:gap-5">
+            <div className="space-y-1.5">
               <Label
                 htmlFor="name"
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
@@ -79,12 +84,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="email"
                   className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
@@ -99,11 +104,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label
                   htmlFor="phone"
                   className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
@@ -118,12 +123,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label
                 htmlFor="address"
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
@@ -137,7 +142,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-none"
+                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] sm:min-h-[100px] resize-none"
               />
             </div>
           </div>
@@ -147,7 +152,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+              className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
             >
               Cancel
             </button>
@@ -155,7 +160,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
               type="submit"
               disabled={loading}
               variant="gradient"
-              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+              className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
             >
               {loading ? 'Updating...' : 'Save Changes'}
             </Button>

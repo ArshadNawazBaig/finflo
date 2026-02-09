@@ -189,7 +189,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           {showLogoutMenu && (
             <div
               className={cn(
-                'absolute bottom-full left-0 w-full mb-2 bg-card border border-border/50 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200',
+                'absolute bottom-full left-0 w-full mb-2 bg-card border border-border/50 rounded-xl shadow-xl overflow-hidden animate-in fade-in z-10 slide-in-from-bottom-2 duration-200',
                 isLayoutExpanded ? 'min-w-[200px]' : 'min-w-[180px] left-10',
               )}
             >

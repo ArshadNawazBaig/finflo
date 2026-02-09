@@ -32,7 +32,7 @@ import { Button } from '@/components/ui/button';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
-    <div className="flex justify-between items-center bg-card/30 p-8 rounded-[2.5rem] border border-border/50">
+    <div className="flex justify-between items-center bg-card/30 p-5 sm:p-8 rounded-[2.5rem] border border-border/50">
       <div className="space-y-4">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-4 w-48" />
@@ -382,19 +382,19 @@ const MemberProfile = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
         {/* Decorative Background Icon */}
         <User className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
 
         <div className="flex items-center gap-6">
           <button
             onClick={() => navigate('/members')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group"
+            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex gap-3 mb-1 flex-col sm:flex-row items-start sm:items-center">
               <h1 className="text-3xl font-black tracking-tighter">
                 {member.name}
               </h1>
@@ -408,7 +408,7 @@ const MemberProfile = () => {
                 {member.status}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
               <div className="flex items-center gap-1.5 text-sm font-medium">
                 <Mail className="w-4 h-4 text-primary" />
                 {member.email}
@@ -422,7 +422,7 @@ const MemberProfile = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex gap-3 flex-col sm:flex-row items-start sm:items-center">
           <Tooltip content="Download Full Report">
             <button
               onClick={handleDownloadReport}
@@ -437,7 +437,7 @@ const MemberProfile = () => {
           </Tooltip>
           <button
             onClick={() => setShowProfitRateForm(true)}
-            className="px-6 py-3 bg-muted/50 border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all flex items-center gap-2"
+            className="px-6 py-3 bg-muted/50 border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <Zap className="w-3.5 h-3.5" />
             Adjust Rates
@@ -448,7 +448,7 @@ const MemberProfile = () => {
               setShowInvestmentForm(true);
             }}
             variant="gradient"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
+            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
           >
             <ArrowUpCircle className="w-3.5 h-3.5" />
             Transfer Funds
@@ -457,7 +457,7 @@ const MemberProfile = () => {
       </div>
 
       {/* Stats Row */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Current Balance"
           amount={formatPKR(member.currentBalance || 0)}
@@ -486,7 +486,7 @@ const MemberProfile = () => {
         <div className="lg:col-span-8 space-y-8">
           {/* Forms (Injected) */}
           {(showInvestmentForm || showProfitRateForm) && (
-            <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
+            <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -622,7 +622,7 @@ const MemberProfile = () => {
           )}
 
           {/* Transaction Timeline */}
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -648,7 +648,7 @@ const MemberProfile = () => {
                 investments.map((inv) => (
                   <div
                     key={inv._id}
-                    className="flex items-center justify-between p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
                   >
                     <div className="flex items-center gap-5">
                       <div
@@ -693,7 +693,7 @@ const MemberProfile = () => {
             </div>
           </div>
           {/* Associated Loans Section */}
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8 mt-8">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 mt-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -719,7 +719,7 @@ const MemberProfile = () => {
                 loans.map((loan) => (
                   <div
                     key={loan._id}
-                    className="flex items-center justify-between p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
                   >
                     <div className="flex items-center gap-5">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all">

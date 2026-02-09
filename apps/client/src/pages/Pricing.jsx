@@ -131,7 +131,7 @@ const Pricing = () => {
             {plans.map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative group p-10 rounded-[2.5rem] flex flex-col transition-all duration-500 hover:shadow-2xl ${
+                className={`relative group p-6 sm:p-10 rounded-[2.5rem] flex flex-col transition-all duration-500 hover:shadow-2xl ${
                   plan.highlight
                     ? 'bg-card border-2 border-primary shadow-xl shadow-primary/10 scale-105 z-10'
                     : 'bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30'
@@ -198,14 +198,14 @@ const Pricing = () => {
           </div>
 
           {/* Comparison Section (Visual Placeholder for depth) */}
-          <div className="mt-16 p-12 rounded-[3rem] bg-card/30 border border-border/50 text-center space-y-6">
+          <div className="mt-16 p-6 sm:p-12 rounded-[3rem] bg-card/30 border border-border/50 text-center space-y-6">
             <h3 className="text-2xl font-bold">Need a custom solution?</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
               Whether you're a startup or a global bank, we have the
               infrastructure to support your growth. Our team can help you build
               a tailored lending engine.
             </p>
-            <div className="flex justify-center gap-4 pt-4">
+            <div className="flex justify-center gap-4 pt-4 flex-col sm:flex-row">
               <a
                 href="https://github.com/yourusername/loan-management-saas#readme"
                 target="_blank"

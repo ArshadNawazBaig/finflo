@@ -56,7 +56,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full">
       {/* Calendar Section */}
-      <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-6 shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-4 sm:p-6 shadow-sm overflow-hidden flex flex-col">
         <header className="flex items-center justify-between mb-8 px-2">
           <div>
             <h3 className="text-xl font-black tracking-tight text-foreground">
@@ -148,7 +148,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
 
       {/* Details Side-pane */}
       <div className="w-full lg:w-80 flex flex-col gap-6">
-        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-6 shadow-sm flex flex-col max-h-[674px]">
+        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-4 sm:p-6 shadow-sm flex flex-col max-h-[674px]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h4 className="font-black text-sm tracking-tight capitalize">
@@ -175,7 +175,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                 <div
                   key={p._id}
                   className={`
-                    p-4 rounded-3xl border border-border/50 group transition-all
+                    p-3 sm:p-4 rounded-3xl border border-border/50 group transition-all
                     ${p.isOverdue ? 'bg-rose-500/5 hover:bg-rose-500/10 border-rose-500/20' : 'bg-background/40 hover:bg-primary/5 hover:border-primary/20'}
                   `}
                 >
@@ -231,7 +231,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
           </div>
 
           <div className="mt-6 pt-6 border-t border-border/20">
-            <div className="flex justify-between items-center bg-primary/10 p-4 rounded-2xl border border-primary/20">
+            <div className="flex justify-between items-center bg-primary/10 p-3 sm:p-4 rounded-2xl border border-primary/20">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">
                   Total Due Today

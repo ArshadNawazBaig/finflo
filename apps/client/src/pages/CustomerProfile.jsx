@@ -121,14 +121,14 @@ const CustomerProfile = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
         {/* Decorative Background Icon */}
         <User className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
 
         <div className="flex items-center gap-6">
           <button
             onClick={() => navigate('/customers')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group"
+            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>
@@ -167,14 +167,14 @@ const CustomerProfile = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-col-reverse sm:flex-row">
           {loans.some((l) => l.status === 'active') && (
             <button
               onClick={() => {
                 const firstActive = loans.find((l) => l.status === 'active');
                 if (firstActive) setSelectedRepayLoan(firstActive);
               }}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               <Wallet className="w-3.5 h-3.5" />
               Pay Back Loan
@@ -182,7 +182,7 @@ const CustomerProfile = () => {
           )}
           <button
             onClick={() => setShowAddLoanModal(true)}
-            className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:scale-105 transition-all flex items-center gap-2"
+            className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:scale-105 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             Issue Loan
@@ -201,7 +201,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Stats Row */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Total Borrowed"
           amount={formatPKR(totalBorrowed)}
@@ -230,7 +230,7 @@ const CustomerProfile = () => {
         <div className="lg:col-span-8 space-y-8">
           {/* Member Conversion Form */}
           {showMemberForm && (
-            <div className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
+            <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -288,7 +288,7 @@ const CustomerProfile = () => {
                     />
                   </div>
                 </div>
-                <div className="flex gap-3 justify-end">
+                <div className="flex gap-3 justify-end flex-col-reverse sm:flex-row">
                   <button
                     type="button"
                     onClick={() => setShowMemberForm(false)}
@@ -309,7 +309,7 @@ const CustomerProfile = () => {
           )}
 
           {/* Active Loans Registry */}
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -335,7 +335,7 @@ const CustomerProfile = () => {
                 loans.map((loan) => (
                   <div
                     key={loan._id}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group gap-4"
+                    className="flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group gap-4"
                   >
                     <div className="flex items-center gap-5">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all">
@@ -400,7 +400,7 @@ const CustomerProfile = () => {
         {/* Sidebar Components */}
         <div className="lg:col-span-4 space-y-8">
           {/* Quick Info Card */}
-          <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-10 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-500/30 relative overflow-hidden group">
+          <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-6 sm:p-10 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-500/30 relative overflow-hidden group">
             <Briefcase className="absolute -right-8 -bottom-8 w-48 h-48 opacity-10 group-hover:scale-110 transition-transform duration-700" />
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-8">
@@ -461,7 +461,7 @@ const CustomerProfile = () => {
           </div>
 
           {/* Contact Details Card */}
-          <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
               Profile Metadata
               <Mail size={12} />

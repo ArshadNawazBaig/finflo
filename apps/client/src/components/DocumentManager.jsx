@@ -56,7 +56,7 @@ const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-border/50 pb-4">
+      <div className="flex items-center justify-between border-b border-border/50 pb-4 flex-col sm:flex-row gap-4">
         <div>
           <h4 className="text-sm font-black uppercase tracking-widest text-foreground/70">
             Internal Documents
@@ -65,7 +65,7 @@ const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
             Secure storage for IDs and signed contracts
           </p>
         </div>
-        <label className="relative cursor-pointer group">
+        <label className="relative cursor-pointer group w-full sm:w-auto">
           <input
             type="file"
             className="hidden"
@@ -73,7 +73,7 @@ const DocumentManager = ({ loanId, documents = [], onUpdate }) => {
             disabled={uploading}
             accept=".pdf,.jpg,.jpeg,.png"
           />
-          <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 disabled:opacity-50">
+          <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 disabled:opacity-50 w-full sm:w-auto justify-center">
             {uploading ? (
               <Loader2 size={14} className="animate-spin" />
             ) : (

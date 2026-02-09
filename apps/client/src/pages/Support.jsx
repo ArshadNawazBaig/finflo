@@ -35,6 +35,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -287,7 +294,7 @@ const Support = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                          <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50">
+                          <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50 text-[7px]">
                             <div
                               className={`w-1.5 h-1.5 rounded-full ${
                                 selectedTicket.priority === 'High' ||
@@ -299,7 +306,7 @@ const Support = () => {
                             {selectedTicket.category}
                           </span>
                           <span
-                            className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
+                            className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 text-[7px] ${
                               selectedTicket.priority === 'High' ||
                               selectedTicket.priority === 'Urgent'
                                 ? 'bg-destructive/10 text-destructive border-destructive/20'
@@ -317,9 +324,9 @@ const Support = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => setShowDeleteModal(true)}
-                      className="rounded-xl h-9 lg:h-10 border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group shrink-0"
+                      className="rounded-xl h-9 lg:h-10 border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group shrink-0 justify-center gap-2"
                     >
-                      <div className="bg-destructive/10 p-1 lg:p-1.5 rounded-md mr-1.5 lg:mr-2 group-hover:bg-destructive/20 transition-colors">
+                      <div className="bg-destructive/10 p-0 lg:p-1.5 rounded-md  group-hover:bg-destructive/20 transition-colors">
                         <Trash2 className="w-3 h-3" />
                       </div>
                       <span className="hidden sm:inline">Delete</span>
@@ -453,126 +460,121 @@ const Support = () => {
         </div>
       </div>
 
-      {/* New Ticket Modal (Simplified local implementation) */}
-      {showNewTicketModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
-          style={{ margin: 0 }}
-        >
-          <Card className="w-full max-w-lg border border-border/50 shadow-2xl rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <CardHeader className="border-b border-border/40">
-              <CardTitle className="text-xl font-black">
-                Open Support Ticket
-              </CardTitle>
-              <CardDescription>
-                Tell us what's happening and we'll get back to you.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleCreateTicket}>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Subject
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm"
-                    value={newTicket.subject}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, subject: e.target.value })
-                    }
-                    placeholder="Briefly describe the issue"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Category
-                    </label>
-                    <Select
-                      value={newTicket.category}
-                      onValueChange={(val) =>
-                        setNewTicket({ ...newTicket, category: val })
-                      }
-                    >
-                      <SelectTrigger className="w-full h-10 rounded-xl px-4">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bug Report">Bug Report</SelectItem>
-                        <SelectItem value="Feature Request">
-                          Feature Request
-                        </SelectItem>
-                        <SelectItem value="Billing">Billing</SelectItem>
-                        <SelectItem value="General Assistance">
-                          General Assistance
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Priority
-                    </label>
-                    <Select
-                      value={newTicket.priority}
-                      onValueChange={(val) =>
-                        setNewTicket({ ...newTicket, priority: val })
-                      }
-                    >
-                      <SelectTrigger className="w-full h-10 rounded-xl px-4">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Description
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm resize-none"
-                    value={newTicket.description}
-                    onChange={(e) =>
-                      setNewTicket({
-                        ...newTicket,
-                        description: e.target.value,
-                      })
-                    }
-                    placeholder="Provide details about your request..."
-                  />
-                </div>
-              </CardContent>
-              <div className="p-6 border-t border-border/40 bg-muted/20 flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowNewTicketModal(false)}
-                  className="px-8 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="gradient"
-                  className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
-                >
-                  Submit Ticket
-                </Button>
+      {/* New Ticket Modal */}
+      <Dialog open={showNewTicketModal} onOpenChange={setShowNewTicketModal}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="px-4 py-4 sm:p-6 border-b border-border/40 bg-card/50">
+            <DialogTitle className="text-lg sm:text-xl font-black">
+              Open Support Ticket
+            </DialogTitle>
+            <DialogDescription className="text-[11px] sm:text-sm">
+              Tell us what's happening and we'll get back to you.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateTicket}>
+            <div className="px-4 py-4 sm:p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
+                  Subject
+                </label>
+                <input
+                  required
+                  type="text"
+                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium"
+                  value={newTicket.subject}
+                  onChange={(e) =>
+                    setNewTicket({ ...newTicket, subject: e.target.value })
+                  }
+                  placeholder="Briefly describe the issue"
+                />
               </div>
-            </form>
-          </Card>
-        </div>
-      )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
+                    Category
+                  </label>
+                  <Select
+                    value={newTicket.category}
+                    onValueChange={(val) =>
+                      setNewTicket({ ...newTicket, category: val })
+                    }
+                  >
+                    <SelectTrigger className="w-full h-9 sm:h-10 rounded-xl px-4 text-xs sm:text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Bug Report">Bug Report</SelectItem>
+                      <SelectItem value="Feature Request">
+                        Feature Request
+                      </SelectItem>
+                      <SelectItem value="Billing">Billing</SelectItem>
+                      <SelectItem value="General Assistance">
+                        General Assistance
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
+                    Priority
+                  </label>
+                  <Select
+                    value={newTicket.priority}
+                    onValueChange={(val) =>
+                      setNewTicket({ ...newTicket, priority: val })
+                    }
+                  >
+                    <SelectTrigger className="w-full h-9 sm:h-10 rounded-xl px-4 text-xs sm:text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
+                  Description
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
+                  value={newTicket.description}
+                  onChange={(e) =>
+                    setNewTicket({
+                      ...newTicket,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Provide details about your request..."
+                />
+              </div>
+            </div>
+            <div className="px-4 py-4 sm:p-6 border-t border-border/40 bg-muted/20 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowNewTicketModal(false)}
+                className="px-6 sm:px-8 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="gradient"
+                className="px-8 sm:px-10 py-3 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
+              >
+                Submit Ticket
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <AlertDialogContent className="rounded-2xl border-none shadow-2xl">

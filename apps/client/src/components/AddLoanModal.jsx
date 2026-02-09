@@ -104,16 +104,16 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500">
-              <PlusCircle className="w-6 h-6" />
+        <DialogHeader className="p-0">
+          <div className="flex items-center gap-3 mb-2 p-0 sm:p-0">
+            <div className="p-2 sm:p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 shrink-0">
+              <PlusCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <DialogTitle className="text-2xl font-black">
+              <DialogTitle className="text-lg sm:text-2xl font-black">
                 Issue New Loan
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium">
+              <DialogDescription className="text-[11px] sm:text-sm font-medium">
                 Set up a new lending agreement.
               </DialogDescription>
             </div>
@@ -126,10 +126,13 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
+        >
+          <div className="space-y-4 sm:space-y-5">
             {/* Customer Selection */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <User className="w-3 h-3" /> Select Borrower
               </label>
@@ -141,7 +144,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 }}
                 required
               >
-                <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20">
                   <SelectValue placeholder="Choose a customer..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -155,17 +158,17 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             </div>
 
             {/* Interest Type */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <Percent className="w-3 h-3 text-orange-500" /> Interest Type
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() =>
                     setFormData({ ...formData, interestType: 'simple' })
                   }
-                  className={`px-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                  className={`px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl border text-xs sm:text-sm font-black transition-all ${
                     formData.interestType === 'simple'
                       ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20'
                       : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'
@@ -178,7 +181,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   onClick={() =>
                     setFormData({ ...formData, interestType: 'emi' })
                   }
-                  className={`px-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                  className={`px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl border text-xs sm:text-sm font-black transition-all ${
                     formData.interestType === 'emi'
                       ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20'
                       : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'
@@ -190,8 +193,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             </div>
 
             {/* Principal & Rate */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <DollarSign className="w-3 h-3 text-emerald-500" /> Principal
                   (Rs.)
@@ -204,10 +207,10 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   min="0"
                   value={formData.principal}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <Percent className="w-3 h-3 text-indigo-500" /> Interest Rate
                   (%)
@@ -221,14 +224,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   step="0.1"
                   value={formData.rate}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
                 />
               </div>
             </div>
 
             {/* Duration & Start Date */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <Clock className="w-3 h-3" /> Term (Months)
                 </label>
@@ -240,10 +243,10 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   min="1"
                   value={formData.duration}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <CalendarIcon className="w-3 h-3" /> Commencement
                 </label>
@@ -257,7 +260,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       startDate: new Date(e.target.value),
                     })
                   }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-muted-foreground"
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-muted-foreground"
                 />
               </div>
             </div>
@@ -267,7 +270,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+              className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
             >
               Cancel
             </button>
@@ -275,14 +278,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               type="submit"
               disabled={loading}
               variant="gradient"
-              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+              className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >
               {loading ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={14} className="animate-spin" />
               ) : (
-                <PlusCircle size={16} />
+                <PlusCircle size={14} />
               )}
-              Create Loan Agreement
+              Create Loan
             </Button>
           </div>
         </form>

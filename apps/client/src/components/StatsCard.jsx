@@ -6,7 +6,7 @@ const StatsCard = ({ title, amount, percentage, icon, color }) => {
   const isPositive = percentage > 0;
 
   return (
-    <div className="group relative overflow-hidden rounded-[2rem] bg-card p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 border border-border/50">
+    <div className="group relative overflow-hidden rounded-[2rem] bg-card p-5 sm:p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 border border-border/50">
       {/* Background Accent Gradient */}
       <div
         className={cn(

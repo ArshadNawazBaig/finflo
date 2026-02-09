@@ -206,7 +206,7 @@ const Notifications = () => {
               <Skeleton key={i} className="h-24 rounded-2xl w-full" />
             ))
           ) : notifications.length === 0 ? (
-            <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-md p-16 text-center shadow-sm">
+            <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-md p-8 sm:p-16 text-center shadow-sm">
               <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Bell className="w-10 h-10 text-muted-foreground/50" />
               </div>
@@ -223,7 +223,7 @@ const Notifications = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 p-5 ${
+                  className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 p-4 sm:p-5 ${
                     notification.read
                       ? 'bg-card/30 border-border/40 hover:bg-card/50 hover:border-border/60'
                       : 'bg-card/80 border-primary/20 hover:bg-card hover:border-primary/40 shadow-lg shadow-primary/5'

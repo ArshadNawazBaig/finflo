@@ -102,7 +102,7 @@ const Billing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Current Plan Section */}
             <div className="lg:col-span-2 space-y-6">
-              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Zap size={120} />
                 </div>
@@ -141,7 +141,7 @@ const Billing = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-border/50">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-border/50">
                   <div className="space-y-1.5">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
                       Price
@@ -186,8 +186,8 @@ const Billing = () => {
               </section>
 
               {/* Payment Methods */}
-              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
+              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm">
+                <div className="flex items-center justify-between mb-6 flex-col sm:flex-row gap-4">
                   <div>
                     <h3 className="text-lg font-bold">Payment Methods</h3>
                     <p className="text-muted-foreground text-sm">
@@ -196,7 +196,7 @@ const Billing = () => {
                   </div>
                   <button
                     onClick={handleManageSubscription}
-                    className="border border-border bg-background hover:bg-muted px-4 py-2 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300"
+                    className="border border-border bg-background hover:bg-muted px-4 py-2 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-all duration-300 w-full sm:w-auto justify-center"
                   >
                     <Plus size={14} strokeWidth={3} />
                     Manage Cards
@@ -275,7 +275,7 @@ const Billing = () => {
 
               {/* Billing History */}
               <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-border/50 bg-muted/10">
+                <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/10">
                   <h3 className="text-lg font-bold">Billing History</h3>
                   <p className="text-muted-foreground text-sm">
                     Download previous invoices.
@@ -391,7 +391,7 @@ const Billing = () => {
             {/* Sidebar Info */}
             <div className="space-y-6">
               {/* Usage Stats (Keep static for now for visual appeal, or connect later) */}
-              <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden group">
+              <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
                   <Shield size={140} />
                 </div>
@@ -455,7 +455,7 @@ const Billing = () => {
                 </div>
               </div>
 
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm">
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm">
                 <h3 className="font-bold mb-6 flex items-center gap-2.5 text-lg">
                   <Clock size={20} className="text-muted-foreground" />
                   Usage Limits

@@ -303,7 +303,7 @@ const ManageTickets = () => {
                           {selectedTicket.user.name} (
                           {selectedTicket.user.businessName})
                         </span>
-                        <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50">
+                        <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50 text-[7px]">
                           <div
                             className={`w-1.5 h-1.5 rounded-full ${
                               selectedTicket.priority === 'High' ||
@@ -315,7 +315,7 @@ const ManageTickets = () => {
                           {selectedTicket.category}
                         </span>
                         <span
-                          className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${
+                          className={`font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 text-[7px] ${
                             selectedTicket.priority === 'High' ||
                             selectedTicket.priority === 'Urgent'
                               ? 'bg-destructive/10 text-destructive border-destructive/20'

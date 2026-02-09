@@ -79,28 +79,28 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 text-white">
-              <Crown className="w-6 h-6" />
+        <DialogHeader className="p-0 sm:p-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 mb-2 p-0 sm:p-0">
+            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-indigo-600 text-white shrink-0">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <DialogTitle className="text-2xl font-black">
+              <DialogTitle className="text-lg sm:text-2xl font-black">
                 Choose Your Plan
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium">
+              <DialogDescription className="text-[11px] sm:text-sm font-medium">
                 Select the plan that best fits your needs.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-2 sm:mt-6 p-0 sm:px-0">
           {plans.map((plan) => (
             <div
               key={plan.name}
               onClick={() => setSelectedPlan(plan.name)}
-              className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+              className={`relative p-5 sm:p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                 selectedPlan === plan.name
                   ? 'border-primary bg-primary/5 shadow-xl shadow-primary/20'
                   : 'border-border/50 hover:border-primary/50 hover:bg-muted/30'
@@ -108,42 +108,46 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-primary to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full shadow-lg">
+                  <span className="bg-gradient-to-r from-primary to-indigo-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-lg">
                     Popular
                   </span>
                 </div>
               )}
 
               {currentPlan === plan.name && (
-                <div className="absolute top-4 right-4">
-                  <span className="bg-emerald-500/10 text-emerald-600 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                  <span className="bg-emerald-500/10 text-emerald-600 text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
                     Current
                   </span>
                 </div>
               )}
 
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-black mb-2">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground mb-4">
+              <div className="text-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black mb-1 sm:mb-2">
+                  {plan.name}
+                </h3>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4">
                   {plan.description}
                 </p>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-black">${plan.price}</span>
-                  <span className="text-muted-foreground text-sm font-medium">
+                  <span className="text-3xl sm:text-4xl font-black">
+                    ${plan.price}
+                  </span>
+                  <span className="text-muted-foreground text-xs sm:text-sm font-medium">
                     /month
                   </span>
                 </div>
               </div>
 
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 {plan.features.map((feature, index) => (
                   <li
                     key={index}
-                    className="flex items-center gap-2 text-sm font-medium"
+                    className="flex items-center gap-2 text-[11px] sm:text-sm font-medium"
                   >
                     <div className="bg-emerald-500/10 p-0.5 rounded-full shrink-0">
                       <Check
-                        size={12}
+                        size={10}
                         className="text-emerald-600"
                         strokeWidth={3}
                       />
@@ -160,12 +164,12 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
           ))}
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-border/50 mt-6">
+        <div className="flex justify-end gap-3 pt-6 border-t border-border/50 mt-6 p-0 pb-0 sm:px-0 sm:pb-0">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
           >
             Cancel
           </button>
@@ -173,18 +177,18 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
             onClick={handleUpgrade}
             disabled={loading || selectedPlan === currentPlan}
             variant="gradient"
-            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+            className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={14} className="animate-spin" />
                 Updating...
               </>
             ) : (
               <>
-                <Zap size={16} />
+                <Zap size={14} />
                 {selectedPlan === currentPlan
-                  ? 'Current Plan'
+                  ? 'Current'
                   : `Upgrade to ${selectedPlan}`}
               </>
             )}

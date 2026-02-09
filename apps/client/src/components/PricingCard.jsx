@@ -28,10 +28,12 @@ const PricingCard = ({
         </div>
       )}
       <CardHeader>
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle className="text-xl sm:text-2xl">{title}</CardTitle>
+        <CardDescription className="text-sm">{description}</CardDescription>
         <div className="mt-4">
-          <span className="text-4xl font-bold">{formatPKR(price)}</span>
+          <span className="text-3xl sm:text-4xl font-bold">
+            {formatPKR(price)}
+          </span>
           <span className="text-muted-foreground">/month</span>
         </div>
       </CardHeader>

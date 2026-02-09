@@ -76,7 +76,7 @@ const Dashboard = () => {
 
           if (isNearLimit) {
             return (
-              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-6 flex items-center justify-between">
+              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-foreground mb-1">
                     {usagePercent >= 100
@@ -169,7 +169,7 @@ const Dashboard = () => {
         <div className="xl:col-span-1">
           {/* Transactions Section */}
           <div className="col-span-3 rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col">
-            <div className="p-6 pb-4 border-b border-border/50 bg-gradient-to-br from-card to-background/50">
+            <div className="p-4 sm:p-6 pb-4 border-b border-border/50 bg-gradient-to-br from-card to-background/50">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-black tracking-tight">
@@ -208,14 +208,14 @@ const Dashboard = () => {
                     </div>
                   ))
                 ) : transactions.length === 0 ? (
-                  <div className="p-10 text-center text-muted-foreground text-sm font-medium">
+                  <div className="p-6 sm:p-10 text-center text-muted-foreground text-sm font-medium">
                     No recent settlements detected
                   </div>
                 ) : (
                   transactions.slice(0, 3).map((t) => (
                     <div
                       key={t._id}
-                      className="group flex items-center justify-between p-5 hover:bg-primary/5 transition-colors duration-300"
+                      className="group flex items-center justify-between p-4 sm:p-5 hover:bg-primary/5 transition-colors duration-300"
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">

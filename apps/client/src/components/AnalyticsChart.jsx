@@ -52,7 +52,7 @@ const AnalyticsChart = ({ data = [] }) => {
 
   return (
     <Card className="col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
-      <CardHeader className="pb-2 border-b border-border/40">
+      <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-black tracking-tight">

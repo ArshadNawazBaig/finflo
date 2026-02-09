@@ -260,13 +260,13 @@ const LoanDetail = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
         <ShieldCheck className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
 
         <div className="flex items-center gap-6">
           <button
             onClick={() => navigate('/loans')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group"
+            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>
@@ -287,7 +287,7 @@ const LoanDetail = () => {
                 {loan.status}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
               <div className="flex items-center gap-1.5 text-sm font-medium">
                 <User size={14} className="text-primary" />
                 {loan.customer?.name}
@@ -301,7 +301,7 @@ const LoanDetail = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Tooltip content="Send WhatsApp Reminder">
             <a
               href={generateWhatsAppLink(
@@ -347,7 +347,7 @@ const LoanDetail = () => {
           <Button
             onClick={() => navigate(`/customers/${loan.customer?._id}`)}
             variant="gradient"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest"
+            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest gap-1 w-full sm:w-auto "
           >
             <Activity className="w-3.5 h-3.5" />
             Full Profile
@@ -356,7 +356,7 @@ const LoanDetail = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Total Repayable"
           amount={formatPKR(loan.totalAmount)}
@@ -383,7 +383,7 @@ const LoanDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content: Repayment History */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -409,7 +409,7 @@ const LoanDetail = () => {
                 repayments.map((rp, i) => (
                   <div
                     key={rp._id}
-                    className="flex items-center justify-between p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
                   >
                     <div className="flex items-center gap-5">
                       <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
@@ -441,7 +441,7 @@ const LoanDetail = () => {
 
           {/* Investment History Section (Only for Members) */}
           {member && (
-            <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black tracking-tighter">
@@ -467,7 +467,7 @@ const LoanDetail = () => {
                   investments.map((inv, i) => (
                     <div
                       key={inv._id}
-                      className="flex items-center justify-between p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                      className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
                     >
                       <div className="flex items-center gap-5">
                         <div
@@ -515,7 +515,7 @@ const LoanDetail = () => {
           )}
 
           {/* Documents Section */}
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border/50 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm">
             <DocumentManager
               loanId={loan._id}
               documents={loan.documents || []}
@@ -527,7 +527,7 @@ const LoanDetail = () => {
         {/* Sidebar: Financial Context & Settlement */}
         <div className="lg:col-span-4 space-y-8">
           {/* Agreement Terms */}
-          <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
               Agreement Parameters
               <Info size={12} />
@@ -577,7 +577,7 @@ const LoanDetail = () => {
 
           {/* Member Settlement View */}
           {member && (
-            <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-8 relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6 sm:space-y-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                 <Wallet className="w-24 h-24 text-primary" />
               </div>
@@ -625,7 +625,7 @@ const LoanDetail = () => {
                 </div>
 
                 <div
-                  className={`p-5 rounded-3xl border-2 flex items-center gap-4 transition-all ${
+                  className={`p-4 sm:p-5 rounded-3xl border-2 flex items-center gap-4 transition-all ${
                     netBalance >= loan.remainingAmount
                       ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600'
                       : 'bg-orange-500/5 border-orange-500/20 text-orange-600'

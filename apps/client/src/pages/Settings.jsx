@@ -123,7 +123,7 @@ const Settings = () => {
           {activeSection === 'general' && (
             <>
               {/* Profile Section */}
-              <section className="bg-card border border-border/50 rounded-xl p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              <section className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-lg font-bold">Profile Information</h3>
@@ -163,7 +163,7 @@ const Settings = () => {
               </section>
 
               {/* Appearance Section */}
-              <section className="bg-card border border-border/50 rounded-xl p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 delay-75">
+              <section className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300 delay-75">
                 <div>
                   <h3 className="text-lg font-bold">Appearance</h3>
                   <p className="text-muted-foreground text-sm">
@@ -218,7 +218,7 @@ const Settings = () => {
 
           {/* Notifications Section */}
           {activeSection === 'notifications' && (
-            <section className="bg-card border border-border/50 rounded-xl p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <section className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
                 <h3 className="text-lg font-bold">Notifications</h3>
                 <p className="text-muted-foreground text-sm">
@@ -272,7 +272,7 @@ const Settings = () => {
 
           {/* Security Section */}
           {activeSection === 'security' && (
-            <section className="bg-card border border-border/50 rounded-xl p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <section className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
                 <h3 className="text-lg font-bold">Security</h3>
                 <p className="text-muted-foreground text-sm">
@@ -547,8 +547,8 @@ const Switch = ({ checked, onCheckedChange }) => (
   >
     <span
       className={`
-        inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-        ${checked ? 'translate-x-6' : 'translate-x-1'}
+        inline-block h-4 w-4 transform rounded-full transition-transform
+        ${checked ? 'translate-x-6 bg-primary-foreground' : 'translate-x-1 bg-primary'}
       `}
     />
   </button>
