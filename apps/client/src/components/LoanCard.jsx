@@ -135,7 +135,7 @@ const LoanCard = ({ loan, onEdit, onDelete }) => {
         </div>
         <Link
           to={`/loans/${loan._id}`}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-95"
         >
           <Info size={14} strokeWidth={3} />
           Details

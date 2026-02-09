@@ -79,7 +79,7 @@ const InvoiceCard = ({ invoice }) => {
           href={invoice.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-3 rounded-xl bg-primary/10 text-primary text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-all active:scale-[0.98]"
+          className="w-full py-3 rounded-xl bg-primary/10 text-primary text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary hover:text-primary-foreground transition-all active:scale-[0.98]"
         >
           <Download size={16} />
           Download PDF

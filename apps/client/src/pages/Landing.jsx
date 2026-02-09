@@ -207,7 +207,7 @@ const Landing = () => {
       </AnimatePresence>
 
       {/* Hero: The Evolution */}
-      <section className="relative pt-32 pb-20 px-6 lg:pt-40 lg:pb-28">
+      <section className="relative pt-44 pb-20 px-6 lg:pt-40 lg:pb-28">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-8">
