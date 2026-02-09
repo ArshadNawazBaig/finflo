@@ -18,7 +18,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -101,7 +101,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
           <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted/20">
             <div>
               <DialogTitle className="text-3xl font-black tracking-tight">
-                {member.name}
+                {capitalize(member.name)}
               </DialogTitle>
               <div className="flex items-center gap-2 mt-1 text-muted-foreground font-medium">
                 <Mail className="w-3.5 h-3.5" />

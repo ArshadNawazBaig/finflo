@@ -239,7 +239,7 @@ const Notifications = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <h3
-                          className={`font-bold text-base truncate ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}
+                          className={`font-bold text-base ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}
                         >
                           {notification.title}
                         </h3>

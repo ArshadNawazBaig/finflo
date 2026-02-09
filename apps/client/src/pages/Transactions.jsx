@@ -1,18 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Search, DollarSign, TrendingUp, Hash } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, DollarSign, TrendingUp, Hash, Loader2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import TransactionTable from '@/components/TransactionTable';
+import TransactionCard from '@/components/TransactionCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/CardsSkeleton';
 import TableSkeleton from '@/components/TableSkeleton';
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
-// import { Card, CardContent, CardHeader } from '@/components/ui/card'; // Unused
+import { toast } from 'sonner';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -20,22 +22,87 @@ const Transactions = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(
-        `/repayments?page=${currentPage}&limit=${limit}&search=${searchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
-      );
-      setTransactions(data.data || []);
-      setTotalEntries(data.totalEntries || 0);
-      setTotalPages(data.totalPages || 0);
-    } catch (error) {
-      console.error('Failed to fetch transactions', error);
-    } finally {
-      setLoading(false);
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLimit(3);
+    } else {
+      setLimit(10);
     }
-  }, [currentPage, limit, searchQuery, sortBy, sortOrder]);
+    setCurrentPage(1);
+  }, [isMobile]);
+
+  const fetchTransactions = useCallback(
+    async (isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const { data } = await api.get(
+          `/repayments?page=${pageToFetch}&limit=${limit}&search=${searchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+        );
+
+        if (isAppend) {
+          setTransactions((prev) => {
+            const existingIds = new Set(prev.map((t) => t._id));
+            const newTransactions = (data.data || []).filter(
+              (t) => !existingIds.has(t._id),
+            );
+            return [...prev, ...newTransactions];
+          });
+          setCurrentPage(pageToFetch);
+        } else {
+          setTransactions(data.data || []);
+        }
+
+        setTotalEntries(data.totalEntries || 0);
+        setTotalPages(data.totalPages || 0);
+      } catch (error) {
+        console.error('Failed to fetch transactions', error);
+        toast.error('Failed to load transactions');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [currentPage, limit, searchQuery, sortBy, sortOrder],
+  );
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          currentPage < totalPages
+        ) {
+          fetchTransactions(true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, currentPage, totalPages, fetchTransactions]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -49,11 +116,11 @@ const Transactions = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchTransactions();
+      fetchTransactions(false);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [fetchTransactions]);
+  }, [searchQuery, sortBy, sortOrder, limit, isMobile]);
 
   const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
   const averageAmount =
@@ -69,7 +136,7 @@ const Transactions = () => {
       />
 
       {/* Summary Cards */}
-      {loading ? (
+      {loading && !isFetchingMore ? (
         <CardsSkeleton count={3} className="md:grid-cols-3 lg:grid-cols-3" />
       ) : (
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
@@ -107,8 +174,32 @@ const Transactions = () => {
           />
         </div>
 
-        {loading ? (
+        {loading && !isFetchingMore ? (
           <TableSkeleton />
+        ) : isMobile ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              {transactions.map((transaction) => (
+                <TransactionCard
+                  key={transaction._id}
+                  transaction={transaction}
+                />
+              ))}
+            </div>
+
+            {/* Infinite Scroll Trigger */}
+            {currentPage < totalPages && (
+              <div ref={observerTarget}>
+                <InfiniteLoader isFetchingMore={isFetchingMore} />
+              </div>
+            )}
+
+            {transactions.length === 0 && (
+              <div className="py-12 text-center text-slate-500">
+                No transactions found.
+              </div>
+            )}
+          </div>
         ) : (
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <TransactionTable

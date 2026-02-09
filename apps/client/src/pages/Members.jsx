@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus,
   Search,
@@ -6,6 +6,7 @@ import {
   DollarSign,
   TrendingUp,
   Wallet,
+  Loader2,
 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
@@ -13,14 +14,17 @@ import TableSkeleton from '@/components/TableSkeleton';
 import CardsSkeleton from '@/components/CardsSkeleton';
 import AddMemberModal from '@/components/AddMemberModal';
 import MemberTable from '@/components/MemberTable';
+import MemberCard from '@/components/MemberCard';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatPKR } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -29,23 +33,87 @@ const Members = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchMembers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(
-        `/members?page=${currentPage}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
-      );
-      setMembers(data.data || []);
-      setTotalEntries(data.totalEntries || 0);
-      setTotalPages(data.totalPages || 0);
-    } catch (error) {
-      console.error('Failed to fetch members', error);
-      toast.error('Failed to load members');
-    } finally {
-      setLoading(false);
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLimit(3);
+    } else {
+      setLimit(10);
     }
-  }, [currentPage, limit, searchTerm, sortBy, sortOrder]);
+    setCurrentPage(1);
+  }, [isMobile]);
+
+  const fetchMembers = useCallback(
+    async (isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const { data } = await api.get(
+          `/members?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+        );
+
+        if (isAppend) {
+          setMembers((prev) => {
+            const existingIds = new Set(prev.map((m) => m._id));
+            const newMembers = (data.data || []).filter(
+              (m) => !existingIds.has(m._id),
+            );
+            return [...prev, ...newMembers];
+          });
+          setCurrentPage(pageToFetch);
+        } else {
+          setMembers(data.data || []);
+        }
+
+        setTotalEntries(data.totalEntries || 0);
+        setTotalPages(data.totalPages || 0);
+      } catch (error) {
+        console.error('Failed to fetch members', error);
+        toast.error('Failed to load members');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [currentPage, limit, searchTerm, sortBy, sortOrder],
+  );
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          currentPage < totalPages
+        ) {
+          fetchMembers(true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, currentPage, totalPages, fetchMembers]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -59,18 +127,18 @@ const Members = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchMembers();
+      fetchMembers(false);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [fetchMembers]);
+  }, [searchTerm, sortBy, sortOrder, limit, isMobile]);
 
   const handleAddMember = () => {
     setIsAddModalOpen(true);
   };
 
   const handleMemberAdded = () => {
-    fetchMembers();
+    fetchMembers(false);
     setIsAddModalOpen(false);
     toast.success('Member added successfully');
   };
@@ -79,7 +147,7 @@ const Members = () => {
     try {
       await api.delete(`/members/${memberId}`);
       toast.success('Member deleted successfully');
-      fetchMembers();
+      fetchMembers(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete member');
     }
@@ -111,7 +179,7 @@ const Members = () => {
       />
 
       {/* Stats Cards */}
-      {loading ? (
+      {loading && !isFetchingMore ? (
         <CardsSkeleton count={4} />
       ) : (
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -155,8 +223,29 @@ const Members = () => {
           />
         </div>
 
-        {loading ? (
+        {loading && !isFetchingMore ? (
           <TableSkeleton />
+        ) : isMobile ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              {members.map((member) => (
+                <MemberCard key={member._id} member={member} />
+              ))}
+            </div>
+
+            {/* Infinite Scroll Trigger */}
+            {currentPage < totalPages && (
+              <div ref={observerTarget}>
+                <InfiniteLoader isFetchingMore={isFetchingMore} />
+              </div>
+            )}
+
+            {members.length === 0 && (
+              <div className="py-12 text-center text-slate-500">
+                No members found.
+              </div>
+            )}
+          </div>
         ) : (
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <MemberTable

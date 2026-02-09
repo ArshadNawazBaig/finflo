@@ -17,7 +17,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 
 const Navbar = ({ onMenuClick }) => {
@@ -158,7 +158,7 @@ const Navbar = ({ onMenuClick }) => {
           </Tooltip>
 
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-80 md:w-96 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
+            <div className="fixed sm:absolute inset-x-4 sm:inset-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 md:w-96 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
               <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/30">
                 <h3 className="font-semibold">Notifications</h3>
                 {unreadCount > 0 && (
@@ -255,7 +255,7 @@ const Navbar = ({ onMenuClick }) => {
               )}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold leading-none">
-                  {user.name}
+                  {capitalize(user.name)}
                 </span>
                 <ChevronDown
                   className={cn(
@@ -274,7 +274,9 @@ const Navbar = ({ onMenuClick }) => {
             <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
               {/* User Info Header */}
               <div className="p-4 border-b border-border/50 bg-muted/30">
-                <p className="font-bold text-sm truncate">{user.name}</p>
+                <p className="font-bold text-sm truncate">
+                  {capitalize(user.name)}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {user.email}
                 </p>

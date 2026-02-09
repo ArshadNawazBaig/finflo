@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUp,
@@ -14,6 +14,7 @@ import {
   Users,
   Building2,
   Send,
+  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +23,8 @@ import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/SendNotificationModal';
+import UserCard from '@/components/UserCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 import {
   Select,
   SelectContent,
@@ -43,6 +46,7 @@ import {
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -53,40 +57,92 @@ const ManageUsers = () => {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchUsers = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        ...(search && { search }),
-        ...(filters.plan && { plan: filters.plan }),
-        ...(filters.status && { status: filters.status }),
-      });
-      const { data } = await api.get(`/super-admin/users?${params}`);
-      setUsers(data.users);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-      toast.error('Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const observerTarget = useRef(null);
 
   useEffect(() => {
-    fetchUsers();
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchUsers(1);
-    }, 300);
-    return () => clearTimeout(debounce);
-  }, [search, filters, sortBy, sortOrder, limit]);
+    setLimit(isMobile ? 3 : 10);
+  }, [isMobile]);
+
+  const fetchUsers = useCallback(
+    async (page = 1, isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const params = new URLSearchParams({
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+          ...(search && { search }),
+          ...(filters.plan && { plan: filters.plan }),
+          ...(filters.status && { status: filters.status }),
+        });
+
+        const { data } = await api.get(`/super-admin/users?${params}`);
+
+        if (isAppend) {
+          setUsers((prev) => {
+            const existingIds = new Set(prev.map((u) => u._id));
+            const newUsers = (data.users || []).filter(
+              (u) => !existingIds.has(u._id),
+            );
+            return [...prev, ...newUsers];
+          });
+        } else {
+          setUsers(data.users);
+        }
+
+        setPagination(data.pagination);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        toast.error('Failed to fetch users');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [limit, sortBy, sortOrder, search, filters],
+  );
+
+  useEffect(() => {
+    fetchUsers(1);
+  }, [fetchUsers]);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          pagination.page < pagination.pages
+        ) {
+          fetchUsers(pagination.page + 1, true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, pagination, fetchUsers]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -95,7 +151,6 @@ const ManageUsers = () => {
       setSortBy(column);
       setSortOrder('asc');
     }
-    fetchUsers(1);
   };
 
   const renderSortIcon = (column) => {
@@ -120,7 +175,6 @@ const ManageUsers = () => {
     } catch (error) {
       toast.error('Failed to update user status');
     }
-    setShowActions(null);
   };
 
   const handleDeleteUser = async () => {
@@ -130,7 +184,7 @@ const ManageUsers = () => {
       await api.delete(`/super-admin/users/${deleteUser._id}?permanent=true`);
       toast.success('User deleted permanently');
       setDeleteUser(null);
-      fetchUsers(pagination.page);
+      fetchUsers(1);
     } catch (error) {
       toast.error('Failed to delete user');
     } finally {
@@ -249,23 +303,43 @@ const ManageUsers = () => {
         </div>
       )}
 
-      {/* Users Table */}
-      <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
-        {loading ? (
-          <div className="p-6 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
+      {/* Content Area */}
+      {loading && !isFetchingMore && users.length === 0 ? (
+        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      ) : users.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
+          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="font-bold text-lg">No users found</p>
+          <p className="text-muted-foreground text-sm">
+            Try adjusting your search or filters
+          </p>
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {users.map((user) => (
+              <UserCard
+                key={user._id}
+                user={user}
+                onToggleStatus={handleToggleStatus}
+                onDelete={setDeleteUser}
+              />
             ))}
           </div>
-        ) : users.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="font-bold text-lg">No users found</p>
-            <p className="text-muted-foreground text-sm">
-              Try adjusting your search or filters
-            </p>
-          </div>
-        ) : (
+
+          {/* Infinite Scroll Trigger */}
+          {pagination.page < pagination.pages && (
+            <div ref={observerTarget}>
+              <InfiniteLoader isFetchingMore={isFetchingMore} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
@@ -431,21 +505,20 @@ const ManageUsers = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+          {/* Pagination (Desktop) */}
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.pages}
+            totalEntries={pagination.total}
+            limit={limit}
+            onPageChange={(page) => fetchUsers(page)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+            }}
+          />
+        </div>
+      )}
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={pagination.page}
-        totalPages={pagination.pages}
-        totalEntries={pagination.total}
-        limit={limit}
-        onPageChange={(page) => fetchUsers(page)}
-        onLimitChange={(newLimit) => {
-          setLimit(newLimit);
-          fetchUsers(1);
-        }}
-      />
       <SendNotificationModal
         isOpen={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}

@@ -1,4 +1,4 @@
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
 import Pagination from './ui/Pagination';
@@ -63,7 +63,7 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                       {transaction.customer?.name?.charAt(0) || 'U'}
                     </div>
                     <div className="font-semibold text-sm">
-                      {transaction.customer?.name || 'Unknown'}
+                      {capitalize(transaction.customer?.name || 'Unknown')}
                     </div>
                   </div>
                 </td>

@@ -11,6 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
 import Tooltip from '@/components/ui/Tooltip';
+import { capitalize } from '@/lib/utils';
 
 const CustomerTable = ({
   data,
@@ -81,7 +82,7 @@ const CustomerTable = ({
                         to={`/customers/${customer._id}`}
                         className="font-semibold text-sm hover:text-primary transition-colors cursor-pointer block leading-tight"
                       >
-                        {customer.name}
+                        {capitalize(customer.name)}
                       </Link>
                       <Link
                         to={`/customers/${customer._id}`}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Calendar,
@@ -20,6 +20,7 @@ import {
   Activity,
   ArrowUpCircle,
   Download,
+  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
@@ -30,6 +31,7 @@ import Tooltip from '@/components/ui/Tooltip';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import DocumentManager from '@/components/DocumentManager';
 import StatsCard from '@/components/StatsCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -57,6 +59,27 @@ const LoanDetail = () => {
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Pagination State
+  const [repaymentPage, setRepaymentPage] = useState(1);
+  const [investmentPage, setInvestmentPage] = useState(1);
+  const [hasMoreRepayments, setHasMoreRepayments] = useState(true);
+  const [hasMoreInvestments, setHasMoreInvestments] = useState(true);
+  const [isFetchingMoreRepayments, setIsFetchingMoreRepayments] =
+    useState(false);
+  const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
+    useState(false);
+  const itemsPerPage = 3;
+
+  const repaymentObserverTarget = useRef(null);
+  const investmentObserverTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -65,7 +88,13 @@ const LoanDetail = () => {
       setLoan(loanRes.data);
 
       const repaymentsRes = await api.get(`/repayments?loanId=${id}`);
-      setRepayments(repaymentsRes.data.data || []);
+      const allRepayments = repaymentsRes.data.data || [];
+      if (isMobile) {
+        setRepayments(allRepayments.slice(0, itemsPerPage));
+        setHasMoreRepayments(allRepayments.length > itemsPerPage);
+      } else {
+        setRepayments(allRepayments);
+      }
 
       if (loanRes.data.customer?.isMember && loanRes.data.customer?.memberId) {
         const memberId = loanRes.data.customer.memberId;
@@ -75,8 +104,16 @@ const LoanDetail = () => {
         const investmentsRes = await api.get(
           `/investments?memberId=${memberId}`,
         );
-        setInvestments(investmentsRes.data.data || []);
+        const allInvestments = investmentsRes.data.data || [];
+        if (isMobile) {
+          setInvestments(allInvestments.slice(0, itemsPerPage));
+          setHasMoreInvestments(allInvestments.length > itemsPerPage);
+        } else {
+          setInvestments(allInvestments);
+        }
       }
+      setRepaymentPage(1);
+      setInvestmentPage(1);
     } catch (error) {
       console.error('Failed to fetch loan details', error);
       toast.error('Failed to load loan info');
@@ -84,7 +121,121 @@ const LoanDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, navigate, isMobile]);
+
+  const loadMoreRepayments = useCallback(async () => {
+    if (isFetchingMoreRepayments || !hasMoreRepayments) return;
+
+    setIsFetchingMoreRepayments(true);
+    setTimeout(async () => {
+      try {
+        const { data } = await api.get(`/repayments?loanId=${id}`);
+        const allRP = data.data || [];
+        const nextPage = repaymentPage + 1;
+        const start = (nextPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const newBatch = allRP.slice(start, end);
+
+        if (newBatch.length > 0) {
+          setRepayments((prev) => [...prev, ...newBatch]);
+          setRepaymentPage(nextPage);
+          setHasMoreRepayments(allRP.length > end);
+        } else {
+          setHasMoreRepayments(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more repayments', error);
+      } finally {
+        setIsFetchingMoreRepayments(false);
+      }
+    }, 500);
+  }, [id, repaymentPage, hasMoreRepayments, isFetchingMoreRepayments]);
+
+  const loadMoreInvestments = useCallback(async () => {
+    if (isFetchingMoreInvestments || !hasMoreInvestments || !member) return;
+
+    setIsFetchingMoreInvestments(true);
+    setTimeout(async () => {
+      try {
+        const memberId = member._id || member;
+        const { data } = await api.get(`/investments?memberId=${memberId}`);
+        const allInv = data.data || [];
+        const nextPage = investmentPage + 1;
+        const start = (nextPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const newBatch = allInv.slice(start, end);
+
+        if (newBatch.length > 0) {
+          setInvestments((prev) => [...prev, ...newBatch]);
+          setInvestmentPage(nextPage);
+          setHasMoreInvestments(allInv.length > end);
+        } else {
+          setHasMoreInvestments(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more investments', error);
+      } finally {
+        setIsFetchingMoreInvestments(false);
+      }
+    }, 500);
+  }, [member, investmentPage, hasMoreInvestments, isFetchingMoreInvestments]);
+
+  // Infinite Scroll Observers
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const rpObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMoreRepayments &&
+          hasMoreRepayments
+        ) {
+          loadMoreRepayments();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (repaymentObserverTarget.current) {
+      rpObserver.observe(repaymentObserverTarget.current);
+    }
+
+    return () => rpObserver.disconnect();
+  }, [
+    isMobile,
+    isFetchingMoreRepayments,
+    hasMoreRepayments,
+    loadMoreRepayments,
+  ]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const invObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMoreInvestments &&
+          hasMoreInvestments
+        ) {
+          loadMoreInvestments();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (investmentObserverTarget.current) {
+      invObserver.observe(investmentObserverTarget.current);
+    }
+
+    return () => invObserver.disconnect();
+  }, [
+    isMobile,
+    isFetchingMoreInvestments,
+    hasMoreInvestments,
+    loadMoreInvestments,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -436,6 +587,13 @@ const LoanDetail = () => {
                   </div>
                 ))
               )}
+
+              {/* Infinite Scroll Trigger for Repayments */}
+              {isMobile && hasMoreRepayments && (
+                <div ref={repaymentObserverTarget}>
+                  <InfiniteLoader isFetchingMore={isFetchingMoreRepayments} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -509,6 +667,15 @@ const LoanDetail = () => {
                       </div>
                     </div>
                   ))
+                )}
+
+                {/* Infinite Scroll Trigger for Investments */}
+                {isMobile && hasMoreInvestments && (
+                  <div ref={investmentObserverTarget}>
+                    <InfiniteLoader
+                      isFetchingMore={isFetchingMoreInvestments}
+                    />
+                  </div>
                 )}
               </div>
             </div>

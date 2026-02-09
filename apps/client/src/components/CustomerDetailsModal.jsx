@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { Mail, Phone, MapPin, DollarSign, UserPlus } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -87,7 +87,9 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
           </DialogTitle>
           <DialogDescription className="text-sm font-medium">
             Complete information for{' '}
-            <span className="text-foreground font-bold">{customer.name}</span>
+            <span className="text-foreground font-bold">
+              {capitalize(customer.name)}
+            </span>
           </DialogDescription>
         </DialogHeader>
 

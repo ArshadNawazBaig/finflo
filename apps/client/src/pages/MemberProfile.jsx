@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Wallet,
@@ -18,11 +18,12 @@ import {
   X,
   FileText,
   Download,
+  Loader2,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -67,6 +68,26 @@ const MemberProfile = () => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Pagination State
+  const [investmentPage, setInvestmentPage] = useState(1);
+  const [loanPage, setLoanPage] = useState(1);
+  const [hasMoreInvestments, setHasMoreInvestments] = useState(true);
+  const [hasMoreLoans, setHasMoreLoans] = useState(true);
+  const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
+    useState(false);
+  const [isFetchingMoreLoans, setIsFetchingMoreLoans] = useState(false);
+  const itemsPerPage = 3;
+
+  const investmentObserverTarget = useRef(null);
+  const loanObserverTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchMemberData = useCallback(async () => {
     try {
@@ -77,7 +98,15 @@ const MemberProfile = () => {
         api.get(`/members/${id}/profits`),
       ]);
       setMember(memberRes.data);
-      setInvestments(investmentsRes.data || []);
+
+      const allInvestments = investmentsRes.data || [];
+      if (isMobile) {
+        setInvestments(allInvestments.slice(0, itemsPerPage));
+        setHasMoreInvestments(allInvestments.length > itemsPerPage);
+      } else {
+        setInvestments(allInvestments);
+      }
+
       setProfits(profitsRes.data || []);
 
       if (memberRes.data.customer) {
@@ -87,11 +116,21 @@ const MemberProfile = () => {
           api.get(`/loans?customerId=${customerId}`),
           api.get(`/repayments?customerId=${customerId}`),
         ]);
-        setLoans(loansRes.data.data || []);
+
+        const allLoans = loansRes.data.data || [];
+        if (isMobile) {
+          setLoans(allLoans.slice(0, itemsPerPage));
+          setHasMoreLoans(allLoans.length > itemsPerPage);
+        } else {
+          setLoans(allLoans);
+        }
+
         setRepayments(repaymentsRes.data.data || []);
       }
 
       setNewProfitRate(memberRes.data.profitRate || '');
+      setInvestmentPage(1);
+      setLoanPage(1);
     } catch (error) {
       console.error('Failed to fetch member data', error);
       toast.error('Failed to load member profile');
@@ -99,7 +138,112 @@ const MemberProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, navigate, isMobile]);
+
+  const loadMoreInvestments = useCallback(async () => {
+    if (isFetchingMoreInvestments || !hasMoreInvestments) return;
+
+    setIsFetchingMoreInvestments(true);
+    // Simulating remote pagination since sub-endpoints might not support it
+    setTimeout(async () => {
+      try {
+        const { data } = await api.get(`/members/${id}/investments`);
+        const nextPage = investmentPage + 1;
+        const start = (nextPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const newBatch = data.slice(start, end);
+
+        if (newBatch.length > 0) {
+          setInvestments((prev) => [...prev, ...newBatch]);
+          setInvestmentPage(nextPage);
+          setHasMoreInvestments(data.length > end);
+        } else {
+          setHasMoreInvestments(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more investments', error);
+      } finally {
+        setIsFetchingMoreInvestments(false);
+      }
+    }, 500);
+  }, [id, investmentPage, hasMoreInvestments, isFetchingMoreInvestments]);
+
+  const loadMoreLoans = useCallback(async () => {
+    if (isFetchingMoreLoans || !hasMoreLoans || !member?.customer) return;
+
+    setIsFetchingMoreLoans(true);
+    setTimeout(async () => {
+      try {
+        const customerId = member.customer._id || member.customer;
+        const { data } = await api.get(`/loans?customerId=${customerId}`);
+        const allLoans = data.data || [];
+        const nextPage = loanPage + 1;
+        const start = (nextPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const newBatch = allLoans.slice(start, end);
+
+        if (newBatch.length > 0) {
+          setLoans((prev) => [...prev, ...newBatch]);
+          setLoanPage(nextPage);
+          setHasMoreLoans(allLoans.length > end);
+        } else {
+          setHasMoreLoans(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch more loans', error);
+      } finally {
+        setIsFetchingMoreLoans(false);
+      }
+    }, 500);
+  }, [member, loanPage, hasMoreLoans, isFetchingMoreLoans]);
+
+  // Infinite Scroll Observers
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const invObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMoreInvestments &&
+          hasMoreInvestments
+        ) {
+          loadMoreInvestments();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (investmentObserverTarget.current) {
+      invObserver.observe(investmentObserverTarget.current);
+    }
+
+    return () => invObserver.disconnect();
+  }, [
+    isMobile,
+    isFetchingMoreInvestments,
+    hasMoreInvestments,
+    loadMoreInvestments,
+  ]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const loanObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingMoreLoans && hasMoreLoans) {
+          loadMoreLoans();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (loanObserverTarget.current) {
+      loanObserver.observe(loanObserverTarget.current);
+    }
+
+    return () => loanObserver.disconnect();
+  }, [isMobile, isFetchingMoreLoans, hasMoreLoans, loadMoreLoans]);
 
   useEffect(() => {
     fetchMemberData();
@@ -183,7 +327,7 @@ const MemberProfile = () => {
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Name: ${member.name}`, 20, 50);
+      doc.text(`Name: ${capitalize(member.name)}`, 20, 50);
       doc.text(`Email: ${member.email}`, 20, 55);
       doc.text(`Phone: ${member.phone || 'N/A'}`, 20, 60);
       doc.text(`Status: ${member.status}`, 20, 65);
@@ -396,7 +540,7 @@ const MemberProfile = () => {
           <div>
             <div className="flex gap-3 mb-1 flex-col sm:flex-row items-start sm:items-center">
               <h1 className="text-3xl font-black tracking-tighter">
-                {member.name}
+                {capitalize(member.name)}
               </h1>
               <span
                 className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
@@ -690,6 +834,25 @@ const MemberProfile = () => {
                   </div>
                 ))
               )}
+
+              {/* Infinite Scroll Trigger for Investments */}
+              {isMobile && hasMoreInvestments && (
+                <div
+                  ref={investmentObserverTarget}
+                  className="py-6 flex justify-center items-center"
+                >
+                  {isFetchingMoreInvestments ? (
+                    <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
+                      <Loader2 className="animate-spin" size={18} />
+                      <span className="text-[10px] uppercase tracking-widest">
+                        Loading registry...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {/* Associated Loans Section */}
@@ -753,6 +916,25 @@ const MemberProfile = () => {
                     </div>
                   </div>
                 ))
+              )}
+
+              {/* Infinite Scroll Trigger for Loans */}
+              {isMobile && hasMoreLoans && (
+                <div
+                  ref={loanObserverTarget}
+                  className="py-6 flex justify-center items-center"
+                >
+                  {isFetchingMoreLoans ? (
+                    <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
+                      <Loader2 className="animate-spin" size={18} />
+                      <span className="text-[10px] uppercase tracking-widest">
+                        Loading loans...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import {
   Calendar,
   DollarSign,
@@ -131,7 +131,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                           Full Name
                         </p>
                         <p className="text-xs sm:text-sm font-black truncate">
-                          {loan.customer?.name}
+                          {capitalize(loan.customer?.name)}
                         </p>
                       </div>
                     </div>

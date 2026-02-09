@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bell,
   Search,
@@ -11,6 +11,7 @@ import {
   Calendar,
   User,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,36 +37,102 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import SendNotificationModal from '@/components/SendNotificationModal';
+import NotificationCard from '@/components/NotificationCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const ManageNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(10);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchNotifications = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page,
-        limit,
-        ...(search && { search }),
-        sortBy,
-      });
-      const { data } = await api.get(`/notifications/all?${params}`);
-      setNotifications(data.notifications);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      toast.error('Failed to fetch notification history');
-    } finally {
-      setLoading(false);
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    setLimit(isMobile ? 3 : 10);
+  }, [isMobile]);
+
+  const fetchNotifications = useCallback(
+    async (page = 1, isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const params = new URLSearchParams({
+          page,
+          limit,
+          ...(search && { search }),
+          sortBy,
+        });
+
+        const { data } = await api.get(`/notifications/all?${params}`);
+
+        if (isAppend) {
+          setNotifications((prev) => {
+            const existingIds = new Set(prev.map((n) => n._id));
+            const newNotifications = (data.notifications || []).filter(
+              (n) => !existingIds.has(n._id),
+            );
+            return [...prev, ...newNotifications];
+          });
+        } else {
+          setNotifications(data.notifications || []);
+        }
+
+        setPagination(data.pagination);
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+        toast.error('Failed to fetch notification history');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [limit, search, sortBy],
+  );
+
+  useEffect(() => {
+    fetchNotifications(1);
+  }, [fetchNotifications]);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          pagination.page < pagination.pages
+        ) {
+          fetchNotifications(pagination.page + 1, true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
     }
-  };
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, pagination, fetchNotifications]);
 
   const handleDelete = (id) => {
     setDeleteConfirmation(id);
@@ -76,23 +143,12 @@ const ManageNotifications = () => {
       await api.delete(`/notifications/${deleteConfirmation}`);
       toast.success('Notification deleted successfully');
       setDeleteConfirmation(null);
-      fetchNotifications(pagination.page);
+      fetchNotifications(1);
     } catch (error) {
       console.error('Failed to delete notification:', error);
       toast.error('Failed to delete notification');
     }
   };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchNotifications(1);
-    }, 300);
-    return () => clearTimeout(debounce);
-  }, [search, sortBy, limit]);
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -167,25 +223,44 @@ const ManageNotifications = () => {
         </div>
       </div>
 
-      {/* Notifications Table */}
-      <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
-        {loading ? (
-          <div className="p-6 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
+      {/* Content Area */}
+      {loading && !isFetchingMore && notifications.length === 0 ? (
+        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      ) : notifications.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
+          <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="font-bold text-lg">No notifications found</p>
+          <p className="text-muted-foreground text-sm">
+            {search
+              ? 'Try adjusting your search'
+              : 'Start by sending a notification to your users'}
+          </p>
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {notifications.map((notification) => (
+              <NotificationCard
+                key={notification._id}
+                notification={notification}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
-        ) : notifications.length === 0 ? (
-          <div className="p-12 text-center">
-            <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="font-bold text-lg">No notifications found</p>
-            <p className="text-muted-foreground text-sm">
-              {search
-                ? 'Try adjusting your search'
-                : 'Start by sending a notification to your users'}
-            </p>
-          </div>
-        ) : (
+
+          {/* Infinite Scroll Trigger */}
+          {pagination.page < pagination.pages && (
+            <div ref={observerTarget}>
+              <InfiniteLoader isFetchingMore={isFetchingMore} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
@@ -283,21 +358,19 @@ const ManageNotifications = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      <Pagination
-        currentPage={pagination.page}
-        totalPages={pagination.pages}
-        totalEntries={pagination.total}
-        limit={limit}
-        onPageChange={(page) => fetchNotifications(page)}
-        onLimitChange={(newLimit) => {
-          setLimit(newLimit);
-          fetchNotifications(1);
-        }}
-      />
+          {/* Pagination (Desktop) */}
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.pages}
+            totalEntries={pagination.total}
+            limit={limit}
+            onPageChange={(page) => fetchNotifications(page)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+            }}
+          />
+        </div>
+      )}
 
       <SendNotificationModal
         isOpen={isNotificationModalOpen}

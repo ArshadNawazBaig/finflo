@@ -24,7 +24,7 @@ import StatsCard from '@/components/StatsCard';
 import RepayLoanModal from '@/components/RepayLoanModal';
 import AddLoanModal from '@/components/AddLoanModal';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,7 @@ const CustomerProfile = () => {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-3xl font-black tracking-tighter">
-                {customer.name}
+                {capitalize(customer.name)}
               </h1>
               {customer.isMember && (
                 <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">

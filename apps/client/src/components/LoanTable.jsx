@@ -1,4 +1,4 @@
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import {
   Edit,
   Trash2,
@@ -109,7 +109,7 @@ const LoanTable = ({
                         className="block hover:opacity-70 transition-opacity"
                       >
                         <div className="font-semibold text-sm">
-                          {loan.customer?.name || 'Unknown'}
+                          {capitalize(loan.customer?.name || 'Unknown')}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {loan._id.slice(-6).toUpperCase()}

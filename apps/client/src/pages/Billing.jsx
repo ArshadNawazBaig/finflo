@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,18 +16,40 @@ import { toast } from 'sonner';
 
 import Pagination from '@/components/ui/Pagination';
 import BillingSkeleton from '@/components/BillingSkeleton';
+import InvoiceCard from '@/components/InvoiceCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const Billing = () => {
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(10);
+
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLimit(3);
+    } else {
+      setLimit(5);
+    }
+    setCurrentPage(1);
+  }, [isMobile]);
 
   useEffect(() => {
     const fetchBillingInfo = async () => {
       try {
+        setLoading(true);
         const { data } = await api.get('/subscription');
         setBillingData(data);
       } catch (error) {
@@ -59,16 +81,46 @@ const Billing = () => {
     plan,
     subscriptionStatus,
     paymentMethods,
-    invoices,
+    invoices = [],
     nextBillingDate,
   } = billingData || {};
 
-  // Pagination Logic
-  const totalEntries = invoices ? invoices.length : 0;
+  // For mobile infinite scroll, we simulate it using the local invoices array
+  const totalEntries = invoices.length;
   const totalPages = Math.ceil(totalEntries / limit);
-  const paginatedInvoices = invoices
-    ? invoices.slice((currentPage - 1) * limit, currentPage * limit)
-    : [];
+
+  // Data to display on mobile (accumulated) or desktop (paginated)
+  const displayInvoices = isMobile
+    ? invoices.slice(0, currentPage * limit)
+    : invoices.slice((currentPage - 1) * limit, currentPage * limit);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          currentPage < totalPages
+        ) {
+          setIsFetchingMore(true);
+          // Simulate a small delay for better UX
+          setTimeout(() => {
+            setCurrentPage((prev) => prev + 1);
+            setIsFetchingMore(false);
+          }, 500);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, currentPage, totalPages]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -95,7 +147,7 @@ const Billing = () => {
         description="Manage your subscription, payment methods, and billing history."
       />
 
-      {loading ? (
+      {loading && !isFetchingMore && !billingData ? (
         <BillingSkeleton />
       ) : (
         <>
@@ -286,112 +338,138 @@ const Billing = () => {
                 <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/10">
                   <h3 className="text-lg font-bold">Billing History</h3>
                   <p className="text-muted-foreground text-sm">
-                    Download previous invoices.
+                    Review and download your previous invoices.
                   </p>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left border-collapse">
-                    <thead>
-                      <tr className="bg-muted/30 border-b border-border/50">
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
-                          Invoice
-                        </th>
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
-                          Date
-                        </th>
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
-                          Billing Period
-                        </th>
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
-                          Amount
-                        </th>
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
-                          Status
-                        </th>
-                        <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap text-right">
-                          Download
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="">
-                      {paginatedInvoices.length > 0 ? (
-                        paginatedInvoices.map((inv) => (
-                          <tr
-                            key={inv._id}
-                            className="group hover:bg-muted/30 transition-colors border-b border-border/50 last:border-none"
-                          >
-                            <td className="px-4 py-4 font-semibold text-foreground text-sm">
-                              {inv.number || inv._id}
-                            </td>
-                            <td className="px-4 py-4 text-sm text-muted-foreground">
-                              {formatDate(inv.date)}
-                            </td>
-                            <td className="px-4 py-4 text-xs text-muted-foreground">
-                              {formatDate(inv.periodStart)} -{' '}
-                              {formatDate(inv.periodEnd)}
-                            </td>
-                            <td className="px-4 py-4 font-medium text-sm">
-                              ${inv.amount?.toFixed(2)}
-                            </td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide
-                                ${
-                                  inv.status?.toLowerCase() === 'paid'
-                                    ? 'bg-emerald-500/10 text-emerald-600'
-                                    : inv.status?.toLowerCase() === 'open'
-                                      ? 'bg-blue-500/10 text-blue-600'
-                                      : 'bg-destructive/10 text-destructive'
-                                }`}
-                              >
-                                {inv.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 text-right">
-                              {inv.url ? (
-                                <a
-                                  href={inv.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-block p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                                  title="Download Invoice"
-                                >
-                                  <Download size={16} />
-                                </a>
-                              ) : (
-                                <button
-                                  disabled
-                                  className="p-1.5 rounded-md text-muted-foreground/50 cursor-not-allowed"
-                                  title="No Invoice Available"
-                                >
-                                  <Download size={16} />
-                                </button>
-                              )}
-                            </td>
+
+                {isMobile ? (
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      {displayInvoices.map((inv) => (
+                        <InvoiceCard key={inv._id} invoice={inv} />
+                      ))}
+                    </div>
+
+                    {/* Infinite Scroll Trigger */}
+                    {currentPage < totalPages && (
+                      <div ref={observerTarget}>
+                        <InfiniteLoader isFetchingMore={isFetchingMore} />
+                      </div>
+                    )}
+
+                    {displayInvoices.length === 0 && (
+                      <div className="py-12 text-center text-slate-500">
+                        No billing history found.
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left border-collapse">
+                        <thead>
+                          <tr className="bg-muted/30 border-b border-border/50">
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
+                              Invoice
+                            </th>
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
+                              Date
+                            </th>
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
+                              Billing Period
+                            </th>
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
+                              Amount
+                            </th>
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
+                              Status
+                            </th>
+                            <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap text-right">
+                              Download
+                            </th>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="6"
-                            className="px-4 py-12 text-center text-muted-foreground"
-                          >
-                            No invoices found.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {totalEntries > 0 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalEntries={totalEntries}
-                    limit={limit}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                  />
+                        </thead>
+                        <tbody className="">
+                          {displayInvoices.length > 0 ? (
+                            displayInvoices.map((inv) => (
+                              <tr
+                                key={inv._id}
+                                className="group hover:bg-muted/30 transition-colors border-b border-border/50 last:border-none"
+                              >
+                                <td className="px-4 py-4 font-semibold text-foreground text-sm">
+                                  {inv.number || inv._id}
+                                </td>
+                                <td className="px-4 py-4 text-sm text-muted-foreground">
+                                  {formatDate(inv.date)}
+                                </td>
+                                <td className="px-4 py-4 text-xs text-muted-foreground">
+                                  {formatDate(inv.periodStart)} -{' '}
+                                  {formatDate(inv.periodEnd)}
+                                </td>
+                                <td className="px-4 py-4 font-medium text-sm">
+                                  ${inv.amount?.toFixed(2)}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide
+                                    ${
+                                      inv.status?.toLowerCase() === 'paid'
+                                        ? 'bg-emerald-500/10 text-emerald-600'
+                                        : inv.status?.toLowerCase() === 'open'
+                                          ? 'bg-blue-500/10 text-blue-600'
+                                          : 'bg-destructive/10 text-destructive'
+                                    }`}
+                                  >
+                                    {inv.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 text-right">
+                                  {inv.url ? (
+                                    <a
+                                      href={inv.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-block p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                                      title="Download Invoice"
+                                    >
+                                      <Download size={16} />
+                                    </a>
+                                  ) : (
+                                    <button
+                                      disabled
+                                      className="p-1.5 rounded-md text-muted-foreground/50 cursor-not-allowed"
+                                      title="No Invoice Available"
+                                    >
+                                      <Download size={16} />
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan="6"
+                                className="px-4 py-12 text-center text-muted-foreground"
+                              >
+                                No invoices found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    {totalEntries > 0 && (
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalEntries={totalEntries}
+                        limit={limit}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                      />
+                    )}
+                  </>
                 )}
               </section>
             </div>

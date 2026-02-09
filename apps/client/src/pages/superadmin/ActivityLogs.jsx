@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ScrollText,
   Search,
@@ -12,6 +12,7 @@ import {
   Bell,
   FileEdit,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,47 +26,102 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import ActivityLogCard from '@/components/ActivityLogCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchLogs = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page,
-        limit,
-        ...(search && { search }),
-        ...(category && category !== 'all' && { category }),
-        sortBy,
-      });
-      const { data } = await api.get(`/activity-logs?${params}`);
-      setLogs(data.logs);
-      setPagination(data.pagination);
-    } catch (error) {
-      console.error('Failed to fetch activity logs:', error);
-      toast.error('Failed to fetch activity logs');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const observerTarget = useRef(null);
 
   useEffect(() => {
-    fetchLogs();
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchLogs(1);
-    }, 300);
-    return () => clearTimeout(debounce);
-  }, [search, category, sortBy, limit]);
+    setLimit(isMobile ? 3 : 20);
+  }, [isMobile]);
+
+  const fetchLogs = useCallback(
+    async (page = 1, isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const params = new URLSearchParams({
+          page,
+          limit,
+          ...(search && { search }),
+          ...(category && category !== 'all' && { category }),
+          sortBy,
+        });
+
+        const { data } = await api.get(`/activity-logs?${params}`);
+
+        if (isAppend) {
+          setLogs((prev) => {
+            const existingIds = new Set(prev.map((l) => l._id));
+            const newLogs = (data.logs || []).filter(
+              (l) => !existingIds.has(l._id),
+            );
+            return [...prev, ...newLogs];
+          });
+        } else {
+          setLogs(data.logs || []);
+        }
+
+        setPagination(data.pagination);
+      } catch (error) {
+        console.error('Failed to fetch activity logs:', error);
+        toast.error('Failed to fetch activity logs');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [limit, search, category, sortBy],
+  );
+
+  useEffect(() => {
+    fetchLogs(1);
+  }, [fetchLogs]);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          pagination.page < pagination.pages
+        ) {
+          fetchLogs(pagination.page + 1, true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, pagination, fetchLogs]);
 
   const getCategoryColor = (cat) => {
     switch (cat) {
@@ -125,7 +181,7 @@ const ActivityLogs = () => {
         </div>
         <div className="flex flex-wrap gap-4">
           <Select
-            value={category}
+            value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
           >
             <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-2xl">
@@ -154,25 +210,40 @@ const ActivityLogs = () => {
         </div>
       </div>
 
-      {/* Activity Logs Table */}
-      <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
-        {loading ? (
-          <div className="p-6 space-y-4">
-            {[...Array(10)].map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
+      {/* Content Area */}
+      {loading && !isFetchingMore && logs.length === 0 ? (
+        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
+          {[...Array(10)].map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
+          <ScrollText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <p className="font-bold text-lg">No activity logs found</p>
+          <p className="text-muted-foreground text-sm">
+            {search || category
+              ? 'Try adjusting your search or filters'
+              : 'Activity logs will appear here'}
+          </p>
+        </div>
+      ) : isMobile ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {logs.map((log) => (
+              <ActivityLogCard key={log._id} log={log} />
             ))}
           </div>
-        ) : logs.length === 0 ? (
-          <div className="p-12 text-center">
-            <ScrollText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="font-bold text-lg">No activity logs found</p>
-            <p className="text-muted-foreground text-sm">
-              {search || category
-                ? 'Try adjusting your search or filters'
-                : 'Activity logs will appear here'}
-            </p>
-          </div>
-        ) : (
+
+          {/* Infinite Scroll Trigger */}
+          {pagination.page < pagination.pages && (
+            <div ref={observerTarget}>
+              <InfiniteLoader isFetchingMore={isFetchingMore} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
@@ -254,21 +325,19 @@ const ActivityLogs = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      <Pagination
-        currentPage={pagination.page}
-        totalPages={pagination.pages}
-        totalEntries={pagination.total}
-        limit={limit}
-        onPageChange={(page) => fetchLogs(page)}
-        onLimitChange={(newLimit) => {
-          setLimit(newLimit);
-          fetchLogs(1);
-        }}
-      />
+          {/* Pagination (Desktop) */}
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.pages}
+            totalEntries={pagination.total}
+            limit={limit}
+            onPageChange={(page) => fetchLogs(page)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

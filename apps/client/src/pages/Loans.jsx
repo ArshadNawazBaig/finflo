@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Plus, Search, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   AlertDialog,
@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import LoanTable from '@/components/LoanTable';
+import LoanCard from '@/components/LoanCard';
 import PageHeader from '@/components/PageHeader';
 import AddLoanModal from '@/components/AddLoanModal';
 import RepayLoanModal from '@/components/RepayLoanModal';
@@ -21,10 +22,12 @@ import TableSkeleton from '@/components/TableSkeleton';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [repayLoan, setRepayLoan] = useState(null);
   const [detailLoan, setDetailLoan] = useState(null);
@@ -37,22 +40,87 @@ const Loans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const fetchLoans = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(
-        `/loans?page=${currentPage}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
-      );
-      setLoans(data.data || []);
-      setTotalEntries(data.totalEntries || 0);
-      setTotalPages(data.totalPages || 0);
-    } catch (error) {
-      console.error('Failed to fetch loans', error);
-    } finally {
-      setLoading(false);
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLimit(3);
+    } else {
+      setLimit(10);
     }
-  }, [currentPage, limit, searchTerm, sortBy, sortOrder]);
+    setCurrentPage(1);
+  }, [isMobile]);
+
+  const fetchLoans = useCallback(
+    async (isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const { data } = await api.get(
+          `/loans?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+        );
+
+        if (isAppend) {
+          setLoans((prev) => {
+            const existingIds = new Set(prev.map((l) => l._id));
+            const newLoans = (data.data || []).filter(
+              (l) => !existingIds.has(l._id),
+            );
+            return [...prev, ...newLoans];
+          });
+          setCurrentPage(pageToFetch);
+        } else {
+          setLoans(data.data || []);
+        }
+
+        setTotalEntries(data.totalEntries || 0);
+        setTotalPages(data.totalPages || 0);
+      } catch (error) {
+        console.error('Failed to fetch loans', error);
+        toast.error('Failed to load loans');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [currentPage, limit, searchTerm, sortBy, sortOrder],
+  );
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          currentPage < totalPages
+        ) {
+          fetchLoans(true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, currentPage, totalPages, fetchLoans]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -66,11 +134,11 @@ const Loans = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchLoans();
+      fetchLoans(false);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [fetchLoans]);
+  }, [searchTerm, sortBy, sortOrder, limit, isMobile]); // Remove fetchLoans from deps to prevent infinite loop or re-fetch on every render
 
   const handleDeleteConfirm = async () => {
     if (!deleteLoan) return;
@@ -116,8 +184,34 @@ const Loans = () => {
       </div>
 
       <div className="mt-4">
-        {loading ? (
+        {loading && !isFetchingMore ? (
           <TableSkeleton />
+        ) : isMobile ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              {loans.map((loan) => (
+                <LoanCard
+                  key={loan._id}
+                  loan={loan}
+                  onEdit={setEditLoan}
+                  onDelete={setDeleteLoan}
+                />
+              ))}
+            </div>
+
+            {/* Infinite Scroll Trigger */}
+            {currentPage < totalPages && (
+              <div ref={observerTarget}>
+                <InfiniteLoader isFetchingMore={isFetchingMore} />
+              </div>
+            )}
+
+            {loans.length === 0 && (
+              <div className="py-12 text-center text-slate-500">
+                No loans found.
+              </div>
+            )}
+          </div>
         ) : (
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <LoanTable

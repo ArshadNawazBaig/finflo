@@ -8,8 +8,11 @@ import {
   Search,
   Download,
 } from 'lucide-react';
+import { useRef, useCallback } from 'react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
+import PaymentCard from '@/components/PaymentCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 import {
   Card,
   CardContent,
@@ -45,7 +48,10 @@ const RevenueReports = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(5);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const observerTarget = useRef(null);
 
   const fetchData = async () => {
     try {
@@ -69,21 +75,72 @@ const RevenueReports = () => {
     }
   };
 
-  const fetchPayments = async (page = 1) => {
+  const fetchPayments = async (page = 1, isAppend = false) => {
     try {
+      if (isAppend) setIsFetchingMore(true);
       const params = new URLSearchParams({
         page,
         limit,
         ...(search && { search }),
       });
       const { data } = await api.get(`/revenue/payments?${params}`);
-      setPayments(data.payments);
+
+      if (isAppend) {
+        setPayments((prev) => {
+          const newPayments = data.payments.filter(
+            (p) => !prev.some((existing) => existing._id === p._id),
+          );
+          return [...prev, ...newPayments];
+        });
+      } else {
+        setPayments(data.payments);
+      }
+
       setPagination(data.pagination);
     } catch (error) {
       console.error('Failed to fetch payments:', error);
       toast.error('Failed to fetch payment history');
+    } finally {
+      if (isAppend) setIsFetchingMore(false);
     }
   };
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLimit(3);
+    } else {
+      setLimit(10);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          pagination.page < pagination.pages
+        ) {
+          fetchPayments(pagination.page + 1, true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isMobile, isFetchingMore, pagination]);
 
   useEffect(() => {
     fetchData();
@@ -445,105 +502,153 @@ const RevenueReports = () => {
           )}
 
           {/* Payment History */}
-          <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-            <div className="p-6 border-b border-border/50">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-lg">Payment History</h3>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-                  <input
-                    type="text"
-                    placeholder="Search payments..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-12 pr-4 py-2 rounded-xl border border-border/50 bg-background text-sm"
-                  />
+          {(payments.length > 0 || search !== '') && (
+            <div className="bg-card/30 backdrop-blur-md rounded-[2rem] border border-border/50 overflow-hidden shadow-sm">
+              <div className="p-6 border-b border-border/40 bg-muted/5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <h3 className="text-xl font-black tracking-tighter">
+                      Payment History
+                    </h3>
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 mt-0.5">
+                      Complete Audit of Revenue Streams
+                    </p>
+                  </div>
+                  <div className="relative group flex-1 max-w-sm">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+                    <input
+                      type="text"
+                      placeholder="Search by user or email..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                    />
+                    <div className="absolute inset-0 rounded-xl animate-shimmer pointer-events-none opacity-0 group-focus-within:opacity-10" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      User
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Plan
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Amount
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Date
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {payments.map((payment) => (
-                    <tr
-                      key={payment._id}
-                      className="hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="text-sm">
-                          <p className="font-medium">{payment.user.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {payment.user.email}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary">
-                          {payment.plan}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-bold text-green-600">
-                          ${payment.amount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar size={14} />
-                          {new Date(payment.date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                            payment.status === 'active'
-                              ? 'bg-green-500/10 text-green-600'
-                              : 'bg-red-500/10 text-red-600'
-                          }`}
-                        >
-                          {payment.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              {isMobile ? (
+                <div className="p-4 space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    {payments.map((payment) => (
+                      <PaymentCard key={payment._id} payment={payment} />
+                    ))}
+                  </div>
 
-            <div className="p-6 border-t border-border/50">
-              <Pagination
-                currentPage={pagination.page}
-                totalPages={pagination.pages}
-                totalEntries={pagination.total}
-                limit={limit}
-                onPageChange={(page) => fetchPayments(page)}
-                onLimitChange={(newLimit) => {
-                  setLimit(newLimit);
-                  fetchPayments(1);
-                }}
-              />
+                  {/* Infinite Scroll Trigger */}
+                  {pagination.page < pagination.pages && (
+                    <div ref={observerTarget}>
+                      <InfiniteLoader isFetchingMore={isFetchingMore} />
+                    </div>
+                  )}
+
+                  {payments.length === 0 && !loading && (
+                    <div className="py-12 text-center text-muted-foreground">
+                      No payment history found.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                          User
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                          Plan
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                          Amount
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                          Date
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {payments.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan="5"
+                            className="px-6 py-12 text-center text-muted-foreground font-black uppercase tracking-[0.2em] text-[10px]"
+                          >
+                            No payment history found
+                          </td>
+                        </tr>
+                      ) : (
+                        payments.map((payment) => (
+                          <tr
+                            key={payment._id}
+                            className="hover:bg-muted/30 transition-colors"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="text-sm">
+                                <p className="font-medium">
+                                  {payment.user.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {payment.user.email}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                                {payment.plan}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-bold text-green-600">
+                                ${payment.amount}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Calendar size={14} />
+                                {new Date(payment.date).toLocaleDateString()}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                                  payment.status === 'active'
+                                    ? 'bg-green-500/10 text-green-600'
+                                    : 'bg-red-500/10 text-red-600'
+                                }`}
+                              >
+                                {payment.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {!isMobile && pagination.total > 0 && (
+                <div className="p-6 border-t border-border/50">
+                  <Pagination
+                    currentPage={pagination.page}
+                    totalPages={pagination.pages}
+                    totalEntries={pagination.total}
+                    limit={limit}
+                    onPageChange={(page) => fetchPayments(page)}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      fetchPayments(1);
+                    }}
+                  />
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

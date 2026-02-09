@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 
 const MemberTable = ({
@@ -94,7 +94,9 @@ const MemberTable = ({
                       to={`/members/${member._id}`}
                       className="block hover:opacity-70 transition-opacity"
                     >
-                      <div className="font-semibold text-sm">{member.name}</div>
+                      <div className="font-semibold text-sm">
+                        {capitalize(member.name)}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {member.email}
                       </div>

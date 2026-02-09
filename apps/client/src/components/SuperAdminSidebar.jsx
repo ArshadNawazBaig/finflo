@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 
 const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
@@ -57,7 +57,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const userRole = 'Super Admin';
 
   const sidebarClasses = cn(
-    'h-screen flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-50 transition-all duration-300 ease-in-out',
+    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[110] transition-all duration-300 ease-in-out',
     isMobile
       ? `w-64 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : isExpanded
@@ -90,8 +90,8 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
 
       <nav
         className={cn(
-          'flex-1 flex flex-col gap-1 w-full px-0 overflow-y-auto scrollbar-hide py-2',
-          isLayoutExpanded ? '' : 'items-center',
+          'flex-1 flex flex-col gap-1 w-full overflow-y-auto scrollbar-hide py-2',
+          isLayoutExpanded ? 'px-4' : 'items-center px-0',
         )}
       >
         <NavItem
@@ -153,7 +153,10 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
       </nav>
 
       <div
-        className="mt-auto flex flex-col gap-3 w-full px-0 relative"
+        className={cn(
+          'mt-auto flex flex-col gap-3 w-full relative',
+          isLayoutExpanded ? 'px-4' : 'px-0',
+        )}
         ref={menuRef}
       >
         <NavItem
@@ -202,7 +205,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
             {isLayoutExpanded && (
               <div className="flex flex-col items-start overflow-hidden">
                 <span className="text-sm font-bold truncate w-full text-left">
-                  {userName}
+                  {capitalize(userName)}
                 </span>
                 <span className="text-xs text-muted-foreground truncate w-full text-left">
                   {userRole}
