@@ -1,6 +1,14 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 
+const getBaseUrl = () => {
+  let url = process.env.CLIENT_URL || 'http://localhost:5173';
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
 const createCheckoutSession = async (req, res) => {
   const { plan } = req.body;
   const userId = req.user._id;
@@ -24,11 +32,9 @@ const createCheckoutSession = async (req, res) => {
       console.error(
         `Price ID for plan "${plan}" is not defined in environment variables.`,
       );
-      return res
-        .status(500)
-        .json({
-          message: `Price ID for ${plan} is not configured on the server.`,
-        });
+      return res.status(500).json({
+        message: `Price ID for ${plan} is not configured on the server.`,
+      });
     }
 
     // Create customer if not exists
@@ -44,13 +50,14 @@ const createCheckoutSession = async (req, res) => {
       await user.save();
     }
 
+    const baseUrl = getBaseUrl();
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/payment/cancel`,
+      success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/payment/cancel`,
       subscription_data: {
         metadata: { userId: user._id.toString(), plan },
       },
@@ -101,9 +108,10 @@ const createPortalSession = async (req, res) => {
         : 'using default configuration',
     );
 
+    const baseUrl = getBaseUrl();
     const portalOptions = {
       customer: customerId,
-      return_url: `${process.env.CLIENT_URL}/billing`,
+      return_url: `${baseUrl}/billing`,
     };
 
     // Configuration is optional; if missing, Stripe uses the default
