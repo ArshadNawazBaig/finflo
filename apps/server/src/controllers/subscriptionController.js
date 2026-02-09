@@ -79,19 +79,37 @@ const createPortalSession = async (req, res) => {
     }
 
     console.log(
-      'Creating portal session with config:',
-      process.env.STRIPE_PORTAL_CONFIGURATION_ID,
+      'Creating portal session for customer:',
+      customerId,
+      process.env.STRIPE_PORTAL_CONFIGURATION_ID
+        ? `with config: ${process.env.STRIPE_PORTAL_CONFIGURATION_ID}`
+        : 'using default configuration',
     );
-    const session = await stripe.billingPortal.sessions.create({
+
+    const portalOptions = {
       customer: customerId,
       return_url: `${process.env.CLIENT_URL}/billing`,
-      configuration: process.env.STRIPE_PORTAL_CONFIGURATION_ID,
-    });
+    };
+
+    // Configuration is optional; if missing, Stripe uses the default
+    if (process.env.STRIPE_PORTAL_CONFIGURATION_ID) {
+      portalOptions.configuration = process.env.STRIPE_PORTAL_CONFIGURATION_ID;
+    }
+
+    const session = await stripe.billingPortal.sessions.create(portalOptions);
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Portal Session Error:', error);
-    res.status(500).json({ message: 'Failed to create portal session' });
+    console.error('Portal Session Error Detail:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      param: error.param,
+    });
+    res.status(500).json({
+      message: 'Failed to create portal session',
+      error: error.message,
+    });
   }
 };
 

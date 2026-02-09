@@ -133,11 +133,19 @@ const Billing = () => {
                     </p>
                   </div>
                   <Button
-                    onClick={handleManageSubscription}
+                    onClick={() => {
+                      if (plan === 'Free' || !plan) {
+                        window.location.href = '/pricing';
+                      } else {
+                        handleManageSubscription();
+                      }
+                    }}
                     variant="gradient"
                     className="px-6 py-2.5 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest"
                   >
-                    Manage Subscription
+                    {plan === 'Free' || !plan
+                      ? 'Upgrade Plan'
+                      : 'Manage Subscription'}
                   </Button>
                 </div>
 
@@ -447,10 +455,20 @@ const Billing = () => {
                     </li>
                   </ul>
                   <button
-                    onClick={handleManageSubscription}
+                    onClick={() => {
+                      if (plan === 'Free' || !plan) {
+                        window.location.href = '/pricing';
+                      } else {
+                        handleManageSubscription();
+                      }
+                    }}
                     className="w-full bg-white text-indigo-700 hover:bg-white/90 shadow-lg px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95"
                   >
-                    {plan === 'Pro' ? 'View Plan Details' : 'Upgrade Plan'}
+                    {plan === 'Pro'
+                      ? 'View Plan Details'
+                      : plan === 'Free' || !plan
+                        ? 'Upgrade Now'
+                        : 'Manage Subscription'}
                   </button>
                 </div>
               </div>
