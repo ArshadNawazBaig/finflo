@@ -8,7 +8,7 @@
   "scripts": {
     "start": "concurrently \"npm run dev --workspace=apps/server\" \"npm run dev --workspace=apps/client\"",
     "dev": "npm run start",
-    "build": "npm run build --workspace=apps/client",
+    "build": "npm run build --workspace=apps/client && rm -rf dist && mv apps/client/dist dist",
     "test": "npm run test --workspaces"
   },
   "devDependencies": {
