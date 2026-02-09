@@ -12,6 +12,7 @@ import {
   DollarSign,
   Database,
   LifeBuoy,
+  X,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -72,9 +73,9 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
       {isMobile && (
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-full hover:bg-muted text-muted-foreground"
+          className="absolute top-4 right-4 p-2 rounded-xl bg-accent/50 hover:bg-accent text-foreground transition-colors z-50 shadow-sm"
         >
-          <ChevronUp className="rotate-[-90deg]" size={20} />
+          <X size={20} />
         </button>
       )}
 
@@ -88,7 +89,10 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
       </div>
 
       <nav
-        className={`flex-1 flex flex-col gap-3 w-full px-0 ${isLayoutExpanded ? '' : 'items-center'}`}
+        className={cn(
+          'flex-1 flex flex-col gap-1 w-full px-0 overflow-y-auto scrollbar-hide py-2',
+          isLayoutExpanded ? '' : 'items-center',
+        )}
       >
         <NavItem
           to="/super-admin"
