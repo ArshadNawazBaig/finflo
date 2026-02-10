@@ -1,12 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
+import axios from '@/lib/axios';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const [planName, setPlanName] = useState('Pro');
+
+  // Verify and sync subscription status
+  useEffect(() => {
+    const verifyPayment = async () => {
+      if (!sessionId) return;
+
+      try {
+        // Call backend to verify session and update user plan
+        const response = await axios.post('/api/subscription/verify-session', {
+          sessionId,
+        });
+
+        if (response.data.plan) {
+          setPlanName(response.data.plan);
+
+          // Fetch updated user data and update localStorage
+          try {
+            const userResponse = await axios.get('/api/auth/me');
+            const updatedUser = userResponse.data;
+
+            // Update localStorage with new user data
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Dispatch custom event to notify other components
+            window.dispatchEvent(new Event('userUpdated'));
+
+            console.log('User data updated in localStorage:', updatedUser.plan);
+          } catch (userError) {
+            console.error('Error fetching updated user data:', userError);
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying payment:', error);
+      }
+    };
+
+    verifyPayment();
+  }, [sessionId]);
 
   useEffect(() => {
     // Fire confetti on mount
@@ -54,7 +94,8 @@ const PaymentSuccess = () => {
             Payment Successful!
           </h1>
           <p className="text-muted-foreground text-sm font-medium">
-            Thank you for your purchase. Your account has been upgraded to Pro.
+            Thank you for your purchase. Your account has been upgraded to{' '}
+            {planName}.
           </p>
         </div>
 

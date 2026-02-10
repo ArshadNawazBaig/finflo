@@ -50,6 +50,37 @@ const createCheckoutSession = async (req, res) => {
       });
     }
 
+    // Prevent duplicate subscriptions
+    if (user.stripeSubscriptionId && user.subscriptionStatus === 'active') {
+      // User already has an active subscription
+      if (user.plan === plan) {
+        // Trying to subscribe to the same plan
+        return res.status(400).json({
+          message: `You already have an active ${plan} subscription.`,
+        });
+      } else if (user.plan === 'Pro' && plan === 'Basic') {
+        // Trying to downgrade from Pro to Basic
+        return res.status(400).json({
+          message: `To downgrade from Pro to Basic, please use the billing portal to manage your subscription.`,
+        });
+      } else if (user.plan === 'Basic' && plan === 'Pro') {
+        // Allow upgrade from Basic to Pro
+        // Cancel the existing Basic subscription first
+        try {
+          await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+          console.log(
+            `Canceled existing Basic subscription: ${user.stripeSubscriptionId}`,
+          );
+        } catch (error) {
+          console.error('Error canceling existing subscription:', error);
+          return res.status(500).json({
+            message:
+              'Failed to cancel existing subscription. Please try again.',
+          });
+        }
+      }
+    }
+
     // Create customer if not exists
     let customerId = user.stripeCustomerId;
     if (!customerId) {
@@ -163,17 +194,49 @@ const getBillingInfo = async (req, res) => {
       });
     }
 
-    const [paymentMethods, invoices, customer] = await Promise.all([
-      stripe.paymentMethods.list({
-        customer: user.stripeCustomerId,
-        type: 'card',
-      }),
-      stripe.invoices.list({
-        customer: user.stripeCustomerId,
-        limit: 100, // Fetch more history
-      }),
-      stripe.customers.retrieve(user.stripeCustomerId),
-    ]);
+    const [paymentMethods, invoices, customer, subscriptions] =
+      await Promise.all([
+        stripe.paymentMethods.list({
+          customer: user.stripeCustomerId,
+          type: 'card',
+        }),
+        stripe.invoices.list({
+          customer: user.stripeCustomerId,
+          limit: 100, // Fetch more history
+        }),
+        stripe.customers.retrieve(user.stripeCustomerId),
+        stripe.subscriptions.list({
+          customer: user.stripeCustomerId,
+          status: 'active',
+          limit: 1,
+        }),
+      ]);
+
+    // Sync Plan from Stripe if needed
+    let currentPlan = user.plan;
+    if (subscriptions.data.length > 0) {
+      const subscription = subscriptions.data[0];
+      const priceId = subscription.items.data[0].price.id;
+      let stripePlan = 'Free';
+
+      if (priceId === process.env.STRIPE_PRICE_ID_BASIC) {
+        stripePlan = 'Basic';
+      } else if (priceId === process.env.STRIPE_PRICE_ID_PRO) {
+        stripePlan = 'Pro';
+      }
+
+      // If DB plan doesn't match Stripe active plan, update DB
+      if (stripePlan !== 'Free' && user.plan !== stripePlan) {
+        console.log(
+          `Syncing plan for user ${user._id}: ${user.plan} -> ${stripePlan}`,
+        );
+        user.plan = stripePlan;
+        user.subscriptionStatus = 'active';
+        user.stripeSubscriptionId = subscription.id;
+        await user.save();
+        currentPlan = stripePlan;
+      }
+    }
 
     const defaultPaymentMethodId =
       customer.invoice_settings.default_payment_method;
@@ -204,6 +267,7 @@ const getBillingInfo = async (req, res) => {
 
     res.json({
       ...user.toObject(),
+      plan: currentPlan, // Return the synced plan
       paymentMethods: formattedPaymentMethods,
       invoices: formattedInvoices,
     });
@@ -288,6 +352,66 @@ const removePaymentMethod = async (req, res) => {
   }
 };
 
+const verifySession = async (req, res) => {
+  const { sessionId } = req.body;
+  const userId = req.user._id;
+
+  try {
+    console.log(`Verifying session ${sessionId} for user ${userId}`);
+
+    // Retrieve the checkout session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Get the subscription details
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription,
+    );
+
+    // Determine plan from Price ID
+    const priceId = subscription.items.data[0].price.id;
+    let plan = 'Pro'; // Default
+
+    if (priceId === process.env.STRIPE_PRICE_ID_BASIC) {
+      plan = 'Basic';
+    } else if (priceId === process.env.STRIPE_PRICE_ID_PRO) {
+      plan = 'Pro';
+    }
+
+    console.log(`Determined plan: ${plan} from price ID: ${priceId}`);
+
+    // Update user in database
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        stripeCustomerId: session.customer,
+        stripeSubscriptionId: session.subscription,
+        subscriptionStatus: 'active',
+        plan: plan,
+        nextBillingDate: new Date(subscription.current_period_end * 1000),
+      },
+      { new: true },
+    );
+
+    console.log(`User ${userId} updated to ${plan} plan`);
+
+    res.json({
+      success: true,
+      plan: updatedUser.plan,
+      subscriptionStatus: updatedUser.subscriptionStatus,
+    });
+  } catch (error) {
+    console.error('Error verifying session:', error);
+    res.status(500).json({
+      message: 'Failed to verify session',
+      error: error.message,
+    });
+  }
+};
+
 const updateSubscription = async (req, res) => {
   const { plan } = req.body;
   try {
@@ -322,4 +446,5 @@ module.exports = {
   setDefaultPaymentMethod,
   removePaymentMethod,
   updateSubscription,
+  verifySession,
 };

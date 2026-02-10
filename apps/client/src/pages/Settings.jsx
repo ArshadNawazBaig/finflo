@@ -55,6 +55,20 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
 
+  // Fetch latest user data on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data } = await api.get('/auth/me');
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
   // Notifications Effect
   useEffect(() => {
     localStorage.setItem('notifications', JSON.stringify(notifications));

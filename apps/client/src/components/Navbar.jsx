@@ -98,7 +98,19 @@ const Navbar = ({ onMenuClick }) => {
     navigate('/login');
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem('user') || '{}'),
+  );
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUser(JSON.parse(localStorage.getItem('user') || '{}'));
+    };
+
+    window.addEventListener('userUpdated', handleUserUpdate);
+    return () => window.removeEventListener('userUpdated', handleUserUpdate);
+  }, []);
+
   const userInitials = user.name
     ? user.name
         .split(' ')

@@ -66,12 +66,12 @@ const SplashScreen = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes loading {
           0% {
             transform: translateX(-100%);
           }
-          100% {
+          to {
             transform: translateX(250%);
           }
         }

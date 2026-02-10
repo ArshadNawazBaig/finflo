@@ -46,8 +46,8 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpire: Date,
     securityCode: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
       uppercase: true,
       minlength: 6,
       maxlength: 6,

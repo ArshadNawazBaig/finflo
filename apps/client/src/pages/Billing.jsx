@@ -51,6 +51,7 @@ const Billing = () => {
       try {
         setLoading(true);
         const { data } = await api.get('/subscription');
+        console.log('Billing data:', data);
         setBillingData(data);
       } catch (error) {
         console.error('Failed to fetch billing info', error);

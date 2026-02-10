@@ -8,6 +8,7 @@ const {
   setDefaultPaymentMethod,
   removePaymentMethod,
   updateSubscription,
+  verifySession,
 } = require('../controllers/subscriptionController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -22,5 +23,6 @@ router.put(
 );
 router.delete('/payment-method/:paymentMethodId', protect, removePaymentMethod);
 router.put('/', protect, updateSubscription);
+router.post('/verify-session', protect, verifySession);
 
 module.exports = router;
