@@ -12,11 +12,14 @@ import {
   LogOut,
   Mail,
   Lock,
-  Smartphone,
-  X,
-  Loader2,
   Eye,
   EyeOff,
+  Sliders,
+  Smartphone,
+  Loader2,
+  Copy,
+  Check,
+  ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -49,11 +52,27 @@ const Settings = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
 
   // Notifications Effect
   useEffect(() => {
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
+
+  // Fetch latest user data
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data } = await api.get('/auth/me');
+        console.log('Fetched user data:', data); // Debug log
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleToggle = (key) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -117,6 +136,19 @@ const Settings = () => {
             <Bell size={18} />
             Notifications
           </button>
+          {['admin', 'Admin'].includes(user.role) && (
+            <button
+              onClick={() => setActiveSection('configuration')}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                activeSection === 'configuration'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Sliders size={18} />
+              Configuration
+            </button>
+          )}
         </div>
 
         {/* Main Content Area */}
@@ -301,7 +333,41 @@ const Settings = () => {
                     Change Password
                   </Button>
                 </div>
-                <CustomerPortalPIN />
+                <div className="flex items-start justify-between pb-4 border-b border-border/50">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck size={18} className="text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-sm">
+                        Business Security Code
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Share this code with your members for portal access
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-mono text-lg font-black text-primary tracking-wider">
+                      {user.securityCode || 'LOADING...'}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3"
+                      onClick={() => {
+                        navigator.clipboard.writeText(user.securityCode || '');
+                        setCopiedSecurityCode(true);
+                        toast.success('Security code copied to clipboard');
+                        setTimeout(() => setCopiedSecurityCode(false), 2000);
+                      }}
+                    >
+                      {copiedSecurityCode ? (
+                        <Check size={16} className="text-emerald-500" />
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                    </Button>
+                  </div>
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <LogOut size={18} className="text-muted-foreground" />
@@ -324,6 +390,9 @@ const Settings = () => {
               </div>
             </section>
           )}
+
+          {/* Configuration Section */}
+          {activeSection === 'configuration' && <ConfigurationSection />}
         </div>
       </div>
 
@@ -537,105 +606,109 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Customer Portal PIN Component
-const CustomerPortalPIN = () => {
-  const [pin, setPin] = useState(null);
+// Configuration Section Component
+const ConfigurationSection = () => {
+  const [settings, setSettings] = useState({
+    defaultInterestRate: 5,
+  });
   const [loading, setLoading] = useState(false);
-  const [showPin, setShowPin] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchPin();
+    fetchSettings();
   }, []);
 
-  const fetchPin = async () => {
+  const fetchSettings = async () => {
+    setLoading(true);
     try {
-      const { data } = await api.get('/auth/customer-portal-pin');
-      setPin(data.pin);
+      const { data } = await api.get('/system-settings');
+      if (data) {
+        setSettings({
+          defaultInterestRate: data.defaultInterestRate || 5,
+        });
+      }
     } catch (error) {
-      console.error('Failed to fetch PIN:', error);
-    }
-  };
-
-  const generatePin = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.post('/auth/customer-portal-pin');
-      setPin(data.pin);
-      toast.success('Customer portal PIN generated successfully');
-    } catch (error) {
-      toast.error('Failed to generate PIN');
+      console.error('Failed to fetch settings:', error);
+      toast.error('Failed to load system settings');
     } finally {
       setLoading(false);
     }
   };
 
-  const copyPin = () => {
-    if (pin) {
-      navigator.clipboard.writeText(pin);
-      toast.success('PIN copied to clipboard');
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.put('/system-settings/loan-configuration', settings);
+      toast.success('Loan configuration updated successfully');
+    } catch (error) {
+      console.error('Failed to update settings:', error);
+      toast.error('Failed to update settings');
+    } finally {
+      setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="pb-4 border-b border-border/50">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <Lock size={18} className="text-muted-foreground" />
-          <div>
-            <p className="font-medium text-sm">Customer Portal PIN</p>
-            <p className="text-xs text-muted-foreground">
-              6-digit PIN for customers to view their loans
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={generatePin}
-          disabled={loading}
-        >
-          {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-          {pin ? 'Regenerate' : 'Generate'} PIN
-        </Button>
+    <section className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+      <div>
+        <h3 className="text-lg font-bold">Loan Configuration</h3>
+        <p className="text-muted-foreground text-sm">
+          Manage global defaults for new loans.
+        </p>
       </div>
 
-      {pin && (
-        <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Current PIN:
-              </span>
-              <code className="px-3 py-1.5 rounded-md bg-background border border-border font-mono text-lg font-bold tracking-widest">
-                {showPin ? pin : '••••••'}
-              </code>
-              <button
-                onClick={() => setShowPin(!showPin)}
-                className="p-1.5 hover:bg-background rounded-md transition-colors"
-              >
-                {showPin ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
+      <form onSubmit={handleSave} className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">
+            Default Annual Interest Rate (%)
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="100"
+              value={settings.defaultInterestRate}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  defaultInterestRate: parseFloat(e.target.value),
+                })
+              }
+              className="w-full px-3 py-2 border rounded-md pr-8"
+              required
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
+              %
             </div>
-            <button
-              onClick={copyPin}
-              className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
-            >
-              Copy
-            </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Share this PIN with your customers to access the{' '}
-            <a
-              href="/loan-lookup"
-              target="_blank"
-              className="text-primary hover:underline"
-            >
-              loan lookup portal
-            </a>
+          <p className="text-xs text-muted-foreground">
+            This rate is used to calculate estimated EMIs for new loan requests.
           </p>
         </div>
-      )}
-    </div>
+
+        <div className="flex justify-end pt-4">
+          <Button
+            type="submit"
+            disabled={saving}
+            variant="gradient"
+            className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
+          >
+            {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Save Configuration
+          </Button>
+        </div>
+      </form>
+    </section>
   );
 };
 

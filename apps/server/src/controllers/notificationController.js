@@ -4,7 +4,13 @@ const { logActivity } = require('./activityLogController');
 
 // Admin: Send Notification
 const sendNotification = async (req, res) => {
-  const { recipientId, title, message, type } = req.body;
+  const {
+    recipientId,
+    title,
+    message,
+    type,
+    recipientModel = 'User',
+  } = req.body;
 
   try {
     if (recipientId === 'all') {
@@ -38,16 +44,26 @@ const sendNotification = async (req, res) => {
       title,
       message,
       type,
+      recipientModel,
     });
     await notification.save();
 
     // Log activity
-    const recipient = await User.findById(recipientId);
+    let recipientEmail = 'user';
+    if (recipientModel === 'User') {
+      const recipient = await User.findById(recipientId);
+      recipientEmail = recipient?.email;
+    } else if (recipientModel === 'Member') {
+      // Lazy load Member model to avoid circular dependency if any
+      const Member = require('../models/Member');
+      const recipient = await Member.findById(recipientId);
+      recipientEmail = recipient?.email;
+    }
     await logActivity({
       userId: req.user._id,
       action: 'notification_sent',
       category: 'notification',
-      details: `Admin sent notification to ${recipient?.email || 'user'}: "${title}"`,
+      details: `Admin sent notification to ${recipientEmail || 'user'}: "${title}"`,
       metadata: { recipientId, type },
       req,
     });
@@ -58,14 +74,30 @@ const sendNotification = async (req, res) => {
   }
 };
 
-// User: Get My Notifications
+// User/Member: Get My Notifications
 const getMyNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user._id })
+    const recipientId = req.user
+      ? req.user._id
+      : req.member
+        ? req.member._id
+        : null;
+
+    if (!recipientId) {
+      console.error('getMyNotifications: No recipient ID found', {
+        user: req.user,
+        member: req.member,
+      });
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // console.log('Fetching notifications for:', recipientId);
+
+    const notifications = await Notification.find({ recipient: recipientId })
       .sort({ createdAt: -1 })
       .limit(50); // Limit to last 50
     const unreadCount = await Notification.countDocuments({
-      recipient: req.user._id,
+      recipient: recipientId,
       read: false,
     });
     res.json({ notifications, unreadCount });
@@ -74,14 +106,15 @@ const getMyNotifications = async (req, res) => {
   }
 };
 
-// User: Mark as Read
+// User/Member: Mark as Read
 const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
+    const recipientId = req.user ? req.user._id : req.member._id;
 
     if (id === 'all') {
       await Notification.updateMany(
-        { recipient: req.user._id, read: false },
+        { recipient: recipientId, read: false },
         { read: true },
       );
       return res.json({ message: 'All notifications marked as read' });
@@ -89,7 +122,7 @@ const markAsRead = async (req, res) => {
 
     const notification = await Notification.findOne({
       _id: id,
-      recipient: req.user._id,
+      recipient: recipientId,
     });
 
     if (!notification) {

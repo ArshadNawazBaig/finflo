@@ -87,6 +87,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         businessName: user.businessName,
+        securityCode: user.securityCode,
         token: generateToken(user._id),
       });
     } else {
@@ -108,6 +109,8 @@ const getMe = async (req, res) => {
         role: user.role,
         plan: user.plan,
         customerCount: user.customerCount,
+        businessName: user.businessName,
+        securityCode: user.securityCode,
       });
     } else {
       res.status(404);
@@ -270,59 +273,6 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Generate or regenerate customer portal PIN
-const generateCustomerPortalPin = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Generate random 6-digit PIN
-    const pin = Math.floor(100000 + Math.random() * 900000).toString();
-
-    user.customerPortalPin = pin;
-    await user.save();
-
-    // Log activity
-    await logActivity({
-      userId: user._id,
-      action: 'portal_pin_generated',
-      category: 'settings',
-      details: 'Customer portal PIN generated',
-      req,
-    });
-
-    res.json({
-      success: true,
-      pin,
-      message: 'Customer portal PIN generated successfully',
-    });
-  } catch (error) {
-    console.error('Generate PIN Error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Get current customer portal PIN
-const getCustomerPortalPin = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select('customerPortalPin');
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({
-      pin: user.customerPortalPin || null,
-    });
-  } catch (error) {
-    console.error('Get PIN Error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
 module.exports = {
   registerUser,
   loginUser,
@@ -331,6 +281,4 @@ module.exports = {
   updatePassword,
   forgotPassword,
   resetPassword,
-  generateCustomerPortalPin,
-  getCustomerPortalPin,
 };

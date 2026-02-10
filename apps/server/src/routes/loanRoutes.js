@@ -9,11 +9,16 @@ const {
   getUpcomingRepayments,
   uploadDocument,
   deleteDocument,
+  requestLoan,
+  getMyLoans,
 } = require('../controllers/loanController');
 const { protect } = require('../middleware/authMiddleware');
+const { protectMember } = require('../middleware/memberAuthMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
 router.route('/upcoming').get(protect, getUpcomingRepayments);
+router.route('/request').post(protectMember, requestLoan);
+router.route('/my-loans').get(protectMember, getMyLoans);
 router
   .route('/:id/documents')
   .post(protect, upload.single('document'), uploadDocument);

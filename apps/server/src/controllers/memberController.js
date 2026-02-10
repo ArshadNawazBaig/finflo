@@ -4,6 +4,72 @@ const ProfitDistribution = require('../models/ProfitDistribution');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
 const { canAddMember } = require('../utils/planLimits');
+const { logActivity } = require('./activityLogController');
+
+// @desc    Convert Customer to Member
+// @route   POST /api/members/convert
+// @access  Private (Admin)
+const convertCustomerToMember = async (req, res) => {
+  const { customerId, password } = req.body;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    if (customer.isMember) {
+      return res.status(400).json({ message: 'Customer is already a member' });
+    }
+
+    // Check if member with this email already exists under this user
+    const memberExists = await Member.findOne({
+      user: customer.user,
+      email: customer.email,
+    });
+
+    if (memberExists) {
+      return res
+        .status(400)
+        .json({ message: 'Member account already exists for this email' });
+    }
+
+    // Create Member
+    const member = await Member.create({
+      user: customer.user, // Admin/Business Owner
+      customer: customer._id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      password, // Will be hashed by pre-save middleware
+    });
+
+    // Update Customer
+    customer.isMember = true;
+    customer.memberId = member._id;
+    await customer.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_converted_to_member',
+      category: 'members',
+      details: `Converted customer ${customer.name} to member`,
+      req,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Customer converted to Member successfully',
+      member,
+    });
+  } catch (error) {
+    console.error('Convert Member Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // Get all members
 const getMembers = async (req, res) => {
@@ -59,6 +125,21 @@ const getMemberById = async (req, res) => {
 
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Check authorization (Admin can see all, Member can see self)
+    let isAuthorized = false;
+    if (req.user && member.user.toString() === req.user._id.toString()) {
+      isAuthorized = true; // Admin viewing their member
+    } else if (
+      req.member &&
+      req.member._id.toString() === member._id.toString()
+    ) {
+      isAuthorized = true; // Member viewing themselves
+    }
+
+    if (!isAuthorized) {
+      return res.status(401).json({ message: 'Not authorized' });
     }
 
     res.json(member);
@@ -473,4 +554,5 @@ module.exports = {
   withdrawInvestment,
   getMemberProfits,
   distributeProfit,
+  convertCustomerToMember,
 };

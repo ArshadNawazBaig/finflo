@@ -44,9 +44,11 @@ const userSchema = new mongoose.Schema(
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    customerPortalPin: {
+    securityCode: {
       type: String,
-      default: null,
+      required: true,
+      unique: true,
+      uppercase: true,
       minlength: 6,
       maxlength: 6,
     },
@@ -54,7 +56,32 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Generate unique security code
+const generateSecurityCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
 userSchema.pre('save', async function () {
+  // Generate security code if not present
+  if (!this.securityCode) {
+    let codeIsUnique = false;
+    while (!codeIsUnique) {
+      this.securityCode = generateSecurityCode();
+      const existingUser = await mongoose
+        .model('User')
+        .findOne({ securityCode: this.securityCode });
+      if (!existingUser) {
+        codeIsUnique = true;
+      }
+    }
+  }
+
+  // Hash password if modified
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

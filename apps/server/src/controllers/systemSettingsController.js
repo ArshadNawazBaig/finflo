@@ -99,8 +99,44 @@ const resetToDefaults = async (req, res) => {
   }
 };
 
+// Update loan configuration (Admins + Super Admins)
+const updateLoanConfiguration = async (req, res) => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    const oldSettings = settings.toObject();
+
+    if (req.body.defaultInterestRate !== undefined) {
+      settings.defaultInterestRate = req.body.defaultInterestRate;
+    }
+
+    if (req.body.defaultLoanTerm !== undefined) {
+      settings.defaultLoanTerm = req.body.defaultLoanTerm;
+    }
+
+    settings.updatedBy = req.user._id;
+    await settings.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_config_updated',
+      category: 'admin',
+      details: `Admin updated loan configuration. Interest Rate: ${settings.defaultInterestRate}%`,
+      req,
+    });
+
+    res.json({
+      message: 'Loan configuration updated successfully',
+      settings,
+    });
+  } catch (error) {
+    console.error('Error updating loan configuration:', error);
+    res.status(500).json({ message: 'Failed to update loan configuration' });
+  }
+};
+
 module.exports = {
   getSystemSettings,
   updateSystemSettings,
+  updateLoanConfiguration,
   resetToDefaults,
 };

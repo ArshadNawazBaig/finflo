@@ -2,6 +2,7 @@ const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
@@ -105,6 +106,89 @@ const createLoan = async (req, res) => {
   }
 };
 
+const requestLoan = async (req, res) => {
+  const {
+    principal: principalInput,
+    rate: rateInput,
+    duration: durationInput,
+    notes, // Purpose/Notes
+  } = req.body;
+
+  const principal = Number(principalInput);
+  const rate = Number(rateInput || 0); // Members might not know rate, or it's fixed. Let's assume request contains desired/estimated rate or 0.
+  const duration = Number(durationInput);
+
+  try {
+    // Member must have a linked customer profile
+    if (!req.member.customer) {
+      return res.status(400).json({
+        message: 'No customer profile linked to this member account.',
+      });
+    }
+
+    // Check for existing pending/active loan
+    const existingLoan = await Loan.findOne({
+      customer: req.member.customer,
+      status: { $in: ['active', 'pending'] },
+    });
+
+    if (existingLoan) {
+      return res.status(400).json({
+        message: 'You already have an active or pending loan request.',
+      });
+    }
+
+    // Default calculations (can be updated by Admin upon approval)
+    // If rate is not provided, use 0 for now (Admin sets it)
+    let emi = 0,
+      totalAmount = principal;
+    if (rate > 0) {
+      const result = calculateSimpleInterest(principal, rate, duration);
+      emi = result.emi;
+      totalAmount = result.totalAmount;
+    }
+
+    const loan = new Loan({
+      user: req.member.user, // The business owner
+      customer: req.member.customer,
+      principal,
+      rate,
+      duration,
+      emi,
+      totalAmount,
+      startDate: new Date(), // Provisional start date
+      remainingAmount: totalAmount,
+      interestType: 'simple',
+      status: 'pending',
+      documents: [], // Can add docs later
+    });
+
+    const createdLoan = await loan.save();
+
+    // Notify Admin (Business Owner)
+    try {
+      const notification = new Notification({
+        recipient: req.member.user, // Notify the admin
+        recipientModel: 'User',
+        title: 'New Loan Request',
+        message: `Member ${req.member.name} has requested a loan of ${principal}.`,
+        type: 'info',
+      });
+      await notification.save();
+    } catch (notifError) {
+      console.error(
+        'Failed to create notification for loan request:',
+        notifError,
+      );
+      // Proceed without failing the request
+    }
+
+    res.status(201).json(createdLoan);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 const getLoans = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -150,6 +234,37 @@ const getLoans = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sortOrder });
+
+    res.json({
+      data: loans,
+      totalEntries,
+      totalPages: Math.ceil(totalEntries / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMyLoans = async (req, res) => {
+  try {
+    if (!req.member.customer) {
+      return res.json({ data: [], totalEntries: 0 });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = {
+      customer: req.member.customer,
+    };
+
+    const totalEntries = await Loan.countDocuments(query);
+    const loans = await Loan.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       data: loans,
@@ -313,6 +428,11 @@ const updateLoan = async (req, res) => {
         return res.status(400).json({ message: 'Invalid status' });
       }
       loan.status = status;
+
+      // If setting to active, ensure Start Date is set to now (if desired)
+      if (status === 'active' && loan.status !== 'active') {
+        loan.startDate = new Date();
+      }
     }
 
     // Recalculate EMI and total if principal, rate, duration or interestType changed
@@ -347,6 +467,34 @@ const updateLoan = async (req, res) => {
     }
 
     await loan.save();
+
+    // Notify Member if status changed
+    if (status && (status === 'active' || status === 'rejected')) {
+      try {
+        const customer = await Customer.findById(loan.customer);
+        if (customer && customer.isMember && customer.memberId) {
+          const notificationTitle =
+            status === 'active' ? 'Loan Approved' : 'Loan Rejected';
+          const notificationMessage =
+            status === 'active'
+              ? `Your loan request for ${loan.principal} has been approved.`
+              : `Your loan request for ${loan.principal} has been rejected.`;
+          const notificationType = status === 'active' ? 'success' : 'error';
+
+          const notification = new Notification({
+            recipient: customer.memberId,
+            recipientModel: 'Member',
+            title: notificationTitle,
+            message: notificationMessage,
+            type: notificationType,
+          });
+          await notification.save();
+        }
+      } catch (notifError) {
+        console.error('Failed to send member notification:', notifError);
+      }
+    }
+
     res.json(loan);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -529,4 +677,6 @@ module.exports = {
   deleteLoan,
   uploadDocument,
   deleteDocument,
+  requestLoan,
+  getMyLoans,
 };

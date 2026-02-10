@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Edit, Trash2, Eye } from 'lucide-react';
+import { Phone, Mail, MapPin, Edit, Trash2, Eye, UserPlus } from 'lucide-react';
 import { capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 
-const CustomerCard = ({ customer, onEdit, onDelete }) => {
+const CustomerCard = ({ customer, onEdit, onDelete, onConvert }) => {
   const initials = customer.name
     .split(' ')
     .map((n) => n[0])
@@ -76,6 +76,16 @@ const CustomerCard = ({ customer, onEdit, onDelete }) => {
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <div className="flex items-center gap-1.5">
+          {!customer.isMember && (
+            <Tooltip content="Convert to Member" position="top">
+              <button
+                onClick={() => onConvert(customer)}
+                className="p-2 rounded-xl hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-all active:scale-90"
+              >
+                <UserPlus size={18} />
+              </button>
+            </Tooltip>
+          )}
           <Tooltip content="Edit" position="top">
             <button
               onClick={() => onEdit(customer)}

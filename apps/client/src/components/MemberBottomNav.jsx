@@ -1,16 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import {
-  LayoutGrid,
-  Users,
-  WalletMinimal,
-  Settings2,
-  Bell,
-  FileQuestion,
-} from 'lucide-react';
+import { LayoutGrid, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const MobileBottomNav = () => {
+const MemberBottomNav = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
 
@@ -19,16 +12,12 @@ const MobileBottomNav = () => {
   }, [location.pathname]);
 
   const navItems = [
-    { icon: <LayoutGrid size={20} />, label: 'Home', path: '/dashboard' },
-    { icon: <WalletMinimal size={20} />, label: 'Loans', path: '/loans' },
     {
-      icon: <FileQuestion size={20} />,
-      label: 'Requests',
-      path: '/loan-requests',
+      icon: <LayoutGrid size={20} />,
+      label: 'Home',
+      path: '/member/dashboard',
     },
-    { icon: <Users size={20} />, label: 'Users', path: '/customers' },
-    { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
-    { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
+    { icon: <FileText size={20} />, label: 'Loans', path: '/member/loans' },
   ];
 
   return (
@@ -37,7 +26,8 @@ const MobileBottomNav = () => {
         {navItems.map((item) => {
           const isActive =
             activeTab === item.path ||
-            (item.path !== '/dashboard' && activeTab.startsWith(item.path));
+            (item.path !== '/member/dashboard' &&
+              activeTab.startsWith(item.path));
 
           return (
             <NavLink
@@ -85,4 +75,4 @@ const MobileBottomNav = () => {
   );
 };
 
-export default MobileBottomNav;
+export default MemberBottomNav;
