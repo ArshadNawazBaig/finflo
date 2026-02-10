@@ -58,6 +58,7 @@ const RevenueReports = lazy(() => import('@/pages/superadmin/RevenueReports'));
 const BackupExport = lazy(() => import('@/pages/superadmin/BackupExport'));
 const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
 const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Loading Fallback
 const PageLoader = () => (
@@ -131,6 +132,9 @@ function App() {
               <Route path="/member/dashboard" element={<MemberDashboard />} />
             </Route>
           </Route>
+
+          {/* Catch All - 404 */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       <Toaster position="top-right" richColors />

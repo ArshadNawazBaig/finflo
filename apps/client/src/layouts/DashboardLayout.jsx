@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import InstallPrompt from '@/components/InstallPrompt';
 
 const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -73,6 +74,7 @@ const DashboardLayout = () => {
 
       {/* Mobile-First Navigation */}
       <MobileBottomNav />
+      <InstallPrompt />
     </div>
   );
 };

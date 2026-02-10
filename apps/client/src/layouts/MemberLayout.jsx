@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import MemberSidebar from '@/components/MemberSidebar';
 import MemberNavbar from '@/components/MemberNavbar';
 import MemberBottomNav from '@/components/MemberBottomNav';
+import InstallPrompt from '@/components/InstallPrompt';
 
 const MemberLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -72,6 +73,7 @@ const MemberLayout = () => {
 
       {/* Mobile-First Navigation */}
       <MemberBottomNav />
+      <InstallPrompt />
     </div>
   );
 };
