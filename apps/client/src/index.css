@@ -32,8 +32,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 243.4 75.4% 58.6%;
 
-    --btn-gradient-from: 243.4 75.4% 58.6%; /* indigo-600 */
-    --btn-gradient-to: 262.1 83.3% 57.8%; /* violet-600 */
+    --ring: 243.4 75.4% 58.6%;
 
     --btn-success-gradient-from: 142.1 70.6% 45.3%; /* emerald-500 */
     --btn-success-gradient-to: 142.1 76.2% 36.3%; /* emerald-600 */
@@ -70,8 +69,7 @@
     --input: 216 34% 17%;
     --ring: 212.7 26.8% 83.9%;
 
-    --btn-gradient-from: 243.4 75.4% 58.6%; /* indigo-600 */
-    --btn-gradient-to: 262.1 83.3% 57.8%; /* violet-600 */
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 

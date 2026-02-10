@@ -13,9 +13,9 @@ const UserCard = ({ user, onToggleStatus, onDelete }) => {
   const getPlanColor = (plan) => {
     switch (plan) {
       case 'Pro':
-        return 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-sm';
+        return 'bg-gradient-to-r from-primary to-[hsl(var(--btn-gradient-to))] text-white shadow-sm';
       case 'Basic':
-        return 'bg-indigo-500/10 text-indigo-600';
+        return 'bg-primary/10 text-primary';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -27,7 +27,7 @@ const UserCard = ({ user, onToggleStatus, onDelete }) => {
         <div className="flex items-center gap-3">
           <Link
             to={`/super-admin/users/${user._id}`}
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-[hsl(var(--btn-gradient-to))] flex items-center justify-center text-white font-black text-lg shadow-lg shadow-primary/20 hover:scale-105 transition-all"
           >
             {user.name?.charAt(0)?.toUpperCase()}
           </Link>

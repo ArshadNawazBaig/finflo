@@ -23,7 +23,7 @@ const Hero = () => {
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white">
                 Orchestrate <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-indigo-600 to-violet-700 italic">
+                <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-[hsl(var(--btn-gradient-to))] to-[hsl(var(--btn-gradient-from))] italic">
                   Infinite Capital.
                 </span>
               </h1>
@@ -42,7 +42,7 @@ const Hero = () => {
             >
               <Link
                 to="/register"
-                className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_0_40px_rgba(99,102,241,0.4)] hover:shadow-[0_0_60px_rgba(99,102,241,0.6)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
+                className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
               >
                 Start Evolution Now
                 <ArrowRight size={16} />
@@ -101,7 +101,7 @@ const Hero = () => {
                   src="/screenshots/d2.png"
                   alt="LoanMaster Mobile App"
                   loading="eager"
-                  className="w-full relative z-20 drop-shadow-[0_0_100px_rgba(99,102,241,0.3)]"
+                  className="w-full relative z-20 drop-shadow-[0_0_100px_rgba(var(--primary),0.3)]"
                 />
                 <motion.div
                   animate={{ x: [0, 10, 0], y: [0, -10, 0] }}
