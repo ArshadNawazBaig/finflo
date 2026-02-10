@@ -201,7 +201,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
             )}
           >
             <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-white/10 group-hover:ring-primary/50 transition-all duration-500 hover:brightness-110">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-white/10 group-hover:ring-primary/50 transition-all duration-500 hover:brightness-110">
                 {userInitials}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
@@ -241,7 +241,7 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => (
       'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap mb-1',
       isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-12 mx-auto',
       active
-        ? 'bg-gradient-to-br from-primary to-indigo-600 text-white shadow-[0_8px_20px_-6px_rgba(79,70,229,0.5)] ring-1 ring-white/20 hover:brightness-110'
+        ? 'bg-primary text-white shadow-[0_8px_20px_-6px_rgba(var(--primary),0.5)] ring-1 ring-white/20 hover:brightness-110'
         : 'text-muted-foreground hover:bg-primary/10 hover:text-primary',
     )}
   >

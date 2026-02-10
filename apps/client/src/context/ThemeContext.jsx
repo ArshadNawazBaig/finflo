@@ -42,6 +42,26 @@ export const ThemeProvider = ({
     const root = window.document.documentElement;
     root.style.setProperty('--primary', primaryColor);
     root.style.setProperty('--ring', primaryColor);
+
+    // Calculate gradient colors based on primary color
+    // primaryColor format: "H S% L%"
+    try {
+      const parts = primaryColor.split(' ');
+      if (parts.length === 3) {
+        const h = parseFloat(parts[0]);
+        const s = parts[1];
+        const l = parts[2];
+
+        // Shift hue by +20 degrees for the 'to' part of the gradient
+        const nextHue = (h + 20) % 360;
+        const gradientTo = `${nextHue} ${s} ${l}`;
+
+        root.style.setProperty('--btn-gradient-from', primaryColor);
+        root.style.setProperty('--btn-gradient-to', gradientTo);
+      }
+    } catch (e) {
+      console.error('Error setting dynamic gradient colors:', e);
+    }
   }, [primaryColor]);
 
   const value = {

@@ -707,7 +707,7 @@ const ConfigurationSection = () => {
                   defaultInterestRate: parseFloat(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 border rounded-md pr-8"
+              className="w-full px-3 py-2 border rounded-md pr-8 bg-transparent"
               required
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">

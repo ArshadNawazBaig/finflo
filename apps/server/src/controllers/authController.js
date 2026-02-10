@@ -198,7 +198,19 @@ const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset url
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const origin = req.get('origin') || req.get('referer');
+    let clientUrl = process.env.CLIENT_URL || 'http://localhost:5174';
+
+    if (origin) {
+      try {
+        const url = new URL(origin);
+        clientUrl = `${url.protocol}//${url.host}`;
+      } catch (e) {
+        // Fallback to env
+      }
+    }
+
+    const resetUrl = `${clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl}/reset-password/${resetToken}`;
 
     const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
 

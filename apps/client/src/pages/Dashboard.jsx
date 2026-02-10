@@ -151,7 +151,7 @@ const Dashboard = () => {
             amount={formatPKR(stats?.forecast?.total6Months || 0)}
             percentage={stats?.forecast?.percentage}
             icon={<TrendingUp size={20} />}
-            color="bg-indigo-500 shadow-indigo-500/20"
+            color="bg-primary shadow-primary/20"
           />
         </div>
       )}
