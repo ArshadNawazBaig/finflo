@@ -63,7 +63,7 @@ const createCheckoutSession = async (req, res) => {
       await user.save();
     }
 
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(req);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
@@ -121,7 +121,7 @@ const createPortalSession = async (req, res) => {
         : 'using default configuration',
     );
 
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(req);
     const portalOptions = {
       customer: customerId,
       return_url: `${baseUrl}/billing`,
