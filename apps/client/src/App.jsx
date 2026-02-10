@@ -8,8 +8,11 @@ import {
 import { Loader2 } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import SuperAdminLayout from '@/layouts/SuperAdminLayout';
+import MemberLayout from '@/layouts/MemberLayout';
 import RequireAuth from '@/components/RequireAuth';
 import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
+import RequireMemberAuth from '@/components/RequireMemberAuth';
+import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
 import { Toaster } from 'sonner';
 
 // Lazy Load Pages
@@ -36,8 +39,8 @@ const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPage'));
 const TermsOfService = lazy(() => import('@/pages/TermsPage'));
 const PaymentSuccess = lazy(() => import('@/pages/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('@/pages/PaymentCancel'));
-
-// Super Admin Pages
+const MemberLogin = lazy(() => import('@/pages/MemberLogin'));
+const MemberDashboard = lazy(() => import('@/pages/MemberDashboard'));
 const SuperAdminDashboard = lazy(
   () => import('@/pages/superadmin/SuperAdminDashboard'),
 );
@@ -54,6 +57,7 @@ const SystemSettings = lazy(() => import('@/pages/superadmin/SystemSettings'));
 const RevenueReports = lazy(() => import('@/pages/superadmin/RevenueReports'));
 const BackupExport = lazy(() => import('@/pages/superadmin/BackupExport'));
 const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
+const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
 
 // Loading Fallback
 const PageLoader = () => (
@@ -81,6 +85,7 @@ function App() {
               <Route path="/members/:id" element={<MemberProfile />} />
               <Route path="/customers/:id" element={<CustomerProfile />} />
               <Route path="/loans" element={<Loans />} />
+              <Route path="/loan-requests" element={<LoanRequests />} />
               <Route path="/loans/:id" element={<LoanDetail />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/reports" element={<Reports />} />
@@ -114,6 +119,17 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+          </Route>
+
+          {/* Member Portal Routes */}
+          <Route element={<RedirectIfMemberAuthenticated />}>
+            <Route path="/member/login" element={<MemberLogin />} />
+          </Route>
+
+          <Route element={<RequireMemberAuth />}>
+            <Route element={<MemberLayout />}>
+              <Route path="/member/dashboard" element={<MemberDashboard />} />
+            </Route>
           </Route>
         </Routes>
       </Suspense>

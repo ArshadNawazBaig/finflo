@@ -57,7 +57,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const userRole = 'Super Admin';
 
   const sidebarClasses = cn(
-    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[110] transition-all duration-300 ease-in-out',
+    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-all duration-300 ease-in-out',
     isMobile
       ? `w-64 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : isExpanded

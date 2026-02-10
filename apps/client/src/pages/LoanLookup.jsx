@@ -1,34 +1,140 @@
 import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
-  Eye,
-  EyeOff,
-  Search,
   Loader2,
-  Lock,
+  ShieldCheck,
   Mail,
   User,
-  AlertCircle,
-  Download,
-  Shield,
+  Search,
   ArrowLeft,
+  TrendingUp,
+  Calendar,
+  DollarSign,
+  AlertCircle,
+  FileText,
+  Download,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
+// Format amount with K/M suffixes
+const formatAmount = (amount) => {
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toFixed(1)}M`;
+  } else if (amount >= 1000) {
+    return `${(amount / 1000).toFixed(1)}K`;
+  }
+  return amount.toString();
+};
+
+// Generate PDF for loan details
+const generateLoanPDF = (loan, customerName, businessName) => {
+  const doc = new jsPDF();
+
+  // Header
+  doc.setFillColor(59, 130, 246);
+  doc.rect(0, 0, 210, 40, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont(undefined, 'bold');
+  doc.text('Loan Details', 105, 20, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text(businessName, 105, 30, { align: 'center' });
+
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
+
+  // Customer Info
+  let yPos = 55;
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('Customer Information', 20, yPos);
+
+  yPos += 10;
+  doc.setFontSize(11);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Name: ${customerName}`, 20, yPos);
+
+  yPos += 7;
+  doc.text(
+    `Loan ID: ${loan.loanId || loan._id.slice(-6).toUpperCase()}`,
+    20,
+    yPos,
+  );
+
+  // Loan Details
+  yPos += 15;
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('Loan Information', 20, yPos);
+
+  yPos += 10;
+  doc.setFontSize(11);
+  doc.setFont(undefined, 'normal');
+
+  const details = [
+    ['Status:', loan.status.toUpperCase()],
+    ['Principal Amount:', `$${loan.principal.toLocaleString()}`],
+    ['Interest Rate:', `${loan.rate}%`],
+    ['Duration:', `${loan.duration} Months`],
+    ['Monthly EMI:', `$${loan.emi.toLocaleString()}`],
+    ['Total Amount:', `$${loan.totalAmount.toLocaleString()}`],
+    ['Start Date:', format(new Date(loan.startDate), 'MMMM dd, yyyy')],
+  ];
+
+  if (loan.status === 'active') {
+    details.push([
+      'Remaining Amount:',
+      `$${loan.remainingAmount?.toLocaleString() || 'N/A'}`,
+    ]);
+    details.push([
+      'Paid Amount:',
+      `$${loan.paidAmount?.toLocaleString() || 'N/A'}`,
+    ]);
+  }
+
+  details.forEach(([label, value]) => {
+    doc.setFont(undefined, 'bold');
+    doc.text(label, 20, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.text(value, 80, yPos);
+    yPos += 7;
+  });
+
+  // Footer
+  doc.setFontSize(9);
+  doc.setTextColor(128, 128, 128);
+  doc.text(
+    `Generated on ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`,
+    105,
+    280,
+    { align: 'center' },
+  );
+
+  // Save
+  doc.save(`Loan_${loan.loanId || loan._id.slice(-6)}_Details.pdf`);
+};
 
 const LoanLookup = () => {
-  const [pin, setPin] = useState('');
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [showPin, setShowPin] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [customerData, setCustomerData] = useState(null);
   const [scrollY, setScrollY] = useState(0);
+  const [formData, setFormData] = useState({
+    securityCode: '',
+    email: '',
+    name: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -36,520 +142,412 @@ const LoanLookup = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'securityCode' ? value.toUpperCase() : value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!pin || !email || !name) {
-      toast.error('All fields are required');
-      return;
-    }
-
-    if (!/^\d{6}$/.test(pin)) {
-      toast.error('PIN must be 6 digits');
-      return;
-    }
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
     try {
-      setLoading(true);
-      const { data } = await api.post('/public/loan-lookup', {
-        pin,
-        email: email.toLowerCase(),
-        name,
-      });
-
-      setCustomerData(data);
+      const { data } = await axios.post('/api/public/loan-lookup', formData);
+      setResult(data);
       toast.success('Loans retrieved successfully');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to retrieve loans');
-      setCustomerData(null);
+    } catch (err) {
+      console.error('Lookup error:', err);
+      setError(
+        err.response?.data?.message ||
+          'Failed to retrieve details. Please check your information.',
+      );
+      toast.error('Lookup failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setPin('');
-    setEmail('');
-    setName('');
-    setCustomerData(null);
-  };
-
-  const generatePDF = (loan) => {
-    try {
-      const doc = new jsPDF();
-
-      // Header
-      doc.setFontSize(22);
-      doc.setTextColor(33, 33, 33);
-      doc.text('Loan Verification Statement', 14, 20);
-
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
-
-      // Detailed Customer Info
-      doc.setFontSize(12);
-      doc.setTextColor(33, 33, 33);
-      doc.text(`Customer Name: ${customerData.customer.name}`, 14, 40);
-      doc.text(`Email Address: ${customerData.customer.email}`, 14, 46);
-      if (customerData.customer.phone) {
-        doc.text(`Phone Number: ${customerData.customer.phone}`, 14, 52);
-      }
-
-      // Installment Calculations
-      const paidInstallments = Math.floor(loan.paidAmount / loan.emi);
-      const remainingInstallments = loan.duration - paidInstallments;
-
-      // Loan Details Table
-      autoTable(doc, {
-        startY: 60,
-        head: [['Loan Details', 'Value']],
-        body: [
-          ['Loan ID', loan._id.toUpperCase()],
-          ['Current Status', loan.status.toUpperCase()],
-          ['Start Date', new Date(loan.startDate).toLocaleDateString()],
-          ['Principal Amount', formatPKR(loan.principal)],
-          ['Total Repayment Amount', formatPKR(loan.totalAmount)],
-          ['Total Amount Paid', formatPKR(loan.paidAmount)],
-          ['Remaining Balance', formatPKR(loan.remainingAmount)],
-          [
-            'Interest Rate',
-            `${loan.interestRate}% (${loan.interestType || 'Simple'})`,
-          ],
-          ['Loan Duration', `${loan.duration} Months`],
-          ['Monthly EMI', formatPKR(loan.emi)],
-          ['Installments Paid', `${paidInstallments} / ${loan.duration}`],
-          ['Installments Remaining', `${remainingInstallments}`],
-        ],
-        theme: 'grid',
-        headStyles: {
-          fillColor: [79, 70, 229],
-          textColor: 255,
-          fontStyle: 'bold',
-        }, // Indigo-600
-        alternateRowStyles: { fillColor: [249, 250, 251] },
-        styles: { fontSize: 10, cellPadding: 8, overflow: 'linebreak' },
-        columnStyles: {
-          0: { fontStyle: 'bold', cellWidth: 80 },
-          1: { cellWidth: 'auto' },
-        },
-      });
-
-      // Footer
-      const finalY = doc.lastAutoTable.finalY + 20;
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(
-        'This document is electronically generated and is valid without a signature.',
-        14,
-        finalY,
-      );
-      doc.text(
-        '© 2026 LoanMaster Financial Services. All rights reserved.',
-        14,
-        finalY + 5,
-      );
-
-      doc.save(`Loan_Statement_${loan._id.slice(-6)}.pdf`);
-      toast.success('Loan statement downloaded successfully');
-    } catch (error) {
-      console.error('PDF Generation Error:', error);
-      toast.error('Failed to generate PDF. Please try again.');
-    }
+  const resetLookup = () => {
+    setResult(null);
+    setFormData({ securityCode: '', email: '', name: '' });
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden selection:bg-primary/20 font-sans">
-      {/* Dynamic Background Blobs */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/10 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-pulse" />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500/10 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-pulse animation-delay-2000" />
-        <div className="absolute bottom-0 left-20 w-80 h-80 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-pulse animation-delay-4000" />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground font-sans overflow-x-hidden selection:bg-primary/20">
+      {/* Background Elements */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
       </div>
 
       {/* Navigation */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrollY > 20
-            ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 py-3 shadow-md'
-            : 'py-6 bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+          scrollY > 30
+            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
+            : 'py-8'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 bg-primary shadow-lg shadow-primary/20 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:scale-105 transition-all duration-300">
-              <ArrowLeft size={18} />
+            <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/30 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:rotate-6 transition-all duration-500">
+              <ArrowLeft size={20} />
             </div>
-            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+            <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">
               Return Home
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-card/50 backdrop-blur-md rounded-xl flex items-center justify-center shadow-sm border border-border/50">
-              <Shield className="w-4 h-4 text-emerald-500" />
+            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
+              <ShieldCheck className="w-5 h-5 text-blue-500" />
             </div>
-            <span className="hidden sm:block text-xs font-bold text-muted-foreground">
-              Secure Portal
+            <span className="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-200">
+              Secure Loan Lookup
             </span>
           </div>
         </div>
       </nav>
 
-      <div className="relative z-10 min-h-screen flex flex-col items-center pt-28 pb-12 px-4">
-        {!customerData ? (
-          <Card className="w-full max-w-md relative glass dark:glass-dark border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden animate-in fade-in zoom-in duration-500">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-600 to-purple-600" />
+      <main className="relative z-10 flex-1 container mx-auto px-4 pt-32 pb-8 flex items-center justify-center">
+        {!result ? (
+          <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
+            <div className="text-center mb-8 space-y-2">
+              <h1 className="text-3xl font-black tracking-tight">
+                Check Your Loan Status
+              </h1>
+              <p className="text-muted-foreground">
+                Enter your details and the business security code to view your
+                active loans and repayment history.
+              </p>
+            </div>
 
-            <CardHeader className="space-y-4 pt-10 px-8 text-center">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-sm group">
-                <Search className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div className="space-y-1">
-                <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Track Your Loan
-                </CardTitle>
-                <p className="text-muted-foreground text-sm font-medium">
-                  Enter your details to view loan status
-                </p>
-              </div>
-            </CardHeader>
-
-            <CardContent className="px-8 pb-10 pt-2">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* PIN Input */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Business PIN
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    </div>
-                    <input
-                      type={showPin ? 'text' : 'password'}
-                      value={pin}
-                      onChange={(e) =>
-                        setPin(e.target.value.replace(/\D/g, '').slice(0, 6))
-                      }
-                      placeholder="6-digit PIN"
-                      maxLength={6}
-                      className="w-full h-12 pl-11 pr-10 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPin(!showPin)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Email Input */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Email Address
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    </div>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your.email@example.com"
-                      className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                    />
-                  </div>
-                </div>
-
-                {/* Name Input */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Full Name
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <User className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    </div>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your full name"
-                      className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  variant="gradient"
-                  className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group shadow-lg shadow-primary/20"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Searching...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      View My Loans
+            <Card className="glass dark:glass-dark border-border/50 shadow-xl rounded-[2rem] overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500" />
+              <CardContent className="p-8 pt-10">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {error && (
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <span>{error}</span>
                     </div>
                   )}
-                </Button>
 
-                <div className="text-center pt-4">
-                  <p className="text-xs text-muted-foreground">
-                    Don't have the PIN?{' '}
-                    <span className="text-primary font-bold cursor-pointer hover:underline">
-                      Contact your business owner
-                    </span>
-                  </p>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="w-full max-w-7xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-            {/* Customer Header */}
-            <div className="bg-card/40 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 shadow-sm mb-12 relative overflow-hidden group w-full">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-                <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-primary/20 ring-4 ring-white/10 p-1">
-                    <div className="w-full h-full rounded-xl border-2 border-white/20 flex items-center justify-center bg-white/10">
-                      <User size={32} />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="securityCode"
+                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                      >
+                        Business Security Code
+                      </Label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        </div>
+                        <Input
+                          id="securityCode"
+                          name="securityCode"
+                          placeholder="e.g. ABC123"
+                          value={formData.securityCode}
+                          onChange={handleChange}
+                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50 uppercase font-mono tracking-wider"
+                          maxLength={6}
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <h2 className="text-3xl sm:text-4xl font-black tracking-tighter text-foreground mb-2">
-                      {customerData.customer.name}
-                    </h2>
-                    <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 text-sm font-medium text-muted-foreground">
-                      <span className="flex items-center gap-1.5 bg-background/50 px-3 py-1.5 rounded-full border border-border/50 transition-colors hover:border-primary/30 hover:bg-primary/5">
-                        <Mail size={14} className="text-primary" />
-                        {customerData.customer.email}
-                      </span>
-                      {customerData.customer.phone && (
-                        <span className="flex items-center gap-1.5 bg-background/50 px-3 py-1.5 rounded-full border border-border/50 transition-colors hover:border-primary/30 hover:bg-primary/5">
-                          <User size={14} className="text-primary" />
-                          {customerData.customer.phone}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="px-5 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-amber-600/70 mb-0.5">
-                      Trust Score
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-3xl font-black text-amber-500 tracking-tight">
-                        {customerData.customer.trustRating.toFixed(1)}
-                      </span>
-                      <span className="text-xs font-bold text-amber-600/70 translate-y-1">
-                        / 10
-                      </span>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="name"
+                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                      >
+                        Full Name
+                      </Label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <User className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        </div>
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder="John Doe"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                      >
+                        Email Address
+                      </Label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        </div>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="john@example.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full w-14 h-14 bg-background/50 border-border/50 hover:bg-background hover:text-primary transition-all shadow-sm group/btn"
-                    title="New Search"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-12 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all text-sm uppercase tracking-wide"
                   >
-                    <Search
-                      size={22}
-                      className="group-hover/btn:scale-110 transition-transform"
-                    />
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        Look Up Loans <Search className="ml-2 w-4 h-4" />
+                      </>
+                    )}
                   </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm border border-border/50 p-6 rounded-[2rem]">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                    {result.customer.name}
+                  </span>
+                </h2>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> {result.customer.email}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" /> {result.businessName}
+                  </div>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                onClick={resetLookup}
+                className="rounded-full"
+              >
+                New Search
+              </Button>
             </div>
 
-            {/* Loans Grid - Compact Layout (4 per row) */}
-            {customerData.loans.length === 0 ? (
-              <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-[2.5rem] p-16 text-center flex flex-col items-center justify-center min-h-[400px] max-w-4xl mx-auto">
-                <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mb-6 animate-bounce duration-3000">
-                  <AlertCircle className="w-10 h-10 text-muted-foreground/50" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  No active loans found
-                </h3>
-                <p className="text-muted-foreground max-w-xs mx-auto">
-                  We couldn't find any loan records associated with these
-                  credentials.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-                {customerData.loans.map((loan) => {
-                  const progress = Math.min(
-                    100,
-                    (loan.paidAmount / loan.totalAmount) * 100,
-                  );
-                  const isCompleted = loan.status === 'completed';
-                  const isActive = loan.status === 'active';
-
-                  const paidInstallments = Math.floor(
-                    loan.paidAmount / loan.emi,
-                  );
-                  const remainingInstallments =
-                    loan.duration - paidInstallments;
-
-                  return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {result.loans.length > 0 ? (
+                result.loans.map((loan) => (
+                  <Card
+                    key={loan._id}
+                    className="group hover:shadow-lg transition-all duration-300 border-border/50 overflow-hidden relative flex flex-col"
+                  >
                     <div
-                      key={loan._id}
-                      className="bg-card/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group relative flex flex-col h-full"
-                    >
-                      {/* Status Gradient Bar */}
-
-                      <div className="flex justify-between items-start mb-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                            isCompleted
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                              : isActive
-                                ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-                                : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                          }`}
-                        >
-                          {loan.status}
-                        </span>
-                        <span className="text-[10px] font-bold text-muted-foreground bg-muted/30 px-2 py-1 rounded-lg">
-                          {new Date(loan.startDate).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      <div className="mb-6">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                          Principal Amount
-                        </p>
-                        <h3 className="text-2xl font-black tracking-tight text-foreground">
-                          {formatPKR(loan.principal)}
-                        </h3>
-                      </div>
-
-                      {/* Progress Section */}
-                      <div className="mb-6 bg-muted/30 p-4 rounded-2xl border border-border/50">
-                        <div className="flex justify-between items-end mb-2">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              Paid
-                            </p>
-                            <p className="text-sm font-bold text-emerald-600">
-                              {formatPKR(loan.paidAmount)}
-                            </p>
-                          </div>
-                          <span className="text-lg font-black text-primary">
-                            {progress.toFixed(0)}%
-                          </span>
+                      className={cn(
+                        'absolute top-0 left-0 w-1 h-full transition-colors',
+                        loan.status === 'active'
+                          ? 'bg-emerald-500'
+                          : loan.status === 'completed'
+                            ? 'bg-blue-500'
+                            : loan.status === 'rejected'
+                              ? 'bg-red-500'
+                              : 'bg-yellow-500',
+                      )}
+                    />
+                    <CardHeader className="pb-3 pl-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Loan ID
+                          </p>
+                          <CardTitle className="text-lg font-bold font-mono mt-0.5">
+                            #{loan.loanId || loan._id.slice(-6).toUpperCase()}
+                          </CardTitle>
                         </div>
-                        <div className="h-2.5 w-full bg-background rounded-full overflow-hidden shadow-inner border border-border/50">
+                        <div className="flex items-center gap-2">
                           <div
-                            className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                              isCompleted
-                                ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
-                                : isActive
-                                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
-                                  : 'bg-gradient-to-r from-amber-400 to-orange-500'
-                            }`}
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Stats Compact Grid */}
-                      <div className="grid grid-cols-2 gap-4 mb-6 flex-grow">
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-bold text-muted-foreground">
-                            Remaining
-                          </p>
-                          <p
-                            className={`text-sm font-black ${loan.remainingAmount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}
+                            className={cn(
+                              'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',
+                              loan.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-600'
+                                : loan.status === 'completed'
+                                  ? 'bg-blue-500/10 text-blue-600'
+                                  : loan.status === 'rejected'
+                                    ? 'bg-red-500/10 text-red-600'
+                                    : 'bg-yellow-500/10 text-yellow-600',
+                            )}
                           >
-                            {formatPKR(loan.remainingAmount)}
+                            {loan.status}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pl-6 flex-1 flex flex-col">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Principal Amount
+                          </p>
+                          <div className="text-2xl font-black text-primary flex items-baseline gap-1">
+                            <span className="text-sm font-normal text-muted-foreground">
+                              $
+                            </span>
+                            {formatAmount(loan.principal)}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Interest Rate
+                          </p>
+                          <div className="text-xl font-black text-blue-600">
+                            {loan.rate}%
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-0.5">
+                            Duration
+                          </p>
+                          <p className="font-semibold">
+                            {loan.duration} Months
                           </p>
                         </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-bold text-muted-foreground">
-                            EMI
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-0.5">
+                            Start Date
                           </p>
-                          <p className="text-sm font-bold text-foreground">
-                            {formatPKR(loan.emi)}
-                          </p>
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-bold text-muted-foreground">
-                            Paid Inst.
-                          </p>
-                          <p className="text-sm font-bold text-emerald-600">
-                            {paidInstallments} / {loan.duration}
+                          <p className="font-semibold">
+                            {format(new Date(loan.startDate), 'MMM dd, yyyy')}
                           </p>
                         </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-bold text-muted-foreground">
-                            Remaining Inst.
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-0.5">
+                            Monthly EMI
                           </p>
-                          <p className="text-sm font-bold text-amber-600">
-                            {remainingInstallments}
+                          <p className="font-semibold">
+                            ${formatAmount(loan.emi)}
                           </p>
                         </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[10px] font-bold text-muted-foreground">
-                            Interest
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-0.5">
+                            Total Amount
                           </p>
-                          <p className="text-sm font-bold text-foreground">
-                            {loan.interestRate}%
+                          <p className="font-semibold">
+                            ${formatAmount(loan.totalAmount)}
                           </p>
                         </div>
                       </div>
 
-                      {/* Action Button */}
+                      {loan.status === 'active' && (
+                        <div className="pt-2">
+                          <div className="flex justify-between text-xs mb-1.5 font-medium">
+                            <span>Repayment Progress</span>
+                            <span>
+                              {Math.round(
+                                (loan.paidAmount / loan.totalAmount) * 100,
+                              )}
+                              %
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${Math.round(
+                                  (loan.paidAmount / loan.totalAmount) * 100,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm mt-3">
+                            <div>
+                              <p className="text-muted-foreground text-xs mb-0.5">
+                                Paid Amount
+                              </p>
+                              <p className="font-semibold text-emerald-600">
+                                ${formatAmount(loan.paidAmount)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs mb-0.5">
+                                Remaining
+                              </p>
+                              <p className="font-semibold text-orange-600">
+                                ${formatAmount(loan.remainingAmount)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex-grow"></div>
+
                       <Button
-                        onClick={() => generatePDF(loan)}
-                        variant="outline"
-                        className={`w-full rounded-xl border-border/50 transition-all group/pdf ${
-                          isCompleted
-                            ? 'hover:bg-emerald-500 hover:text-white hover:border-emerald-500'
-                            : isActive
-                              ? 'hover:bg-blue-600 hover:text-white hover:border-blue-600'
-                              : 'hover:bg-amber-500 hover:text-white hover:border-amber-500'
-                        }`}
+                        size="sm"
+                        className={cn(
+                          'w-full rounded-xl text-white font-semibold hover:opacity-90 transition-opacity',
+                          loan.status === 'active'
+                            ? 'bg-emerald-500 hover:bg-emerald-500'
+                            : loan.status === 'completed'
+                              ? 'bg-blue-500 hover:bg-blue-500'
+                              : loan.status === 'rejected'
+                                ? 'bg-red-500 hover:bg-red-500'
+                                : 'bg-yellow-500 hover:bg-yellow-500',
+                        )}
+                        onClick={() =>
+                          generateLoanPDF(
+                            loan,
+                            result.customer.name,
+                            result.businessName,
+                          )
+                        }
                       >
-                        <Download
-                          size={16}
-                          className="mr-2 group-hover/pdf:animate-bounce"
-                        />
-                        <span className="text-xs font-bold uppercase tracking-wide">
-                          Download PDF
-                        </span>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download PDF
                       </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center bg-card/50 border border-border/50 rounded-2xl border-dashed">
+                  <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold">No Loans Found</h3>
+                  <p className="text-muted-foreground max-w-xs mx-auto mt-2">
+                    We couldn't find any loan records associated with these
+                    details.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
+      </main>
 
-        {/* Minimal Footer */}
-        <div className="mt-auto w-full text-center pt-8 pointer-events-none">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 px-4">
-            © 2026 Financial Intelligence Portal • Precision in every
-            transaction
-          </p>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer className="relative z-10 py-6 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">
+        © 2026 LoanPortal System
+      </footer>
     </div>
   );
 };

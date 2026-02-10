@@ -46,6 +46,7 @@ app.use(async (req, res, next) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/member-auth', require('./routes/memberAuthRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/repayments', require('./routes/repaymentRoutes'));
@@ -56,6 +57,10 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/super-admin', require('./routes/superAdminRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use(
+  '/api/member-notifications',
+  require('./routes/memberNotificationRoutes'),
+);
 app.use('/api/activity-logs', require('./routes/activityLogRoutes'));
 app.use('/api/system-settings', require('./routes/systemSettingsRoutes'));
 app.use('/api/revenue', require('./routes/revenueRoutes'));
@@ -94,3 +99,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
+
+// Force restart for security code update

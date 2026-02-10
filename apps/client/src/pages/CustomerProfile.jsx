@@ -28,6 +28,7 @@ import { formatPKR, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import ConvertToMemberModal from '@/components/ConvertToMemberModal';
 
 const CustomerProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -59,10 +60,6 @@ const CustomerProfile = () => {
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [showAddLoanModal, setShowAddLoanModal] = useState(false);
   const [selectedRepayLoan, setSelectedRepayLoan] = useState(null);
-  const [memberData, setMemberData] = useState({
-    initialInvestment: '',
-    profitRate: '',
-  });
 
   const fetchCustomerData = useCallback(async () => {
     try {
@@ -85,26 +82,6 @@ const CustomerProfile = () => {
   useEffect(() => {
     fetchCustomerData();
   }, [fetchCustomerData]);
-
-  const handleMakeMember = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('/members', {
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        initialInvestment: parseFloat(memberData.initialInvestment) || 0,
-        profitRate: parseFloat(memberData.profitRate) || 0,
-        customerId: customer._id,
-      });
-      toast.success('Customer converted to member successfully!');
-      setShowMemberForm(false);
-      fetchCustomerData();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create member');
-    }
-  };
 
   if (loading) return <CustomerProfileSkeleton />;
   if (!customer) return null;
@@ -232,86 +209,6 @@ const CustomerProfile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10">
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Member Conversion Form */}
-          {showMemberForm && (
-            <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                    <UserPlus size={20} />
-                  </div>
-                  Member Onboarding
-                </h3>
-                <button
-                  onClick={() => setShowMemberForm(false)}
-                  className="p-2 hover:bg-muted rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleMakeMember} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Initial Investment (PKR)
-                    </label>
-                    <input
-                      type="number"
-                      value={memberData.initialInvestment}
-                      onChange={(e) =>
-                        setMemberData({
-                          ...memberData,
-                          initialInvestment: e.target.value,
-                        })
-                      }
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Target Profit Rate (%)
-                    </label>
-                    <input
-                      type="number"
-                      value={memberData.profitRate}
-                      onChange={(e) =>
-                        setMemberData({
-                          ...memberData,
-                          profitRate: e.target.value,
-                        })
-                      }
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      placeholder="e.g. 2.5"
-                      className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-3 justify-end flex-col-reverse sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => setShowMemberForm(false)}
-                    className="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-2xl transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <Button
-                    type="submit"
-                    variant="gradient"
-                    className="px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest"
-                  >
-                    Confirm Membership
-                  </Button>
-                </div>
-              </form>
-            </div>
-          )}
-
           {/* Active Loans Registry */}
           <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
@@ -510,6 +407,13 @@ const CustomerProfile = () => {
         isOpen={showAddLoanModal}
         onClose={() => setShowAddLoanModal(false)}
         initialCustomerId={customer._id}
+        onSuccess={fetchCustomerData}
+      />
+
+      <ConvertToMemberModal
+        isOpen={showMemberForm}
+        onClose={() => setShowMemberForm(false)}
+        customer={customer}
         onSuccess={fetchCustomerData}
       />
     </div>

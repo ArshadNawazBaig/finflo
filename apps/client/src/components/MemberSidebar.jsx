@@ -1,30 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import {
-  LayoutGrid,
-  UsersRound,
-  WalletMinimal,
-  Settings2,
-  LogOut,
-  FileChartColumn,
-  FileQuestion,
-  ArrowRightLeft,
-  ChevronUp,
-  User,
-  Landmark,
-  Gem,
-  CreditCard,
-  LifeBuoy,
-  Bell,
-  X,
-} from 'lucide-react';
+import { LayoutGrid, FileText, LogOut, ChevronUp, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 
-const Sidebar = ({ isExpanded, isMobile, onClose }) => {
+const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
   const isActive = (path) =>
     location.pathname === path ||
-    (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
+    (path !== '/member/dashboard' && location.pathname.startsWith(path + '/'));
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -42,22 +25,22 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
+    window.location.href = '/member/login';
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userInitials = user.name
-    ? user.name
+  const member = JSON.parse(localStorage.getItem('member') || '{}');
+  const memberInitials = member.name
+    ? member.name
         .split(' ')
         .map((n) => n[0])
         .join('')
         .toUpperCase()
         .slice(0, 2)
-    : 'JS';
-  const userName = user.name || 'John Smith';
-  const userRole = user.role || 'User';
+    : 'M';
+  const memberName = member.name || 'Member';
+  const memberRole = member.role || 'Member';
 
   const sidebarClasses = cn(
     'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-all duration-300 ease-in-out',
@@ -101,80 +84,17 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         )}
       >
         <NavItem
-          to="/dashboard"
+          to="/member/dashboard"
           icon={<LayoutGrid size={18} />}
-          active={isActive('/dashboard')}
+          active={isActive('/member/dashboard')}
           label="Dashboard"
           isExpanded={isLayoutExpanded}
         />
         <NavItem
-          to="/customers"
-          icon={<UsersRound size={18} />}
-          active={isActive('/customers')}
-          label="Customers"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/members"
-          icon={<Landmark size={18} />}
-          active={isActive('/members')}
-          label="Members"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/loans"
-          icon={<WalletMinimal size={18} />}
-          active={isActive('/loans')}
-          label="Loans"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/loan-requests"
-          icon={<FileQuestion size={18} />}
-          active={isActive('/loan-requests')}
-          label="Requests"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/transactions"
-          icon={<ArrowRightLeft size={18} />}
-          active={isActive('/transactions')}
-          label="Transactions"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/reports"
-          icon={<FileChartColumn size={18} />}
-          active={isActive('/reports')}
-          label="Reports"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/billing"
-          icon={<CreditCard size={18} />}
-          active={isActive('/billing')}
-          label="Billing"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/pricing"
-          icon={<Gem size={18} />}
-          active={isActive('/pricing')}
-          label="Pricing"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/support"
-          icon={<LifeBuoy size={18} />}
-          active={isActive('/support')}
-          label="Support"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/notifications"
-          icon={<Bell size={18} />}
-          active={isActive('/notifications')}
-          label="Notifications"
+          to="/member/loans"
+          icon={<FileText size={18} />}
+          active={isActive('/member/loans')}
+          label="My Loans"
           isExpanded={isLayoutExpanded}
         />
       </nav>
@@ -186,14 +106,6 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         )}
         ref={menuRef}
       >
-        <NavItem
-          to="/settings"
-          icon={<Settings2 size={18} />}
-          active={isActive('/settings')}
-          label="Settings"
-          isExpanded={isLayoutExpanded}
-        />
-
         {/* User Profile Section */}
         <div className="relative">
           {/* Logout Menu Popup */}
@@ -226,16 +138,16 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             )}
           >
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-md shadow-primary/20 shrink-0">
-              {userInitials}
+              {memberInitials}
             </div>
 
             {isLayoutExpanded && (
               <div className="flex flex-col items-start overflow-hidden">
                 <span className="text-sm font-bold truncate w-full text-left">
-                  {capitalize(userName)}
+                  {capitalize(memberName)}
                 </span>
                 <span className="text-xs text-muted-foreground truncate w-full text-left">
-                  {userRole}
+                  {memberRole}
                 </span>
               </div>
             )}
@@ -290,4 +202,4 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => (
   </Link>
 );
 
-export default Sidebar;
+export default MemberSidebar;

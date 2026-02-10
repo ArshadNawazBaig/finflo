@@ -91,7 +91,7 @@ const systemSettingsSchema = new mongoose.Schema(
     // Default Values
     defaultInterestRate: {
       type: Number,
-      default: 5.0,
+      default: 10.0,
       min: 0,
       max: 100,
     },

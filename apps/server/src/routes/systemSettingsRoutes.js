@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getSystemSettings,
   updateSystemSettings,
+  updateLoanConfiguration,
   resetToDefaults,
 } = require('../controllers/systemSettingsController');
 const { protect } = require('../middleware/authMiddleware');
@@ -14,5 +15,8 @@ router.get('/', getSystemSettings);
 // Protected routes - super admin only
 router.put('/', protect, superAdminProtect, updateSystemSettings);
 router.post('/reset', protect, superAdminProtect, resetToDefaults);
+
+// Protected routes - admin & super admin
+router.put('/loan-configuration', protect, updateLoanConfiguration);
 
 module.exports = router;

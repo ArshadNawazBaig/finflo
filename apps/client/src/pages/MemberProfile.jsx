@@ -30,6 +30,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -78,7 +79,7 @@ const MemberProfile = () => {
   const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
     useState(false);
   const [isFetchingMoreLoans, setIsFetchingMoreLoans] = useState(false);
-  const itemsPerPage = 3;
+  const itemsPerPage = 5;
 
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
@@ -211,7 +212,7 @@ const MemberProfile = () => {
           loadMoreInvestments();
         }
       },
-      { threshold: 1.0 },
+      { threshold: 0.1 },
     );
 
     if (investmentObserverTarget.current) {
@@ -235,7 +236,7 @@ const MemberProfile = () => {
           loadMoreLoans();
         }
       },
-      { threshold: 1.0 },
+      { threshold: 0.1 },
     );
 
     if (loanObserverTarget.current) {
@@ -837,20 +838,8 @@ const MemberProfile = () => {
 
               {/* Infinite Scroll Trigger for Investments */}
               {isMobile && hasMoreInvestments && (
-                <div
-                  ref={investmentObserverTarget}
-                  className="py-6 flex justify-center items-center"
-                >
-                  {isFetchingMoreInvestments ? (
-                    <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
-                      <Loader2 className="animate-spin" size={18} />
-                      <span className="text-[10px] uppercase tracking-widest">
-                        Loading registry...
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
+                <div ref={investmentObserverTarget}>
+                  <InfiniteLoader isFetchingMore={isFetchingMoreInvestments} />
                 </div>
               )}
             </div>
@@ -894,7 +883,19 @@ const MemberProfile = () => {
                         </div>
                         <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-0.5">
                           <Clock size={10} /> {loan.duration} Months •{' '}
-                          {loan.status}
+                          <span
+                            className={`px-1.5 py-0.5 rounded-md ${
+                              loan.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-600'
+                                : loan.status === 'pending'
+                                  ? 'bg-amber-500/10 text-amber-600'
+                                  : loan.status === 'completed'
+                                    ? 'bg-blue-500/10 text-blue-600'
+                                    : 'bg-red-500/10 text-red-600'
+                            }`}
+                          >
+                            {loan.status}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -920,20 +921,8 @@ const MemberProfile = () => {
 
               {/* Infinite Scroll Trigger for Loans */}
               {isMobile && hasMoreLoans && (
-                <div
-                  ref={loanObserverTarget}
-                  className="py-6 flex justify-center items-center"
-                >
-                  {isFetchingMoreLoans ? (
-                    <div className="flex items-center gap-2 text-primary font-bold animate-pulse">
-                      <Loader2 className="animate-spin" size={18} />
-                      <span className="text-[10px] uppercase tracking-widest">
-                        Loading loans...
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
+                <div ref={loanObserverTarget}>
+                  <InfiniteLoader isFetchingMore={isFetchingMoreLoans} />
                 </div>
               )}
             </div>

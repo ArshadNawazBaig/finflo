@@ -21,6 +21,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import ConvertToMemberModal from '@/components/ConvertToMemberModal';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -28,6 +29,7 @@ const Customers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState(null);
   const [deleteCustomer, setDeleteCustomer] = useState(null);
+  const [convertCustomer, setConvertCustomer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalEntries, setTotalEntries] = useState(0);
@@ -234,6 +236,7 @@ const Customers = () => {
                       customer={customer}
                       onEdit={setEditCustomer}
                       onDelete={handleDeleteClick}
+                      onConvert={setConvertCustomer}
                     />
                   ))}
                 </div>
@@ -271,6 +274,7 @@ const Customers = () => {
                   onSort={handleSort}
                   onEdit={(customer) => setEditCustomer(customer)}
                   onDelete={handleDeleteClick}
+                  onConvert={(customer) => setConvertCustomer(customer)}
                 />
               </div>
             )}
@@ -288,6 +292,13 @@ const Customers = () => {
         isOpen={!!editCustomer}
         onClose={() => setEditCustomer(null)}
         customer={editCustomer}
+        onSuccess={() => fetchCustomers(false)}
+      />
+
+      <ConvertToMemberModal
+        isOpen={!!convertCustomer}
+        onClose={() => setConvertCustomer(null)}
+        customer={convertCustomer}
         onSuccess={() => fetchCustomers(false)}
       />
 

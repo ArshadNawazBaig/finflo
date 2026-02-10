@@ -8,8 +8,6 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword,
-  generateCustomerPortalPin,
-  getCustomerPortalPin,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -20,7 +18,5 @@ router.put('/resetpassword/:resettoken', resetPassword);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);
-router.post('/customer-portal-pin', protect, generateCustomerPortalPin);
-router.get('/customer-portal-pin', protect, getCustomerPortalPin);
 
 module.exports = router;

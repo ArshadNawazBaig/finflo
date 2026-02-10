@@ -7,6 +7,7 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,
+  UserPlus,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
@@ -21,6 +22,7 @@ const CustomerTable = ({
   sortBy,
   sortOrder,
   onSort,
+  onConvert,
 }) => {
   const renderSortIcon = (column) => {
     if (sortBy !== column)
@@ -137,6 +139,16 @@ const CustomerTable = ({
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex items-center justify-end gap-1">
+                    {!customer.isMember && (
+                      <Tooltip content="Convert to Member" position="top">
+                        <button
+                          onClick={() => onConvert(customer)}
+                          className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-colors"
+                        >
+                          <UserPlus size={16} />
+                        </button>
+                      </Tooltip>
+                    )}
                     <Tooltip content="View Details" position="top">
                       <Link
                         to={`/customers/${customer._id}`}

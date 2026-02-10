@@ -1,85 +1,66 @@
+const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Loan = require('../models/Loan');
-const User = require('../models/User');
 
-/**
- * Public endpoint for customers to look up their loans
- * Requires: businessPin, email, and name
- */
-const lookupLoans = async (req, res) => {
+// @desc    Verify Business Security Code and Get Customer Loans
+// @route   POST /api/public/loan-lookup
+// @access  Public
+const verifyCodeAndGetLoans = async (req, res) => {
+  const { securityCode, email, name } = req.body;
+
   try {
-    const { pin, email, name } = req.body;
-
-    // Validate required fields
-    if (!pin || !email || !name) {
+    // 1. Validate Input
+    if (!securityCode || !email || !name) {
       return res.status(400).json({
-        message: 'PIN, email, and name are required',
+        message: 'Please provide Business Security Code, Email, and Full Name',
       });
     }
 
-    // Validate PIN format (6 digits)
-    if (!/^\d{6}$/.test(pin)) {
-      return res.status(400).json({
-        message: 'Invalid PIN format. PIN must be 6 digits.',
-      });
-    }
+    // 2. Find Business by Security Code
+    const business = await User.findOne({
+      securityCode: securityCode.toUpperCase(),
+    });
 
-    // Find business owner by PIN
-    const businessOwner = await User.findOne({ customerPortalPin: pin });
-
-    if (!businessOwner) {
+    if (!business) {
       return res.status(401).json({
-        message: 'Invalid credentials',
+        message: 'Invalid Business Security Code',
       });
     }
 
-    // Find customer by email and name (case-insensitive) for this business
+    // 3. Find Customer in that Business
+    // Case-insensitive search for name and email
     const customer = await Customer.findOne({
-      user: businessOwner._id,
-      email: email.toLowerCase(),
+      user: business._id,
+      email: { $regex: new RegExp(`^${email}$`, 'i') },
       name: { $regex: new RegExp(`^${name}$`, 'i') },
     });
 
     if (!customer) {
       return res.status(404).json({
-        message: 'No loans found for the provided credentials',
+        message: 'Customer not found with these details for this business',
       });
     }
 
-    // Get all loans for this customer
-    const loans = await Loan.find({
-      customer: customer._id,
-      user: businessOwner._id,
-    }).sort({ createdAt: -1 });
+    // 4. Fetch Loans for that Customer
+    const loans = await Loan.find({ customer: customer._id })
+      .sort({ createdAt: -1 })
+      .select('-__v'); // Exclude internal version field
 
-    // Return customer info and loans
     res.json({
+      businessName: business.businessName || business.name,
       customer: {
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        trustRating: customer.trustRating || 5.0,
       },
-      loans: loans.map((loan) => ({
-        _id: loan._id,
-        principal: loan.principal,
-        interestRate: loan.rate,
-        duration: loan.duration,
-        emi: loan.emi,
-        totalAmount: loan.totalAmount,
-        paidAmount: loan.paidAmount,
-        remainingAmount: loan.remainingAmount,
-        startDate: loan.startDate,
-        status: loan.status,
-        createdAt: loan.createdAt,
-      })),
+      loans,
     });
   } catch (error) {
-    console.error('Loan lookup error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Loan Lookup Error:', error);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
 module.exports = {
-  lookupLoans,
+  verifyCodeAndGetLoans,
 };

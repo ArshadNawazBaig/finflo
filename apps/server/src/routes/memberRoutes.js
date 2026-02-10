@@ -11,6 +11,7 @@ const {
   withdrawInvestment,
   getMemberProfits,
   distributeProfit,
+  convertCustomerToMember,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -21,6 +22,7 @@ router.use(protect);
 router.get('/', getMembers);
 router.get('/:id', getMemberById);
 router.post('/', createMember);
+router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
 
