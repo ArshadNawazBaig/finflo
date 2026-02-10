@@ -1,7 +1,20 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 
-const getBaseUrl = () => {
+const getBaseUrl = (req) => {
+  // Try to get origin from request headers (works on production)
+  const origin = req.get('origin') || req.get('referer');
+  if (origin) {
+    // Basic validation to ensure it's a valid URL string
+    try {
+      const url = new URL(origin);
+      return `${url.protocol}//${url.host}`;
+    } catch (e) {
+      // In case of invalid URL, fall back to env
+    }
+  }
+
+  // Fallback to environment variable
   let url = process.env.CLIENT_URL || 'http://localhost:5173';
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
