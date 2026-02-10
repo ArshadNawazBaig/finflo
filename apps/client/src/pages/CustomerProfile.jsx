@@ -228,7 +228,7 @@ const CustomerProfile = () => {
             <div className="space-y-4">
               {loans.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
                     No Recorded Loans
                   </p>
                 </div>
@@ -272,7 +272,7 @@ const CustomerProfile = () => {
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter mt-1 ${
                             loan.status === 'active'
                               ? 'bg-emerald-500/10 text-emerald-500'
-                              : 'bg-muted text-muted-foreground'
+                              : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
                           }`}
                         >
                           {loan.status}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Globe, Users, Activity, Award } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 const Footer = () => {
   return (
@@ -7,12 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-16">
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground font-black text-xl shadow-xl">
-              LM
-            </div>
-            <span className="text-2xl font-black tracking-tighter dark:text-white">
-              LOANMATER<span className="text-primary italic">CORE</span>
-            </span>
+            <Logo showText={true} className="h-12" />
           </div>
           <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-sm">
             The foundational operating layer for modern financial institutions.

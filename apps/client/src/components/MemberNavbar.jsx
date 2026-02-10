@@ -128,10 +128,14 @@ const MemberNavbar = ({ onMenuClick }) => {
   return (
     <div className="h-16 border-b border-border/50 bg-card/50 backdrop-blur-sm px-4 md:px-8 flex items-center justify-between sticky top-0 z-40">
       {/* Left Side - Menu Toggle (Visual) */}
-      <Tooltip content="Toggle Sidebar" position="bottom">
+      <Tooltip
+        content="Toggle Sidebar"
+        position="bottom"
+        className="hidden lg:block"
+      >
         <button
           onClick={onMenuClick}
-          className="p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground"
+          className="p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation"
         >
           <Menu className="w-5 h-5" />
         </button>

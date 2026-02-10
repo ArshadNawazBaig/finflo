@@ -186,8 +186,8 @@ const MemberDashboard = () => {
         {loans.length === 0 && !loading ? (
           <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
             <FileText className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-            <p className="font-medium text-muted-foreground">No loans yet</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="font-bold text-muted-foreground">No loans yet</p>
+            <p className="text-sm text-muted-foreground/80 dark:text-muted-foreground font-medium">
               Request your first loan to get started
             </p>
           </div>
@@ -212,7 +212,7 @@ const MemberDashboard = () => {
                               ? 'bg-amber-500/10 text-amber-600'
                               : loan.status === 'completed'
                                 ? 'bg-blue-500/10 text-blue-600'
-                                : 'bg-red-500/10 text-red-600'
+                                : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
                         }`}
                       >
                         {loan.status}

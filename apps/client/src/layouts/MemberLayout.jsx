@@ -51,9 +51,10 @@ const MemberLayout = () => {
       )}
 
       <div
-        className={`flex-1 flex flex-col h-full transition-all duration-300 ease-in-out ${
-          isMobile ? 'ml-0 w-full' : isSidebarExpanded ? 'ml-64' : 'ml-[70px]'
-        }`}
+        className={cn(
+          'flex-1 flex flex-col h-full transition-[margin] duration-300 ease-in-out',
+          isMobile ? 'ml-0 w-full' : isSidebarExpanded ? 'ml-64' : 'ml-[70px]',
+        )}
       >
         <MemberNavbar
           onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}

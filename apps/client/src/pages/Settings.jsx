@@ -29,9 +29,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import ColorPalette from '@/components/ui/ColorPalette';
 
 const Settings = () => {
-  const { theme, setTheme } = useTheme(); // Use Global Theme
+  const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme(); // Use Global Theme
 
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notifications');
@@ -205,46 +206,68 @@ const Settings = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <button
-                    onClick={() => setTheme('light')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                      theme === 'light'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border/50 hover:border-border hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="h-10 w-10 rounded-full bg-background border shadow-sm flex items-center justify-center">
-                      <Sun size={20} />
+                <div className="space-y-6">
+                  {/* Mode Toggle */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <button
+                      onClick={() => setTheme('light')}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                        theme === 'light'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border/50 hover:border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-full bg-background border shadow-sm flex items-center justify-center">
+                        <Sun size={20} />
+                      </div>
+                      <span className="font-medium text-sm">Light</span>
+                    </button>
+                    <button
+                      onClick={() => setTheme('dark')}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                        theme === 'dark'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border/50 hover:border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-full bg-slate-950 text-white border shadow-sm flex items-center justify-center">
+                        <Moon size={20} />
+                      </div>
+                      <span className="font-medium text-sm">Dark</span>
+                    </button>
+                    <button
+                      onClick={() => setTheme('system')}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                        theme === 'system'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border/50 hover:border-border hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-r from-background to-slate-950 border shadow-sm flex items-center justify-center">
+                        <Laptop size={20} className="text-primary" />
+                      </div>
+                      <span className="font-medium text-sm">System</span>
+                    </button>
+                  </div>
+
+                  {/* Primary Color Selection */}
+                  <div className="space-y-4 pt-4 border-t border-border/50">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mr-1">
+                        Primary Accent
+                      </h4>
+                      <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-widest">
+                        Modern Palette
+                      </span>
                     </div>
-                    <span className="font-medium text-sm">Light</span>
-                  </button>
-                  <button
-                    onClick={() => setTheme('dark')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                      theme === 'dark'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border/50 hover:border-border hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="h-10 w-10 rounded-full bg-slate-950 text-white border shadow-sm flex items-center justify-center">
-                      <Moon size={20} />
+
+                    <div className="pt-2">
+                      <ColorPalette
+                        primaryColor={primaryColor}
+                        setPrimaryColor={setPrimaryColor}
+                      />
                     </div>
-                    <span className="font-medium text-sm">Dark</span>
-                  </button>
-                  <button
-                    onClick={() => setTheme('system')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                      theme === 'system'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border/50 hover:border-border hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-background to-slate-950 border shadow-sm flex items-center justify-center">
-                      <Laptop size={20} className="text-primary" />
-                    </div>
-                    <span className="font-medium text-sm">System</span>
-                  </button>
+                  </div>
                 </div>
               </section>
             </>

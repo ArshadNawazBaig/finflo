@@ -27,7 +27,7 @@ const CustomerCard = ({ customer, onEdit, onDelete, onConvert }) => {
             >
               {capitalize(customer.name)}
             </Link>
-            <span className="text-[10px] text-muted-foreground/60 font-medium whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/80 dark:text-muted-foreground font-medium whitespace-nowrap">
               ID: {customer._id.slice(-6).toUpperCase()}
             </span>
           </div>

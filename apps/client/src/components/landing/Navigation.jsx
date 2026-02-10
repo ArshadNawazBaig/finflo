@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sun, Moon, ChevronRight, X, Menu } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 const Navigation = ({
   scrollY,
@@ -18,20 +19,10 @@ const Navigation = ({
             : 'py-8'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-11 h-11 bg-primary shadow-2xl shadow-primary/40 rounded-2xl flex items-center justify-center text-primary-foreground font-black text-xl group-hover:rotate-6 transition-all duration-500">
-              LM
-            </div>
-            <div className="flex flex-col -gap-1">
-              <span className="text-xl font-black tracking-tighter leading-none">
-                LOANMASTER
-              </span>
-              <span className="text-[10px] font-black tracking-[0.3em] text-primary uppercase">
-                Infrastructure
-              </span>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 sm:px-4 xl:px-2 2xl:px-0 flex items-center justify-between">
+          <Link to="/" className="hover:scale-105 transition-transform">
+            <Logo showText={true} />
+          </Link>
 
           <div className="hidden lg:flex items-center gap-10">
             {['Architecture', 'The Workbench', 'Scale'].map((item) => (

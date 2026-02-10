@@ -112,10 +112,14 @@ const Navbar = ({ onMenuClick }) => {
   return (
     <div className="h-16 border-b border-border/50 bg-card/50 backdrop-blur-sm px-4 md:px-8 flex items-center justify-between sticky top-0 z-40">
       {/* Left Side - Menu Toggle (Visual) */}
-      <Tooltip content="Toggle Sidebar" position="bottom">
+      <Tooltip
+        content="Toggle Sidebar"
+        position="bottom"
+        className="hidden lg:block"
+      >
         <button
           onClick={onMenuClick}
-          className="p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground"
+          className="p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -249,7 +253,7 @@ const Navbar = ({ onMenuClick }) => {
           >
             <div className="hidden sm:flex flex-col items-end gap-1">
               {user.role === 'Super Admin' && (
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 dark:text-muted-foreground/60">
                   Super Admin
                 </span>
               )}
@@ -265,8 +269,11 @@ const Navbar = ({ onMenuClick }) => {
                 />
               </div>
             </div>
-            <div className="w-9 h-9 rounded-lg bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-transform">
-              {userInitials}
+            <div className="relative">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-indigo-600 shadow-lg shadow-primary/30 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-110 transition-all duration-500 ring-2 ring-white/10 group-hover:ring-primary/40 hover:brightness-110">
+                {userInitials}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
             </div>
           </button>
 

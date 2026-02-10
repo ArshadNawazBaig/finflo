@@ -547,7 +547,7 @@ const MemberProfile = () => {
                 className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
                   member.status === 'Active'
                     ? 'bg-emerald-500/10 text-emerald-500'
-                    : 'bg-muted text-muted-foreground'
+                    : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
                 }`}
               >
                 {member.status}
@@ -785,7 +785,7 @@ const MemberProfile = () => {
             <div className="space-y-4">
               {investments.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
                     Zero Recorded Transactions
                   </p>
                 </div>

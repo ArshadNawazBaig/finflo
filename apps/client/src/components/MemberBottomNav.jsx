@@ -36,7 +36,7 @@ const MemberBottomNav = () => {
               className={cn(
                 'relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-500 group',
                 isActive
-                  ? 'text-primary scale-110'
+                  ? 'text-primary scale-110 hover:brightness-110'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/30',
               )}
             >
