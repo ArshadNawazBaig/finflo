@@ -43,7 +43,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const memberRole = member.role || 'Member';
 
   const sidebarClasses = cn(
-    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-all duration-300 ease-in-out',
+    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-all duration-300 ease-in-out z-[101]',
     // Mobile specific classes
     isMobile
       ? `w-64 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
