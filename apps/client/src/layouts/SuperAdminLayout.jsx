@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Navbar from '@/components/Navbar';
+import MobileBottomNav from '@/components/MobileBottomNav';
+import InstallPrompt from '@/components/InstallPrompt';
 
 const SuperAdminLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -43,7 +45,7 @@ const SuperAdminLayout = () => {
   }, [location, isMobile]);
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-sans relative overflow-hidden">
+    <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
       <SuperAdminSidebar
         isExpanded={isSidebarExpanded}
         isMobile={isMobile}
@@ -68,12 +70,21 @@ const SuperAdminLayout = () => {
           onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
           isSidebarExpanded={isSidebarExpanded}
         />
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 w-full">
+        <div
+          className={cn(
+            'flex-1 overflow-y-auto p-4 md:p-8 w-full transition-all duration-500',
+            isMobile ? 'pb-32' : '',
+          )}
+        >
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </div>
       </div>
+
+      {/* Mobile-First Navigation */}
+      <MobileBottomNav />
+      <InstallPrompt />
     </div>
   );
 };

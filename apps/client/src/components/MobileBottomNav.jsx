@@ -7,6 +7,8 @@ import {
   Settings2,
   Bell,
   FileQuestion,
+  BarChart3,
+  LifeBuoy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,21 +20,52 @@ const MobileBottomNav = () => {
     setActiveTab(location.pathname);
   }, [location.pathname]);
 
-  const navItems = [
-    { icon: <LayoutGrid size={20} />, label: 'Home', path: '/dashboard' },
-    { icon: <WalletMinimal size={20} />, label: 'Loans', path: '/loans' },
-    {
-      icon: <FileQuestion size={20} />,
-      label: 'Requests',
-      path: '/loan-requests',
-    },
-    { icon: <Users size={20} />, label: 'Users', path: '/customers' },
-    { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
-    { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
-  ];
+  const isSuperAdminPath = location.pathname.startsWith('/super-admin');
+
+  const navItems = isSuperAdminPath
+    ? [
+        { icon: <LayoutGrid size={20} />, label: 'Home', path: '/super-admin' },
+        {
+          icon: <Users size={20} />,
+          label: 'Users',
+          path: '/super-admin/users',
+        },
+        {
+          icon: <BarChart3 size={20} />,
+          label: 'Data',
+          path: '/super-admin/analytics',
+        },
+        {
+          icon: <LifeBuoy size={20} />,
+          label: 'Tickets',
+          path: '/super-admin/tickets',
+        },
+        {
+          icon: <Bell size={20} />,
+          label: 'Alerts',
+          path: '/super-admin/notifications',
+        },
+        {
+          icon: <Settings2 size={20} />,
+          label: 'More',
+          path: '/super-admin/settings',
+        },
+      ]
+    : [
+        { icon: <LayoutGrid size={20} />, label: 'Home', path: '/dashboard' },
+        { icon: <WalletMinimal size={20} />, label: 'Loans', path: '/loans' },
+        {
+          icon: <FileQuestion size={20} />,
+          label: 'Requests',
+          path: '/loan-requests',
+        },
+        { icon: <Users size={20} />, label: 'Users', path: '/customers' },
+        { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
+        { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
+      ];
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-6 pt-2 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-safe-offset-4 pb-[env(safe-area-inset-bottom,24px)] pt-2 bg-gradient-to-t from-background via-background to-transparent pointer-events-none mb-0">
       <nav className="max-w-md mx-auto bg-card/90 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-2xl flex items-center justify-around p-2 pointer-events-auto ring-1 ring-white/5">
         {navItems.map((item) => {
           const isActive =

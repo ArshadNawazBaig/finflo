@@ -35,7 +35,7 @@ const MemberLayout = () => {
   }, [location, isMobile]);
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-sans relative overflow-hidden">
+    <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
       <MemberSidebar
         isExpanded={isSidebarExpanded}
         isMobile={isMobile}
