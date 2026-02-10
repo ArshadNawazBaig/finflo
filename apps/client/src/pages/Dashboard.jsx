@@ -241,7 +241,7 @@ const Dashboard = () => {
                         <p className="text-sm font-black tracking-tight tabular-nums">
                           {formatPKR(t.amount)}
                         </p>
-                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/50">
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/80 dark:text-muted-foreground">
                           SUCCESS
                         </p>
                       </div>

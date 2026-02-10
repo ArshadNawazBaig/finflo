@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
+import Logo from '@/components/Logo';
 
 const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
@@ -60,7 +61,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const userRole = user.role || 'User';
 
   const sidebarClasses = cn(
-    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-all duration-300 ease-in-out z-[101]',
+    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
     // Mobile specific classes
     isMobile
       ? `w-64 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
@@ -89,15 +90,17 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
       <div
         className={cn('mb-8 transition-all', isLayoutExpanded ? 'px-2' : '')}
       >
-        <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/20 rounded-xl flex items-center justify-center text-primary-foreground font-black text-xl transform transition-transform hover:scale-105 cursor-pointer">
-          LM
-        </div>
+        <Link to="/dashboard">
+          <Logo showText={isLayoutExpanded} />
+        </Link>
       </div>
 
       <nav
         className={cn(
-          'flex-1 flex flex-col gap-1 w-full overflow-y-auto scrollbar-hide py-2',
-          isLayoutExpanded ? 'px-4' : 'items-center px-0',
+          'flex-1 flex flex-col gap-1 w-full scrollbar-hide py-2 transition-all duration-300',
+          isLayoutExpanded
+            ? 'px-4 overflow-y-auto'
+            : 'items-center px-0 overflow-visible',
         )}
       >
         <NavItem
@@ -218,23 +221,26 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           <button
             onClick={() => setShowLogoutMenu(!showLogoutMenu)}
             className={cn(
-              'w-full flex items-center rounded-xl p-2 transition-all duration-200 border border-transparent hover:border-border/50 hover:bg-muted/50 group',
+              'w-full flex items-center rounded-2xl p-2 transition-all duration-300 border border-transparent hover:border-border/50 hover:bg-muted/30 group relative overflow-hidden',
               isLayoutExpanded
                 ? 'justify-start gap-3 px-3'
-                : 'justify-center w-10 h-10 p-0',
-              showLogoutMenu ? 'bg-muted/50 border-border/50' : '',
+                : 'justify-center w-12 h-12 p-0 mx-auto',
+              showLogoutMenu ? 'bg-muted/40 border-border/50 shadow-inner' : '',
             )}
           >
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-md shadow-primary/20 shrink-0">
-              {userInitials}
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-white/10 group-hover:ring-primary/50 transition-all duration-500 hover:brightness-110">
+                {userInitials}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
             </div>
 
             {isLayoutExpanded && (
               <div className="flex flex-col items-start overflow-hidden">
-                <span className="text-sm font-bold truncate w-full text-left">
+                <span className="text-xs font-black tracking-tight truncate w-full text-left bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   {capitalize(userName)}
                 </span>
-                <span className="text-xs text-muted-foreground truncate w-full text-left">
+                <span className="text-[9px] font-black tracking-wide text-muted-foreground/60 truncate w-full text-left">
                   {userRole}
                 </span>
               </div>
@@ -242,9 +248,9 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
 
             {isLayoutExpanded && (
               <ChevronUp
-                size={16}
+                size={14}
                 className={cn(
-                  'ml-auto text-muted-foreground transition-transform duration-200',
+                  'ml-auto text-muted-foreground transition-transform duration-300 group-hover:text-primary',
                   showLogoutMenu ? 'rotate-180' : '',
                 )}
               />
@@ -260,21 +266,34 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => (
   <Link
     to={to}
     className={cn(
-      'px-0 py-3 rounded-xl transition-all duration-300 flex items-center relative group overflow-visible whitespace-nowrap ',
-      isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-10',
+      'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap mb-1',
+      isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-12 mx-auto',
       active
-        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 '
+        ? 'bg-gradient-to-br from-primary to-indigo-600 text-white shadow-[0_8px_20px_-6px_rgba(79,70,229,0.5)] ring-1 ring-white/20 hover:brightness-110'
         : 'text-muted-foreground hover:bg-primary/10 hover:text-primary',
     )}
   >
-    <div className="relative z-10 shrink-0">{icon}</div>
+    {/* Active Indicator Bar */}
+    {active && (
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+    )}
+
+    <div
+      className={cn(
+        'relative z-10 shrink-0 transition-transform duration-500 group-hover:scale-110',
+        active ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]' : '',
+      )}
+    >
+      {icon}
+    </div>
 
     <span
       className={cn(
-        'transition-all duration-300 origin-left text-sm font-semibold tracking-wide',
+        'transition-all duration-500 origin-left text-[12px] font-bold',
         isExpanded
           ? 'opacity-100 translate-x-0'
           : 'opacity-0 -translate-x-4 w-0 hidden',
+        active ? 'text-white' : '',
       )}
     >
       {label}

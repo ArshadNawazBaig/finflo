@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Navbar from '@/components/Navbar';
 
@@ -58,9 +59,10 @@ const SuperAdminLayout = () => {
       )}
 
       <div
-        className={`flex-1 flex flex-col h-full transition-all duration-300 ease-in-out ${
-          isMobile ? 'ml-0 w-full' : isSidebarExpanded ? 'ml-64' : 'ml-[70px]'
-        }`}
+        className={cn(
+          'flex-1 flex flex-col h-full transition-[margin] duration-300 ease-in-out',
+          isMobile ? 'ml-0 w-full' : isSidebarExpanded ? 'ml-64' : 'ml-[70px]',
+        )}
       >
         <Navbar
           onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}

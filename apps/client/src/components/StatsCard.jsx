@@ -42,12 +42,12 @@ const StatsCard = ({
             {badge &&
               (badgeTooltip ? (
                 <Tooltip content={badgeTooltip}>
-                  <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                  <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 hover:brightness-110">
                     {badge}
                   </div>
                 </Tooltip>
               ) : (
-                <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 hover:brightness-110">
                   {badge}
                 </div>
               ))}
@@ -77,11 +77,11 @@ const StatsCard = ({
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 dark:text-muted-foreground">
             {title}
           </p>
           <div className="flex flex-col">
-            <h3 className="text-3xl font-black tracking-tight text-foreground/90 tabular-nums">
+            <h3 className="text-3xl font-black tracking-tight text-foreground tabular-nums">
               {amount}
             </h3>
             {subtitle && (

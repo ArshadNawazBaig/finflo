@@ -60,12 +60,10 @@ const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
 const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
+import SplashScreen from '@/components/ui/SplashScreen';
+
 // Loading Fallback
-const PageLoader = () => (
-  <div className="h-screen w-full flex items-center justify-center bg-background/50 backdrop-blur-sm">
-    <Loader2 className="w-10 h-10 animate-spin text-primary" />
-  </div>
-);
+const PageLoader = () => <SplashScreen />;
 
 function App() {
   return (

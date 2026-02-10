@@ -198,7 +198,7 @@ const BackupExport = () => {
                     onClick={() => handleExport(card.type, card.label)}
                     disabled={exporting[card.type]}
                     variant="success"
-                    className="w-full h-11 rounded-full text-[11px] font-black uppercase tracking-widest"
+                    className="w-full h-11 rounded-full text-[11px] font-black uppercase tracking-widest gap-2"
                   >
                     <Download size={16} />
                     {exporting[card.type]
@@ -246,7 +246,7 @@ const BackupExport = () => {
                     onClick={() => handleExport(card.type, card.label)}
                     disabled={exporting[card.type]}
                     variant="gradient"
-                    className="w-full h-10 rounded-full text-[10px] font-black uppercase tracking-widest"
+                    className="w-full h-10 rounded-full text-[10px] font-black uppercase tracking-widest gap-2"
                   >
                     <Download size={14} />
                     {exporting[card.type]

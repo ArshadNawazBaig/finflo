@@ -448,7 +448,7 @@ const LoanDetail = () => {
                     ? 'bg-blue-500/10 text-blue-500'
                     : loan.status === 'completed'
                       ? 'bg-emerald-500/10 text-emerald-500'
-                      : 'bg-red-500/10 text-red-500'
+                      : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
                 }`}
               >
                 {loan.status}
@@ -595,7 +595,7 @@ const LoanDetail = () => {
             <div className="space-y-4">
               {repayments.length === 0 ? (
                 <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
                     Zero Repayments Registered
                   </p>
                 </div>

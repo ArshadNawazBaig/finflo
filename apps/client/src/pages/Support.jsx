@@ -198,13 +198,18 @@ const Support = () => {
           <div
             className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 h-full`}
           >
-            <div className="relative group">
-              <Search className="absolute left-4 z-10 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
-              <input
-                type="text"
-                placeholder="Search tickets..."
-                className="w-full pl-11 pr-4 py-4 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm focus:bg-background text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
-              />
+            <div className="flex gap-2 relative z-10">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
+                <input
+                  type="text"
+                  placeholder="Search tickets..."
+                  className="w-full pl-11 pr-4 h-11 rounded-xl border border-border/50 bg-background/50 focus:bg-background text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
+                  onChange={(e) => {
+                    // Logic to filter tickets if search is implemented
+                  }}
+                />
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
@@ -258,9 +263,14 @@ const Support = () => {
                     >
                       {ticket.subject}
                     </h4>
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                      {ticket.description}
-                    </p>
+                    <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground font-medium opacity-80">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                        #{ticket._id.slice(-6)}
+                      </span>
+                      <span className="truncate max-w-[150px]">
+                        {ticket.category}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
@@ -274,8 +284,8 @@ const Support = () => {
             {selectedTicket ? (
               <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden min-h-0">
                 <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-4 lg:p-6">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start sm:gap-4 flex-1 min-w-0">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -320,66 +330,61 @@ const Support = () => {
                       </div>
                     </div>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
+                    <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="rounded-xl h-9 lg:h-10 border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group shrink-0 justify-center gap-2"
+                      className="flex items-center gap-2 px-3 lg:px-4 h-9 rounded-full border border-destructive/20 text-destructive hover:bg-destructive/5 text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-sm whitespace-nowrap self-end sm:self-auto"
                     >
-                      <div className="bg-destructive/10 p-0 lg:p-1.5 rounded-md  group-hover:bg-destructive/20 transition-colors">
-                        <Trash2 className="w-3 h-3" />
-                      </div>
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </button>
                   </div>
                 </CardHeader>
 
                 <CardContent className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 custom-scrollbar min-h-0">
-                  {/* Initial Post */}
-                  <div className="flex flex-col gap-2 max-w-[85%]">
-                    <div className="flex items-center gap-2 mb-1 pl-1">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                  {/* Initial Post - User is on the right for themselves */}
+                  <div className="flex flex-col gap-2 max-w-[85%] self-end items-end">
+                    <div className="flex items-center gap-2 mb-1 px-1 flex-row-reverse">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
                         {selectedTicket.user.name.charAt(0)}
                       </div>
                       <span className="text-[11px] font-bold text-foreground">
-                        {selectedTicket.user.name}
+                        {selectedTicket.user.name} (You)
                       </span>
                       <span className="text-[10px] text-muted-foreground">
                         {new Date(selectedTicket.createdAt).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-card p-5 rounded-2xl rounded-tl-none shadow-sm border border-border/50 text-foreground text-sm leading-relaxed relative group">
+                    <div className="bg-primary text-primary-foreground p-5 rounded-3xl rounded-tr-none shadow-sm border border-primary text-sm leading-relaxed relative group">
                       <p>{selectedTicket.description}</p>
-                      <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
 
                   {/* Replies */}
                   {selectedTicket.replies.map((reply, i) => {
                     const isAdmin = reply.user.role === 'super_admin';
+                    const isMe = !isAdmin; // For the user view, if it's not admin, it's them
+
                     return (
                       <div
                         key={i}
                         className={`flex flex-col gap-2 max-w-[85%] ${
-                          isAdmin ? 'self-end items-end' : 'self-start'
+                          isMe ? 'self-end items-end' : 'self-start'
                         }`}
                       >
                         <div
-                          className={`flex items-center gap-2 mb-1 px-1 ${isAdmin ? 'flex-row-reverse' : ''}`}
+                          className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}
                         >
                           <div
                             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
                               isAdmin
-                                ? 'bg-primary/20 text-primary'
-                                : 'bg-primary/10 text-primary'
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-primary/20 text-primary'
                             }`}
                           >
                             {isAdmin ? 'S' : selectedTicket.user.name.charAt(0)}
                           </div>
                           <span className="text-[11px] font-bold text-foreground">
-                            {isAdmin
-                              ? 'Support Team'
-                              : selectedTicket.user.name}
+                            {isAdmin ? 'Support Team' : 'You'}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
                             {new Date(reply.createdAt).toLocaleString()}
@@ -388,7 +393,7 @@ const Support = () => {
 
                         <div
                           className={`p-5 rounded-3xl shadow-sm text-sm leading-relaxed border ${
-                            isAdmin
+                            isMe
                               ? 'bg-primary text-primary-foreground border-primary rounded-tr-none'
                               : 'bg-card text-foreground border-border/50 rounded-tl-none'
                           }`}
@@ -427,7 +432,7 @@ const Support = () => {
                       type="submit"
                       disabled={sendingReply || !reply.trim()}
                       variant="gradient"
-                      className="h-10 w-10 shrink-0 rounded-xl p-0 flex items-center justify-center"
+                      className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center p-0"
                     >
                       {sendingReply ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
