@@ -21,7 +21,7 @@ const MemberBottomNav = () => {
   ];
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-6 pt-2 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-safe-offset-4 pb-[env(safe-area-inset-bottom,24px)] pt-2 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
       <nav className="max-w-md mx-auto bg-card/90 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-2xl flex items-center justify-around p-2 pointer-events-auto ring-1 ring-white/5">
         {navItems.map((item) => {
           const isActive =
