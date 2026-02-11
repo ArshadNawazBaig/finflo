@@ -1,6 +1,7 @@
 const SupportTicket = require('../models/SupportTicket');
 const User = require('../models/User');
 const ActivityLog = require('../models/ActivityLog');
+const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 // @desc    Create a new support ticket
 // @route   POST /api/tickets
@@ -236,6 +237,13 @@ const deleteReply = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    // Delete attachments from Cloudinary before removing reply
+    if (reply.attachments && reply.attachments.length > 0) {
+      for (const attachment of reply.attachments) {
+        await deleteCloudinaryFileByUrl(attachment.url, attachment.fileType);
+      }
+    }
+
     // Remove the reply using Mongoose subdocument pull
     ticket.replies.pull(req.params.replyId);
     await ticket.save();
@@ -267,6 +275,20 @@ const deleteTicket = async (req, res) => {
       req.user.role !== 'super_admin'
     ) {
       return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Delete all attachments from Cloudinary before deleting ticket
+    if (ticket.replies && ticket.replies.length > 0) {
+      for (const reply of ticket.replies) {
+        if (reply.attachments && reply.attachments.length > 0) {
+          for (const attachment of reply.attachments) {
+            await deleteCloudinaryFileByUrl(
+              attachment.url,
+              attachment.fileType,
+            );
+          }
+        }
+      }
     }
 
     await SupportTicket.findByIdAndDelete(req.params.id);
