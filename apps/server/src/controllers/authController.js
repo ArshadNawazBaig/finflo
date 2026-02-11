@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('./activityLogController');
 const sendEmail = require('../utils/sendEmail');
+const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -158,6 +159,11 @@ const uploadProfilePicture = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete old profile picture from Cloudinary if it exists
+    if (user.profilePicture) {
+      await deleteCloudinaryFileByUrl(user.profilePicture, 'image');
     }
 
     user.profilePicture = req.file.path;

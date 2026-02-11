@@ -6,6 +6,7 @@ const Customer = require('../models/Customer');
 const User = require('../models/User');
 const { canAddMember } = require('../utils/planLimits');
 const { logActivity } = require('./activityLogController');
+const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -341,6 +342,15 @@ const deleteMember = async (req, res) => {
         message:
           'Cannot delete member with active investments. Please withdraw all funds first.',
       });
+    }
+
+    // Delete all member documents from Cloudinary if they exist
+    if (member.documents && member.documents.length > 0) {
+      for (const doc of member.documents) {
+        if (doc.url) {
+          await deleteCloudinaryFileByUrl(doc.url, 'file');
+        }
+      }
     }
 
     // Unlink from customer if linked

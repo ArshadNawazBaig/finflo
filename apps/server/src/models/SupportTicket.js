@@ -52,6 +52,10 @@ const supportTicketSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        isEdited: {
+          type: Boolean,
+          default: false,
+        },
         attachments: [
           {
             url: { type: String, required: true },

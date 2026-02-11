@@ -2,6 +2,7 @@ const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Member = require('../models/Member');
 const { canAddCustomer } = require('../utils/planLimits');
+const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 const getCustomers = async (req, res) => {
   try {
@@ -144,6 +145,15 @@ const deleteCustomer = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
+    // Delete all customer documents from Cloudinary
+    if (customer.documents && customer.documents.length > 0) {
+      for (const doc of customer.documents) {
+        if (doc.url) {
+          await deleteCloudinaryFileByUrl(doc.url, 'file');
+        }
+      }
+    }
+
     await customer.deleteOne();
 
     // Decrement count
@@ -219,6 +229,16 @@ const deleteDocument = async (req, res) => {
 
     if (customer.user.toString() !== req.user._id.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Find the document to delete
+    const docToDelete = customer.documents.find(
+      (doc) => doc._id.toString() === docId,
+    );
+
+    // Delete from Cloudinary if document exists
+    if (docToDelete && docToDelete.url) {
+      await deleteCloudinaryFileByUrl(docToDelete.url, 'file');
     }
 
     // Filter out the document to delete
