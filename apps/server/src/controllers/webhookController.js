@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
+const Payment = require('../models/Payment');
 
 const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -118,6 +119,24 @@ const handleWebhook = async (req, res) => {
 
           await user.save();
           console.log(`Invoice paid for user ${user._id}`);
+
+          // Create Payment Record
+          try {
+            await Payment.create({
+              user: user._id,
+              amount: invoice.amount_paid / 100,
+              currency: invoice.currency,
+              status: 'succeeded',
+              stripeInvoiceId: invoice.id,
+              stripePaymentIntentId: invoice.payment_intent,
+              description: `Invoice ${invoice.number}`,
+              planName: user.plan,
+              date: new Date(invoice.created * 1000),
+            });
+            console.log(`Payment record created for user ${user._id}`);
+          } catch (paymentError) {
+            console.error('Error creating payment record:', paymentError);
+          }
         }
       } catch (error) {
         console.error('Error handling invoice payment:', error);

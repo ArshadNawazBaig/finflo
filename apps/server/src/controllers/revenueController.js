@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const SystemSettings = require('../models/SystemSettings');
+const Payment = require('../models/Payment');
 
 // Get revenue overview
 const getRevenueOverview = async (req, res) => {
@@ -55,12 +56,13 @@ const getRevenueOverview = async (req, res) => {
     const growthRate =
       previousMrr > 0 ? ((mrr - previousMrr) / previousMrr) * 100 : 0;
 
-    // Calculate total revenue (all-time estimated)
-    const totalUsers = await User.countDocuments({
-      role: { $ne: 'super_admin' },
-    });
-    const avgMonthsActive = 3; // Estimate average subscription duration
-    const totalRevenue = mrr * avgMonthsActive;
+    // Calculate total revenue (Real data from Payment collection)
+    const revenueAggregation = await Payment.aggregate([
+      { $match: { status: 'succeeded' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalRevenue =
+      revenueAggregation.length > 0 ? revenueAggregation[0].total : 0;
 
     res.json({
       mrr,
@@ -155,39 +157,72 @@ const getSubscriptionMetrics = async (req, res) => {
 const getRevenueHistory = async (req, res) => {
   try {
     const { months = 6 } = req.query;
-    const settings = await SystemSettings.getSettings();
-    const planPrices = {};
-    settings.subscriptionPlans.forEach((plan) => {
-      planPrices[plan.name] = plan.price;
-    });
 
     const history = [];
-    const now = new Date();
+    let now = new Date();
+
+    // Check if we have newer payments (in case server time is behind or data is future-dated)
+    const latestPayment = await Payment.findOne().sort({ date: -1 });
+    if (latestPayment && latestPayment.date > now) {
+      now = latestPayment.date;
+    }
+
+    // Fetch real payment data grouped by month
+
+    // Fetch real payment data grouped by month
+    const startOfPeriod = new Date(
+      now.getFullYear(),
+      now.getMonth() - parseInt(months) + 1,
+      1,
+    );
+
+    const revenueByMonth = await Payment.aggregate([
+      {
+        $match: {
+          status: 'succeeded',
+          date: { $gte: startOfPeriod },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+          revenue: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Create a map for easy lookup
+    const revenueMap = {};
+    revenueByMonth.forEach((item) => {
+      revenueMap[item._id] = item.revenue;
+    });
+
+    // We still want user counts for history, so keep the User aggregation or estimate it
+    // For simplicity and performance, we'll iterate months as before but pull revenue from Map
+    // and recalculate users (or keep the user logic as is for user count history)
 
     for (let i = parseInt(months) - 1; i >= 0; i--) {
-      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      // Use UTC construction to avoid timezone shifts (e.g. Feb 1 00:00 Local -> Jan 31 UTC)
+      const monthDate = new Date(
+        Date.UTC(now.getFullYear(), now.getMonth() - i, 1),
+      );
+      const nextMonth = new Date(
+        Date.UTC(now.getFullYear(), now.getMonth() - i + 1, 1),
+      );
+      const monthKey = monthDate.toISOString().slice(0, 7);
 
-      const usersInMonth = await User.aggregate([
-        {
-          $match: {
-            role: { $ne: 'super_admin' },
-            createdAt: { $lt: nextMonth },
-            $or: [{ isActive: true }, { updatedAt: { $gte: monthDate } }],
-          },
-        },
-        { $group: { _id: '$plan', count: { $sum: 1 } } },
-      ]);
-
-      let monthRevenue = 0;
-      usersInMonth.forEach(({ _id, count }) => {
-        monthRevenue += (planPrices[_id] || 0) * count;
+      const usersInMonth = await User.countDocuments({
+        role: { $ne: 'super_admin' },
+        createdAt: { $lt: nextMonth },
+        $or: [{ isActive: true }, { updatedAt: { $gte: monthDate } }],
       });
 
       history.push({
-        month: monthDate.toISOString().slice(0, 7), // YYYY-MM format
-        revenue: monthRevenue,
-        users: usersInMonth.reduce((sum, { count }) => sum + count, 0),
+        month: monthKey,
+        revenue: revenueMap[monthKey] || 0,
+        users: usersInMonth,
       });
     }
 
@@ -204,39 +239,42 @@ const getPaymentHistory = async (req, res) => {
     const { page = 1, limit = 20, search = '' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const settings = await SystemSettings.getSettings();
-    const planPrices = {};
-    settings.subscriptionPlans.forEach((plan) => {
-      planPrices[plan.name] = plan.price;
-    });
+    let query = { status: 'succeeded' };
 
-    let query = { role: { $ne: 'super_admin' } };
+    // If search is provided, we need to find matching users first
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { businessName: { $regex: search, $options: 'i' } },
-      ];
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { businessName: { $regex: search, $options: 'i' } },
+        ],
+      }).select('_id');
+
+      query.user = { $in: matchingUsers.map((u) => u._id) };
     }
 
-    const total = await User.countDocuments(query);
-    const users = await User.find(query)
-      .select('name email businessName plan createdAt isActive')
-      .sort({ createdAt: -1 })
+    const total = await Payment.countDocuments(query);
+    const paymentRecords = await Payment.find(query)
+      .populate('user', 'name email businessName plan')
+      .sort({ date: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const payments = users.map((user) => ({
-      _id: user._id,
-      user: {
-        name: user.name,
-        email: user.email,
-        businessName: user.businessName,
-      },
-      plan: user.plan,
-      amount: planPrices[user.plan] || 0,
-      date: user.createdAt,
-      status: user.isActive ? 'active' : 'cancelled',
+    const payments = paymentRecords.map((record) => ({
+      _id: record._id,
+      user: record.user
+        ? {
+            name: record.user.name,
+            email: record.user.email,
+            businessName: record.user.businessName,
+          }
+        : { name: 'Deleted User', email: 'N/A', businessName: 'N/A' },
+      plan: record.planName || record.user?.plan || 'N/A',
+      amount: record.amount,
+      date: record.date,
+      status: record.status,
+      invoiceId: record.stripeInvoiceId,
     }));
 
     res.json({
