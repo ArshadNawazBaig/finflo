@@ -11,6 +11,8 @@ import {
   LifeBuoy,
   Trash2,
   ChevronLeft,
+  Paperclip,
+  X,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
@@ -64,7 +66,10 @@ const Support = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [viewingImage, setViewingImage] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -122,14 +127,23 @@ const Support = () => {
 
   const handleSendReply = async (e) => {
     e.preventDefault();
-    if (!reply.trim()) return;
+    if (!reply.trim() && selectedFiles.length === 0) return;
 
     try {
       setSendingReply(true);
-      await api.post(`/tickets/${selectedTicket._id}/reply`, {
-        message: reply,
+
+      const formData = new FormData();
+      formData.append('message', reply || ' '); // Ensure message is present even if empty (space hack if needed, or update backend to allow optional message)
+      selectedFiles.forEach((file) => {
+        formData.append('attachments', file);
       });
+
+      await api.post(`/tickets/${selectedTicket._id}/reply`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       setReply('');
+      setSelectedFiles([]);
       fetchTicketDetails(selectedTicket._id);
       fetchTickets(false);
     } catch (error) {
@@ -342,40 +356,44 @@ const Support = () => {
 
                 <CardContent className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 custom-scrollbar min-h-0">
                   {/* Initial Post - User is on the right for themselves */}
-                  <div className="flex flex-col gap-2 max-w-[85%] self-end items-end">
-                    <div className="flex items-center gap-2 mb-1 px-1 flex-row-reverse">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
+                  <div className="flex flex-col gap-1 max-w-[85%] self-end items-end">
+                    <div className="flex items-center gap-2 mb-0.5 px-1 flex-row-reverse">
+                      <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-bold">
                         {selectedTicket.user.name.charAt(0)}
                       </div>
-                      <span className="text-[11px] font-bold text-foreground">
+                      <span className="text-[10px] font-bold text-foreground">
                         {selectedTicket.user.name} (You)
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[9px] text-muted-foreground">
                         {new Date(selectedTicket.createdAt).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-primary text-primary-foreground p-5 rounded-3xl rounded-tr-none shadow-sm border border-primary text-sm leading-relaxed relative group">
+                    <div className="bg-primary text-primary-foreground p-3 rounded-2xl rounded-tr-none shadow-sm border border-primary text-xs leading-relaxed relative group">
                       <p>{selectedTicket.description}</p>
                     </div>
                   </div>
 
                   {/* Replies */}
                   {selectedTicket.replies.map((reply, i) => {
-                    const isAdmin = reply.user.role === 'super_admin';
+                    const isAdmin =
+                      reply.user.role === 'super_admin' ||
+                      reply.user.role === 'admin';
                     const isMe = !isAdmin; // For the user view, if it's not admin, it's them
 
                     return (
                       <div
                         key={i}
-                        className={`flex flex-col gap-2 max-w-[85%] ${
+                        className={`flex flex-col gap-1 max-w-[85%] ${
                           isMe ? 'self-end items-end' : 'self-start'
                         }`}
                       >
                         <div
-                          className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}
+                          className={`flex items-center gap-2 mb-0.5 px-1 ${
+                            isMe ? 'flex-row-reverse' : ''
+                          }`}
                         >
                           <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${
                               isAdmin
                                 ? 'bg-primary/10 text-primary'
                                 : 'bg-primary/20 text-primary'
@@ -383,22 +401,58 @@ const Support = () => {
                           >
                             {isAdmin ? 'S' : selectedTicket.user.name.charAt(0)}
                           </div>
-                          <span className="text-[11px] font-bold text-foreground">
+                          <span className="text-[10px] font-bold text-foreground">
                             {isAdmin ? 'Support Team' : 'You'}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[9px] text-muted-foreground">
                             {new Date(reply.createdAt).toLocaleString()}
                           </span>
                         </div>
 
                         <div
-                          className={`p-5 rounded-3xl shadow-sm text-sm leading-relaxed border ${
+                          className={`p-3 rounded-2xl shadow-sm text-xs leading-relaxed border max-w-fit ${
                             isMe
                               ? 'bg-primary text-primary-foreground border-primary rounded-tr-none'
-                              : 'bg-card text-foreground border-border/50 rounded-tl-none'
+                              : 'bg-muted/50 text-foreground border-border/50 rounded-tl-none'
                           }`}
                         >
                           <p>{reply.message}</p>
+                          {/* Attachments */}
+                          {reply.attachments &&
+                            reply.attachments.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/20">
+                                {reply.attachments.map((file, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(e) => {
+                                      if (file.fileType === 'image') {
+                                        e.preventDefault();
+                                        setViewingImage(file.url);
+                                      }
+                                    }}
+                                    className="group relative block w-16 h-16 rounded-lg overflow-hidden border border-border/50 shrink-0 hover:ring-2 hover:ring-white/50 transition-all cursor-pointer"
+                                  >
+                                    {file.fileType === 'image' ? (
+                                      <img
+                                        src={file.url}
+                                        alt="attachment"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex flex-col items-center justify-center bg-background/20 backdrop-blur-sm">
+                                        <Paperclip className="w-6 h-6 opacity-70" />
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 items-center justify-center hidden group-hover:flex">
+                                      <Search className="w-4 h-4 text-white" />
+                                    </div>
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                         </div>
                       </div>
                     );
@@ -407,11 +461,70 @@ const Support = () => {
                 </CardContent>
 
                 {/* Chat Input */}
-                <div className="p-4 border-t border-border/50 bg-card/30 backdrop-blur-md shrink-0">
+                <div className="p-4 border-t border-border/50 bg-card/30 backdrop-blur-md shrink-0 space-y-3">
+                  {/* Image Preview Area */}
+                  {selectedFiles.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="relative shrink-0 group">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden border border-border">
+                            {file.type.startsWith('image/') ? (
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt="preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-muted text-xs font-bold text-muted-foreground uppercase">
+                                {file.name.split('.').pop()}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedFiles((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              );
+                            }}
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                          >
+                            <X size={10} strokeWidth={3} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <form
                     onSubmit={handleSendReply}
                     className="relative flex gap-3 items-center"
                   >
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      ref={fileInputRef}
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        if (selectedFiles.length + files.length > 5) {
+                          toast.error('Limit 5 files per message');
+                          return;
+                        }
+                        setSelectedFiles((prev) => [...prev, ...files]);
+                        e.target.value = ''; // Reset input
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 shrink-0 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip size={18} />
+                    </Button>
+
                     <div className="relative flex-1 group">
                       <input
                         type="text"
@@ -430,7 +543,10 @@ const Support = () => {
 
                     <Button
                       type="submit"
-                      disabled={sendingReply || !reply.trim()}
+                      disabled={
+                        sendingReply ||
+                        (!reply.trim() && selectedFiles.length === 0)
+                      }
                       variant="gradient"
                       className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center p-0"
                     >
@@ -612,6 +728,43 @@ const Support = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Full Image Viewer Modal */}
+      {viewingImage && (
+        <div
+          className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 lg:p-10"
+          onClick={() => setViewingImage(null)}
+        >
+          <button
+            onClick={() => setViewingImage(null)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors border border-white/10"
+          >
+            <X size={20} />
+          </button>
+
+          <div
+            className="relative max-w-full max-h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={viewingImage}
+              alt="Full view"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
+              <a
+                href={viewingImage}
+                download
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-[10px] font-bold hover:opacity-90 transition-opacity shadow-lg flex items-center gap-2 uppercase tracking-widest"
+              >
+                Open Original
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

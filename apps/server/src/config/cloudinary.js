@@ -36,9 +36,19 @@ const userStorage = new CloudinaryStorage({
   },
 });
 
+const ticketStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'loan-app/tickets',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+    resource_type: 'auto',
+  },
+});
+
 module.exports = {
   cloudinary,
   customerStorage,
   generalStorage,
   userStorage,
+  ticketStorage,
 };

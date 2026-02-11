@@ -38,7 +38,7 @@ const Tooltip = ({
         className={cn(
           'absolute px-2.5 py-1.5 bg-white dark:bg-slate-800 text-foreground text-xs font-medium rounded-lg',
           'opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible',
-          'transition-all duration-200 whitespace-nowrap z-[100]',
+          'transition-all duration-200 whitespace-nowrap z-[600]',
           'shadow-lg border border-border/50 pointer-events-none',
           positionClasses[position],
           className,

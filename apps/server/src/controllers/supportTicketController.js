@@ -106,9 +106,19 @@ const addReply = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
+    const attachments = req.files
+      ? req.files.map((file) => ({
+          url: file.path,
+          publicId: file.filename,
+          fileType: file.mimetype.startsWith('image/') ? 'image' : 'file',
+          originalName: file.originalname,
+        }))
+      : [];
+
     ticket.replies.push({
       user: req.user._id,
       message,
+      attachments,
     });
 
     // If super admin replies, set status to In Progress if it was Open
