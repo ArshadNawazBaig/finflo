@@ -161,44 +161,65 @@ const LoanTable = ({
                   </td>
                   <td className="py-4 px-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Tooltip content="Repay Loan" position="top">
-                        <Link
-                          to={`/customers/${loan.customer?._id}`}
-                          className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-colors"
-                        >
-                          <Banknote size={16} />
-                        </Link>
-                      </Tooltip>
-                      <Tooltip content="WhatsApp Reminder" position="top">
-                        <a
-                          href={generateWhatsAppLink(
-                            loan.customer?.phone || '',
-                            loan.customer?.name || '',
-                            loan.emi, // Current installment amount
-                            new Date(), // Current context
-                            false, // Default to not overdue for quick row action
-                          )}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <MessageSquare size={16} />
-                        </a>
-                      </Tooltip>
-                      <Tooltip content="Email Reminder" position="top">
-                        <a
-                          href={generateEmailLink(
-                            loan.customer?.email || '',
-                            loan.customer?.name || '',
-                            loan.emi,
-                            new Date(),
-                            false,
-                          )}
-                          className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <Mail size={16} />
-                        </a>
-                      </Tooltip>
+                      {loan.status !== 'completed' && (
+                        <>
+                          <Tooltip content="Repay Loan" position="top">
+                            <button
+                              onClick={() => {
+                                if (loan.status === 'active') {
+                                  onRepay(loan);
+                                }
+                              }}
+                              className={`p-1.5 rounded-md transition-colors ${
+                                loan.status === 'active'
+                                  ? 'hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600'
+                                  : 'opacity-50 cursor-not-allowed text-muted-foreground'
+                              }`}
+                              disabled={loan.status !== 'active'}
+                            >
+                              <Banknote size={16} />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="WhatsApp Reminder" position="top">
+                            <a
+                              href={generateWhatsAppLink(
+                                loan.customer?.phone || '',
+                                loan.customer?.name || '',
+                                loan.emi,
+                                new Date(),
+                                false,
+                              )}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <MessageSquare size={16} />
+                            </a>
+                          </Tooltip>
+                          <Tooltip content="Email Reminder" position="top">
+                            <a
+                              href={generateEmailLink(
+                                loan.customer?.email || '',
+                                loan.customer?.name || '',
+                                loan.emi,
+                                new Date(),
+                                false,
+                              )}
+                              className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <Mail size={16} />
+                            </a>
+                          </Tooltip>
+                          <Tooltip content="Edit Loan" position="top">
+                            <button
+                              onClick={() => onEdit(loan)}
+                              className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
+                            >
+                              <Edit size={16} />
+                            </button>
+                          </Tooltip>
+                        </>
+                      )}
                       <Tooltip content="View Details" position="top">
                         <Link
                           to={`/loans/${loan._id}`}
@@ -206,14 +227,6 @@ const LoanTable = ({
                         >
                           <Info size={16} />
                         </Link>
-                      </Tooltip>
-                      <Tooltip content="Edit Loan" position="top">
-                        <button
-                          onClick={() => onEdit(loan)}
-                          className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
-                        >
-                          <Edit size={16} />
-                        </button>
                       </Tooltip>
                       <Tooltip content="Delete" position="top">
                         <button
