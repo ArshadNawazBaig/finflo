@@ -46,7 +46,6 @@ const supportTicketSchema = new mongoose.Schema(
         },
         message: {
           type: String,
-          required: true,
         },
         createdAt: {
           type: Date,

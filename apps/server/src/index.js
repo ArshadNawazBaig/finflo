@@ -99,6 +99,17 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Global Error Handler:', err);
+  console.error(err.stack);
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
+});
+
 module.exports = app;
 
 // Force restart for revenue update verify (Timezone Fix)
