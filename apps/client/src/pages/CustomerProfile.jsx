@@ -18,6 +18,10 @@ import {
   Layers,
   Wallet,
   PlusCircle,
+  ShieldCheck,
+  FileCheck,
+  Download,
+  FileBadge,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -296,6 +300,50 @@ const CustomerProfile = () => {
               )}
             </div>
           </div>
+
+          {/* Document Vault Section */}
+          {customer.documents && customer.documents.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black tracking-tighter text-primary">
+                    Document Vault
+                  </h3>
+                  <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                    Securely stored identity and professional documents.
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-primary/10">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {customer.documents.map((doc, idx) => (
+                  <a
+                    key={idx}
+                    href={doc.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group p-4 rounded-3xl border border-border/30 bg-muted/5 hover:bg-primary/5 hover:border-primary/30 transition-all flex flex-col items-center gap-3 text-center"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                      <FileBadge size={28} strokeWidth={1.5} />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-black uppercase tracking-tight truncate max-w-[120px]">
+                        {doc.name}
+                      </div>
+                      <div className="flex items-center justify-center gap-1 text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
+                        <Download size={8} />
+                        Click to View
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sidebar Components */}
@@ -359,6 +407,85 @@ const CustomerProfile = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Professional & Identity Section */}
+          <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
+              Professional & Identity
+              <ShieldCheck size={12} />
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  National ID (CNIC)
+                </span>
+                <span className="text-sm font-black font-mono">
+                  {customer.cnic || 'Not Provided'}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Account Number
+                </span>
+                <span className="text-sm font-black font-mono text-primary">
+                  {customer.accountNumber || 'Pending Generation'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                    Job / Role
+                  </span>
+                  <span className="text-xs font-bold truncate">
+                    {customer.job || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                    Avg. Income
+                  </span>
+                  <span className="text-xs font-black text-emerald-600">
+                    {customer.monthlyIncome
+                      ? formatPKR(customer.monthlyIncome)
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* {customer.documents && customer.documents.length > 0 && (
+              <div className="pt-6 border-t border-border/50">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
+                  Vault Documents ({customer.documents.length})
+                </span>
+                <div className="space-y-2">
+                  {customer.documents.map((doc, idx) => (
+                    <a
+                      key={idx}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-primary/5 hover:text-primary transition-all group"
+                    >
+                      <div className="p-2 rounded-lg bg-card text-muted-foreground group-hover:text-primary transition-colors">
+                        <FileCheck size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold truncate flex-1">
+                        {doc.name}
+                      </span>
+                      <Download
+                        size={12}
+                        className="opacity-0 group-hover:opacity-100"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )} */}
           </div>
 
           {/* Contact Details Card */}

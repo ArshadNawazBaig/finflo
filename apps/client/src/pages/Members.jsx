@@ -12,6 +12,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/TableSkeleton';
 import CardsSkeleton from '@/components/CardsSkeleton';
+import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
 import MemberTable from '@/components/MemberTable';
 import MemberCard from '@/components/MemberCard';
@@ -212,14 +213,11 @@ const Members = () => {
 
       {/* Search and Table */}
       <div className="space-y-4">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 w-4 h-4 z-10 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search members..."
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <TableSearch
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/50"
+            onChange={(value) => setSearchTerm(value)}
+            placeholder="Search members..."
           />
         </div>
 

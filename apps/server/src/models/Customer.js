@@ -20,6 +20,17 @@ const customerSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
+    cnic: { type: String },
+    job: { type: String },
+    monthlyIncome: { type: Number },
+    accountNumber: { type: String, unique: true, sparse: true },
+    documents: [
+      {
+        name: { type: String },
+        url: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

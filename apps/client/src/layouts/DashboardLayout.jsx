@@ -6,10 +6,26 @@ import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
+import api from '@/lib/axios';
+
 const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+
+  // Fetch latest user data on mount to ensure persistence
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data } = await api.get('/auth/me');
+        localStorage.setItem('user', JSON.stringify(data));
+        window.dispatchEvent(new Event('userUpdated'));
+      } catch (error) {
+        console.error('Failed to sync user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   // Handle resize and initial check
   useEffect(() => {

@@ -88,6 +88,7 @@ const loginUser = async (req, res) => {
         role: user.role,
         businessName: user.businessName,
         securityCode: user.securityCode,
+        profilePicture: user.profilePicture,
         token: generateToken(user._id),
       });
     } else {
@@ -111,6 +112,7 @@ const getMe = async (req, res) => {
         customerCount: user.customerCount,
         businessName: user.businessName,
         securityCode: user.securityCode,
+        profilePicture: user.profilePicture,
       });
     } else {
       res.status(404);
@@ -144,6 +146,31 @@ const updateDetails = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+const uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.profilePicture = req.file.path;
+    await user.save();
+
+    res.json({
+      success: true,
+      profilePicture: user.profilePicture,
+      message: 'Profile picture updated successfully',
+    });
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -290,6 +317,7 @@ module.exports = {
   loginUser,
   getMe,
   updateDetails,
+  uploadProfilePicture,
   updatePassword,
   forgotPassword,
   resetPassword,

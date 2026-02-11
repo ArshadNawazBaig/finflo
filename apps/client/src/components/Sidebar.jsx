@@ -241,8 +241,16 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             )}
           >
             <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-white/10 group-hover:ring-primary/50 transition-all duration-500 hover:brightness-110">
-                {userInitials}
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-white/10 group-hover:ring-primary/50 transition-all duration-500 hover:brightness-110 overflow-hidden">
+                {user.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  userInitials
+                )}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
             </div>

@@ -6,11 +6,13 @@ import {
   ArrowDown,
   ChevronsUpDown,
   EyeIcon,
+  Copy,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
 import { formatPKR, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { toast } from 'sonner';
 
 const MemberTable = ({
   data,
@@ -52,6 +54,9 @@ const MemberTable = ({
                   Total Invested
                   {renderSortIcon('currentBalance')}
                 </div>
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
+                Account No.
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
                 Active Loans
@@ -107,14 +112,34 @@ const MemberTable = ({
                   {formatPKR(member.currentBalance || 0)}
                 </td>
                 <td className="py-4 px-4 text-center">
+                  <div className="flex justify-center">
+                    {member.accountNumber ? (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(member.accountNumber);
+                          toast.success('Account number copied to clipboard');
+                        }}
+                        className="group/acc flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground bg-muted/50 px-2.5 py-1 rounded hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+                      >
+                        {member.accountNumber}
+                        <Copy
+                          size={10}
+                          className="opacity-0 group-hover/acc:opacity-100 transition-opacity"
+                        />
+                      </button>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </div>
+                </td>
+                <td className="py-4 px-4 text-center">
                   <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                    {/* Placeholder for now */}-
+                    {member.activeLoans || 0}
                   </span>
                 </td>
                 <td className="py-4 px-4 text-center">
                   <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded text-xs">
-                    {/* Placeholder for now */}
-                    -%
+                    {member.profitRate || 0}%
                   </span>
                 </td>
                 <td className="py-4 px-4 text-center">

@@ -20,6 +20,8 @@ import {
   Copy,
   Check,
   ShieldCheck,
+  Camera,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -62,6 +64,7 @@ const Settings = () => {
         const { data } = await api.get('/auth/me');
         setUser(data);
         localStorage.setItem('user', JSON.stringify(data));
+        window.dispatchEvent(new Event('userUpdated'));
       } catch (error) {
         console.error('Failed to fetch user data:', error);
       }
@@ -73,21 +76,6 @@ const Settings = () => {
   useEffect(() => {
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
-
-  // Fetch latest user data
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data } = await api.get('/auth/me');
-        console.log('Fetched user data:', data); // Debug log
-        setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleToggle = (key) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -191,9 +179,91 @@ const Settings = () => {
                 </div>
 
                 <div className="flex items-center gap-6 py-4">
-                  <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary">
-                    {userInitials}
+                  <div className="relative group">
+                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary overflow-hidden border-4 border-card shadow-sm group-hover:border-primary/20 transition-all cursor-pointer">
+                      {user.profilePicture ? (
+                        <img
+                          src={user.profilePicture}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        userInitials
+                      )}
+
+                      {/* Hover Overlay */}
+                      <div
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() =>
+                          document.getElementById('profile-upload').click()
+                        }
+                      >
+                        <div className="bg-white/20 backdrop-blur-sm p-1.5 rounded-full">
+                          {loading ? (
+                            <Loader2
+                              size={16}
+                              className="text-white animate-spin"
+                            />
+                          ) : (
+                            <Camera size={16} className="text-white" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <input
+                      type="file"
+                      id="profile-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast.error('Image must be less than 2MB');
+                          return;
+                        }
+
+                        const formData = new FormData();
+                        formData.append('profilePicture', file);
+
+                        setLoading(true);
+                        try {
+                          const { data } = await api.put(
+                            '/auth/updateprofilepicture',
+                            formData,
+                            {
+                              headers: {
+                                'Content-Type': 'multipart/form-data',
+                              },
+                            },
+                          );
+
+                          if (data.success) {
+                            const updatedUser = {
+                              ...user,
+                              profilePicture: data.profilePicture,
+                            };
+                            setUser(updatedUser);
+                            localStorage.setItem(
+                              'user',
+                              JSON.stringify(updatedUser),
+                            );
+                            // Dispatch event to update sidebar
+                            window.dispatchEvent(new Event('userUpdated'));
+                            toast.success('Profile picture updated');
+                          }
+                        } catch (error) {
+                          console.error(error);
+                          toast.error('Failed to update profile picture');
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                    />
                   </div>
+
                   <div className="space-y-1">
                     <h4 className="text-xl font-bold">
                       {user.name || 'John Doe'}

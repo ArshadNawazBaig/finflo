@@ -206,7 +206,13 @@ const getLoans = async (req, res) => {
       // Find customers matching search name
       const matchingCustomers = await Customer.find({
         user: req.user._id,
-        name: { $regex: search, $options: 'i' },
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } },
+          { cnic: { $regex: search, $options: 'i' } },
+          { accountNumber: { $regex: search, $options: 'i' } },
+        ],
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);
 
@@ -623,7 +629,7 @@ const uploadDocument = async (req, res) => {
 
     const document = {
       name: req.body.name || req.file.originalname,
-      url: `/uploads/loans/${req.file.filename}`,
+      url: req.file.path,
       type: req.file.mimetype,
     };
 

@@ -6,8 +6,11 @@ const {
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  uploadDocuments,
+  deleteDocument,
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/customerUploadMiddleware');
 
 router.route('/').get(protect, getCustomers).post(protect, createCustomer);
 
@@ -16,5 +19,11 @@ router
   .get(protect, getCustomerById)
   .put(protect, updateCustomer)
   .delete(protect, deleteCustomer);
+
+router
+  .route('/:id/documents')
+  .post(protect, upload.array('documents', 5), uploadDocuments);
+
+router.route('/:id/documents/:docId').delete(protect, deleteDocument);
 
 module.exports = router;

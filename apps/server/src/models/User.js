@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
       default: 'admin',
     },
     businessName: { type: String, default: '' },
+    profilePicture: { type: String, default: '' },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
     stripeCustomerId: { type: String },

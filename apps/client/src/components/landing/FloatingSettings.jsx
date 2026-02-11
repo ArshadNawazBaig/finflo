@@ -22,7 +22,7 @@ const FloatingSettings = () => {
   }, [isOpen]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[200]" ref={menuRef}>
+    <div className="fixed bottom-24 sm:bottom-6 right-6 z-[200]" ref={menuRef}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}

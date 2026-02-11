@@ -34,6 +34,17 @@ const memberSchema = new mongoose.Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
+    cnic: { type: String },
+    job: { type: String },
+    monthlyIncome: { type: Number },
+    accountNumber: { type: String, unique: true, sparse: true },
+    documents: [
+      {
+        name: { type: String },
+        url: { type: String },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
     joinDate: { type: Date, default: Date.now },
   },
   { timestamps: true },

@@ -173,8 +173,8 @@ const LoanRequestTable = ({
                         </Button>
                       </>
                     ) : (
-                      <span className="text-xs font-medium text-muted-foreground italic">
-                        No actions available
+                      <span className="text-xs font-medium text-muted-foreground">
+                        —
                       </span>
                     )}
                   </div>

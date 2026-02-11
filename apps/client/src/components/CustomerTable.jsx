@@ -8,11 +8,13 @@ import {
   ArrowDown,
   ChevronsUpDown,
   UserPlus,
+  Copy,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
 import Tooltip from '@/components/ui/Tooltip';
 import { capitalize } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const CustomerTable = ({
   data,
@@ -50,6 +52,9 @@ const CustomerTable = ({
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Contact Info
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Account No.
               </th>
               <th
                 className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
@@ -117,6 +122,25 @@ const CustomerTable = ({
                       </div>
                     )}
                   </div>
+                </td>
+                <td className="py-4 px-4">
+                  {customer.accountNumber ? (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(customer.accountNumber);
+                        toast.success('Account number copied to clipboard');
+                      }}
+                      className="group/acc flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground bg-muted/50 px-2.5 py-1 rounded hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {customer.accountNumber}
+                      <Copy
+                        size={10}
+                        className="opacity-0 group-hover/acc:opacity-100 transition-opacity"
+                      />
+                    </button>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </td>
                 <td className="py-4 px-4">
                   <span
