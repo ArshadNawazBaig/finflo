@@ -1,0 +1,51 @@
+# Custom Rules for Loan App Project
+
+## Code Creation Protocol
+
+**CRITICAL: Before creating, modifying, or adding any code to this project, you MUST:**
+
+1. **Read PROJECT_RULES.md first** - Always check `/Users/arshadnawaz/Desktop/Loan App/.agent/PROJECT_RULES.md` to understand:
+   - Existing design patterns
+   - Component conventions
+   - API standards
+   - Authentication patterns
+   - Database model patterns
+   - UI/UX standards
+
+2. **Follow existing patterns** - Use the same conventions documented in PROJECT_RULES.md:
+   - Backend: Controller → Route → Model pattern
+   - Frontend: Component structure and imports
+   - API: RESTful conventions with pagination
+   - UI: shadcn/ui components with consistent styling
+
+3. **Reuse existing components** - Check for existing components before creating new ones:
+   - UI components in `apps/client/src/components/ui/`
+   - Feature components in `apps/client/src/components/`
+   - Utility functions in `apps/server/src/utils/` and `apps/client/src/lib/`
+
+4. **Maintain consistency** - Ensure new code matches:
+   - File naming conventions
+   - Import patterns
+   - Error handling patterns
+   - Response formats
+
+## Implementation Checklist
+
+When adding a new feature:
+- [ ] Read PROJECT_RULES.md
+- [ ] Identify similar existing features
+- [ ] Reuse existing components and patterns
+- [ ] Follow the same API conventions
+- [ ] Use existing UI components
+- [ ] Maintain consistent error handling
+- [ ] Follow authentication patterns
+- [ ] Test with existing workflows
+
+## Quick Reference
+
+- **Rules Document**: `.agent/PROJECT_RULES.md`
+- **Backend Pattern**: Controller → Route → Model
+- **Frontend Pattern**: Page → Component → API call
+- **UI Components**: shadcn/ui in `components/ui/`
+- **API Client**: `@/lib/axios` with auto-auth
+- **Notifications**: `toast` from `sonner`
