@@ -40,17 +40,6 @@ const ticketStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'loan-app/tickets',
-    allowed_formats: [
-      'jpg',
-      'png',
-      'jpeg',
-      'pdf',
-      'mp3',
-      'wav',
-      'webm',
-      'm4a',
-      'ogg',
-    ],
     resource_type: 'auto',
   },
 });

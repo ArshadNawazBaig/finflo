@@ -11,12 +11,24 @@ import {
   Building2,
   Trash2,
   ChevronLeft,
+  Paperclip,
+  Mic,
+  X,
+  Pause,
+  Play,
+  Square,
+  Pencil,
+  Image,
+  FileText,
+  Volume2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import TicketChat from '@/components/TicketChat';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,25 +58,16 @@ const ManageTickets = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [reply, setReply] = useState('');
-  const [sendingReply, setSendingReply] = useState(false);
   const [filters, setFilters] = useState({
     status: 'all',
     category: 'all',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (selectedTicket) {
-      scrollToBottom();
-    }
-  }, [selectedTicket, selectedTicket?.replies]);
+  // Note: currentUser prop for TicketChat needs to have super_admin role for admin features to work
+  // We can construct a mock user object since this page is protected for super_admins anyway
+  const adminUser = { role: 'super_admin', _id: 'admin', name: 'Super Admin' };
 
   useEffect(() => {
     fetchTickets();
@@ -89,25 +92,6 @@ const ManageTickets = () => {
       setSelectedTicket(data);
     } catch (error) {
       toast.error('Failed to load ticket details');
-    }
-  };
-
-  const handleSendReply = async (e) => {
-    e.preventDefault();
-    if (!reply.trim()) return;
-
-    try {
-      setSendingReply(true);
-      await api.post(`/tickets/${selectedTicket._id}/reply`, {
-        message: reply,
-      });
-      setReply('');
-      fetchTicketDetails(selectedTicket._id);
-      fetchTickets(false); // Refresh list to update status if it changed silently
-    } catch (error) {
-      toast.error('Failed to send reply');
-    } finally {
-      setSendingReply(false);
     }
   };
 
@@ -359,112 +343,11 @@ const ManageTickets = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 custom-scrollbar min-h-0">
-                {/* Initial Post */}
-                <div className="flex flex-col gap-2 max-w-[85%]">
-                  <div className="flex items-center gap-2 mb-1 pl-1">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                      {selectedTicket.user.name.charAt(0)}
-                    </div>
-                    <span className="text-[11px] font-bold text-foreground">
-                      {selectedTicket.user.name}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {new Date(selectedTicket.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="bg-card p-5 rounded-2xl rounded-tl-none shadow-sm border border-border/50 text-foreground text-sm leading-relaxed relative group">
-                    <p>{selectedTicket.description}</p>
-                    <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </div>
-
-                {/* Replies */}
-                {selectedTicket.replies.map((reply, i) => {
-                  const isAdmin = reply.user.role === 'super_admin';
-                  return (
-                    <div
-                      key={i}
-                      className={`flex flex-col gap-2 max-w-[85%] ${
-                        isAdmin ? 'self-end items-end' : 'self-start'
-                      }`}
-                    >
-                      <div
-                        className={`flex items-center gap-2 mb-1 px-1 ${isAdmin ? 'flex-row-reverse' : ''}`}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            isAdmin
-                              ? 'bg-primary/20 text-primary'
-                              : 'bg-primary/10 text-primary'
-                          }`}
-                        >
-                          {isAdmin ? 'S' : selectedTicket.user.name.charAt(0)}
-                        </div>
-                        <span className="text-[11px] font-bold text-foreground">
-                          {isAdmin ? 'Support Team' : selectedTicket.user.name}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(reply.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-
-                      <div
-                        className={`p-5 rounded-3xl shadow-sm text-sm leading-relaxed border ${
-                          isAdmin
-                            ? 'bg-primary text-primary-foreground border-primary rounded-tr-none'
-                            : 'bg-card text-foreground border-border/50 rounded-tl-none'
-                        }`}
-                      >
-                        <p>{reply.message}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </CardContent>
-
-              {/* Chat Input */}
-              <div className="p-4 border-t border-border/50 bg-card/30 backdrop-blur-md shrink-0">
-                <form
-                  onSubmit={handleSendReply}
-                  className="relative flex gap-3 items-center"
-                >
-                  <div className="relative flex-1 group">
-                    <input
-                      type="text"
-                      value={reply}
-                      onChange={(e) => setReply(e.target.value)}
-                      placeholder="Reply to business..."
-                      className="w-full pl-5 pr-12 h-10 rounded-xl border border-border/50 bg-background focus:bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleSendReply(e);
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={sendingReply || !reply.trim()}
-                    variant="gradient"
-                    className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center p-0"
-                  >
-                    {sendingReply ? (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                </form>
-                <div className="text-center mt-2">
-                  <span className="text-[10px] text-muted-foreground font-medium opacity-60">
-                    Press Enter to send
-                  </span>
-                </div>
-              </div>
+              <TicketChat
+                ticket={selectedTicket}
+                currentUser={adminUser}
+                onUpdateTicket={fetchTicketDetails}
+              />
             </Card>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border/50 bg-card/50 backdrop-blur-sm rounded-[2rem] text-muted-foreground hover:bg-muted/30 transition-all duration-500">

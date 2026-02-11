@@ -122,9 +122,16 @@ const addReply = async (req, res) => {
         })
       : [];
 
+    // Allow empty message if there are attachments
+    if (!message && attachments.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'Message or attachments required' });
+    }
+
     ticket.replies.push({
       user: req.user._id,
-      message,
+      message: message || '', // Default to empty string if no message
       attachments,
     });
 
