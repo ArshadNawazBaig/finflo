@@ -16,7 +16,6 @@ const MobileShowcase = lazy(
 const Pricing = lazy(() => import('@/components/landing/Pricing'));
 const CTA = lazy(() => import('@/components/landing/CTA'));
 import Footer from '@/components/landing/Footer';
-import FloatingSettings from '@/components/landing/FloatingSettings';
 
 // Lightweight Loading Fallback
 const SectionLoader = () => (
@@ -109,8 +108,6 @@ const Landing = () => {
         <CTA />
         <Footer />
       </Suspense>
-
-      <FloatingSettings />
     </div>
   );
 };

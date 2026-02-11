@@ -63,6 +63,7 @@ const Documentation = lazy(() => import('@/pages/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
+import FloatingSettings from '@/components/landing/FloatingSettings';
 
 // Loading Fallback
 const PageLoader = () => <SplashScreen />;
@@ -141,6 +142,7 @@ function App() {
         </Routes>
       </Suspense>
       <Toaster position="top-right" richColors />
+      <FloatingSettings />
     </Router>
   );
 }

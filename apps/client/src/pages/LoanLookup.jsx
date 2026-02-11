@@ -20,18 +20,18 @@ import {
 import { toast } from 'sonner';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, formatPKR } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 
-// Format amount with K/M suffixes
+// Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
   if (amount >= 1000000) {
     return `${(amount / 1000000).toFixed(1)}M`;
   } else if (amount >= 1000) {
     return `${(amount / 1000).toFixed(1)}K`;
   }
-  return amount.toString();
+  return amount.toLocaleString();
 };
 
 // Generate PDF for loan details
@@ -84,22 +84,22 @@ const generateLoanPDF = (loan, customerName, businessName) => {
 
   const details = [
     ['Status:', loan.status.toUpperCase()],
-    ['Principal Amount:', `$${loan.principal.toLocaleString()}`],
+    ['Principal Amount:', `Rs. ${loan.principal.toLocaleString()}`],
     ['Interest Rate:', `${loan.rate}%`],
     ['Duration:', `${loan.duration} Months`],
-    ['Monthly EMI:', `$${loan.emi.toLocaleString()}`],
-    ['Total Amount:', `$${loan.totalAmount.toLocaleString()}`],
+    ['Monthly EMI:', `Rs. ${loan.emi.toLocaleString()}`],
+    ['Total Amount:', `Rs. ${loan.totalAmount.toLocaleString()}`],
     ['Start Date:', format(new Date(loan.startDate), 'MMMM dd, yyyy')],
   ];
 
   if (loan.status === 'active') {
     details.push([
       'Remaining Amount:',
-      `$${loan.remainingAmount?.toLocaleString() || 'N/A'}`,
+      `Rs. ${loan.remainingAmount?.toLocaleString() || 'N/A'}`,
     ]);
     details.push([
       'Paid Amount:',
-      `$${loan.paidAmount?.toLocaleString() || 'N/A'}`,
+      `Rs. ${loan.paidAmount?.toLocaleString() || 'N/A'}`,
     ]);
   }
 
@@ -409,7 +409,7 @@ const LoanLookup = () => {
                           </p>
                           <div className="text-2xl font-black text-primary flex items-baseline gap-1">
                             <span className="text-sm font-normal text-muted-foreground">
-                              $
+                              Rs.
                             </span>
                             {formatAmount(loan.principal)}
                           </div>
@@ -446,7 +446,7 @@ const LoanLookup = () => {
                             Monthly EMI
                           </p>
                           <p className="font-semibold">
-                            ${formatAmount(loan.emi)}
+                            Rs. {formatAmount(loan.emi)}
                           </p>
                         </div>
                         <div>
@@ -454,7 +454,7 @@ const LoanLookup = () => {
                             Total Amount
                           </p>
                           <p className="font-semibold">
-                            ${formatAmount(loan.totalAmount)}
+                            Rs. {formatAmount(loan.totalAmount)}
                           </p>
                         </div>
                       </div>
@@ -486,7 +486,7 @@ const LoanLookup = () => {
                                 Paid Amount
                               </p>
                               <p className="font-semibold text-emerald-600">
-                                ${formatAmount(loan.paidAmount)}
+                                Rs. {formatAmount(loan.paidAmount)}
                               </p>
                             </div>
                             <div>
@@ -494,7 +494,7 @@ const LoanLookup = () => {
                                 Remaining
                               </p>
                               <p className="font-semibold text-orange-600">
-                                ${formatAmount(loan.remainingAmount)}
+                                Rs. {formatAmount(loan.remainingAmount)}
                               </p>
                             </div>
                           </div>
