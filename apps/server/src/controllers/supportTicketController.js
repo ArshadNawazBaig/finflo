@@ -107,12 +107,18 @@ const addReply = async (req, res) => {
     }
 
     const attachments = req.files
-      ? req.files.map((file) => ({
-          url: file.path,
-          publicId: file.filename,
-          fileType: file.mimetype.startsWith('image/') ? 'image' : 'file',
-          originalName: file.originalname,
-        }))
+      ? req.files.map((file) => {
+          let fileType = 'file';
+          if (file.mimetype.startsWith('image/')) fileType = 'image';
+          else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
+
+          return {
+            url: file.path,
+            publicId: file.filename,
+            fileType,
+            originalName: file.originalname,
+          };
+        })
       : [];
 
     ticket.replies.push({
@@ -128,7 +134,11 @@ const addReply = async (req, res) => {
 
     await ticket.save();
 
-    res.status(201).json(ticket);
+    const populatedTicket = await SupportTicket.findById(ticket._id)
+      .populate('user', 'name email businessName')
+      .populate('replies.user', 'name role');
+
+    res.status(201).json(populatedTicket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -158,6 +168,83 @@ const updateTicketStatus = async (req, res) => {
     });
 
     res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update a reply in a ticket
+// @route   PATCH /api/tickets/:id/reply/:replyId
+// @access  Private
+const updateReply = async (req, res) => {
+  try {
+    const { message } = req.body;
+    const ticket = await SupportTicket.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    const reply = ticket.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ message: 'Reply not found' });
+    }
+
+    // Check if user is the owner or super admin
+    if (
+      reply.user.toString() !== req.user._id.toString() &&
+      req.user.role !== 'super_admin'
+    ) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    reply.message = message;
+    reply.isEdited = true;
+    await ticket.save();
+
+    const populatedTicket = await SupportTicket.findById(ticket._id)
+      .populate('user', 'name email businessName')
+      .populate('replies.user', 'name role');
+
+    res.json(populatedTicket);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a reply from a ticket
+// @route   DELETE /api/tickets/:id/reply/:replyId
+// @access  Private
+const deleteReply = async (req, res) => {
+  try {
+    const ticket = await SupportTicket.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    const reply = ticket.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ message: 'Reply not found' });
+    }
+
+    // Check if user is the owner or super admin
+    if (
+      reply.user.toString() !== req.user._id.toString() &&
+      req.user.role !== 'super_admin'
+    ) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Remove the reply using Mongoose subdocument pull
+    ticket.replies.pull(req.params.replyId);
+    await ticket.save();
+
+    const populatedTicket = await SupportTicket.findById(ticket._id)
+      .populate('user', 'name email businessName')
+      .populate('replies.user', 'name role');
+
+    res.json(populatedTicket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -204,6 +291,8 @@ module.exports = {
   getAllTickets,
   getTicketById,
   addReply,
+  updateReply,
+  deleteReply,
   updateTicketStatus,
   deleteTicket,
 };

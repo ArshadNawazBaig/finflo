@@ -6,6 +6,8 @@ const {
   getAllTickets,
   getTicketById,
   addReply,
+  updateReply,
+  deleteReply,
   updateTicketStatus,
   deleteTicket,
 } = require('../controllers/supportTicketController');
@@ -22,6 +24,11 @@ router.route('/:id').get(protect, getTicketById).delete(protect, deleteTicket);
 router
   .route('/:id/reply')
   .post(protect, ticketUpload.array('attachments', 5), addReply);
+
+router
+  .route('/:id/reply/:replyId')
+  .patch(protect, updateReply)
+  .delete(protect, deleteReply);
 
 router
   .route('/:id/status')
