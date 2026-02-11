@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Download,
-  X,
-  Smartphone,
-  Monitor,
-  Share,
-  PlusSquare,
-} from 'lucide-react';
+import { X, Smartphone, Monitor, Share, PlusSquare } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
+import Logo from '@/components/Logo';
 
 const InstallPrompt = () => {
   const {
@@ -73,64 +67,6 @@ const InstallPrompt = () => {
       <AnimatePresence>
         {isVisible && (
           <>
-            {/* Walking Monkey Mascot */}
-            <motion.div
-              initial={{ x: -100, opacity: 0 }}
-              animate={{
-                x: 0,
-                opacity: 1,
-                transition: {
-                  duration: 2.5,
-                  ease: 'easeOut',
-                  delay: 0.8,
-                },
-              }}
-              className="fixed bottom-[100px] right-[360px] z-[310] text-6xl pointer-events-none select-none hidden md:block"
-            >
-              <motion.div
-                animate={{
-                  y: [0, -15, 0],
-                  rotate: [-8, 8, -8],
-                }}
-                transition={{
-                  duration: 0.5,
-                  repeat: 5,
-                  ease: 'easeInOut',
-                }}
-                style={{ scaleX: -1 }} // Flip monkey to face the popup
-              >
-                🐒
-              </motion.div>
-
-              {/* Pointing Hand */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: { delay: 3.5, type: 'spring' },
-                }}
-                className="absolute top-7 -right-8 text-4xl"
-              >
-                👉
-              </motion.div>
-
-              {/* Speech Bubble */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5, y: 10 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: 0,
-                  transition: { delay: 4, type: 'spring' },
-                }}
-                className="absolute -top-12 -right-4 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl shadow-xl border border-primary/20 text-[10px] font-black text-primary whitespace-nowrap"
-              >
-                Click here! 🍌
-                <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white dark:bg-slate-800 border-r border-b border-primary/20 rotate-45" />
-              </motion.div>
-            </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 100, scale: 0.8 }}
               animate={{
@@ -158,8 +94,8 @@ const InstallPrompt = () => {
                 <div className="relative">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary via-indigo-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-3 transition-transform duration-500">
-                        <Download className="w-5 h-5 text-white" />
+                      <div className="transform group-hover:rotate-3 transition-transform duration-500">
+                        <Logo showText={false} className="w-10 h-10" />
                       </div>
                       <div>
                         <h4 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
@@ -234,7 +170,7 @@ const InstallPrompt = () => {
                         </button>
                       ) : (
                         <button
-                          onClick={handleDismiss}
+                          onClick={handleInstall}
                           className="flex-1 bg-primary text-primary-foreground h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all outline-none"
                         >
                           Ready to Use
