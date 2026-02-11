@@ -209,14 +209,12 @@ const Pricing = () => {
               a tailored lending engine.
             </p>
             <div className="flex justify-center gap-4 pt-4 flex-col sm:flex-row">
-              <a
-                href="https://github.com/yourusername/loan-management-saas#readme"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/documentation"
                 className="px-8 py-4 rounded-full border border-border font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
               >
                 View Documentation
-              </a>
+              </Link>
               <Button
                 onClick={() => setShowContactModal(true)}
                 variant="gradient"

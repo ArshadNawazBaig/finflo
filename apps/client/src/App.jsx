@@ -59,6 +59,8 @@ const BackupExport = lazy(() => import('@/pages/superadmin/BackupExport'));
 const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
 const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const Documentation = lazy(() => import('@/pages/Documentation'));
+const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 
@@ -74,6 +76,9 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/loan-lookup" element={<LoanLookup />} />
+          {/* Public Routes */}
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/documentation/api" element={<ApiDocumentation />} />
 
           {/* Regular Admin Routes */}
           <Route element={<RequireAuth />}>
