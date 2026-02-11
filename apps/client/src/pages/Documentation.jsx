@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Book,
   Code2,
@@ -10,19 +11,36 @@ import {
   Search,
   ExternalLink,
   LifeBuoy,
+  ArrowLeft,
+  Shield,
+  CreditCard,
+  Bell,
+  Globe,
+  Lock,
+  Eye,
+  FileText,
+  ChevronDown,
 } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Documentation = () => {
   const [activeSection, setActiveSection] = useState('introduction');
+  const [scrollY, setScrollY] = useState(0);
   const location = useLocation();
 
   useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     // Scroll to top on section change
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.scrollY > 400) {
+      window.scrollTo({ top: 400, behavior: 'smooth' });
+    }
   }, [activeSection]);
 
   const sections = [
@@ -341,20 +359,81 @@ const Documentation = () => {
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
       </div>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-md z-50">
-        <span className="font-bold">Documentation</span>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-4 pt-12">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
+      {/* Navigation */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+          scrollY > 30
+            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
+            : 'py-8'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/30 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:rotate-6 transition-all duration-500">
+              <ArrowLeft size={20} />
+            </div>
+            <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">
+              Return Home
+            </span>
+          </Link>
+          <div className="hidden lg:flex items-center gap-3">
+            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
+              <Shield className="w-5 h-5 text-emerald-500" />
+            </div>
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+              System Documentation
+            </span>
+          </div>
+
+          {/* Mobile Menu Trigger */}
+          <div className="lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-4 pt-12">
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </nav>
+
+      {/* Header */}
+      <header className="relative pt-32 pb-12 px-6">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-black uppercase tracking-widest"
+          >
+            <Book className="w-3.5 h-3.5" />
+            Knowledge Base
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white"
+          >
+            System{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              Documentation.
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed"
+          >
+            Comprehensive guides and resources to help you build, manage, and
+            scale your lending operations with LoanMaster.
+          </motion.p>
+        </div>
+      </header>
 
       <div className="container mx-auto max-w-7xl px-4 lg:px-8 py-8 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">

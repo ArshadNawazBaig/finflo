@@ -53,10 +53,10 @@ const Footer = () => {
           {
             title: 'Support',
             items: [
+              'Documentation',
+              'API Reference',
               'Loan Lookup Portal',
               'Member Console',
-              'Technical Logs',
-              'Integration Wiki',
               'Network Status',
               'Careers',
             ],
@@ -73,6 +73,8 @@ const Footer = () => {
                   'Terms of Service': '/terms',
                   'Loan Lookup Portal': '/loan-lookup',
                   'Member Console': '/member/login',
+                  Documentation: '/documentation',
+                  'API Reference': '/documentation/api',
                 };
                 const path = linkMap[item];
 

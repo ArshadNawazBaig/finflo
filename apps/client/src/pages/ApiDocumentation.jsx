@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Code2,
   Copy,
@@ -16,10 +17,14 @@ import {
   Globe,
   Layout,
   Menu,
+  Shield,
+  ArrowLeft,
+  Book,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import api from '@/lib/axios';
 
 const Endpoint = ({ method, path, description, params }) => {
   const [copied, setCopied] = useState(false);
@@ -135,6 +140,95 @@ const ApiDocumentation = () => {
     { id: 'public', label: 'Public API', icon: Globe },
   ];
 
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem('user') || '{}'),
+  );
+  const [loading, setLoading] = useState(true);
+  // State for scroll
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data } = await api.get('/auth/me');
+        setUser(data);
+        localStorage.setItem('user', JSON.stringify(data));
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const isPro = user?.plan === 'Pro';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Gradients */}
+        <div className="fixed inset-0 -z-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
+        </div>
+
+        <div className="max-w-md w-full text-center space-y-8 animate-in fade-in zoom-in-95 duration-500">
+          <div className="relative mx-auto w-24 h-24 bg-card/50 backdrop-blur-sm rounded-3xl border border-border/50 flex items-center justify-center shadow-xl">
+            <Lock className="w-10 h-10 text-primary" />
+            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-black uppercase px-2 py-1 rounded-full shadow-lg">
+              Pro
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-3xl font-black tracking-tight">
+              API Access Restricted
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Full API documentation and access keys are available exclusively
+              to <strong className="text-foreground">Pro Plan</strong> members.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 pt-4">
+            <Link to="/pricing">
+              <Button
+                variant="gradient"
+                className="w-full h-12 rounded-full font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 transition-all duration-300"
+              >
+                Upgrade to Pro
+              </Button>
+            </Link>
+            <Link to="/documentation">
+              <Button
+                variant="ghost"
+                className="w-full h-12 rounded-full font-black uppercase tracking-widest text-xs hover:bg-muted/50"
+              >
+                Go Back
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const SidebarContent = () => (
     <nav className="space-y-1">
       {sidebarItems.map((item) => (
@@ -171,29 +265,10 @@ const ApiDocumentation = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background relative animate-in fade-in zoom-in-95 duration-500">
+    <div className="min-h-screen bg-background relative animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Background Gradients */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
-      </div>
-
-      {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-md z-50">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-primary" />
-          <span className="font-bold">API Reference</span>
-        </div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-4 pt-12">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
       </div>
 
       <div className="container mx-auto max-w-7xl px-4 lg:px-8 py-8 lg:py-12">
