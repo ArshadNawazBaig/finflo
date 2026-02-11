@@ -43,11 +43,11 @@ const Footer = () => {
           {
             title: 'Company',
             items: [
-              'Nexus Infrastructure',
+              // 'Nexus Infrastructure',
               'Global Policy',
               'Terms of Service',
-              'Security Layer',
-              'Partnerships',
+              // 'Security Layer',
+              // 'Partnerships',
             ],
           },
           {
@@ -57,8 +57,8 @@ const Footer = () => {
               'API Reference',
               'Loan Lookup Portal',
               'Member Console',
-              'Network Status',
-              'Careers',
+              // 'Network Status',
+              // 'Careers',
             ],
           },
         ].map((col, i) => (

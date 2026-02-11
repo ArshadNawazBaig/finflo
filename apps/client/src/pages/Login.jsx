@@ -23,6 +23,15 @@ const Login = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
 
+      // Check for redirect param
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+
+      if (redirect) {
+        navigate(redirect);
+        return;
+      }
+
       // Role-based redirect
       if (data.role === 'super_admin') {
         navigate('/super-admin');

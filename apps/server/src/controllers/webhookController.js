@@ -201,6 +201,70 @@ const handleWebhook = async (req, res) => {
       break;
     }
 
+    case 'charge.refunded': {
+      const charge = event.data.object;
+      console.log('');
+      console.log('💰 Processing charge.refunded');
+      console.log('Charge ID:', charge.id);
+      console.log('Customer ID:', charge.customer);
+      console.log('Amount Refunded:', charge.amount_refunded / 100);
+
+      const customerId = charge.customer;
+
+      try {
+        const user = await User.findOne({ stripeCustomerId: customerId });
+        if (user) {
+          console.log(`Found user ${user._id} for refund processing`);
+
+          // Downgrade user to Free plan
+          user.plan = 'Free';
+          user.subscriptionStatus = 'canceled';
+          user.stripeSubscriptionId = null;
+          user.nextBillingDate = null;
+          await user.save();
+
+          console.log(
+            `✅ User ${user._id} downgraded to Free plan due to refund`,
+          );
+
+          // Find and update the payment record
+          const payment = await Payment.findOne({
+            stripePaymentIntentId: charge.payment_intent,
+          });
+
+          if (payment) {
+            payment.status = 'refunded';
+            payment.refundedAt = new Date();
+            await payment.save();
+            console.log(`✅ Payment record ${payment._id} marked as refunded`);
+          } else {
+            // Create a refund payment record if original payment not found
+            await Payment.create({
+              user: user._id,
+              amount: -(charge.amount_refunded / 100), // Negative amount for refund
+              currency: charge.currency,
+              status: 'refunded',
+              stripePaymentIntentId: charge.payment_intent,
+              description: `Refund for charge ${charge.id}`,
+              planName: 'Refund',
+              date: new Date(),
+              refundedAt: new Date(),
+            });
+            console.log(
+              `✅ Created new refund payment record for user ${user._id}`,
+            );
+          }
+        } else {
+          console.warn(
+            `⚠️  No user found for Stripe Customer ID: ${customerId}`,
+          );
+        }
+      } catch (error) {
+        console.error('❌ Error processing refund:', error);
+      }
+      break;
+    }
+
     case 'customer.subscription.deleted': {
       const subscription = event.data.object;
       const customerId = subscription.customer;

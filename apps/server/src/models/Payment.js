@@ -38,6 +38,12 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    refundedAt: {
+      type: Date,
+    },
+    refundReason: {
+      type: String,
+    },
   },
   {
     timestamps: true,

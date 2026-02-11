@@ -263,13 +263,78 @@ const getBillingInfo = async (req, res) => {
       periodEnd: new Date(
         (inv.lines?.data[0]?.period?.end || inv.period_end) * 1000,
       ),
+      type: 'invoice',
     }));
+
+    // Fetch Payment records for this user (including refunds)
+    const Payment = require('../models/Payment');
+    const payments = await Payment.find({ user: user._id }).sort({ date: -1 });
+
+    const formattedPayments = payments
+      .filter((p) => p.status === 'refunded') // Only include refunds
+      .map((p) => ({
+        _id: p._id,
+        number: `REFUND-${p._id.toString().slice(-8).toUpperCase()}`,
+        date: p.refundedAt || p.date,
+        amount: Math.abs(p.amount), // Show positive amount
+        status: 'refunded',
+        url: null,
+        periodStart: null,
+        periodEnd: null,
+        type: 'refund',
+      }));
+
+    // Fetch all subscriptions (including canceled ones)
+    const allSubscriptions = await stripe.subscriptions.list({
+      customer: user.stripeCustomerId,
+      limit: 100,
+      status: 'all',
+    });
+
+    const formattedCanceledSubscriptions = allSubscriptions.data
+      .filter((sub) => sub.status === 'canceled' && sub.canceled_at)
+      .map((sub) => {
+        // Determine plan name from price ID
+        let planName = 'Unknown';
+        if (sub.items && sub.items.data.length > 0) {
+          const priceId = sub.items.data[0].price.id;
+          if (priceId === process.env.STRIPE_PRICE_ID_BASIC) {
+            planName = 'Basic';
+          } else if (priceId === process.env.STRIPE_PRICE_ID_PRO) {
+            planName = 'Pro';
+          }
+        }
+
+        return {
+          _id: sub.id,
+          number: `SUB-CANCELED-${sub.id.slice(-8).toUpperCase()}`,
+          date: new Date(sub.canceled_at * 1000),
+          amount: 0,
+          status: 'canceled',
+          url: null,
+          periodStart: sub.current_period_start
+            ? new Date(sub.current_period_start * 1000)
+            : null,
+          periodEnd: sub.current_period_end
+            ? new Date(sub.current_period_end * 1000)
+            : null,
+          type: 'subscription_canceled',
+          planName: planName,
+        };
+      });
+
+    // Merge and sort by date
+    const allBillingHistory = [
+      ...formattedInvoices,
+      ...formattedPayments,
+      ...formattedCanceledSubscriptions,
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.json({
       ...user.toObject(),
       plan: currentPlan, // Return the synced plan
       paymentMethods: formattedPaymentMethods,
-      invoices: formattedInvoices,
+      invoices: allBillingHistory,
     });
   } catch (error) {
     console.error('Error fetching billing info:', error);

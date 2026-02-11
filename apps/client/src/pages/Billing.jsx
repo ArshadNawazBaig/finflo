@@ -398,7 +398,9 @@ const Billing = () => {
                                 className="group hover:bg-muted/30 transition-colors border-b border-border/50 last:border-none"
                               >
                                 <td className="px-4 py-4 font-semibold text-foreground text-sm">
-                                  {inv.number || inv._id}
+                                  {inv.type === 'subscription_canceled'
+                                    ? `${inv.planName} Plan Canceled`
+                                    : inv.number || inv._id}
                                 </td>
                                 <td className="px-4 py-4 text-sm text-muted-foreground">
                                   {formatDate(inv.date)}
@@ -408,7 +410,20 @@ const Billing = () => {
                                   {formatDate(inv.periodEnd)}
                                 </td>
                                 <td className="px-4 py-4 font-medium text-sm">
-                                  ${inv.amount?.toFixed(2)}
+                                  <span
+                                    className={
+                                      inv.status === 'refunded'
+                                        ? 'line-through text-destructive'
+                                        : ''
+                                    }
+                                  >
+                                    ${inv.amount?.toFixed(2)}
+                                  </span>
+                                  {inv.status === 'refunded' && (
+                                    <span className="ml-2 text-xs text-destructive font-bold">
+                                      REFUNDED
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="px-4 py-4">
                                   <span
@@ -418,7 +433,21 @@ const Billing = () => {
                                         ? 'bg-emerald-500/10 text-emerald-600'
                                         : inv.status?.toLowerCase() === 'open'
                                           ? 'bg-blue-500/10 text-blue-600'
-                                          : 'bg-destructive/10 text-destructive'
+                                          : inv.status?.toLowerCase() ===
+                                              'refunded'
+                                            ? 'bg-red-500/10 text-red-600'
+                                            : inv.status?.toLowerCase() ===
+                                                  'void' ||
+                                                inv.status?.toLowerCase() ===
+                                                  'canceled'
+                                              ? 'bg-slate-500/10 text-slate-600'
+                                              : inv.status?.toLowerCase() ===
+                                                  'uncollectible'
+                                                ? 'bg-orange-500/10 text-orange-600'
+                                                : inv.status?.toLowerCase() ===
+                                                    'draft'
+                                                  ? 'bg-purple-500/10 text-purple-600'
+                                                  : 'bg-destructive/10 text-destructive'
                                     }`}
                                   >
                                     {inv.status}

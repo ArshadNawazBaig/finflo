@@ -1,8 +1,22 @@
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 const Pricing = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setIsAuthenticated(!!token);
+    if (token && user.plan) {
+      setCurrentPlan(user.plan);
+    }
+  }, []);
+
   const plans = [
     {
       name: 'Free',
@@ -45,9 +59,16 @@ const Pricing = () => {
     },
   ];
 
+  const getLink = (planName) => {
+    if (isAuthenticated) {
+      return '/pricing';
+    }
+    return `/login?redirect=/pricing`;
+  };
+
   return (
     <section
-      id="pricing"
+      id="scale"
       className="py-24 px-6 z-10 relative bg-white dark:bg-[#020617]"
     >
       <div className="max-w-7xl mx-auto">
@@ -61,74 +82,92 @@ const Pricing = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={cn(
-                'relative p-10 rounded-[3rem] border transition-all duration-700 flex flex-col h-full overflow-hidden group',
-                plan.popular
-                  ? 'bg-[#020617] dark:bg-primary/5 text-white border-primary/50 shadow-[0_40px_100px_rgba(99,102,241,0.2)] scale-105 z-20'
-                  : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 dark:text-white',
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[50px] -mr-10 -mt-10" />
-              )}
-              <div className="mb-8">
-                <h4 className="text-xl font-black mb-3 tracking-tighter">
-                  {plan.name}
-                </h4>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black tracking-tighter">
-                    {plan.price}
-                  </span>
-                  <span className="text-slate-500 font-black uppercase text-[9px] tracking-widest">
-                    /node
-                  </span>
-                </div>
-              </div>
-              <ul className="space-y-4 mb-10 flex-1">
-                {plan.features.map((feat, j) => (
-                  <li
-                    key={j}
-                    className="flex items-center gap-3 text-sm font-medium"
-                  >
-                    <div
-                      className={cn(
-                        'w-4 h-4 rounded-full flex items-center justify-center',
-                        plan.popular
-                          ? 'bg-primary text-white'
-                          : 'bg-primary/10 text-primary',
-                      )}
-                    >
-                      <CheckCircle2 size={10} strokeWidth={4} />
-                    </div>
-                    <span
-                      className={
-                        plan.popular ? 'text-slate-300' : 'text-slate-500'
-                      }
-                    >
-                      {feat}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <button
+          {plans.map((plan, i) => {
+            const isCurrentPlan =
+              isAuthenticated &&
+              currentPlan &&
+              currentPlan.toLowerCase() === plan.name.toLowerCase();
+
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
                 className={cn(
-                  'w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-xl',
+                  'relative p-10 rounded-[3rem] border transition-all duration-700 flex flex-col h-full overflow-hidden group',
                   plan.popular
-                    ? 'bg-primary text-primary-foreground hover:shadow-primary/40 hover:brightness-110'
-                    : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-primary/50 dark:text-white',
+                    ? 'bg-[#020617] dark:bg-primary/5 text-white border-primary/50 shadow-[0_40px_100px_rgba(99,102,241,0.2)] scale-105 z-20'
+                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 dark:text-white',
+                  isCurrentPlan
+                    ? 'border-primary shadow-2xl shadow-primary/10'
+                    : '',
                 )}
               >
-                {plan.cta}
-              </button>
-            </motion.div>
-          ))}
+                {plan.popular && !isCurrentPlan && (
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[50px] -mr-10 -mt-10" />
+                )}
+                <div className="mb-8">
+                  <h4 className="text-xl font-black mb-3 tracking-tighter">
+                    {plan.name}
+                  </h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black tracking-tighter">
+                      {plan.price}
+                    </span>
+                    <span className="text-slate-500 font-black uppercase text-[9px] tracking-widest">
+                      /node
+                    </span>
+                  </div>
+                </div>
+                <ul className="space-y-4 mb-10 flex-1">
+                  {plan.features.map((feat, j) => (
+                    <li
+                      key={j}
+                      className="flex items-center gap-3 text-sm font-medium"
+                    >
+                      <div
+                        className={cn(
+                          'w-4 h-4 rounded-full flex items-center justify-center',
+                          plan.popular
+                            ? 'bg-primary text-white'
+                            : 'bg-primary/10 text-primary',
+                        )}
+                      >
+                        <CheckCircle2 size={10} strokeWidth={4} />
+                      </div>
+                      <span
+                        className={
+                          plan.popular ? 'text-slate-300' : 'text-slate-500'
+                        }
+                      >
+                        {feat}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {isCurrentPlan ? (
+                  <div className="w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] text-center bg-emerald-500/10 text-emerald-500 cursor-default border border-emerald-500/20">
+                    Current Plan
+                  </div>
+                ) : (
+                  <Link
+                    to={getLink(plan.name)}
+                    className={cn(
+                      'w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-xl text-center',
+                      plan.popular
+                        ? 'bg-primary text-primary-foreground hover:shadow-primary/40 hover:brightness-110'
+                        : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-primary/50 dark:text-white',
+                    )}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

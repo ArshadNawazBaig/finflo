@@ -12,7 +12,10 @@ const InvoiceCard = ({ invoice }) => {
     paid: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
     open: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
     void: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-    uncollectible: 'bg-red-500/10 text-red-500 border-red-500/20',
+    canceled: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+    uncollectible: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+    refunded: 'bg-red-500/10 text-red-500 border-red-500/20',
+    draft: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
   };
 
   const statusIcons = {
@@ -20,6 +23,7 @@ const InvoiceCard = ({ invoice }) => {
     open: <Clock size={14} />,
     void: <AlertCircle size={14} />,
     uncollectible: <AlertCircle size={14} />,
+    refunded: <AlertCircle size={14} />,
   };
 
   const status = invoice.status?.toLowerCase() || 'open';
@@ -60,7 +64,18 @@ const InvoiceCard = ({ invoice }) => {
           </p>
           <p className="text-base font-black text-foreground flex items-center gap-1">
             <DollarSign size={14} className="text-primary" />
-            {invoice.amount?.toFixed(2)}
+            <span
+              className={
+                status === 'refunded' ? 'line-through text-destructive' : ''
+              }
+            >
+              {invoice.amount?.toFixed(2)}
+            </span>
+            {status === 'refunded' && (
+              <span className="ml-1 text-[9px] text-destructive font-bold">
+                REFUNDED
+              </span>
+            )}
           </p>
         </div>
         <div className="p-3 rounded-2xl bg-muted/20 border border-border/10">
