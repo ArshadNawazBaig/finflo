@@ -113,7 +113,7 @@ const LoanRequestTable = ({
                 </td>
                 <td className="py-4 px-4">
                   <div className="text-sm font-medium text-muted-foreground">
-                    {request.duration} Months
+                    {request.duration} Mo
                   </div>
                 </td>
                 <td className="py-4 px-4">

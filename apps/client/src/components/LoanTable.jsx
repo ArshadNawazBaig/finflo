@@ -125,7 +125,7 @@ const LoanTable = ({
                   </td>
                   <td className="py-4 px-4 text-center">
                     <span className="inline-block px-2 py-1 rounded bg-muted text-xs font-semibold">
-                      {loan.termMonths || 'N/A'} Mo
+                      {loan.duration || 'N/A'} Mo
                     </span>
                   </td>
                   <td className="py-4 px-4 text-center text-sm text-muted-foreground">
