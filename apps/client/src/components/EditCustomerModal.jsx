@@ -105,6 +105,20 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   if (!customer) return null;
 
+  const handleCNICChange = (e) => {
+    const rawValue = e.target.value.replace(/\D/g, '').slice(0, 13);
+    let formattedValue = rawValue;
+
+    if (rawValue.length > 5) {
+      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5)}`;
+    }
+    if (rawValue.length > 12) {
+      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5, 12)}-${rawValue.slice(12)}`;
+    }
+
+    setFormData({ ...formData, cnic: formattedValue });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -261,9 +275,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     name="cnic"
                     placeholder="42101-XXXXXXX-X"
                     value={formData.cnic}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cnic: e.target.value })
-                    }
+                    onChange={handleCNICChange}
                     className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-mono"
                   />
                 </div>
