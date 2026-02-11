@@ -16,7 +16,7 @@ const MobileShowcase = () => {
               className="relative z-10"
             >
               <img
-                src="/screenshots/m1.png"
+                src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/m1_lqzg3w.png"
                 alt="Mobile Analytics"
                 loading="lazy"
                 className="w-full max-w-[320px] mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-700"

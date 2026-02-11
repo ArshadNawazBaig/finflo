@@ -98,7 +98,7 @@ const Hero = () => {
                 className="relative w-full max-w-[280px] lg:max-w-[850px] mx-auto"
               >
                 <img
-                  src="/screenshots/d2.png"
+                  src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/d3_zelqda.png"
                   alt="LoanMaster Mobile App"
                   loading="eager"
                   className="w-full relative z-20 drop-shadow-[0_0_100px_rgba(var(--primary),0.3)]"

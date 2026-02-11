@@ -66,7 +66,7 @@ const Workbench = () => {
               <div className="absolute -inset-4 bg-primary/30 blur-[100px] opacity-50 group-hover:opacity-80 transition-opacity" />
               <div className="relative rounded-[2.5rem] max-w-[500px]">
                 <img
-                  src="/screenshots/d1.png"
+                  src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/d1_fjtwjp.png"
                   alt="Command Center"
                   loading="lazy"
                   className="w-full transition-transform duration-1000 group-hover:scale-105"
@@ -86,7 +86,7 @@ const Workbench = () => {
               <div className="absolute -inset-4 bg-emerald-500/30 blur-[100px] opacity-50 group-hover:opacity-80 transition-opacity" />
               <div className="relative rounded-[2.5rem] max-w-[500px]">
                 <img
-                  src="/screenshots/d3.png"
+                  src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/d2_xflumw.png"
                   alt="Ledger Management"
                   loading="lazy"
                   className="w-full transition-transform duration-1000 group-hover:scale-105"
@@ -168,7 +168,7 @@ const Workbench = () => {
               <div className="absolute -inset-4 bg-indigo-500/30 blur-[100px] opacity-50 group-hover:opacity-80 transition-opacity" />
               <div className="relative rounded-[2.5rem] max-w-[500px] shadow-3xl">
                 <img
-                  src="/screenshots/d2.png"
+                  src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/d2_xflumw.png"
                   alt="Member Dashboard"
                   loading="lazy"
                   className="w-full transition-transform duration-1000 group-hover:scale-105 opacity-90 group-hover:opacity-100"
