@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./config/db');
+const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 
 const app = express();
 
@@ -44,6 +45,9 @@ app.use(async (req, res, next) => {
     next();
   }
 });
+
+// Maintenance Mode Enforcement
+app.use(maintenanceMiddleware);
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));

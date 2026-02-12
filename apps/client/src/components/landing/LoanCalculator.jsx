@@ -1,171 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Calculator,
-  Info,
-  ArrowRight,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
-} from 'lucide-react';
-
-const LOAN_CALC_STYLES = `
-  .slider-thumb-premium {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: #e2e8f0;
-    outline: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .dark .slider-thumb-premium {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  /* Webkit (Chrome, Safari, Edge) */
-  .slider-thumb-premium::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 24px;
-    width: 24px;
-    border-radius: 50%;
-    background: #ffffff;
-    cursor: grab;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin-top: -9px;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    z-index: 50;
-  }
-  .slider-thumb-premium::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px hsla(var(--primary), 0.3);
-  }
-  .slider-thumb-premium:active::-webkit-slider-thumb {
-    cursor: grabbing;
-    transform: scale(0.95);
-    background: hsl(var(--primary));
-    border-color: hsl(var(--primary));
-  }
-  .slider-thumb-premium::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    cursor: pointer;
-    background: transparent;
-    border-radius: 3px;
-  }
-
-  /* Firefox */
-  .slider-thumb-premium::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    cursor: grab;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  .slider-thumb-premium::-moz-range-progress {
-    background: hsl(var(--primary));
-    height: 6px;
-    border-radius: 3px;
-  }
-`;
-
-const Slider = ({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-  unit,
-  icon: Icon,
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempValue, setTempValue] = useState(value);
-
-  const handleInputChange = (e) => {
-    const val = e.target.value.replace(/[^0-9.]/g, '');
-    setTempValue(val);
-  };
-
-  const handleInputBlur = () => {
-    let num = Number(tempValue);
-    if (isNaN(num)) num = min;
-    num = Math.max(min, Math.min(max, num));
-    onChange(num);
-    setIsEditing(false);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleInputBlur();
-    if (e.key === 'Escape') {
-      setTempValue(value);
-      setIsEditing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!isEditing) setTempValue(value);
-  }, [value, isEditing]);
-
-  const percentage = ((value - min) / (max - min)) * 100;
-
-  return (
-    <div className="space-y-4 relative z-30 group/slider">
-      <div className="flex justify-between items-center relative z-40">
-        <label className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 flex items-center gap-2 group-hover/slider:text-primary transition-colors">
-          <div className="w-5 h-5 rounded-md bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/slider:bg-primary/10 group-hover/slider:text-primary transition-all">
-            {Icon && <Icon size={12} />}
-          </div>
-          {label}
-        </label>
-        <div className="relative group/input flex items-center">
-          {isEditing ? (
-            <input
-              autoFocus
-              type="text"
-              value={tempValue}
-              onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              onKeyDown={handleKeyDown}
-              className="w-20 h-[22px] text-right !text-[11px] !leading-[22px] font-black text-slate-900 bg-white px-2 py-0 rounded-lg shadow-lg outline-none ring-1 ring-primary/50 transition-all"
-            />
-          ) : (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-              className="cursor-pointer !text-[11px] !leading-[22px] font-black text-white bg-primary px-2 h-[22px] rounded-lg shadow-md hover:shadow-primary/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-end w-20 border border-white/20 select-none group-hover/slider:shadow-primary/20"
-            >
-              {unit === 'Rs.'
-                ? Math.round(value).toLocaleString()
-                : `${value}${unit}`}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="relative h-6 flex items-center">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          style={{
-            background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${percentage}%, ${isEditing ? '#cbd5e1' : '#e2e8f0'} ${percentage}%, ${isEditing ? '#cbd5e1' : '#e2e8f0'} 100%)`,
-          }}
-          className="slider-thumb-premium"
-        />
-      </div>
-    </div>
-  );
-};
+import { motion } from 'framer-motion';
+import { Calculator, Info, ArrowRight } from 'lucide-react';
+import ModernSlider from '../ui/ModernSlider';
 
 const LoanCalculator = () => {
   const [amount, setAmount] = useState(25000);
@@ -218,7 +54,6 @@ const LoanCalculator = () => {
       transition={{ duration: 0.8 }}
       className="w-full max-w-sm mx-auto lg:ml-auto"
     >
-      <style dangerouslySetInnerHTML={{ __html: LOAN_CALC_STYLES }} />
       <div className="relative group">
         {/* Decorative background elements */}
         <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-indigo-500/30 rounded-[2rem] blur opacity-20 group-hover:opacity-25 transition duration-1000" />
@@ -258,36 +93,33 @@ const LoanCalculator = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <Slider
+          <div className="space-y-6">
+            <ModernSlider
               label="Loan Amount"
               value={amount}
-              min={0}
+              min={5000}
               max={1000000}
               step={5000}
               onChange={setAmount}
-              unit="Rs."
-              icon={TrendingUp}
+              suffix="Rs."
             />
-            <Slider
+            <ModernSlider
               label="Repayment Term"
               value={term}
-              min={0}
+              min={3}
               max={84}
               step={1}
               onChange={setTerm}
-              unit=" mo"
-              icon={Zap}
+              suffix=" mo"
             />
-            <Slider
+            <ModernSlider
               label="Interest Rate"
               value={rate}
-              min={0}
+              min={1}
               max={30}
               step={0.1}
               onChange={setRate}
-              unit="%"
-              icon={ShieldCheck}
+              suffix="%"
             />
           </div>
 

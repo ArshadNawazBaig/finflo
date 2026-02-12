@@ -65,92 +65,112 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 const Documentation = lazy(() => import('@/pages/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
 const AuditLogs = lazy(() => import('@/pages/AuditLogs'));
+const Maintenance = lazy(() => import('@/pages/Maintenance'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 // Loading Fallback
 const PageLoader = () => <SplashScreen />;
 
 function App() {
+  const { settings, loading } = useSystemSettings();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isSuperAdmin = user.role === 'super_admin';
+
+  if (loading) return <PageLoader />;
+
   return (
     <Router>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/loan-lookup" element={<LoanLookup />} />
-          {/* Public Routes */}
-          <Route path="/documentation" element={<Documentation />} />
-          <Route path="/documentation/api" element={<ApiDocumentation />} />
+          {settings && settings.maintenanceMode === true && !isSuperAdmin ? (
+            <Route path="*" element={<Maintenance />} />
+          ) : (
+            <>
+              <Route path="/" element={<Landing />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/loan-lookup" element={<LoanLookup />} />
+              {/* Public Routes */}
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/documentation/api" element={<ApiDocumentation />} />
 
-          {/* Regular Admin Routes */}
-          <Route element={<RequireAuth />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/customers" element={<Customers />} />
-              <Route path="/members" element={<Members />} />
-              <Route path="/members/:id" element={<MemberProfile />} />
-              <Route path="/customers/:id" element={<CustomerProfile />} />
-              <Route path="/loans" element={<Loans />} />
-              <Route path="/loan-requests" element={<LoanRequests />} />
-              <Route path="/loans/:id" element={<LoanDetail />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/branches" element={<Branches />} />
-              <Route path="/team" element={<Team />} />
+              {/* Regular Admin Routes */}
+              <Route element={<RequireAuth />}>
+                <Route element={<DashboardLayout />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/customers" element={<Customers />} />
+                  <Route path="/members" element={<Members />} />
+                  <Route path="/members/:id" element={<MemberProfile />} />
+                  <Route path="/customers/:id" element={<CustomerProfile />} />
+                  <Route path="/loans" element={<Loans />} />
+                  <Route path="/loan-requests" element={<LoanRequests />} />
+                  <Route path="/loans/:id" element={<LoanDetail />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/branches" element={<Branches />} />
+                  <Route path="/team" element={<Team />} />
 
-              {/* Admin Only Routes */}
-              <Route element={<RequireAdmin />}>
-                <Route path="/billing" element={<Billing />} />
-                <Route path="/pricing" element={<Pricing />} />
+                  {/* Admin Only Routes */}
+                  <Route element={<RequireAdmin />}>
+                    <Route path="/billing" element={<Billing />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                  </Route>
+
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/audit-logs" element={<AuditLogs />} />
+                  <Route path="/payment/success" element={<PaymentSuccess />} />
+                  <Route path="/payment/cancel" element={<PaymentCancel />} />
+                </Route>
               </Route>
 
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/audit-logs" element={<AuditLogs />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
-              <Route path="/payment/cancel" element={<PaymentCancel />} />
-            </Route>
-          </Route>
+              {/* Super Admin Routes */}
+              <Route element={<RequireAuth />}>
+                <Route path="/super-admin" element={<SuperAdminLayout />}>
+                  <Route index element={<SuperAdminDashboard />} />
+                  <Route path="users" element={<ManageUsers />} />
+                  <Route path="users/:id" element={<UserDetail />} />
+                  <Route path="analytics" element={<SystemAnalytics />} />
+                  <Route
+                    path="notifications"
+                    element={<ManageNotifications />}
+                  />
+                  <Route path="activity-logs" element={<ActivityLogs />} />
+                  <Route path="revenue" element={<RevenueReports />} />
+                  <Route path="backup" element={<BackupExport />} />
+                  <Route path="settings" element={<SystemSettings />} />
+                  <Route path="tickets" element={<ManageTickets />} />
+                </Route>
+              </Route>
 
-          {/* Super Admin Routes */}
-          <Route element={<RequireAuth />}>
-            <Route path="/super-admin" element={<SuperAdminLayout />}>
-              <Route index element={<SuperAdminDashboard />} />
-              <Route path="users" element={<ManageUsers />} />
-              <Route path="users/:id" element={<UserDetail />} />
-              <Route path="analytics" element={<SystemAnalytics />} />
-              <Route path="notifications" element={<ManageNotifications />} />
-              <Route path="activity-logs" element={<ActivityLogs />} />
-              <Route path="revenue" element={<RevenueReports />} />
-              <Route path="backup" element={<BackupExport />} />
-              <Route path="settings" element={<SystemSettings />} />
-              <Route path="tickets" element={<ManageTickets />} />
-            </Route>
-          </Route>
+              <Route element={<RedirectIfAuthenticated />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+              </Route>
 
-          <Route element={<RedirectIfAuthenticated />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-          </Route>
+              {/* Member Portal Routes */}
+              <Route element={<RedirectIfMemberAuthenticated />}>
+                <Route path="/member/login" element={<MemberLogin />} />
+              </Route>
 
-          {/* Member Portal Routes */}
-          <Route element={<RedirectIfMemberAuthenticated />}>
-            <Route path="/member/login" element={<MemberLogin />} />
-          </Route>
+              <Route element={<RequireMemberAuth />}>
+                <Route element={<MemberLayout />}>
+                  <Route
+                    path="/member/dashboard"
+                    element={<MemberDashboard />}
+                  />
+                </Route>
+              </Route>
 
-          <Route element={<RequireMemberAuth />}>
-            <Route element={<MemberLayout />}>
-              <Route path="/member/dashboard" element={<MemberDashboard />} />
-            </Route>
-          </Route>
-
-          {/* Catch All - 404 */}
-          <Route path="*" element={<NotFound />} />
+              {/* Catch All - 404 */}
+              <Route path="*" element={<NotFound />} />
+            </>
+          )}
         </Routes>
       </Suspense>
       <Toaster position="top-right" richColors />

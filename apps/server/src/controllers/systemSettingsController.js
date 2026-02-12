@@ -28,6 +28,7 @@ const updateSystemSettings = async (req, res) => {
       'platformDescription',
       'supportEmail',
       'maintenanceMode',
+      'estimatedMaintenanceTime',
       'emailTemplates',
     ];
 

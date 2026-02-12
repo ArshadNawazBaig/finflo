@@ -139,6 +139,10 @@ const systemSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    estimatedMaintenanceTime: {
+      type: String,
+      default: '25 mins',
+    },
 
     // Email Templates (for future use)
     emailTemplates: {

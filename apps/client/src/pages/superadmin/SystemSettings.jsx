@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Plus,
   Trash2,
+  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
@@ -22,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import ModernSlider from '@/components/ui/ModernSlider';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -33,81 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const ModernSlider = ({
-  label,
-  min,
-  max,
-  step = 1,
-  value,
-  onChange,
-  suffix = '',
-}) => {
-  const percentage = ((value - min) / (max - min)) * 100;
-
-  return (
-    <div className="space-y-4">
-      <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1 block ml-1">
-        {label}
-      </label>
-      <div className="flex items-center gap-6">
-        <div className="relative flex-1 h-12 flex items-center group">
-          {/* Track Background */}
-          <div className="absolute inset-x-0 h-1.5 bg-muted/40 rounded-full overflow-hidden">
-            {/* Track Fill */}
-            <motion.div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/60"
-              initial={false}
-              animate={{ width: `${percentage}%` }}
-              transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            />
-          </div>
-
-          {/* Actual Input (Invisible but functional) */}
-          <input
-            type="range"
-            min={min}
-            max={max}
-            step={step}
-            value={value}
-            onChange={(e) => onChange(parseFloat(e.target.value))}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-          />
-
-          {/* Custom Thumb */}
-          <motion.div
-            className="absolute top-1/2 -ml-2.5 -mt-2.5 w-5 h-5 rounded-full bg-white dark:bg-primary shadow-xl shadow-primary/40 border-2 border-primary z-10 pointer-events-none flex items-center justify-center"
-            initial={false}
-            animate={{ left: `${percentage}%` }}
-            whileHover={{ scale: 1.2 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-primary dark:bg-white" />
-          </motion.div>
-
-          {/* Subtle Markers */}
-          <div className="absolute inset-x-0 bottom-[-14px] flex justify-between px-0.5 pointer-events-none">
-            <span className="text-[8px] font-bold text-muted-foreground/40">
-              {min}
-              {suffix}
-            </span>
-            <span className="text-[8px] font-bold text-muted-foreground/40">
-              {max}
-              {suffix}
-            </span>
-          </div>
-        </div>
-
-        {/* Value Display */}
-        <div className="w-20 bg-white dark:bg-slate-900 border border-border/50 rounded-xl h-12 flex items-center justify-center font-black text-lg shadow-sm">
-          {value}
-          <span className="text-xs text-primary ml-0.5">{suffix}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState(null);
@@ -517,7 +444,7 @@ const SystemSettings = () => {
                                 )
                               }
                               placeholder="e.g. For growing businesses"
-                              className="w-full bg-white/40 dark:bg-slate-900/40 h-12 px-5 rounded-2xl border border-border/50 font-medium text-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all"
+                              className="w-full bg-white/40 dark:bg-slate-900/40 h-9 px-4 rounded-xl border border-border/50 font-medium text-xs focus:ring-4 focus:ring-primary/5 outline-none transition-all"
                             />
                           </div>
 
@@ -550,7 +477,7 @@ const SystemSettings = () => {
                                         e.target.value,
                                       )
                                     }
-                                    className="flex-1 bg-white/40 dark:bg-slate-900/40 h-10 px-4 rounded-xl border border-border/50 text-xs font-medium focus:border-primary outline-none transition-all"
+                                    className="flex-1 bg-white/40 dark:bg-slate-900/40 h-8 px-3 rounded-lg border border-border/50 text-[11px] font-medium focus:border-primary outline-none transition-all"
                                   />
                                   <button
                                     onClick={() =>
@@ -792,6 +719,32 @@ const SystemSettings = () => {
                             </span>
                           </label>
                         </div>
+
+                        {settings.maintenanceMode && (
+                          <div className="pt-4 border-t border-red-500/10 space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-red-600/60 ml-1">
+                              Estimated Duration
+                            </label>
+                            <div className="relative">
+                              <Clock
+                                className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500/40"
+                                size={14}
+                              />
+                              <input
+                                type="text"
+                                value={settings.estimatedMaintenanceTime || ''}
+                                onChange={(e) =>
+                                  setSettings({
+                                    ...settings,
+                                    estimatedMaintenanceTime: e.target.value,
+                                  })
+                                }
+                                placeholder="e.g. 25 mins"
+                                className="w-full bg-red-500/5 h-9 pl-9 pr-4 rounded-lg border border-red-500/10 text-[11px] font-bold focus:border-red-500/30 outline-none transition-all placeholder:text-red-500/20"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
@@ -804,7 +757,7 @@ const SystemSettings = () => {
                           </span>
                           <span className="text-xs font-black">24h</span>
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-8">
                           <span className="text-xs font-bold opacity-70">
                             Auto-Revoke
                           </span>
@@ -812,6 +765,17 @@ const SystemSettings = () => {
                             ENABLED
                           </span>
                         </div>
+                        <Button
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="w-full h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black uppercase tracking-widest text-[10px] border border-white/10 transition-all"
+                        >
+                          {saving ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            'Apply Platform Config'
+                          )}
+                        </Button>
                       </div>
                     </div>
                   </div>

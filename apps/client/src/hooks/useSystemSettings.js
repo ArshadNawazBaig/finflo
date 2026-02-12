@@ -10,7 +10,7 @@ const useSystemSettings = () => {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get('/system-settings');
+        const { data } = await api.get(`/system-settings?t=${Date.now()}`);
         setSettings(data);
       } catch (err) {
         console.error('Failed to fetch system settings:', err);
