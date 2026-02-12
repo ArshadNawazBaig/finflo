@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import LoanCalculator from './LoanCalculator';
 
 const Hero = () => {
   return (
@@ -80,50 +81,8 @@ const Hero = () => {
             </motion.div>
           </div>
 
-          <div className="lg:col-span-5 relative h-[300px] sm:h-[400px] lg:h-[600px] w-full flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 1.2, ease: 'easeOut' }}
-              className="relative z-10 h-full w-full flex items-center justify-center"
-            >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-primary/20 rounded-full blur-[140px] dark:bg-primary/10 animate-pulse" />
-              <motion.div
-                animate={{
-                  y: [0, -20, 0],
-                  rotate: [0, 2, 0],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-                className="relative w-full max-w-[280px] lg:max-w-[850px] mx-auto"
-              >
-                <img
-                  src="https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770839093/d3_zelqda.png"
-                  alt="LoanMaster Mobile App"
-                  loading="eager"
-                  className="w-full relative z-20 drop-shadow-[0_0_100px_rgba(var(--primary),0.3)]"
-                />
-                <motion.div
-                  animate={{ x: [0, 10, 0], y: [0, -10, 0] }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  className="absolute -top-6 -right-6 lg:-right-12 bg-emerald-500 text-white p-4 rounded-3xl shadow-2xl z-30 hidden sm:block border-4 border-white dark:border-slate-950"
-                >
-                  <div className="flex flex-col items-center">
-                    <CheckCircle2 size={24} strokeWidth={3} />
-                    <span className="text-[8px] font-black uppercase mt-1">
-                      Verified
-                    </span>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </motion.div>
+          <div className="lg:col-span-5 relative w-full flex items-center justify-center">
+            <LoanCalculator />
           </div>
         </div>
       </div>

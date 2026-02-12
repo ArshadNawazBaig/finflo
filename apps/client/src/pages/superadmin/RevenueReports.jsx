@@ -11,6 +11,7 @@ import {
 import { useRef, useCallback } from 'react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
+import StatsCard from '@/components/StatsCard';
 import PaymentCard from '@/components/PaymentCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import {
@@ -212,30 +213,31 @@ const RevenueReports = () => {
           {/* Overview Cards */}
           {overview && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <MetricCard
+              <StatsCard
                 title="Total Revenue"
-                value={`$${overview.totalRevenue.toLocaleString()}`}
-                icon={DollarSign}
-                color="blue"
+                amount={`$${overview.totalRevenue.toLocaleString()}`}
+                icon={<DollarSign size={20} />}
+                color="bg-blue-500 shadow-blue-500/20"
               />
-              <MetricCard
+              <StatsCard
                 title="Monthly Recurring Revenue"
-                value={`$${overview.mrr.toLocaleString()}`}
-                icon={TrendingUp}
-                color="purple"
-                subtitle={`${overview.growthRate >= 0 ? '+' : ''}${overview.growthRate.toFixed(1)}% MoM`}
+                amount={`$${overview.mrr.toLocaleString()}`}
+                icon={<TrendingUp size={20} />}
+                color="bg-purple-500 shadow-purple-500/20"
+                percentage={overview.growthRate}
+                subtitle="MoM Growth"
               />
-              <MetricCard
-                title="Average Revenue Per User"
-                value={`$${overview.arpu.toFixed(2)}`}
-                icon={Users}
-                color="green"
+              <StatsCard
+                title="Avg Revenue Per User"
+                amount={`$${overview.arpu.toFixed(2)}`}
+                icon={<Users size={20} />}
+                color="bg-emerald-500 shadow-emerald-500/20"
               />
-              <MetricCard
+              <StatsCard
                 title="Active Subscribers"
-                value={overview.totalActiveUsers}
-                icon={CreditCard}
-                color="amber"
+                amount={overview.totalActiveUsers}
+                icon={<CreditCard size={20} />}
+                color="bg-amber-500 shadow-amber-500/20"
               />
             </div>
           )}
@@ -651,28 +653,6 @@ const RevenueReports = () => {
           )}
         </>
       )}
-    </div>
-  );
-};
-
-const MetricCard = ({ title, value, icon: Icon, color, subtitle }) => {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-600',
-    purple: 'bg-purple-500/10 text-purple-600',
-    green: 'bg-green-500/10 text-green-600',
-    amber: 'bg-amber-500/10 text-amber-600',
-  };
-
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card p-6">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <div className={`p-2 rounded-xl ${colorClasses[color]}`}>
-          <Icon size={20} />
-        </div>
-      </div>
-      <p className="text-3xl font-bold mb-1">{value}</p>
-      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
   );
 };

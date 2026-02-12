@@ -18,12 +18,13 @@ if (fs.existsSync(envPath)) {
 
 async function run() {
   try {
-    if (!process.env.MONGODB_URI) {
-      console.error('MONGODB_URI not found in env');
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!mongoUri) {
+      console.error('MONGO_URI not found in env');
       process.exit(1);
     }
 
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
     const userCount = await User.countDocuments();

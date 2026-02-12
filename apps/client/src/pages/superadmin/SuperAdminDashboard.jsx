@@ -41,6 +41,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+import StatsCard from '@/components/StatsCard';
+
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,31 +65,31 @@ const SuperAdminDashboard = () => {
   const statCards = [
     {
       title: 'Businesses',
-      value: stats?.totalUsers || 0,
-      icon: Building2,
-      color: 'blue',
-      description: `${stats?.activeUsers || 0} active platforms`,
+      amount: stats?.totalUsers || 0,
+      icon: <Building2 size={20} />,
+      color: 'bg-blue-500 shadow-blue-500/20',
+      subtitle: `${stats?.activeUsers || 0} active platforms`,
     },
     {
       title: 'Total Customers',
-      value: stats?.totalCustomers || 0,
-      icon: Users,
-      color: 'green',
-      description: 'Distributed across businesses',
+      amount: stats?.totalCustomers || 0,
+      icon: <Users size={20} />,
+      color: 'bg-emerald-500 shadow-emerald-500/20',
+      subtitle: 'Distributed across businesses',
     },
     {
       title: 'Total Loans',
-      value: stats?.totalLoans || 0,
-      icon: CreditCard,
-      color: 'purple',
-      description: `${stats?.activeLoans || 0} currently active`,
+      amount: stats?.totalLoans || 0,
+      icon: <CreditCard size={20} />,
+      color: 'bg-purple-500 shadow-purple-500/20',
+      subtitle: `${stats?.activeLoans || 0} currently active`,
     },
     {
       title: 'Monthly Revenue',
-      value: `$${stats?.monthlyRevenue?.toLocaleString() || 0}`,
-      icon: DollarSign,
-      color: 'amber',
-      description: 'Estimated recurring revenue',
+      amount: `$${stats?.monthlyRevenue?.toLocaleString() || 0}`,
+      icon: <DollarSign size={20} />,
+      color: 'bg-amber-500 shadow-amber-500/20',
+      subtitle: 'Estimated recurring revenue',
     },
   ];
 
@@ -155,50 +157,18 @@ const SuperAdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading
           ? [...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-3xl" />
+              <Skeleton key={i} className="h-32 rounded-3xl shadow-sm" />
             ))
-          : statCards.map((stat, i) => {
-              const Icon = stat.icon;
-              const colorClasses = {
-                blue: 'bg-blue-500/10 text-blue-600',
-                green: 'bg-green-500/10 text-green-600',
-                purple: 'bg-purple-500/10 text-purple-600',
-                amber: 'bg-amber-500/10 text-amber-600',
-              };
-              return (
-                <Card
-                  key={i}
-                  className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl group hover:shadow-md transition-all duration-300"
-                >
-                  <CardHeader className="pb-2 space-y-0">
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`p-2 rounded-xl transition-colors ${colorClasses[stat.color]}`}
-                      >
-                        <Icon size={20} />
-                      </div>
-                      <Activity
-                        size={14}
-                        className="text-muted-foreground/30"
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-1">
-                      <p className="text-3xl font-black tracking-tight">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                        {stat.title}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground/60">
-                        {stat.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          : statCards.map((stat, i) => (
+              <StatsCard
+                key={i}
+                title={stat.title}
+                amount={stat.amount}
+                icon={stat.icon}
+                color={stat.color}
+                subtitle={stat.subtitle}
+              />
+            ))}
       </div>
 
       {/* Charts Section */}
