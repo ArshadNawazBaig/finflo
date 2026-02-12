@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const customerSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' }, // The business owner
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
@@ -28,7 +32,26 @@ const customerSchema = new mongoose.Schema(
       {
         name: { type: String },
         url: { type: String },
+        type: {
+          type: String,
+          enum: [
+            'CNIC',
+            'Utility Bill',
+            'Tax Return',
+            'Proof of Residence',
+            'Other',
+          ],
+          default: 'Other',
+        },
+        status: {
+          type: String,
+          enum: ['Pending', 'Verified', 'Rejected', 'Expired'],
+          default: 'Pending',
+        },
+        expiryDate: { type: Date },
+        isEncrypted: { type: Boolean, default: false },
         uploadedAt: { type: Date, default: Date.now },
+        verifiedAt: { type: Date },
       },
     ],
   },

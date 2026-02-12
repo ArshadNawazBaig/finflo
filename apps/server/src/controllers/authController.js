@@ -102,13 +102,14 @@ const loginUser = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id); // req.user set by protect middleware
+    const user = await User.findById(req.user._id).populate('branchId'); // req.user set by protect middleware
     if (user) {
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        branch: user.branchId, // Return full branch object
         plan: user.plan,
         customerCount: user.customerCount,
         businessName: user.businessName,

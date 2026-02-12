@@ -370,6 +370,58 @@ const ApproveLoanModal = ({ isOpen, onClose, request, onSuccess }) => {
           </DialogTitle>
         </DialogHeader>
 
+        {request.riskDetails ? (
+          <div
+            className={`mt-4 p-4 rounded-xl border ${
+              ['A+', 'A'].includes(request.riskDetails.grade)
+                ? 'bg-emerald-500/5 border-emerald-500/20'
+                : ['B', 'C'].includes(request.riskDetails.grade)
+                  ? 'bg-amber-500/5 border-amber-500/20'
+                  : 'bg-red-500/5 border-red-500/20'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                AI Risk Assessment
+              </h4>
+              <span
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                  ['A+', 'A'].includes(request.riskDetails.grade)
+                    ? 'bg-emerald-500 text-white'
+                    : ['B', 'C'].includes(request.riskDetails.grade)
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-red-500 text-white'
+                }`}
+              >
+                Grade {request.riskDetails.grade}
+              </span>
+            </div>
+            <p className="text-sm font-bold mb-2">
+              Recommended: {request.riskDetails.suggestion}
+            </p>
+            <ul className="space-y-1">
+              {request.riskDetails.factors.map((factor, idx) => (
+                <li
+                  key={idx}
+                  className="text-[11px] text-muted-foreground flex items-center gap-2"
+                >
+                  <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                  {factor}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="mt-4 p-4 rounded-xl border border-dashed border-border/50 bg-muted/5 flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/50">
+              AI Risk Assessment
+            </span>
+            <span className="text-xs font-black text-muted-foreground/50">
+              —
+            </span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

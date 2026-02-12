@@ -43,6 +43,10 @@ const activityLogSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
   },
   {
     timestamps: true,

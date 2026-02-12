@@ -8,11 +8,16 @@ const {
 
 const getReportStats = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
 
     // Aggregate monthly loans
     const monthlyLoans = await Loan.aggregate([
-      { $match: { user: userId } },
+      { $match: query },
       {
         $group: {
           _id: { $month: '$startDate' },
@@ -24,7 +29,7 @@ const getReportStats = async (req, res) => {
 
     // Aggregate monthly repayments
     const monthlyRepayments = await Repayment.aggregate([
-      { $match: { user: userId } },
+      { $match: query },
       {
         $group: {
           _id: { $month: '$date' },
@@ -61,7 +66,7 @@ const getReportStats = async (req, res) => {
     }));
 
     // Summary Metrics
-    const totalLoans = await Loan.find({ user: userId });
+    const totalLoans = await Loan.find(query);
     const totalVolume = totalLoans.reduce((sum, l) => sum + l.principal, 0);
     const activeLoansCount = totalLoans.filter(
       (l) => l.status === 'active',
@@ -74,7 +79,7 @@ const getReportStats = async (req, res) => {
     const prevVolume = prevLoans.reduce((sum, l) => sum + l.principal, 0);
     const volumeChange = calculatePercentageChange(totalVolume, prevVolume);
 
-    const allRepayments = await Repayment.find({ user: userId });
+    const allRepayments = await Repayment.find(query);
     const totalRepaid = allRepayments.reduce((sum, r) => sum + r.amount, 0);
 
     // Average Interest (weighted by principal)
@@ -161,4 +166,153 @@ const getReportStats = async (req, res) => {
   }
 };
 
-module.exports = { getReportStats };
+// Probability of Default (PD) Mapping based on Risk Grade
+const PD_MAPPING = {
+  'A+': 0.0005, // 0.05%
+  A: 0.001, // 0.10%
+  B: 0.005, // 0.50%
+  C: 0.02, // 2.0%
+  D: 0.1, // 10.0%
+  F: 0.5, // 50.0%
+};
+
+const DEFAULT_PD = 0.05; // 5% fallback
+const DEFAULT_LGD = 0.45; // 45% Loss Given Default (Standard Foundation IRB)
+
+// @desc    Generate IFRS 9 Expected Credit Loss (ECL) Report
+// @route   GET /api/reports/ifrs9
+// @access  Private (Admin)
+const generateIFRS9Report = async (req, res) => {
+  try {
+    const query = { user: req.user.effectiveOwnerId, status: 'active' };
+
+    // Branch Segregation (Optional for regulatory, but usually businesses want it)
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
+
+    const loans = await Loan.find(query);
+
+    let totalECL = 0;
+    let totalExposure = 0;
+    const gradeBreakdown = {};
+
+    // 2. Calculate ECL per loan
+    const loanDetails = loans.map((loan) => {
+      const grade = loan.riskDetails?.grade || 'N/A';
+      const pd = PD_MAPPING[grade] || DEFAULT_PD;
+      const exposure = loan.remainingAmount;
+      const ecl = exposure * pd * DEFAULT_LGD;
+
+      // Aggregates
+      totalECL += ecl;
+      totalExposure += exposure;
+
+      if (!gradeBreakdown[grade]) {
+        gradeBreakdown[grade] = {
+          count: 0,
+          exposure: 0,
+          ecl: 0,
+        };
+      }
+      gradeBreakdown[grade].count += 1;
+      gradeBreakdown[grade].exposure += exposure;
+      gradeBreakdown[grade].ecl += ecl;
+
+      return {
+        loanId: loan._id,
+        grade,
+        pd: (pd * 100).toFixed(2) + '%',
+        exposure,
+        ecl,
+      };
+    });
+
+    res.json({
+      meta: {
+        generatedAt: new Date(),
+        totalLoans: loans.length,
+        totalExposure,
+        totalECL,
+        averageCoverageRatio:
+          totalExposure > 0 ? (totalECL / totalExposure) * 100 : 0,
+      },
+      gradeBreakdown,
+      // loanDetails, // Optional: Include if client needs distinct list, keeping payload light for now
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Generate Basel III Capital Adequacy Report
+// @route   GET /api/reports/basel3
+// @access  Private (Admin)
+const generateBasel3Report = async (req, res) => {
+  try {
+    const query = { user: req.user.effectiveOwnerId, status: 'active' };
+
+    // Branch Segregation
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
+
+    const loans = await Loan.find(query);
+
+    // Mock Capital Data (In a real system, this comes from the General Ledger)
+    const TIER_1_CAPITAL = 50000000; // $50M Equity
+    const TIER_2_CAPITAL = 10000000; // $10M Subordinated Debt
+
+    let totalRWA = 0; // Risk Weighted Assets
+
+    // Calculate RWA
+    // Standard Risk Weight for Unsecured Retail Loans is usually 75% or 100%
+    // We'll vary it slightly by Risk Grade for demonstration logic
+    loans.forEach((loan) => {
+      const grade = loan.riskDetails?.grade || 'N/A';
+      let riskWeight = 1.0; // 100% default
+
+      // Apply lower weights for better grades (Internal Ratings-Based approach simulation)
+      if (grade === 'A+' || grade === 'A') riskWeight = 0.75;
+      if (grade === 'B') riskWeight = 1.0;
+      if (grade === 'C' || grade === 'D') riskWeight = 1.5;
+      if (grade === 'F') riskWeight = 2.5; // High risk
+
+      const rwa = loan.remainingAmount * riskWeight;
+      totalRWA += rwa;
+    });
+
+    const capitalAdequacyRatio =
+      totalRWA > 0 ? ((TIER_1_CAPITAL + TIER_2_CAPITAL) / totalRWA) * 100 : 0;
+    const tier1Ratio = totalRWA > 0 ? (TIER_1_CAPITAL / totalRWA) * 100 : 0;
+
+    res.json({
+      meta: {
+        generatedAt: new Date(),
+        currency: 'PKR',
+      },
+      capital: {
+        tier1: TIER_1_CAPITAL,
+        tier2: TIER_2_CAPITAL,
+        total: TIER_1_CAPITAL + TIER_2_CAPITAL,
+      },
+      assets: {
+        totalExposure: loans.reduce((sum, l) => sum + l.remainingAmount, 0),
+        totalRWA,
+      },
+      ratios: {
+        capitalAdequacyRatio, // Min requirement usually 8% + buffers
+        tier1Ratio, // Min usually 6%
+        status: capitalAdequacyRatio > 10.5 ? 'Healthy' : 'At Risk', // 10.5% includes conservation buffer
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  getReportStats,
+  generateIFRS9Report,
+  generateBasel3Report,
+};

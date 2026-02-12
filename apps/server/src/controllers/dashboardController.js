@@ -12,13 +12,18 @@ const getDashboardStats = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const userId = req.user._id;
+    const query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
     const { start: currentStart, end: currentEnd } = getMonthDates(0);
     const { start: prevStart, end: prevEnd } = getMonthDates(1);
 
     // 1. Total Profit (Interest portion of repayments)
     // Profit = Repayment Amount * (Total Interest / Total Amount)
-    const repayments = await Repayment.find({ user: userId }).populate(
+    const repayments = await Repayment.find(query).populate(
       'loan',
       'principal totalAmount',
     );
@@ -36,7 +41,7 @@ const getDashboardStats = async (req, res) => {
     const totalProfit = calculateProfit(repayments);
 
     const prevRepayments = await Repayment.find({
-      user: userId,
+      ...query,
       date: { $gte: prevStart, $lte: prevEnd },
     }).populate('loan', 'principal totalAmount');
 
@@ -52,7 +57,7 @@ const getDashboardStats = async (req, res) => {
     );
 
     // 2. Active Loans Count & Outstanding Amount
-    const loans = await Loan.find({ user: userId });
+    const loans = await Loan.find(query);
     const activeLoans = loans.filter((loan) => loan.status === 'active').length;
 
     const prevActiveLoans = loans.filter((loan) => {
@@ -97,7 +102,7 @@ const getDashboardStats = async (req, res) => {
     );
 
     // 5. Recent Transactions
-    const recentTransactions = await Repayment.find({ user: userId })
+    const recentTransactions = await Repayment.find(query)
       .sort({ date: -1 })
       .limit(5)
       .populate('customer', 'name');

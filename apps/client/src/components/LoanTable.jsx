@@ -14,6 +14,7 @@ import Pagination from './ui/Pagination';
 import { Link } from 'react-router-dom';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
+import ApprovalActions from '@/components/loans/ApprovalActions';
 
 const LoanTable = ({
   data,
@@ -153,7 +154,11 @@ const LoanTable = ({
                           ? 'bg-blue-500/10 text-blue-600'
                           : loan.status === 'completed'
                             ? 'bg-emerald-500/10 text-emerald-600'
-                            : 'bg-orange-500/10 text-orange-600'
+                            : loan.status === 'pending'
+                              ? 'bg-amber-500/10 text-amber-600'
+                              : loan.status === 'rejected'
+                                ? 'bg-red-500/10 text-red-600'
+                                : 'bg-slate-500/10 text-slate-600'
                       }`}
                     >
                       {loan.status}
@@ -161,65 +166,83 @@ const LoanTable = ({
                   </td>
                   <td className="py-4 px-4 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {loan.status !== 'completed' && (
-                        <>
-                          <Tooltip content="Repay Loan" position="top">
-                            <button
-                              onClick={() => {
-                                if (loan.status === 'active') {
-                                  onRepay(loan);
-                                }
-                              }}
-                              className={`p-1.5 rounded-md transition-colors ${
-                                loan.status === 'active'
-                                  ? 'hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600'
-                                  : 'opacity-50 cursor-not-allowed text-muted-foreground'
-                              }`}
-                              disabled={loan.status !== 'active'}
-                            >
-                              <Banknote size={16} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip content="WhatsApp Reminder" position="top">
-                            <a
-                              href={generateWhatsAppLink(
-                                loan.customer?.phone || '',
-                                loan.customer?.name || '',
-                                loan.emi,
-                                new Date(),
-                                false,
-                              )}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                            >
-                              <MessageSquare size={16} />
-                            </a>
-                          </Tooltip>
-                          <Tooltip content="Email Reminder" position="top">
-                            <a
-                              href={generateEmailLink(
-                                loan.customer?.email || '',
-                                loan.customer?.name || '',
-                                loan.emi,
-                                new Date(),
-                                false,
-                              )}
-                              className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                            >
-                              <Mail size={16} />
-                            </a>
-                          </Tooltip>
-                          <Tooltip content="Edit Loan" position="top">
-                            <button
-                              onClick={() => onEdit(loan)}
-                              className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
-                            >
-                              <Edit size={16} />
-                            </button>
-                          </Tooltip>
-                        </>
+                      {loan.status === 'pending' && (
+                        <div className="mr-2 pr-2 border-r border-border/50">
+                          <ApprovalActions
+                            loanId={loan._id}
+                            onSuccess={() => {
+                              // We need a way to trigger refresh.
+                              // Since LoanTable doesn't have a direct refresh,
+                              // we assume the parent 'Loans.jsx' will pass a refresh function or
+                              // the onSuccess here will eventually trigger a parent re-render if passed down.
+                              // For now, let's assume 'onDetails' or similar might be used or we add 'onSuccess' to props.
+                              if (pagination && pagination.onPageChange) {
+                                pagination.onPageChange(pagination.currentPage);
+                              }
+                            }}
+                          />
+                        </div>
                       )}
+                      {loan.status !== 'completed' &&
+                        loan.status !== 'rejected' && (
+                          <>
+                            <Tooltip content="Repay Loan" position="top">
+                              <button
+                                onClick={() => {
+                                  if (loan.status === 'active') {
+                                    onRepay(loan);
+                                  }
+                                }}
+                                className={`p-1.5 rounded-md transition-colors ${
+                                  loan.status === 'active'
+                                    ? 'hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600'
+                                    : 'opacity-50 cursor-not-allowed text-muted-foreground'
+                                }`}
+                                disabled={loan.status !== 'active'}
+                              >
+                                <Banknote size={16} />
+                              </button>
+                            </Tooltip>
+                            <Tooltip content="WhatsApp Reminder" position="top">
+                              <a
+                                href={generateWhatsAppLink(
+                                  loan.customer?.phone || '',
+                                  loan.customer?.name || '',
+                                  loan.emi,
+                                  new Date(),
+                                  false,
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                <MessageSquare size={16} />
+                              </a>
+                            </Tooltip>
+                            <Tooltip content="Email Reminder" position="top">
+                              <a
+                                href={generateEmailLink(
+                                  loan.customer?.email || '',
+                                  loan.customer?.name || '',
+                                  loan.emi,
+                                  new Date(),
+                                  false,
+                                )}
+                                className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                <Mail size={16} />
+                              </a>
+                            </Tooltip>
+                            <Tooltip content="Edit Loan" position="top">
+                              <button
+                                onClick={() => onEdit(loan)}
+                                className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
+                              >
+                                <Edit size={16} />
+                              </button>
+                            </Tooltip>
+                          </>
+                        )}
                       <Tooltip content="View Details" position="top">
                         <Link
                           to={`/loans/${loan._id}`}

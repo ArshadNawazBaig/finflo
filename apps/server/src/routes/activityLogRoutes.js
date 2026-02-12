@@ -7,11 +7,11 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 
-// All routes require super admin authentication
+// Routes for Activity Logs
 router.use(protect);
-router.use(superAdminProtect);
 
+// Regular admins can see their team logs, Super admins see everything
 router.get('/', getAllActivityLogs);
-router.get('/user/:userId', getUserActivityLogs);
+router.get('/user/:userId', superAdminProtect, getUserActivityLogs);
 
 module.exports = router;

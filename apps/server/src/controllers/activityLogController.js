@@ -16,6 +16,7 @@ const logActivity = async ({
 
     await ActivityLog.create({
       user: userId || null,
+      branchId: req?.user?.branchId || null,
       action,
       category,
       details,
@@ -43,6 +44,21 @@ const getAllActivityLogs = async (req, res) => {
 
     // Build query
     let query = {};
+
+    // Branch Segregation: Staff only see their own branch logs
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
+
+    // Filter by effectiveOwnerId for regular admins
+    if (req.user.role === 'admin') {
+      // Find all user IDs belonging to this admin (self + staff)
+      const team = await User.find({
+        $or: [{ _id: req.user._id }, { ownerId: req.user._id }],
+      }).select('_id');
+      const teamIds = team.map((t) => t._id);
+      query.user = { $in: teamIds };
+    }
 
     // Category filter
     if (category) {

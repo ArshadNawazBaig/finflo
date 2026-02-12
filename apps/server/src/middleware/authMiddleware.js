@@ -17,6 +17,15 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User not found' });
       }
 
+      // Set effective owner ID for data filtering
+      // If super_admin, they see all (or filtered by query).
+      // If staff/admin with branchId, they see branch data.
+      req.user.effectiveOwnerId =
+        req.user.role === 'staff' ? req.user.ownerId : req.user._id;
+
+      // Populate branchId if available (already on user model, but ensuring it's accessible)
+      // req.user.branchId is available directly from the User model
+
       next();
     } catch (error) {
       console.error(error);
@@ -40,4 +49,19 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const staffOrAdmin = (req, res, next) => {
+  if (
+    req.user &&
+    (req.user.role === 'admin' ||
+      req.user.role === 'super_admin' ||
+      req.user.role === 'staff')
+  ) {
+    next();
+  } else {
+    res.status(401).json({
+      message: 'Not authorized. Only staff or admin accounts allowed.',
+    });
+  }
+};
+
+module.exports = { protect, admin, staffOrAdmin };

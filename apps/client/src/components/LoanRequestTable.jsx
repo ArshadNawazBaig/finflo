@@ -81,6 +81,9 @@ const LoanRequestTable = ({
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
               </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                AI Risk
+              </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap">
                 Actions
               </th>
@@ -141,6 +144,25 @@ const LoanRequestTable = ({
                   <div className="text-xs text-muted-foreground italic max-w-xs truncate">
                     {request.notes || '—'}
                   </div>
+                </td>
+                <td className="py-4 px-4">
+                  {request.riskDetails ? (
+                    <div className="flex flex-col gap-1">
+                      <span
+                        className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-black border ${
+                          ['A+', 'A'].includes(request.riskDetails.grade)
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : ['B', 'C'].includes(request.riskDetails.grade)
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                              : 'bg-red-500/10 text-red-600 border-red-500/20'
+                        }`}
+                      >
+                        {request.riskDetails.grade}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex justify-end gap-2">

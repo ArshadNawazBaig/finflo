@@ -11,6 +11,10 @@ const repaymentSchema = new mongoose.Schema(
     },
     amount: { type: Number, required: true },
     date: { type: Date, default: Date.now },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     notes: { type: String },
   },
   { timestamps: true },

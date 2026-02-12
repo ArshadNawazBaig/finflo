@@ -10,7 +10,12 @@ const getCustomers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
-    const query = { user: req.user._id };
+    let query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation: Staff only see their own branch data
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
 
     if (search) {
       query.$or = [
@@ -47,11 +52,15 @@ const createCustomer = async (req, res) => {
 
   try {
     // Check plan limits
-    const user = await User.findById(req.user._id).select('plan customerCount');
+    const user = await User.findById(req.user.effectiveOwnerId).select(
+      'plan customerCount',
+    );
     const userPlan = user.plan || 'Free';
 
     // Count existing customers for this user
-    const customerCount = await Customer.countDocuments({ user: req.user._id });
+    const customerCount = await Customer.countDocuments({
+      user: req.user.effectiveOwnerId,
+    });
 
     // Validate against plan limits
     const limitCheck = canAddCustomer(userPlan, customerCount);
@@ -66,7 +75,8 @@ const createCustomer = async (req, res) => {
     }
 
     const customer = new Customer({
-      user: req.user._id,
+      user: req.user.effectiveOwnerId,
+      branchId: req.user.branchId, // Automatically assign to creator's branch
       name,
       email,
       phone,
@@ -92,7 +102,7 @@ const updateCustomer = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user._id.toString()) {
+    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -141,7 +151,7 @@ const deleteCustomer = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user._id.toString()) {
+    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -157,7 +167,7 @@ const deleteCustomer = async (req, res) => {
     await customer.deleteOne();
 
     // Decrement count
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.effectiveOwnerId);
     user.customerCount = Math.max(0, user.customerCount - 1);
     await user.save();
 
@@ -174,7 +184,7 @@ const getCustomerById = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user._id.toString()) {
+    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -198,6 +208,9 @@ const uploadDocuments = async (req, res) => {
     const newDocuments = req.files.map((file) => ({
       name: file.originalname,
       url: file.path,
+      type: req.body.type || 'Other',
+      expiryDate: req.body.expiryDate || null,
+      status: 'Pending',
     }));
 
     customer.documents.push(...newDocuments);
@@ -227,7 +240,7 @@ const deleteDocument = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user._id.toString()) {
+    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -264,6 +277,53 @@ const deleteDocument = async (req, res) => {
   }
 };
 
+const updateDocumentStatus = async (req, res) => {
+  try {
+    const { id, docId } = req.params;
+    const { status, verifiedAt } = req.body;
+
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const document = customer.documents.id(docId);
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    document.status = status;
+    if (status === 'Verified') {
+      document.verifiedAt = verifiedAt || Date.now();
+    }
+
+    await customer.save();
+
+    // Sync to Member if exists
+    if (customer.memberId) {
+      const member = await Member.findById(customer.memberId);
+      if (member) {
+        const memberDoc = member.documents.id(docId);
+        if (memberDoc) {
+          memberDoc.status = status;
+          if (status === 'Verified') {
+            memberDoc.verifiedAt = document.verifiedAt;
+          }
+          await member.save();
+        }
+      }
+    }
+
+    res.json(customer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomerById,
@@ -272,4 +332,5 @@ module.exports = {
   deleteCustomer,
   uploadDocuments,
   deleteDocument,
+  updateDocumentStatus,
 };

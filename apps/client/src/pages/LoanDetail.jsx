@@ -33,9 +33,8 @@ import DocumentManager from '@/components/DocumentManager';
 import StatsCard from '@/components/StatsCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
 import RepaymentCalendar from '@/components/RepaymentCalendar';
+import ApprovalActions from '@/components/loans/ApprovalActions';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -448,11 +447,20 @@ const LoanDetail = () => {
                     ? 'bg-blue-500/10 text-blue-500'
                     : loan.status === 'completed'
                       ? 'bg-emerald-500/10 text-emerald-500'
-                      : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
+                      : loan.status === 'pending'
+                        ? 'bg-amber-500/10 text-amber-500'
+                        : loan.status === 'rejected'
+                          ? 'bg-red-500/10 text-red-500'
+                          : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
                 }`}
               >
                 {loan.status}
               </span>
+              {loan.status === 'pending' && (
+                <div className="ml-2 pl-2 border-l border-border/50">
+                  <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
+                </div>
+              )}
             </div>
             <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
               <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -736,6 +744,85 @@ const LoanDetail = () => {
 
         {/* Sidebar: Financial Context & Settlement */}
         <div className="lg:col-span-4 space-y-8">
+          {/* AI Risk Assessment Card */}
+          {loan.riskDetails ? (
+            <div
+              className={`border p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-4 relative overflow-hidden ${
+                ['A+', 'A'].includes(loan.riskDetails.grade)
+                  ? 'bg-emerald-500/5 border-emerald-500/20'
+                  : ['B', 'C'].includes(loan.riskDetails.grade)
+                    ? 'bg-amber-500/5 border-amber-500/20'
+                    : 'bg-red-500/5 border-red-500/20'
+              }`}
+            >
+              <Zap className="absolute -right-8 -top-8 w-32 h-32 opacity-[0.05] text-primary" />
+              <div className="flex items-center justify-between relative">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  AI Risk Engine
+                </h3>
+                <span
+                  className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    ['A+', 'A'].includes(loan.riskDetails.grade)
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                      : ['B', 'C'].includes(loan.riskDetails.grade)
+                        ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                        : 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                  }`}
+                >
+                  Grade {loan.riskDetails.grade}
+                </span>
+              </div>
+
+              <div className="relative">
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-2xl font-black">
+                    {loan.riskDetails.score}
+                  </span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                    Risk Score
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-foreground/80">
+                  Recommendation: {loan.riskDetails.suggestion}
+                </p>
+              </div>
+
+              <div className="space-y-2.5 pt-2 border-t border-border/10 relative">
+                {loan.riskDetails.factors.map((factor, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div
+                      className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${
+                        ['A+', 'A'].includes(loan.riskDetails.grade)
+                          ? 'bg-emerald-500'
+                          : ['B', 'C'].includes(loan.riskDetails.grade)
+                            ? 'bg-amber-500'
+                            : 'bg-red-500'
+                      }`}
+                    />
+                    <span className="text-[11px] font-medium leading-tight text-muted-foreground">
+                      {factor}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 border border-border/50 border-dashed p-5 sm:p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center gap-4 text-center opacity-70">
+              <Zap className="w-8 h-8 text-muted-foreground/30" />
+              <div>
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  AI Risk Engine
+                </h3>
+                <p className="text-2xl font-black text-muted-foreground/50 mt-1">
+                  —
+                </p>
+                <p className="text-[10px] font-bold text-muted-foreground/40 uppercase mt-1">
+                  Assessment Pending
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Agreement Terms */}
           <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">

@@ -14,19 +14,38 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
             {format(new Date(request.createdAt), 'MMM dd, yyyy')}
           </p>
         </div>
-        <span
-          className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-            request.status === 'active'
-              ? 'bg-emerald-500/10 text-emerald-600'
-              : request.status === 'pending'
-                ? 'bg-amber-500/10 text-amber-600'
-                : request.status === 'completed'
-                  ? 'bg-blue-500/10 text-blue-600'
-                  : 'bg-red-500/10 text-red-600'
-          }`}
-        >
-          {request.status}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span
+            className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+              request.status === 'active'
+                ? 'bg-emerald-500/10 text-emerald-600'
+                : request.status === 'pending'
+                  ? 'bg-amber-500/10 text-amber-600'
+                  : request.status === 'completed'
+                    ? 'bg-blue-500/10 text-blue-600'
+                    : 'bg-red-500/10 text-red-600'
+            }`}
+          >
+            {request.status}
+          </span>
+          {request.riskDetails ? (
+            <span
+              className={`px-2.5 py-1 rounded-lg text-xs font-black border ${
+                ['A+', 'A'].includes(request.riskDetails.grade)
+                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                  : ['B', 'C'].includes(request.riskDetails.grade)
+                    ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                    : 'bg-red-500/10 text-red-600 border-red-500/20'
+              }`}
+            >
+              Risk: {request.riskDetails.grade}
+            </span>
+          ) : (
+            <span className="px-2.5 py-1 text-[10px] font-black text-muted-foreground/50 uppercase">
+              Risk: —
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2 mb-4">

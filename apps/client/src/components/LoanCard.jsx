@@ -12,6 +12,7 @@ import {
 import { formatPKR, capitalize } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
+import ApprovalActions from '@/components/loans/ApprovalActions';
 
 const LoanCard = ({ loan, onEdit, onDelete }) => {
   const progress = Math.min(
@@ -44,7 +45,11 @@ const LoanCard = ({ loan, onEdit, onDelete }) => {
               ? 'bg-blue-500/10 text-blue-600'
               : loan.status === 'completed'
                 ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-orange-500/10 text-orange-600'
+                : loan.status === 'pending'
+                  ? 'bg-amber-500/10 text-amber-600'
+                  : loan.status === 'rejected'
+                    ? 'bg-red-500/10 text-red-600'
+                    : 'bg-slate-500/10 text-slate-600'
           }`}
         >
           {loan.status}
@@ -86,6 +91,14 @@ const LoanCard = ({ loan, onEdit, onDelete }) => {
 
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <div className="flex items-center gap-1">
+          {loan.status === 'pending' && (
+            <div className="mr-2 pr-2 border-r border-border/30">
+              <ApprovalActions
+                loanId={loan._id}
+                onSuccess={() => window.location.reload()} // Simplified for mobile card context or we could pass a refresh prop
+              />
+            </div>
+          )}
           <Tooltip content="WhatsApp" position="top">
             <a
               href={generateWhatsAppLink(

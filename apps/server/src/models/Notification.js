@@ -21,6 +21,10 @@ const notificationSchema = new mongoose.Schema(
       default: 'info',
     },
     read: { type: Boolean, default: false },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
   },
   { timestamps: true },
 );

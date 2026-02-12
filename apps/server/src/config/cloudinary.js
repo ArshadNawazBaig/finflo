@@ -14,7 +14,7 @@ const customerStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'loan-app/customers',
-    allowed_formats: ['jpg', 'png', 'pdf', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'pdf', 'jpeg', 'webp'],
     resource_type: 'auto', // Important for PDFs
   },
 });
@@ -23,7 +23,7 @@ const generalStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'loan-app/general',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
   },
 });
 
@@ -31,7 +31,7 @@ const userStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'loan-app/users',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     transformation: [{ width: 500, height: 500, crop: 'limit' }],
   },
 });

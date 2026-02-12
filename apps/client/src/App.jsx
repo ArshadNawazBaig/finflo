@@ -23,6 +23,8 @@ const Members = lazy(() => import('@/pages/Members'));
 const Loans = lazy(() => import('@/pages/Loans'));
 const Transactions = lazy(() => import('@/pages/Transactions'));
 const Reports = lazy(() => import('@/pages/Reports'));
+const Branches = lazy(() => import('@/pages/Branches'));
+const Team = lazy(() => import('@/pages/Team'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const Billing = lazy(() => import('@/pages/Billing'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
@@ -61,6 +63,7 @@ const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const Documentation = lazy(() => import('@/pages/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
+const AuditLogs = lazy(() => import('@/pages/AuditLogs'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -94,11 +97,14 @@ function App() {
               <Route path="/loans/:id" element={<LoanDetail />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/branches" element={<Branches />} />
+              <Route path="/team" element={<Team />} />
               <Route path="/billing" element={<Billing />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/support" element={<Support />} />
               <Route path="/notifications" element={<Notifications />} />
+              <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/payment/cancel" element={<PaymentCancel />} />
             </Route>

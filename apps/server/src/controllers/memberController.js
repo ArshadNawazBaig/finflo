@@ -76,7 +76,7 @@ const convertCustomerToMember = async (req, res) => {
 // Get all members
 const getMembers = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { page = 1, limit = 10, search = '', status = '' } = req.query;
 
     const query = { user: userId };
@@ -164,7 +164,7 @@ const getMembers = async (req, res) => {
 // Get member by ID
 const getMemberById = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
     const member = await Member.findOne({ _id: id, user: userId }).populate(
@@ -178,7 +178,10 @@ const getMemberById = async (req, res) => {
 
     // Check authorization (Admin can see all, Member can see self)
     let isAuthorized = false;
-    if (req.user && member.user.toString() === req.user._id.toString()) {
+    if (
+      req.user &&
+      member.user.toString() === req.user.effectiveOwnerId.toString()
+    ) {
       isAuthorized = true; // Admin viewing their member
     } else if (
       req.member &&
@@ -201,7 +204,7 @@ const getMemberById = async (req, res) => {
 // Create new member
 const createMember = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const {
       name,
       email,
@@ -293,7 +296,7 @@ const createMember = async (req, res) => {
 // Update member
 const updateMember = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
     const { name, email, phone, address, status, profitRate } = req.body;
 
@@ -328,7 +331,7 @@ const updateMember = async (req, res) => {
 // Delete member
 const deleteMember = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
     const member = await Member.findOne({ _id: id, user: userId });
@@ -372,7 +375,7 @@ const deleteMember = async (req, res) => {
 // Get member's investment history
 const getMemberInvestments = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
     const member = await Member.findOne({ _id: id, user: userId });
@@ -395,7 +398,7 @@ const getMemberInvestments = async (req, res) => {
 // Add investment (deposit)
 const addInvestment = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
     const { amount, description } = req.body;
 
@@ -433,7 +436,7 @@ const addInvestment = async (req, res) => {
 // Withdraw investment
 const withdrawInvestment = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
     const { amount, description } = req.body;
 
@@ -477,7 +480,7 @@ const withdrawInvestment = async (req, res) => {
 // Get member's profit history
 const getMemberProfits = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
     const member = await Member.findOne({ _id: id, user: userId });
@@ -500,7 +503,7 @@ const getMemberProfits = async (req, res) => {
 // Distribute profit to all members
 const distributeProfit = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.effectiveOwnerId;
     const { totalProfit, period, description, useCustomRates } = req.body;
 
     if (!totalProfit || totalProfit <= 0) {

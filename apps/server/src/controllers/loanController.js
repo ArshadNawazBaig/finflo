@@ -4,6 +4,8 @@ const Repayment = require('../models/Repayment');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
+const { calculateRiskScore } = require('../utils/riskService');
+const { logActivity } = require('./activityLogController');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -39,7 +41,10 @@ const createLoan = async (req, res) => {
 
   try {
     const customer = await Customer.findById(customerId);
-    if (!customer || customer.user.toString() !== req.user._id.toString()) {
+    if (
+      !customer ||
+      customer.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
@@ -47,7 +52,7 @@ const createLoan = async (req, res) => {
     const activeLoan = await Loan.findOne({
       customer: customerId,
       status: 'active',
-      user: req.user._id,
+      user: req.user.effectiveOwnerId,
     });
 
     if (activeLoan) {
@@ -57,11 +62,13 @@ const createLoan = async (req, res) => {
     }
 
     // Check plan limits
-    const user = await User.findById(req.user._id).select('plan');
+    const user = await User.findById(req.user.effectiveOwnerId).select('plan');
     const userPlan = user.plan || 'Free';
 
     // Count existing loans for this user
-    const loanCount = await Loan.countDocuments({ user: req.user._id });
+    const loanCount = await Loan.countDocuments({
+      user: req.user.effectiveOwnerId,
+    });
 
     // Validate against plan limits
     const limitCheck = canCreateLoan(userPlan, loanCount);
@@ -86,8 +93,12 @@ const createLoan = async (req, res) => {
       totalAmount = emi * duration;
     }
 
+    // Calculate Risk Score
+    const customerHistory = await Loan.find({ customer: customerId });
+    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+
     const loan = new Loan({
-      user: req.user._id,
+      user: req.user.effectiveOwnerId,
       customer: customerId,
       principal,
       rate,
@@ -97,9 +108,29 @@ const createLoan = async (req, res) => {
       startDate,
       remainingAmount: totalAmount,
       interestType,
+      status: 'pending',
+      riskDetails,
     });
 
     const createdLoan = await loan.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_created',
+      category: 'loan',
+      details: `Created a new loan of ${principal} for customer ${customer.name}`,
+      metadata: {
+        loanId: createdLoan._id,
+        principal,
+        rate,
+        duration,
+        interestType,
+        riskGrade: riskDetails.grade,
+      },
+      req,
+    });
+
     res.status(201).json(createdLoan);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -148,6 +179,11 @@ const requestLoan = async (req, res) => {
       totalAmount = result.totalAmount;
     }
 
+    // Calculate Risk Score
+    const customer = await Customer.findById(req.member.customer);
+    const customerHistory = await Loan.find({ customer: req.member.customer });
+    const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
+
     const loan = new Loan({
       user: req.member.user, // The business owner
       customer: req.member.customer,
@@ -161,6 +197,7 @@ const requestLoan = async (req, res) => {
       interestType: 'simple',
       status: 'pending',
       documents: [], // Can add docs later
+      riskDetails,
     });
 
     const createdLoan = await loan.save();
@@ -196,7 +233,12 @@ const getLoans = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const search = req.query.search || '';
-    let query = { user: req.user._id };
+    let query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation: Staff only see their own branch data
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
 
     if (req.query.customerId) {
       query.customer = req.query.customerId;
@@ -205,7 +247,7 @@ const getLoans = async (req, res) => {
     if (search) {
       // Find customers matching search name
       const matchingCustomers = await Customer.find({
-        user: req.user._id,
+        user: req.user.effectiveOwnerId,
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
@@ -289,7 +331,7 @@ const getLoanById = async (req, res) => {
       'customer',
       'name email phone trustRating',
     );
-    if (loan && loan.user.toString() === req.user._id.toString()) {
+    if (loan && loan.user.toString() === req.user.effectiveOwnerId.toString()) {
       res.json(loan);
     } else {
       res.status(404).json({ message: 'Loan not found' });
@@ -304,7 +346,10 @@ const addRepayment = async (req, res) => {
   const { loanId, amount, date, notes } = req.body;
   try {
     const loan = await Loan.findById(loanId);
-    if (!loan || loan.user.toString() !== req.user._id.toString()) {
+    if (
+      !loan ||
+      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
@@ -313,9 +358,10 @@ const addRepayment = async (req, res) => {
     }
 
     const repayment = new Repayment({
-      user: req.user._id,
+      user: req.user.effectiveOwnerId,
       loan: loanId,
       customer: loan.customer,
+      branchId: loan.branchId, // Tag repayment with loan's branch
       amount,
       date,
       notes,
@@ -378,7 +424,13 @@ const addRepayment = async (req, res) => {
 const getRepayments = async (req, res) => {
   // Optionally filter by loanId or customerId
   const { loanId, customerId } = req.query;
-  const query = { user: req.user._id };
+  const query = { user: req.user.effectiveOwnerId };
+
+  // Branch Segregation
+  if (req.user.role === 'staff' && req.user.branchId) {
+    query.branchId = req.user.branchId;
+  }
+
   if (loanId) query.loan = loanId;
   if (customerId) query.customer = customerId;
 
@@ -390,7 +442,7 @@ const getRepayments = async (req, res) => {
     const search = req.query.search || '';
     if (search) {
       const matchingCustomers = await Customer.find({
-        user: req.user._id,
+        user: req.user.effectiveOwnerId,
         name: { $regex: search, $options: 'i' },
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);
@@ -423,7 +475,10 @@ const updateLoan = async (req, res) => {
   const { principal, rate, duration, status, interestType } = req.body;
   try {
     const loan = await Loan.findById(req.params.id);
-    if (!loan || loan.user.toString() !== req.user._id.toString()) {
+    if (
+      !loan ||
+      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
@@ -474,6 +529,31 @@ const updateLoan = async (req, res) => {
 
     await loan.save();
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_updated',
+      category: 'loan',
+      details: `Updated loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        changes: {
+          principal: principal
+            ? { old: loan.principal, new: Number(principal) }
+            : undefined,
+          rate: rate ? { old: loan.rate, new: Number(rate) } : undefined,
+          duration: duration
+            ? { old: loan.duration, new: Number(duration) }
+            : undefined,
+          status: status ? { old: loan.status, new: status } : undefined,
+          interestType: interestType
+            ? { old: loan.interestType, new: interestType }
+            : undefined,
+        },
+      },
+      req,
+    });
+
     // Notify Member if status changed
     if (status && (status === 'active' || status === 'rejected')) {
       try {
@@ -511,9 +591,14 @@ const getUpcomingRepayments = async (req, res) => {
   try {
     const { loanId } = req.query;
     const query = {
-      user: req.user._id,
+      user: req.user.effectiveOwnerId,
       status: 'active',
     };
+
+    // Branch Segregation
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
 
     if (loanId) {
       query._id = loanId;
@@ -600,7 +685,10 @@ const getUpcomingRepayments = async (req, res) => {
 const deleteLoan = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id);
-    if (!loan || loan.user.toString() !== req.user._id.toString()) {
+    if (
+      !loan ||
+      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
@@ -672,6 +760,120 @@ const deleteDocument = async (req, res) => {
   }
 };
 
+const approveLoan = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+    if (
+      !loan ||
+      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    if (loan.status !== 'pending') {
+      return res.status(400).json({ message: 'Loan is not in pending status' });
+    }
+
+    loan.status = 'active';
+    loan.approvedBy = req.user._id;
+    loan.approvedAt = new Date();
+    loan.startDate = new Date();
+
+    await loan.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_approved',
+      category: 'loan',
+      details: `Approved loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        customerId: loan.customer,
+      },
+      req,
+    });
+
+    // Notify Member if applicable
+    try {
+      const customer = await Customer.findById(loan.customer);
+      if (customer && customer.isMember && customer.memberId) {
+        const notification = new Notification({
+          recipient: customer.memberId,
+          recipientModel: 'Member',
+          title: 'Loan Approved',
+          message: `Your loan request for ${loan.principal} has been approved.`,
+          type: 'success',
+        });
+        await notification.save();
+      }
+    } catch (notifError) {
+      console.error('Failed to send approval notification:', notifError);
+    }
+
+    res.json(loan);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const rejectLoan = async (req, res) => {
+  const { reason } = req.body;
+  try {
+    const loan = await Loan.findById(req.params.id);
+    if (
+      !loan ||
+      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    if (loan.status !== 'pending') {
+      return res.status(400).json({ message: 'Loan is not in pending status' });
+    }
+
+    loan.status = 'rejected';
+    loan.rejectedBy = req.user._id;
+    loan.rejectionReason = reason;
+
+    await loan.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_rejected',
+      category: 'loan',
+      details: `Rejected loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        reason,
+      },
+      req,
+    });
+
+    // Notify Member if applicable
+    try {
+      const customer = await Customer.findById(loan.customer);
+      if (customer && customer.isMember && customer.memberId) {
+        const notification = new Notification({
+          recipient: customer.memberId,
+          recipientModel: 'Member',
+          title: 'Loan Rejected',
+          message: `Your loan request for ${loan.principal} has been rejected. Reason: ${reason || 'Not specified'}`,
+          type: 'error',
+        });
+        await notification.save();
+      }
+    } catch (notifError) {
+      console.error('Failed to send rejection notification:', notifError);
+    }
+
+    res.json(loan);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createLoan,
   getLoans,
@@ -685,4 +887,6 @@ module.exports = {
   deleteDocument,
   requestLoan,
   getMyLoans,
+  approveLoan,
+  rejectLoan,
 };

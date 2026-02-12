@@ -8,6 +8,7 @@ const {
   deleteCustomer,
   uploadDocuments,
   deleteDocument,
+  updateDocumentStatus,
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/customerUploadMiddleware');
@@ -24,6 +25,9 @@ router
   .route('/:id/documents')
   .post(protect, upload.array('documents', 5), uploadDocuments);
 
-router.route('/:id/documents/:docId').delete(protect, deleteDocument);
+router
+  .route('/:id/documents/:docId')
+  .delete(protect, deleteDocument)
+  .patch(protect, updateDocumentStatus);
 
 module.exports = router;

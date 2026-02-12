@@ -11,14 +11,23 @@ const {
   deleteDocument,
   requestLoan,
   getMyLoans,
+  approveLoan,
+  rejectLoan,
 } = require('../controllers/loanController');
-const { protect } = require('../middleware/authMiddleware');
+const {
+  protect,
+  admin,
+  staffOrAdmin,
+} = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.route('/request').post(protectMember, requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
+router.patch('/:id/approve', protect, admin, approveLoan);
+router.patch('/:id/reject', protect, admin, rejectLoan);
 router
   .route('/:id/documents')
   .post(protect, upload.single('document'), uploadDocument);

@@ -8,6 +8,10 @@ const loanSchema = new mongoose.Schema(
       required: true,
       ref: 'Customer',
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     principal: { type: Number, required: true }, // Amount
     rate: { type: Number, required: true }, // Interest Rate %
     duration: { type: Number, required: true }, // Months
@@ -34,6 +38,16 @@ const loanSchema = new mongoose.Schema(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    approvedAt: { type: Date },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectionReason: { type: String },
+    riskDetails: {
+      grade: { type: String }, // A+, A, B, C, D, F
+      score: { type: Number }, // 0-100
+      suggestion: { type: String }, // Approve, Deny, Caution
+      factors: [{ type: String }],
+    },
   },
   { timestamps: true },
 );

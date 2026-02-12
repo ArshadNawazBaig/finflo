@@ -8,8 +8,16 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ['super_admin', 'admin', 'user'],
+      enum: ['super_admin', 'admin', 'staff', 'user'],
       default: 'admin',
+    },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
     },
     businessName: { type: String, default: '' },
     profilePicture: { type: String, default: '' },

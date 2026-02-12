@@ -50,11 +50,13 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/member-auth', require('./routes/memberAuthRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
+app.use('/api/staff', require('./routes/staffRoutes'));
 app.use('/api/repayments', require('./routes/repaymentRoutes'));
 app.use('/api/members', require('./routes/memberRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/branches', require('./routes/branchRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/super-admin', require('./routes/superAdminRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
@@ -102,9 +104,12 @@ if (process.env.NODE_ENV !== 'production') {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Global Error Handler:', err);
-  console.error(err.stack);
-  res.status(500).json({
-    message: 'Internal Server Error',
+  if (err.stack) console.error(err.stack);
+
+  const statusCode = err.http_code || err.status || 500;
+
+  res.status(statusCode).json({
+    message: err.message || 'Internal Server Error',
     error: err.message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
