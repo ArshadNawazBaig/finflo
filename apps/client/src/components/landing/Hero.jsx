@@ -4,10 +4,10 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const Hero = () => {
   return (
-    <section className="relative pt-44 pb-20 px-6 lg:pt-40 lg:pb-28">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-8">
+    <section className="relative min-h-screen flex items-center py-36 lg:py-0 px-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          <div className="lg:col-span-7 space-y-8 text-left flex flex-col items-start">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -38,7 +38,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start"
             >
               <Link
                 to="/register"
@@ -56,20 +56,20 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="flex items-center gap-6 pt-6 opacity-60 grayscale hover:grayscale-0 transition-all"
+              className="flex items-center justify-center gap-6 pt-6 opacity-60 grayscale hover:grayscale-0 transition-all w-full"
             >
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3 text-center sm:text-left">
+              <div className="flex flex-col items-center text-center">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
                   Trusted By Global Leaders
                 </span>
                 <div className="flex gap-8 items-center overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
-                  <span className="text-lg font-black italic tracking-tighter">
+                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white">
                     FIN-TECH
                   </span>
-                  <span className="text-lg font-black tracking-widest">
+                  <span className="text-lg font-black tracking-widest text-slate-900 dark:text-white">
                     NEXUS
                   </span>
-                  <span className="text-lg font-black italic tracking-tight">
+                  <span className="text-lg font-black italic tracking-tight text-slate-900 dark:text-white">
                     KREDO
                   </span>
                 </div>
@@ -77,7 +77,7 @@ const Hero = () => {
             </motion.div>
           </div>
 
-          <div className="lg:col-span-5 relative h-[400px] lg:h-[600px]">
+          <div className="lg:col-span-5 relative h-[300px] sm:h-[400px] lg:h-[600px] w-full flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}

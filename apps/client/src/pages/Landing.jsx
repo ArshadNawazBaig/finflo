@@ -14,6 +14,7 @@ const MobileShowcase = lazy(
   () => import('@/components/landing/MobileShowcase'),
 );
 const Pricing = lazy(() => import('@/components/landing/Pricing'));
+const FAQ = lazy(() => import('@/components/landing/FAQ'));
 const CTA = lazy(() => import('@/components/landing/CTA'));
 import Footer from '@/components/landing/Footer';
 
@@ -105,6 +106,7 @@ const Landing = () => {
         <Workbench />
         <MobileShowcase />
         <Pricing />
+        <FAQ />
         <CTA />
         <Footer />
       </Suspense>
