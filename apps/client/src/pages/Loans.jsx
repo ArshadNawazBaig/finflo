@@ -193,6 +193,7 @@ const Loans = () => {
                   loan={loan}
                   onEdit={setEditLoan}
                   onDelete={setDeleteLoan}
+                  onRefresh={fetchLoans}
                 />
               ))}
             </div>
@@ -214,6 +215,7 @@ const Loans = () => {
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <LoanTable
               data={loans}
+              onRefresh={fetchLoans}
               pagination={{
                 currentPage,
                 totalPages,

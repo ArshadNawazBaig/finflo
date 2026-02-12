@@ -48,6 +48,13 @@ const createLoan = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
+    if (!customer.accountNumber) {
+      return res.status(400).json({
+        message:
+          'Customer does not have an account number. Please assign one before issuing a loan.',
+      });
+    }
+
     // Check for existing active loan
     const activeLoan = await Loan.findOne({
       customer: customerId,
@@ -100,6 +107,7 @@ const createLoan = async (req, res) => {
     const loan = new Loan({
       user: req.user.effectiveOwnerId,
       customer: customerId,
+      branchId: req.user.branchId, // Automatically assign to branch
       principal,
       rate,
       duration,
@@ -331,7 +339,12 @@ const getLoanById = async (req, res) => {
       'customer',
       'name email phone trustRating',
     );
-    if (loan && loan.user.toString() === req.user.effectiveOwnerId.toString()) {
+    if (
+      loan &&
+      (loan.user.toString() === req.user.effectiveOwnerId.toString() ||
+        (req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()))
+    ) {
       res.json(loan);
     } else {
       res.status(404).json({ message: 'Loan not found' });
@@ -348,7 +361,11 @@ const addRepayment = async (req, res) => {
     const loan = await Loan.findById(loanId);
     if (
       !loan ||
-      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
     ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
@@ -477,7 +494,11 @@ const updateLoan = async (req, res) => {
     const loan = await Loan.findById(req.params.id);
     if (
       !loan ||
-      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
     ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
@@ -687,7 +708,11 @@ const deleteLoan = async (req, res) => {
     const loan = await Loan.findById(req.params.id);
     if (
       !loan ||
-      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
     ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
@@ -765,7 +790,11 @@ const approveLoan = async (req, res) => {
     const loan = await Loan.findById(req.params.id);
     if (
       !loan ||
-      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
     ) {
       return res.status(404).json({ message: 'Loan not found' });
     }
@@ -823,7 +852,11 @@ const rejectLoan = async (req, res) => {
     const loan = await Loan.findById(req.params.id);
     if (
       !loan ||
-      loan.user.toString() !== req.user.effectiveOwnerId.toString()
+      (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          loan.branchId?.toString() === req.user.branchId?.toString()
+        ))
     ) {
       return res.status(404).json({ message: 'Loan not found' });
     }

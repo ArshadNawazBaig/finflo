@@ -12,6 +12,10 @@ const investmentSchema = new mongoose.Schema(
       required: true,
       ref: 'Member',
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     type: {
       type: String,
       enum: ['deposit', 'withdrawal'],

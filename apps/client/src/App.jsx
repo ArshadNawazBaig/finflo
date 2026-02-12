@@ -13,6 +13,7 @@ import RequireAuth from '@/components/RequireAuth';
 import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
 import RequireMemberAuth from '@/components/RequireMemberAuth';
 import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
+import RequireAdmin from '@/components/RequireAdmin';
 import { Toaster } from 'sonner';
 
 // Lazy Load Pages
@@ -99,8 +100,13 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path="/branches" element={<Branches />} />
               <Route path="/team" element={<Team />} />
-              <Route path="/billing" element={<Billing />} />
-              <Route path="/pricing" element={<Pricing />} />
+
+              {/* Admin Only Routes */}
+              <Route element={<RequireAdmin />}>
+                <Route path="/billing" element={<Billing />} />
+                <Route path="/pricing" element={<Pricing />} />
+              </Route>
+
               <Route path="/settings" element={<Settings />} />
               <Route path="/support" element={<Support />} />
               <Route path="/notifications" element={<Notifications />} />

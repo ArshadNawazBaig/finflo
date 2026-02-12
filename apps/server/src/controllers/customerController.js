@@ -48,7 +48,7 @@ const getCustomers = async (req, res) => {
 };
 
 const createCustomer = async (req, res) => {
-  const { name, email, phone, address } = req.body;
+  const { name, email, phone, address, branchId } = req.body;
 
   try {
     // Check plan limits
@@ -74,9 +74,21 @@ const createCustomer = async (req, res) => {
       });
     }
 
+    const { name, email, phone, address, branchId } = req.body;
+
+    // Determine branchId assignment
+    let finalBranchId = branchId;
+    if (req.user.role === 'staff') {
+      finalBranchId = req.user.branchId;
+    }
+
+    if (!finalBranchId) {
+      return res.status(400).json({ message: 'Branch selection is required' });
+    }
+
     const customer = new Customer({
       user: req.user.effectiveOwnerId,
-      branchId: req.user.branchId, // Automatically assign to creator's branch
+      branchId: finalBranchId,
       name,
       email,
       phone,
@@ -102,7 +114,13 @@ const updateCustomer = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -119,8 +137,8 @@ const updateCustomer = async (req, res) => {
 
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true },
+      { ...req.body }, // Explicitly include all fields from body
+      { new: true, runValidators: true },
     );
 
     // Sync to Member if exists
@@ -151,7 +169,13 @@ const deleteCustomer = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -184,7 +208,13 @@ const getCustomerById = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -240,7 +270,13 @@ const deleteDocument = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -287,7 +323,13 @@ const updateDocumentStatus = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (customer.user.toString() !== req.user.effectiveOwnerId.toString()) {
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 

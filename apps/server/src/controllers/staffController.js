@@ -19,6 +19,7 @@ const createStaff = async (req, res) => {
       ownerId: req.user._id, // Linked to the Admin who created them
       branchId: branchId || null,
       businessName: req.user.businessName, // Inherit business name
+      securityCode: req.user.securityCode, // Shared security code
     });
 
     await logActivity({

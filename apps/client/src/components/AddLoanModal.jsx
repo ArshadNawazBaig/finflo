@@ -172,6 +172,24 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   ))}
                 </SelectContent>
               </Select>
+              {formData.customerId && (
+                <div className="px-1">
+                  {(() => {
+                    const selected = customers.find(
+                      (c) => c._id === formData.customerId,
+                    );
+                    if (selected && !selected.accountNumber) {
+                      return (
+                        <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-tighter animate-pulse">
+                          ⚠️ This customer has no account number. Assignment
+                          blocked.
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Interest Type */}
@@ -293,7 +311,12 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                (formData.customerId &&
+                  !customers.find((c) => c._id === formData.customerId)
+                    ?.accountNumber)
+              }
               variant="gradient"
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >

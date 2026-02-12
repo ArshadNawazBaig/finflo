@@ -205,20 +205,24 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Notifications"
             isExpanded={isLayoutExpanded}
           />
-          <NavItem
-            to="/billing"
-            icon={<CreditCard size={18} />}
-            active={isActive('/billing')}
-            label="Billing"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/pricing"
-            icon={<Gem size={18} />}
-            active={isActive('/pricing')}
-            label="Pricing"
-            isExpanded={isLayoutExpanded}
-          />
+          {user.role === 'admin' && (
+            <>
+              <NavItem
+                to="/billing"
+                icon={<CreditCard size={18} />}
+                active={isActive('/billing')}
+                label="Billing"
+                isExpanded={isLayoutExpanded}
+              />
+              <NavItem
+                to="/pricing"
+                icon={<Gem size={18} />}
+                active={isActive('/pricing')}
+                label="Pricing"
+                isExpanded={isLayoutExpanded}
+              />
+            </>
+          )}
           <NavItem
             to="/support"
             icon={<LifeBuoy size={18} />}

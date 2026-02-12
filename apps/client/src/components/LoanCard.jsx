@@ -14,7 +14,7 @@ import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 
-const LoanCard = ({ loan, onEdit, onDelete }) => {
+const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
   const progress = Math.min(
     Math.round((loan.paidAmount / loan.totalAmount) * 100),
     100,
@@ -95,7 +95,7 @@ const LoanCard = ({ loan, onEdit, onDelete }) => {
             <div className="mr-2 pr-2 border-r border-border/30">
               <ApprovalActions
                 loanId={loan._id}
-                onSuccess={() => window.location.reload()} // Simplified for mobile card context or we could pass a refresh prop
+                onSuccess={() => onRefresh && onRefresh()}
               />
             </div>
           )}

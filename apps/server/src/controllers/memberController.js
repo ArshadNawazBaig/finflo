@@ -41,6 +41,7 @@ const convertCustomerToMember = async (req, res) => {
     const member = await Member.create({
       user: customer.user, // Admin/Business Owner
       customer: customer._id,
+      branchId: customer.branchId, // Inherit branch from customer
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
@@ -90,6 +91,11 @@ const getMembers = async (req, res) => {
     }
     if (status) {
       query.status = status;
+    }
+
+    // Branch Segregation: Staff only see their own branch data
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
     }
 
     const sortBy = req.query.sortBy || 'createdAt';
@@ -188,6 +194,12 @@ const getMemberById = async (req, res) => {
       req.member._id.toString() === member._id.toString()
     ) {
       isAuthorized = true; // Member viewing themselves
+    } else if (
+      req.user &&
+      req.user.role === 'staff' &&
+      member.branchId?.toString() === req.user.branchId?.toString()
+    ) {
+      isAuthorized = true; // Staff viewing member in their branch
     }
 
     if (!isAuthorized) {
@@ -244,6 +256,7 @@ const createMember = async (req, res) => {
 
     const memberData = {
       user: userId,
+      branchId: req.user.branchId, // Assign creator's branch
       name,
       email,
       phone,
@@ -420,6 +433,7 @@ const addInvestment = async (req, res) => {
     const investment = await Investment.create({
       user: userId,
       member: id,
+      branchId: member.branchId, // Tag with member's branch
       type: 'deposit',
       amount,
       description: description || 'Investment deposit',
@@ -464,6 +478,7 @@ const withdrawInvestment = async (req, res) => {
     const investment = await Investment.create({
       user: userId,
       member: id,
+      branchId: member.branchId, // Tag with member's branch
       type: 'withdrawal',
       amount,
       description: description || 'Investment withdrawal',
@@ -535,6 +550,7 @@ const distributeProfit = async (req, res) => {
           const distribution = await ProfitDistribution.create({
             user: userId,
             member: member._id,
+            branchId: member.branchId, // Tag with member's branch
             amount: profitAmount,
             period:
               period ||
@@ -574,6 +590,7 @@ const distributeProfit = async (req, res) => {
           const distribution = await ProfitDistribution.create({
             user: userId,
             member: member._id,
+            branchId: member.branchId, // Tag with member's branch
             amount: profitAmount,
             period:
               period ||

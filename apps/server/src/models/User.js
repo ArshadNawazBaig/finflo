@@ -55,7 +55,6 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpire: Date,
     securityCode: {
       type: String,
-      unique: true,
       sparse: true,
       uppercase: true,
       minlength: 6,
@@ -76,8 +75,8 @@ const generateSecurityCode = () => {
 };
 
 userSchema.pre('save', async function () {
-  // Generate security code if not present
-  if (!this.securityCode) {
+  // Generate security code if not present (only for admins)
+  if (!this.securityCode && this.role === 'admin') {
     let codeIsUnique = false;
     while (!codeIsUnique) {
       this.securityCode = generateSecurityCode();

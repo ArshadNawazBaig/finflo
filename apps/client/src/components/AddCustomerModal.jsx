@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { Loader2, UserPlus, Mail, Phone, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+  Loader2,
+  UserPlus,
+  Mail,
+  Phone,
+  MapPin,
+  Building2,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,9 +23,35 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     email: '',
     phone: '',
     address: '',
+    branchId: '',
   });
+  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingBranches, setFetchingBranches] = useState(false);
   const [error, setError] = useState('');
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (user.role === 'staff' && user.branchId) {
+        setFormData((prev) => ({ ...prev, branchId: user.branchId }));
+      } else {
+        const fetchBranches = async () => {
+          setFetchingBranches(true);
+          try {
+            const { data } = await api.get('/branches');
+            setBranches(data);
+          } catch (err) {
+            console.error('Failed to fetch branches', err);
+          } finally {
+            setFetchingBranches(false);
+          }
+        };
+        fetchBranches();
+      }
+    }
+  }, [isOpen, user.role, user.branchId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -113,6 +146,35 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                   className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <Building2 className="w-3 h-3" /> Branch Selection
+              </label>
+              {user.role === 'staff' ? (
+                <div className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground italic">
+                  Automatically assigned to your branch
+                </div>
+              ) : (
+                <select
+                  name="branchId"
+                  required
+                  value={formData.branchId}
+                  onChange={handleChange}
+                  disabled={fetchingBranches}
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>
+                    Select a branch...
+                  </option>
+                  {branches.map((branch) => (
+                    <option key={branch._id} value={branch._id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="space-y-1.5">

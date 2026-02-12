@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
+import { toast } from 'sonner';
 
 const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,9 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
       setFormData({ name: '', email: '', password: '', branchId: '' });
       onSuccess();
     } catch (error) {
-      // toast is handled in the page
+      const message =
+        error.response?.data?.message || 'Failed to create staff member';
+      toast.error(message);
       console.error(error);
     } finally {
       setLoading(false);

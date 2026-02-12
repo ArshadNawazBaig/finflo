@@ -26,6 +26,7 @@ const LoanTable = ({
   sortBy,
   sortOrder,
   onSort,
+  onRefresh,
 }) => {
   const renderSortIcon = (column) => {
     if (sortBy !== column)
@@ -171,11 +172,7 @@ const LoanTable = ({
                           <ApprovalActions
                             loanId={loan._id}
                             onSuccess={() => {
-                              // We need a way to trigger refresh.
-                              // Since LoanTable doesn't have a direct refresh,
-                              // we assume the parent 'Loans.jsx' will pass a refresh function or
-                              // the onSuccess here will eventually trigger a parent re-render if passed down.
-                              // For now, let's assume 'onDetails' or similar might be used or we add 'onSuccess' to props.
+                              if (onRefresh) onRefresh();
                               if (pagination && pagination.onPageChange) {
                                 pagination.onPageChange(pagination.currentPage);
                               }

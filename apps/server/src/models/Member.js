@@ -13,6 +13,10 @@ const memberSchema = new mongoose.Schema(
       ref: 'Customer',
       default: null,
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },

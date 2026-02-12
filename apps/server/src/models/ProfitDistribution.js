@@ -12,6 +12,10 @@ const profitDistributionSchema = new mongoose.Schema(
       required: true,
       ref: 'Member',
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+    },
     amount: { type: Number, required: true },
     period: { type: String, required: true }, // e.g., "Jan 2026"
     calculationMethod: { type: String }, // Description of how profit was calculated
