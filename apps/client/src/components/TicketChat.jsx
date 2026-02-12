@@ -237,6 +237,61 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
               }`}
             >
               <p>{ticket.description}</p>
+              {/* Initial Attachments */}
+              {ticket.attachments && ticket.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/20">
+                  {ticket.attachments.map((file, idx) => (
+                    <React.Fragment key={idx}>
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          if (file.fileType === 'image') {
+                            e.preventDefault();
+                            setViewingImage(file.url);
+                          } else if (file.fileType === 'audio') {
+                            e.preventDefault();
+                            toggleAudioPlayback(file.url);
+                          }
+                        }}
+                        className="group relative block w-16 h-16 rounded-lg overflow-hidden border border-border/50 shrink-0 hover:ring-2 hover:ring-white/50 transition-all cursor-pointer"
+                      >
+                        {file.fileType === 'image' ? (
+                          <img
+                            src={file.url}
+                            alt="attachment"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : file.fileType === 'audio' ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-primary-foreground backdrop-blur-sm">
+                            {playingAudioUrl === file.url ? (
+                              <Pause className="w-6 h-6 text-primary animate-pulse" />
+                            ) : (
+                              <Mic className="w-6 h-6 text-primary" />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-primary-foreground backdrop-blur-sm">
+                            <Paperclip className="w-6 h-6 opacity-100 text-primary" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 items-center justify-center hidden group-hover:flex">
+                          {file.fileType === 'audio' ? (
+                            playingAudioUrl === file.url ? (
+                              <Pause className="w-5 h-5 text-white fill-current" />
+                            ) : (
+                              <Play className="w-5 h-5 text-white fill-current" />
+                            )
+                          ) : (
+                            <Search className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                      </a>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

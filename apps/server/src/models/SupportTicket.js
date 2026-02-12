@@ -37,6 +37,14 @@ const supportTicketSchema = new mongoose.Schema(
       enum: ['Low', 'Medium', 'High', 'Urgent'],
       default: 'Medium',
     },
+    attachments: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String, required: true },
+        fileType: { type: String, required: true }, // 'image' or 'file'
+        originalName: { type: String, required: true },
+      },
+    ],
     replies: [
       {
         user: {

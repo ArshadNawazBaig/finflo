@@ -10,12 +10,28 @@ const createTicket = async (req, res) => {
   try {
     const { subject, description, category, priority } = req.body;
 
+    const attachments = req.files
+      ? req.files.map((file) => {
+          let fileType = 'file';
+          if (file.mimetype.startsWith('image/')) fileType = 'image';
+          else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
+
+          return {
+            url: file.path,
+            publicId: file.filename,
+            fileType,
+            originalName: file.originalname,
+          };
+        })
+      : [];
+
     const ticket = await SupportTicket.create({
       user: req.user._id,
       subject,
       description,
       category,
       priority,
+      attachments,
     });
 
     await ActivityLog.create({

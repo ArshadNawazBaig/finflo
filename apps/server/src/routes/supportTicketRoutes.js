@@ -15,7 +15,10 @@ const { protect } = require('../middleware/authMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const { ticketUpload } = require('../middleware/ticketUploadMiddleware');
 
-router.route('/').post(protect, createTicket).get(protect, getUserTickets);
+router
+  .route('/')
+  .post(protect, ticketUpload.array('attachments', 5), createTicket)
+  .get(protect, getUserTickets);
 
 router.route('/all').get(protect, superAdminProtect, getAllTickets);
 
