@@ -19,8 +19,11 @@ import BillingSkeleton from '@/components/BillingSkeleton';
 import InvoiceCard from '@/components/InvoiceCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { cn } from '@/lib/utils';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const Billing = () => {
+  const { getLimit, loading: settingsLoading } = useSystemSettings();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -596,30 +599,72 @@ const Billing = () => {
                   Usage Limits
                 </h3>
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                      <span className="text-muted-foreground">API Calls</span>
-                      <span>67%</span>
-                    </div>
-                    <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-[67%] rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-right font-medium">
-                      67k / 100k
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                      <span className="text-muted-foreground">Storage</span>
-                      <span>45%</span>
-                    </div>
-                    <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 w-[45%] rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-right font-medium">
-                      4.5GB / 10GB
-                    </p>
-                  </div>
+                  {(() => {
+                    const usage = billingData?.usage || {
+                      members: 0,
+                      loans: 0,
+                    };
+                    const currentPlan = plan || 'Free';
+
+                    const limits = {
+                      members: getLimit(currentPlan, 'maxMembers'),
+                      loans: getLimit(currentPlan, 'maxLoans'),
+                    };
+
+                    const stats = [
+                      {
+                        label: 'Members',
+                        used: usage.members,
+                        limit: limits.members,
+                        color: 'bg-primary',
+                        shadow: 'shadow-[0_0_10px_rgba(var(--primary),0.5)]',
+                      },
+                      {
+                        label: 'Loans Created',
+                        used: usage.loans,
+                        limit: limits.loans,
+                        color: 'bg-emerald-500',
+                        shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.5)]',
+                      },
+                    ];
+
+                    return stats.map((stat, index) => {
+                      const isUnlimited = stat.limit === Infinity;
+                      const percentage = isUnlimited
+                        ? 100
+                        : Math.min(
+                            Math.round((stat.used / stat.limit) * 100),
+                            100,
+                          );
+
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                            <span className="text-muted-foreground">
+                              {stat.label}
+                            </span>
+                            <span>
+                              {isUnlimited ? 'Unlimited' : `${percentage}%`}
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-all duration-1000 ease-out',
+                                stat.color,
+                                stat.shadow,
+                              )}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground text-right font-medium">
+                            {stat.used.toLocaleString()} /{' '}
+                            {isUnlimited ? '∞' : stat.limit.toLocaleString()}
+                          </p>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>

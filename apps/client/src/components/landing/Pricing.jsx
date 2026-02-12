@@ -3,8 +3,10 @@ import { CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const Pricing = () => {
+  const { settings } = useSystemSettings();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(null);
 
@@ -17,47 +19,39 @@ const Pricing = () => {
     }
   }, []);
 
-  const plans = [
-    {
-      name: 'Free',
-      price: '$0',
-      features: [
-        'Up to 10 loans',
-        'Basic reporting',
-        'Email support',
-        '1 user',
-      ],
-      cta: 'Get Started',
-      popular: false,
-    },
-    {
-      name: 'Basic',
-      price: '$29',
-      features: [
-        'Up to 100 loans',
-        'Advanced reporting',
-        'Priority email support',
-        'Up to 3 users',
-        'Custom branding',
-      ],
-      cta: 'Upgrade to Basic',
-      popular: false,
-    },
-    {
-      name: 'Pro',
-      price: '$49',
-      features: [
-        'Unlimited loans',
-        'Advanced analytics',
-        'Priority support',
-        'Unlimited users',
-        'API access',
-        'Custom integrations',
-      ],
-      cta: 'Upgrade to Pro',
-      popular: true,
-    },
-  ];
+  const plans = (settings?.subscriptionPlans || []).map((plan) => {
+    const isPro = plan.name === 'Pro';
+
+    const limitFeatures = [
+      plan.limits.maxLoans === -1
+        ? 'Unlimited loans'
+        : `Up to ${plan.limits.maxLoans} loans`,
+      plan.limits.maxMembers === -1
+        ? 'Unlimited team members'
+        : `Up to ${plan.limits.maxMembers} members`,
+      plan.limits.maxCustomers === -1
+        ? 'Unlimited customers'
+        : `Up to ${plan.limits.maxCustomers} customers`,
+    ];
+
+    const baseFeatures = (plan.features || []).filter(
+      (f) =>
+        !f.toLowerCase().includes('loan') &&
+        !f.toLowerCase().includes('member') &&
+        !f.toLowerCase().includes('customer'),
+    );
+
+    return {
+      name: plan.name,
+      price: `$${plan.price}`,
+      description: plan.description || '',
+      features: [...limitFeatures, ...baseFeatures],
+      cta: plan.name === 'Free' ? 'Get Started' : `Upgrade to ${plan.name}`,
+      popular: isPro,
+    };
+  });
+
+  if (!settings) return null;
 
   const getLink = (planName) => {
     if (isAuthenticated) {

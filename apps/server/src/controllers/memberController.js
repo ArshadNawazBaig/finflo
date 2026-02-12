@@ -270,7 +270,7 @@ const createMember = async (req, res) => {
     const memberCount = await Member.countDocuments({ user: userId });
 
     // Validate against plan limits
-    const limitCheck = canAddMember(userPlan, memberCount);
+    const limitCheck = await canAddMember(userPlan, memberCount);
     if (!limitCheck.allowed) {
       return res.status(403).json({
         message: limitCheck.message,

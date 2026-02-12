@@ -107,9 +107,40 @@ const updateBranch = async (req, res) => {
   }
 };
 
+// @desc    Delete branch
+// @route   DELETE /api/branches/:id
+// @access  Private (Admin)
+const deleteBranch = async (req, res) => {
+  try {
+    const branch = await Branch.findById(req.params.id);
+
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    if (branch.owner.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    await Branch.findByIdAndDelete(req.params.id);
+
+    // Also remove branchId from users associated with this branch
+    await User.updateMany(
+      { branchId: req.params.id },
+      { $unset: { branchId: '' } },
+    );
+
+    res.json({ message: 'Branch removed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   createBranch,
   getBranches,
   getBranch,
   updateBranch,
+  deleteBranch,
 };

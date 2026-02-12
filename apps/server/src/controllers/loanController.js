@@ -82,7 +82,7 @@ const createLoan = async (req, res) => {
     });
 
     // Validate against plan limits
-    const limitCheck = canCreateLoan(userPlan, loanCount);
+    const limitCheck = await canCreateLoan(userPlan, loanCount);
     if (!limitCheck.allowed) {
       return res.status(403).json({
         message: limitCheck.message,

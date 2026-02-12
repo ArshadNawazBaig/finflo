@@ -40,13 +40,7 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
           </tr>
         </thead>
         <tbody className="divide-y divide-border/50">
-          {data.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                No staff members found.
-              </td>
-            </tr>
-          ) : (
+          {data.length > 0 &&
             data.map((item) => (
               <tr
                 key={item._id}
@@ -143,8 +137,7 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
                   </div>
                 </td>
               </tr>
-            ))
-          )}
+            ))}
         </tbody>
       </table>
       {data.length === 0 && (

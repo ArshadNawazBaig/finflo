@@ -1,15 +1,17 @@
-const PLAN_LIMITS = {
+const SystemSettings = require('../models/SystemSettings');
+
+const DEFAULT_PLAN_LIMITS = {
   Free: {
-    loans: 10,
-    members: 10,
+    loans: 5,
+    members: 1,
     customers: 10,
     users: 1,
     features: ['basic_reporting', 'email_support'],
   },
   Basic: {
-    loans: 1000,
-    members: 1000,
-    customers: 1000,
+    loans: 50,
+    members: 3,
+    customers: 100,
     users: 3,
     features: [
       'basic_reporting',
@@ -36,13 +38,44 @@ const PLAN_LIMITS = {
 };
 
 /**
+ * Get dynamic limits for a plan from SystemSettings
+ * @param {string} planName - Name of the plan
+ * @returns {Promise<object>}
+ */
+const getDynamicLimits = async (planName) => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    const plan = settings.subscriptionPlans.find(
+      (p) => p.name.toLowerCase() === planName.toLowerCase(),
+    );
+
+    if (plan && plan.limits) {
+      return {
+        loans: plan.limits.maxLoans === -1 ? Infinity : plan.limits.maxLoans,
+        members:
+          plan.limits.maxMembers === -1 ? Infinity : plan.limits.maxMembers,
+        customers:
+          plan.limits.maxCustomers === -1 ? Infinity : plan.limits.maxCustomers,
+        users: plan.name === 'Pro' ? Infinity : plan.name === 'Basic' ? 3 : 1, // Features not fully in limits schema yet
+        features: plan.features || DEFAULT_PLAN_LIMITS[planName]?.features,
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching dynamic limits:', error);
+  }
+
+  return DEFAULT_PLAN_LIMITS[planName] || DEFAULT_PLAN_LIMITS.Free;
+};
+
+/**
  * Check if a user can create a new loan based on their plan
  * @param {string} plan - User's current plan (Free, Basic, Pro)
  * @param {number} currentCount - Current number of loans
- * @returns {object} { allowed: boolean, limit: number, message: string }
+ * @returns {Promise<object>} { allowed: boolean, limit: number, message: string }
  */
-const canCreateLoan = (plan, currentCount) => {
-  const limit = PLAN_LIMITS[plan]?.loans || 0;
+const canCreateLoan = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.loans;
 
   if (currentCount >= limit) {
     return {
@@ -65,10 +98,11 @@ const canCreateLoan = (plan, currentCount) => {
  * Check if a new user can be added based on the plan
  * @param {string} plan - Organization's current plan
  * @param {number} currentCount - Current number of users
- * @returns {object} { allowed: boolean, limit: number, message: string }
+ * @returns {Promise<object>} { allowed: boolean, limit: number, message: string }
  */
-const canAddUser = (plan, currentCount) => {
-  const limit = PLAN_LIMITS[plan]?.users || 0;
+const canAddUser = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.users;
 
   if (currentCount >= limit) {
     return {
@@ -89,32 +123,34 @@ const canAddUser = (plan, currentCount) => {
 
 /**
  * Check if a plan has access to a specific feature
- * @param {string} plan - User's current plan
+ * @param {string} planName - User's current plan
  * @param {string} feature - Feature to check
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-const hasFeature = (plan, feature) => {
-  const features = PLAN_LIMITS[plan]?.features || [];
+const hasFeature = async (planName, feature) => {
+  const limits = await getDynamicLimits(planName);
+  const features = limits.features || [];
   return features.includes(feature) || features.includes('all');
 };
 
 /**
  * Get plan limits for a specific plan
  * @param {string} plan - Plan name
- * @returns {object} Plan limits
+ * @returns {Promise<object>} Plan limits
  */
-const getPlanLimits = (plan) => {
-  return PLAN_LIMITS[plan] || PLAN_LIMITS.Free;
+const getPlanLimits = async (plan) => {
+  return await getDynamicLimits(plan);
 };
 
 /**
  * Get usage percentage for loans
  * @param {string} plan - User's current plan
  * @param {number} currentCount - Current number of loans
- * @returns {number} Percentage (0-100)
+ * @returns {Promise<number>} Percentage (0-100)
  */
-const getLoanUsagePercentage = (plan, currentCount) => {
-  const limit = PLAN_LIMITS[plan]?.loans || 0;
+const getLoanUsagePercentage = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.loans;
   if (limit === Infinity) return 0;
   return Math.min(100, Math.round((currentCount / limit) * 100));
 };
@@ -123,10 +159,11 @@ const getLoanUsagePercentage = (plan, currentCount) => {
  * Check if a new member can be added based on the plan
  * @param {string} plan - User's current plan
  * @param {number} currentCount - Current number of members
- * @returns {object} { allowed: boolean, limit: number, message: string }
+ * @returns {Promise<object>} { allowed: boolean, limit: number, message: string }
  */
-const canAddMember = (plan, currentCount) => {
-  const limit = PLAN_LIMITS[plan]?.members || 0;
+const canAddMember = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.members;
 
   if (currentCount >= limit) {
     return {
@@ -149,10 +186,11 @@ const canAddMember = (plan, currentCount) => {
  * Check if a new customer can be added based on the plan
  * @param {string} plan - User's current plan
  * @param {number} currentCount - Current number of customers
- * @returns {object} { allowed: boolean, limit: number, message: string }
+ * @returns {Promise<object>} { allowed: boolean, limit: number, message: string }
  */
-const canAddCustomer = (plan, currentCount) => {
-  const limit = PLAN_LIMITS[plan]?.customers || 0;
+const canAddCustomer = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.customers;
 
   if (currentCount >= limit) {
     return {
@@ -172,7 +210,7 @@ const canAddCustomer = (plan, currentCount) => {
 };
 
 module.exports = {
-  PLAN_LIMITS,
+  PLAN_LIMITS: DEFAULT_PLAN_LIMITS,
   canCreateLoan,
   canAddUser,
   canAddMember,

@@ -71,6 +71,24 @@ const createCustomer = async (req, res) => {
     const user = await User.findById(req.user.effectiveOwnerId).select(
       'plan customerCount',
     );
+    const userPlan = user.plan || 'Free';
+
+    // Count existing customers for this user
+    const customerCount = await Customer.countDocuments({
+      user: req.user.effectiveOwnerId,
+    });
+
+    // Validate against plan limits
+    const limitCheck = await canAddCustomer(userPlan, customerCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: userPlan,
+        upgradeRequired: true,
+      });
+    }
 
     // Determine branchId assignment
     let finalBranchId = branchId;

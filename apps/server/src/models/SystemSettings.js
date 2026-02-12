@@ -11,6 +11,10 @@ const subscriptionPlanSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  description: {
+    type: String,
+    default: '',
+  },
   features: [String],
   limits: {
     maxCustomers: {
@@ -40,6 +44,7 @@ const systemSettingsSchema = new mongoose.Schema(
         {
           name: 'Free',
           price: 0,
+          description: 'Perfect for getting started',
           features: [
             'Up to 10 customers',
             'Up to 5 active loans',
@@ -55,6 +60,7 @@ const systemSettingsSchema = new mongoose.Schema(
         {
           name: 'Basic',
           price: 29,
+          description: 'For growing businesses',
           features: [
             'Up to 100 customers',
             'Up to 50 active loans',
@@ -71,6 +77,7 @@ const systemSettingsSchema = new mongoose.Schema(
         {
           name: 'Pro',
           price: 49,
+          description: 'For established businesses',
           features: [
             'Unlimited customers',
             'Unlimited loans',

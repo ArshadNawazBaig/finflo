@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'sonner';
 import {
   Select,
@@ -232,14 +233,16 @@ const AuditLogs = () => {
             <Skeleton key={i} className="h-32 w-full rounded-[2rem]" />
           ))
         ) : logs.length === 0 ? (
-          <div className="p-20 text-center bg-white dark:bg-slate-900 border border-border/50 rounded-[2.5rem]">
-            <div className="flex flex-col items-center gap-4 text-muted-foreground/40">
-              <Terminal size={48} strokeWidth={1} />
-              <p className="text-sm font-bold uppercase tracking-widest">
-                Zero Traces Found
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            icon={Terminal}
+            title="Zero Traces Found"
+            description={
+              search
+                ? `No system audits match your search for "${search}".`
+                : "The system's black box is currently clear. No audit traces recorded for this stream."
+            }
+            className="border-border/50 bg-white/50 dark:bg-slate-900/50 py-20"
+          />
         ) : (
           logs.map((log, index) => (
             <div
@@ -335,13 +338,18 @@ const AuditLogs = () => {
                 ))
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4 text-muted-foreground/40">
-                      <Terminal size={48} strokeWidth={1} />
-                      <p className="text-sm font-bold uppercase tracking-widest">
-                        Zero Traces Found in Current Stream
-                      </p>
-                    </div>
+                  <td colSpan={5} className="px-8 py-20">
+                    <EmptyState
+                      icon={Terminal}
+                      title="Zero Traces Found"
+                      description={
+                        search
+                          ? `No system audits match your search for "${search}".`
+                          : "The system's black box is currently clear. No audit traces recorded for this stream."
+                      }
+                      variant="subtle"
+                      className="py-12"
+                    />
                   </td>
                 </tr>
               ) : (

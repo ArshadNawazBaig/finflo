@@ -7,8 +7,10 @@ import ContactModal from '@/components/ContactModal';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const Pricing = () => {
+  const { settings, loading: settingsLoading } = useSystemSettings();
   const [loading, setLoading] = useState(true);
   const [showContactModal, setShowContactModal] = useState(false);
   const [currentPlan, setCurrentPlan] = useState('');
@@ -59,65 +61,56 @@ const Pricing = () => {
     }
   };
 
-  const plans = [
-    {
-      name: 'Free',
-      price: '$0',
-      description: 'Perfect for getting started',
-      features: [
-        'Up to 10 loans',
-        'Up to 10 members',
-        'Up to 10 customers',
-        'Basic reporting',
-        'Email support',
-        '1 user',
-      ],
-      icon: <Zap className="w-5 h-5 text-emerald-500" />,
-      buttonText: 'Get Started',
-      buttonClass:
-        'border border-border hover:bg-muted font-black uppercase tracking-widest text-[11px]',
-      highlight: false,
-    },
-    {
-      name: 'Basic',
-      price: '$29',
-      description: 'For growing businesses',
-      features: [
-        'Up to 1000 loans',
-        'Up to 1000 members',
-        'Up to 1000 customers',
-        'Advanced reporting',
-        'Priority email support',
-        'Up to 3 users',
-        'Custom branding',
-      ],
-      icon: <Gem className="w-5 h-5 text-indigo-500" />,
-      buttonText: 'Upgrade to Basic',
-      buttonClass:
-        'border border-border hover:bg-muted font-black uppercase tracking-widest text-[11px]',
-      highlight: false,
-    },
-    {
-      name: 'Pro',
-      price: '$49',
-      description: 'For established businesses',
-      features: [
-        'Unlimited loans',
-        'Unlimited members',
-        'Unlimited customers',
-        'Advanced analytics',
-        'Priority support',
-        'Unlimited users',
-        'API access',
-        'Custom integrations',
-      ],
-      icon: <Crown className="w-5 h-5 text-primary" />,
-      buttonText: 'Upgrade to Pro',
-      buttonClass: 'variant-gradient', // Custom marker to identify gradient variant
-      highlight: true,
-      badge: 'Most Popular',
-    },
-  ];
+  const planIcons = {
+    Free: <Zap className="w-5 h-5 text-emerald-500" />,
+    Basic: <Gem className="w-5 h-5 text-indigo-500" />,
+    Pro: <Crown className="w-5 h-5 text-primary" />,
+  };
+
+  const planDescriptions = {
+    Free: 'Perfect for getting started',
+    Basic: 'For growing businesses',
+    Pro: 'For established businesses',
+  };
+
+  const plans = (settings?.subscriptionPlans || []).map((plan) => {
+    const isPro = plan.name === 'Pro';
+
+    const limitFeatures = [
+      plan.limits.maxLoans === -1
+        ? 'Unlimited loans'
+        : `Up to ${plan.limits.maxLoans} loans`,
+      plan.limits.maxMembers === -1
+        ? 'Unlimited team members'
+        : `Up to ${plan.limits.maxMembers} members`,
+      plan.limits.maxCustomers === -1
+        ? 'Unlimited customers'
+        : `Up to ${plan.limits.maxCustomers} customers`,
+    ];
+
+    const baseFeatures = (plan.features || []).filter(
+      (f) =>
+        !f.toLowerCase().includes('loan') &&
+        !f.toLowerCase().includes('member') &&
+        !f.toLowerCase().includes('customer'),
+    );
+
+    return {
+      name: plan.name,
+      price: `$${plan.price}`,
+      description:
+        plan.description ||
+        planDescriptions[plan.name] ||
+        'Custom plan features',
+      features: [...limitFeatures, ...baseFeatures],
+      icon: planIcons[plan.name] || <Zap className="w-5 h-5 text-primary" />,
+      buttonText:
+        plan.name === 'Free' ? 'Get Started' : `Upgrade to ${plan.name}`,
+      buttonClass: isPro ? 'variant-gradient' : 'outline',
+      highlight: isPro,
+      badge: isPro ? 'Most Popular' : null,
+    };
+  });
 
   return (
     <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -126,7 +119,7 @@ const Pricing = () => {
         description="Choose the perfect plan to scale your lending operations."
       />
 
-      {loading ? (
+      {settingsLoading || loading ? (
         <PricingSkeleton />
       ) : (
         <>

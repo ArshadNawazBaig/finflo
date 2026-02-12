@@ -1,5 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
+const Loan = require('../models/Loan');
+const Member = require('../models/Member');
 
 const getBaseUrl = (req) => {
   // Try to get origin from request headers (works on production)
@@ -330,11 +332,21 @@ const getBillingInfo = async (req, res) => {
       ...formattedCanceledSubscriptions,
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // Fetch usage counts
+    const [loanCount, memberCount] = await Promise.all([
+      Loan.countDocuments({ user: user._id }),
+      Member.countDocuments({ user: user._id }),
+    ]);
+
     res.json({
       ...user.toObject(),
       plan: currentPlan, // Return the synced plan
       paymentMethods: formattedPaymentMethods,
       invoices: allBillingHistory,
+      usage: {
+        loans: loanCount,
+        members: memberCount,
+      },
     });
   } catch (error) {
     console.error('Error fetching billing info:', error);
