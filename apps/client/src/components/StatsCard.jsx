@@ -35,8 +35,8 @@ const StatsCard = ({
               'bg-opacity-10 text-current overflow-hidden relative',
             )}
           >
-            <div className={cn('absolute inset-0 opacity-20', color)} />
-            <div className="relative z-10 text-primary">{icon}</div>
+            <div className={cn('absolute inset-0 opacity-100', color)} />
+            <div className="relative z-10 text-white">{icon}</div>
           </div>
           <div className="flex items-center gap-2">
             {badge &&
