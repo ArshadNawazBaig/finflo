@@ -9,7 +9,6 @@ import {
   FileQuestion,
   ArrowRightLeft,
   ChevronUp,
-  User,
   Landmark,
   Gem,
   CreditCard,
@@ -19,6 +18,7 @@ import {
   Users,
   Archive,
   ShieldCheck,
+  ChevronDown,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
@@ -38,6 +38,45 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     (path !== '/dashboard' && location.pathname.startsWith(path + '/'));
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const menuRef = useRef(null);
+  const navRef = useRef(null);
+  const scrollInterval = useRef(null);
+  const [canScroll, setCanScroll] = useState(false);
+
+  // Check if content is scrollable
+  const checkScroll = () => {
+    if (navRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = navRef.current;
+      setCanScroll(scrollTop + clientHeight < scrollHeight - 10); // 10px buffer
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const nav = navRef.current;
+    if (nav) {
+      nav.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+      return () => {
+        nav.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      };
+    }
+  }, []);
+
+  // Update scroll status when items might change (e.g. role-based items)
+  useEffect(() => {
+    const timer = setTimeout(checkScroll, 500);
+    return () => clearTimeout(timer);
+  }, [isExpanded]);
+
+  const scrollToBottom = () => {
+    if (navRef.current) {
+      navRef.current.scrollTo({
+        top: navRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -119,10 +158,12 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         </div>
 
         <nav
+          ref={navRef}
           className={cn(
-            'flex-1 flex flex-col gap-1 w-full scrollbar-hide py-2 transition-all duration-300 overflow-y-auto',
+            'flex-1 flex flex-col gap-1 w-full py-2 transition-all duration-300 overflow-y-auto relative no-scrollbar scrollbar-none',
             isLayoutExpanded ? 'px-4' : 'items-center px-0 overflow-x-hidden',
           )}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <NavItem
             to="/dashboard"
@@ -239,6 +280,38 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           )}
           ref={menuRef}
         >
+          {/* Custom Scroll Arrow - Above Settings */}
+          {canScroll && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={scrollToBottom}
+                  className={cn(
+                    'w-full flex items-center transition-all duration-500 relative group mb-1 rounded-2xl py-3',
+                    isLayoutExpanded
+                      ? 'justify-start gap-4 px-4'
+                      : 'justify-center w-12 mx-auto',
+                    'bg-primary/10 text-primary hover:bg-primary hover:text-white shadow-lg shadow-primary/5 hover:shadow-primary/20',
+                  )}
+                >
+                  <div className="relative z-10 shrink-0 transition-transform duration-500 group-hover:scale-110">
+                    <ChevronDown size={18} className="animate-bounce" />
+                  </div>
+                  {isLayoutExpanded && (
+                    <span className="text-[12px] font-bold opacity-100 translate-x-0 transition-all duration-500">
+                      See more
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              {!isLayoutExpanded && (
+                <TooltipContent side="right" sideOffset={12}>
+                  See more
+                </TooltipContent>
+              )}
+            </Tooltip>
+          )}
+
           <NavItem
             to="/settings"
             icon={<Settings2 size={18} />}

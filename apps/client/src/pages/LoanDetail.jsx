@@ -543,7 +543,7 @@ const LoanDetail = () => {
           title="Total Repayable"
           amount={formatPKR(loan.totalAmount)}
           icon={<DollarSign size={18} />}
-          color="bg-primary/10 text-primary border-primary/20"
+          color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
@@ -556,7 +556,7 @@ const LoanDetail = () => {
                 : loan.emi,
           )}
           icon={<Zap size={18} />}
-          color="bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
+          color="bg-indigo-500 text-indigo-600 border-indigo-500/20"
           badge={`${paidInstallmentsCount}/${loan.duration}`}
           badgeTooltip={`${paidInstallmentsCount} Installments Paid`}
           isGlass
@@ -565,14 +565,14 @@ const LoanDetail = () => {
           title="Paid Amount"
           amount={formatPKR(loan.paidAmount || 0)}
           icon={<CheckCircle2 size={18} />}
-          color="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+          color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
         <StatsCard
           title="Outstanding Balance"
           amount={formatPKR(loan.remainingAmount)}
           icon={<AlertCircle size={18} />}
-          color="bg-red-500/10 text-red-600 border-red-500/20"
+          color="bg-red-500 text-red-600 border-red-500/20"
           isGlass
         />
       </div>

@@ -8,14 +8,14 @@ const { logActivity } = require('./activityLogController');
 const getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
     });
     const activeUsers = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       isActive: true,
     });
     const inactiveUsers = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       isActive: false,
     });
 
@@ -37,7 +37,7 @@ const getDashboardStats = async (req, res) => {
 
     // Get users by plan
     const usersByPlan = await User.aggregate([
-      { $match: { role: { $ne: 'super_admin' } } },
+      { $match: { role: 'admin' } },
       { $group: { _id: '$plan', count: { $sum: 1 } } },
     ]);
 
@@ -52,12 +52,12 @@ const getDashboardStats = async (req, res) => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const recentSignups = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       createdAt: { $gte: sevenDaysAgo },
     });
 
     // Get recent users
-    const recentUsers = await User.find({ role: { $ne: 'super_admin' } })
+    const recentUsers = await User.find({ role: 'admin' })
       .select('name email businessName plan createdAt isActive')
       .sort({ createdAt: -1 })
       .limit(5);
@@ -69,7 +69,7 @@ const getDashboardStats = async (req, res) => {
     const signupTrend = await User.aggregate([
       {
         $match: {
-          role: { $ne: 'super_admin' },
+          role: 'admin',
           createdAt: { $gte: thirtyDaysAgo },
         },
       },
@@ -129,7 +129,7 @@ const getAllUsers = async (req, res) => {
       sortOrder = 'desc',
     } = req.query;
 
-    const query = { role: { $ne: 'super_admin' } };
+    const query = { role: 'admin' };
 
     if (search) {
       query.$or = [
@@ -365,7 +365,7 @@ const getSystemAnalytics = async (req, res) => {
     const userGrowth = await User.aggregate([
       {
         $match: {
-          role: { $ne: 'super_admin' },
+          role: 'admin',
           createdAt: { $gte: sixMonthsAgo },
         },
       },
@@ -393,7 +393,7 @@ const getSystemAnalytics = async (req, res) => {
 
     // Plan distribution
     const planDistribution = await User.aggregate([
-      { $match: { role: { $ne: 'super_admin' } } },
+      { $match: { role: 'admin' } },
       { $group: { _id: '$plan', count: { $sum: 1 } } },
     ]);
 

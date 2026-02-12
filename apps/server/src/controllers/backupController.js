@@ -42,7 +42,7 @@ const exportUsers = async (req, res) => {
   try {
     const { format = 'csv' } = req.query;
 
-    const users = await User.find({ role: { $ne: 'super_admin' } })
+    const users = await User.find({ role: 'admin' })
       .select('-password -refreshToken')
       .lean();
 

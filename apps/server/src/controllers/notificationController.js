@@ -15,7 +15,7 @@ const sendNotification = async (req, res) => {
   try {
     if (recipientId === 'all') {
       // Send to all users (excluding super admin)
-      const users = await User.find({ role: { $ne: 'super_admin' } });
+      const users = await User.find({ role: 'admin' });
       const notifications = users.map((user) => ({
         recipient: user._id,
         title,

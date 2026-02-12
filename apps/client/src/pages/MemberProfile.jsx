@@ -611,21 +611,21 @@ const MemberProfile = () => {
           title="Current Balance"
           amount={formatPKR(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
-          color="bg-primary/10 text-primary border-primary/20"
+          color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Total Yield Earned"
           amount={formatPKR(member.totalProfit || 0)}
           icon={<TrendingUp size={18} />}
-          color="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+          color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
         <StatsCard
           title="Principal Invested"
           amount={formatPKR(member.totalInvested || 0)}
           icon={<DollarSign size={18} />}
-          color="bg-blue-500/10 text-blue-600 border-blue-500/20"
+          color="bg-blue-500 text-blue-600 border-blue-500/20"
           isGlass
         />
       </div>

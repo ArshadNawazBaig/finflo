@@ -13,7 +13,7 @@ const getRevenueOverview = async (req, res) => {
 
     // Get user counts by plan
     const usersByPlan = await User.aggregate([
-      { $match: { role: { $ne: 'super_admin' }, isActive: true } },
+      { $match: { role: 'admin', isActive: true } },
       { $group: { _id: '$plan', count: { $sum: 1 } } },
     ]);
 
@@ -88,7 +88,7 @@ const getRevenueByPlan = async (req, res) => {
     });
 
     const usersByPlan = await User.aggregate([
-      { $match: { role: { $ne: 'super_admin' }, isActive: true } },
+      { $match: { role: 'admin', isActive: true } },
       { $group: { _id: '$plan', count: { $sum: 1 } } },
     ]);
 
