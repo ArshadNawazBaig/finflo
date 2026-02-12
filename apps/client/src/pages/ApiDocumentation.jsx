@@ -135,8 +135,12 @@ const ApiDocumentation = () => {
     { id: 'repayments', label: 'Repayments', icon: CreditCard },
     { id: 'members', label: 'Members', icon: Layout },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard },
+    { id: 'activity', label: 'Activity Logs', icon: Terminal },
+    { id: 'settings', label: 'System Settings', icon: Shield },
+    { id: 'reports', label: 'Reports', icon: Book },
     { id: 'support', label: 'Support', icon: MessageSquare },
     { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'contact', label: 'Contact', icon: Globe },
     { id: 'public', label: 'Public API', icon: Globe },
   ];
 
@@ -781,6 +785,146 @@ const ApiDocumentation = () => {
                       text: 'Open Stripe customer portal.',
                       response: { url: 'https://billing.stripe.com/...' },
                     }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'support' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/support"
+                    description={{
+                      text: 'Get my support tickets.',
+                      response: [
+                        {
+                          _id: 'tick_1',
+                          subject: 'Help with loan',
+                          status: 'Open',
+                          replies: [],
+                        },
+                      ],
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'activity' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/activity-logs"
+                    description={{
+                      text: 'List all system activity logs (Super Admin only).',
+                      response: [
+                        {
+                          _id: 'log_1',
+                          user: 'John Doe',
+                          action: 'Created Loan',
+                          details: 'Loan amount $5000',
+                          timestamp: '2026-02-12T10:00:00Z',
+                        },
+                      ],
+                    }}
+                  />
+                  <Endpoint
+                    method="GET"
+                    path="/api/activity-logs/user/:userId"
+                    description={{
+                      text: 'Get activity logs for a specific user.',
+                      response: [
+                        { _id: 'log_2', action: 'Login', timestamp: '...' },
+                      ],
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'settings' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/system-settings"
+                    description={{
+                      text: 'Get basic system settings.',
+                      response: {
+                        siteName: 'LoanMaster',
+                        maintenanceMode: false,
+                        defaultInterestRate: 5,
+                      },
+                    }}
+                  />
+                  <Endpoint
+                    method="PUT"
+                    path="/api/system-settings"
+                    description={{
+                      text: 'Update system settings (Super Admin only).',
+                      response: { success: true },
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/system-settings/reset"
+                    description={{
+                      text: 'Reset settings to defaults (Super Admin only).',
+                      response: { success: true },
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'reports' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/reports/stats"
+                    description={{
+                      text: 'Get summary statistics for reports.',
+                      response: {
+                        totalLoans: 154,
+                        activeVolume: 850000,
+                        repaymentRate: 98.2,
+                      },
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'contact' && (
+                <>
+                  <Endpoint
+                    method="POST"
+                    path="/api/contact"
+                    description={{
+                      text: 'Send a contact message through the system.',
+                      response: { success: true, message: 'Email sent' },
+                    }}
+                    params={[
+                      {
+                        name: 'name',
+                        type: 'string',
+                        required: true,
+                        desc: 'Sender name',
+                      },
+                      {
+                        name: 'email',
+                        type: 'string',
+                        required: true,
+                        desc: 'Sender email',
+                      },
+                      {
+                        name: 'subject',
+                        type: 'string',
+                        required: true,
+                        desc: 'Message subject',
+                      },
+                      {
+                        name: 'message',
+                        type: 'string',
+                        required: true,
+                        desc: 'Message content',
+                      },
+                    ]}
                   />
                 </>
               )}

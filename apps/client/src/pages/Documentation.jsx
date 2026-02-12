@@ -58,7 +58,11 @@ const Documentation = () => {
               Loan Master is a comprehensive loan management SaaS platform
               designed to streamline your lending operations. From customer
               onboarding to loan tracking and automated reporting, providing
-              everything you need to run a successful lending business.
+              everything you need to run a successful lending business. Released
+              under the <strong className="text-foreground">MIT License</strong>{' '}
+              with professional-grade{' '}
+              <strong className="text-foreground">Issue Templates</strong> for
+              seamless collaboration.
             </p>
           </div>
 
@@ -125,9 +129,9 @@ const Documentation = () => {
               <div className="space-y-2">
                 <h3 className="text-xl font-bold">Create an Account</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sign up for a Loan Master account. You'll start on the Free
-                  plan, which is perfect for testing the platform. No credit
-                  card required.
+                  Sign up for a Loan Master account or clone the repository for
+                  local development. You'll start on the Free plan, which is
+                  perfect for testing the platform. No credit card required.
                 </p>
               </div>
             </div>
@@ -221,6 +225,28 @@ const Documentation = () => {
                 Generate financial reports instantly. Track repayment rates,
                 total outstanding amounts, and revenue growth with visual
                 charts.
+              </p>
+            </div>
+            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Globe className="w-6 h-6 text-orange-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Modern Responsive UX</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Experience a state-of-the-art interface with a full-screen
+                (100vh) immersive Hero section, fluid animations, and perfect
+                vertical alignment optimized for both mobile and desktop.
+              </p>
+            </div>
+            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Bell className="w-6 h-6 text-blue-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Dynamic FAQ & Support</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Leverage a sophisticated, interactive FAQ system with accordion
+                animations Powered by Framer Motion, ensuring your customers get
+                the answers they need instantly.
               </p>
             </div>
           </div>
