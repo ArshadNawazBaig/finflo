@@ -18,6 +18,7 @@ import Pagination from '@/components/ui/Pagination';
 import BillingSkeleton from '@/components/BillingSkeleton';
 import InvoiceCard from '@/components/InvoiceCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Billing = () => {
   const [billingData, setBillingData] = useState(null);
@@ -327,9 +328,12 @@ const Billing = () => {
                       ));
                     })()
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground text-sm">
-                      No payment methods added.
-                    </div>
+                    <EmptyState
+                      icon={CreditCard}
+                      title="No Payment Methods"
+                      description="You haven't added any credit or debit cards yet."
+                      className="border-none bg-transparent py-8"
+                    />
                   )}
                 </div>
               </section>
@@ -359,9 +363,12 @@ const Billing = () => {
                     )}
 
                     {displayInvoices.length === 0 && (
-                      <div className="py-12 text-center text-slate-500">
-                        No billing history found.
-                      </div>
+                      <EmptyState
+                        icon={Download}
+                        title="No Billing History"
+                        description="Your invoice list is currently empty."
+                        className="border-none bg-transparent py-12"
+                      />
                     )}
                   </div>
                 ) : (
@@ -478,11 +485,13 @@ const Billing = () => {
                             ))
                           ) : (
                             <tr>
-                              <td
-                                colSpan="6"
-                                className="px-4 py-12 text-center text-muted-foreground"
-                              >
-                                No invoices found.
+                              <td colSpan="6" className="px-4 py-4">
+                                <EmptyState
+                                  icon={Download}
+                                  title="No Invoices Found"
+                                  description="Your billing history is currently empty."
+                                  className="border-none bg-transparent py-12"
+                                />
                               </td>
                             </tr>
                           )}

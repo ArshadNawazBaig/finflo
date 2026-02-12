@@ -24,6 +24,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -206,9 +207,16 @@ const Loans = () => {
             )}
 
             {loans.length === 0 && (
-              <div className="py-12 text-center text-slate-500">
-                No loans found.
-              </div>
+              <EmptyState
+                icon={CreditCard}
+                title="No Loans Found"
+                description={
+                  searchTerm
+                    ? "We couldn't find any loans matching your search."
+                    : 'No loans have been issued yet. Start by creating a new loan for a customer.'
+                }
+                className="border-none bg-card/50"
+              />
             )}
           </div>
         ) : (

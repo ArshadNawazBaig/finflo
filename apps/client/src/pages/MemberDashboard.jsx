@@ -9,6 +9,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatPKR } from '@/lib/utils';
+import EmptyState from '@/components/ui/EmptyState';
 
 const MemberDashboard = () => {
   const [member, setMember] = useState(null);
@@ -184,13 +185,12 @@ const MemberDashboard = () => {
         </div>
 
         {loans.length === 0 && !loading ? (
-          <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
-            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-            <p className="font-bold text-muted-foreground">No loans yet</p>
-            <p className="text-sm text-muted-foreground/80 dark:text-muted-foreground font-medium">
-              Request your first loan to get started
-            </p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No Loans Yet"
+            description="You haven't requested any loans yet. Start your first application to get started."
+            className="border-none bg-card/50"
+          />
         ) : (
           <div className="space-y-3">
             {loans.map((loan) => (

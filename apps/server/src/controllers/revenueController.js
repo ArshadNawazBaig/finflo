@@ -23,14 +23,14 @@ const getRevenueOverview = async (req, res) => {
       mrr += (planPrices[_id] || 0) * count;
     });
 
-    // Get total active users
-    const totalActiveUsers = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+    // Get total active businesses (admins)
+    const totalActiveBusinesses = await User.countDocuments({
+      role: 'admin',
       isActive: true,
     });
 
-    // Calculate ARPU (Average Revenue Per User)
-    const arpu = totalActiveUsers > 0 ? mrr / totalActiveUsers : 0;
+    // Calculate ARPU (Average Revenue Per Business)
+    const arpu = totalActiveBusinesses > 0 ? mrr / totalActiveBusinesses : 0;
 
     // Get previous month MRR for growth calculation
     const oneMonthAgo = new Date();
@@ -39,7 +39,7 @@ const getRevenueOverview = async (req, res) => {
     const previousMonthUsers = await User.aggregate([
       {
         $match: {
-          role: { $ne: 'super_admin' },
+          role: 'admin',
           isActive: true,
           createdAt: { $lte: oneMonthAgo },
         },
@@ -69,7 +69,7 @@ const getRevenueOverview = async (req, res) => {
       totalRevenue,
       growthRate,
       arpu,
-      totalActiveUsers,
+      totalActiveBusinesses,
       previousMrr,
     });
   } catch (error) {
@@ -111,17 +111,17 @@ const getSubscriptionMetrics = async (req, res) => {
   try {
     // Plan distribution
     const planDistribution = await User.aggregate([
-      { $match: { role: { $ne: 'super_admin' } } },
+      { $match: { role: 'admin' } },
       { $group: { _id: '$plan', count: { $sum: 1 } } },
     ]);
 
     // Active vs inactive
     const activeCount = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       isActive: true,
     });
     const inactiveCount = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       isActive: false,
     });
 
@@ -135,7 +135,7 @@ const getSubscriptionMetrics = async (req, res) => {
     thisMonthStart.setHours(0, 0, 0, 0);
 
     const newUsersThisMonth = await User.countDocuments({
-      role: { $ne: 'super_admin' },
+      role: 'admin',
       createdAt: { $gte: thisMonthStart },
     });
 

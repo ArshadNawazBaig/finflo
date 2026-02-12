@@ -35,6 +35,7 @@ import autoTable from 'jspdf-autotable';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -788,11 +789,12 @@ const MemberProfile = () => {
 
             <div className="space-y-4">
               {investments.length === 0 ? (
-                <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
-                    Zero Recorded Transactions
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Wallet}
+                  title="No Transactions"
+                  description="Zero recorded transactions for this member yet."
+                  className="py-12 border-none bg-transparent"
+                />
               ) : (
                 investments.map((inv) => (
                   <div

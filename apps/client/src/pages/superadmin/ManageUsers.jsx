@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/SendNotificationModal';
 import UserCard from '@/components/UserCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   Select,
   SelectContent,
@@ -311,13 +312,12 @@ const ManageUsers = () => {
           ))}
         </div>
       ) : users.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
-          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="font-bold text-lg">No users found</p>
-          <p className="text-muted-foreground text-sm">
-            Try adjusting your search or filters
-          </p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No Businesses Found"
+          description="We couldn't find any registered platforms matching your current filters."
+          className="border-none bg-card/50"
+        />
       ) : isMobile ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">

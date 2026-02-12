@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
 import Tooltip from '@/components/ui/Tooltip';
+import EmptyState from '@/components/ui/EmptyState';
 import { capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -228,9 +229,12 @@ const CustomerTable = ({
         </table>
       </div>
       {data.length === 0 && (
-        <div className="py-12 text-center text-slate-500">
-          No customers found.
-        </div>
+        <EmptyState
+          icon={UserPlus}
+          title="No Customers Found"
+          description="Your customer list is currently empty. Start by adding your first customer."
+          className="border-none bg-transparent py-12"
+        />
       )}
       {pagination && (
         <Pagination

@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from './ui/Pagination';
+import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 
 const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
@@ -147,9 +148,12 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
         </tbody>
       </table>
       {data.length === 0 && (
-        <div className="py-12 text-center text-slate-500">
-          No staff members found.
-        </div>
+        <EmptyState
+          icon={UserIcon}
+          title="No Staff Members"
+          description="Your team list is empty. Add staff members to help manage your business."
+          className="border-none bg-transparent py-12"
+        />
       )}
       {pagination && data.length > 0 && (
         <Pagination

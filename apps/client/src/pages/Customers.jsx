@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/ConvertToMemberModal';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -247,9 +248,16 @@ const Customers = () => {
                 )}
 
                 {customers.length === 0 && (
-                  <div className="py-12 text-center text-slate-500">
-                    No customers found.
-                  </div>
+                  <EmptyState
+                    icon={Users}
+                    title="No Customers Found"
+                    description={
+                      searchTerm
+                        ? "We couldn't find any customers matching your search."
+                        : 'Your customer list is currently empty. Start by adding your first client.'
+                    }
+                    className="border-none bg-card/50"
+                  />
                 )}
               </div>
             ) : (

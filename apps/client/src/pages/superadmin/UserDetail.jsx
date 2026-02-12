@@ -29,6 +29,8 @@ import {
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import StatsCard from '@/components/StatsCard';
+import EmptyState from '@/components/ui/EmptyState';
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -265,49 +267,49 @@ const UserDetail = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading
           ? [...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-2xl" />
+              <Skeleton key={i} className="h-32 rounded-3xl shadow-sm" />
             ))
           : [
               {
-                label: 'Customers',
-                value: stats.customerCount,
-                icon: Users,
-                color: 'text-blue-500',
+                title: 'Total Customers',
+                amount: stats.customerCount || 0,
+                icon: <Users size={20} />,
+                color: 'bg-emerald-500 shadow-emerald-500/20',
+                subtitle: 'Platform-wide reach',
               },
               {
-                label: 'Total Loans',
-                value: stats.loanCount,
-                icon: CreditCard,
-                color: 'text-emerald-500',
+                title: 'Total Loans',
+                amount: stats.loanCount || 0,
+                icon: <CreditCard size={20} />,
+                color: 'bg-purple-500 shadow-purple-500/20',
+                subtitle: 'Total issued portfolios',
               },
               {
-                label: 'Active Loans',
-                value: stats.activeLoanCount,
-                icon: TrendingUp,
-                color: 'text-orange-500',
+                title: 'Active Loans',
+                amount: stats.activeLoanCount || 0,
+                icon: <TrendingUp size={20} />,
+                color: 'bg-amber-500 shadow-amber-500/20',
+                subtitle: 'Interest generating assets',
               },
               {
-                label: 'Members',
-                value: stats.memberCount,
-                icon: Users,
-                color: 'text-purple-500',
+                title: 'Team Members',
+                amount: stats.memberCount || 0,
+                icon: <Users size={20} />,
+                color: 'bg-blue-500 shadow-blue-500/20',
+                subtitle: 'Platform operators',
               },
             ].map((stat, i) => (
-              <div
+              <StatsCard
                 key={i}
-                className="p-4 rounded-2xl bg-card border border-border/50"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                  <span className="text-xs font-bold text-muted-foreground uppercase">
-                    {stat.label}
-                  </span>
-                </div>
-                <p className="text-2xl font-black">{stat.value}</p>
-              </div>
+                title={stat.title}
+                amount={stat.amount}
+                icon={stat.icon}
+                color={stat.color}
+                subtitle={stat.subtitle}
+              />
             ))}
       </div>
 
@@ -341,9 +343,12 @@ const UserDetail = () => {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No customers yet
-              </p>
+              <EmptyState
+                icon={Users}
+                title="No Customers Yet"
+                description="This business hasn't onboarded any customers to the platform."
+                className="py-12"
+              />
             )}
           </div>
         </div>
@@ -382,9 +387,12 @@ const UserDetail = () => {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No members yet
-              </p>
+              <EmptyState
+                icon={Users}
+                title="No Members Yet"
+                description="The platform operator hasn't added any team members yet."
+                className="py-12"
+              />
             )}
           </div>
         </div>
@@ -427,9 +435,12 @@ const UserDetail = () => {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No loans yet
-              </p>
+              <EmptyState
+                icon={CreditCard}
+                title="No Loans Found"
+                description="This business hasn't generated any loan transactions yet."
+                className="py-12"
+              />
             )}
           </div>
         </div>

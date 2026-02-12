@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import TicketChat from '@/components/TicketChat';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -198,15 +199,12 @@ const ManageTickets = () => {
                 <Skeleton key={i} className="h-28 rounded-2xl w-full" />
               ))
             ) : filteredTickets.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-                <div className="p-6 bg-muted/50 rounded-full mb-4">
-                  <MessageSquare className="w-10 h-10 opacity-40" />
-                </div>
-                <p className="text-sm font-bold">No tickets found</p>
-                <p className="text-xs opacity-70 mt-1">
-                  Check back later for new inquiries.
-                </p>
-              </div>
+              <EmptyState
+                icon={MessageSquare}
+                title="No Tickets Found"
+                description="Check back later for new inquiries or try adjusting your filters."
+                className="py-12 bg-transparent border-none"
+              />
             ) : (
               filteredTickets.map((ticket) => (
                 <div
@@ -350,17 +348,12 @@ const ManageTickets = () => {
               />
             </Card>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border/50 bg-card/50 backdrop-blur-sm rounded-[2rem] text-muted-foreground hover:bg-muted/30 transition-all duration-500">
-              <div className="p-8 rounded-full bg-muted/50 mb-6 group-hover:scale-110 transition-all duration-500">
-                <MessageSquare className="w-16 h-16 opacity-20" />
-              </div>
-              <h3 className="font-bold text-xl text-foreground mb-2">
-                Select a Ticket
-              </h3>
-              <p className="text-sm font-medium opacity-60">
-                Choose a conversation from the list to view details
-              </p>
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="Select a Ticket"
+              description="Choose a conversation from the list to view the support history and respond."
+              className="flex-1 h-full border-dashed bg-card/30"
+            />
           )}
         </div>
       </div>

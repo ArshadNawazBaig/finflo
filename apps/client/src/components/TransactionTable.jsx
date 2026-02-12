@@ -1,7 +1,8 @@
 import { formatPKR, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Hash } from 'lucide-react';
 import Pagination from './ui/Pagination';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
   const renderSortIcon = (column) => {
@@ -84,9 +85,12 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
         </table>
       </div>
       {data.length === 0 && (
-        <div className="py-12 text-center text-slate-500">
-          No transactions found.
-        </div>
+        <EmptyState
+          icon={Hash}
+          title="No Transactions"
+          description="No financial transactions have been recorded yet."
+          className="border-none bg-transparent py-12"
+        />
       )}
       {pagination && (
         <Pagination

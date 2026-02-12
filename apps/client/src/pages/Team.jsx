@@ -19,6 +19,7 @@ import EditStaffModal from '@/components/EditStaffModal';
 import StaffTable from '@/components/StaffTable';
 import StaffCard from '@/components/StaffCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -277,9 +278,16 @@ const Team = () => {
                 )}
 
                 {staff.length === 0 && (
-                  <div className="py-12 text-center text-slate-500">
-                    No staff members found.
-                  </div>
+                  <EmptyState
+                    icon={Users}
+                    title="No Team Members Found"
+                    description={
+                      searchTerm
+                        ? "We couldn't find any staff matching your search."
+                        : "You haven't added any team members yet. Invite staff to help manage your operations."
+                    }
+                    className="border-none bg-card/50"
+                  />
                 )}
               </div>
             ) : (

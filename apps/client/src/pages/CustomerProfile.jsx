@@ -196,21 +196,21 @@ const CustomerProfile = () => {
           title="Total Borrowed"
           amount={formatPKR(totalBorrowed)}
           icon={<DollarSign size={18} />}
-          color="bg-primary/10 text-primary border-primary/20"
+          color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Outstanding Balance"
           amount={formatPKR(totalOutstanding)}
           icon={<Briefcase size={18} />}
-          color="bg-orange-500/10 text-orange-600 border-orange-500/20"
+          color="bg-orange-500 text-orange-600 border-orange-500/20"
           isGlass
         />
         <StatsCard
           title="Total Repaid"
           amount={formatPKR(totalPaid)}
           icon={<Layers size={18} />}
-          color="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+          color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
       </div>

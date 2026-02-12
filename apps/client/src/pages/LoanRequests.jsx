@@ -30,6 +30,7 @@ import LoanRequestCard from '@/components/LoanRequestCard';
 import TableSkeleton from '@/components/TableSkeleton';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import StatsCard from '@/components/StatsCard';
+import EmptyState from '@/components/ui/EmptyState';
 
 const LoanRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -245,12 +246,12 @@ const LoanRequests = () => {
             {loading ? (
               <TableSkeleton />
             ) : requests.length === 0 ? (
-              <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-xl bg-muted/10">
-                <FileQuestion className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-                <p className="font-medium text-muted-foreground">
-                  No loan requests found
-                </p>
-              </div>
+              <EmptyState
+                icon={FileQuestion}
+                title="No Loan Requests"
+                description="Check back later for new applications or try adjusting your search."
+                className="py-12 border-none bg-card/50"
+              />
             ) : (
               <LoanRequestTable
                 requests={requests}
@@ -285,12 +286,12 @@ const LoanRequests = () => {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : requests.length === 0 ? (
-            <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-xl bg-muted/10">
-              <FileQuestion className="w-12 h-12 mx-auto mb-3 opacity-50 text-muted-foreground" />
-              <p className="font-medium text-muted-foreground">
-                No loan requests found
-              </p>
-            </div>
+            <EmptyState
+              icon={FileQuestion}
+              title="No Loan Requests"
+              description="Check back later for new applications or try adjusting your search."
+              className="py-12 border-none bg-card/50"
+            />
           ) : (
             <div className="space-y-3">
               {requests.map((request) => (

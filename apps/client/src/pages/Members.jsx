@@ -12,6 +12,16 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/TableSkeleton';
 import CardsSkeleton from '@/components/CardsSkeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
 import MemberTable from '@/components/MemberTable';
@@ -32,6 +42,7 @@ const Members = () => {
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteMemberId, setDeleteMemberId] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -144,10 +155,12 @@ const Members = () => {
     toast.success('Member added successfully');
   };
 
-  const handleDeleteMember = async (memberId) => {
+  const handleDeleteMember = async () => {
+    if (!deleteMemberId) return;
     try {
-      await api.delete(`/members/${memberId}`);
+      await api.delete(`/members/${deleteMemberId}`);
       toast.success('Member deleted successfully');
+      setDeleteMemberId(null);
       fetchMembers(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete member');
@@ -248,7 +261,7 @@ const Members = () => {
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <MemberTable
               data={members}
-              onDelete={handleDeleteMember}
+              onDelete={setDeleteMemberId}
               pagination={{
                 currentPage,
                 totalPages,
@@ -274,6 +287,30 @@ const Members = () => {
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={handleMemberAdded}
       />
+
+      <AlertDialog
+        open={!!deleteMemberId}
+        onOpenChange={() => setDeleteMemberId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this member? This action cannot be
+              undone and all associated data will be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteMember}
+              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
+            >
+              Delete Member
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

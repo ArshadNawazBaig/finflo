@@ -9,9 +9,11 @@ import {
   Banknote,
   MessageSquare,
   Mail,
+  CreditCard,
 } from 'lucide-react';
 import Pagination from './ui/Pagination';
 import { Link } from 'react-router-dom';
+import EmptyState from '@/components/ui/EmptyState';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
@@ -265,7 +267,12 @@ const LoanTable = ({
         </table>
       </div>
       {data.length === 0 && (
-        <div className="py-12 text-center text-slate-500">No loans found.</div>
+        <EmptyState
+          icon={CreditCard}
+          title="No Loans Found"
+          description="There are no loan records to display at this time."
+          className="border-none bg-transparent py-12"
+        />
       )}
       {pagination && (
         <Pagination

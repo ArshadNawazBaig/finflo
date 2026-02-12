@@ -228,14 +228,14 @@ const RevenueReports = () => {
                 subtitle="MoM Growth"
               />
               <StatsCard
-                title="Avg Revenue Per User"
+                title="Avg Revenue Per Business"
                 amount={`$${overview.arpu.toFixed(2)}`}
                 icon={<Users size={20} />}
                 color="bg-emerald-500 shadow-emerald-500/20"
               />
               <StatsCard
-                title="Active Subscribers"
-                amount={overview.totalActiveUsers}
+                title="Active Businesses"
+                amount={overview.totalActiveBusinesses}
                 icon={<CreditCard size={20} />}
                 color="bg-amber-500 shadow-amber-500/20"
               />
@@ -471,7 +471,7 @@ const RevenueReports = () => {
                       {metrics.activeCount}
                     </p>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Active Users
+                      Active Businesses
                     </p>
                   </div>
                   <div className="text-center">
@@ -495,7 +495,7 @@ const RevenueReports = () => {
                       {metrics.totalUsers}
                     </p>
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Total Users
+                      Total Businesses
                     </p>
                   </div>
                 </div>

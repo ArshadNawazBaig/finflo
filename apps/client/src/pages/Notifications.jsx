@@ -16,6 +16,7 @@ import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import EmptyState from '@/components/ui/EmptyState';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -206,18 +207,16 @@ const Notifications = () => {
               <Skeleton key={i} className="h-24 rounded-2xl w-full" />
             ))
           ) : notifications.length === 0 ? (
-            <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-md p-8 sm:p-16 text-center shadow-sm">
-              <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bell className="w-10 h-10 text-muted-foreground/50" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">
-                No notifications yet
-              </h3>
-              <p className="text-muted-foreground font-medium">
-                Running smoothly! We'll notify you when something important
-                happens.
-              </p>
-            </div>
+            <EmptyState
+              icon={Bell}
+              title="No Notifications Yet"
+              description={
+                search
+                  ? "We couldn't find any notifications matching your search."
+                  : "Running smoothly! We'll notify you when something important happens."
+              }
+              className="border-none bg-card/50"
+            />
           ) : (
             <div className="grid gap-4">
               {notifications.map((notification) => (

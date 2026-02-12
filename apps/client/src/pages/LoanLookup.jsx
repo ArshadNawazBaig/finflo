@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { cn, formatPKR } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
+import EmptyState from '@/components/ui/EmptyState';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
@@ -530,14 +531,12 @@ const LoanLookup = () => {
                   </Card>
                 ))
               ) : (
-                <div className="col-span-full py-12 text-center bg-card/50 border border-border/50 rounded-2xl border-dashed">
-                  <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold">No Loans Found</h3>
-                  <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-                    We couldn't find any loan records associated with these
-                    details.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No Loans Found"
+                  description="We couldn't find any loan records associated with these details."
+                  className="col-span-full border-none bg-card/30"
+                />
               )}
             </div>
           </div>

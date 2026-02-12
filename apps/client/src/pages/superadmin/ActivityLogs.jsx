@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import ActivityLogCard from '@/components/ActivityLogCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -218,15 +219,16 @@ const ActivityLogs = () => {
           ))}
         </div>
       ) : logs.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
-          <ScrollText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="font-bold text-lg">No activity logs found</p>
-          <p className="text-muted-foreground text-sm">
-            {search || category
-              ? 'Try adjusting your search or filters'
-              : 'Activity logs will appear here'}
-          </p>
-        </div>
+        <EmptyState
+          icon={ScrollText}
+          title="No Logs Found"
+          description={
+            search || category
+              ? "We couldn't find any activity logs matching your filters."
+              : 'Activity logs will appear here once system actions occur.'
+          }
+          className="border-none bg-card/50"
+        />
       ) : isMobile ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">

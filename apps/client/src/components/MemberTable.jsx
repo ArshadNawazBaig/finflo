@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
+import EmptyState from '@/components/ui/EmptyState';
 import { formatPKR, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { toast } from 'sonner';
@@ -201,9 +202,12 @@ const MemberTable = ({
       </div>
 
       {data.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          No members found
-        </div>
+        <EmptyState
+          icon={CreditCard}
+          title="No Members Found"
+          description="There are no active members recorded in the system."
+          className="border-none bg-transparent py-12"
+        />
       )}
 
       {pagination && <Pagination {...pagination} />}

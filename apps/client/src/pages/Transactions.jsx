@@ -11,6 +11,7 @@ import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -196,9 +197,16 @@ const Transactions = () => {
             )}
 
             {transactions.length === 0 && (
-              <div className="py-12 text-center text-slate-500">
-                No transactions found.
-              </div>
+              <EmptyState
+                icon={Hash}
+                title="No Transactions Found"
+                description={
+                  searchQuery
+                    ? "We couldn't find any repayments matching your search."
+                    : 'No repayments have been recorded yet. Transactions will appear here as customers pay back their loans.'
+                }
+                className="border-none bg-card/50"
+              />
             )}
           </div>
         ) : (

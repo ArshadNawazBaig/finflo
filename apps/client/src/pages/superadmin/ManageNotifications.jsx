@@ -39,6 +39,7 @@ import {
 import SendNotificationModal from '@/components/SendNotificationModal';
 import NotificationCard from '@/components/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const ManageNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -231,15 +232,16 @@ const ManageNotifications = () => {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl border border-border/50 bg-card">
-          <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="font-bold text-lg">No notifications found</p>
-          <p className="text-muted-foreground text-sm">
-            {search
-              ? 'Try adjusting your search'
-              : 'Start by sending a notification to your users'}
-          </p>
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="No Notifications Found"
+          description={
+            search
+              ? "We couldn't find any notifications matching your search."
+              : 'Your broadcast history is currently empty. Start by sending a notification to all users.'
+          }
+          className="border-none bg-card/50"
+        />
       ) : isMobile ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">

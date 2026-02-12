@@ -12,6 +12,8 @@ import { formatPKR, capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 import Pagination from './ui/Pagination';
+import EmptyState from '@/components/ui/EmptyState';
+import { FileQuestion } from 'lucide-react';
 
 const LoanRequestTable = ({
   requests,
@@ -208,9 +210,12 @@ const LoanRequestTable = ({
       </div>
 
       {requests.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          No requests found
-        </div>
+        <EmptyState
+          icon={FileQuestion}
+          title="No Requests"
+          description="There are no pending loan requests at the moment."
+          className="border-none bg-transparent py-12"
+        />
       )}
 
       {pagination && <Pagination {...pagination} />}
