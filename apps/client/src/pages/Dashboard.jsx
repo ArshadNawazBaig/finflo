@@ -16,7 +16,7 @@ import CalendarSkeleton from '@/components/CalendarSkeleton';
 import { Button } from '@/components/ui/button';
 // import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Unused
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
 
@@ -28,9 +28,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
+  const [userName, setUserName] = useState('admin');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Get user name from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user?.name) {
+      setUserName(user.name);
+    }
+
     const fetchDashboardData = async () => {
       try {
         const [statsRes, upcomingRes, billingRes] = await Promise.all([
@@ -62,7 +69,15 @@ const Dashboard = () => {
             Financial <span className="text-primary italic">Intelligence</span>
           </>
         }
-        description="Welcome back, admin. Here's your portfolio performance today."
+        description={
+          <>
+            Welcome back,{' '}
+            <strong className="text-foreground capitalize font-black">
+              {userName}
+            </strong>
+            . Here's your portfolio performance today.
+          </>
+        }
       />
 
       {/* Plan Usage Banner */}
