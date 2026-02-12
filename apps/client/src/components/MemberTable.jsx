@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   EyeIcon,
   Copy,
+  Users,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from './ui/Pagination';
@@ -203,7 +204,7 @@ const MemberTable = ({
 
       {data.length === 0 && (
         <EmptyState
-          icon={CreditCard}
+          icon={Users}
           title="No Members Found"
           description="There are no active members recorded in the system."
           className="border-none bg-transparent py-12"

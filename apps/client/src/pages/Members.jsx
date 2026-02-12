@@ -31,6 +31,7 @@ import { toast } from 'sonner';
 import { formatPKR } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -252,9 +253,16 @@ const Members = () => {
             )}
 
             {members.length === 0 && (
-              <div className="py-12 text-center text-slate-500">
-                No members found.
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No Members Found"
+                description={
+                  searchTerm
+                    ? "We couldn't find any members matching your search."
+                    : 'No members have been added yet. Start by inviting or adding a new member.'
+                }
+                className="border-none bg-card/50"
+              />
             )}
           </div>
         ) : (
