@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Features = ({ features }) => {
+  const navigate = useNavigate();
   return (
     <section
       id="architecture"
@@ -47,7 +49,10 @@ const Features = ({ features }) => {
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                 {feature.description}
               </p>
-              <button className="mt-6 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary opacity-50 group-hover:opacity-100 transition-all">
+              <button
+                onClick={() => navigate('/documentation')}
+                className="mt-6 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary opacity-50 group-hover:opacity-100 transition-all"
+              >
                 Read Technical Docs <ArrowRight size={12} />
               </button>
             </motion.div>

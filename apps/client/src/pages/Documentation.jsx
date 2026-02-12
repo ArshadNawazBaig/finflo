@@ -20,6 +20,8 @@ import {
   Eye,
   FileText,
   ChevronDown,
+  Zap,
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -66,7 +68,7 @@ const Documentation = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-primary/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
               <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-primary transition-colors">
                 <Rocket className="w-5 h-5 text-primary" />
@@ -86,7 +88,24 @@ const Documentation = () => {
             </div>
             <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-indigo-500/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
               <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-indigo-500 transition-colors">
-                <Code2 className="w-5 h-5 text-indigo-500" />
+                <Shield className="w-5 h-5 text-indigo-500" />
+                Architecture
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Deep dive into the Multi-Branch infrastructure and AI Risk
+                Engine.
+              </p>
+              <Button
+                variant="outline"
+                className="w-full py-6 rounded-full border-border/50 hover:bg-indigo-500/5 font-black uppercase tracking-widest text-[10px]"
+                onClick={() => setActiveSection('architecture')}
+              >
+                Explore Tech
+              </Button>
+            </div>
+            <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-emerald-500/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
+              <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-emerald-500 transition-colors">
+                <Code2 className="w-5 h-5 text-emerald-500" />
                 API Reference
               </h3>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
@@ -95,11 +114,86 @@ const Documentation = () => {
               </p>
               <Button
                 variant="outline"
-                className="w-full py-6 rounded-full border-border/50 hover:bg-indigo-500/5 font-black uppercase tracking-widest text-[10px]"
+                className="w-full py-6 rounded-full border-border/50 hover:bg-emerald-500/5 font-black uppercase tracking-widest text-[10px]"
                 onClick={() => setActiveSection('api-reference')}
               >
                 View API Docs
               </Button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'architecture',
+      title: 'System Architecture',
+      icon: <Shield className="w-4 h-4" />,
+      content: (
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
+          <div>
+            <h2 className="text-3xl font-black tracking-tighter mb-4">
+              Technical Architecture
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Explore the engineering behind the world's most sophisticated
+              lending operating system.
+            </p>
+          </div>
+
+          <div className="grid gap-8">
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
+                <Globe className="w-5 h-5" />
+                Multi-Branch Infrastructure
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Our infrastructure supports hierarchical tenant isolation. A
+                Super Admin oversees multiple Business Admins, who in turn
+                manage geographically distributed Branches. Each branch
+                maintains isolated staff environments with localized branding
+                and data access controls.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-indigo-500">
+                <Zap className="w-5 h-5" />
+                Intelligent Risk Engine (ECL)
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                The risk engine calculates Expected Credit Loss (ECL) and AI
+                credit scores in real-time. It analyzes income-to-debt ratios,
+                historical payment velocity, and employment stability to provide
+                dynamic lending suggestions and risk-adjusted interest rates.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-emerald-500">
+                <Database className="w-5 h-5" />
+                Immutable Audit Trails
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Compliance is at our core. Every critical system action (rate
+                changes, loan approvals, data updates) is recorded in an
+                immutable ledger. Logs include precise metadata: timestamps,
+                user attribution, and binary "Before vs After" snapshots of the
+                modified data.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-amber-500">
+                <Lock className="w-5 h-5" />
+                Zero-Friction Access Control
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Built-in data normalization ensures seamless entry. All
+                sensitive identifiers (Names, Emails) are processed through
+                high-performance lowercase normalization pipelines, eliminating
+                authentication friction while maintaining cryptographic
+                integrity.
+              </p>
             </div>
           </div>
         </div>

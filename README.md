@@ -5,19 +5,24 @@ A comprehensive Loan Management System designed to streamline the lending proces
 ## 🚀 Key Features
 
 - **Dashboard & Analytics**: Real-time overview of active loans, revenue, and customer statistics with modern, interactive charts.
+- **Multi-Branch Infrastructure**: Centralized management with branch-specific staff access and localized branding.
+- **Intelligent Risk Engine**: AI-driven credit scoring based on income, debt, and historical behavior.
 - **Loan Management**:
   - **Issue Loans**: Flexible configuration for loan amount, interest rate, tenure, and repayment frequency.
   - **Repayments**: Track manual payments and update loan balances automatically.
   - **Status Tracking**: Monitor loans through various stages (Active, Paid, Defaulted, etc.).
-- **Customer Management**:
-  - **Onboarding**: comprehensive customer profiles with contact details and employment information.
+- **Customer & Member Management**:
+  - **Account Types**: Support for multiple account types including **Saving** and **Current** accounts.
+  - **KYC & AML Document Vault**: Securely store and manage identification and collateral documents.
   - **History**: View loan history and repayment behavior for each customer.
-- **Authentication & Security**:
-  - Secure user registration and login using JWT (JSON Web Tokens).
-  - Role-based access control (Admin/User).
-- **File Uploads**: Integrated with **Cloudinary** for secure document storage (e.g., ID proofs, collateral documents).
-- **Email Notifications**: Automated email alerts for loan approvals, due dates, and payment receipts using **SMTP/Mailtrap**.
-- **Payments**: Integrated **Stripe** for subscription management and potential loan processing.
+- **Compliance & Security**:
+  - **Immutable Audit Trails**: Comprehensive logging of critical actions for regulatory compliance.
+  - **Role-Based Access**: Granular permissions for Super Admins, Branch Admins, and Staff.
+  - **Security Protocols**: Business Security Code system for high-stakes authorization.
+- **Integration**:
+  - **File Storage**: Secure document storage integrated with **Cloudinary**.
+  - **Payments**: **Stripe** integration for subscription management.
+  - **Notifications**: Automated alerts for approvals and due dates.
 
 ## 🛠 Tech Stack
 
@@ -34,13 +39,13 @@ A comprehensive Loan Management System designed to streamline the lending proces
 
 ### Backend (Server)
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
+- **Runtime**: Node.js (Express.js)
 - **Database**: MongoDB (Mongoose ODM)
-- **Authentication**: JSON Web Token (JWT), bcryptjs
-- **File Storage**: Cloudinary (Multer storage)
+- **Authentication**: JWT, bcryptjs
+- **File Storage**: Cloudinary (Multer)
 - **Payments**: Stripe API
-- **Logging**: Morgan
+- **ECL Engine**: Expected Credit Loss calculations for IFRS 9 compliance
+- **Logging**: Morgan & Internal Audit Trail Ledger
 
 ## 📋 Prerequisites
 

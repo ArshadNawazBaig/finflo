@@ -39,45 +39,45 @@ const Landing = () => {
   const features = useMemo(
     () => [
       {
-        icon: <Users className="w-6 h-6 text-emerald-500" />,
-        title: 'Member Ecosystem',
-        description:
-          'Self-service portal for borrowers and investors to track ROI and request capital instantly.',
-        color: 'emerald',
-      },
-      {
-        icon: <Key className="w-6 h-6 text-amber-500" />,
-        title: 'Secure Access Protocols',
-        description:
-          'Business Security Code system ensures high-stakes actions are cryptographically authorized.',
-        color: 'amber',
-      },
-      {
         icon: <Layers className="w-6 h-6 text-blue-500" />,
-        title: 'Multitenant Architecture',
+        title: 'Multi-Branch Engine',
         description:
-          'Scale infinitely with our modular cloud-native engine built for global institutions.',
+          'Localize operations across infinite branches with independent staff access and localized branding.',
         color: 'blue',
       },
       {
-        icon: <Database className="w-6 h-6 text-indigo-500" />,
-        title: 'Immutable Ledger',
+        icon: <Zap className="w-6 h-6 text-emerald-500" />,
+        title: 'Intelligent Risk Scoring',
         description:
-          'Every transaction is cryptographically hashed for an indisputable audit trail.',
+          'Automated AI-driven credit assessment using income-to-debt ratios and historical behavioral data.',
+        color: 'emerald',
+      },
+      {
+        icon: <Database className="w-6 h-6 text-indigo-500" />,
+        title: 'Regulatory Audit Trail',
+        description:
+          'Immutable ledger recording every critical action with before/after state comparison for total compliance.',
         color: 'indigo',
       },
       {
-        icon: <Zap className="w-6 h-6 text-rose-500" />,
-        title: 'Real-time Synchronization',
+        icon: <Key className="w-6 h-6 text-amber-500" />,
+        title: 'Multi-Account Vault',
         description:
-          'Instant status updates and push notifications keep every stakeholder in the loop.',
+          'Manage Saving and Current accounts with a secure KYC document vault for ID and collateral storage.',
+        color: 'amber',
+      },
+      {
+        icon: <Users className="w-6 h-6 text-rose-500" />,
+        title: 'Member Ecosystem',
+        description:
+          'Comprehensive self-service portal for borrowers and investors to track ROI and request capital.',
         color: 'rose',
       },
       {
         icon: <Globe className="w-6 h-6 text-violet-500" />,
-        title: 'API First Ecosystem',
+        title: 'API First Architecture',
         description:
-          'Seamlessly integrate with external providers through our high-performance REST API.',
+          'High-performance REST API designed for seamless integration with external financial providers.',
         color: 'violet',
       },
     ],

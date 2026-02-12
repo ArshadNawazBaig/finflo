@@ -47,18 +47,21 @@ const Hero = () => {
                 Start Evolution Now
                 <ArrowRight size={16} />
               </Link>
-              <button className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white">
-                Request Demo
-              </button>
+              <Link
+                to="/documentation"
+                className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
+              >
+                Read Technical Docs
+              </Link>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="flex items-center justify-center gap-6 pt-6 opacity-60 grayscale hover:grayscale-0 transition-all w-full"
+              className="flex items-center justify-center md:justify-start gap-6 pt-6 opacity-60 grayscale hover:grayscale-0 transition-all w-full"
             >
-              <div className="flex flex-col items-center text-center">
+              <div className="flex flex-col items-center text-center md:text-left md:items-start">
                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
                   Trusted By Global Leaders
                 </span>
