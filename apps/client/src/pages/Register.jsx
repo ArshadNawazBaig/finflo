@@ -25,8 +25,13 @@ const Register = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    const payload = {
+      ...formData,
+      name: formData.name.trim().toLowerCase(),
+      email: formData.email.trim().toLowerCase(),
+    };
     try {
-      const { data } = await api.post('/auth/register', formData);
+      const { data } = await api.post('/auth/register', payload);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
 

@@ -51,7 +51,11 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
     setLoading(true);
     try {
       // Create payload. Only include password if it's not empty.
-      const payload = { ...formData };
+      const payload = {
+        ...formData,
+        name: formData.name.trim().toLowerCase(),
+        email: formData.email.trim().toLowerCase(),
+      };
       if (!payload.password) delete payload.password;
 
       await api.put(`/staff/${staff._id}`, payload);

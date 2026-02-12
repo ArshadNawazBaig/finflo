@@ -29,7 +29,7 @@ const MemberLogin = () => {
       // Login as Member
       const { data } = await api.post('/member-auth/login', {
         securityCode,
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 

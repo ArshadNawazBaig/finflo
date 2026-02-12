@@ -43,8 +43,13 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const payload = {
+      ...formData,
+      name: formData.name.trim().toLowerCase(),
+      email: formData.email.trim().toLowerCase(),
+    };
     try {
-      await api.post('/staff', formData);
+      await api.post('/staff', payload);
       setFormData({ name: '', email: '', password: '', branchId: '' });
       onSuccess();
     } catch (error) {

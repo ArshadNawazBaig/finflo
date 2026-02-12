@@ -4,16 +4,18 @@ const { logActivity } = require('./activityLogController');
 // Create Staff Member
 const createStaff = async (req, res) => {
   const { name, email, password, branchId } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
+  const lowercaseName = name?.toLowerCase();
 
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: lowercaseEmail });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     const staff = await User.create({
-      name,
-      email,
+      name: lowercaseName,
+      email: lowercaseEmail,
       password,
       role: 'staff',
       ownerId: req.user._id, // Linked to the Admin who created them
@@ -108,8 +110,8 @@ const updateStaff = async (req, res) => {
       return res.status(404).json({ message: 'Staff member not found' });
     }
 
-    if (name) staff.name = name;
-    if (email) staff.email = email;
+    if (name) staff.name = name.toLowerCase();
+    if (email) staff.email = email.toLowerCase();
     if (password) staff.password = password;
     if (branchId !== undefined) staff.branchId = branchId;
 

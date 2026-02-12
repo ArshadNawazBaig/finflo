@@ -43,8 +43,8 @@ const convertCustomerToMember = async (req, res) => {
       user: customer.user, // Admin/Business Owner
       customer: customer._id,
       branchId: customer.branchId, // Inherit branch from customer
-      name: customer.name,
-      email: customer.email,
+      name: customer.name?.toLowerCase(),
+      email: customer.email?.toLowerCase(),
       phone: customer.phone,
       address: customer.address,
       password, // Will be hashed by pre-save middleware
@@ -248,8 +248,14 @@ const createMember = async (req, res) => {
       customerId,
     } = req.body;
 
+    const lowercaseEmail = email?.toLowerCase();
+    const lowercaseName = name?.toLowerCase();
+
     // Check if email already exists for this user
-    const existingMember = await Member.findOne({ user: userId, email });
+    const existingMember = await Member.findOne({
+      user: userId,
+      email: lowercaseEmail,
+    });
     if (existingMember) {
       return res
         .status(400)
@@ -278,8 +284,8 @@ const createMember = async (req, res) => {
     const memberData = {
       user: userId,
       branchId: req.user.branchId, // Assign creator's branch
-      name,
-      email,
+      name: lowercaseName,
+      email: lowercaseEmail,
       phone,
       address,
       totalInvested: initialInvestment || 0,
@@ -370,7 +376,14 @@ const updateMember = async (req, res) => {
 
     const updatedMember = await Member.findByIdAndUpdate(
       id,
-      { name, email, phone, address, status, profitRate },
+      {
+        name: name?.toLowerCase(),
+        email: email?.toLowerCase(),
+        phone,
+        address,
+        status,
+        profitRate,
+      },
       { new: true, runValidators: true },
     );
 

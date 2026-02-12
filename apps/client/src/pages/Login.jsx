@@ -18,8 +18,12 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    const lowercaseEmail = email.trim().toLowerCase();
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', {
+        email: lowercaseEmail,
+        password,
+      });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
 

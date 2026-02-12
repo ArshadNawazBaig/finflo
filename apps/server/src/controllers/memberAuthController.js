@@ -33,7 +33,7 @@ const loginMember = async (req, res) => {
 
     // Find member by email and verify they belong to this business
     const member = await Member.findOne({
-      email,
+      email: email.toLowerCase(),
       user: business._id,
     }).populate('user', 'name businessName securityCode');
 

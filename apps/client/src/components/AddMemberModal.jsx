@@ -42,6 +42,8 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await api.post('/members', {
         ...formData,
+        name: formData.name.trim().toLowerCase(),
+        email: formData.email.trim().toLowerCase(),
         initialInvestment: parseFloat(formData.initialInvestment) || 0,
         profitRate: parseFloat(formData.profitRate) || 0,
       });

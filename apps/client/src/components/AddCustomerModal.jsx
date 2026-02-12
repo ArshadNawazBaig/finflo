@@ -134,8 +134,14 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setError('');
 
+    const payload = {
+      ...formData,
+      name: formData.name.trim().toLowerCase(),
+      email: formData.email.trim().toLowerCase(),
+    };
+
     try {
-      const { data: newCustomer } = await api.post('/customers', formData);
+      const { data: newCustomer } = await api.post('/customers', payload);
 
       // Upload Documents if any
       if (files.length > 0) {

@@ -64,6 +64,9 @@ const createCustomer = async (req, res) => {
       monthlyIncome,
     } = req.body;
 
+    const lowercaseEmail = email?.toLowerCase();
+    const lowercaseName = name?.toLowerCase();
+
     // Check plan limits
     const user = await User.findById(req.user.effectiveOwnerId).select(
       'plan customerCount',
@@ -82,8 +85,8 @@ const createCustomer = async (req, res) => {
     const customer = new Customer({
       user: req.user.effectiveOwnerId,
       branchId: finalBranchId,
-      name,
-      email,
+      name: lowercaseName,
+      email: lowercaseEmail,
       phone,
       address,
       savingAccountNumber,
@@ -145,6 +148,8 @@ const updateCustomer = async (req, res) => {
       req.params.id,
       {
         ...req.body,
+        name: req.body.name?.toLowerCase(),
+        email: req.body.email?.toLowerCase(),
         // Ensure user/owner cannot be changed via update
         user: customer.user,
       },

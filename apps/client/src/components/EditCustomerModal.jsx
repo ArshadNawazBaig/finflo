@@ -162,7 +162,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
       }
 
       // 2. Update Core Details
-      await api.put(`/customers/${customer._id}`, formData);
+      const payload = {
+        ...formData,
+        name: formData.name.trim().toLowerCase(),
+        email: formData.email.trim().toLowerCase(),
+      };
+      await api.put(`/customers/${customer._id}`, payload);
 
       // 3. Upload New Documents if any
       if (files.length > 0) {

@@ -11,17 +11,19 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
+  const lowercaseName = name?.toLowerCase();
 
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: lowercaseEmail });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: lowercaseName,
+      email: lowercaseEmail,
       password,
     });
 
@@ -53,9 +55,10 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: lowercaseEmail });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -127,8 +130,8 @@ const getMe = async (req, res) => {
 
 const updateDetails = async (req, res) => {
   const fieldsToUpdate = {
-    name: req.body.name,
-    email: req.body.email,
+    name: req.body.name?.toLowerCase(),
+    email: req.body.email?.toLowerCase(),
   };
 
   try {
@@ -218,9 +221,10 @@ const updatePassword = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: lowercaseEmail });
 
     if (!user) {
       return res.status(404).json({ message: 'No user with that email' });

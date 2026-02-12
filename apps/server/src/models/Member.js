@@ -17,8 +17,8 @@ const memberSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
-    name: { type: String, required: true },
-    email: { type: String, required: true },
+    name: { type: String, required: true, lowercase: true },
+    email: { type: String, required: true, lowercase: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
     role: {
