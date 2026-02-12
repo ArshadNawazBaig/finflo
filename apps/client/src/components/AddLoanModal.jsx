@@ -53,6 +53,23 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         }
       };
       fetchCustomers();
+
+      const fetchSettings = async () => {
+        try {
+          const { data } = await api.get('/system-settings');
+          if (data && data.defaultInterestRate) {
+            setFormData((prev) => {
+              if (!prev.rate) {
+                return { ...prev, rate: data.defaultInterestRate };
+              }
+              return prev;
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch system settings:', error);
+        }
+      };
+      fetchSettings();
     }
   }, [isOpen]);
 
