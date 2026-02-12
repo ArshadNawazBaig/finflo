@@ -23,7 +23,8 @@ const getCustomers = async (req, res) => {
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
         { cnic: { $regex: search, $options: 'i' } },
-        { accountNumber: { $regex: search, $options: 'i' } },
+        { savingAccountNumber: { $regex: search, $options: 'i' } },
+        { currentAccountNumber: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -48,33 +49,21 @@ const getCustomers = async (req, res) => {
 };
 
 const createCustomer = async (req, res) => {
-  const { name, email, phone, address, branchId } = req.body;
-
   try {
+    const {
+      name,
+      email,
+      phone,
+      address,
+      branchId,
+      savingAccountNumber,
+      currentAccountNumber,
+    } = req.body;
+
     // Check plan limits
     const user = await User.findById(req.user.effectiveOwnerId).select(
       'plan customerCount',
     );
-    const userPlan = user.plan || 'Free';
-
-    // Count existing customers for this user
-    const customerCount = await Customer.countDocuments({
-      user: req.user.effectiveOwnerId,
-    });
-
-    // Validate against plan limits
-    const limitCheck = canAddCustomer(userPlan, customerCount);
-    if (!limitCheck.allowed) {
-      return res.status(403).json({
-        message: limitCheck.message,
-        limit: limitCheck.limit,
-        current: limitCheck.current,
-        plan: userPlan,
-        upgradeRequired: true,
-      });
-    }
-
-    const { name, email, phone, address, branchId } = req.body;
 
     // Determine branchId assignment
     let finalBranchId = branchId;
@@ -93,6 +82,8 @@ const createCustomer = async (req, res) => {
       email,
       phone,
       address,
+      savingAccountNumber,
+      currentAccountNumber,
     });
 
     const createdCustomer = await customer.save();
@@ -124,26 +115,26 @@ const updateCustomer = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    // Prevent account number change if already set
-    if (
-      customer.accountNumber &&
-      req.body.accountNumber &&
-      customer.accountNumber !== req.body.accountNumber
-    ) {
-      return res
-        .status(400)
-        .json({ message: 'Account number cannot be changed once assigned' });
-    }
-
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
-      { ...req.body }, // Explicitly include all fields from body
+      {
+        ...req.body,
+        // Ensure user/owner cannot be changed via update
+        user: customer.user,
+      },
       { new: true, runValidators: true },
     );
 
     // Sync to Member if exists
     if (updatedCustomer.memberId) {
-      const syncFields = ['cnic', 'job', 'monthlyIncome', 'accountNumber'];
+      const syncFields = [
+        'cnic',
+        'job',
+        'monthlyIncome',
+        'accountNumber',
+        'savingAccountNumber',
+        'currentAccountNumber',
+      ];
       const memberUpdate = {};
       syncFields.forEach((field) => {
         if (req.body[field] !== undefined) {

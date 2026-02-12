@@ -422,13 +422,25 @@ const CustomerProfile = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                      Account Number
-                    </span>
-                    <span className="text-sm font-black font-mono text-primary">
-                      {customer.accountNumber || 'Pending Generation'}
-                    </span>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                        <Wallet size={10} className="text-primary" />
+                        Saving Account
+                      </span>
+                      <span className="text-sm font-black font-mono text-primary">
+                        {customer.savingAccountNumber || 'Not Assigned'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                        <Wallet size={10} className="text-indigo-500" />
+                        Current Account
+                      </span>
+                      <span className="text-sm font-black font-mono text-indigo-500">
+                        {customer.currentAccountNumber || 'Not Assigned'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

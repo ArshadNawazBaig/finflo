@@ -56,7 +56,7 @@ const MemberTable = ({
                 </div>
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
-                Account No.
+                Accounts
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
                 Active Loans
@@ -112,24 +112,45 @@ const MemberTable = ({
                   {formatPKR(member.currentBalance || 0)}
                 </td>
                 <td className="py-4 px-4 text-center">
-                  <div className="flex justify-center">
-                    {member.accountNumber ? (
+                  <div className="flex items-center justify-center gap-2">
+                    {member.savingAccountNumber && (
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(member.accountNumber);
-                          toast.success('Account number copied to clipboard');
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(
+                            member.savingAccountNumber,
+                          );
+                          toast.success('Saving account copied');
                         }}
-                        className="group/acc flex items-center gap-2 font-mono text-xs font-medium text-muted-foreground bg-muted/50 px-2.5 py-1 rounded hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+                        className="group/acc flex items-center gap-1.5 font-black text-[9px] uppercase tracking-tighter bg-primary/10 text-primary px-2 py-1 rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm"
+                        title={member.savingAccountNumber}
                       >
-                        {member.accountNumber}
-                        <Copy
-                          size={10}
-                          className="opacity-0 group-hover/acc:opacity-100 transition-opacity"
-                        />
+                        SAV
+                        <Copy size={8} />
                       </button>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
                     )}
+                    {member.currentAccountNumber && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(
+                            member.currentAccountNumber,
+                          );
+                          toast.success('Current account copied');
+                        }}
+                        className="group/acc flex items-center gap-1.5 font-black text-[9px] uppercase tracking-tighter bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded-lg hover:bg-indigo-500 hover:text-white transition-all shadow-sm"
+                        title={member.currentAccountNumber}
+                      >
+                        CUR
+                        <Copy size={8} />
+                      </button>
+                    )}
+                    {!member.savingAccountNumber &&
+                      !member.currentAccountNumber && (
+                        <span className="text-muted-foreground text-[10px] italic opacity-50">
+                          None
+                        </span>
+                      )}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-center">

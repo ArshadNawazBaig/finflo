@@ -38,8 +38,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
     cnic: '',
     job: '',
     monthlyIncome: '',
-    accountNumber: '',
     branchId: '',
+    savingAccountNumber: '',
+    currentAccountNumber: '',
   });
   const [branches, setBranches] = useState([]);
   const [fetchingBranches, setFetchingBranches] = useState(false);
@@ -76,8 +77,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         cnic: customer.cnic || '',
         job: customer.job || '',
         monthlyIncome: customer.monthlyIncome || '',
-        accountNumber: customer.accountNumber || '',
         branchId: customer.branchId || '',
+        savingAccountNumber: customer.savingAccountNumber || '',
+        currentAccountNumber: customer.currentAccountNumber || '',
       });
       setFiles([]);
       setExistingDocs(customer.documents || []);
@@ -85,14 +87,16 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
     }
   }, [customer]);
 
-  const generateAccountNumber = () => {
+  const generateAccountNumber = (type = 'savingAccountNumber') => {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
     for (let i = 0; i < 14; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData((prev) => ({ ...prev, accountNumber: result }));
-    toast.success('Account number generated');
+    setFormData((prev) => ({ ...prev, [type]: result }));
+    toast.success(
+      `${type === 'savingAccountNumber' ? 'Saving' : 'Current'} number generated`,
+    );
   };
 
   const handleFileChange = (e) => {
@@ -368,27 +372,58 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Account Number</span>
-                    {formData.accountNumber && (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                    )}
+                    <span>Saving Account</span>
+                    <Wallet className="w-3 h-3 opacity-50" />
                   </Label>
                   <div className="flex gap-2">
                     <Input
-                      name="accountNumber"
+                      name="savingAccountNumber"
                       readOnly
-                      value={formData.accountNumber}
+                      value={formData.savingAccountNumber}
                       placeholder="Generate..."
                       className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
-                        customer.accountNumber
+                        formData.savingAccountNumber
                           ? 'bg-muted/30 text-muted-foreground w-full'
                           : 'bg-muted/5'
                       }`}
                     />
-                    {!formData.accountNumber && (
+                    {!formData.savingAccountNumber && (
                       <Button
                         type="button"
-                        onClick={generateAccountNumber}
+                        onClick={() =>
+                          generateAccountNumber('savingAccountNumber')
+                        }
+                        variant="outline"
+                        className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
+                      >
+                        Gen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
+                    <span>Current Account</span>
+                    <Wallet className="w-3 h-3 opacity-50" />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      name="currentAccountNumber"
+                      readOnly
+                      value={formData.currentAccountNumber}
+                      placeholder="Generate..."
+                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
+                        formData.currentAccountNumber
+                          ? 'bg-muted/30 text-muted-foreground w-full'
+                          : 'bg-muted/5'
+                      }`}
+                    />
+                    {!formData.currentAccountNumber && (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          generateAccountNumber('currentAccountNumber')
+                        }
                         variant="outline"
                         className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
                       >

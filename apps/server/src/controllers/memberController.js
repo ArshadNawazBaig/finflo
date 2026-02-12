@@ -86,7 +86,8 @@ const getMembers = async (req, res) => {
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
-        { accountNumber: { $regex: search, $options: 'i' } },
+        { savingAccountNumber: { $regex: search, $options: 'i' } },
+        { currentAccountNumber: { $regex: search, $options: 'i' } },
       ];
     }
     if (status) {

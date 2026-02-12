@@ -48,10 +48,14 @@ const createLoan = async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    if (!customer.accountNumber) {
+    if (
+      !customer.accountNumber &&
+      !customer.savingAccountNumber &&
+      !customer.currentAccountNumber
+    ) {
       return res.status(400).json({
         message:
-          'Customer does not have an account number. Please assign one before issuing a loan.',
+          'Customer does not have an account number. Please assign a Saving or Current account before issuing a loan.',
       });
     }
 
@@ -158,10 +162,17 @@ const requestLoan = async (req, res) => {
   const duration = Number(durationInput);
 
   try {
-    // Member must have a linked customer profile
-    if (!req.member.customer) {
+    const customer = await Customer.findById(req.member.customer);
+    // Member must have a linked customer profile and an account number
+    if (
+      !customer ||
+      (!customer.accountNumber &&
+        !customer.savingAccountNumber &&
+        !customer.currentAccountNumber)
+    ) {
       return res.status(400).json({
-        message: 'No customer profile linked to this member account.',
+        message:
+          'Cannot request loan: Your profile is missing an account number (Saving or Current). Please contact support.',
       });
     }
 
@@ -188,7 +199,6 @@ const requestLoan = async (req, res) => {
     }
 
     // Calculate Risk Score
-    const customer = await Customer.findById(req.member.customer);
     const customerHistory = await Loan.find({ customer: req.member.customer });
     const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
 
@@ -261,7 +271,8 @@ const getLoans = async (req, res) => {
           { email: { $regex: search, $options: 'i' } },
           { phone: { $regex: search, $options: 'i' } },
           { cnic: { $regex: search, $options: 'i' } },
-          { accountNumber: { $regex: search, $options: 'i' } },
+          { savingAccountNumber: { $regex: search, $options: 'i' } },
+          { currentAccountNumber: { $regex: search, $options: 'i' } },
         ],
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);

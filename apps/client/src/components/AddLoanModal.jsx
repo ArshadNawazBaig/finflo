@@ -178,11 +178,15 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     const selected = customers.find(
                       (c) => c._id === formData.customerId,
                     );
-                    if (selected && !selected.accountNumber) {
+                    if (
+                      selected &&
+                      !selected.savingAccountNumber &&
+                      !selected.currentAccountNumber
+                    ) {
                       return (
                         <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-tighter animate-pulse">
-                          ⚠️ This customer has no account number. Assignment
-                          blocked.
+                          ⚠️ This customer has no account number
+                          (Saving/Current). Assignment blocked.
                         </p>
                       );
                     }
@@ -314,8 +318,16 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               disabled={
                 loading ||
                 (formData.customerId &&
-                  !customers.find((c) => c._id === formData.customerId)
-                    ?.accountNumber)
+                  (() => {
+                    const customer = customers.find(
+                      (c) => c._id === formData.customerId,
+                    );
+                    return (
+                      customer &&
+                      !customer.savingAccountNumber &&
+                      !customer.currentAccountNumber
+                    );
+                  })())
               }
               variant="gradient"
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
