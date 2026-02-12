@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calculator, Info, ArrowRight } from 'lucide-react';
 import ModernSlider from '../ui/ModernSlider';
+import { useNavigate } from 'react-router-dom';
 
 const LoanCalculator = () => {
   const [amount, setAmount] = useState(25000);
@@ -11,6 +12,7 @@ const LoanCalculator = () => {
   const [monthlyPayment, setMonthlyPayment] = useState(0);
   const [totalPayment, setTotalPayment] = useState(0);
   const [totalInterest, setTotalInterest] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const principal = amount;
@@ -159,7 +161,10 @@ const LoanCalculator = () => {
             </div>
           </div>
 
-          <button className="w-full mt-4 bg-primary text-primary-foreground py-3 rounded-[0.8rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_10px_20px_-5px_rgba(var(--primary),0.3)] hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 group/btn relative overflow-hidden">
+          <button
+            className="w-full mt-4 bg-primary text-primary-foreground py-3 rounded-[0.8rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_10px_20px_-5px_rgba(var(--primary),0.3)] hover:scale-[1.02] transition-all flex items-center justify-center gap-2 active:scale-95 group/btn relative overflow-hidden"
+            onClick={() => navigate('/login')}
+          >
             <span className="relative z-10">Initialize Application</span>
             <ArrowRight
               size={12}
