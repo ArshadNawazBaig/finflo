@@ -4,6 +4,7 @@ const Investment = require('../models/Investment');
 const ProfitDistribution = require('../models/ProfitDistribution');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { canAddMember } = require('../utils/planLimits');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
@@ -62,6 +63,25 @@ const convertCustomerToMember = async (req, res) => {
       details: `Converted customer ${customer.name} to member`,
       req,
     });
+
+    // Notify Admin if created by staff
+    if (req.user.role === 'staff') {
+      try {
+        const notification = new Notification({
+          recipient: req.user.effectiveOwnerId,
+          recipientModel: 'User',
+          title: 'Customer Converted to Member',
+          message: `Staff member ${req.user.name} has converted customer ${customer.name} to a member.`,
+          type: 'info',
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error(
+          'Failed to notify admin about customer conversion:',
+          notifError,
+        );
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -298,6 +318,25 @@ const createMember = async (req, res) => {
         isMember: true,
         memberId: member._id,
       });
+    }
+
+    // Notify Admin if created by staff
+    if (req.user.role === 'staff') {
+      try {
+        const notification = new Notification({
+          recipient: req.user.effectiveOwnerId,
+          recipientModel: 'User',
+          title: 'New Member Created',
+          message: `Staff member ${req.user.name} has created a new member: ${name}.`,
+          type: 'info',
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error(
+          'Failed to notify admin about member creation:',
+          notifError,
+        );
+      }
     }
 
     res.status(201).json(member);

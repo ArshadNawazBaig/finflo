@@ -1,6 +1,7 @@
 const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Member = require('../models/Member');
+const Notification = require('../models/Notification');
 const { canAddCustomer } = require('../utils/planLimits');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
@@ -58,6 +59,9 @@ const createCustomer = async (req, res) => {
       branchId,
       savingAccountNumber,
       currentAccountNumber,
+      cnic,
+      job,
+      monthlyIncome,
     } = req.body;
 
     // Check plan limits
@@ -84,6 +88,9 @@ const createCustomer = async (req, res) => {
       address,
       savingAccountNumber,
       currentAccountNumber,
+      cnic,
+      job,
+      monthlyIncome,
     });
 
     const createdCustomer = await customer.save();
@@ -91,6 +98,25 @@ const createCustomer = async (req, res) => {
     // Update count
     user.customerCount = user.customerCount + 1;
     await user.save();
+
+    // Notify Admin if created by staff
+    if (req.user.role === 'staff') {
+      try {
+        const notification = new Notification({
+          recipient: req.user.effectiveOwnerId,
+          recipientModel: 'User',
+          title: 'New Customer Created',
+          message: `Staff member ${req.user.name} has created a new customer: ${name}.`,
+          type: 'info',
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error(
+          'Failed to notify admin about customer creation:',
+          notifError,
+        );
+      }
+    }
 
     res.status(201).json(createdCustomer);
   } catch (error) {

@@ -282,7 +282,7 @@ const Navbar = ({ onMenuClick }) => {
               </div>
             </div>
             <div className="relative">
-              <div className="w-9 h-9 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-110 transition-all duration-500 ring-2 ring-white/10 group-hover:ring-primary/40 hover:brightness-110 overflow-hidden">
+              <div className="w-9 h-9 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-110 transition-all duration-500 ring-2 ring-primary hover:brightness-110 overflow-hidden">
                 {user.profilePicture ? (
                   <img
                     src={user.profilePicture}

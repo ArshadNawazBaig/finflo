@@ -126,6 +126,25 @@ const createLoan = async (req, res) => {
 
     const createdLoan = await loan.save();
 
+    // Notify Admin if created by staff
+    if (req.user.role === 'staff') {
+      try {
+        const notification = new Notification({
+          recipient: req.user.effectiveOwnerId,
+          recipientModel: 'User',
+          title: 'New Loan Issued',
+          message: `Staff member ${req.user.name} has issued a new loan of ${principal} for customer ${customer.name}.`,
+          type: 'info',
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error(
+          'Failed to notify admin about loan creation:',
+          notifError,
+        );
+      }
+    }
+
     // Log activity
     await logActivity({
       userId: req.user._id,
