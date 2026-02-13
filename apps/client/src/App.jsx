@@ -68,6 +68,7 @@ const Documentation = lazy(() => import('@/pages/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
 const AuditLogs = lazy(() => import('@/pages/AuditLogs'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
+const Valentine = lazy(() => import('@/pages/Valentine'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -95,6 +96,7 @@ function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/loan-lookup" element={<LoanLookup />} />
+              <Route path="/for-my-love" element={<Valentine />} />
               {/* Public Routes */}
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/documentation/api" element={<ApiDocumentation />} />
