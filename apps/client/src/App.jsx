@@ -96,7 +96,7 @@ function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/loan-lookup" element={<LoanLookup />} />
-              <Route path="/for-my-love" element={<Valentine />} />
+              {/* <Route path="/for-my-love" element={<Valentine />} /> */}
               {/* Public Routes */}
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/documentation/api" element={<ApiDocumentation />} />
