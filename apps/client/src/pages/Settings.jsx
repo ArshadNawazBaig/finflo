@@ -149,12 +149,8 @@ const Settings = () => {
       </div>
 
       <PageHeader
-        title={
-          <>
-            System <span className="text-primary ">Configuration</span>
-          </>
-        }
-        description="Master configuration for your lending workplace."
+        title="Admin Settings"
+        description="Manage your profile, notifications, security, and global configuration."
         className="mb-10"
       />
 

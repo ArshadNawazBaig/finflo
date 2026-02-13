@@ -111,11 +111,7 @@ const MemberLoans = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <PageHeader
-          title={
-            <>
-              My <span className="text-primary ">Loans</span>
-            </>
-          }
+          title="My Loans"
           description="View and manage all your loan requests and active agreements."
         />
         <Button

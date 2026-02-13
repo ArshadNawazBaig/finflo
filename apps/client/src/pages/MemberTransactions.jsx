@@ -185,11 +185,7 @@ const MemberTransactions = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title={
-          <>
-            Activity <span className="text-primary ">Ledger</span>
-          </>
-        }
+        title="Activity Ledger"
         description="Every movement of your funds, recorded with absolute transparency."
       />
 

@@ -192,11 +192,7 @@ const MemberDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title={
-          <>
-            Wealth <span className="text-primary ">Portal</span>
-          </>
-        }
+        title="Wealth Portal"
         description={`Welcome back, ${member?.name}. Manage your wealth and financial targets.`}
       />
 

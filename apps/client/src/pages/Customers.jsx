@@ -195,11 +195,7 @@ const Customers = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 sm:pb-6">
       <PageHeader
-        title={
-          <>
-            Customer <span className="text-primary ">Registry</span>
-          </>
-        }
+        title="Customer Registry"
         description="Registry of all onboarded individuals and corporate entities."
       >
         <Button

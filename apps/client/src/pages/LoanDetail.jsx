@@ -28,9 +28,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
+import PageHeader from '@/components/PageHeader';
+import StatsCard from '@/components/StatsCard';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import DocumentManager from '@/components/DocumentManager';
-import StatsCard from '@/components/StatsCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
 import ApprovalActions from '@/components/loans/ApprovalActions';
@@ -369,116 +370,83 @@ const LoanDetail = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
-        <ShieldCheck className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => navigate('/loans')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-black tracking-tighter">
-                Loan #{loan._id.slice(-6).toUpperCase()}
-              </h1>
-              <span
-                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
-                  loan.status === 'active'
-                    ? 'bg-blue-500/10 text-blue-500'
-                    : loan.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-500'
-                      : loan.status === 'pending'
-                        ? 'bg-amber-500/10 text-amber-500'
-                        : loan.status === 'rejected'
-                          ? 'bg-red-500/10 text-red-500'
-                          : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
-                }`}
-              >
-                {loan.status}
-              </span>
-              {loan.status === 'pending' && (
-                <div className="ml-2 pl-2 border-l border-border/50">
-                  <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
-                </div>
-              )}
+      <PageHeader
+        variant="card"
+        icon={ShieldCheck}
+        onBack={() => navigate('/loans')}
+        title={`Loan #${loan._id.slice(-6).toUpperCase()}`}
+        badge={
+          <div className="flex items-center gap-3">
+            <span
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                loan.status === 'active'
+                  ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                  : loan.status === 'completed'
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                    : loan.status === 'pending'
+                      ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                      : loan.status === 'rejected'
+                        ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                        : 'bg-muted/50 text-muted-foreground border border-border/50'
+              }`}
+            >
+              {loan.status}
+            </span>
+            {loan.status === 'pending' && (
+              <div className="pl-3 border-l border-border/50">
+                <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
+              </div>
+            )}
+          </div>
+        }
+        description={
+          <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <User size={14} className="text-primary" />
+              {loan.customer?.name}
             </div>
-            <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <User size={14} className="text-primary" />
-                {loan.customer?.name}
-              </div>
-              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
-                <span className="text-amber-500">★</span>
-                <span>
-                  {(loan.customer?.trustRating || 5).toFixed(1)}/10 Trust
-                </span>
-              </div>
-              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Calendar size={14} className="text-primary" />
-                Issued {new Date(loan.startDate).toLocaleDateString()}
-              </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
+              <span className="text-amber-500">★</span>
+              <span>
+                {(loan.customer?.trustRating || 5).toFixed(1)}/10 Trust
+              </span>
+            </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Calendar size={14} className="text-primary" />
+              Issued {new Date(loan.startDate).toLocaleDateString()}
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip content="Send WhatsApp Reminder">
-            <a
-              href={generateWhatsAppLink(
-                loan.customer?.phone,
-                loan.customer?.name,
-                loan.emi,
-                new Date(),
-                false,
-              )}
-              target="_blank"
-              rel="noreferrer"
-              className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
-            >
-              <MessageSquare size={20} />
-            </a>
-          </Tooltip>
-          <Tooltip content="Send Email Reminder">
-            <a
-              href={generateEmailLink(
-                loan.customer?.email,
-                loan.customer?.name,
-                loan.emi,
-                new Date(),
-                false,
-              )}
-              className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
-            >
-              <Mail size={20} />
-            </a>
-          </Tooltip>
-          <Tooltip content="Download Statement">
-            <button
-              onClick={handleDownloadStatement}
-              disabled={isExporting}
-              className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-500 hover:text-white transition-all active:scale-95 disabled:opacity-50"
-            >
-              <Download
-                size={20}
-                className={isExporting ? 'animate-bounce' : ''}
-              />
-            </button>
-          </Tooltip>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2 justify-end">
           <Button
             onClick={() => navigate(`/customers/${loan.customer?._id}`)}
-            variant="gradient"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest gap-1 w-full sm:w-auto "
+            variant="outline"
+            className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
           >
-            <Activity className="w-3.5 h-3.5" />
-            Full Profile
+            <Activity className="w-4 h-4" />
+            Profile
           </Button>
+
+          <Tooltip content="Download Loan Statement">
+            <Button
+              variant="gradient"
+              disabled={isExporting}
+              onClick={handleDownloadStatement}
+              className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
+            >
+              {isExporting ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Download size={16} />
+              )}
+              Statement
+            </Button>
+          </Tooltip>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-4">

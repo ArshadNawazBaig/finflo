@@ -129,35 +129,20 @@ const AuditLogs = () => {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-8 rounded-[2.5rem] bg-slate-950 border border-white/5 shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary animate-pulse">
-              <Archive size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-white uppercase ">
-                The Black Box
-              </h1>
-              <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.2em]">
-                System Audit Trace & Logs
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[140px]">
-            <p className="text-[10px] font-black uppercase text-muted-foreground/50 tracking-widest mb-1">
-              Live Feed
-            </p>
-            <p className="text-sm font-black text-white font-mono">
+      <PageHeader
+        title="Trace Ledger"
+        description="System audit trail. Every action, movement, and trace recorded with absolute precision."
+        icon={Archive}
+        variant="card"
+        badge={
+          <div className="px-5 h-12 flex items-center justify-center rounded-2xl bg-slate-900 border border-white/10 text-center min-w-[140px]">
+            <p className="text-sm font-black text-white font-mono gap-2 flex items-center">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               {pagination.total.toLocaleString()} TRACES
             </p>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filters */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">

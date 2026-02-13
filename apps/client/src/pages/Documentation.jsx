@@ -54,7 +54,7 @@ const Documentation = () => {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h2 className="text-3xl font-black tracking-tight mb-4">
-              Welcome to Loan Master
+              Welcome to Loan <span className="text-primary">Master</span>
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Loan Master is a comprehensive loan management SaaS platform

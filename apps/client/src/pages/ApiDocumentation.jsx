@@ -290,18 +290,11 @@ const ApiDocumentation = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9 max-w-4xl">
-            <div className="mb-10">
-              <h2 className="text-3xl font-black tracking-tighter capitalize mb-4">
-                {sidebarItems.find((i) => i.id === activeTab)?.label}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Explore endpoints for{' '}
-                {sidebarItems
-                  .find((i) => i.id === activeTab)
-                  ?.label.toLowerCase()}{' '}
-                management.
-              </p>
-            </div>
+            <PageHeader
+              title={sidebarItems.find((i) => i.id === activeTab)?.label}
+              description={`Explore endpoints for ${sidebarItems.find((i) => i.id === activeTab)?.label.toLowerCase()} management.`}
+              className="mb-10"
+            />
 
             <div className="space-y-6">
               {activeTab === 'auth' && (

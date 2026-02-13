@@ -212,17 +212,17 @@ const ManageUsers = () => {
         title="Manage Users"
         description="View and manage all registered businesses"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="px-4 py-2 rounded-full bg-muted text-sm font-bold">
-            {pagination.total} Total Users
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <span className="px-5 h-12 flex items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground text-xs font-black uppercase tracking-widest border border-border/50">
+            {pagination.total} Total
           </span>
           <Button
             onClick={() => setIsNotificationModalOpen(true)}
             variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+            className="px-8 h-12 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
           >
-            <Send className="w-4 h-4" />
-            Send Notification
+            <Send size={16} />
+            Notify All
           </Button>
         </div>
       </PageHeader>

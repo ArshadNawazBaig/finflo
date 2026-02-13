@@ -81,6 +81,14 @@ const MemberProfile = () => {
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDescription, setTransferDescription] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
+  const [showMemberForm, setShowMemberForm] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    status: '',
+  });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Pagination State
@@ -113,6 +121,13 @@ const MemberProfile = () => {
         api.get(`/members/${id}/profits`),
       ]);
       setMember(memberRes.data);
+      setEditForm({
+        name: memberRes.data.name || '',
+        email: memberRes.data.email || '',
+        phone: memberRes.data.phone || '',
+        address: memberRes.data.address || '',
+        status: memberRes.data.status || '',
+      });
 
       const investmentData = investmentsRes.data || {};
       setInvestments(investmentData.investments || []);
@@ -338,6 +353,18 @@ const MemberProfile = () => {
       toast.error(error.response?.data?.message || 'Transfer failed');
     } finally {
       setIsTransferring(false);
+    }
+  };
+
+  const handleMemberUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/members/${id}`, editForm);
+      toast.success('Member details updated successfully');
+      setShowMemberForm(false);
+      fetchMemberData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update member');
     }
   };
 
@@ -582,89 +609,104 @@ const MemberProfile = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
-        {/* Decorative Background Icon */}
-        <User className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => navigate('/members')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
+      <PageHeader
+        variant="card"
+        icon={User}
+        onBack={() => navigate('/members')}
+        title={
+          <>
+            {capitalize(member.name.split(' ')[0])}{' '}
+            <span className="text-primary ">
+              {capitalize(member.name.split(' ').slice(1).join(' '))}
+            </span>
+          </>
+        }
+        badge={
+          <span
+            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+              member.status === 'active'
+                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                : 'bg-muted/50 text-muted-foreground border border-border/50'
+            }`}
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div>
-            <div className="flex gap-3 mb-1 flex-col sm:flex-row items-start sm:items-center">
-              <h1 className="text-3xl font-black tracking-tighter">
-                {capitalize(member.name.split(' ')[0])}{' '}
-                <span className="text-primary ">
-                  {member.name.split(' ').slice(1).join(' ') || 'Portal'}
-                </span>
-              </h1>
-              <span
-                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
-                  member.status === 'Active'
-                    ? 'bg-emerald-500/10 text-emerald-500'
-                    : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
-                }`}
-              >
-                {member.status}
-              </span>
+            {member.status}
+          </span>
+        }
+        description={
+          <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Mail size={14} className="text-primary" />
+              {member.email}
             </div>
-            <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Mail className="w-4 h-4 text-primary" />
-                {member.email}
-              </div>
-              <div className="w-1 h-1 bg-border rounded-full" />
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Clock className="w-4 h-4 text-primary" />
-                Joined {new Date(member.createdAt).toLocaleDateString()}
-              </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Clock size={14} className="text-primary" />
+              Joined {new Date(member.createdAt).toLocaleDateString()}
             </div>
           </div>
-        </div>
-
-        <div className="flex gap-3 flex-col sm:flex-row items-start sm:items-center">
-          <Tooltip content="Download Full Report">
-            <button
-              onClick={handleDownloadReport}
-              disabled={isExporting}
-              className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-500 hover:text-white transition-all active:scale-95 disabled:opacity-50"
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <Tooltip content="Edit Member Details">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMemberForm(true)}
+              className="w-12 h-12 rounded-2xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all border border-primary/10"
             >
-              <Download
-                size={20}
-                className={isExporting ? 'animate-bounce' : ''}
-              />
-            </button>
+              <Pencil size={18} />
+            </Button>
           </Tooltip>
-          <button
-            onClick={() => setShowProfitRateForm(true)}
-            className="px-6 py-3 bg-muted/50 border border-border/50 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
-          >
-            <Zap className="w-3.5 h-3.5" />
-            Adjust Rates
-          </button>
-          <button
-            onClick={() => setShowTransferForm(true)}
-            className="px-6 py-3 bg-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
-          >
-            <Send size={16} />
-            P2P Transfer
-          </button>
+
+          <Tooltip content="Adjust Performance Rates">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowProfitRateForm(true)}
+              className="w-12 h-12 rounded-2xl bg-amber-500/5 text-amber-600 hover:bg-amber-500 hover:text-white transition-all border border-amber-500/10"
+            >
+              <Zap size={18} />
+            </Button>
+          </Tooltip>
+
+          <Tooltip content="P2P Transfer">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowTransferForm(true)}
+              className="w-12 h-12 rounded-2xl bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/10"
+            >
+              <Send size={18} />
+            </Button>
+          </Tooltip>
+
           <Button
             onClick={() => {
               setInvestmentType('deposit');
               setShowInvestmentForm(true);
             }}
             variant="outline"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2 border-primary/20 hover:bg-primary/5 text-primary"
+            className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
           >
-            <ArrowUpCircle className="w-3.5 h-3.5" />
-            Adjust Balance
+            <ArrowUpCircle className="w-4 h-4" />
+            Balance
+          </Button>
+
+          <Button
+            variant="gradient"
+            disabled={isExporting}
+            onClick={handleDownloadReport}
+            className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
+          >
+            {isExporting ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Download size={16} />
+            )}
+            Report
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Stats Row */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
@@ -695,12 +737,17 @@ const MemberProfile = () => {
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
           {/* Forms (Injected) */}
-          {(showInvestmentForm || showProfitRateForm || showTransferForm) && (
+          {(showInvestmentForm ||
+            showProfitRateForm ||
+            showTransferForm ||
+            showMemberForm) && (
             <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                    {showProfitRateForm ? (
+                    {showMemberForm ? (
+                      <Pencil size={20} />
+                    ) : showProfitRateForm ? (
                       <Zap size={20} />
                     ) : showTransferForm ? (
                       <Send size={20} />
@@ -708,17 +755,20 @@ const MemberProfile = () => {
                       <ArrowUpCircle size={20} />
                     )}
                   </div>
-                  {showProfitRateForm
-                    ? 'Performance Configuration'
-                    : showTransferForm
-                      ? 'P2P Fund Transfer'
-                      : 'Fund Movement'}
+                  {showMemberForm
+                    ? 'Edit Member Profile'
+                    : showProfitRateForm
+                      ? 'Performance Configuration'
+                      : showTransferForm
+                        ? 'P2P Fund Transfer'
+                        : 'Fund Movement'}
                 </h3>
                 <button
                   onClick={() => {
                     setShowInvestmentForm(false);
                     setShowProfitRateForm(false);
                     setShowTransferForm(false);
+                    setShowMemberForm(false);
                   }}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
@@ -726,7 +776,91 @@ const MemberProfile = () => {
                 </button>
               </div>
 
-              {showProfitRateForm ? (
+              {showMemberForm ? (
+                <form onSubmit={handleMemberUpdate} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, name: e.target.value })
+                        }
+                        required
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, email: e.target.value })
+                        }
+                        required
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all lowercase"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.phone}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, phone: e.target.value })
+                        }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Account Status
+                      </label>
+                      <select
+                        value={editForm.status}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, status: e.target.value })
+                        }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Suspended">Suspended</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Physical Address
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.address}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, address: e.target.value })
+                        }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="submit"
+                      variant="gradient"
+                      className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                    >
+                      Update Profile
+                    </Button>
+                  </div>
+                </form>
+              ) : showProfitRateForm ? (
                 <form
                   onSubmit={handleProfitRateUpdate}
                   className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end"
