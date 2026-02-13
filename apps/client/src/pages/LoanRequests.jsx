@@ -29,6 +29,7 @@ import LoanRequestTable from '@/components/LoanRequestTable';
 import LoanRequestCard from '@/components/LoanRequestCard';
 import TableSkeleton from '@/components/TableSkeleton';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import CardsSkeleton from '@/components/CardsSkeleton';
 import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -203,26 +204,30 @@ const LoanRequests = () => {
       />
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-        <StatsCard
-          title="Pending Requests"
-          amount={stats.pending}
-          icon={<Clock size={20} />}
-          color="bg-amber-500 shadow-amber-500/20"
-        />
-        <StatsCard
-          title="Approved Requests"
-          amount={stats.approved}
-          icon={<CheckCircle size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-        />
-        <StatsCard
-          title="Rejected Requests"
-          amount={stats.rejected}
-          icon={<XCircle size={20} />}
-          color="bg-red-500 shadow-red-500/20"
-        />
-      </div>
+      {loading ? (
+        <CardsSkeleton count={3} />
+      ) : (
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          <StatsCard
+            title="Pending Requests"
+            amount={stats.pending}
+            icon={<Clock size={20} />}
+            color="bg-amber-500 shadow-amber-500/20"
+          />
+          <StatsCard
+            title="Approved Requests"
+            amount={stats.approved}
+            icon={<CheckCircle size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Rejected Requests"
+            amount={stats.rejected}
+            icon={<XCircle size={20} />}
+            color="bg-red-500 shadow-red-500/20"
+          />
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="space-y-4">

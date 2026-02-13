@@ -161,13 +161,13 @@ const Dashboard = () => {
             icon={<Download size={20} />}
             color="bg-rose-500 shadow-rose-500/20"
           />
-          <StatsCard
+          {/* <StatsCard
             title="Forecast (6M)"
             amount={formatPKR(stats?.forecast?.total6Months || 0)}
             percentage={stats?.forecast?.percentage}
             icon={<TrendingUp size={20} />}
             color="bg-primary shadow-primary/20"
-          />
+          /> */}
         </div>
       )}
 

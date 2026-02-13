@@ -42,7 +42,7 @@ const CalendarSkeleton = () => {
 
       {/* Details Side-pane Skeleton */}
       <div className="w-full lg:w-80 flex flex-col gap-6">
-        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-6 shadow-sm flex flex-col">
+        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2rem] p-6 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <div>
               <Skeleton className="h-4 w-24 mb-2" />

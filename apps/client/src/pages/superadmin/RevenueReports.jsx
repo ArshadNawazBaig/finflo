@@ -199,7 +199,10 @@ const RevenueReports = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-2xl" />
+              <div
+                key={i}
+                className="h-32 rounded-[2rem] border border-border/50 bg-card/50 animate-pulse"
+              />
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

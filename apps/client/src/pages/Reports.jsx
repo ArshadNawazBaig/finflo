@@ -403,7 +403,20 @@ const Reports = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-8 pt-4 relative space-y-6">
-                {ifrs9Data ? (
+                {regulatoryLoading ? (
+                  <div className="space-y-6 animate-pulse">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Skeleton className="h-20 rounded-2xl" />
+                      <Skeleton className="h-20 rounded-2xl" />
+                    </div>
+                    <div className="space-y-3">
+                      <Skeleton className="h-4 w-24 rounded" />
+                      {[...Array(3)].map((_, i) => (
+                        <Skeleton key={i} className="h-14 rounded-xl" />
+                      ))}
+                    </div>
+                  </div>
+                ) : ifrs9Data ? (
                   <div className="space-y-6 animate-in zoom-in-95 duration-500">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
@@ -500,7 +513,21 @@ const Reports = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-8 pt-4 relative space-y-6">
-                {basel3Data ? (
+                {regulatoryLoading ? (
+                  <div className="space-y-6 animate-pulse">
+                    <Skeleton className="h-32 rounded-[1.5rem]" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Skeleton className="h-3 w-20 rounded" />
+                        <Skeleton className="h-5 w-24 rounded" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-3 w-20 rounded" />
+                        <Skeleton className="h-5 w-24 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ) : basel3Data ? (
                   <div className="space-y-6 animate-in zoom-in-95 duration-500">
                     <div className="p-5 rounded-[1.5rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-900 dark:text-emerald-100">
                       <div className="flex items-center justify-between mb-2">

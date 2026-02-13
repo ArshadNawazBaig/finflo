@@ -196,7 +196,20 @@ const ManageTickets = () => {
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {loading ? (
               [...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-2xl w-full" />
+                <div
+                  key={i}
+                  className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse space-y-4"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="h-4 w-16 rounded bg-muted/30" />
+                    <div className="h-4 w-20 rounded bg-muted/30" />
+                  </div>
+                  <div className="h-5 w-3/4 rounded bg-muted/30" />
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-3 w-3 rounded-full bg-muted/30" />
+                    <div className="h-3 w-32 rounded bg-muted/30" />
+                  </div>
+                </div>
               ))
             ) : filteredTickets.length === 0 ? (
               <EmptyState

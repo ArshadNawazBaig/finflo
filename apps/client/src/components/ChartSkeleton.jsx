@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const ChartSkeleton = () => {
   return (
-    <div className="rounded-[2.5rem] border border-border/50 bg-card/50 backdrop-blur-xl p-8 shadow-sm">
+    <div className="rounded-[2.5rem] border border-border/50 bg-card/50 backdrop-blur-sm p-8 shadow-sm">
       <div className="flex justify-between items-center mb-8">
         <div className="space-y-2">
           <Skeleton className="h-6 w-48" />

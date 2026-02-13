@@ -6,7 +6,7 @@ const BillingSkeleton = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Current Plan Section Skeleton */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] p-8 shadow-sm">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ const BillingSkeleton = () => {
           </div>
 
           {/* Payment Methods Skeleton */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] p-8 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <div className="space-y-2">
                 <Skeleton className="h-6 w-40 rounded-lg" />
@@ -61,7 +61,7 @@ const BillingSkeleton = () => {
           </div>
 
           {/* Billing History Skeleton */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] overflow-hidden shadow-sm">
             <div className="p-6 border-b border-border/50">
               <div className="space-y-2">
                 <Skeleton className="h-6 w-32 rounded-lg" />
@@ -85,7 +85,7 @@ const BillingSkeleton = () => {
         {/* Sidebar Info Skeleton */}
         <div className="space-y-6">
           {/* Pro Benefits Card Skeleton */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm h-[400px]">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] p-8 shadow-sm h-[400px]">
             <div className="flex items-center gap-3 mb-8">
               <Skeleton className="w-12 h-12 rounded-xl" />
               <Skeleton className="h-6 w-32 rounded-lg" />
@@ -102,7 +102,7 @@ const BillingSkeleton = () => {
           </div>
 
           {/* Usage Limits Skeleton */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-sm">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2rem] p-8 shadow-sm">
             <Skeleton className="h-6 w-32 rounded-lg mb-6" />
             <div className="space-y-6">
               {[1, 2].map((i) => (

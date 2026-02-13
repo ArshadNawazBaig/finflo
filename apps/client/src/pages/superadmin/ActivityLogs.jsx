@@ -17,6 +17,7 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
+import TableSkeleton from '@/components/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import {
@@ -213,11 +214,7 @@ const ActivityLogs = () => {
 
       {/* Content Area */}
       {loading && !isFetchingMore && logs.length === 0 ? (
-        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
-          {[...Array(10)].map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
-          ))}
-        </div>
+        <TableSkeleton />
       ) : logs.length === 0 ? (
         <EmptyState
           icon={ScrollText}

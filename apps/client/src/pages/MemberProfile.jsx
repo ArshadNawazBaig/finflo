@@ -41,19 +41,19 @@ const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     <div className="flex justify-between items-center bg-card/30 p-5 sm:p-8 rounded-[2.5rem] border border-border/50">
       <div className="space-y-4">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-10 w-64 rounded-xl" />
+        <Skeleton className="h-4 w-48 rounded-lg" />
       </div>
       <Skeleton className="h-12 w-32 rounded-full" />
     </div>
     <div className="grid gap-6 md:grid-cols-3">
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
+      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
+      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
+      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <Skeleton className="h-[400px] rounded-[2.5rem]" />
-      <Skeleton className="h-[400px] rounded-[2.5rem]" />
+      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
     </div>
   </div>
 );

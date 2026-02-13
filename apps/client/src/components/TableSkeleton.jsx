@@ -3,14 +3,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const TableSkeleton = () => {
   return (
     <div className="w-full">
-      {/* Search Bar Skeleton */}
-      <div className="mb-6 flex gap-4">
-        <Skeleton className="h-10 w-64 rounded-xl" />
-        <Skeleton className="h-10 w-24 rounded-full" />
-      </div>
-
       {/* Table Skeleton */}
-      <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+      <div className="rounded-[2.5rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex bg-muted/20 p-4 rounded-xl">

@@ -204,7 +204,19 @@ const Notifications = () => {
         <div className="space-y-4">
           {loading ? (
             [...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-2xl w-full" />
+              <div
+                key={i}
+                className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
+              >
+                <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="h-4 w-1/4 rounded bg-muted/30" />
+                    <div className="h-3 w-16 rounded bg-muted/30" />
+                  </div>
+                  <div className="h-4 w-3/4 rounded bg-muted/30" />
+                </div>
+              </div>
             ))
           ) : notifications.length === 0 ? (
             <EmptyState

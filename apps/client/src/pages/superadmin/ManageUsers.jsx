@@ -19,6 +19,7 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
+import TableSkeleton from '@/components/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -306,11 +307,7 @@ const ManageUsers = () => {
 
       {/* Content Area */}
       {loading && !isFetchingMore && users.length === 0 ? (
-        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
-          ))}
-        </div>
+        <TableSkeleton />
       ) : users.length === 0 ? (
         <EmptyState
           icon={Users}

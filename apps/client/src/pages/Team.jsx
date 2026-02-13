@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/TableSkeleton';
+import CardsSkeleton from '@/components/CardsSkeleton';
 import TableSearch from '@/components/ui/TableSearch';
 import AddStaffModal from '@/components/AddStaffModal';
 import EditStaffModal from '@/components/EditStaffModal';
@@ -219,26 +220,30 @@ const Team = () => {
         )}
       </PageHeader>
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <StatsCard
-          title="Total Team"
-          amount={stats.total}
-          icon={<Users size={20} />}
-          color="bg-primary shadow-primary/20"
-        />
-        <StatsCard
-          title="Active Staff"
-          amount={stats.active}
-          icon={<UserCheck size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-        />
-        <StatsCard
-          title="Privileged Users"
-          amount={stats.admins}
-          icon={<ShieldCheck size={20} />}
-          color="bg-purple-500 shadow-purple-500/20"
-        />
-      </div>
+      {loading ? (
+        <CardsSkeleton count={3} />
+      ) : (
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <StatsCard
+            title="Total Team"
+            amount={stats.total}
+            icon={<Users size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Active Staff"
+            amount={stats.active}
+            icon={<UserCheck size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Privileged Users"
+            amount={stats.admins}
+            icon={<ShieldCheck size={20} />}
+            color="bg-purple-500 shadow-purple-500/20"
+          />
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">

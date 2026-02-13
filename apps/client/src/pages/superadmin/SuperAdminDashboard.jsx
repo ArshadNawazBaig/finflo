@@ -157,7 +157,10 @@ const SuperAdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading
           ? [...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-3xl shadow-sm" />
+              <div
+                key={i}
+                className="h-32 rounded-[2rem] border border-border/50 bg-card/50 animate-pulse"
+              />
             ))
           : statCards.map((stat, i) => (
               <StatsCard
