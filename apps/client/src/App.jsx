@@ -43,6 +43,7 @@ const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPage'));
 const TermsOfService = lazy(() => import('@/pages/TermsPage'));
 const PaymentSuccess = lazy(() => import('@/pages/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('@/pages/PaymentCancel'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const MemberLogin = lazy(() => import('@/pages/MemberLogin'));
 const MemberDashboard = lazy(() => import('@/pages/MemberDashboard'));
 const SuperAdminDashboard = lazy(
@@ -153,6 +154,10 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route
+                  path="/reset-password/:token"
+                  element={<ResetPassword />}
+                />
               </Route>
 
               {/* Member Portal Routes */}

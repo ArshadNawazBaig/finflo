@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('./activityLogController');
 const sendEmail = require('../utils/sendEmail');
+const {
+  verificationEmail,
+  passwordResetEmail,
+} = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 const generateToken = (id) => {
@@ -40,8 +44,9 @@ const registerUser = async (req, res) => {
       try {
         await sendEmail({
           email: user.email,
-          subject: 'Email Verification Code',
-          message: `Your verification code is: ${verificationCode}. It will expire in 10 minutes.`,
+          subject: 'Action Required: Verify Your Email',
+          message: `Your verification code is: ${verificationCode}`,
+          html: verificationEmail(verificationCode),
         });
       } catch (err) {
         console.error('Verification email failed to send:', err);
@@ -286,8 +291,9 @@ const forgotPassword = async (req, res) => {
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Password reset token',
-        message,
+        subject: 'Action Required: Reset Your Security Credentials',
+        message: `Reset your password here: ${resetUrl}`,
+        html: passwordResetEmail(resetUrl),
       });
 
       res.status(200).json({
@@ -423,8 +429,9 @@ const resendVerificationCode = async (req, res) => {
 
     await sendEmail({
       email: user.email,
-      subject: 'Email Verification Code',
-      message: `Your new verification code is: ${verificationCode}. It will expire in 10 minutes.`,
+      subject: 'Action Required: New Verification Code',
+      message: `Your new verification code is: ${verificationCode}`,
+      html: verificationEmail(verificationCode),
     });
 
     res

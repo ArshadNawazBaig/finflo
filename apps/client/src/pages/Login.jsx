@@ -6,6 +6,7 @@ import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
+import { toast } from 'sonner';
 
 const Login = () => {
   const navigate = useNavigate();
