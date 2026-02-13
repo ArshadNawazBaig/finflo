@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Pagination from '@/components/ui/Pagination';
 import {
   Wallet,
   TrendingUp,
@@ -87,6 +88,8 @@ const MemberProfile = () => {
   const [loanPage, setLoanPage] = useState(1);
   const [hasMoreInvestments, setHasMoreInvestments] = useState(true);
   const [hasMoreLoans, setHasMoreLoans] = useState(true);
+  const [investmentTotalPages, setInvestmentTotalPages] = useState(1);
+  const [investmentTotal, setInvestmentTotal] = useState(0);
   const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
     useState(false);
   const [isFetchingMoreLoans, setIsFetchingMoreLoans] = useState(false);
@@ -106,18 +109,18 @@ const MemberProfile = () => {
       setLoading(true);
       const [memberRes, investmentsRes, profitsRes] = await Promise.all([
         api.get(`/members/${id}`),
-        api.get(`/members/${id}/investments`),
+        api.get(`/members/${id}/investments?page=1&limit=${itemsPerPage}`),
         api.get(`/members/${id}/profits`),
       ]);
       setMember(memberRes.data);
 
-      const allInvestments = investmentsRes.data || [];
-      if (isMobile) {
-        setInvestments(allInvestments.slice(0, itemsPerPage));
-        setHasMoreInvestments(allInvestments.length > itemsPerPage);
-      } else {
-        setInvestments(allInvestments);
-      }
+      const investmentData = investmentsRes.data || {};
+      setInvestments(investmentData.investments || []);
+      setInvestmentTotalPages(investmentData.totalPages || 1);
+      setInvestmentTotal(investmentData.total || 0);
+      setHasMoreInvestments(
+        investmentData.currentPage < investmentData.totalPages,
+      );
 
       setProfits(profitsRes.data || []);
 
@@ -156,29 +159,41 @@ const MemberProfile = () => {
     if (isFetchingMoreInvestments || !hasMoreInvestments) return;
 
     setIsFetchingMoreInvestments(true);
-    // Simulating remote pagination since sub-endpoints might not support it
-    setTimeout(async () => {
-      try {
-        const { data } = await api.get(`/members/${id}/investments`);
-        const nextPage = investmentPage + 1;
-        const start = (nextPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const newBatch = data.slice(start, end);
+    try {
+      const nextPage = investmentPage + 1;
+      const { data } = await api.get(
+        `/members/${id}/investments?page=${nextPage}&limit=${itemsPerPage}`,
+      );
 
-        if (newBatch.length > 0) {
-          setInvestments((prev) => [...prev, ...newBatch]);
-          setInvestmentPage(nextPage);
-          setHasMoreInvestments(data.length > end);
-        } else {
-          setHasMoreInvestments(false);
-        }
-      } catch (error) {
-        console.error('Failed to fetch more investments', error);
-      } finally {
-        setIsFetchingMoreInvestments(false);
+      if (data.investments?.length > 0) {
+        setInvestments((prev) => [...prev, ...data.investments]);
+        setInvestmentPage(nextPage);
+        setHasMoreInvestments(data.currentPage < data.totalPages);
+      } else {
+        setHasMoreInvestments(false);
       }
-    }, 500);
+    } catch (error) {
+      console.error('Failed to fetch more investments', error);
+    } finally {
+      setIsFetchingMoreInvestments(false);
+    }
   }, [id, investmentPage, hasMoreInvestments, isFetchingMoreInvestments]);
+
+  const handleInvestmentPageChange = async (newPage) => {
+    try {
+      setLoading(true);
+      const { data } = await api.get(
+        `/members/${id}/investments?page=${newPage}&limit=${itemsPerPage}`,
+      );
+      setInvestments(data.investments || []);
+      setInvestmentPage(newPage);
+      setHasMoreInvestments(data.currentPage < data.totalPages);
+    } catch (error) {
+      toast.error('Failed to load page');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadMoreLoans = useCallback(async () => {
     if (isFetchingMoreLoans || !hasMoreLoans || !member?.customer) return;
@@ -962,10 +977,24 @@ const MemberProfile = () => {
                 ))
               )}
 
-              {/* Infinite Scroll Trigger for Investments */}
+              {/* Infinite Scroll Trigger for Investments (Mobile only) */}
               {isMobile && hasMoreInvestments && (
                 <div ref={investmentObserverTarget}>
                   <InfiniteLoader isFetchingMore={isFetchingMoreInvestments} />
+                </div>
+              )}
+
+              {/* Desktop Pagination */}
+              {!isMobile && investments.length > 0 && (
+                <div className="mt-6 border-t border-border/50 pt-6">
+                  <Pagination
+                    currentPage={investmentPage}
+                    totalPages={investmentTotalPages}
+                    totalEntries={investmentTotal}
+                    limit={itemsPerPage}
+                    onPageChange={handleInvestmentPageChange}
+                    onLimitChange={() => {}} // Stability: keeping it locked to 5 for now as requested
+                  />
                 </div>
               )}
             </div>

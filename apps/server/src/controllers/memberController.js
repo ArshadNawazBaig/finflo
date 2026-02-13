@@ -464,12 +464,30 @@ const getMemberInvestments = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    const investments = await Investment.find({
-      member: id,
-      user: userId,
-    }).sort({ date: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.json(investments);
+    const [investments, total] = await Promise.all([
+      Investment.find({
+        member: id,
+        user: userId,
+      })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit),
+      Investment.countDocuments({
+        member: id,
+        user: userId,
+      }),
+    ]);
+
+    res.json({
+      investments,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.error('Get Investments Error:', error);
     res.status(500).json({ message: 'Failed to fetch investments' });
