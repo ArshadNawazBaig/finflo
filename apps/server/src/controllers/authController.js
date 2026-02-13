@@ -31,25 +31,33 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Check if registering as super admin
+    const isSuperAdmin =
+      lowercaseEmail === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+
     const user = await User.create({
       name: lowercaseName,
       email: lowercaseEmail,
       password,
-      verificationCode,
-      verificationCodeExpire,
+      role: isSuperAdmin ? 'super_admin' : 'admin',
+      isVerified: isSuperAdmin,
+      verificationCode: isSuperAdmin ? undefined : verificationCode,
+      verificationCodeExpire: isSuperAdmin ? undefined : verificationCodeExpire,
     });
 
     if (user) {
-      // Send verification email
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Action Required: Verify Your Email',
-          message: `Your verification code is: ${verificationCode}`,
-          html: verificationEmail(verificationCode),
-        });
-      } catch (err) {
-        console.error('Verification email failed to send:', err);
+      // Send verification email (skip for super admin)
+      if (!isSuperAdmin) {
+        try {
+          await sendEmail({
+            email: user.email,
+            subject: 'Action Required: Verify Your Email',
+            message: `Your verification code is: ${verificationCode}`,
+            html: verificationEmail(verificationCode),
+          });
+        } catch (err) {
+          console.error('Verification email failed to send:', err);
+        }
       }
       // Log activity
       await logActivity({
@@ -94,8 +102,8 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Check if email is verified
-    if (!user.isVerified) {
+    // Check if email is verified (super_admin is exempt)
+    if (user.role !== 'super_admin' && !user.isVerified) {
       return res.status(403).json({
         message: 'Please verify your email address to log in.',
         notVerified: true,

@@ -9,7 +9,7 @@ const seedSuperAdmin = async () => {
   try {
     await connectDB();
 
-    const superAdminEmail = 'admin@loanmanagement.com';
+    const superAdminEmail = 'superadmin@loanmanagement.com';
     const superAdminPassword = 'SuperAdmin@123';
 
     // Check if super admin already exists
