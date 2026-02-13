@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import api from '@/lib/axios';
+import PageHeader from '@/components/PageHeader';
 
 const Endpoint = ({ method, path, description, params }) => {
   const [copied, setCopied] = useState(false);
@@ -290,18 +291,11 @@ const ApiDocumentation = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-9 max-w-4xl">
-            <div className="mb-10">
-              <h2 className="text-3xl font-black tracking-tighter capitalize mb-4">
-                {sidebarItems.find((i) => i.id === activeTab)?.label}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Explore endpoints for{' '}
-                {sidebarItems
-                  .find((i) => i.id === activeTab)
-                  ?.label.toLowerCase()}{' '}
-                management.
-              </p>
-            </div>
+            <PageHeader
+              title={sidebarItems.find((i) => i.id === activeTab)?.label}
+              description={`Explore endpoints for ${sidebarItems.find((i) => i.id === activeTab)?.label.toLowerCase()} management.`}
+              className="mb-10"
+            />
 
             <div className="space-y-6">
               {activeTab === 'auth' && (
@@ -580,14 +574,40 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/loans/:id"
                     description={{
-                      text: 'Get loan details.',
+                      text: 'Get comprehensive loan details including repayment schedule and status history.',
                       response: {
                         _id: 'loan_1',
-                        customer: { _id: 'cust_1', name: 'Alice' },
+                        customer: {
+                          _id: 'cust_1',
+                          name: 'Alice Smith',
+                          email: 'alice@example.com',
+                        },
                         amount: 5000,
+                        interestRate: 5,
+                        term: 12,
                         paidAmount: 1000,
+                        remainingAmount: 4250,
                         status: 'Active',
-                        schedule: [],
+                        schedule: [
+                          {
+                            dueDate: '2026-03-01',
+                            amount: 450,
+                            status: 'Paid',
+                            paidDate: '2026-03-01',
+                          },
+                          {
+                            dueDate: '2026-04-01',
+                            amount: 450,
+                            status: 'Pending',
+                          },
+                        ],
+                        documents: [
+                          {
+                            name: 'Loan Agreement.pdf',
+                            url: 'https://...',
+                            type: 'contract',
+                          },
+                        ],
                       },
                     }}
                   />
@@ -741,14 +761,48 @@ const ApiDocumentation = () => {
                   />
                   <Endpoint
                     method="POST"
+                    path="/api/members/transfer"
+                    description={{
+                      text: 'Initiate a P2P transfer between members.',
+                      response: {
+                        success: true,
+                        transactionId: 'txn_987...',
+                        amount: 500,
+                        recipient: 'Jane Smith',
+                        timestamp: '2026-02-14T02:40:00Z',
+                      },
+                    }}
+                    params={[
+                      {
+                        name: 'recipientEmail',
+                        type: 'string',
+                        required: true,
+                        desc: 'Target member email',
+                      },
+                      {
+                        name: 'amount',
+                        type: 'number',
+                        required: true,
+                        desc: 'Amount to transfer',
+                      },
+                      {
+                        name: 'note',
+                        type: 'string',
+                        desc: 'Optional transfer note',
+                      },
+                    ]}
+                  />
+                  <Endpoint
+                    method="POST"
                     path="/api/members/auth/login"
                     description={{
-                      text: 'Member login.',
+                      text: 'Member portal authentication.',
                       response: {
                         _id: 'mem_1',
                         name: 'Investor Bob',
                         email: 'bob@invest.com',
                         token: 'eyJ...',
+                        role: 'member',
                       },
                     }}
                   />
@@ -815,26 +869,56 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/activity-logs"
                     description={{
-                      text: 'List all system activity logs (Super Admin only).',
-                      response: [
-                        {
-                          _id: 'log_1',
-                          user: 'John Doe',
-                          action: 'Created Loan',
-                          details: 'Loan amount $5000',
-                          timestamp: '2026-02-12T10:00:00Z',
-                        },
-                      ],
+                      text: 'List comprehensive system activity logs (Super Admin only). Includes before/after state snapshots.',
+                      response: {
+                        logs: [
+                          {
+                            _id: '65c3...',
+                            user: { _id: 'u123', name: 'Admin User' },
+                            action: 'UPDATE_LOAN_STATUS',
+                            details: 'Status changed from Pending to Active',
+                            metadata: {
+                              loanId: '65c4...',
+                              before: { status: 'Pending', rate: 5 },
+                              after: { status: 'Active', rate: 5 },
+                            },
+                            ipAddress: '192.168.1.1',
+                            userAgent: 'Mozilla/5.0...',
+                            timestamp: '2026-02-14T02:30:00Z',
+                          },
+                        ],
+                        pagination: { page: 1, total: 250, limit: 10 },
+                      },
                     }}
+                    params={[
+                      { name: 'page', type: 'int', desc: 'Page number' },
+                      {
+                        name: 'action',
+                        type: 'string',
+                        desc: 'Filter by action type',
+                      },
+                      {
+                        name: 'userId',
+                        type: 'string',
+                        desc: 'Filter by user',
+                      },
+                    ]}
                   />
                   <Endpoint
                     method="GET"
                     path="/api/activity-logs/user/:userId"
                     description={{
-                      text: 'Get activity logs for a specific user.',
-                      response: [
-                        { _id: 'log_2', action: 'Login', timestamp: '...' },
-                      ],
+                      text: 'Get activity logs for a specific user profile.',
+                      response: {
+                        logs: [
+                          {
+                            _id: '65c5...',
+                            action: 'LOGIN',
+                            timestamp: '2026-02-14T01:00:00Z',
+                          },
+                        ],
+                        total: 15,
+                      },
                     }}
                   />
                 </>
@@ -978,15 +1062,50 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/notifications"
                     description={{
-                      text: 'Get my notifications.',
-                      response: [
-                        {
-                          _id: 'notif_1',
-                          message: 'New loan request',
-                          read: false,
+                      text: 'Get paginated notifications for the current user.',
+                      response: {
+                        notifications: [
+                          {
+                            _id: 'notif_1',
+                            title: 'Loan Approved',
+                            message:
+                              'Your loan request for $5,000 has been approved.',
+                            type: 'info',
+                            read: false,
+                            createdAt: '2026-02-14T02:00:00Z',
+                          },
+                        ],
+                        pagination: {
+                          page: 1,
+                          pages: 5,
+                          total: 48,
+                          limit: 10,
                         },
-                      ],
+                        unreadCount: 3,
+                      },
                     }}
+                    params={[
+                      {
+                        name: 'page',
+                        type: 'int',
+                        desc: 'Page number (default: 1)',
+                      },
+                      {
+                        name: 'limit',
+                        type: 'int',
+                        desc: 'Items per page (default: 10)',
+                      },
+                      {
+                        name: 'search',
+                        type: 'string',
+                        desc: 'Filter by title/message',
+                      },
+                      {
+                        name: 'sortBy',
+                        type: 'string',
+                        desc: 'newest or oldest',
+                      },
+                    ]}
                   />
                   <Endpoint
                     method="PUT"

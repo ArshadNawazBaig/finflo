@@ -83,188 +83,178 @@ const UserDetail = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-4 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
-        {/* Decorative Background Icon */}
-        <Users className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-
-        <div className="flex items-center gap-6 relative z-10 transition-all duration-500">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group shrink-0 hidden sm:block"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-
-          {loading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-4 w-64" />
+      <PageHeader
+        variant="card"
+        icon={Users}
+        onBack={() => navigate(-1)}
+        title={editing ? 'Edit Business' : user.name || 'User Profile'}
+        badge={
+          !editing && (
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
+                  user.plan === 'Pro'
+                    ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/20'
+                    : 'bg-primary/10 text-primary border border-primary/20',
+                )}
+              >
+                {user.plan}
+              </span>
+              <span
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
+                  user.isActive
+                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                    : 'bg-red-500/10 text-red-500 border border-red-500/20',
+                )}
+              >
+                {user.isActive ? (
+                  <CheckCircle2 size={10} />
+                ) : (
+                  <XCircle size={10} />
+                )}
+                {user.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+          )
+        }
+        description={
+          !editing ? (
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Building2 className="w-4 h-4 text-primary" />
+                <span className="truncate max-w-[200px]">
+                  {user.businessName || 'Independent Agent'}
+                </span>
+              </div>
+              <div className="hidden sm:block w-1.5 h-1.5 bg-border rounded-full" />
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Mail className="w-4 h-4 text-primary" />
+                <span>{user.email}</span>
+              </div>
+              <div className="hidden sm:block w-1.5 h-1.5 bg-border rounded-full" />
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>
+                  Joined {new Date(user.createdAt).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           ) : (
-            <div className="flex-1 min-w-0">
-              {editing ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Business Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.businessName}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          businessName: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Service Plan
-                    </label>
-                    <Select
-                      value={formData.plan}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, plan: value })
-                      }
-                    >
-                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-border/50 bg-background text-sm font-bold">
-                        <SelectValue placeholder="Select Plan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Free">Free</SelectItem>
-                        <SelectItem value="Basic">Basic</SelectItem>
-                        <SelectItem value="Pro">Pro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                      Account Status
-                    </label>
-                    <Select
-                      value={formData.isActive ? 'active' : 'inactive'}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          isActive: value === 'active',
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full h-11 px-4 rounded-xl border border-border/50 bg-background text-sm font-bold">
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-black tracking-tighter">
-                      {user.name}
-                    </h1>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
-                          user.plan === 'Pro'
-                            ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/20'
-                            : 'bg-primary/10 text-primary border border-primary/20',
-                        )}
-                      >
-                        {user.plan}
-                      </span>
-                      <span
-                        className={cn(
-                          'flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
-                          user.isActive
-                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                            : 'bg-red-500/10 text-red-500 border border-red-500/20',
-                        )}
-                      >
-                        {user.isActive ? (
-                          <CheckCircle2 size={10} />
-                        ) : (
-                          <XCircle size={10} />
-                        )}
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-muted-foreground">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Building2 className="w-4 h-4 text-primary" />
-                      <span className="truncate max-w-[200px]">
-                        {user.businessName || 'Independent Agent'}
-                      </span>
-                    </div>
-                    <div className="hidden sm:block w-1.5 h-1.5 bg-border rounded-full" />
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Mail className="w-4 h-4 text-primary" />
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="hidden sm:block w-1.5 h-1.5 bg-border rounded-full" />
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span>
-                        Joined {new Date(user.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3 relative z-10 flex-col-reverse sm:flex-row">
+            <p className="text-sm font-medium text-muted-foreground">
+              Modify business details, plan settings, and account status.
+            </p>
+          )
+        }
+      >
+        <div className="flex items-center gap-2 justify-end">
           {!editing ? (
             <Button
               onClick={() => setEditing(true)}
               variant="gradient"
-              className="px-8 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest w-full sm:w-auto gap-2"
+              className="px-8 h-12 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
             >
-              <Edit size={14} /> Edit User
+              <Edit size={16} /> Edit Profile
             </Button>
           ) : (
             <>
-              <button
+              <Button
                 onClick={() => setEditing(false)}
-                className="flex items-center px-6 py-3.5 rounded-full border border-border text-muted-foreground hover:bg-muted text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 w-full sm:w-auto justify-center gap-2"
+                variant="outline"
+                className="h-12 px-6 rounded-2xl text-[11px] font-black uppercase tracking-widest border-border/50"
               >
-                <X size={14} /> Cancel
-              </button>
+                <X size={16} className="mr-2" /> Cancel
+              </Button>
               <Button
                 onClick={handleSave}
-                variant="success"
-                className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
+                variant="gradient"
+                className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
               >
-                <Save size={14} /> Save Changes
+                <Save size={16} /> Save Changes
               </Button>
             </>
           )}
         </div>
-      </div>
+      </PageHeader>
+
+      {editing && (
+        <div className="p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-sm animate-in zoom-in-95 duration-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full px-5 h-12 rounded-2xl border border-border/50 bg-background text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
+                Business Name
+              </label>
+              <input
+                type="text"
+                value={formData.businessName}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    businessName: e.target.value,
+                  })
+                }
+                className="w-full px-5 h-12 rounded-2xl border border-border/50 bg-background text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
+                Service Plan
+              </label>
+              <Select
+                value={formData.plan}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, plan: value })
+                }
+              >
+                <SelectTrigger className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background text-sm font-bold">
+                  <SelectValue placeholder="Select Plan" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/50">
+                  <SelectItem value="Free">Free</SelectItem>
+                  <SelectItem value="Basic">Basic</SelectItem>
+                  <SelectItem value="Pro">Pro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
+                Account Status
+              </label>
+              <Select
+                value={formData.isActive ? 'active' : 'inactive'}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    isActive: value === 'active',
+                  })
+                }
+              >
+                <SelectTrigger className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background text-sm font-bold">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/50">
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

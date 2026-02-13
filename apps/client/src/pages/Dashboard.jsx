@@ -64,11 +64,7 @@ const Dashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Top Header */}
       <PageHeader
-        title={
-          <>
-            Financial <span className="text-primary italic">Intelligence</span>
-          </>
-        }
+        title="Financial Intelligence"
         description={
           <>
             Welcome back,{' '}

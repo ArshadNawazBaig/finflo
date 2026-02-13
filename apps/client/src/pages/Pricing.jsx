@@ -115,7 +115,11 @@ const Pricing = () => {
   return (
     <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
-        title="Plans & Pricing"
+        title={
+          <>
+            Wealth <span className="text-primary ">Plans</span>
+          </>
+        }
         description="Choose the perfect plan to scale your lending operations."
       />
 

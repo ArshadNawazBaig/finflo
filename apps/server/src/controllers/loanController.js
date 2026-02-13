@@ -347,6 +347,28 @@ const getMyLoans = async (req, res) => {
       customer: req.member.customer,
     };
 
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
+    if (req.query.search) {
+      const search = req.query.search;
+      const isNumber = !isNaN(search);
+
+      query.$or = [
+        { _id: mongoose.isValidObjectId(search) ? search : undefined },
+        { principal: isNumber ? parseFloat(search) : undefined },
+        { totalAmount: isNumber ? parseFloat(search) : undefined },
+      ].filter((cond) => {
+        const value = Object.values(cond)[0];
+        return value !== undefined;
+      });
+
+      // If no valid mongo ID but looks like a partial hex string, we can't easily search _id with regex
+      // without converting it to a string, which is slow. But we can at least try to match what's possible.
+      if (query.$or.length === 0) delete query.$or;
+    }
+
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
       .sort({ createdAt: -1 })
@@ -963,6 +985,41 @@ const getLoanSchedule = async (req, res) => {
   }
 };
 
+const getMemberLoanById = async (req, res) => {
+  try {
+    const loan = await Loan.findOne({
+      _id: req.params.id,
+      customer: req.member.customer,
+    }).populate('customer', 'name accountNumber email phone');
+
+    if (!loan) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    res.json(loan);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMemberLoanSchedule = async (req, res) => {
+  try {
+    const loan = await Loan.findOne({
+      _id: req.params.id,
+      customer: req.member.customer,
+    });
+
+    if (!loan) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    const schedule = generateAmortizationSchedule(loan);
+    res.json(schedule);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createLoan,
   getLoans,
@@ -979,4 +1036,6 @@ module.exports = {
   approveLoan,
   rejectLoan,
   getLoanSchedule,
+  getMemberLoanById,
+  getMemberLoanSchedule,
 };

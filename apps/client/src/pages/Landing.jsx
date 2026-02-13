@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Users, Layers, Database, Zap, Globe, Key } from 'lucide-react';
+import { Users, Layers, Database, Globe, Bell, Shield } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 // Navigation is kept non-lazy for immediate interaction
@@ -9,6 +9,8 @@ import Navigation from '@/components/landing/Navigation';
 // Lazy load sections for performance
 const Hero = lazy(() => import('@/components/landing/Hero'));
 const Features = lazy(() => import('@/components/landing/Features'));
+const Stats = lazy(() => import('@/components/landing/Stats'));
+const Testimonials = lazy(() => import('@/components/landing/Testimonials'));
 const Workbench = lazy(() => import('@/components/landing/Workbench'));
 const MobileShowcase = lazy(
   () => import('@/components/landing/MobileShowcase'),
@@ -39,45 +41,45 @@ const Landing = () => {
   const features = useMemo(
     () => [
       {
-        icon: <Layers className="w-6 h-6 text-blue-500" />,
-        title: 'Multi-Branch Engine',
+        icon: <Users className="w-6 h-6 text-rose-500" />,
+        title: 'Member Self-Service',
         description:
-          'Localize operations across infinite branches with independent staff access and localized branding.',
-        color: 'blue',
+          'Advanced portal for borrowers and investors to manage portfolios, track ROI, and execute P2P transfers.',
+        color: 'rose',
       },
       {
-        icon: <Zap className="w-6 h-6 text-emerald-500" />,
-        title: 'Intelligent Risk Scoring',
+        icon: <Bell className="w-6 h-6 text-amber-500" />,
+        title: 'Infinite Notifications',
         description:
-          'Automated AI-driven credit assessment using income-to-debt ratios and historical behavioral data.',
+          'Real-time, paginated notification engine with adaptive infinite scroll for seamless mobile alerting.',
+        color: 'amber',
+      },
+      {
+        icon: <Shield className="w-6 h-6 text-emerald-500" />,
+        title: 'Immutable Audit Ledger',
+        description:
+          'Regulatory-grade activity tracking with before/after state snapshots for every critical system mutation.',
         color: 'emerald',
       },
       {
         icon: <Database className="w-6 h-6 text-indigo-500" />,
-        title: 'Regulatory Audit Trail',
+        title: 'KYC Document Vault',
         description:
-          'Immutable ledger recording every critical action with before/after state comparison for total compliance.',
+          'Secure, encrypted storage for customer identification, collateral documents, and digital contracts.',
         color: 'indigo',
       },
       {
-        icon: <Key className="w-6 h-6 text-amber-500" />,
-        title: 'Multi-Account Vault',
+        icon: <Layers className="w-6 h-6 text-blue-500" />,
+        title: 'Multi-Branch Engine',
         description:
-          'Manage Saving and Current accounts with a secure KYC document vault for ID and collateral storage.',
-        color: 'amber',
-      },
-      {
-        icon: <Users className="w-6 h-6 text-rose-500" />,
-        title: 'Member Ecosystem',
-        description:
-          'Comprehensive self-service portal for borrowers and investors to track ROI and request capital.',
-        color: 'rose',
+          'Scalable infrastructure supporting hierarchical branches with independent branding and access control.',
+        color: 'blue',
       },
       {
         icon: <Globe className="w-6 h-6 text-violet-500" />,
-        title: 'API First Architecture',
+        title: 'Developer First API',
         description:
-          'High-performance REST API designed for seamless integration with external financial providers.',
+          'Modern REST API with comprehensive response schemas and automated documentation for third-party scaling.',
         color: 'violet',
       },
     ],
@@ -103,8 +105,10 @@ const Landing = () => {
       <Suspense fallback={<SectionLoader />}>
         <Hero />
         <Features features={features} />
+        <Stats />
         <Workbench />
         <MobileShowcase />
+        <Testimonials />
         <Pricing />
         <FAQ />
         <CTA />

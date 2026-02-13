@@ -22,6 +22,8 @@ import {
   ChevronDown,
   Zap,
   Database,
+  Users,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,6 +32,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 const Documentation = () => {
   const [activeSection, setActiveSection] = useState('introduction');
   const [scrollY, setScrollY] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -39,7 +42,6 @@ const Documentation = () => {
   }, []);
 
   useEffect(() => {
-    // Scroll to top on section change
     if (window.scrollY > 400) {
       window.scrollTo({ top: 400, behavior: 'smooth' });
     }
@@ -50,21 +52,24 @@ const Documentation = () => {
       id: 'introduction',
       title: 'Introduction',
       icon: <Book className="w-4 h-4" />,
+      searchContent:
+        'introduction welcome loan master comprehensive loan management saas platform p2p fund transfers member portal quick start architecture api reference',
       content: (
+        // ... (content remains same, just adding searchContent above)
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h2 className="text-3xl font-black tracking-tight mb-4">
-              Welcome to Loan Master
+              Welcome to Loan <span className="text-primary">Master</span>
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Loan Master is a comprehensive loan management SaaS platform
               designed to streamline your lending operations. From customer
-              onboarding to loan tracking and automated reporting, providing
-              everything you need to run a successful lending business. Released
-              under the <strong className="text-foreground">MIT License</strong>{' '}
-              with professional-grade{' '}
-              <strong className="text-foreground">Issue Templates</strong> for
-              seamless collaboration.
+              onboarding to loan tracking,{' '}
+              <strong className="text-foreground">P2P fund transfers</strong>,
+              and automated reporting, providing everything you need to run a
+              successful lending business. Features include a powerful
+              <strong className="text-foreground">Member Portal</strong> for
+              comprehensive self-service and account management.
             </p>
           </div>
 
@@ -128,6 +133,8 @@ const Documentation = () => {
       id: 'architecture',
       title: 'System Architecture',
       icon: <Shield className="w-4 h-4" />,
+      searchContent:
+        'system architecture technical multi-branch infrastructure intelligent risk engine ecl immutable audit trails zero-friction access control',
       content: (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
           <div>
@@ -139,7 +146,7 @@ const Documentation = () => {
               lending operating system.
             </p>
           </div>
-
+          {/* ... content remains same ... */}
           <div className="grid gap-8">
             <div className="space-y-4">
               <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
@@ -203,6 +210,8 @@ const Documentation = () => {
       id: 'getting-started',
       title: 'Getting Started',
       icon: <Rocket className="w-4 h-4" />,
+      searchContent:
+        'getting started create account configure settings add customers issue loan',
       content: (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
           <div>
@@ -214,7 +223,7 @@ const Documentation = () => {
               lending.
             </p>
           </div>
-
+          {/* ... content remains same ... */}
           <div className="space-y-8">
             <div className="flex gap-6 p-6 rounded-[2rem] bg-card/30 border border-border/50 hover:bg-card/50 transition-colors duration-300">
               <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
@@ -276,6 +285,8 @@ const Documentation = () => {
       id: 'features',
       title: 'Key Features',
       icon: <LayoutGrid className="w-4 h-4" />,
+      searchContent:
+        'key features member portal ecosystem immutable audit ledger smart notifications modern responsive ux',
       content: (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
@@ -286,39 +297,42 @@ const Documentation = () => {
               Explore the powerful tools built into Loan Master.
             </p>
           </div>
-
+          {/* ... content remains same ... */}
           <div className="grid gap-6">
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <LayoutGrid className="w-6 h-6 text-primary" />
+                <Users className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Loan Management</h3>
+              <h3 className="text-xl font-bold mb-3">
+                Member Portal Ecosystem
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Track active, pending, and completed loans. View detailed
-                payment schedules, calculate interest automatically, and manage
-                loan statuses with ease.
+                A dedicated self-service environment for borrowers and
+                investors. Features include real-time portfolio tracking, P2P
+                fund transfers, investment growth analytics, and direct support
+                tickets.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <LifeBuoy className="w-6 h-6 text-indigo-500" />
+                <Shield className="w-6 h-6 text-indigo-500" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Customer CRM</h3>
+              <h3 className="text-xl font-bold mb-3">Immutable Audit Ledger</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                A complete CRM for your borrowers. Store contact info,
-                documents, and credit history. View a 360-degree profile of
-                every customer.
+                Regulatory-grade compliance tracking. Every system action is
+                recorded with before/after state comparisons, ensuring total
+                transparency and accountability across all business operations.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Rocket className="w-6 h-6 text-emerald-500" />
+                <Bell className="w-6 h-6 text-emerald-500" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Automated Reports</h3>
+              <h3 className="text-xl font-bold mb-3">Smart Notifications</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Generate financial reports instantly. Track repayment rates,
-                total outstanding amounts, and revenue growth with visual
-                charts.
+                Advanced alerting service with infinite scroll on mobile
+                devices. Stay updated with critical loan events, approval
+                statuses, and system announcements with zero-latency delivery.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
@@ -327,20 +341,9 @@ const Documentation = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Modern Responsive UX</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Experience a state-of-the-art interface with a full-screen
-                (100vh) immersive Hero section, fluid animations, and perfect
-                vertical alignment optimized for both mobile and desktop.
-              </p>
-            </div>
-            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Bell className="w-6 h-6 text-blue-500" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Dynamic FAQ & Support</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Leverage a sophisticated, interactive FAQ system with accordion
-                animations Powered by Framer Motion, ensuring your customers get
-                the answers they need instantly.
+                Experience a state-of-the-art interface with fluid animations,
+                perfect vertical alignment, and mobile-first navigation
+                optimized for maximum administrative efficiency.
               </p>
             </div>
           </div>
@@ -351,7 +354,10 @@ const Documentation = () => {
       id: 'api-reference',
       title: 'API Reference',
       icon: <Code2 className="w-4 h-4" />,
+      searchContent:
+        'api reference rest api authentication endpoints key customers loans',
       content: (
+        // ... (content remains same)
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h2 className="text-3xl font-black tracking-tighter mb-4">
@@ -435,28 +441,43 @@ const Documentation = () => {
     },
   ];
 
+  // Filter sections based on search query
+  const filteredSections = sections.filter((section) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      section.title.toLowerCase().includes(query) ||
+      (section.searchContent && section.searchContent.includes(query))
+    );
+  });
+
   const SidebarContent = () => (
     <nav className="space-y-1">
-      {sections.map((section) => (
-        <button
-          key={section.id}
-          onClick={() => setActiveSection(section.id)}
-          className={cn(
-            'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-            activeSection === section.id
-              ? 'bg-primary/10 text-primary shadow-sm'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-          )}
-        >
-          <div className="flex items-center gap-3">
-            {section.icon}
-            {section.title}
-          </div>
-          {activeSection === section.id && (
-            <ChevronRight className="w-4 h-4 opacity-50" />
-          )}
-        </button>
-      ))}
+      {filteredSections.length > 0 ? (
+        filteredSections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
+            className={cn(
+              'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+              activeSection === section.id
+                ? 'bg-primary/10 text-primary shadow-sm'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            )}
+          >
+            <div className="flex items-center gap-3">
+              {section.icon}
+              {section.title}
+            </div>
+            {activeSection === section.id && (
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            )}
+          </button>
+        ))
+      ) : (
+        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+          No results found for "{searchQuery}"
+        </div>
+      )}
 
       <div className="pt-4 mt-4 border-t border-border/50">
         <Link to="/support">
@@ -473,13 +494,15 @@ const Documentation = () => {
 
   return (
     <div className="min-h-screen bg-background relative animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Background Gradients */}
+      {/* Rest of the component remains largely the same, just updating the search input to use state */}
+
+      {/* ... Background Gradients ... */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
       </div>
 
-      {/* Navigation */}
+      {/* ... Navigation ... */}
       <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
           scrollY > 30
@@ -521,7 +544,7 @@ const Documentation = () => {
         </div>
       </nav>
 
-      {/* Header */}
+      {/* ... Header ... */}
       <header className="relative pt-32 pb-12 px-6">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <motion.div
@@ -568,6 +591,8 @@ const Documentation = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                   <input
                     type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search docs..."
                     className="w-full pl-9 pr-4 h-10 rounded-xl bg-card/50 border border-border/50 focus:bg-background focus:border-primary/20 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder:text-muted-foreground/50"
                   />

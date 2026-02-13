@@ -167,7 +167,7 @@ const Valentine = () => {
             </button>
           </div>
 
-          <div className="mt-8 md:mt-12 text-[#ff758f] opacity-60 text-base md:text-xl tracking-widest italic font-sans text-center">
+          <div className="mt-8 md:mt-12 text-[#ff758f] opacity-60 text-base md:text-xl tracking-widest font-sans text-center">
             CLICK YES TO OPEN YOUR SURPRISE
           </div>
         </div>

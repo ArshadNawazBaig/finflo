@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bell,
   Search,
@@ -17,6 +17,8 @@ import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/EmptyState';
+import InfiniteLoader from '@/components/InfiniteLoader';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,68 +38,92 @@ import {
 } from '@/components/ui/select';
 
 const Notifications = () => {
-  const [allNotifications, setAllNotifications] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [limit, setLimit] = useState(10);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get('/notifications');
-      setAllNotifications(data.notifications || []);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      toast.error('Failed to fetch notifications');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const observerTarget = useRef(null);
+
+  const fetchNotifications = useCallback(
+    async (page = 1, isAppend = false) => {
+      try {
+        if (!isAppend) {
+          setLoading(true);
+        } else {
+          setIsFetchingMore(true);
+        }
+
+        const { data } = await api.get(
+          `/notifications?page=${page}&limit=${limit}&search=${search}&sortBy=${sortBy}`,
+        );
+
+        const newNotifications = data.notifications || [];
+        if (isAppend) {
+          setNotifications((prev) => [...prev, ...newNotifications]);
+        } else {
+          setNotifications(newNotifications);
+        }
+
+        if (data.pagination) {
+          setPagination({
+            page: data.pagination.page,
+            pages: data.pagination.pages,
+            total: data.pagination.total,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+        toast.error('Failed to fetch notifications');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [limit, search, sortBy],
+  );
 
   useEffect(() => {
-    // Client-side filtering, sorting, and pagination
-    let result = [...allNotifications];
+    fetchNotifications(1);
+  }, [limit, search, sortBy, fetchNotifications]);
 
-    // Filter by search
-    if (search) {
-      const lowerSearch = search.toLowerCase();
-      result = result.filter(
-        (n) =>
-          n.title.toLowerCase().includes(lowerSearch) ||
-          n.message.toLowerCase().includes(lowerSearch),
-      );
-    }
+  // Intersection Observer for Infinite Scroll (Mobile)
+  useEffect(() => {
+    if (!isMobile || !observerTarget.current) return;
 
-    // Sort
-    result.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          pagination.page < pagination.pages
+        ) {
+          fetchNotifications(pagination.page + 1, true);
+        }
+      },
+      { threshold: 0.1 },
+    );
 
-    // Pagination
-    const total = result.length;
-    const pages = Math.ceil(total / limit) || 1;
-    // Adjust page if out of bounds due to filtering
-    const safePage = Math.min(Math.max(1, pagination.page), pages);
-
-    const start = (safePage - 1) * limit;
-    const end = start + limit;
-    const paginatedResult = result.slice(start, end);
-
-    setNotifications(paginatedResult);
-    setPagination((prev) => ({ ...prev, page: safePage, pages, total }));
-  }, [allNotifications, search, sortBy, pagination.page, limit]);
+    observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [
+    isMobile,
+    isFetchingMore,
+    pagination.page,
+    pagination.pages,
+    fetchNotifications,
+  ]);
 
   const handleMarkAsRead = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
       // Update local state directly
-      setAllNotifications((prev) =>
+      setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
       toast.success('Notification marked as read');
@@ -117,18 +143,16 @@ const Notifications = () => {
       toast.success('Notification deleted successfully');
       setDeleteConfirmation(null);
       // Remove from local state
-      setAllNotifications((prev) =>
+      setNotifications((prev) =>
         prev.filter((n) => n._id !== deleteConfirmation),
       );
+      // Update total count locally
+      setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
     } catch (error) {
       console.error('Failed to delete notification:', error);
       toast.error('Failed to delete notification');
     }
   };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -301,8 +325,8 @@ const Notifications = () => {
           )}
         </div>
 
-        {/* Pagination */}
-        {notifications.length > 0 && (
+        {/* Pagination (Desktop Only) */}
+        {!isMobile && notifications.length > 0 && (
           <div>
             <Pagination
               currentPage={pagination.page}
@@ -317,6 +341,24 @@ const Notifications = () => {
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
             />
+          </div>
+        )}
+
+        {/* Mobile Infinite Scroll Target */}
+        {isMobile && (
+          <div ref={observerTarget} className="py-4">
+            {isFetchingMore && (
+              <InfiniteLoader isFetchingMore={true} className="py-6" />
+            )}
+            {!isFetchingMore &&
+              pagination.page >= pagination.pages &&
+              notifications.length > 0 && (
+                <div className="text-center py-8">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
+                    You've caught up!
+                  </span>
+                </div>
+              )}
           </div>
         )}
       </div>

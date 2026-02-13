@@ -160,7 +160,7 @@ const CustomerTable = ({
                     )}
                     {!customer.savingAccountNumber &&
                       !customer.currentAccountNumber && (
-                        <span className="text-muted-foreground text-[10px] italic opacity-50">
+                        <span className="text-muted-foreground text-[10px] opacity-50">
                           No Link
                         </span>
                       )}

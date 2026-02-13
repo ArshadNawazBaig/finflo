@@ -5,6 +5,8 @@ const ProfitDistribution = require('../models/ProfitDistribution');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Repayment = require('../models/Repayment');
+const ActivityLog = require('../models/ActivityLog');
 const { canAddMember } = require('../utils/planLimits');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
@@ -126,7 +128,10 @@ const getMembers = async (req, res) => {
       .sort({ [sortBy]: sortOrder })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .populate('customer', 'name email');
+      .populate(
+        'customer',
+        'name email savingAccountNumber currentAccountNumber',
+      );
 
     const count = await Member.countDocuments(query);
 
@@ -172,6 +177,11 @@ const getMembers = async (req, res) => {
         return {
           ...member.toObject(),
           activeLoans,
+          savingAccountNumber:
+            member.savingAccountNumber || member.customer?.savingAccountNumber,
+          currentAccountNumber:
+            member.currentAccountNumber ||
+            member.customer?.currentAccountNumber,
         };
       }),
     );
@@ -301,6 +311,11 @@ const createMember = async (req, res) => {
       });
       if (customer) {
         memberData.customer = customerId;
+        // Copy account numbers if they exist
+        if (customer.savingAccountNumber)
+          memberData.savingAccountNumber = customer.savingAccountNumber;
+        if (customer.currentAccountNumber)
+          memberData.currentAccountNumber = customer.currentAccountNumber;
       }
     }
 
@@ -449,12 +464,30 @@ const getMemberInvestments = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    const investments = await Investment.find({
-      member: id,
-      user: userId,
-    }).sort({ date: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.json(investments);
+    const [investments, total] = await Promise.all([
+      Investment.find({
+        member: id,
+        user: userId,
+      })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit),
+      Investment.countDocuments({
+        member: id,
+        user: userId,
+      }),
+    ]);
+
+    res.json({
+      investments,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.error('Get Investments Error:', error);
     res.status(500).json({ message: 'Failed to fetch investments' });
@@ -674,6 +707,379 @@ const distributeProfit = async (req, res) => {
   }
 };
 
+// @desc    Get all activity for a member (Investments, Profits, Repayments, Goals)
+// @route   GET /api/members/portal/activity
+// @access  Private (Member)
+const getMemberActivity = async (req, res) => {
+  try {
+    const memberId = req.member._id;
+    const customerId = req.member.customer;
+
+    // Build query objects
+    const investmentQuery = { member: memberId };
+    const profitQuery = { member: memberId };
+    const repaymentQuery = { customer: customerId };
+    const goalLogQuery = { userId: memberId, action: 'goal_contribution' };
+
+    const { category, search } = req.query;
+
+    if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
+      investmentQuery.description = searchRegex;
+      // Note: Profit distributions might not have descriptions in the model,
+      // but we'll apply it to the period if applicable or just filter after combining.
+      repaymentQuery.notes = searchRegex;
+    }
+
+    const [investments, profits, repayments, goalLogs] = await Promise.all([
+      Investment.find(investmentQuery).sort({ date: -1 }),
+      ProfitDistribution.find(profitQuery).sort({ date: -1 }),
+      Repayment.find(repaymentQuery).sort({ date: -1 }),
+      ActivityLog.find(goalLogQuery).sort({ createdAt: -1 }),
+    ]);
+
+    // Format and combine
+    let activity = [
+      ...investments.map((i) => ({
+        _id: i._id,
+        type: i.type,
+        category: 'investment',
+        amount: i.amount,
+        date: i.date,
+        description:
+          i.description ||
+          (i.type === 'deposit'
+            ? 'Investment Deposit'
+            : i.type === 'withdrawal'
+              ? 'Investment Withdrawal'
+              : i.type === 'transfer_send'
+                ? 'P2P Fund Transfer (Sent)'
+                : 'P2P Fund Transfer (Received)'),
+        metadata: { balanceAfter: i.balanceAfter },
+      })),
+      ...profits.map((p) => ({
+        _id: p._id,
+        type: 'deposit',
+        category: 'profit',
+        amount: p.amount,
+        date: p.date,
+        description: `Profit Distribution - ${p.period}`,
+        metadata: { share: p.investmentShare },
+      })),
+      ...repayments.map((r) => ({
+        _id: r._id,
+        type: 'withdrawal',
+        category: 'repayment',
+        amount: r.amount,
+        date: r.date,
+        description: r.notes || 'Loan Repayment',
+        metadata: { loanId: r.loan },
+      })),
+      ...goalLogs.map((gl) => ({
+        _id: gl._id,
+        type: 'withdrawal',
+        category: 'goal',
+        amount: gl.metadata?.amount || 0,
+        date: gl.createdAt,
+        description: `Goal Allocation: ${gl.metadata?.title || 'Saving Goal'}`,
+        metadata: { goalId: gl.metadata?.goalId },
+      })),
+    ];
+
+    // Filter by search if model query didn't catch everything (like profit distribution descriptions)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      activity = activity.filter((a) =>
+        a.description.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Filter by category
+    if (category) {
+      activity = activity.filter((a) => a.category === category);
+    }
+
+    activity.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const totalEntries = activity.length;
+
+    const paginatedActivity = activity.slice(skip, skip + limit);
+
+    res.json({
+      data: paginatedActivity,
+      totalEntries,
+      totalPages: Math.ceil(totalEntries / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error('Get Member Activity Error:', error);
+    res.status(500).json({ message: 'Failed to fetch activity records' });
+  }
+};
+
+/**
+ * @desc    Transfer funds to another member
+ * @route   POST /api/members/portal/transfer
+ * @access  Private (Member)
+ */
+const transferFunds = async (req, res) => {
+  const { recipientIdentifier, amount, description } = req.body;
+  const senderId = req.member._id;
+
+  if (!recipientIdentifier || !amount || parseFloat(amount) <= 0) {
+    return res.status(400).json({ message: 'Invalid recipient or amount' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const sender = await Member.findById(senderId).session(session);
+    console.log(
+      'Sender Balance:',
+      sender.currentBalance,
+      'Transfer Amount:',
+      amount,
+    );
+    if (sender.currentBalance < parseFloat(amount)) {
+      console.log('Insufficient balance error');
+      throw new Error('Insufficient balance');
+    }
+
+    // Find recipient by email, phone, or account numbers
+    console.log('Finding recipient for:', recipientIdentifier);
+    const recipient = await Member.findOne({
+      $or: [
+        { email: recipientIdentifier.toLowerCase() },
+        { phone: recipientIdentifier },
+        {
+          savingAccountNumber: {
+            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+          },
+        },
+        {
+          currentAccountNumber: {
+            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+          },
+        },
+      ],
+    }).session(session);
+
+    if (!recipient) {
+      throw new Error('Recipient not found');
+    }
+
+    if (recipient._id.equals(sender._id)) {
+      throw new Error('Cannot transfer to yourself');
+    }
+
+    const transferAmount = parseFloat(amount);
+
+    // Update balances
+    sender.currentBalance -= transferAmount;
+    sender.totalWithdrawn += transferAmount;
+    recipient.currentBalance += transferAmount;
+    recipient.totalInvested += transferAmount;
+
+    await sender.save({ session });
+    await recipient.save({ session });
+
+    // Create investment records for both
+    const senderTransaction = new Investment({
+      user: sender.user,
+      member: sender._id,
+      branchId: sender.branchId,
+      type: 'transfer_send',
+      amount: transferAmount,
+      balanceAfter: sender.currentBalance,
+      description: description || `Transfer to ${recipient.name}`,
+      date: new Date(),
+    });
+
+    const recipientTransaction = new Investment({
+      user: recipient.user,
+      member: recipient._id,
+      branchId: recipient.branchId,
+      type: 'transfer_receive',
+      amount: transferAmount,
+      balanceAfter: recipient.currentBalance,
+      description: description || `Transfer from ${sender.name}`,
+      date: new Date(),
+    });
+
+    await senderTransaction.save({ session });
+    await recipientTransaction.save({ session });
+
+    // Internal Activity Log for Sender
+    await ActivityLog.create(
+      [
+        {
+          user: sender.user,
+          action: 'fund_transfer_sent',
+          category: 'member',
+          details: `Sent ${transferAmount} to ${recipient.name}`,
+          metadata: { recipientId: recipient._id, amount: transferAmount },
+          branchId: sender.branchId,
+        },
+      ],
+      { session },
+    );
+
+    // Internal Activity Log for Recipient
+    await ActivityLog.create(
+      [
+        {
+          user: recipient.user,
+          action: 'fund_transfer_received',
+          category: 'member',
+          details: `Received ${transferAmount} from ${sender.name}`,
+          metadata: { senderId: sender._id, amount: transferAmount },
+          branchId: recipient.branchId,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    res.status(200).json({
+      message: 'Transfer successful',
+      balance: sender.currentBalance,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * @desc    Admin/Staff initiation of fund transfer between members
+ * @route   POST /api/members/admin/transfer
+ * @access  Private (Admin/Staff)
+ */
+const adminTransferFunds = async (req, res) => {
+  const { senderId, recipientIdentifier, amount, description } = req.body;
+
+  if (!senderId || !recipientIdentifier || !amount || parseFloat(amount) <= 0) {
+    return res
+      .status(400)
+      .json({ message: 'Invalid sender, recipient, or amount' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const sender = await Member.findById(senderId).session(session);
+    if (!sender) {
+      throw new Error('Sender member not found');
+    }
+
+    if (sender.currentBalance < parseFloat(amount)) {
+      throw new Error('Insufficient balance in sender account');
+    }
+
+    // Find recipient by email, phone, or account numbers
+    const recipient = await Member.findOne({
+      $or: [
+        { email: recipientIdentifier.toLowerCase() },
+        { phone: recipientIdentifier },
+        {
+          savingAccountNumber: {
+            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+          },
+        },
+        {
+          currentAccountNumber: {
+            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+          },
+        },
+      ],
+    }).session(session);
+
+    if (!recipient) {
+      throw new Error('Recipient not found');
+    }
+
+    if (recipient._id.equals(sender._id)) {
+      throw new Error('Cannot transfer to the same member');
+    }
+
+    const transferAmount = parseFloat(amount);
+
+    // Update balances
+    sender.currentBalance -= transferAmount;
+    sender.totalWithdrawn += transferAmount;
+    recipient.currentBalance += transferAmount;
+    recipient.totalInvested += transferAmount;
+
+    await sender.save({ session });
+    await recipient.save({ session });
+
+    // Create investment records for both
+    const senderTransaction = new Investment({
+      user: sender.user,
+      member: sender._id,
+      branchId: sender.branchId,
+      type: 'transfer_send',
+      amount: transferAmount,
+      balanceAfter: sender.currentBalance,
+      description: description || `Admin Transfer to ${recipient.name}`,
+      date: new Date(),
+    });
+
+    const recipientTransaction = new Investment({
+      user: recipient.user,
+      member: recipient._id,
+      branchId: recipient.branchId,
+      type: 'transfer_receive',
+      amount: transferAmount,
+      balanceAfter: recipient.currentBalance,
+      description: description || `Admin Transfer from ${sender.name}`,
+      date: new Date(),
+    });
+
+    await senderTransaction.save({ session });
+    await recipientTransaction.save({ session });
+
+    // Internal Activity Log showing Admin/Staff action
+    await ActivityLog.create(
+      [
+        {
+          user: req.user.effectiveOwnerId,
+          action: 'admin_fund_transfer_initiated',
+          category: 'member',
+          details: `${req.user.name} transferred ${transferAmount} from ${sender.name} to ${recipient.name}`,
+          metadata: {
+            senderId: sender._id,
+            recipientId: recipient._id,
+            amount: transferAmount,
+            initiatedBy: req.user.role,
+          },
+          branchId: req.user.branchId || sender.branchId,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    res.status(200).json({
+      message: 'Admin transfer successful',
+      senderBalance: sender.currentBalance,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -686,4 +1092,7 @@ module.exports = {
   getMemberProfits,
   distributeProfit,
   convertCustomerToMember,
+  getMemberActivity,
+  transferFunds,
+  adminTransferFunds,
 };

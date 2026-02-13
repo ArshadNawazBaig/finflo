@@ -69,6 +69,10 @@ const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
 const AuditLogs = lazy(() => import('@/pages/AuditLogs'));
 const Maintenance = lazy(() => import('@/pages/Maintenance'));
 const Valentine = lazy(() => import('@/pages/Valentine'));
+const MemberTransactions = lazy(() => import('@/pages/MemberTransactions'));
+const MemberLoanDetail = lazy(() => import('@/pages/MemberLoanDetail'));
+const MemberLoans = lazy(() => import('@/pages/MemberLoans'));
+const MemberTransfer = lazy(() => import('@/pages/MemberTransfer'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -173,6 +177,16 @@ function App() {
                     path="/member/dashboard"
                     element={<MemberDashboard />}
                   />
+                  <Route
+                    path="/member/loans/:id"
+                    element={<MemberLoanDetail />}
+                  />
+                  <Route path="/member/loans" element={<MemberLoans />} />
+                  <Route
+                    path="/member/transactions"
+                    element={<MemberTransactions />}
+                  />
+                  <Route path="/member/transfer" element={<MemberTransfer />} />
                 </Route>
               </Route>
 

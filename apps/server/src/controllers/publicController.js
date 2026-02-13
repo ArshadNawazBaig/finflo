@@ -1,66 +1,30 @@
-const User = require('../models/User');
-const Customer = require('../models/Customer');
-const Loan = require('../models/Loan');
+const Member = require('../models/Member');
+const Branch = require('../models/Branch');
 
-// @desc    Verify Business Security Code and Get Customer Loans
-// @route   POST /api/public/loan-lookup
+// @desc    Get landing page stats (Active Members, Global Branches)
+// @route   GET /api/public/stats
 // @access  Public
-const verifyCodeAndGetLoans = async (req, res) => {
-  const { securityCode, email, name } = req.body;
-
+exports.getLandingStats = async (req, res) => {
   try {
-    // 1. Validate Input
-    if (!securityCode || !email || !name) {
-      return res.status(400).json({
-        message: 'Please provide Business Security Code, Email, and Full Name',
-      });
-    }
+    // Count active members (isActive: true)
+    // You might also want to check if the associated user is active, but keeping it simple for now
+    const activeMembersCount = await Member.countDocuments({ isActive: true });
 
-    // 2. Find Business by Security Code
-    const business = await User.findOne({
-      securityCode: securityCode.toUpperCase(),
-    });
+    // Count active branches
+    const globalBranchesCount = await Branch.countDocuments({ isActive: true });
 
-    if (!business) {
-      return res.status(401).json({
-        message: 'Invalid Business Security Code',
-      });
-    }
-
-    // 3. Find Customer in that Business
-    // Case-insensitive search for name and email
-    const customer = await Customer.findOne({
-      user: business._id,
-      email: { $regex: new RegExp(`^${email}$`, 'i') },
-      name: { $regex: new RegExp(`^${name}$`, 'i') },
-    });
-
-    if (!customer) {
-      return res.status(404).json({
-        message: 'Customer not found with these details for this business',
-      });
-    }
-
-    // 4. Fetch Loans for that Customer
-    const loans = await Loan.find({ customer: customer._id })
-      .sort({ createdAt: -1 })
-      .select('-__v'); // Exclude internal version field
-
-    res.json({
-      businessName: business.businessName || business.name,
-      customer: {
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
+    res.status(200).json({
+      success: true,
+      data: {
+        activeMembers: activeMembersCount,
+        globalBranches: globalBranchesCount,
       },
-      loans,
     });
   } catch (error) {
-    console.error('Loan Lookup Error:', error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Error fetching landing stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error fetching stats',
+    });
   }
-};
-
-module.exports = {
-  verifyCodeAndGetLoans,
 };

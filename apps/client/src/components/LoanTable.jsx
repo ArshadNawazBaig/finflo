@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Mail,
   CreditCard,
+  Download,
 } from 'lucide-react';
 import Pagination from './ui/Pagination';
 import { Link } from 'react-router-dom';
@@ -17,6 +18,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
+import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanTable = ({
   data,
@@ -231,6 +233,22 @@ const LoanTable = ({
                               >
                                 <Mail size={16} />
                               </a>
+                            </Tooltip>
+                            <Tooltip
+                              content="Download Statement"
+                              position="top"
+                            >
+                              <button
+                                onClick={() =>
+                                  exportLoanStatement(
+                                    loan,
+                                    loan.repayments || [],
+                                  )
+                                }
+                                className="p-1.5 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
+                              >
+                                <Download size={16} />
+                              </button>
                             </Tooltip>
                             <Tooltip content="Edit Loan" position="top">
                               <button

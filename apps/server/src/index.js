@@ -22,12 +22,13 @@ app.use(
 app.use(express.json());
 
 // Security Middleware
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 
 // General API Rate Limiting
+/*
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Increased limit to 1000 requests per 15 minutes
   message: {
     message:
       'Too many requests from this IP, please try again after 15 minutes',
@@ -39,7 +40,7 @@ const apiLimiter = rateLimit({
 // Stricter Rate Limiting for Auth endpoints
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Limit each IP to 10 requests per hour for login/forgot-password
+  max: 200, // Increased limit to 200 requests per hour for login/forgot-password
   message: {
     message: 'Too many authentication attempts, please try again after an hour',
   },
@@ -50,6 +51,7 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
+*/
 
 // Restrict CORS to CLIENT_URL
 const corsOptions = {
@@ -129,6 +131,7 @@ app.use('/api/backup', require('./routes/backupRoutes'));
 app.use('/api/tickets', require('./routes/supportTicketRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
 app.use('/api/communication', require('./routes/communicationRoutes'));
+app.use('/api/saving-goals', require('./routes/savingGoalRoutes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');

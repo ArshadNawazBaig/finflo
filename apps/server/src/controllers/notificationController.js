@@ -91,16 +91,47 @@ const getMyNotifications = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    // console.log('Fetching notifications for:', recipientId);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sortBy = req.query.sortBy || 'newest';
 
-    const notifications = await Notification.find({ recipient: recipientId })
-      .sort({ createdAt: -1 })
-      .limit(50); // Limit to last 50
+    const query = { recipient: recipientId };
+
+    // Search logic
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [{ title: searchRegex }, { message: searchRegex }];
+    }
+
+    // Sort logic
+    let sort = { createdAt: -1 }; // newest (default)
+    if (sortBy === 'oldest') {
+      sort = { createdAt: 1 };
+    }
+
+    const total = await Notification.countDocuments(query);
+    const notifications = await Notification.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
     const unreadCount = await Notification.countDocuments({
       recipient: recipientId,
       read: false,
     });
-    res.json({ notifications, unreadCount });
+
+    res.json({
+      notifications,
+      unreadCount,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

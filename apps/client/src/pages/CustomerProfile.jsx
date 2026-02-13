@@ -107,88 +107,80 @@ const CustomerProfile = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
-        {/* Decorative Background Icon */}
-        <User className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => navigate('/customers')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-black tracking-tighter">
-                {capitalize(customer.name)}
-              </h1>
-              {customer.isMember && (
-                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
-                  <UserPlus size={10} />
-                  Member
-                </span>
-              )}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
-                <span className="text-amber-500">★</span>
-                <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Mail className="w-4 h-4 text-primary" />
-                {customer.email}
-              </div>
-              <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Phone className="w-4 h-4 text-primary" />
-                {customer.phone}
-              </div>
-              {customer.address && (
-                <>
-                  <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
-                  <div className="flex items-center gap-1.5 text-sm font-medium">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    {customer.address}
-                  </div>
-                </>
-              )}
+      <PageHeader
+        variant="card"
+        icon={User}
+        onBack={() => navigate('/customers')}
+        title={capitalize(customer.name)}
+        badge={
+          <div className="flex items-center gap-3">
+            {customer.isMember && (
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-primary/20">
+                <UserPlus size={10} />
+                Member
+              </span>
+            )}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
+              <span className="text-amber-500">★</span>
+              <span>{(customer.trustRating || 5).toFixed(1)}/10</span>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-3 flex-col-reverse sm:flex-row">
+        }
+        description={
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Mail size={14} className="text-primary" />
+              {customer.email}
+            </div>
+            <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Phone size={14} className="text-primary" />
+              {customer.phone}
+            </div>
+            {customer.address && (
+              <>
+                <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
+                <div className="flex items-center gap-1.5 text-sm font-medium">
+                  <MapPin size={14} className="text-primary" />
+                  {customer.address}
+                </div>
+              </>
+            )}
+          </div>
+        }
+      >
+        <div className="flex items-center gap-2">
           {loans.some((l) => l.status === 'active') && (
-            <button
+            <Button
               onClick={() => {
                 const firstActive = loans.find((l) => l.status === 'active');
                 if (firstActive) setSelectedRepayLoan(firstActive);
               }}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
+              className="px-6 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 flex items-center gap-3 transition-all"
             >
-              <Wallet className="w-3.5 h-3.5" />
-              Pay Back Loan
-            </button>
+              <Wallet size={16} />
+              Pay Back
+            </Button>
           )}
-          <button
+          <Button
             onClick={() => setShowAddLoanModal(true)}
-            className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:scale-105 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
+            className="px-6 h-12 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 flex items-center gap-3 transition-all"
           >
-            <PlusCircle className="w-3.5 h-3.5" />
+            <PlusCircle size={16} />
             Issue Loan
-          </button>
+          </Button>
           {!customer.isMember && (
             <Button
               onClick={() => setShowMemberForm(true)}
               variant="gradient"
-              className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
+              className="px-6 h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-3 transition-all"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              Upgrade to Member
+              <UserPlus size={16} />
+              Convert
             </Button>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Stats Row */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">

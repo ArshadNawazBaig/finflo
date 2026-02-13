@@ -62,8 +62,44 @@ const loanValidation = [
   validate,
 ];
 
+// Saving Goal Validations
+const savingGoalValidation = [
+  body('title').trim().notEmpty().withMessage('Title is required'),
+  body('targetAmount')
+    .isNumeric()
+    .withMessage('Target amount must be a number')
+    .custom((value) => value > 0)
+    .withMessage('Target amount must be greater than 0'),
+  body('category')
+    .optional()
+    .isIn([
+      'emergency',
+      'travel',
+      'car',
+      'education',
+      'home',
+      'wedding',
+      'gadget',
+      'other',
+    ])
+    .withMessage('Invalid category'),
+  body('deadline').optional().isISO8601().withMessage('Invalid date format'),
+  validate,
+];
+
+const savingGoalContributionValidation = [
+  body('amount')
+    .isNumeric()
+    .withMessage('Amount must be a number')
+    .custom((value) => value > 0)
+    .withMessage('Amount must be greater than 0'),
+  validate,
+];
+
 module.exports = {
   registerValidation,
   loginValidation,
   loanValidation,
+  savingGoalValidation,
+  savingGoalContributionValidation,
 };

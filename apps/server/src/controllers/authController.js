@@ -1,4 +1,17 @@
 const User = require('../models/User');
+const Member = require('../models/Member');
+const Customer = require('../models/Customer');
+const Loan = require('../models/Loan');
+const Repayment = require('../models/Repayment');
+const Investment = require('../models/Investment');
+const ProfitDistribution = require('../models/ProfitDistribution');
+const SavingGoal = require('../models/SavingGoal');
+const Payment = require('../models/Payment');
+const Notification = require('../models/Notification');
+const SupportTicket = require('../models/SupportTicket');
+const ActivityLog = require('../models/ActivityLog');
+const Branch = require('../models/Branch');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('./activityLogController');
@@ -450,6 +463,80 @@ const resendVerificationCode = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Protection for super admin (optional, but safer)
+    if (user.role === 'super_admin') {
+      return res
+        .status(403)
+        .json({
+          message: 'Super Admin account cannot be deleted via this endpoint.',
+        });
+    }
+
+    // Cloudinary Cleanup: Profile Picture
+    if (user.profilePicture) {
+      try {
+        await deleteCloudinaryFileByUrl(user.profilePicture, 'image');
+      } catch (err) {
+        console.error('Cloudinary deletion failed for profile picture:', err);
+      }
+    }
+
+    // Cascading Deletion across all models linked to this Admin
+    await Repayment.deleteMany({ user: userId }).session(session);
+    await Loan.deleteMany({ user: userId }).session(session);
+    await Customer.deleteMany({ user: userId }).session(session);
+    await Member.deleteMany({ user: userId }).session(session);
+    await Investment.deleteMany({ user: userId }).session(session);
+    await ProfitDistribution.deleteMany({ user: userId }).session(session);
+    await SavingGoal.deleteMany({ user: userId }).session(session);
+    await Payment.deleteMany({ user: userId }).session(session);
+    await Notification.deleteMany({
+      $or: [
+        { recipient: userId, recipientModel: 'User' },
+        {
+          recipient: {
+            $in: await Member.find({ user: userId }).distinct('_id'),
+          },
+          recipientModel: 'Member',
+        },
+      ],
+    }).session(session);
+    await SupportTicket.deleteMany({ user: userId }).session(session);
+    await ActivityLog.deleteMany({ user: userId }).session(session);
+    await Branch.deleteMany({ owner: userId }).session(session);
+
+    // Finally delete the user
+    await User.findByIdAndDelete(userId).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: 'Account and all associated business data permanently deleted.',
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Delete Account Error:', error);
+    res
+      .status(500)
+      .json({ message: 'Failed to delete account. Please try again later.' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -461,4 +548,5 @@ module.exports = {
   resetPassword,
   verifyEmail,
   resendVerificationCode,
+  deleteAccount,
 };

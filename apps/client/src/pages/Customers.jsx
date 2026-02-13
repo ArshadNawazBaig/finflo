@@ -195,8 +195,8 @@ const Customers = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 sm:pb-6">
       <PageHeader
-        title="Customers"
-        description="Manage your client base and view their loan history."
+        title="Customer Registry"
+        description="Registry of all onboarded individuals and corporate entities."
       >
         <Button
           onClick={() => setIsModalOpen(true)}

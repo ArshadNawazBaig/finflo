@@ -260,7 +260,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                 <Building2 className="w-3 h-3" /> Branch Selection
               </Label>
               {user.role === 'staff' ? (
-                <div className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground italic">
+                <div className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground ">
                   Automatically assigned to your branch
                 </div>
               ) : (

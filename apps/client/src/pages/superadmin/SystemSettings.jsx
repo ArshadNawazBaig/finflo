@@ -590,7 +590,7 @@ const SystemSettings = () => {
                             </div>
                           </div>
                         ))}
-                        <p className="text-[10px] text-muted-foreground/60 italic leading-relaxed pt-4 border-t border-border/40">
+                        <p className="text-[10px] text-muted-foreground/60 leading-relaxed pt-4 border-t border-border/40">
                           * Set to -1 for unlimited capital injection capacity
                           on specific tiers.
                         </p>

@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { LayoutGrid, FileText, LogOut, ChevronUp, X } from 'lucide-react';
+import {
+  LayoutGrid,
+  FileText,
+  History,
+  LogOut,
+  ChevronUp,
+  X,
+  Send,
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
@@ -94,10 +102,24 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           isExpanded={isLayoutExpanded}
         />
         <NavItem
+          to="/member/transactions"
+          icon={<History size={18} />}
+          active={isActive('/member/transactions')}
+          label="Transactions"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
           to="/member/loans"
           icon={<FileText size={18} />}
           active={isActive('/member/loans')}
           label="My Loans"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/member/transfer"
+          icon={<Send size={18} />}
+          active={isActive('/member/transfer')}
+          label="Transfer"
           isExpanded={isLayoutExpanded}
         />
       </nav>

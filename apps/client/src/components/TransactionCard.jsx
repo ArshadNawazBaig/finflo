@@ -52,7 +52,7 @@ const TransactionCard = ({ transaction }) => {
 
       {transaction.notes && (
         <div className="mt-4 pt-3 border-t border-border/30">
-          <p className="text-[11px] text-muted-foreground/80 font-medium italic">
+          <p className="text-[11px] text-muted-foreground/80 font-medium ">
             "{transaction.notes}"
           </p>
         </div>

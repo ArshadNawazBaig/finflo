@@ -100,7 +100,7 @@ const InstallPrompt = () => {
                       <div>
                         <h4 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
                           LoanMaster{' '}
-                          <span className="text-primary italic text-xs">
+                          <span className="text-primary text-xs">
                             App
                           </span>
                         </h4>

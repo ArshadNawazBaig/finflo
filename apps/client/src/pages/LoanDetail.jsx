@@ -28,15 +28,16 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
+import PageHeader from '@/components/PageHeader';
+import StatsCard from '@/components/StatsCard';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import DocumentManager from '@/components/DocumentManager';
-import StatsCard from '@/components/StatsCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
-import jsPDF from 'jspdf';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import AmortizationSchedule from '@/components/AmortizationSchedule';
 import CommunicationLogs from '@/components/CommunicationLogs';
+import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -356,151 +357,10 @@ const LoanDetail = () => {
   const handleDownloadStatement = async () => {
     try {
       setIsExporting(true);
-      const doc = new jsPDF();
-
-      // Ensure autoTable is initialized
-      // @ts-ignore
-      if (typeof doc.autoTable !== 'function') {
-        // @ts-ignore
-        try {
-          autoTable(doc);
-        } catch (e) {
-          console.warn('AutoTable initialization warning:', e);
-        }
-      }
-
-      const pageWidth = doc.internal.pageSize.width;
-
-      // Header
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('FINANCIAL STATEMENT', pageWidth / 2, 20, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(
-        `Generated on: ${new Date().toLocaleString()}`,
-        pageWidth / 2,
-        27,
-        { align: 'center' },
-      );
-      doc.line(20, 32, pageWidth - 20, 32);
-
-      // Borrower Info
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Borrower Information', 20, 42);
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Name: ${loan.customer?.name}`, 20, 50);
-      doc.text(`Email: ${loan.customer?.email}`, 20, 55);
-      doc.text(`Phone: ${loan.customer?.phone || 'N/A'}`, 20, 60);
-      if (member) {
-        doc.text(`Membership ID: ${member._id}`, 20, 65);
-      }
-
-      // Loan Summary
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Loan Agreement Summary', 20, 80);
-
-      autoTable(doc, {
-        startY: 85,
-        head: [['Field', 'Detail']],
-        body: [
-          ['Loan ID', loan._id],
-          ['Principal Amount', formatPKR(loan.principal)],
-          ['Interest Rate', `${loan.rate}% APR`],
-          ['Duration', `${loan.duration} Months`],
-          ['Total Repayable', formatPKR(loan.totalAmount)],
-          ['Amount Paid', formatPKR(loan.paidAmount)],
-          ['Remaining Balance', formatPKR(loan.remainingAmount)],
-          ['Status', loan.status.toUpperCase()],
-          ['Start Date', new Date(loan.startDate).toLocaleDateString()],
-        ],
-        theme: 'striped',
-        headStyles: { fillColor: [79, 70, 229] },
-      });
-
-      // Repayment History
-      // @ts-ignore
-      let currentY = (doc.lastAutoTable?.finalY || 150) + 15;
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Repayment History', 20, currentY);
-
-      if (repayments.length > 0) {
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Date', 'Amount', 'Status']],
-          body: repayments.map((rp) => [
-            new Date(rp.date).toLocaleDateString(),
-            formatPKR(rp.amount),
-            'Confirmed',
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [16, 185, 129] },
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
-        doc.text('No repayments recorded yet.', 20, currentY + 10);
-        // @ts-ignore
-        doc.lastAutoTable = { finalY: currentY + 10 };
-      }
-
-      // Investment History (If Member)
-      if (member && investments.length > 0) {
-        // @ts-ignore
-        currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
-        if (currentY > 250) {
-          doc.addPage();
-          currentY = 20;
-        }
-
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Investment History', 20, currentY);
-
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Date', 'Type', 'Amount', 'Description']],
-          body: investments.map((inv) => [
-            new Date(inv.date).toLocaleDateString(),
-            inv.type.toUpperCase(),
-            formatPKR(inv.amount),
-            inv.description || '-',
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [99, 102, 241] },
-        });
-      }
-
-      // Footer
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.text(
-          `Page ${i} of ${pageCount}`,
-          pageWidth - 30,
-          doc.internal.pageSize.height - 10,
-        );
-        doc.text(
-          'Official Financial Statement - Generated via Aurbitrage Loan Management SaaS',
-          pageWidth / 2,
-          doc.internal.pageSize.height - 10,
-          { align: 'center' },
-        );
-      }
-
-      doc.save(
-        `Statement_${loan._id.slice(-6).toUpperCase()}_${loan.customer?.name.replace(/\s+/g, '_')}.pdf`,
-      );
-      toast.success('Financial statement downloaded successfully');
+      await exportLoanStatement(loan, repayments, member);
+      toast.success('Statement downloaded successfully');
     } catch (error) {
-      console.error('PDF Generation Error:', error);
+      console.error('PDF Export failed:', error);
       toast.error('Failed to generate statement');
     } finally {
       setIsExporting(false);
@@ -510,116 +370,83 @@ const LoanDetail = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden">
-        <ShieldCheck className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => navigate('/loans')}
-            className="p-3 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-black tracking-tighter">
-                Loan #{loan._id.slice(-6).toUpperCase()}
-              </h1>
-              <span
-                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
-                  loan.status === 'active'
-                    ? 'bg-blue-500/10 text-blue-500'
-                    : loan.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-500'
-                      : loan.status === 'pending'
-                        ? 'bg-amber-500/10 text-amber-500'
-                        : loan.status === 'rejected'
-                          ? 'bg-red-500/10 text-red-500'
-                          : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
-                }`}
-              >
-                {loan.status}
-              </span>
-              {loan.status === 'pending' && (
-                <div className="ml-2 pl-2 border-l border-border/50">
-                  <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
-                </div>
-              )}
+      <PageHeader
+        variant="card"
+        icon={ShieldCheck}
+        onBack={() => navigate('/loans')}
+        title={`Loan #${loan._id.slice(-6).toUpperCase()}`}
+        badge={
+          <div className="flex items-center gap-3">
+            <span
+              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                loan.status === 'active'
+                  ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                  : loan.status === 'completed'
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                    : loan.status === 'pending'
+                      ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                      : loan.status === 'rejected'
+                        ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                        : 'bg-muted/50 text-muted-foreground border border-border/50'
+              }`}
+            >
+              {loan.status}
+            </span>
+            {loan.status === 'pending' && (
+              <div className="pl-3 border-l border-border/50">
+                <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
+              </div>
+            )}
+          </div>
+        }
+        description={
+          <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <User size={14} className="text-primary" />
+              {loan.customer?.name}
             </div>
-            <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <User size={14} className="text-primary" />
-                {loan.customer?.name}
-              </div>
-              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
-                <span className="text-amber-500">★</span>
-                <span>
-                  {(loan.customer?.trustRating || 5).toFixed(1)}/10 Trust
-                </span>
-              </div>
-              <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Calendar size={14} className="text-primary" />
-                Issued {new Date(loan.startDate).toLocaleDateString()}
-              </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black border border-amber-500/20">
+              <span className="text-amber-500">★</span>
+              <span>
+                {(loan.customer?.trustRating || 5).toFixed(1)}/10 Trust
+              </span>
+            </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Calendar size={14} className="text-primary" />
+              Issued {new Date(loan.startDate).toLocaleDateString()}
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tooltip content="Send WhatsApp Reminder">
-            <a
-              href={generateWhatsAppLink(
-                loan.customer?.phone,
-                loan.customer?.name,
-                loan.emi,
-                new Date(),
-                false,
-              )}
-              target="_blank"
-              rel="noreferrer"
-              className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
-            >
-              <MessageSquare size={20} />
-            </a>
-          </Tooltip>
-          <Tooltip content="Send Email Reminder">
-            <a
-              href={generateEmailLink(
-                loan.customer?.email,
-                loan.customer?.name,
-                loan.emi,
-                new Date(),
-                false,
-              )}
-              className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
-            >
-              <Mail size={20} />
-            </a>
-          </Tooltip>
-          <Tooltip content="Download Statement">
-            <button
-              onClick={handleDownloadStatement}
-              disabled={isExporting}
-              className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-500 hover:text-white transition-all active:scale-95 disabled:opacity-50"
-            >
-              <Download
-                size={20}
-                className={isExporting ? 'animate-bounce' : ''}
-              />
-            </button>
-          </Tooltip>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2 justify-end">
           <Button
             onClick={() => navigate(`/customers/${loan.customer?._id}`)}
-            variant="gradient"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest gap-1 w-full sm:w-auto "
+            variant="outline"
+            className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
           >
-            <Activity className="w-3.5 h-3.5" />
-            Full Profile
+            <Activity className="w-4 h-4" />
+            Profile
           </Button>
+
+          <Tooltip content="Download Loan Statement">
+            <Button
+              variant="gradient"
+              disabled={isExporting}
+              onClick={handleDownloadStatement}
+              className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
+            >
+              {isExporting ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Download size={16} />
+              )}
+              Statement
+            </Button>
+          </Tooltip>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:gap-6 md:grid-cols-4">
