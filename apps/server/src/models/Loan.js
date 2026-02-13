@@ -48,6 +48,13 @@ const loanSchema = new mongoose.Schema(
       suggestion: { type: String }, // Approve, Deny, Caution
       factors: [{ type: String }],
     },
+    automatedReminders: [
+      {
+        type: { type: String, enum: ['upcoming', 'overdue'] },
+        installmentNumber: { type: Number },
+        sentAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

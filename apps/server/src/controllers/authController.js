@@ -14,6 +14,12 @@ const registerUser = async (req, res) => {
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
+  // Generate 6-digit verification code
+  const verificationCode = Math.floor(
+    100000 + Math.random() * 900000,
+  ).toString();
+  const verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
   try {
     const userExists = await User.findOne({ email: lowercaseEmail });
 
@@ -25,9 +31,21 @@ const registerUser = async (req, res) => {
       name: lowercaseName,
       email: lowercaseEmail,
       password,
+      verificationCode,
+      verificationCodeExpire,
     });
 
     if (user) {
+      // Send verification email
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Email Verification Code',
+          message: `Your verification code is: ${verificationCode}. It will expire in 10 minutes.`,
+        });
+      } catch (err) {
+        console.error('Verification email failed to send:', err);
+      }
       // Log activity
       await logActivity({
         userId: user._id,
@@ -42,7 +60,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id),
+        message: 'Registration successful. Please verify your email.',
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -68,6 +86,15 @@ const loginUser = async (req, res) => {
     if (!user.isActive) {
       return res.status(403).json({
         message: 'Your account has been deactivated. Please contact support.',
+      });
+    }
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: 'Please verify your email address to log in.',
+        notVerified: true,
+        email: user.email,
       });
     }
 
@@ -323,6 +350,87 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const verifyEmail = async (req, res) => {
+  const { email, code } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
+
+  try {
+    const user = await User.findOne({
+      email: lowercaseEmail,
+      verificationCode: code,
+      verificationCodeExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired verification code' });
+    }
+
+    user.isVerified = true;
+    user.verificationCode = undefined;
+    user.verificationCodeExpire = undefined;
+    await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'email_verified',
+      category: 'auth',
+      details: `User verified email: ${user.email}`,
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully. You can now log in.',
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const resendVerificationCode = async (req, res) => {
+  const { email } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
+
+  try {
+    const user = await User.findOne({ email: lowercaseEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Email is already verified' });
+    }
+
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Email Verification Code',
+      message: `Your new verification code is: ${verificationCode}. It will expire in 10 minutes.`,
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Verification code resent' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -332,4 +440,6 @@ module.exports = {
   updatePassword,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerificationCode,
 };

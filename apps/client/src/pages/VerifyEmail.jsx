@@ -1,59 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '@/lib/axios';
-import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  Mail,
+  Loader2,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
+import { toast } from 'sonner';
 
-const Login = () => {
+const VerifyEmail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+    } else {
+      // If no email in query, maybe check local storage or redirect
+      const savedUser = JSON.parse(
+        localStorage.getItem('temp_user_email') || '""',
+      );
+      if (savedUser) setEmail(savedUser);
+    }
+  }, [location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const lowercaseEmail = email.trim().toLowerCase();
+
     try {
-      const { data } = await api.post('/auth/login', {
-        email: lowercaseEmail,
-        password,
+      const { data } = await api.post('/auth/verify-email', {
+        email,
+        code,
       });
+
+      toast.success(data.message);
+
+      // Store token and redirect
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
+      localStorage.removeItem('temp_user_email');
 
-      // Check for redirect param
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get('redirect');
-
-      if (redirect) {
-        navigate(redirect);
-        return;
-      }
-
-      // Role-based redirect
-      if (data.role === 'super_admin') {
-        navigate('/super-admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
-      console.error('Login error full details:', err);
-      if (err.response?.data?.notVerified) {
-        toast.info(err.response.data.message);
-        navigate(
-          `/verify-email?email=${encodeURIComponent(err.response.data.email)}`,
-        );
-        return;
-      }
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Verification failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      toast.error('Email is required to resend code');
+      return;
+    }
+
+    setResending(true);
+    try {
+      await api.post('/auth/resend-verification', { email });
+      toast.success('Verification code resent to your email');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to resend code');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -73,10 +96,11 @@ const Login = () => {
           </Link>
           <div className="space-y-1">
             <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Welcome Back
+              Verify Email
             </CardTitle>
             <p className="text-muted-foreground text-sm font-medium">
-              Securely access your financial portfolio
+              Enter the 6-digit code sent to{' '}
+              <span className="text-foreground font-bold">{email}</span>
             </p>
           </div>
         </CardHeader>
@@ -93,60 +117,30 @@ const Login = () => {
             <div className="space-y-2">
               <label
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                htmlFor="email"
+                htmlFor="code"
               >
-                Email Address
+                Verification Code
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="code"
+                  type="text"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                   required
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
-                  htmlFor="password"
-                >
-                  Security Code
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
-                >
-                  Recovery
-                </Link>
-              </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-center text-xl font-black tracking-[0.5em]"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || code.length !== 6}
               variant="gradient"
               className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group"
             >
@@ -156,7 +150,7 @@ const Login = () => {
                   loading ? 'opacity-0' : 'opacity-100',
                 )}
               >
-                Sign In{' '}
+                Verify & Continue{' '}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
               {loading && (
@@ -166,14 +160,28 @@ const Login = () => {
               )}
             </Button>
 
-            <div className="text-center pt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                New to the platform?{' '}
+            <div className="text-center pt-4 space-y-3">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 mx-auto disabled:opacity-50"
+              >
+                {resending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3 h-3" />
+                )}
+                Resend Verification Code
+              </button>
+
+              <p className="text-xs text-muted-foreground font-medium">
+                Entered wrong email?{' '}
                 <Link
                   to="/register"
                   className="text-primary font-black hover:underline transition-all"
                 >
-                  Create Account
+                  Change Email
                 </Link>
               </p>
             </div>
@@ -184,11 +192,11 @@ const Login = () => {
       {/* Minimal Footer */}
       <div className="absolute bottom-6 left-0 w-full text-center">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 px-4">
-          © 2026 Financial Intelligence Portal • Precision in every transaction
+          © 2026 Financial Intelligence Portal • Security is our priority
         </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default VerifyEmail;

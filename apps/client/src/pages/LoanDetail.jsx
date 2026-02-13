@@ -36,6 +36,7 @@ import jsPDF from 'jspdf';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import AmortizationSchedule from '@/components/AmortizationSchedule';
+import CommunicationLogs from '@/components/CommunicationLogs';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -751,6 +752,9 @@ const LoanDetail = () => {
             isFetchingMore={isFetchingMoreSchedule}
             observerTarget={scheduleObserverTarget}
           />
+
+          {/* Communication History Section */}
+          <CommunicationLogs reminders={loan.automatedReminders || []} />
 
           {/* Investment History Section (Only for Members) */}
           {member && (

@@ -9,12 +9,16 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerificationCode,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerificationCode);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 router.get('/me', protect, getMe);

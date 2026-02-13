@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
+const { initACE } = require('./services/reminderService');
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/revenue', require('./routes/revenueRoutes'));
 app.use('/api/backup', require('./routes/backupRoutes'));
 app.use('/api/tickets', require('./routes/supportTicketRoutes'));
 app.use('/api/public', require('./routes/publicRoutes'));
+app.use('/api/communication', require('./routes/communicationRoutes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
@@ -102,6 +104,7 @@ const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    initACE();
   });
 }
 

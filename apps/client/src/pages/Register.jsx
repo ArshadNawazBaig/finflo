@@ -32,18 +32,8 @@ const Register = () => {
     };
     try {
       const { data } = await api.post('/auth/register', payload);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data));
-
-      // Check for redirect param
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get('redirect');
-
-      if (redirect) {
-        navigate(redirect);
-      } else {
-        navigate('/dashboard');
-      }
+      localStorage.setItem('temp_user_email', JSON.stringify(payload.email));
+      navigate(`/verify-email?email=${encodeURIComponent(payload.email)}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {

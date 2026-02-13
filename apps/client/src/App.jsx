@@ -34,6 +34,7 @@ const CustomerProfile = lazy(() => import('@/pages/CustomerProfile'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
 const Support = lazy(() => import('@/pages/Support'));
 const LoanLookup = lazy(() => import('@/pages/LoanLookup'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
@@ -150,6 +151,7 @@ function App() {
               <Route element={<RedirectIfAuthenticated />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
               </Route>
 

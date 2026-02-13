@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Camera,
   Upload,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
@@ -720,6 +721,7 @@ const ConfigurationSection = () => {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [triggeringACE, setTriggeringACE] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -753,6 +755,19 @@ const ConfigurationSection = () => {
       toast.error('Failed to update settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTriggerACE = async () => {
+    setTriggeringACE(true);
+    try {
+      const { data } = await api.post('/communication/trigger-scan');
+      toast.success(data.message || 'ACE scan triggered successfully');
+    } catch (error) {
+      console.error('Failed to trigger ACE:', error);
+      toast.error('Failed to trigger automated communication scan');
+    } finally {
+      setTriggeringACE(false);
     }
   };
 
@@ -815,6 +830,40 @@ const ConfigurationSection = () => {
           </Button>
         </div>
       </form>
+
+      <div className="pt-6 border-t border-border/50 space-y-4">
+        <div>
+          <h3 className="text-lg font-bold">Manual ACE Control</h3>
+          <p className="text-muted-foreground text-sm">
+            Immediately trigger a system-wide scan for upcoming and overdue loan
+            reminders. Use this to catch up on communications if the automated
+            engine was inactive.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <Zap className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">Trigger Automated Scan</p>
+            <p className="text-xs text-muted-foreground">
+              The process runs in the background. Results will appear in loan
+              communication logs.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTriggerACE}
+            disabled={triggeringACE}
+            className="font-black text-[10px] uppercase tracking-widest h-9"
+          >
+            {triggeringACE && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
+            Execute Scan
+          </Button>
+        </div>
+      </div>
     </section>
   );
 };
