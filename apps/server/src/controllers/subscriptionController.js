@@ -4,20 +4,24 @@ const Loan = require('../models/Loan');
 const Member = require('../models/Member');
 
 const getBaseUrl = (req) => {
-  // Try to get origin from request headers (works on production)
-  const origin = req.get('origin') || req.get('referer');
-  if (origin) {
-    // Basic validation to ensure it's a valid URL string
-    try {
-      const url = new URL(origin);
-      return `${url.protocol}//${url.host}`;
-    } catch (e) {
-      // In case of invalid URL, fall back to env
+  // Try environment variable first (best for consistent email links)
+  let url = process.env.CLIENT_URL;
+
+  if (!url) {
+    // Try to get origin from request headers
+    const origin = req.get('origin') || req.get('referer');
+    if (origin) {
+      try {
+        const urlObj = new URL(origin);
+        url = `${urlObj.protocol}//${urlObj.host}`;
+      } catch (e) {
+        url = 'http://localhost:5173';
+      }
+    } else {
+      url = 'http://localhost:5173';
     }
   }
 
-  // Fallback to environment variable
-  let url = process.env.CLIENT_URL || 'http://localhost:5173';
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
   }

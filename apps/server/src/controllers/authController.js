@@ -263,15 +263,19 @@ const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset url
-    const origin = req.get('origin') || req.get('referer');
-    let clientUrl = process.env.CLIENT_URL || 'http://localhost:5174';
+    let clientUrl = process.env.CLIENT_URL;
 
-    if (origin) {
-      try {
-        const url = new URL(origin);
-        clientUrl = `${url.protocol}//${url.host}`;
-      } catch (e) {
-        // Fallback to env
+    if (!clientUrl) {
+      const origin = req.get('origin') || req.get('referer');
+      if (origin) {
+        try {
+          const url = new URL(origin);
+          clientUrl = `${url.protocol}//${url.host}`;
+        } catch (e) {
+          clientUrl = 'http://localhost:5174';
+        }
+      } else {
+        clientUrl = 'http://localhost:5174';
       }
     }
 
