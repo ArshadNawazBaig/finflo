@@ -138,7 +138,7 @@ const AuditLogs = () => {
               <Archive size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-white uppercase italic">
+              <h1 className="text-2xl font-black tracking-tight text-white uppercase ">
                 The Black Box
               </h1>
               <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.2em]">
@@ -387,7 +387,7 @@ const AuditLogs = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-primary/40 italic font-bold text-xs uppercase tracking-tighter">
+                        <div className="flex items-center gap-2 text-primary/40 font-bold text-xs uppercase tracking-tighter">
                           <Shield size={12} />
                           Auto-System
                         </div>
@@ -443,7 +443,7 @@ const AuditLogs = () => {
           <DialogHeader className="p-8 pb-4 border-b border-white/5">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <Terminal size={20} className="animate-pulse" />
-              <DialogTitle className="text-lg font-black uppercase tracking-widest italic font-mono">
+              <DialogTitle className="text-lg font-black uppercase tracking-widest font-mono">
                 Trace Details
               </DialogTitle>
             </div>
@@ -503,7 +503,7 @@ const AuditLogs = () => {
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-1">
                     Agent Signature
                   </p>
-                  <p className="text-[11px] font-bold text-muted-foreground/60 break-all leading-tight italic">
+                  <p className="text-[11px] font-bold text-muted-foreground/60 break-all leading-tight ">
                     {selectedLog.userAgent}
                   </p>
                 </div>

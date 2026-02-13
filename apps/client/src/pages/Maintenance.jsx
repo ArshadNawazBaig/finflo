@@ -61,7 +61,7 @@ const Maintenance = () => {
             animate={{ opacity: 1, s: 1 }}
             className="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight"
           >
-            System <span className="text-primary italic">Enhancement</span>{' '}
+            System <span className="text-primary ">Enhancement</span>{' '}
             <br />
             Underway
           </motion.h1>

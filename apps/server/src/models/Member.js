@@ -60,6 +60,16 @@ memberSchema.index({ user: 1, email: 1 }, { unique: true });
 
 // Hash password before saving
 memberSchema.pre('save', async function () {
+  // Generate account numbers if missing
+  if (!this.savingAccountNumber) {
+    this.savingAccountNumber =
+      'SAV-' + Math.floor(Math.random() * 9000000000 + 1000000000);
+  }
+  if (!this.currentAccountNumber) {
+    this.currentAccountNumber =
+      'CUR-' + Math.floor(Math.random() * 9000000000 + 1000000000);
+  }
+
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

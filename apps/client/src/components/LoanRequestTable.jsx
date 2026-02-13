@@ -143,7 +143,7 @@ const LoanRequestTable = ({
                   </span>
                 </td>
                 <td className="py-4 px-4">
-                  <div className="text-xs text-muted-foreground italic max-w-xs truncate">
+                  <div className="text-xs text-muted-foreground max-w-xs truncate">
                     {request.notes || '—'}
                   </div>
                 </td>

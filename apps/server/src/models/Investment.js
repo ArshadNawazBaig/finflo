@@ -18,7 +18,7 @@ const investmentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['deposit', 'withdrawal'],
+      enum: ['deposit', 'withdrawal', 'transfer_send', 'transfer_receive'],
       required: true,
     },
     amount: { type: Number, required: true },

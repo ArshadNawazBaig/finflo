@@ -8,11 +8,13 @@ import {
   Info,
   MessageSquare,
   Mail,
+  Download,
 } from 'lucide-react';
 import { formatPKR, capitalize } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
+import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
   const progress = Math.min(
@@ -34,7 +36,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
             >
               {capitalize(loan.customer?.name || 'Unknown')}
             </Link>
-            <span className="text-[10px] text-muted-foreground/60 font-medium italic">
+            <span className="text-[10px] text-muted-foreground/60 font-medium ">
               ID: {loan._id.slice(-6).toUpperCase()}
             </span>
           </div>
@@ -128,6 +130,14 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
             >
               <Mail size={18} />
             </a>
+          </Tooltip>
+          <Tooltip content="Download Statement" position="top">
+            <button
+              onClick={() => exportLoanStatement(loan, loan.repayments || [])}
+              className="p-2 rounded-xl hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-all active:scale-90"
+            >
+              <Download size={18} />
+            </button>
           </Tooltip>
           <Tooltip content="Edit" position="top">
             <button

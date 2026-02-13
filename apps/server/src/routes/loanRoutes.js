@@ -14,6 +14,8 @@ const {
   approveLoan,
   rejectLoan,
   getLoanSchedule,
+  getMemberLoanById,
+  getMemberLoanSchedule,
 } = require('../controllers/loanController');
 const {
   protect,
@@ -28,6 +30,9 @@ const { loanValidation } = require('../middleware/validationMiddleware');
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.route('/request').post(protectMember, requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
+router.get('/my-loans/:id', protectMember, getMemberLoanById);
+router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
+
 router.patch('/:id/approve', protect, admin, approveLoan);
 router.patch('/:id/reject', protect, admin, rejectLoan);
 router.get('/:id/schedule', protect, getLoanSchedule);

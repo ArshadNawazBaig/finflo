@@ -102,7 +102,13 @@ const Settings = () => {
 
   return (
     <div className="space-y-6 pb-10">
-      <PageHeader title="Settings" />
+      <PageHeader
+        title={
+          <>
+            System <span className="text-primary ">Configuration</span>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-6">
         {/* Sidebar Navigation */}

@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   FileCheck,
   FileBadge,
+  Send,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -74,6 +75,11 @@ const MemberProfile = () => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
+  const [showTransferForm, setShowTransferForm] = useState(false);
+  const [recipientIdentifier, setRecipientIdentifier] = useState('');
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferDescription, setTransferDescription] = useState('');
+  const [isTransferring, setIsTransferring] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Pagination State
@@ -291,6 +297,35 @@ const MemberProfile = () => {
     }
   };
 
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    if (!recipientIdentifier || !transferAmount) {
+      toast.error('Recipient and amount are required');
+      return;
+    }
+
+    setIsTransferring(true);
+    try {
+      await api.post('/members/admin/transfer', {
+        senderId: id,
+        recipientIdentifier: recipientIdentifier.trim(),
+        amount: parseFloat(transferAmount),
+        description: transferDescription,
+      });
+
+      toast.success('Transfer successful');
+      setRecipientIdentifier('');
+      setTransferAmount('');
+      setTransferDescription('');
+      setShowTransferForm(false);
+      fetchMemberData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Transfer failed');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
   const handleDownloadReport = async () => {
     try {
       setIsExporting(true);
@@ -388,7 +423,7 @@ const MemberProfile = () => {
         });
       } else {
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
+        doc.setFont('helvetica', ' ');
         doc.text('No investment activity recorded.', 20, currentY + 5);
         // @ts-ignore
         doc.lastAutoTable = { finalY: currentY + 5 };
@@ -421,7 +456,7 @@ const MemberProfile = () => {
         });
       } else {
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
+        doc.setFont('helvetica', ' ');
         doc.text('No profit distributions recorded.', 20, currentY + 5);
         // @ts-ignore
         doc.lastAutoTable = { finalY: currentY + 5 };
@@ -456,7 +491,7 @@ const MemberProfile = () => {
         });
       } else {
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
+        doc.setFont('helvetica', ' ');
         doc.text('No associated loans.', 20, currentY + 5);
         // @ts-ignore
         doc.lastAutoTable = { finalY: currentY + 5 };
@@ -491,7 +526,7 @@ const MemberProfile = () => {
         });
       } else {
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
+        doc.setFont('helvetica', ' ');
         doc.text('No repayments found.', 20, currentY + 5);
         // @ts-ignore
         doc.lastAutoTable = { finalY: currentY + 5 };
@@ -546,7 +581,10 @@ const MemberProfile = () => {
           <div>
             <div className="flex gap-3 mb-1 flex-col sm:flex-row items-start sm:items-center">
               <h1 className="text-3xl font-black tracking-tighter">
-                {capitalize(member.name)}
+                {capitalize(member.name.split(' ')[0])}{' '}
+                <span className="text-primary ">
+                  {member.name.split(' ').slice(1).join(' ') || 'Portal'}
+                </span>
               </h1>
               <span
                 className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
@@ -592,16 +630,23 @@ const MemberProfile = () => {
             <Zap className="w-3.5 h-3.5" />
             Adjust Rates
           </button>
+          <button
+            onClick={() => setShowTransferForm(true)}
+            className="px-6 py-3 bg-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            <Send size={16} />
+            P2P Transfer
+          </button>
           <Button
             onClick={() => {
               setInvestmentType('deposit');
               setShowInvestmentForm(true);
             }}
-            variant="gradient"
-            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2"
+            variant="outline"
+            className="px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest w-full sm:w-auto justify-center gap-2 border-primary/20 hover:bg-primary/5 text-primary"
           >
             <ArrowUpCircle className="w-3.5 h-3.5" />
-            Transfer Funds
+            Adjust Balance
           </Button>
         </div>
       </div>
@@ -635,25 +680,30 @@ const MemberProfile = () => {
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
           {/* Forms (Injected) */}
-          {(showInvestmentForm || showProfitRateForm) && (
+          {(showInvestmentForm || showProfitRateForm || showTransferForm) && (
             <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
                   <div className="p-2 rounded-xl bg-primary/10 text-primary">
                     {showProfitRateForm ? (
                       <Zap size={20} />
+                    ) : showTransferForm ? (
+                      <Send size={20} />
                     ) : (
                       <ArrowUpCircle size={20} />
                     )}
                   </div>
                   {showProfitRateForm
                     ? 'Performance Configuration'
-                    : 'Fund Movement'}
+                    : showTransferForm
+                      ? 'P2P Fund Transfer'
+                      : 'Fund Movement'}
                 </h3>
                 <button
                   onClick={() => {
                     setShowInvestmentForm(false);
                     setShowProfitRateForm(false);
+                    setShowTransferForm(false);
                   }}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
@@ -695,6 +745,66 @@ const MemberProfile = () => {
                       className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
                       Apply Rate
+                    </Button>
+                  </div>
+                </form>
+              ) : showTransferForm ? (
+                <form onSubmit={handleTransfer} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Recipient (Email, Phone or Account)
+                      </label>
+                      <input
+                        type="text"
+                        value={recipientIdentifier}
+                        onChange={(e) => setRecipientIdentifier(e.target.value)}
+                        required
+                        placeholder="Search member..."
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Transfer Amount (PKR)
+                      </label>
+                      <input
+                        type="number"
+                        value={transferAmount}
+                        onChange={(e) => setTransferAmount(e.target.value)}
+                        required
+                        min="1"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Transfer Description
+                      </label>
+                      <input
+                        type="text"
+                        value={transferDescription}
+                        onChange={(e) => setTransferDescription(e.target.value)}
+                        placeholder="e.g. Ad-hoc fund movement"
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="submit"
+                      disabled={isTransferring}
+                      variant="gradient"
+                      className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                    >
+                      {isTransferring ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Send size={16} className="mr-2" />
+                      )}
+                      Initiate Transfer
                     </Button>
                   </div>
                 </form>
@@ -804,12 +914,14 @@ const MemberProfile = () => {
                     <div className="flex items-center gap-5">
                       <div
                         className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                          inv.type === 'deposit'
+                          inv.type === 'deposit' ||
+                          inv.type === 'transfer_receive'
                             ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white'
                             : 'bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white'
                         }`}
                       >
-                        {inv.type === 'deposit' ? (
+                        {inv.type === 'deposit' ||
+                        inv.type === 'transfer_receive' ? (
                           <ArrowUpCircle size={22} />
                         ) : (
                           <ArrowDownCircle size={22} />
@@ -829,9 +941,17 @@ const MemberProfile = () => {
                     </div>
                     <div className="text-right">
                       <div
-                        className={`text-lg font-black ${inv.type === 'deposit' ? 'text-emerald-600' : 'text-indigo-600'}`}
+                        className={`text-lg font-black ${
+                          inv.type === 'deposit' ||
+                          inv.type === 'transfer_receive'
+                            ? 'text-emerald-600'
+                            : 'text-indigo-600'
+                        }`}
                       >
-                        {inv.type === 'deposit' ? '+' : '-'}{' '}
+                        {inv.type === 'deposit' ||
+                        inv.type === 'transfer_receive'
+                          ? '+'
+                          : '-'}{' '}
                         {formatPKR(inv.amount)}
                       </div>
                       <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">

@@ -66,7 +66,7 @@ const Dashboard = () => {
       <PageHeader
         title={
           <>
-            Financial <span className="text-primary italic">Intelligence</span>
+            Financial <span className="text-primary ">Intelligence</span>
           </>
         }
         description={

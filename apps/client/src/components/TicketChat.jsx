@@ -366,7 +366,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 <span className="text-[9px] text-muted-foreground flex items-center gap-1.5">
                   {new Date(reply.createdAt).toLocaleString()}
                   {reply.isEdited && (
-                    <span className="italic opacity-60">(edited)</span>
+                    <span className=" opacity-60">(edited)</span>
                   )}
                 </span>
               </div>

@@ -152,7 +152,11 @@ const Billing = () => {
   return (
     <div className="space-y-6 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
-        title="Billing & Subscription"
+        title={
+          <>
+            Billing & <span className="text-primary ">Subscription</span>
+          </>
+        }
         description="Manage your subscription, payment methods, and billing history."
       />
 

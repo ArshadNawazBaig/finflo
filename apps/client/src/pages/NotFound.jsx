@@ -77,13 +77,13 @@ const NotFound = () => {
         {/* System Metadata */}
         <div className="mt-8 flex justify-center gap-8 opacity-20 pointer-events-none">
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">
+            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase ">
               Status
             </span>
             <span className="text-xs font-mono text-red-500">OFFLINE</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">
+            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase ">
               System
             </span>
             <span className="text-xs font-mono text-primary">

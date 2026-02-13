@@ -10,6 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['html5-qrcode', 'qrcode.react'],
+  },
   build: {
     rollupOptions: {
       output: {

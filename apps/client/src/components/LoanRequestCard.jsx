@@ -61,7 +61,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         </div>
         {request.notes && (
           <div className="pt-1">
-            <p className="text-xs text-muted-foreground line-clamp-2 italic">
+            <p className="text-xs text-muted-foreground line-clamp-2 ">
               "{request.notes}"
             </p>
           </div>
@@ -96,7 +96,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
             </Button>
           </>
         ) : (
-          <div className="w-full py-2 bg-muted/30 rounded-lg text-center text-xs font-bold text-muted-foreground italic">
+          <div className="w-full py-2 bg-muted/30 rounded-lg text-center text-xs font-bold text-muted-foreground ">
             Request {request.status}
           </div>
         )}

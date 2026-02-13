@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, FileText } from 'lucide-react';
+import { LayoutGrid, FileText, History, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MemberBottomNav = () => {
@@ -17,6 +17,12 @@ const MemberBottomNav = () => {
       label: 'Home',
       path: '/member/dashboard',
     },
+    {
+      icon: <History size={20} />,
+      label: 'Ledger',
+      path: '/member/transactions',
+    },
+    { icon: <Send size={20} />, label: 'Transfer', path: '/member/transfer' },
     { icon: <FileText size={20} />, label: 'Loans', path: '/member/loans' },
   ];
 

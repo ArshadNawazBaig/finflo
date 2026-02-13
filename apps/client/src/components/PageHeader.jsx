@@ -2,7 +2,7 @@ const PageHeader = ({ title, description, bodyClassName, children }) => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 sm:mb-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-2xl font-black tracking-tighter text-foreground">
           {title}
         </h1>
         {description && (

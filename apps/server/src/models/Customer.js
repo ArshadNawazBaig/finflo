@@ -62,4 +62,17 @@ const customerSchema = new mongoose.Schema(
 // Prevent duplicate emails PER USER (Tenant)
 customerSchema.index({ user: 1, email: 1 }, { unique: true });
 
+// Generate account numbers if missing
+customerSchema.pre('save', function (next) {
+  if (!this.savingAccountNumber) {
+    this.savingAccountNumber =
+      'SAV-' + Math.floor(Math.random() * 9000000000 + 1000000000);
+  }
+  if (!this.currentAccountNumber) {
+    this.currentAccountNumber =
+      'CUR-' + Math.floor(Math.random() * 9000000000 + 1000000000);
+  }
+  next();
+});
+
 module.exports = mongoose.model('Customer', customerSchema);
