@@ -266,7 +266,7 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <h4 className="text-xl font-bold">
+                    <h4 className="text-xl font-bold capitalize">
                       {user.name || 'John Doe'}
                     </h4>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
