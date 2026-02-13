@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { verifyCodeAndGetLoans } = require('../controllers/publicController');
+const { getLandingStats } = require('../controllers/publicController');
 
-// Public route - no authentication required
-router.post('/loan-lookup', verifyCodeAndGetLoans);
+router.get('/stats', getLandingStats);
 
 module.exports = router;

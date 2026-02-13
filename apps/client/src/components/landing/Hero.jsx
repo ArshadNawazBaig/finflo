@@ -6,7 +6,7 @@ import LoanCalculator from './LoanCalculator';
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center py-36 lg:py-0 px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="max-w-7xl mx-auto w-full lg:pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           <div className="lg:col-span-7 space-y-8 text-left flex flex-col items-start">
             <motion.div
@@ -15,23 +15,23 @@ const Hero = () => {
               transition={{ duration: 0.8 }}
               className="space-y-4"
             >
-              <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-[0.2em]">
+              <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em]">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
                 </span>
-                Next Gen Infrastructure Released
+                Financial Engineering 2.0 Released
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white">
-                Orchestrate <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-[hsl(var(--btn-gradient-to))] to-[hsl(var(--btn-gradient-from))] italic">
-                  Infinite Capital.
+                Scale Your <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 via-primary to-emerald-500 italic">
+                  Lending Empire.
                 </span>
               </h1>
               <p className="text-base text-slate-600 dark:text-slate-400 font-medium max-w-lg leading-relaxed">
                 The world's most sophisticated lending operating system. Built
-                for high-growth institutions to automate billion-dollar
-                portfolios with cryptographic precision.
+                for hyper-growth institutions to automate complex portfolios
+                with AI-driven risk scoring and a multi-branch ecosystem.
               </p>
             </motion.div>
 

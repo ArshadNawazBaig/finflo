@@ -28,14 +28,14 @@ const MobileShowcase = () => {
               Seamless Mobility
             </h2>
             <h3 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none dark:text-white">
-              Power in your <br />{' '}
-              <span className="italic text-primary">Pocket.</span>
+              The Member <br />{' '}
+              <span className="italic text-indigo-500">Ecosystem.</span>
             </h3>
             <p className="text-lg text-slate-500 font-medium leading-relaxed">
-              Management never stops. Our mobile-first interface ensures your
-              agents can approve loans, track repayments, and manage customers
-              from the field with high-performance infinite scroll for
-              uninterrupted data flow.
+              Financial autonomy for every borrower and investor. Our mobile
+              portal delivers real-time portfolio tracking, P2P fund transfers,
+              and sub-second loan requests with high-performance infinite scroll
+              for an uninterrupted experience.
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
