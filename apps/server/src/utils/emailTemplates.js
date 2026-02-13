@@ -6,8 +6,10 @@ const getBaseTemplate = (content, title, logoUrl = null) => {
   const brandName = process.env.FROM_NAME || 'Loan Master';
   const primaryColor = '#2563eb'; // Modern Blue
 
-  // Use a generic professional logo icon if no specific logo is provided
-  const logoPath = logoUrl || 'https://img.icons8.com/parakeet/96/bank.png';
+  // Custom Cloudinary Logo
+  const logoPath =
+    logoUrl ||
+    'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770996569/favicon_1_ciy1sn.png';
 
   return `
     <!DOCTYPE html>
