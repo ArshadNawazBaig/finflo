@@ -29,7 +29,7 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
     },
     {
       name: 'Basic',
-      price: 29,
+      price: 40,
       description: 'For growing businesses',
       features: [
         'Up to 100 loans',
@@ -41,7 +41,7 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
     },
     {
       name: 'Pro',
-      price: 49,
+      price: 100,
       description: 'For established businesses',
       features: [
         'Unlimited loans',

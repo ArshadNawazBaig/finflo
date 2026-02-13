@@ -23,7 +23,11 @@ import { cn } from '@/lib/utils';
 import useSystemSettings from '@/hooks/useSystemSettings';
 
 const Billing = () => {
-  const { getLimit, loading: settingsLoading } = useSystemSettings();
+  const {
+    getLimit,
+    getPlanSettings,
+    loading: settingsLoading,
+  } = useSystemSettings();
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -212,11 +216,11 @@ const Billing = () => {
                       Price
                     </p>
                     <p className="text-2xl font-bold">
-                      {plan === 'Pro'
-                        ? '$49/mo'
-                        : plan === 'Basic'
-                          ? '$29/mo'
-                          : '$0/mo'}
+                      {(() => {
+                        const currentPlanName = plan || 'Free';
+                        const planSettings = getPlanSettings(currentPlanName);
+                        return `$${planSettings?.price ?? 0}/mo`;
+                      })()}
                     </p>
                   </div>
                   <div className="space-y-1.5">

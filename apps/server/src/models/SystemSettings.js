@@ -76,7 +76,7 @@ const systemSettingsSchema = new mongoose.Schema(
         },
         {
           name: 'Pro',
-          price: 49,
+          price: 100,
           description: 'For established businesses',
           features: [
             'Unlimited customers',
