@@ -13,6 +13,7 @@ const {
   getMyLoans,
   approveLoan,
   rejectLoan,
+  getLoanSchedule,
 } = require('../controllers/loanController');
 const {
   protect,
@@ -28,6 +29,7 @@ router.route('/request').post(protectMember, requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
 router.patch('/:id/approve', protect, admin, approveLoan);
 router.patch('/:id/reject', protect, admin, rejectLoan);
+router.get('/:id/schedule', protect, getLoanSchedule);
 router
   .route('/:id/documents')
   .post(protect, upload.single('document'), uploadDocument);

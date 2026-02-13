@@ -35,6 +35,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import jsPDF from 'jspdf';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
 import ApprovalActions from '@/components/loans/ApprovalActions';
+import AmortizationSchedule from '@/components/AmortizationSchedule';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -56,8 +57,9 @@ const LoanDetail = () => {
   const navigate = useNavigate();
   const [loan, setLoan] = useState(null);
   const [repayments, setRepayments] = useState([]);
-  const [investments, setInvestments] = useState([]);
   const [member, setMember] = useState(null);
+  const [allSchedule, setAllSchedule] = useState([]);
+  const [displayedSchedule, setDisplayedSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -67,16 +69,25 @@ const LoanDetail = () => {
   // Pagination State
   const [repaymentPage, setRepaymentPage] = useState(1);
   const [investmentPage, setInvestmentPage] = useState(1);
+  const [schedulePage, setSchedulePage] = useState(1);
+  const [scheduleLimit, setScheduleLimit] = useState(5);
+
   const [hasMoreRepayments, setHasMoreRepayments] = useState(true);
   const [hasMoreInvestments, setHasMoreInvestments] = useState(true);
+  const [hasMoreSchedule, setHasMoreSchedule] = useState(true);
+
   const [isFetchingMoreRepayments, setIsFetchingMoreRepayments] =
     useState(false);
   const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
     useState(false);
+  const [isFetchingMoreSchedule, setIsFetchingMoreSchedule] = useState(false);
+
   const itemsPerPage = 3;
+  const itemsPerPageScheduleMobile = 2; // As requested
 
   const repaymentObserverTarget = useRef(null);
   const investmentObserverTarget = useRef(null);
+  const scheduleObserverTarget = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -127,8 +138,21 @@ const LoanDetail = () => {
       const upcomingRes = await api.get(`/loans/upcoming?loanId=${id}`);
       setUpcomingPayments(upcomingRes.data);
 
+      const scheduleRes = await api.get(`/loans/${id}/schedule`);
+      const fullSchedule = scheduleRes.data || [];
+      setAllSchedule(fullSchedule);
+
+      if (isMobile) {
+        setDisplayedSchedule(fullSchedule.slice(0, itemsPerPageScheduleMobile));
+        setHasMoreSchedule(fullSchedule.length > itemsPerPageScheduleMobile);
+      } else {
+        setDisplayedSchedule(fullSchedule.slice(0, scheduleLimit));
+        setHasMoreSchedule(fullSchedule.length > scheduleLimit);
+      }
+
       setRepaymentPage(1);
       setInvestmentPage(1);
+      setSchedulePage(1);
     } catch (error) {
       console.error('Failed to fetch loan details', error);
       toast.error('Failed to load loan info');
@@ -195,6 +219,42 @@ const LoanDetail = () => {
     }, 500);
   }, [member, investmentPage, hasMoreInvestments, isFetchingMoreInvestments]);
 
+  const loadMoreSchedule = useCallback(async () => {
+    if (isFetchingMoreSchedule || !hasMoreSchedule || !isMobile) return;
+
+    setIsFetchingMoreSchedule(true);
+    setTimeout(() => {
+      const nextPage = schedulePage + 1;
+      const start = (nextPage - 1) * itemsPerPageScheduleMobile;
+      const end = start + itemsPerPageScheduleMobile;
+      const newBatch = allSchedule.slice(start, end);
+
+      if (newBatch.length > 0) {
+        setDisplayedSchedule((prev) => [...prev, ...newBatch]);
+        setSchedulePage(nextPage);
+        setHasMoreSchedule(allSchedule.length > end);
+      } else {
+        setHasMoreSchedule(false);
+      }
+      setIsFetchingMoreSchedule(false);
+    }, 500);
+  }, [
+    allSchedule,
+    schedulePage,
+    hasMoreSchedule,
+    isFetchingMoreSchedule,
+    isMobile,
+  ]);
+
+  // Handle Desktop Schedule Page Change
+  useEffect(() => {
+    if (!isMobile) {
+      const start = (schedulePage - 1) * scheduleLimit;
+      const end = start + scheduleLimit;
+      setDisplayedSchedule(allSchedule.slice(start, end));
+    }
+  }, [schedulePage, scheduleLimit, allSchedule, isMobile]);
+
   // Infinite Scroll Observers
   useEffect(() => {
     if (!isMobile) return;
@@ -251,6 +311,29 @@ const LoanDetail = () => {
     hasMoreInvestments,
     loadMoreInvestments,
   ]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const schObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMoreSchedule &&
+          hasMoreSchedule
+        ) {
+          loadMoreSchedule();
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (scheduleObserverTarget.current) {
+      schObserver.observe(scheduleObserverTarget.current);
+    }
+
+    return () => schObserver.disconnect();
+  }, [isMobile, isFetchingMoreSchedule, hasMoreSchedule, loadMoreSchedule]);
 
   useEffect(() => {
     fetchData();
@@ -647,6 +730,27 @@ const LoanDetail = () => {
               )}
             </div>
           </div>
+
+          {/* Amortization Schedule Section */}
+          <AmortizationSchedule
+            schedule={displayedSchedule}
+            paidInstallmentsCount={paidInstallmentsCount}
+            isMobile={isMobile}
+            pagination={{
+              currentPage: schedulePage,
+              totalPages: Math.ceil(allSchedule.length / scheduleLimit),
+              totalEntries: allSchedule.length,
+              limit: scheduleLimit,
+              onPageChange: setSchedulePage,
+              onLimitChange: (limit) => {
+                setScheduleLimit(limit);
+                setSchedulePage(1);
+              },
+            }}
+            hasMore={hasMoreSchedule}
+            isFetchingMore={isFetchingMoreSchedule}
+            observerTarget={scheduleObserverTarget}
+          />
 
           {/* Investment History Section (Only for Members) */}
           {member && (

@@ -6,6 +6,7 @@ const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
 const { calculateRiskScore } = require('../utils/riskService');
 const { logActivity } = require('./activityLogController');
+const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -937,6 +938,31 @@ const rejectLoan = async (req, res) => {
   }
 };
 
+const getLoanSchedule = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+    if (!loan) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    // Authorization check (same as getLoanById)
+    if (
+      loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        loan.branchId?.toString() === req.user.branchId?.toString()
+      )
+    ) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const schedule = generateAmortizationSchedule(loan);
+    res.json(schedule);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createLoan,
   getLoans,
@@ -952,4 +978,5 @@ module.exports = {
   getMyLoans,
   approveLoan,
   rejectLoan,
+  getLoanSchedule,
 };
