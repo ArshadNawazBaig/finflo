@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TableSearch from '@/components/ui/TableSearch';
 import {
