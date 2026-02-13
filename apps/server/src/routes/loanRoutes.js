@@ -23,6 +23,7 @@ const {
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const { loanValidation } = require('../middleware/validationMiddleware');
 
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.route('/request').post(protectMember, requestLoan);
@@ -34,7 +35,10 @@ router
   .route('/:id/documents')
   .post(protect, upload.single('document'), uploadDocument);
 router.route('/:id/documents/:docId').delete(protect, deleteDocument);
-router.route('/').get(protect, getLoans).post(protect, createLoan);
+router
+  .route('/')
+  .get(protect, getLoans)
+  .post(protect, admin, loanValidation, createLoan);
 
 router
   .route('/:id')

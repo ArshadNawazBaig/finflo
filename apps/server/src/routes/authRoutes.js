@@ -14,9 +14,13 @@ const {
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
+const {
+  registerValidation,
+  loginValidation,
+} = require('../middleware/validationMiddleware');
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/register', registerValidation, registerUser);
+router.post('/login', loginValidation, loginUser);
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerificationCode);
 router.post('/forgotpassword', forgotPassword);
