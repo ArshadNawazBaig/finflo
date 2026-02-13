@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
-import { cn } from '@/lib/utils';
+import { cn, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -355,7 +355,7 @@ const Settings = () => {
 
                       <div className="space-y-1">
                         <h4 className="text-xl font-bold capitalize">
-                          {user.name || 'John Doe'}
+                          {capitalize(user.name || 'John Doe')}
                         </h4>
                         <div className="flex items-center gap-2 text-muted-foreground text-sm">
                           <Mail size={14} />

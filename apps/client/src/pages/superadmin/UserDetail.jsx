@@ -17,7 +17,8 @@ import {
   Eye,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { cn } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -87,7 +88,9 @@ const UserDetail = () => {
         variant="card"
         icon={Users}
         onBack={() => navigate(-1)}
-        title={editing ? 'Edit Business' : user.name || 'User Profile'}
+        title={
+          editing ? 'Edit Business' : capitalize(user.name) || 'User Profile'
+        }
         badge={
           !editing && (
             <div className="flex items-center gap-2">
@@ -125,7 +128,7 @@ const UserDetail = () => {
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Building2 className="w-4 h-4 text-primary" />
                 <span className="truncate max-w-[200px]">
-                  {user.businessName || 'Independent Agent'}
+                  {capitalize(user.businessName) || 'Independent Agent'}
                 </span>
               </div>
               <div className="hidden sm:block w-1.5 h-1.5 bg-border rounded-full" />

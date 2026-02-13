@@ -69,7 +69,7 @@ const Dashboard = () => {
           <>
             Welcome back,{' '}
             <strong className="text-foreground capitalize font-black">
-              {userName}
+              {capitalize(userName)}
             </strong>
             . Here's your portfolio performance today.
           </>
