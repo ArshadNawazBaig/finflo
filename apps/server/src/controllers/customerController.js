@@ -141,6 +141,7 @@ const createCustomer = async (req, res) => {
 
     res.status(201).json(createdCustomer);
   } catch (error) {
+    console.error('Create Customer Error:', error);
     res.status(400).json({ message: error.message });
   }
 };

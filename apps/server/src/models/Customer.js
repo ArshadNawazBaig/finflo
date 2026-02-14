@@ -63,7 +63,7 @@ const customerSchema = new mongoose.Schema(
 customerSchema.index({ user: 1, email: 1 }, { unique: true });
 
 // Generate account numbers if missing
-customerSchema.pre('save', function (next) {
+customerSchema.pre('save', async function () {
   if (!this.savingAccountNumber) {
     this.savingAccountNumber =
       'SAV-' + Math.floor(Math.random() * 9000000000 + 1000000000);
@@ -72,7 +72,6 @@ customerSchema.pre('save', function (next) {
     this.currentAccountNumber =
       'CUR-' + Math.floor(Math.random() * 9000000000 + 1000000000);
   }
-  next();
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

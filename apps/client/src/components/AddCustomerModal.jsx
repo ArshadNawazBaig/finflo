@@ -138,6 +138,15 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
       ...formData,
       name: formData.name.trim().toLowerCase(),
       email: formData.email.trim().toLowerCase(),
+      monthlyIncome: formData.monthlyIncome
+        ? Number(formData.monthlyIncome)
+        : undefined,
+      savingAccountNumber: formData.savingAccountNumber || undefined,
+      currentAccountNumber: formData.currentAccountNumber || undefined,
+      cnic: formData.cnic || undefined,
+      job: formData.job || undefined,
+      address: formData.address || undefined,
+      branchId: formData.branchId || undefined,
     };
 
     try {
