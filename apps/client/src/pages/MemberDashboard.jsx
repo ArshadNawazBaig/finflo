@@ -33,7 +33,7 @@ import ContributeGoalModal from '@/components/ContributeGoalModal';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR } from '@/lib/utils';
+import { formatPKR, capitalize } from '@/lib/utils';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
@@ -238,7 +238,7 @@ const MemberDashboard = () => {
             </Button>
             <Button
               onClick={() => navigate('/member/transfer')}
-              className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all"
+              className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-primary/20 bg-primary transition-all"
             >
               <Send size={18} />
               Transfer Funds
