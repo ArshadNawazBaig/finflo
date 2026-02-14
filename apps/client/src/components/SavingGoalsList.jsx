@@ -117,13 +117,23 @@ const SavingGoalsList = ({
                   <Progress value={goal.progress} className="h-1.5" />
                 </div>
 
-                <Button
-                  variant="ghost"
-                  className="w-full rounded-2xl h-10 text-xs font-black uppercase tracking-widest bg-muted/30 hover:bg-primary hover:text-white transition-all border border-border/20"
-                  onClick={() => onContribute(goal)}
-                >
-                  Contribute Funds
-                </Button>
+                {(() => {
+                  const isComplete = goal.currentAmount >= goal.targetAmount;
+                  return (
+                    <Button
+                      variant="ghost"
+                      className={`w-full rounded-2xl h-10 text-xs font-black uppercase tracking-widest transition-all border border-border/20 ${
+                        isComplete
+                          ? 'bg-emerald-500/10 text-emerald-600 cursor-not-allowed opacity-60'
+                          : 'bg-muted/30 hover:bg-primary hover:text-white'
+                      }`}
+                      onClick={() => !isComplete && onContribute(goal)}
+                      disabled={isComplete}
+                    >
+                      {isComplete ? '✓ Complete' : 'Contribute Funds'}
+                    </Button>
+                  );
+                })()}
               </div>
             </div>
           ))}

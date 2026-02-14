@@ -154,10 +154,20 @@ const MemberDashboard = () => {
         headers: { Authorization: `Bearer ${memberToken}` },
       });
       setGoals(goals.filter((g) => g._id !== id));
-      toast.success('Goal removed');
+      toast.success('Goal removed successfully');
     } catch (error) {
-      toast.error('Failed to delete goal');
+      toast.error('Failed to remove goal');
     }
+  };
+
+  // Format large numbers for chart display
+  const formatChartValue = (value) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`;
+    }
+    return value.toString();
   };
 
   const getChartData = () => {
@@ -175,33 +185,21 @@ const MemberDashboard = () => {
     }
 
     activity.forEach((item) => {
-      const date = new Date(item.createdAt || item.date);
+      const date = new Date(item.date);
       const monthIndex = last6Months.findIndex(
         (m) => m.monthNum === date.getMonth() && m.year === date.getFullYear(),
       );
 
-      if (monthIndex !== -1 && item.metadata?.amount) {
-        const amount = parseFloat(item.metadata.amount) || 0;
+      if (monthIndex !== -1 && item.amount) {
+        const amount = parseFloat(item.amount) || 0;
 
-        // Categorize as inflow or outflow based on action type
-        const inflowActions = [
-          'investment',
-          'profit_distribution',
-          'goal_contribution',
-          'deposit',
-          'transfer_received',
-        ];
-
-        const outflowActions = [
-          'withdrawal',
-          'transfer_sent',
-          'loan_disbursed',
-          'repayment',
-        ];
-
-        if (inflowActions.includes(item.action)) {
+        // Categorize based on type field
+        if (item.type === 'deposit' || item.type === 'transfer_receive') {
           last6Months[monthIndex].inflow += amount;
-        } else if (outflowActions.includes(item.action)) {
+        } else if (
+          item.type === 'withdrawal' ||
+          item.type === 'transfer_send'
+        ) {
           last6Months[monthIndex].outflow += amount;
         }
       }
@@ -316,7 +314,13 @@ const MemberDashboard = () => {
                         tickLine={false}
                         tick={{ fontSize: 10, fontWeight: 'bold' }}
                       />
-                      <YAxis hide />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fontWeight: 'bold' }}
+                        tickFormatter={formatChartValue}
+                        width={40}
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: '#0f172a',
@@ -325,6 +329,7 @@ const MemberDashboard = () => {
                           boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                         }}
                         itemStyle={{ fontSize: '10px', fontWeight: 'bold' }}
+                        formatter={(value) => formatPKR(value)}
                       />
                       <Bar
                         dataKey="inflow"
