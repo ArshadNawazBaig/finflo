@@ -268,7 +268,15 @@ const MemberNavbar = ({ onMenuClick }) => {
               </div>
             </div>
             <div className="w-9 h-9 rounded-lg bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-all duration-500 ring-2 ring-primary overflow-hidden">
-              {memberInitials}
+              {member.profilePicture ? (
+                <img
+                  src={member.profilePicture}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                memberInitials
+              )}
             </div>
           </button>
 

@@ -27,6 +27,7 @@ const memberSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
+    profilePicture: { type: String },
     address: { type: String },
     totalInvested: { type: Number, default: 0 },
     currentBalance: { type: Number, default: 0 },

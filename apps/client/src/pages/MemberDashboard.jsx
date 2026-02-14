@@ -173,17 +173,40 @@ const MemberDashboard = () => {
         outflow: 0,
       });
     }
+
     activity.forEach((item) => {
-      const date = new Date(item.date);
+      const date = new Date(item.createdAt || item.date);
       const monthIndex = last6Months.findIndex(
         (m) => m.monthNum === date.getMonth() && m.year === date.getFullYear(),
       );
-      if (monthIndex !== -1) {
-        if (item.type === 'deposit')
-          last6Months[monthIndex].inflow += item.amount;
-        else last6Months[monthIndex].outflow += item.amount;
+
+      if (monthIndex !== -1 && item.metadata?.amount) {
+        const amount = parseFloat(item.metadata.amount) || 0;
+
+        // Categorize as inflow or outflow based on action type
+        const inflowActions = [
+          'investment',
+          'profit_distribution',
+          'goal_contribution',
+          'deposit',
+          'transfer_received',
+        ];
+
+        const outflowActions = [
+          'withdrawal',
+          'transfer_sent',
+          'loan_disbursed',
+          'repayment',
+        ];
+
+        if (inflowActions.includes(item.action)) {
+          last6Months[monthIndex].inflow += amount;
+        } else if (outflowActions.includes(item.action)) {
+          last6Months[monthIndex].outflow += amount;
+        }
       }
     });
+
     return last6Months;
   };
 

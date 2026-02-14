@@ -53,6 +53,8 @@ const MemberSettings = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const fileInputRef = useState(null)[1];
 
   // Fetch latest member data on mount
   useEffect(() => {
@@ -84,6 +86,59 @@ const MemberSettings = () => {
     localStorage.removeItem('memberToken');
     localStorage.removeItem('member');
     window.location.href = '/member/login';
+  };
+
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size should be less than 2MB');
+      return;
+    }
+
+    setUploadingPicture(true);
+    try {
+      const memberToken = localStorage.getItem('memberToken');
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const { data } = await api.put(
+        '/member-auth/updateprofilepicture',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${memberToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      if (data.success) {
+        const updatedMember = {
+          ...member,
+          profilePicture: data.profilePicture,
+        };
+        localStorage.setItem('member', JSON.stringify(updatedMember));
+        setMember(updatedMember);
+        toast.success('Profile picture updated successfully');
+        // Reload to update sidebar and navbar
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to upload profile picture',
+      );
+    } finally {
+      setUploadingPicture(false);
+    }
   };
 
   const memberInitials = member.name
@@ -248,7 +303,7 @@ const MemberSettings = () => {
 
                     <div className="flex flex-col sm:flex-row items-center gap-8 py-4 relative z-10">
                       <div className="relative group/avatar">
-                        <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/avatar:border-primary/20 transition-all cursor-pointer">
+                        <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/avatar:border-primary/20 transition-all">
                           {member.profilePicture ? (
                             <img
                               src={member.profilePicture}
@@ -259,6 +314,29 @@ const MemberSettings = () => {
                             memberInitials
                           )}
                         </div>
+                        {/* Upload Button Overlay */}
+                        <button
+                          onClick={() =>
+                            document
+                              .getElementById('profilePictureInput')
+                              ?.click()
+                          }
+                          disabled={uploadingPicture}
+                          className="absolute inset-0 bg-black/60 rounded-[2rem] flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {uploadingPicture ? (
+                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                          ) : (
+                            <Camera className="w-6 h-6 text-white" />
+                          )}
+                        </button>
+                        <input
+                          id="profilePictureInput"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePictureUpload}
+                          className="hidden"
+                        />
                       </div>
 
                       <div className="space-y-1">
@@ -559,7 +637,8 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         setMember(updatedMember);
         toast.success('Profile updated successfully');
         onClose();
-        window.location.reload();
+        // Reload to update sidebar and navbar
+        setTimeout(() => window.location.reload(), 500);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');

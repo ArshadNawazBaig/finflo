@@ -124,6 +124,42 @@ const updateDetails = async (req, res) => {
   }
 };
 
+// @desc    Upload member profile picture
+// @route   PUT /api/member-auth/updateprofilepicture
+// @access  Private (Member)
+const uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const member = await Member.findById(req.member._id);
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Delete old profile picture from Cloudinary if it exists
+    if (member.profilePicture) {
+      const {
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      await deleteCloudinaryFileByUrl(member.profilePicture, 'image');
+    }
+
+    member.profilePicture = req.file.path;
+    await member.save();
+
+    res.json({
+      success: true,
+      profilePicture: member.profilePicture,
+      message: 'Profile picture updated successfully',
+    });
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Update member password
 // @route   PUT /api/member-auth/updatepassword
 // @access  Private (Member)
@@ -201,6 +237,7 @@ module.exports = {
   loginMember,
   getMe,
   updateDetails,
+  uploadProfilePicture,
   updatePassword,
   deleteAccount,
 };
