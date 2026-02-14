@@ -16,6 +16,8 @@ import {
   Camera,
   Sparkles,
   Smartphone,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, capitalize } from '@/lib/utils';
@@ -49,6 +51,7 @@ const MemberSettings = () => {
   // Modal States
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Fetch latest member data on mount
@@ -352,6 +355,39 @@ const MemberSettings = () => {
                       </div>
                     </div>
                   </section>
+
+                  {/* Danger Zone */}
+                  <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
+                    <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                    <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-black tracking-tight text-rose-500">
+                          Danger Zone
+                        </h3>
+                        <p className="text-muted-foreground text-xs font-medium">
+                          Irreversible action that will permanently delete your
+                          account.
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        className="rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-black/20"
+                      >
+                        Delete Account Permanently
+                      </Button>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 relative z-10">
+                      <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                        <Info size={14} />
+                        WARNING: THIS ACTION WILL PERMANENTLY DELETE YOUR
+                        ACCOUNT AND ALL ASSOCIATED DATA.
+                      </p>
+                    </div>
+                  </section>
                 </>
               )}
 
@@ -485,6 +521,12 @@ const MemberSettings = () => {
       <ChangePasswordModal
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}
+      />
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
       />
     </div>
   );
@@ -687,6 +729,85 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const DeleteAccountModal = ({ isOpen, onClose }) => {
+  const [confirmText, setConfirmText] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    if (confirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const memberToken = localStorage.getItem('memberToken');
+      await api.delete('/member-auth/deleteaccount', {
+        headers: { Authorization: `Bearer ${memberToken}` },
+      });
+      toast.success('Account deleted successfully');
+      localStorage.removeItem('memberToken');
+      localStorage.removeItem('member');
+      window.location.href = '/member/login';
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-rose-500">
+            <AlertTriangle size={20} />
+            Delete Account
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
+            <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+              This action cannot be undone. This will permanently delete your
+              account and remove all your data from our servers.
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium">
+              Type <span className="font-black text-rose-500">DELETE</span> to
+              confirm
+            </label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              className="w-full px-3 py-2 border border-rose-500/20 rounded-md text-foreground bg-transparent mt-2"
+              placeholder="DELETE"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+            >
+              Cancel
+            </button>
+            <Button
+              onClick={handleDelete}
+              disabled={loading || confirmText !== 'DELETE'}
+              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Delete Account
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

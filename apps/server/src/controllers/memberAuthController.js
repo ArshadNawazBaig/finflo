@@ -91,7 +91,116 @@ const getMe = async (req, res) => {
   }
 };
 
+// @desc    Update member details
+// @route   PUT /api/member-auth/updatedetails
+// @access  Private (Member)
+const updateDetails = async (req, res) => {
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email?.toLowerCase(),
+  };
+
+  try {
+    const member = await Member.findByIdAndUpdate(
+      req.member._id,
+      fieldsToUpdate,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: member,
+      message: 'Member details updated successfully',
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Update member password
+// @route   PUT /api/member-auth/updatepassword
+// @access  Private (Member)
+const updatePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const member = await Member.findById(req.member._id).select('+password');
+
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    if (!(await member.matchPassword(currentPassword))) {
+      return res.status(401).json({ message: 'Incorrect current password' });
+    }
+
+    member.password = newPassword;
+    await member.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Delete member account
+// @route   DELETE /api/member-auth/deleteaccount
+// @access  Private (Member)
+const deleteAccount = async (req, res) => {
+  try {
+    const memberId = req.member._id;
+    const member = await Member.findById(memberId);
+
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Delete all related data
+    const SavingGoal = require('../models/SavingGoal');
+    const ActivityLog = require('../models/ActivityLog');
+    const Notification = require('../models/Notification');
+
+    // Delete member's saving goals
+    await SavingGoal.deleteMany({ member: memberId });
+
+    // Delete member's activity logs
+    await ActivityLog.deleteMany({ user: memberId });
+
+    // Delete member's notifications
+    await Notification.deleteMany({
+      recipient: memberId,
+      recipientModel: 'Member',
+    });
+
+    // Finally delete the member
+    await Member.findByIdAndDelete(memberId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Account and all associated data permanently deleted.',
+    });
+  } catch (error) {
+    console.error('Delete Member Account Error:', error);
+    res
+      .status(500)
+      .json({ message: 'Failed to delete account. Please try again later.' });
+  }
+};
+
 module.exports = {
   loginMember,
   getMe,
+  updateDetails,
+  updatePassword,
+  deleteAccount,
 };
