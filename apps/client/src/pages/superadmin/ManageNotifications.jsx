@@ -305,11 +305,11 @@ const ManageNotifications = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold capitalize">
                           {notification.recipient?.name?.charAt(0) || 'U'}
                         </div>
                         <div className="text-sm">
-                          <p className="font-medium">
+                          <p className="font-medium capitalize">
                             {notification.recipient?.name || 'Unknown User'}
                           </p>
                           <p className="text-xs text-muted-foreground">

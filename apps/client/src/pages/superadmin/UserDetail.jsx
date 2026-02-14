@@ -17,7 +17,7 @@ import {
   Eye,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatPKR, capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -322,7 +322,9 @@ const UserDetail = () => {
                   className="flex items-center justify-between p-3 rounded-xl bg-muted/30"
                 >
                   <div>
-                    <p className="font-bold text-sm">{customer.name}</p>
+                    <p className="font-bold text-sm capitalize">
+                      {customer.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {customer.phone}
                     </p>
@@ -364,7 +366,9 @@ const UserDetail = () => {
                   className="flex items-center justify-between p-3 rounded-xl bg-muted/30"
                 >
                   <div>
-                    <p className="font-bold text-sm">{member.name}</p>
+                    <p className="font-bold text-sm capitalize">
+                      {member.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {member.phone}
                     </p>
@@ -408,11 +412,11 @@ const UserDetail = () => {
                   className="flex items-center justify-between p-3 rounded-xl bg-muted/30"
                 >
                   <div>
-                    <p className="font-bold text-sm">
+                    <p className="font-bold text-sm capitalize">
                       {loan.customer?.name || 'Unknown'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      ${loan.principalAmount?.toLocaleString()}
+                      RS {loan.principal?.toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

@@ -281,11 +281,13 @@ const ActivityLogs = () => {
                     <td className="px-6 py-4">
                       {log.user ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold capitalize">
                             {log.user.name?.charAt(0) || 'U'}
                           </div>
                           <div className="text-sm">
-                            <p className="font-medium">{log.user.name}</p>
+                            <p className="font-medium capitalize">
+                              {log.user.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {log.user.email}
                             </p>

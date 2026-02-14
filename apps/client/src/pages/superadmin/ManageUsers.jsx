@@ -401,14 +401,14 @@ const ManageUsers = () => {
                       <div className="flex items-center gap-3">
                         <Link
                           to={`/super-admin/users/${user._id}`}
-                          className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20"
+                          className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 capitalize"
                         >
                           {user.name?.charAt(0)?.toUpperCase()}
                         </Link>
                         <div>
                           <Link
                             to={`/super-admin/users/${user._id}`}
-                            className="font-bold text-sm hover:text-primary transition-colors cursor-pointer block"
+                            className="font-bold text-sm hover:text-primary transition-colors cursor-pointer block capitalize"
                           >
                             {user.name}
                           </Link>
