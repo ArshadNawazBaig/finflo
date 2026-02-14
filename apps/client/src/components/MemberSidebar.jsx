@@ -7,6 +7,7 @@ import {
   ChevronUp,
   X,
   Send,
+  Settings,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
@@ -120,6 +121,13 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           icon={<Send size={18} />}
           active={isActive('/member/transfer')}
           label="Transfer"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/member/settings"
+          icon={<Settings size={18} />}
+          active={isActive('/member/settings')}
+          label="Settings"
           isExpanded={isLayoutExpanded}
         />
       </nav>

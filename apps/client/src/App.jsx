@@ -73,6 +73,7 @@ const MemberTransactions = lazy(() => import('@/pages/MemberTransactions'));
 const MemberLoanDetail = lazy(() => import('@/pages/MemberLoanDetail'));
 const MemberLoans = lazy(() => import('@/pages/MemberLoans'));
 const MemberTransfer = lazy(() => import('@/pages/MemberTransfer'));
+const MemberSettings = lazy(() => import('@/pages/MemberSettings'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -187,6 +188,7 @@ function App() {
                     element={<MemberTransactions />}
                   />
                   <Route path="/member/transfer" element={<MemberTransfer />} />
+                  <Route path="/member/settings" element={<MemberSettings />} />
                 </Route>
               </Route>
 

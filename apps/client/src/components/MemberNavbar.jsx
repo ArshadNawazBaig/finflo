@@ -286,6 +286,14 @@ const MemberNavbar = ({ onMenuClick }) => {
 
               {/* Menu Items */}
               <div className="p-2">
+                <Link
+                  to="/member/settings"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted/50 rounded-xl font-medium flex items-center gap-3 transition-colors"
+                >
+                  <Settings size={16} />
+                  Settings
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 rounded-xl font-medium flex items-center gap-3 transition-colors"
