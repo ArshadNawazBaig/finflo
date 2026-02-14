@@ -20,6 +20,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/CardsSkeleton';
 import ChartSkeleton from '@/components/ChartSkeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AreaChart,
   Area,
