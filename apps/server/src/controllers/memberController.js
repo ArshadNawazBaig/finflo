@@ -719,7 +719,7 @@ const getMemberActivity = async (req, res) => {
     const investmentQuery = { member: memberId };
     const profitQuery = { member: memberId };
     const repaymentQuery = { customer: customerId };
-    const goalLogQuery = { userId: memberId, action: 'goal_contribution' };
+    const goalLogQuery = { user: memberId, action: 'goal_contribution' };
 
     const { category, search } = req.query;
 
