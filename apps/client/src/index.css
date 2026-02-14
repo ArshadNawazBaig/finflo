@@ -187,3 +187,48 @@
     transform: translate(0px, 0px) scale(1);
   }
 }
+
+/* Member Portal Scoped Typography - Little Smaller */
+.member-portal {
+  word-spacing: -0.01em;
+  letter-spacing: -0.01em;
+}
+
+.member-portal h1,
+.member-portal .text-3xl {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+}
+
+.member-portal h2,
+.member-portal .text-2xl {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+}
+
+.member-portal h3,
+.member-portal .text-xl {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+}
+
+.member-portal h4,
+.member-portal .text-lg {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+}
+
+.member-portal .text-base {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
+
+.member-portal .text-sm {
+  font-size: 0.8125rem !important;
+  line-height: 1.125rem !important;
+}
+
+.member-portal .text-xs {
+  font-size: 0.6875rem !important;
+  line-height: 1rem !important;
+}

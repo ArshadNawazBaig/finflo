@@ -115,7 +115,19 @@ const MemberNavbar = ({ onMenuClick }) => {
     navigate('/member/login');
   };
 
-  const member = JSON.parse(localStorage.getItem('member') || '{}');
+  const [member, setMember] = useState(() =>
+    JSON.parse(localStorage.getItem('member') || '{}'),
+  );
+
+  useEffect(() => {
+    const handleMemberUpdate = () => {
+      setMember(JSON.parse(localStorage.getItem('member') || '{}'));
+    };
+    window.addEventListener('memberUpdated', handleMemberUpdate);
+    return () =>
+      window.removeEventListener('memberUpdated', handleMemberUpdate);
+  }, []);
+
   const memberInitials = member.name
     ? member.name
         .split(' ')
@@ -267,7 +279,7 @@ const MemberNavbar = ({ onMenuClick }) => {
                 />
               </div>
             </div>
-            <div className="w-9 h-9 rounded-lg bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-all duration-500 ring-2 ring-primary overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-primary shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-all duration-500 ring-2 ring-primary overflow-hidden">
               {member.profilePicture ? (
                 <img
                   src={member.profilePicture}

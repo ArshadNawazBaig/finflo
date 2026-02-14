@@ -35,7 +35,7 @@ const MemberLayout = () => {
   }, [location, isMobile]);
 
   return (
-    <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
+    <div className="member-portal flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden text-sm">
       <MemberSidebar
         isExpanded={isSidebarExpanded}
         isMobile={isMobile}

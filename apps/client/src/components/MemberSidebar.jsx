@@ -41,7 +41,19 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
     window.location.href = '/member/login';
   };
 
-  const member = JSON.parse(localStorage.getItem('member') || '{}');
+  const [member, setMember] = useState(() =>
+    JSON.parse(localStorage.getItem('member') || '{}'),
+  );
+
+  useEffect(() => {
+    const handleMemberUpdate = () => {
+      setMember(JSON.parse(localStorage.getItem('member') || '{}'));
+    };
+    window.addEventListener('memberUpdated', handleMemberUpdate);
+    return () =>
+      window.removeEventListener('memberUpdated', handleMemberUpdate);
+  }, []);
+
   const memberInitials = member.name
     ? member.name
         .split(' ')

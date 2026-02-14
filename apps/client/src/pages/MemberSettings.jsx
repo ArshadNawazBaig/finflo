@@ -19,6 +19,11 @@ import {
   Eye,
   EyeOff,
   Smartphone,
+  ChevronRight,
+  Sparkles,
+  ShieldCheck,
+  Check,
+  Copy,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, capitalize } from '@/lib/utils';
@@ -37,6 +42,7 @@ const MemberSettings = () => {
   const [member, setMember] = useState(() =>
     JSON.parse(localStorage.getItem('member') || '{}'),
   );
+  const [loading, setLoading] = useState(false);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -44,7 +50,9 @@ const MemberSettings = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
+
+  // Navigation State
+  const [activeSection, setActiveSection] = useState('general');
 
   useEffect(() => {
     const fetchMemberData = async () => {
@@ -63,14 +71,213 @@ const MemberSettings = () => {
     fetchMemberData();
   }, []);
 
-  const handleProfilePictureUpload = async (e) => {
+  const handleLogout = () => {
+    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
+    window.location.href = '/member/login';
+  };
+
+  const tabs = [
+    {
+      id: 'general',
+      label: 'General',
+      icon: User,
+      desc: 'Profile & Appearance',
+    },
+    {
+      id: 'security',
+      label: 'Security',
+      icon: Shield,
+      desc: 'Protection & Sessions',
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: Bell,
+      desc: 'System Alerts & Updates',
+    },
+  ];
+
+  const initials =
+    member.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'M';
+
+  return (
+    <div className="relative min-h-[calc(100vh-8rem)] pb-12 animate-in fade-in duration-1000">
+      {/* Dynamic Background Elements */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse delay-1000" />
+      </div>
+
+      <PageHeader
+        title="Settings"
+        description="Personalize your portal experience and manage your security."
+        className="mb-10"
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Navigation Sidebar */}
+        <aside className="lg:col-span-1 space-y-4">
+          <div className="p-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] shadow-2xl shadow-black/5">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeSection === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSection(tab.id)}
+                  className={cn(
+                    'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
+                    isActive
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-slate-800/60',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'p-3 rounded-2xl transition-all duration-500',
+                      isActive
+                        ? 'bg-white/20'
+                        : 'bg-muted/50 group-hover:scale-110 group-hover:rotate-3',
+                    )}
+                  >
+                    <Icon size={18} strokeWidth={isActive ? 3 : 2} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-black text-xs uppercase tracking-widest leading-none mb-1">
+                      {tab.label}
+                    </p>
+                    <p
+                      className={cn(
+                        'text-[10px] font-medium opacity-60',
+                        isActive ? 'text-white' : 'text-muted-foreground',
+                      )}
+                    >
+                      {tab.desc}
+                    </p>
+                  </div>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTabGlow"
+                      className="absolute inset-0 bg-white/10 blur-xl opacity-50"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-150 transition-transform duration-700">
+              <Sparkles size={100} />
+            </div>
+            <h4 className="font-black text-[10px] uppercase tracking-[0.3em] mb-3 opacity-80">
+              Account Status
+            </h4>
+            <div className="space-y-4 relative z-10">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold opacity-80">Status</span>
+                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest">
+                  {member.status?.toUpperCase() || 'ACTIVE'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold opacity-80">Portal Access</span>
+                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest text-[8px]">
+                  VERIFIED
+                </span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="lg:col-span-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden flex flex-col gap-6"
+            >
+              {activeSection === 'general' && (
+                <>
+                  <ProfileSection
+                    member={member}
+                    initials={initials}
+                    onEdit={() => setIsProfileModalOpen(true)}
+                    uploading={uploadingPicture}
+                    setUploading={setUploadingPicture}
+                    onUpload={() => fileInputRef.current?.click()}
+                    fileInputRef={fileInputRef}
+                    setMember={setMember}
+                  />
+                  <AppearanceSection
+                    theme={theme}
+                    setTheme={setTheme}
+                    primaryColor={primaryColor}
+                    setPrimaryColor={setPrimaryColor}
+                  />
+                  <DangerZoneSection
+                    onDelete={() => setIsDeleteModalOpen(true)}
+                  />
+                </>
+              )}
+              {activeSection === 'security' && (
+                <SecuritySection
+                  onChangePassword={() => setIsPasswordModalOpen(true)}
+                  onLogout={handleLogout}
+                />
+              )}
+              {activeSection === 'notifications' && <NotificationSection />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      <EditProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        member={member}
+        setMember={setMember}
+      />
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
+    </div>
+  );
+};
+
+const ProfileSection = ({
+  member,
+  initials,
+  onEdit,
+  uploading,
+  setUploading,
+  onUpload,
+  fileInputRef,
+  setMember,
+}) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setUploading(true);
     const formData = new FormData();
     formData.append('profilePicture', file);
 
-    setUploadingPicture(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
       const { data } = await api.put(
@@ -97,130 +304,36 @@ const MemberSettings = () => {
     } catch (error) {
       toast.error('Failed to upload picture');
     } finally {
-      setUploadingPicture(false);
+      setUploading(false);
     }
   };
 
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'appearance', label: 'Appearance', icon: Layout },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-  ];
-
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
-      <PageHeader
-        title="Settings"
-        description="Personalize your portal experience and manage your security."
-      />
+    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group">
+      <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="lg:col-span-1 space-y-4">
-          <div className="p-2 bg-card/50 backdrop-blur-xl border border-border/50 rounded-[2.5rem] shadow-sm">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-300',
-                    isActive
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                      : 'text-muted-foreground hover:bg-muted/50',
-                  )}
-                >
-                  <Icon size={18} />
-                  <span className="font-bold text-xs uppercase tracking-widest">
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </aside>
-
-        <main className="lg:col-span-3">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-8"
-            >
-              {activeTab === 'profile' && (
-                <ProfileSection
-                  member={member}
-                  onEdit={() => setIsProfileModalOpen(true)}
-                  onChangePassword={() => setIsPasswordModalOpen(true)}
-                  onUpload={() => fileInputRef.current?.click()}
-                  uploading={uploadingPicture}
-                  fileInputRef={fileInputRef}
-                  onFileChange={handleProfilePictureUpload}
-                />
-              )}
-              {activeTab === 'appearance' && (
-                <AppearanceSection
-                  theme={theme}
-                  setTheme={setTheme}
-                  primaryColor={primaryColor}
-                  setPrimaryColor={setPrimaryColor}
-                />
-              )}
-              {activeTab === 'notifications' && <NotificationSection />}
-
-              {activeTab === 'profile' && (
-                <DangerZoneSection
-                  onDelete={() => setIsDeleteModalOpen(true)}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </main>
+      <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
+        <div className="space-y-1">
+          <h3 className="text-xl font-black tracking-tight">
+            Profile Information
+          </h3>
+          <p className="text-muted-foreground text-xs font-medium">
+            Manage your personal details and portal identity.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onEdit}
+          className="rounded-xl border-primary/20 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest"
+        >
+          Edit Profile
+        </Button>
       </div>
 
-      <EditProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        member={member}
-        setMember={setMember}
-      />
-      <ChangePasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-      />
-      <DeleteAccountModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-      />
-    </div>
-  );
-};
-
-const ProfileSection = ({
-  member,
-  onEdit,
-  onChangePassword,
-  onUpload,
-  uploading,
-  fileInputRef,
-  onFileChange,
-}) => {
-  const initials =
-    member.name
-      ?.split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || 'M';
-
-  return (
-    <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
-      <div className="flex flex-col sm:flex-row items-center gap-8">
+      <div className="flex flex-col sm:flex-row items-center gap-8 py-4 relative z-10">
         <div className="relative group/avatar">
-          <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-card shadow-lg transition-all">
+          <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/avatar:border-primary/20 transition-all cursor-pointer">
             {member.profilePicture ? (
               <img
                 src={member.profilePicture}
@@ -230,54 +343,42 @@ const ProfileSection = ({
             ) : (
               initials
             )}
-            <button
+            <div
+              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"
               onClick={onUpload}
-              disabled={uploading}
-              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity"
             >
-              {uploading ? (
-                <Loader2 className="animate-spin text-white" />
-              ) : (
-                <Camera size={20} className="text-white" />
-              )}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={onFileChange}
-            />
+              <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover/avatar:scale-100 transition-transform">
+                {uploading ? (
+                  <Loader2 size={20} className="text-white animate-spin" />
+                ) : (
+                  <Camera size={20} className="text-white" />
+                )}
+              </div>
+            </div>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
         </div>
-        <div className="flex-1 text-center sm:text-left">
-          <h3 className="text-2xl font-black tracking-tight capitalize">
-            {member.name}
-          </h3>
-          <p className="text-muted-foreground font-medium mb-4">
+
+        <div className="space-y-1 text-center sm:text-left">
+          <h4 className="text-xl font-bold capitalize">{member.name}</h4>
+          <div className="flex items-center justify-center sm:justify-start gap-2 text-muted-foreground text-sm">
+            <Mail size={14} />
             {member.email}
-          </p>
-          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
-            <Button
-              onClick={onEdit}
-              variant="outline"
-              size="sm"
-              className="rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
-            >
-              Edit Details
-            </Button>
-            <Button
-              onClick={onChangePassword}
-              variant="outline"
-              size="sm"
-              className="rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
-            >
-              Change Password
-            </Button>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+              {member.role || 'MEMBER'}
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -287,70 +388,168 @@ const AppearanceSection = ({
   primaryColor,
   setPrimaryColor,
 }) => (
-  <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
-    <div>
-      <h3 className="text-xl font-black tracking-tight mb-2">
-        Theme Preferences
-      </h3>
-      <p className="text-muted-foreground text-sm">
-        Choose how you want the portal to look.
+  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
+    <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+    <div className="relative z-10">
+      <h3 className="text-xl font-black tracking-tight">Appearance</h3>
+      <p className="text-muted-foreground text-xs font-medium mt-1">
+        Customize your portal's look and feel.
       </p>
     </div>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {[
-        { id: 'light', label: 'Light', icon: Sun },
-        { id: 'dark', label: 'Dark', icon: Moon },
-        { id: 'system', label: 'System', icon: Laptop },
-      ].map((mode) => (
-        <button
-          key={mode.id}
-          onClick={() => setTheme(mode.id)}
-          className={cn(
-            'flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all',
-            theme === mode.id
-              ? 'border-primary bg-primary/5'
-              : 'border-border/50 hover:bg-muted/50',
-          )}
-        >
-          <mode.icon size={24} />
-          <span className="font-bold text-xs uppercase tracking-widest">
-            {mode.label}
+
+    <div className="space-y-8 relative z-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { id: 'light', label: 'Light', icon: Sun, bg: 'bg-background' },
+          {
+            id: 'dark',
+            label: 'Dark',
+            icon: Moon,
+            bg: 'bg-slate-950 text-white',
+          },
+          {
+            id: 'system',
+            label: 'System',
+            icon: Laptop,
+            bg: 'bg-gradient-to-r from-background to-slate-950',
+          },
+        ].map((mode) => (
+          <button
+            key={mode.id}
+            onClick={() => setTheme(mode.id)}
+            className={cn(
+              'flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all',
+              theme === mode.id
+                ? 'border-primary bg-primary/5'
+                : 'border-border/50 hover:bg-muted/50',
+            )}
+          >
+            <div
+              className={cn(
+                'h-10 w-10 rounded-full border shadow-sm flex items-center justify-center',
+                mode.bg,
+              )}
+            >
+              <mode.icon
+                size={20}
+                className={mode.id === 'system' ? 'text-primary' : ''}
+              />
+            </div>
+            <span className="font-bold text-[10px] uppercase tracking-widest">
+              {mode.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-4 pt-4 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mr-1">
+            Primary Accent
+          </h4>
+          <span className="text-[8px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-widest">
+            Modern Palette
           </span>
-        </button>
-      ))}
+        </div>
+        <ColorPalette
+          primaryColor={primaryColor}
+          setPrimaryColor={setPrimaryColor}
+        />
+      </div>
     </div>
-    <div className="pt-6 border-t border-border/50">
-      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-        Color Accent
-      </h4>
-      <ColorPalette
-        primaryColor={primaryColor}
-        setPrimaryColor={setPrimaryColor}
-      />
+  </section>
+);
+
+const SecuritySection = ({ onChangePassword, onLogout }) => (
+  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+    <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+    <div className="relative z-10">
+      <h3 className="text-xl font-black tracking-tight">Portal Security</h3>
+      <p className="text-muted-foreground text-xs font-medium mt-1">
+        Secure your account and sessions.
+      </p>
     </div>
-  </div>
+
+    <div className="space-y-6 relative z-10">
+      <div className="flex items-center justify-between pb-4 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-muted rounded-xl">
+            <Lock size={18} className="text-muted-foreground" />
+          </div>
+          <div>
+            <p className="font-bold text-sm">Password</p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              Update your security credential
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onChangePassword}
+          className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+        >
+          Update
+        </Button>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-rose-500/10 rounded-xl">
+            <LogOut size={18} className="text-rose-500" />
+          </div>
+          <div>
+            <p className="font-bold text-sm">Termination</p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              Close current active session
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onLogout}
+          className="rounded-xl text-rose-500 border-rose-500/20 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-widest"
+        >
+          Log Out
+        </Button>
+      </div>
+    </div>
+  </section>
 );
 
 const NotificationSection = () => {
   const [notifs, setNotifs] = useState({ email: true, push: false });
   return (
-    <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
-      <h3 className="text-xl font-black tracking-tight">
-        Email & Security Alerts
-      </h3>
-      <div className="space-y-4">
+    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+      <div className="absolute -right-12 -top-12 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+      <div className="relative z-10">
+        <h3 className="text-xl font-black tracking-tight">Push & Alerts</h3>
+        <p className="text-muted-foreground text-xs font-medium mt-1">
+          Manage system notifications and delivery.
+        </p>
+      </div>
+
+      <div className="space-y-4 relative z-10">
         {[
           {
             id: 'email',
-            label: 'Email Notifications',
-            desc: 'Receive deposit and profit alerts via email',
+            label: 'Email Alerts',
+            desc: 'Receive deposit and profit summaries',
             icon: Mail,
+            color: 'text-blue-600',
+            bg: 'bg-blue-100 dark:bg-blue-900/30',
           },
           {
             id: 'push',
             label: 'Security Alerts',
-            desc: 'Real-time alerts for login and security events',
-            icon: Shield,
+            desc: 'Real-time login and activity alerts',
+            icon: Smartphone,
+            color: 'text-purple-600',
+            bg: 'bg-purple-100 dark:bg-purple-900/30',
           },
         ].map((item) => (
           <div
@@ -358,11 +557,19 @@ const NotificationSection = () => {
             className="flex items-center justify-between p-4 rounded-2xl border border-border/50"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-muted rounded-xl text-primary">
-                <item.icon size={20} />
+              <div
+                className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center',
+                  item.bg,
+                  item.color,
+                )}
+              >
+                <item.icon size={18} />
               </div>
               <div>
-                <p className="font-bold text-sm tracking-tight">{item.label}</p>
+                <h4 className="font-bold text-sm leading-none mb-1">
+                  {item.label}
+                </h4>
                 <p className="text-[10px] text-muted-foreground font-medium">
                   {item.desc}
                 </p>
@@ -377,30 +584,41 @@ const NotificationSection = () => {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
 const DangerZoneSection = ({ onDelete }) => (
-  <div className="bg-rose-500/5 border border-rose-500/20 p-8 rounded-[2.5rem] space-y-4">
-    <div className="flex items-center justify-between gap-4">
-      <div>
+  <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
+    <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+    <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
+      <div className="space-y-1">
         <h3 className="text-xl font-black tracking-tight text-rose-500">
           Danger Zone
         </h3>
         <p className="text-muted-foreground text-xs font-medium">
-          Irrecoverable actions concerning your account.
+          Irreversible actions that affect your portal access.
         </p>
       </div>
       <Button
+        variant="ghost"
+        size="sm"
         onClick={onDelete}
-        variant="outline"
-        className="text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-xl font-black uppercase tracking-widest text-[10px]"
+        className="rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-black/20"
       >
-        Delete Account
+        Delete Account Permanently
       </Button>
     </div>
-  </div>
+
+    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 relative z-10">
+      <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+        <AlertTriangle size={14} />
+        WARNING: THIS ACTION WILL PERMANENTLY REMOVE YOUR PORTAL ACCESS AND
+        DATA.
+      </p>
+    </div>
+  </section>
 );
 
 const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
@@ -441,15 +659,15 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md rounded-[2.5rem] border-white/50 shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black tracking-tight">
+          <DialogTitle className="text-xl font-black tracking-tight">
             Edit Profile
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Full Name
             </label>
             <input
@@ -458,12 +676,12 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 focus:bg-background transition-all outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Email Address
             </label>
             <input
@@ -472,7 +690,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 focus:bg-background transition-all outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               required
             />
           </div>
@@ -524,7 +742,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         },
-        { headers: { Authorization: `Bearer ${memberToken}` } },
+        {
+          headers: { Authorization: `Bearer ${memberToken}` },
+        },
       );
       toast.success('Password updated successfully');
       onClose();
@@ -542,15 +762,15 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md rounded-[2.5rem] border-white/50 shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black tracking-tight">
+          <DialogTitle className="text-xl font-black tracking-tight">
             Security Update
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Current Password
             </label>
             <div className="relative">
@@ -560,7 +780,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, currentPassword: e.target.value })
                 }
-                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
                 required
               />
               <button
@@ -574,7 +794,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </div>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 New Password
               </label>
               <div className="relative">
@@ -584,7 +804,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   onChange={(e) =>
                     setFormData({ ...formData, newPassword: e.target.value })
                   }
-                  className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
                   required
                 />
                 <button
@@ -597,7 +817,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Confirm New Password
               </label>
               <input
@@ -609,7 +829,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                     confirmNewPassword: e.target.value,
                   })
                 }
-                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
                 required
               />
             </div>
@@ -618,14 +838,14 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground"
             >
               Cancel
             </button>
             <Button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
+              className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Update Password
@@ -642,11 +862,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
-    if (confirmText !== 'DELETE') {
-      toast.error('Please type DELETE to confirm');
-      return;
-    }
-
+    if (confirmText !== 'DELETE') return;
     setLoading(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
@@ -666,47 +882,51 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md rounded-[2.5rem] border border-rose-500/20 shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-rose-500">
-            <AlertTriangle size={20} />
-            Delete Account
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-            <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
-              This action cannot be undone. This will permanently delete your
-              account and remove all your data.
-            </p>
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
+            <AlertTriangle className="text-rose-500" size={24} />
           </div>
-          <div>
-            <label className="text-sm font-medium">
-              Type <span className="font-black text-rose-500">DELETE</span> to
-              confirm
+          <DialogTitle className="text-center text-xl font-black tracking-tight text-rose-500">
+            Irreversible Deletion
+          </DialogTitle>
+          <p className="text-center text-[10px] text-muted-foreground font-medium px-4 pt-2">
+            This will permanently remove your portal access and activity
+            history.
+          </p>
+        </DialogHeader>
+        <div className="space-y-6 pt-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
+              Type <span className="text-rose-500">DELETE</span> to confirm
             </label>
             <input
               type="text"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="w-full px-3 py-2 border border-rose-500/20 rounded-md text-foreground bg-transparent mt-2"
+              className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 text-center font-black uppercase tracking-widest text-rose-600"
               placeholder="DELETE"
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <button
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+              className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
             >
               Cancel
-            </button>
+            </Button>
             <Button
+              variant="destructive"
               onClick={handleDelete}
-              disabled={loading || confirmText !== 'DELETE'}
-              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest bg-rose-500 hover:bg-rose-600 text-white"
+              disabled={confirmText !== 'DELETE' || loading}
+              className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-lg shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Delete Account
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Confirm Deletion'
+              )}
             </Button>
           </div>
         </div>
@@ -717,11 +937,12 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
 
 const Switch = ({ checked, onCheckedChange }) => (
   <button
-    type="button"
+    role="switch"
+    aria-checked={checked}
     onClick={() => onCheckedChange(!checked)}
     className={cn(
-      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-      checked ? 'bg-primary' : 'bg-muted',
+      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+      checked ? 'bg-primary' : 'bg-muted dark:bg-slate-800',
     )}
   >
     <span
