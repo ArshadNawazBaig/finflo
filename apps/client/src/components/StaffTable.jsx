@@ -51,7 +51,7 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                       {item.name[0].toUpperCase()}
                     </div>
-                    <span className="font-bold text-foreground">
+                    <span className="font-bold text-foreground capitalize">
                       {item.name}
                     </span>
                   </div>

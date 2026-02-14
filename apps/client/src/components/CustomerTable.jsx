@@ -90,7 +90,7 @@ const CustomerTable = ({
                   <div className="flex items-center gap-3">
                     <Link
                       to={`/customers/${customer._id}`}
-                      className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-sm"
+                      className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-sm capitalize"
                     >
                       {customer.name.charAt(0)}
                     </Link>

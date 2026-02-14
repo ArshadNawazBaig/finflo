@@ -359,11 +359,11 @@ const AuditLogs = () => {
                     <td className="px-8 py-5">
                       {log.user ? (
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20">
+                          <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20 capitalize">
                             {log.user.name?.charAt(0) || 'U'}
                           </div>
                           <div>
-                            <p className="text-xs font-black tracking-tight leading-none mb-1">
+                            <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
                               {log.user.name}
                             </p>
                             <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">

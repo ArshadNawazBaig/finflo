@@ -8,6 +8,7 @@ import {
   X,
   Send,
   Settings,
+  TrendingUp,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
@@ -107,6 +108,13 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           icon={<History size={18} />}
           active={isActive('/member/transactions')}
           label="Transactions"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/member/investments"
+          icon={<TrendingUp size={18} />}
+          active={isActive('/member/investments')}
+          label="Investments"
           isExpanded={isLayoutExpanded}
         />
         <NavItem

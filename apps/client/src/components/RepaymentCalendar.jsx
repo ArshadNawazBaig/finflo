@@ -192,7 +192,9 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                       {formatPKR(p.amount)}
                     </p>
                   </div>
-                  <h5 className="font-bold text-sm mb-1">{p.customer?.name}</h5>
+                  <h5 className="font-bold text-sm mb-1 capitalize">
+                    {p.customer?.name}
+                  </h5>
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-[10px] text-muted-foreground font-medium truncate">
                       Loan Settlement

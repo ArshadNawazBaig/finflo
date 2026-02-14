@@ -114,6 +114,12 @@ const updateDetails = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
+    // Sync with Customer if linked
+    if (member.customer) {
+      const Customer = require('../models/Customer');
+      await Customer.findByIdAndUpdate(member.customer, fieldsToUpdate);
+    }
+
     res.status(200).json({
       success: true,
       data: member,
@@ -148,6 +154,14 @@ const uploadProfilePicture = async (req, res) => {
 
     member.profilePicture = req.file.path;
     await member.save();
+
+    // Sync with Customer if linked
+    if (member.customer) {
+      const Customer = require('../models/Customer');
+      await Customer.findByIdAndUpdate(member.customer, {
+        profilePicture: req.file.path,
+      });
+    }
 
     res.json({
       success: true,

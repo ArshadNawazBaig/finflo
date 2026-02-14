@@ -99,7 +99,7 @@ const LoanRequestTable = ({
               >
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize">
                       {request.customer?.name
                         ? request.customer.name.charAt(0).toUpperCase()
                         : '?'}

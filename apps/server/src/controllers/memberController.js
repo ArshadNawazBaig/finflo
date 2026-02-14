@@ -402,6 +402,16 @@ const updateMember = async (req, res) => {
       { new: true, runValidators: true },
     );
 
+    // Sync with Customer if linked
+    if (updatedMember.customer) {
+      await Customer.findByIdAndUpdate(updatedMember.customer, {
+        name: name?.toLowerCase(),
+        email: email?.toLowerCase(),
+        phone,
+        address,
+      });
+    }
+
     res.json(updatedMember);
   } catch (error) {
     console.error('Update Member Error:', error);

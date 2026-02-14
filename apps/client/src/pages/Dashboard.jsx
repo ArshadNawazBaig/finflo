@@ -233,14 +233,14 @@ const Dashboard = () => {
                           <div
                             className={`w-11 h-11 rounded-2xl ${t.type === 'repayment' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'} flex items-center justify-center border border-border/50 shadow-sm group-hover:scale-110 transition-transform`}
                           >
-                            <span className="font-black text-xs">
+                            <span className="font-black text-xs capitalize">
                               {t.customer?.name?.charAt(0) || '?'}
                             </span>
                           </div>
                           <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full" />
                         </div>
                         <div className="space-y-1">
-                          <p className="text-sm font-bold leading-none tracking-tight">
+                          <p className="text-sm font-bold leading-none tracking-tight capitalize">
                             {t.customer?.name}
                           </p>
                           <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">

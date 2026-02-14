@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,11 @@ import {
   Lock,
   Loader2,
   Camera,
-  Sparkles,
-  Smartphone,
+  Layout,
   AlertTriangle,
-  Info,
+  Eye,
+  EyeOff,
+  Smartphone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, capitalize } from '@/lib/utils';
@@ -33,34 +34,23 @@ import ColorPalette from '@/components/ui/ColorPalette';
 
 const MemberSettings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme();
-
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('memberNotifications');
-    return saved
-      ? JSON.parse(saved)
-      : {
-          email: true,
-          push: false,
-        };
-  });
-
   const [member, setMember] = useState(() =>
     JSON.parse(localStorage.getItem('member') || '{}'),
   );
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Modal States
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [uploadingPicture, setUploadingPicture] = useState(false);
-  const fileInputRef = useState(null)[1];
+  const [activeTab, setActiveTab] = useState('profile');
 
-  // Fetch latest member data on mount
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
         const memberToken = localStorage.getItem('memberToken');
+        if (!memberToken) return;
         const { data } = await api.get('/member-auth/me', {
           headers: { Authorization: `Bearer ${memberToken}` },
         });
@@ -73,50 +63,23 @@ const MemberSettings = () => {
     fetchMemberData();
   }, []);
 
-  // Notifications Effect
-  useEffect(() => {
-    localStorage.setItem('memberNotifications', JSON.stringify(notifications));
-  }, [notifications]);
-
-  const handleToggle = (key) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('memberToken');
-    localStorage.removeItem('member');
-    window.location.href = '/member/login';
-  };
-
   const handleProfilePictureUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    // Validate file size (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB');
-      return;
-    }
+    const formData = new FormData();
+    formData.append('profilePicture', file);
 
     setUploadingPicture(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
-      const formData = new FormData();
-      formData.append('profilePicture', file);
-
       const { data } = await api.put(
         '/member-auth/updateprofilepicture',
         formData,
         {
           headers: {
-            Authorization: `Bearer ${memberToken}`,
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${memberToken}`,
           },
         },
       );
@@ -126,482 +89,108 @@ const MemberSettings = () => {
           ...member,
           profilePicture: data.profilePicture,
         };
-        localStorage.setItem('member', JSON.stringify(updatedMember));
         setMember(updatedMember);
-        toast.success('Profile picture updated successfully');
-        // Reload to update sidebar and navbar
-        setTimeout(() => window.location.reload(), 500);
+        localStorage.setItem('member', JSON.stringify(updatedMember));
+        toast.success('Profile picture updated');
+        window.dispatchEvent(new Event('memberUpdated'));
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || 'Failed to upload profile picture',
-      );
+      toast.error('Failed to upload picture');
     } finally {
       setUploadingPicture(false);
     }
   };
 
-  const memberInitials = member.name
-    ? member.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : 'MB';
-
-  // Navigation State
-  const [activeSection, setActiveSection] = useState('general');
-
   const tabs = [
-    {
-      id: 'general',
-      label: 'General',
-      icon: User,
-      desc: 'Profile & Appearance',
-    },
-    {
-      id: 'security',
-      label: 'Security',
-      icon: Shield,
-      desc: 'Protection & Sessions',
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      desc: 'System Alerts & Updates',
-    },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'appearance', label: 'Appearance', icon: Layout },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
-    <div className="relative min-h-[calc(100vh-8rem)] pb-12 animate-in fade-in duration-1000">
-      {/* Dynamic Background Elements */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse delay-1000" />
-      </div>
-
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title="Member Settings"
-        description="Manage your profile, notifications, security, and preferences."
-        className="mb-10"
+        title="Settings"
+        description="Personalize your portal experience and manage your security."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        {/* Navigation Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside className="lg:col-span-1 space-y-4">
-          <div className="p-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] shadow-2xl shadow-black/5">
+          <div className="p-2 bg-card/50 backdrop-blur-xl border border-border/50 rounded-[2.5rem] shadow-sm">
             {tabs.map((tab) => {
               const Icon = tab.icon;
-              const isActive = activeSection === tab.id;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSection(tab.id)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
+                    'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-300',
                     isActive
-                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-slate-800/60',
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'text-muted-foreground hover:bg-muted/50',
                   )}
                 >
-                  <div
-                    className={cn(
-                      'p-3 rounded-2xl transition-all duration-500',
-                      isActive
-                        ? 'bg-white/20'
-                        : 'bg-muted/50 group-hover:scale-110 group-hover:rotate-3',
-                    )}
-                  >
-                    <Icon size={18} strokeWidth={isActive ? 3 : 2} />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-black text-xs uppercase tracking-widest leading-none mb-1">
-                      {tab.label}
-                    </p>
-                    <p
-                      className={cn(
-                        'text-[10px] font-medium opacity-60',
-                        isActive ? 'text-white' : 'text-muted-foreground',
-                      )}
-                    >
-                      {tab.desc}
-                    </p>
-                  </div>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabGlow"
-                      className="absolute inset-0 bg-white/10 blur-xl opacity-50"
-                    />
-                  )}
+                  <Icon size={18} />
+                  <span className="font-bold text-xs uppercase tracking-widest">
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
           </div>
-
-          <div className="p-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-150 transition-transform duration-700">
-              <Sparkles size={100} />
-            </div>
-            <h4 className="font-black text-[10px] uppercase tracking-[0.3em] mb-3 opacity-80">
-              Account Status
-            </h4>
-            <div className="space-y-4 relative z-10">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold opacity-80">Verification</span>
-                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest">
-                  VERIFIED
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold opacity-80">Encryption</span>
-                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest">
-                  AES-256
-                </span>
-              </div>
-            </div>
-          </div>
         </aside>
 
-        {/* Main Content Area */}
         <main className="lg:col-span-3">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeSection}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden"
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-8"
             >
-              {/* General Section: Profile + Appearance */}
-              {activeSection === 'general' && (
-                <>
-                  {/* Profile Section */}
-                  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group mb-8">
-                    <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                    <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-black tracking-tight">
-                          Profile Information
-                        </h3>
-                        <p className="text-muted-foreground text-xs font-medium">
-                          Update your account's public identity.
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsProfileModalOpen(true)}
-                        className="rounded-xl border-primary/20 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest"
-                      >
-                        Edit Profile
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-8 py-4 relative z-10">
-                      <div className="relative group/avatar">
-                        <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/avatar:border-primary/20 transition-all">
-                          {member.profilePicture ? (
-                            <img
-                              src={member.profilePicture}
-                              alt="Profile"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            memberInitials
-                          )}
-                        </div>
-                        {/* Upload Button Overlay */}
-                        <button
-                          onClick={() =>
-                            document
-                              .getElementById('profilePictureInput')
-                              ?.click()
-                          }
-                          disabled={uploadingPicture}
-                          className="absolute inset-0 bg-black/60 rounded-[2rem] flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
-                        >
-                          {uploadingPicture ? (
-                            <Loader2 className="w-6 h-6 text-white animate-spin" />
-                          ) : (
-                            <Camera className="w-6 h-6 text-white" />
-                          )}
-                        </button>
-                        <input
-                          id="profilePictureInput"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleProfilePictureUpload}
-                          className="hidden"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <h4 className="text-xl font-bold capitalize">
-                          {capitalize(member.name || 'Member')}
-                        </h4>
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                          <Mail size={14} />
-                          {member.email || 'member@example.com'}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                          <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
-                            Member
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Appearance Section */}
-                  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
-                    <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                    <div className="relative z-10">
-                      <h3 className="text-xl font-black tracking-tight">
-                        Appearance
-                      </h3>
-                      <p className="text-muted-foreground text-xs font-medium mt-1">
-                        Visual system configuration and theme management.
-                      </p>
-                    </div>
-
-                    <div className="space-y-8 relative z-10">
-                      {/* Mode Toggle */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <button
-                          onClick={() => setTheme('light')}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                            theme === 'light'
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
-                          }`}
-                        >
-                          <div className="h-10 w-10 rounded-full bg-background border shadow-sm flex items-center justify-center">
-                            <Sun size={20} />
-                          </div>
-                          <span className="font-medium text-sm">Light</span>
-                        </button>
-                        <button
-                          onClick={() => setTheme('dark')}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                            theme === 'dark'
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
-                          }`}
-                        >
-                          <div className="h-10 w-10 rounded-full bg-slate-950 text-white border shadow-sm flex items-center justify-center">
-                            <Moon size={20} />
-                          </div>
-                          <span className="font-medium text-sm">Dark</span>
-                        </button>
-                        <button
-                          onClick={() => setTheme('system')}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                            theme === 'system'
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
-                          }`}
-                        >
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-background to-slate-950 border shadow-sm flex items-center justify-center">
-                            <Laptop size={20} className="text-primary" />
-                          </div>
-                          <span className="font-medium text-sm">System</span>
-                        </button>
-                      </div>
-
-                      {/* Primary Color Selection */}
-                      <div className="space-y-4 pt-4 border-t border-border/50">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mr-1">
-                            Primary Accent
-                          </h4>
-                          <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-widest">
-                            Modern Palette
-                          </span>
-                        </div>
-
-                        <div className="pt-2">
-                          <ColorPalette
-                            primaryColor={primaryColor}
-                            setPrimaryColor={setPrimaryColor}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Danger Zone */}
-                  <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
-                    <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                    <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-black tracking-tight text-rose-500">
-                          Danger Zone
-                        </h3>
-                        <p className="text-muted-foreground text-xs font-medium">
-                          Irreversible action that will permanently delete your
-                          account.
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        className="rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-black/20"
-                      >
-                        Delete Account Permanently
-                      </Button>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 relative z-10">
-                      <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <Info size={14} />
-                        WARNING: THIS ACTION WILL PERMANENTLY DELETE YOUR
-                        ACCOUNT AND ALL ASSOCIATED DATA.
-                      </p>
-                    </div>
-                  </section>
-                </>
+              {activeTab === 'profile' && (
+                <ProfileSection
+                  member={member}
+                  onEdit={() => setIsProfileModalOpen(true)}
+                  onChangePassword={() => setIsPasswordModalOpen(true)}
+                  onUpload={() => fileInputRef.current?.click()}
+                  uploading={uploadingPicture}
+                  fileInputRef={fileInputRef}
+                  onFileChange={handleProfilePictureUpload}
+                />
               )}
-
-              {/* Notifications Section */}
-              {activeSection === 'notifications' && (
-                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
-                  <div className="absolute -right-12 -top-12 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                  <div className="relative z-10">
-                    <h3 className="text-xl font-black tracking-tight">
-                      System Notifications
-                    </h3>
-                    <p className="text-muted-foreground text-xs font-medium mt-1">
-                      Manage intelligent alerts and communication delivery.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4 relative z-10">
-                    <div className="flex items-center justify-between p-3 rounded-lg border border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                          <Mail size={16} />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-sm">
-                            Email Notifications
-                          </h4>
-                          <p className="text-xs text-muted-foreground">
-                            Receive digest summary emails
-                          </p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={notifications.email}
-                        onCheckedChange={() => handleToggle('email')}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg border border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
-                          <Smartphone size={16} />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-sm">
-                            Push Notifications
-                          </h4>
-                          <p className="text-xs text-muted-foreground">
-                            Real-time alerts on your device
-                          </p>
-                        </div>
-                      </div>
-                      <Switch
-                        checked={notifications.push}
-                        onCheckedChange={() => handleToggle('push')}
-                      />
-                    </div>
-                  </div>
-                </section>
+              {activeTab === 'appearance' && (
+                <AppearanceSection
+                  theme={theme}
+                  setTheme={setTheme}
+                  primaryColor={primaryColor}
+                  setPrimaryColor={setPrimaryColor}
+                />
               )}
+              {activeTab === 'notifications' && <NotificationSection />}
 
-              {/* Security Section */}
-              {activeSection === 'security' && (
-                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
-                  <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                  <div className="relative z-10">
-                    <h3 className="text-xl font-black tracking-tight">
-                      Platform Security
-                    </h3>
-                    <p className="text-muted-foreground text-xs font-medium mt-1">
-                      Fortify your account and manage active sessions.
-                    </p>
-                  </div>
-
-                  <div className="space-y-6 relative z-10">
-                    <div className="flex items-center justify-between pb-4 border-b border-border/50">
-                      <div className="flex items-center gap-3">
-                        <Lock size={18} className="text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-sm">Password</p>
-                          <p className="text-xs text-muted-foreground">
-                            Update your login password
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsPasswordModalOpen(true)}
-                      >
-                        Change Password
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <LogOut size={18} className="text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-sm">Log out</p>
-                          <p className="text-xs text-muted-foreground">
-                            End your current session
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleLogout}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
-                      >
-                        Log Out
-                      </Button>
-                    </div>
-                  </div>
-                </section>
+              {activeTab === 'profile' && (
+                <DangerZoneSection
+                  onDelete={() => setIsDeleteModalOpen(true)}
+                />
               )}
             </motion.div>
           </AnimatePresence>
         </main>
       </div>
 
-      {/* Edit Profile Modal */}
       <EditProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         member={member}
         setMember={setMember}
       />
-
-      {/* Change Password Modal */}
       <ChangePasswordModal
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}
       />
-
-      {/* Delete Account Modal */}
       <DeleteAccountModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -609,6 +198,210 @@ const MemberSettings = () => {
     </div>
   );
 };
+
+const ProfileSection = ({
+  member,
+  onEdit,
+  onChangePassword,
+  onUpload,
+  uploading,
+  fileInputRef,
+  onFileChange,
+}) => {
+  const initials =
+    member.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'M';
+
+  return (
+    <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+      <div className="flex flex-col sm:flex-row items-center gap-8">
+        <div className="relative group/avatar">
+          <div className="h-24 w-24 rounded-[2rem] bg-primary/10 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-card shadow-lg transition-all">
+            {member.profilePicture ? (
+              <img
+                src={member.profilePicture}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+            <button
+              onClick={onUpload}
+              disabled={uploading}
+              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity"
+            >
+              {uploading ? (
+                <Loader2 className="animate-spin text-white" />
+              ) : (
+                <Camera size={20} className="text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={onFileChange}
+            />
+          </div>
+        </div>
+        <div className="flex-1 text-center sm:text-left">
+          <h3 className="text-2xl font-black tracking-tight capitalize">
+            {member.name}
+          </h3>
+          <p className="text-muted-foreground font-medium mb-4">
+            {member.email}
+          </p>
+          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+            <Button
+              onClick={onEdit}
+              variant="outline"
+              size="sm"
+              className="rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
+            >
+              Edit Details
+            </Button>
+            <Button
+              onClick={onChangePassword}
+              variant="outline"
+              size="sm"
+              className="rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
+            >
+              Change Password
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AppearanceSection = ({
+  theme,
+  setTheme,
+  primaryColor,
+  setPrimaryColor,
+}) => (
+  <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+    <div>
+      <h3 className="text-xl font-black tracking-tight mb-2">
+        Theme Preferences
+      </h3>
+      <p className="text-muted-foreground text-sm">
+        Choose how you want the portal to look.
+      </p>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {[
+        { id: 'light', label: 'Light', icon: Sun },
+        { id: 'dark', label: 'Dark', icon: Moon },
+        { id: 'system', label: 'System', icon: Laptop },
+      ].map((mode) => (
+        <button
+          key={mode.id}
+          onClick={() => setTheme(mode.id)}
+          className={cn(
+            'flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all',
+            theme === mode.id
+              ? 'border-primary bg-primary/5'
+              : 'border-border/50 hover:bg-muted/50',
+          )}
+        >
+          <mode.icon size={24} />
+          <span className="font-bold text-xs uppercase tracking-widest">
+            {mode.label}
+          </span>
+        </button>
+      ))}
+    </div>
+    <div className="pt-6 border-t border-border/50">
+      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+        Color Accent
+      </h4>
+      <ColorPalette
+        primaryColor={primaryColor}
+        setPrimaryColor={setPrimaryColor}
+      />
+    </div>
+  </div>
+);
+
+const NotificationSection = () => {
+  const [notifs, setNotifs] = useState({ email: true, push: false });
+  return (
+    <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
+      <h3 className="text-xl font-black tracking-tight">
+        Email & Security Alerts
+      </h3>
+      <div className="space-y-4">
+        {[
+          {
+            id: 'email',
+            label: 'Email Notifications',
+            desc: 'Receive deposit and profit alerts via email',
+            icon: Mail,
+          },
+          {
+            id: 'push',
+            label: 'Security Alerts',
+            desc: 'Real-time alerts for login and security events',
+            icon: Shield,
+          },
+        ].map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4 rounded-2xl border border-border/50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-muted rounded-xl text-primary">
+                <item.icon size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-sm tracking-tight">{item.label}</p>
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={notifs[item.id]}
+              onCheckedChange={(val) =>
+                setNotifs({ ...notifs, [item.id]: val })
+              }
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const DangerZoneSection = ({ onDelete }) => (
+  <div className="bg-rose-500/5 border border-rose-500/20 p-8 rounded-[2.5rem] space-y-4">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <h3 className="text-xl font-black tracking-tight text-rose-500">
+          Danger Zone
+        </h3>
+        <p className="text-muted-foreground text-xs font-medium">
+          Irrecoverable actions concerning your account.
+        </p>
+      </div>
+      <Button
+        onClick={onDelete}
+        variant="outline"
+        className="text-rose-500 border-rose-500/20 hover:bg-rose-500/10 rounded-xl font-black uppercase tracking-widest text-[10px]"
+      >
+        Delete Account
+      </Button>
+    </div>
+  </div>
+);
 
 const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
   const [formData, setFormData] = useState({
@@ -637,8 +430,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         setMember(updatedMember);
         toast.success('Profile updated successfully');
         onClose();
-        // Reload to update sidebar and navbar
-        setTimeout(() => window.location.reload(), 500);
+        window.dispatchEvent(new Event('memberUpdated'));
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');
@@ -649,50 +441,55 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogTitle className="text-2xl font-black tracking-tight">
+            Edit Profile
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Name</label>
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Full Name
+            </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 focus:bg-background transition-all outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
-          <div>
-            <label className="text-sm font-medium">Email</label>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Email Address
+            </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 focus:bg-background transition-all outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
             </button>
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
-              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
+              className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
           </div>
@@ -709,6 +506,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     confirmNewPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -725,9 +524,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         },
-        {
-          headers: { Authorization: `Bearer ${memberToken}` },
-        },
+        { headers: { Authorization: `Bearer ${memberToken}` } },
       );
       toast.success('Password updated successfully');
       onClose();
@@ -745,62 +542,89 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
+          <DialogTitle className="text-2xl font-black tracking-tight">
+            Security Update
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Current Password</label>
-            <input
-              type="password"
-              value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, currentPassword: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Current Password
+            </label>
+            <div className="relative">
+              <input
+                type={showCurrent ? 'text' : 'password'}
+                value={formData.currentPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, currentPassword: e.target.value })
+                }
+                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">New Password</label>
-            <input
-              type="password"
-              value={formData.newPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, newPassword: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
-              required
-            />
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showNew ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={(e) =>
+                    setFormData({ ...formData, newPassword: e.target.value })
+                  }
+                  className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Confirm New Password
+              </label>
+              <input
+                type={showNew ? 'text' : 'password'}
+                value={formData.confirmNewPassword}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    confirmNewPassword: e.target.value,
+                  })
+                }
+                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                required
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Confirm New Password</label>
-            <input
-              type="password"
-              value={formData.confirmNewPassword}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  confirmNewPassword: e.target.value,
-                })
-              }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
-              required
-            />
-          </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
             </button>
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
               className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -853,7 +677,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
           <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
             <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
               This action cannot be undone. This will permanently delete your
-              account and remove all your data from our servers.
+              account and remove all your data.
             </p>
           </div>
           <div>
@@ -871,9 +695,8 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
           </div>
           <div className="flex justify-end gap-2">
             <button
-              type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
             >
               Cancel
             </button>
@@ -892,27 +715,22 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Simple Switch component (if not already available)
-const Switch = ({ checked, onCheckedChange }) => {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onCheckedChange(!checked)}
+const Switch = ({ checked, onCheckedChange }) => (
+  <button
+    type="button"
+    onClick={() => onCheckedChange(!checked)}
+    className={cn(
+      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+      checked ? 'bg-primary' : 'bg-muted',
+    )}
+  >
+    <span
       className={cn(
-        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-        checked ? 'bg-primary' : 'bg-muted',
+        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+        checked ? 'translate-x-6' : 'translate-x-1',
       )}
-    >
-      <span
-        className={cn(
-          'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-          checked ? 'translate-x-6' : 'translate-x-1',
-        )}
-      />
-    </button>
-  );
-};
+    />
+  </button>
+);
 
 export default MemberSettings;

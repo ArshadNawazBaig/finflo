@@ -178,6 +178,10 @@ const updateCustomer = async (req, res) => {
     // Sync to Member if exists
     if (updatedCustomer.memberId) {
       const syncFields = [
+        'name',
+        'email',
+        'address',
+        'phone',
         'cnic',
         'job',
         'monthlyIncome',
