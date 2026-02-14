@@ -69,6 +69,8 @@ const MemberProfile = () => {
   const [loans, setLoans] = useState([]);
   const [repayments, setRepayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isInvestmentsLoading, setIsInvestmentsLoading] = useState(false);
+  const [isLoansLoading, setIsLoansLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showInvestmentForm, setShowInvestmentForm] = useState(false);
   const [showProfitRateForm, setShowProfitRateForm] = useState(false);
@@ -196,7 +198,7 @@ const MemberProfile = () => {
 
   const handleInvestmentPageChange = async (newPage) => {
     try {
-      setLoading(true);
+      setIsInvestmentsLoading(true);
       const { data } = await api.get(
         `/members/${id}/investments?page=${newPage}&limit=${itemsPerPage}`,
       );
@@ -206,7 +208,7 @@ const MemberProfile = () => {
     } catch (error) {
       toast.error('Failed to load page');
     } finally {
-      setLoading(false);
+      setIsInvestmentsLoading(false);
     }
   };
 
@@ -1047,7 +1049,11 @@ const MemberProfile = () => {
             </div>
 
             <div className="space-y-4">
-              {investments.length === 0 ? (
+              {isInvestmentsLoading ? (
+                <div className="py-20 flex justify-center items-center">
+                  <InfiniteLoader isFetchingMore={true} />
+                </div>
+              ) : investments.length === 0 ? (
                 <EmptyState
                   icon={Wallet}
                   title="No Transactions"

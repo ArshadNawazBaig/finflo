@@ -24,6 +24,8 @@ import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import MemberActivityCard from '@/components/MemberActivityCard';
+import { cn } from '@/lib/utils';
 
 const MemberTransactions = () => {
   const [activity, setActivity] = useState([]);
@@ -42,17 +44,19 @@ const MemberTransactions = () => {
   const observerTarget = useRef(null);
 
   const fetchActivity = useCallback(
-    async (isAppend = false) => {
+    async (pageToFetch = 1, isAppend = false) => {
       try {
         if (!isAppend) {
           setLoading(true);
-          setCurrentPage(1);
         } else {
           setIsFetchingMore(true);
         }
 
         const memberToken = localStorage.getItem('memberToken');
-        const pageToFetch = isAppend ? currentPage + 1 : 1;
+
+        if (!memberToken) {
+          throw new Error('Not authenticated');
+        }
 
         const [activityRes, memberRes] = await Promise.all([
           api.get(
@@ -74,7 +78,6 @@ const MemberTransactions = () => {
             const filtered = newActivity.filter((a) => !existingIds.has(a._id));
             return [...prev, ...filtered];
           });
-          setCurrentPage(pageToFetch);
         } else {
           setActivity(newActivity);
         }
@@ -82,6 +85,7 @@ const MemberTransactions = () => {
         setMember(memberRes.data);
         setTotalPages(activityRes.data.totalPages || 0);
         setTotalEntries(activityRes.data.totalEntries || 0);
+        setCurrentPage(pageToFetch);
       } catch (error) {
         console.error('Failed to fetch activity:', error);
         toast.error('Failed to load transaction history');
@@ -90,30 +94,31 @@ const MemberTransactions = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, filter, search, limit],
+    [filter, search, limit],
   );
 
   useEffect(() => {
-    fetchActivity();
+    fetchActivity(1, false);
   }, [filter, search, limit]);
 
   useEffect(() => {
-    if (!isMobile || !observerTarget.current) return;
+    if (!observerTarget.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (
           entries[0].isIntersecting &&
           !isFetchingMore &&
+          !loading &&
           currentPage < totalPages
         ) {
-          fetchActivity(true);
+          fetchActivity(currentPage + 1, true);
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.1, rootMargin: '100px' },
     );
     observer.observe(observerTarget.current);
     return () => observer.disconnect();
-  }, [isMobile, isFetchingMore, currentPage, totalPages, fetchActivity]);
+  }, [isFetchingMore, loading, currentPage, totalPages, fetchActivity]);
 
   const handleExportPDF = () => {
     if (!activity.length) return toast.error('No transactions to export');
@@ -235,8 +240,8 @@ const MemberTransactions = () => {
 
         <div className="divide-y divide-border/40">
           {loading ? (
-            <div className="p-10 text-center">
-              <CardsSkeleton />
+            <div className="py-20 flex justify-center items-center">
+              <InfiniteLoader isFetchingMore={true} />
             </div>
           ) : displayActivity.length === 0 ? (
             <div className="p-20">
@@ -245,6 +250,21 @@ const MemberTransactions = () => {
                 title="No Transactions Found"
                 description="Your transaction ledger is currently empty or matches no filters."
               />
+            </div>
+          ) : isMobile ? (
+            <div className="p-4 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                {displayActivity.map((item) => (
+                  <MemberActivityCard key={item._id} activity={item} />
+                ))}
+              </div>
+
+              {/* Infinite Scroll Trigger */}
+              {currentPage < totalPages && (
+                <div ref={observerTarget} className="py-4">
+                  <InfiniteLoader isFetchingMore={isFetchingMore} />
+                </div>
+              )}
             </div>
           ) : (
             displayActivity.map((item) => (
@@ -280,7 +300,7 @@ const MemberTransactions = () => {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p
-                      className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-red-600'}`}
+                      className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}`}
                     >
                       {item.type === 'deposit' ? '+' : '-'}
                       {formatPKR(item.amount)}
@@ -318,44 +338,14 @@ const MemberTransactions = () => {
               </div>
             ))
           )}
+          {/* Infinite Scroll Trigger */}
+          <div ref={observerTarget} className="h-4 w-full" />
+          {currentPage < totalPages && (
+            <div className="py-8">
+              <InfiniteLoader isFetchingMore={isFetchingMore} />
+            </div>
+          )}
         </div>
-        {!loading && displayActivity.length > 0 && (
-          <div className="p-4 border-t border-border/40">
-            {isMobile ? (
-              currentPage < totalPages && (
-                <div ref={observerTarget}>
-                  <InfiniteLoader isFetchingMore={isFetchingMore} />
-                </div>
-              )
-            ) : (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalEntries={totalEntries}
-                limit={limit}
-                onPageChange={(p) => {
-                  setCurrentPage(p);
-                  const memberToken = localStorage.getItem('memberToken');
-                  api
-                    .get(
-                      `/members/portal/activity?page=${p}&limit=${limit}&category=${filter === 'all' ? '' : filter}&search=${search}`,
-                      {
-                        headers: { Authorization: `Bearer ${memberToken}` },
-                      },
-                    )
-                    .then(({ data: response }) => {
-                      setActivity(response.data || []);
-                      setCurrentPage(p);
-                    });
-                }}
-                onLimitChange={(l) => {
-                  setLimit(l);
-                  setCurrentPage(1);
-                }}
-              />
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

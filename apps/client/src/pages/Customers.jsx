@@ -221,8 +221,12 @@ const Customers = () => {
 
       <div className="mt-4">
         {loading ? (
-          <div className={`${isMobile ? 'space-y-4' : ''}`}>
-            <TableSkeleton />
+          <div className="py-20 flex justify-center items-center">
+            {isMobile ? (
+              <InfiniteLoader isFetchingMore={true} />
+            ) : (
+              <TableSkeleton />
+            )}
           </div>
         ) : (
           <>

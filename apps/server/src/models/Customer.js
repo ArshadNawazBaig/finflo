@@ -25,7 +25,7 @@ const customerSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
-    cnic: { type: String },
+    cnic: { type: String, required: true },
     job: { type: String },
     monthlyIncome: { type: Number },
     savingAccountNumber: { type: String, sparse: true },
@@ -60,8 +60,9 @@ const customerSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Prevent duplicate emails PER USER (Tenant)
+// Prevent duplicate emails and CNICs PER USER (Tenant)
 customerSchema.index({ user: 1, email: 1 }, { unique: true });
+customerSchema.index({ user: 1, cnic: 1 }, { unique: true });
 
 // Generate account numbers if missing
 customerSchema.pre('save', async function () {

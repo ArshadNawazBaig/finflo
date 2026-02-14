@@ -1,6 +1,7 @@
 const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
+const FinancialTransaction = require('../models/FinancialTransaction');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
@@ -444,11 +445,23 @@ const addRepayment = async (req, res) => {
     loan.paidAmount += Number(amount);
     loan.remainingAmount = Math.max(0, loan.totalAmount - loan.paidAmount);
 
-    if (loan.remainingAmount <= 0) {
-      loan.status = 'completed';
-    }
-
     await loan.save();
+
+    // Create Financial Transaction
+    const financialTx = new FinancialTransaction({
+      user: req.user.effectiveOwnerId,
+      branchId: req.user.branchId || loan.branchId,
+      type: 'income',
+      category: 'repayment',
+      amount,
+      date: new Date(date || new Date()),
+      description: `Loan repayment for ${loan.customer.name}`,
+      customer: loan.customer._id || loan.customer,
+      loan: loan._id,
+      referenceId: repayment._id,
+      referenceModel: 'Repayment',
+    });
+    await financialTx.save();
 
     // Update Customer Trust Rating
     try {
@@ -862,6 +875,22 @@ const approveLoan = async (req, res) => {
     loan.startDate = new Date();
 
     await loan.save();
+
+    // Create Financial Transaction for disbursement
+    const financialTx = new FinancialTransaction({
+      user: req.user.effectiveOwnerId,
+      branchId: loan.branchId,
+      type: 'expense',
+      category: 'loan_disbursement',
+      amount: loan.principal,
+      date: new Date(),
+      description: `Loan disbursement for ${loan.customer.name}`,
+      customer: loan.customer._id || loan.customer,
+      loan: loan._id,
+      referenceId: loan._id,
+      referenceModel: 'Loan',
+    });
+    await financialTx.save();
 
     // Log activity
     await logActivity({

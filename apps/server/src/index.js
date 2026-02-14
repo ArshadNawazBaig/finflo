@@ -112,6 +112,7 @@ app.use('/api/customers', require('./routes/customerRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/staff', require('./routes/staffRoutes'));
 app.use('/api/repayments', require('./routes/repaymentRoutes'));
+app.use('/api/ledger', require('./routes/ledgerRoutes'));
 app.use('/api/members', require('./routes/memberRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));

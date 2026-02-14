@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const ProfitDistribution = require('../models/ProfitDistribution');
+const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
@@ -536,6 +537,21 @@ const addInvestment = async (req, res) => {
       balanceAfter: member.currentBalance,
     });
 
+    // Create Financial Transaction
+    const financialTx = new FinancialTransaction({
+      user: userId,
+      branchId: member.branchId,
+      type: 'income',
+      category: 'investment',
+      amount,
+      date: new Date(),
+      description: description || 'Investment deposit',
+      member: member._id,
+      referenceId: investment._id,
+      referenceModel: 'Investment',
+    });
+    await financialTx.save();
+
     res.status(201).json({ investment, member });
   } catch (error) {
     console.error('Add Investment Error:', error);
@@ -580,6 +596,21 @@ const withdrawInvestment = async (req, res) => {
       description: description || 'Investment withdrawal',
       balanceAfter: member.currentBalance,
     });
+
+    // Create Financial Transaction
+    const financialTx = new FinancialTransaction({
+      user: userId,
+      branchId: member.branchId,
+      type: 'expense',
+      category: 'withdrawal',
+      amount,
+      date: new Date(),
+      description: description || 'Investment withdrawal',
+      member: member._id,
+      referenceId: investment._id,
+      referenceModel: 'Investment',
+    });
+    await financialTx.save();
 
     res.status(201).json({ investment, member });
   } catch (error) {
@@ -658,6 +689,21 @@ const distributeProfit = async (req, res) => {
             investmentShare: member.profitRate,
           });
 
+          // Create Financial Transaction
+          const financialTx = new FinancialTransaction({
+            user: userId,
+            branchId: member.branchId,
+            type: 'expense',
+            category: 'profit_distribution',
+            amount: profitAmount,
+            date: new Date(),
+            description: `Profit distribution for ${period || 'current period'}`,
+            member: member._id,
+            referenceId: distribution._id,
+            referenceModel: 'ProfitDistribution',
+          });
+          await financialTx.save();
+
           distributions.push(distribution);
         }
       }
@@ -699,6 +745,21 @@ const distributeProfit = async (req, res) => {
               `Proportional distribution based on ${share.toFixed(2)}% share`,
             investmentShare: share,
           });
+
+          // Create Financial Transaction
+          const financialTx = new FinancialTransaction({
+            user: userId,
+            branchId: member.branchId,
+            type: 'expense',
+            category: 'profit_distribution',
+            amount: profitAmount,
+            date: new Date(),
+            description: `Profit distribution for ${period || 'current period'}`,
+            member: member._id,
+            referenceId: distribution._id,
+            referenceModel: 'ProfitDistribution',
+          });
+          await financialTx.save();
 
           distributions.push(distribution);
         }

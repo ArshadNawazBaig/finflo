@@ -314,11 +314,13 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center">
-                    CNIC / ID Number
+                    CNIC / ID Number{' '}
+                    <span className="text-destructive ml-1">*</span>
                   </Label>
                   <Input
                     name="cnic"
                     placeholder="42101-XXXXXXX-X"
+                    required
                     value={formData.cnic}
                     onChange={handleCNICChange}
                     className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-mono"

@@ -2,7 +2,10 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const InfiniteLoader = ({ isFetchingMore, className }) => {
-  if (!isFetchingMore) return <div className="h-4 w-4" />;
+  if (!isFetchingMore)
+    return (
+      <div className="h-24 w-full flex items-center justify-center pointer-events-none opacity-0" />
+    );
 
   return (
     <div

@@ -1,46 +1,38 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '@/lib/axios';
-import {
-  Mail,
-  Lock,
-  Loader2,
-  ArrowRight,
-  ShieldCheck,
-  User,
-} from 'lucide-react';
+import { Lock, Loader2, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
-const MemberLogin = () => {
+const MemberResetPassword = () => {
+  const { token } = useParams();
   const navigate = useNavigate();
-  const [securityCode, setSecurityCode] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     try {
-      // Login as Member
-      const { data } = await api.post('/member-auth/login', {
-        securityCode,
-        email: email.trim().toLowerCase(),
-        password,
-      });
-
-      // Store in separate keys to allow Admin/Member sessions to coexist
-      localStorage.setItem('memberToken', data.token);
-      localStorage.setItem('member', JSON.stringify(data));
-
-      navigate('/member/dashboard');
+      await api.put(`/member-auth/resetpassword/${token}`, { password });
+      toast.success('Password reset successful. Please login.');
+      navigate('/member/login');
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid credentials');
+      console.error('Reset password error:', err);
+      toast.error(err.response?.data?.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
@@ -58,91 +50,27 @@ const MemberLogin = () => {
 
         <CardHeader className="space-y-4 pt-10 px-8 text-center">
           <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 shadow-sm group">
-            <User className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
+            <KeyRound className="w-8 h-8 group-hover:rotate-12 transition-transform duration-300" />
           </div>
           <div className="space-y-1">
             <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              Member Portal
+              New Password
             </CardTitle>
-            <p className="text-muted-foreground text-sm font-medium">
-              Access your investments and loans
+            <p className="text-muted-foreground text-sm font-medium px-4">
+              Enter and confirm your secure new password.
             </p>
           </div>
         </CardHeader>
 
         <CardContent className="px-8 pb-10 pt-2">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
-                <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                {error}
-              </div>
-            )}
-
             <div className="space-y-2">
               <label
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                htmlFor="securityCode"
+                htmlFor="password"
               >
-                Business Security Code
+                New Password
               </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
-                </div>
-                <input
-                  id="securityCode"
-                  type="text"
-                  placeholder="e.g., ABC123"
-                  value={securityCode}
-                  onChange={(e) =>
-                    setSecurityCode(e.target.value.toUpperCase())
-                  }
-                  required
-                  maxLength={6}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                htmlFor="email"
-              >
-                Email Address
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <Link
-                  to="/member/forgot-password"
-                  className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
@@ -153,6 +81,29 @@ const MemberLogin = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                htmlFor="confirmPassword"
+              >
+                Confirm Password
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                </div>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium"
                 />
@@ -170,7 +121,7 @@ const MemberLogin = () => {
                   loading ? 'opacity-0' : 'opacity-100',
                 )}
               >
-                Sign In{' '}
+                Update Password{' '}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
               {loading && (
@@ -179,20 +130,10 @@ const MemberLogin = () => {
                 </div>
               )}
             </Button>
-
-            <div className="text-center pt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Not a member yet?{' '}
-                <span className="text-muted-foreground/70">
-                  Contact your loan provider.
-                </span>
-              </p>
-            </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Minimal Footer */}
       <div className="absolute bottom-6 left-0 w-full text-center">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 px-4">
           © 2026 Financial Intelligence Portal
@@ -202,4 +143,4 @@ const MemberLogin = () => {
   );
 };
 
-export default MemberLogin;
+export default MemberResetPassword;

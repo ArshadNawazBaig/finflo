@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, DollarSign, TrendingUp, Hash, Loader2 } from 'lucide-react';
+import {
+  Search,
+  DollarSign,
+  TrendingUp,
+  Hash,
+  Loader2,
+  ArrowDown,
+} from 'lucide-react';
 import TableSearch from '@/components/ui/TableSearch';
 import StatsCard from '@/components/StatsCard';
 import TransactionTable from '@/components/TransactionTable';
@@ -54,7 +61,7 @@ const Transactions = () => {
 
         const pageToFetch = isAppend ? currentPage + 1 : currentPage;
         const { data } = await api.get(
-          `/repayments?page=${pageToFetch}&limit=${limit}&search=${searchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/ledger?page=${pageToFetch}&limit=${limit}&search=${searchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         );
 
         if (isAppend) {
@@ -124,11 +131,13 @@ const Transactions = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, sortBy, sortOrder, limit, isMobile]);
 
-  const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
-  const averageAmount =
-    transactions.length > 0
-      ? (totalAmount / transactions.length).toFixed(0)
-      : 0;
+  const totalIncome = transactions
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = transactions
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const netCashFlow = totalIncome - totalExpense;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -145,7 +154,7 @@ const Transactions = () => {
       {loading && !isFetchingMore ? (
         <CardsSkeleton count={3} className="md:grid-cols-3 lg:grid-cols-3" />
       ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           <StatsCard
             title="Total Transactions"
             amount={transactions.length}
@@ -153,16 +162,26 @@ const Transactions = () => {
             color="bg-primary shadow-primary/20"
           />
           <StatsCard
-            title="Total Collected"
-            amount={formatPKR(totalAmount)}
-            icon={<DollarSign size={20} />}
+            title="Total Income"
+            amount={formatPKR(totalIncome)}
+            icon={<TrendingUp size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
-            title="Average Payment"
-            amount={formatPKR(averageAmount)}
-            icon={<TrendingUp size={20} />}
-            color="bg-blue-500 shadow-blue-500/20"
+            title="Total Expense"
+            amount={formatPKR(totalExpense)}
+            icon={<ArrowDown size={20} />}
+            color="bg-rose-500 shadow-rose-500/20"
+          />
+          <StatsCard
+            title="Net Cash Flow"
+            amount={formatPKR(netCashFlow)}
+            icon={<DollarSign size={20} />}
+            color={
+              netCashFlow >= 0
+                ? 'bg-blue-500 shadow-blue-500/20'
+                : 'bg-orange-500 shadow-orange-500/20'
+            }
           />
         </div>
       )}
@@ -176,12 +195,18 @@ const Transactions = () => {
               setSearchQuery(value);
               setCurrentPage(1);
             }}
-            placeholder="Search by customer name..."
+            placeholder="Search transactions..."
           />
         </div>
 
         {loading && !isFetchingMore ? (
-          <TableSkeleton />
+          <div className="py-20 flex justify-center items-center">
+            {isMobile ? (
+              <InfiniteLoader isFetchingMore={true} />
+            ) : (
+              <TableSkeleton />
+            )}
+          </div>
         ) : isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
@@ -206,8 +231,8 @@ const Transactions = () => {
                 title="No Transactions Found"
                 description={
                   searchQuery
-                    ? "We couldn't find any repayments matching your search."
-                    : 'No repayments have been recorded yet. Transactions will appear here as customers pay back their loans.'
+                    ? "We couldn't find any transactions matching your search."
+                    : 'No financial transactions have been recorded yet.'
                 }
                 className="border-none bg-card/50"
               />

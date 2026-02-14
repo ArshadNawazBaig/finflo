@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   TrendingUp,
   Wallet,
@@ -12,6 +12,9 @@ import {
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/CardsSkeleton';
+import InfiniteLoader from '@/components/InfiniteLoader';
+import MemberActivityCard from '@/components/MemberActivityCard';
+import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -22,43 +25,94 @@ const MemberInvestment = () => {
   const [investments, setInvestments] = useState([]);
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
-  const limit = 10;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+  const limit = 3;
 
-  const fetchInvestments = useCallback(async (page = 1) => {
-    try {
-      setLoading(true);
-      const memberToken = localStorage.getItem('memberToken');
-      const [invRes, memberRes] = await Promise.all([
-        api.get(
-          `/members/portal/activity?page=${page}&limit=${limit}&category=investment`,
-          {
-            headers: { Authorization: `Bearer ${memberToken}` },
-          },
-        ),
-        api.get('/member-auth/me', {
-          headers: { Authorization: `Bearer ${memberToken}` },
-        }),
-      ]);
-
-      setInvestments(invRes.data.data || []);
-      setMember(memberRes.data);
-      setTotalPages(invRes.data.totalPages || 0);
-      setTotalEntries(invRes.data.totalEntries || 0);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error('Failed to fetch investments:', error);
-      toast.error('Failed to load investment data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const observerTarget = useRef(null);
 
   useEffect(() => {
-    fetchInvestments();
-  }, [fetchInvestments]);
+    const handleResize = () => setIsMobile(window.innerWidth <= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const fetchInvestments = useCallback(
+    async (pageToFetch = 1, isAppend = false) => {
+      try {
+        if (isAppend) {
+          setIsFetchingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const memberToken = localStorage.getItem('memberToken');
+
+        if (!memberToken) {
+          throw new Error('Not authenticated');
+        }
+
+        const [invRes, memberRes] = await Promise.all([
+          api.get(
+            `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=investment`,
+            {
+              headers: { Authorization: `Bearer ${memberToken}` },
+            },
+          ),
+          api.get('/member-auth/me', {
+            headers: { Authorization: `Bearer ${memberToken}` },
+          }),
+        ]);
+
+        const newData = invRes.data.data || [];
+        if (isAppend) {
+          setInvestments((prev) => [...prev, ...newData]);
+        } else {
+          setInvestments(newData);
+        }
+
+        setMember(memberRes.data);
+        setTotalPages(invRes.data.totalPages || 0);
+        setTotalEntries(invRes.data.totalEntries || 0);
+        setCurrentPage(pageToFetch);
+      } catch (error) {
+        console.error('Failed to fetch investments:', error);
+        toast.error('Failed to load investment data');
+      } finally {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [limit],
+  );
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          currentPage < totalPages
+        ) {
+          fetchInvestments(currentPage + 1, true);
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isFetchingMore, currentPage, totalPages, fetchInvestments]);
+
+  useEffect(() => {
+    fetchInvestments(1);
+  }, []); // Run once on mount
 
   const stats = [
     {
@@ -142,83 +196,101 @@ const MemberInvestment = () => {
         </div>
 
         <div className="divide-y divide-border/40">
-          {loading ? (
-            <div className="p-10 text-center">
-              <Loader2 className="animate-spin inline mr-2" /> Loading ledger...
-            </div>
-          ) : investments.length === 0 ? (
-            <div className="p-20">
-              <EmptyState
-                icon={History}
-                title="No Investment History"
-                description="When you make a deposit or receive profit, it will appear here."
-              />
+          {loading && !isFetchingMore ? (
+            <div className="py-20 flex justify-center items-center">
+              <InfiniteLoader isFetchingMore={true} />
             </div>
           ) : (
-            investments.map((item) => (
-              <div
-                key={item._id}
-                className="p-6 sm:p-8 hover:bg-muted/30 transition-all flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-5">
-                  <div
-                    className={`p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform ${item.type === 'deposit' ? 'text-emerald-500' : 'text-red-500'}`}
-                  >
-                    {item.type === 'deposit' ? (
-                      <ArrowUpRight size={18} />
-                    ) : (
-                      <ArrowDownLeft size={18} />
+            <>
+              {investments.length === 0 ? (
+                <div className="p-20">
+                  <EmptyState
+                    icon={History}
+                    title="No Investment History"
+                    description="When you make a deposit or receive profit, it will appear here."
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className={cn('p-4 space-y-4', !isMobile && 'p-0')}>
+                    <div
+                      className={cn(
+                        'grid grid-cols-1 gap-4',
+                        !isMobile && 'divide-y divide-border/40 gap-0',
+                      )}
+                    >
+                      {investments.map((item) =>
+                        isMobile ? (
+                          <MemberActivityCard key={item._id} activity={item} />
+                        ) : (
+                          <div
+                            key={item._id}
+                            className="p-6 sm:p-8 hover:bg-muted/30 transition-all flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-5">
+                              <div
+                                className={`p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform ${item.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'}`}
+                              >
+                                {item.type === 'deposit' ? (
+                                  <ArrowUpRight size={18} />
+                                ) : (
+                                  <ArrowDownLeft size={18} />
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-lg tracking-tight capitalize">
+                                  {item.description}
+                                </h4>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <p className="text-[10px] font-black uppercase text-primary tracking-widest">
+                                    {item.type}
+                                  </p>
+                                  <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                    {new Date(item.date).toLocaleDateString(
+                                      undefined,
+                                      {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                      },
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <p
+                                className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}`}
+                              >
+                                {item.type === 'deposit' ? '+' : '-'}
+                                {formatPKR(item.amount)}
+                              </p>
+                              {item.balanceAfter && (
+                                <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
+                                  Portfolio: {formatPKR(item.balanceAfter)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+
+                    {/* Infinite Scroll Trigger */}
+                    <div ref={observerTarget} className="h-4 w-full" />
+                    {currentPage < totalPages && (
+                      <div className="py-8">
+                        <InfiniteLoader isFetchingMore={isFetchingMore} />
+                      </div>
                     )}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-lg tracking-tight capitalize">
-                      {item.description}
-                    </h4>
-                    <div className="flex items-center gap-3 mt-1">
-                      <p className="text-[10px] font-black uppercase text-primary tracking-widest">
-                        {item.type}
-                      </p>
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                        {new Date(item.date).toLocaleDateString(undefined, {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <p
-                    className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-red-600'}`}
-                  >
-                    {item.type === 'deposit' ? '+' : '-'}
-                    {formatPKR(item.amount)}
-                  </p>
-                  {item.metadata?.balanceAfter && (
-                    <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                      Portfolio: {formatPKR(item.metadata.balanceAfter)}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))
+                </>
+              )}
+            </>
           )}
         </div>
-
-        {!loading && investments.length > 0 && (
-          <div className="p-6 border-t border-border/40">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalEntries={totalEntries}
-              limit={limit}
-              onPageChange={fetchInvestments}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

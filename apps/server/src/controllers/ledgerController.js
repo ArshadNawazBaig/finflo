@@ -1,0 +1,73 @@
+const FinancialTransaction = require('../models/FinancialTransaction');
+const Customer = require('../models/Customer');
+const Member = require('../models/Member');
+
+// @desc    Get all financial transactions (Unified Ledger)
+// @route   GET /api/ledger
+// @access  Private
+const getLedger = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const searchQuery = req.query.search || '';
+    const type = req.query.type; // income or expense
+    const category = req.query.category; // repayment, investment, etc.
+    const sortBy = req.query.sortBy || 'date';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    const query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation
+    if (req.user.role === 'staff' && req.user.branchId) {
+      query.branchId = req.user.branchId;
+    }
+
+    if (type) query.type = type;
+    if (category) query.category = category;
+
+    // Search logic (complex because of customer/member names)
+    if (searchQuery) {
+      const [matchingCustomers, matchingMembers] = await Promise.all([
+        Customer.find({
+          user: req.user.effectiveOwnerId,
+          name: { $regex: searchQuery, $options: 'i' },
+        }).select('_id'),
+        Member.find({
+          user: req.user.effectiveOwnerId,
+          name: { $regex: searchQuery, $options: 'i' },
+        }).select('_id'),
+      ]);
+
+      query.$or = [
+        { description: { $regex: searchQuery, $options: 'i' } },
+        { customer: { $in: matchingCustomers.map((c) => c._id) } },
+        { member: { $in: matchingMembers.map((m) => m._id) } },
+      ];
+    }
+
+    const totalEntries = await FinancialTransaction.countDocuments(query);
+    const transactions = await FinancialTransaction.find(query)
+      .populate('customer', 'name email')
+      .populate('member', 'name email')
+      .populate('loan', 'principal totalAmount Status')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: transactions,
+      totalEntries,
+      totalPages: Math.ceil(totalEntries / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error('Ledger Error:', error);
+    res.status(500).json({ message: 'Failed to fetch financial ledger' });
+  }
+};
+
+module.exports = {
+  getLedger,
+};

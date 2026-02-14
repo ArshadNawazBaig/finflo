@@ -51,6 +51,8 @@ const memberSchema = new mongoose.Schema(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
     joinDate: { type: Date, default: Date.now },
   },
   { timestamps: true },
@@ -79,6 +81,23 @@ memberSchema.pre('save', async function () {
 // Compare password method
 memberSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate and hash password token
+memberSchema.methods.getResetPasswordToken = function () {
+  // Generate token
+  const resetToken = require('crypto').randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = require('crypto')
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set expire
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
 };
 
 module.exports = mongoose.model('Member', memberSchema);

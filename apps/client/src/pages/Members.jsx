@@ -236,7 +236,13 @@ const Members = () => {
         </div>
 
         {loading && !isFetchingMore ? (
-          <TableSkeleton />
+          <div className="py-20 flex justify-center items-center">
+            {isMobile ? (
+              <InfiniteLoader isFetchingMore={true} />
+            ) : (
+              <TableSkeleton />
+            )}
+          </div>
         ) : isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">

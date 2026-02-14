@@ -1,6 +1,7 @@
 import { formatPKR, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowUp, ArrowDown, ChevronsUpDown, Hash } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import Pagination from './ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -30,17 +31,20 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                 </div>
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Customer
+                Related To
               </th>
-              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap">
-                Loan Amount
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Type
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Category
               </th>
               <th
                 className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => onSort('amount')}
               >
                 <div className="flex items-center justify-end gap-1">
-                  Payment
+                  Amount
                   {renderSortIcon('amount')}
                 </div>
               </th>
@@ -60,24 +64,61 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize">
-                      {transaction.customer?.name?.charAt(0) || 'U'}
+                    <div
+                      className={cn(
+                        'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
+                        transaction.customer
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-blue-500/10 text-blue-500',
+                      )}
+                    >
+                      {(
+                        transaction.customer?.name ||
+                        transaction.member?.name ||
+                        'U'
+                      ).charAt(0)}
                     </div>
                     <div className="font-semibold text-sm">
-                      {capitalize(transaction.customer?.name || 'Unknown')}
+                      {capitalize(
+                        transaction.customer?.name ||
+                          transaction.member?.name ||
+                          'System',
+                      )}
                     </div>
                   </div>
                 </td>
-                <td className="py-4 px-4 text-right text-muted-foreground font-medium tabular-nums">
-                  {formatPKR(transaction.loan?.principal || 0)}
+                <td className="py-4 px-4">
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                      transaction.type === 'income'
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : 'bg-rose-500/10 text-rose-600',
+                    )}
+                  >
+                    {transaction.type}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <span className="text-muted-foreground text-xs font-medium capitalize">
+                    {transaction.category.replace('_', ' ')}
+                  </span>
                 </td>
                 <td className="py-4 px-4 text-right">
-                  <div className="font-bold text-emerald-600 tabular-nums">
+                  <div
+                    className={cn(
+                      'font-bold tabular-nums',
+                      transaction.type === 'income'
+                        ? 'text-emerald-600'
+                        : 'text-rose-600',
+                    )}
+                  >
+                    {transaction.type === 'income' ? '+' : '-'}
                     {formatPKR(transaction.amount)}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
-                  {transaction.notes || '-'}
+                  {transaction.description || transaction.notes || '-'}
                 </td>
               </tr>
             ))}

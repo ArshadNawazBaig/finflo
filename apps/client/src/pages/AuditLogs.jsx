@@ -214,9 +214,9 @@ const AuditLogs = () => {
       {/* Mobile Card Grid */}
       <div className="lg:hidden space-y-4">
         {loading && logs.length === 0 ? (
-          [...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-[2rem]" />
-          ))
+          <div className="py-20 flex justify-center items-center">
+            <InfiniteLoader isFetchingMore={true} />
+          </div>
         ) : logs.length === 0 ? (
           <EmptyState
             icon={Terminal}

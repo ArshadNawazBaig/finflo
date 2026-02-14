@@ -75,6 +75,8 @@ const MemberLoans = lazy(() => import('@/pages/MemberLoans'));
 const MemberTransfer = lazy(() => import('@/pages/MemberTransfer'));
 const MemberSettings = lazy(() => import('@/pages/MemberSettings'));
 const MemberInvestment = lazy(() => import('@/pages/MemberInvestment'));
+const MemberForgotPassword = lazy(() => import('@/pages/MemberForgotPassword'));
+const MemberResetPassword = lazy(() => import('@/pages/MemberResetPassword'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -171,6 +173,14 @@ function App() {
               {/* Member Portal Routes */}
               <Route element={<RedirectIfMemberAuthenticated />}>
                 <Route path="/member/login" element={<MemberLogin />} />
+                <Route
+                  path="/member/forgot-password"
+                  element={<MemberForgotPassword />}
+                />
+                <Route
+                  path="/member/reset-password/:token"
+                  element={<MemberResetPassword />}
+                />
               </Route>
 
               <Route element={<RequireMemberAuth />}>

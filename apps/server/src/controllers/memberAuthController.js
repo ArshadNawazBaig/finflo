@@ -247,6 +247,122 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  const { email, securityCode } = req.body;
+  const lowercaseEmail = email?.toLowerCase();
+
+  try {
+    // 1. Find business by security code
+    const User = require('../models/User');
+    const business = await User.findOne({
+      securityCode: securityCode?.toUpperCase(),
+    });
+
+    if (!business) {
+      return res
+        .status(404)
+        .json({ message: 'Invalid business security code' });
+    }
+
+    // 2. Find member in this business
+    const member = await Member.findOne({
+      email: lowercaseEmail,
+      user: business._id,
+    });
+
+    if (!member) {
+      return res
+        .status(404)
+        .json({ message: 'No member found with that email in this business' });
+    }
+
+    // 3. Get reset token
+    const resetToken = member.getResetPasswordToken();
+    await member.save({ validateBeforeSave: false });
+
+    // 4. Create reset url
+    let clientUrl = process.env.CLIENT_URL;
+    if (!clientUrl) {
+      const origin = req.get('origin') || req.get('referer');
+      if (origin) {
+        try {
+          const url = new URL(origin);
+          clientUrl = `${url.protocol}//${url.host}`;
+        } catch (e) {
+          clientUrl = 'http://localhost:5173';
+        }
+      } else {
+        clientUrl = 'http://localhost:5173';
+      }
+    }
+
+    const resetUrl = `${clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl}/member/reset-password/${resetToken}`;
+
+    const sendEmail = require('../utils/sendEmail');
+    const { passwordResetEmail } = require('../utils/emailTemplates');
+
+    try {
+      await sendEmail({
+        email: member.email,
+        subject: 'Reset Your Member Portal Password',
+        message: `Reset your password here: ${resetUrl}`,
+        html: passwordResetEmail(resetUrl),
+      });
+
+      res.status(200).json({
+        success: true,
+        data: 'Email sent',
+      });
+    } catch (err) {
+      console.error('Email send error:', err);
+      member.resetPasswordToken = undefined;
+      member.resetPasswordExpire = undefined;
+      await member.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        message: 'Email could not be sent',
+        error: err.message,
+      });
+    }
+  } catch (error) {
+    console.error('Member Forgot Password Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    // Get hashed token
+    const resetPasswordToken = require('crypto')
+      .createHash('sha256')
+      .update(req.params.resettoken)
+      .digest('hex');
+
+    const member = await Member.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!member) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    // Set new password
+    member.password = req.body.password;
+    member.resetPasswordToken = undefined;
+    member.resetPasswordExpire = undefined;
+    await member.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful',
+    });
+  } catch (error) {
+    console.error('Member Reset Password Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   loginMember,
   getMe,
@@ -254,4 +370,6 @@ module.exports = {
   uploadProfilePicture,
   updatePassword,
   deleteAccount,
+  forgotPassword,
+  resetPassword,
 };

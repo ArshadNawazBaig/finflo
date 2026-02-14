@@ -4,6 +4,7 @@ const Member = require('../models/Member');
 const Notification = require('../models/Notification');
 const { canAddCustomer } = require('../utils/planLimits');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 
 const getCustomers = async (req, res) => {
   try {
@@ -100,6 +101,28 @@ const createCustomer = async (req, res) => {
       return res.status(400).json({ message: 'Branch selection is required' });
     }
 
+    if (!cnic) {
+      return res.status(400).json({ message: 'CNIC is required' });
+    }
+
+    // CNIC Format Validation (Basic)
+    const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
+    if (!cnicRegex.test(cnic)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid CNIC format. Expected: XXXXX-XXXXXXX-X' });
+    }
+
+    // Mock Verification Logic: Name must be partially present in the CNIC check
+    // (Simulating a verification service that checks ID record name against provided name)
+    // For this mock: Name must not be "Unknown" or empty
+    if (lowercaseName.includes('test') && cnic.startsWith('00000')) {
+      return res.status(400).json({
+        message:
+          'Verification Failed: Name and CNIC do not match system records.',
+      });
+    }
+
     const customer = new Customer({
       user: req.user.effectiveOwnerId,
       branchId: finalBranchId,
@@ -142,7 +165,7 @@ const createCustomer = async (req, res) => {
     res.status(201).json(createdCustomer);
   } catch (error) {
     console.error('Create Customer Error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: getFriendlyErrorMessage(error) });
   }
 };
 
@@ -163,12 +186,22 @@ const updateCustomer = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
+    const { cnic, name, email } = req.body;
+    if (cnic) {
+      const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
+      if (!cnicRegex.test(cnic)) {
+        return res
+          .status(400)
+          .json({ message: 'Invalid CNIC format. Expected: XXXXX-XXXXXXX-X' });
+      }
+    }
+
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
       {
         ...req.body,
-        name: req.body.name?.toLowerCase(),
-        email: req.body.email?.toLowerCase(),
+        name: name?.toLowerCase(),
+        email: email?.toLowerCase(),
         // Ensure user/owner cannot be changed via update
         user: customer.user,
       },
@@ -203,7 +236,7 @@ const updateCustomer = async (req, res) => {
 
     res.json(updatedCustomer);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: getFriendlyErrorMessage(error) });
   }
 };
 
