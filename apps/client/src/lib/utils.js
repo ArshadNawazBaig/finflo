@@ -40,3 +40,15 @@ export const capitalize = (str) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+export const formatCNIC = (value) => {
+  if (!value) return '';
+  const rawValue = value.replace(/\D/g, '').slice(0, 13);
+  if (rawValue.length > 12) {
+    return `${rawValue.slice(0, 5)}-${rawValue.slice(5, 12)}-${rawValue.slice(12)}`;
+  }
+  if (rawValue.length > 5) {
+    return `${rawValue.slice(0, 5)}-${rawValue.slice(5)}`;
+  }
+  return rawValue;
+};

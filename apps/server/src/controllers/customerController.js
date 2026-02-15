@@ -101,6 +101,14 @@ const createCustomer = async (req, res) => {
       return res.status(400).json({ message: 'Branch selection is required' });
     }
 
+    if (!name?.trim()) {
+      return res.status(400).json({ message: 'Full name is required' });
+    }
+
+    if (!email?.trim()) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
     if (!cnic) {
       return res.status(400).json({ message: 'CNIC is required' });
     }
@@ -187,6 +195,15 @@ const updateCustomer = async (req, res) => {
     }
 
     const { cnic, name, email } = req.body;
+
+    if (name !== undefined && !name.trim()) {
+      return res.status(400).json({ message: 'Full name cannot be empty' });
+    }
+
+    if (email !== undefined && !email.trim()) {
+      return res.status(400).json({ message: 'Email address cannot be empty' });
+    }
+
     if (cnic) {
       const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
       if (!cnicRegex.test(cnic)) {

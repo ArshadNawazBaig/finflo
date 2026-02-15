@@ -85,9 +85,10 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </div>
 
                 <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-sm text-blue-600 dark:text-blue-400">
-                  Converting <strong>{customer.name}</strong> to a Member will
-                  give them access to the Member Portal where they can view
-                  their loans and submit new requests.
+                  Converting <strong>{customer.name || 'this customer'}</strong>{' '}
+                  (CNIC: {customer.cnic}) to a Member will give them access to
+                  the Member Portal where they can view their loans and submit
+                  new requests.
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

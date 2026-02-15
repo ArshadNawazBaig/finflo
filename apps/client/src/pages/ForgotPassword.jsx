@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Mail,
-  ArrowRight,
-  Loader2,
-  ShieldCheck,
-  ArrowLeft,
-} from 'lucide-react';
+import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/Logo';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -57,10 +52,10 @@ const ForgotPassword = () => {
       <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-primary/50" />
 
-        <CardHeader className="space-y-4 pt-10 px-8 text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-sm group">
-            <ShieldCheck className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-          </div>
+        <CardHeader className="space-y-4 pt-10 px-8 text-center flex flex-col items-center">
+          <Link to="/" className="mb-2">
+            <Logo showText={false} className="h-12" />
+          </Link>
           <div className="space-y-1">
             <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               {submitted ? 'Check Email' : 'Recover Access'}
@@ -68,7 +63,7 @@ const ForgotPassword = () => {
             <p className="text-muted-foreground text-sm font-medium">
               {submitted
                 ? 'We have sent password recovery instructions'
-                : 'Enter your email to reset your security code'}
+                : 'Enter your email to reset your security credentials'}
             </p>
           </div>
         </CardHeader>

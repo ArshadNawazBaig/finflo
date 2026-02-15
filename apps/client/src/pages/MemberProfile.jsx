@@ -29,7 +29,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import api from '@/lib/axios';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatPKR, capitalize, formatCNIC } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -88,6 +88,7 @@ const MemberProfile = () => {
     name: '',
     email: '',
     phone: '',
+    cnic: '',
     address: '',
     status: '',
   });
@@ -127,6 +128,7 @@ const MemberProfile = () => {
         name: memberRes.data.name || '',
         email: memberRes.data.email || '',
         phone: memberRes.data.phone || '',
+        cnic: memberRes.data.cnic || '',
         address: memberRes.data.address || '',
         status: memberRes.data.status || '',
       });
@@ -638,7 +640,12 @@ const MemberProfile = () => {
           <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
             <div className="flex items-center gap-1.5 text-sm font-medium">
               <Mail size={14} className="text-primary" />
-              {member.email}
+              {member.email || 'No email provided'}
+            </div>
+            <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <ShieldCheck size={14} className="text-primary" />
+              {member.cnic}
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -783,7 +790,7 @@ const MemberProfile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Full Name
+                        Full Name (Optional)
                       </label>
                       <input
                         type="text"
@@ -791,13 +798,12 @@ const MemberProfile = () => {
                         onChange={(e) =>
                           setEditForm({ ...editForm, name: e.target.value })
                         }
-                        required
                         className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Email Address
+                        Email Address (Optional)
                       </label>
                       <input
                         type="email"
@@ -805,8 +811,27 @@ const MemberProfile = () => {
                         onChange={(e) =>
                           setEditForm({ ...editForm, email: e.target.value })
                         }
-                        required
                         className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all lowercase"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        CNIC Number (Required)
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.cnic}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            cnic: formatCNIC(e.target.value),
+                          })
+                        }
+                        className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        required
                       />
                     </div>
                     <div className="space-y-2">

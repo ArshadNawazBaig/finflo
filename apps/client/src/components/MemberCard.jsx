@@ -8,14 +8,14 @@ const MemberCard = ({ member }) => {
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:bg-primary/20 transition-colors">
-            {member.name?.charAt(0) || 'U'}
+            {member.name?.charAt(0) || 'M'}
           </div>
           <div className="flex flex-col">
             <Link
               to={`/members/${member._id}`}
               className="font-bold text-base hover:text-primary transition-colors cursor-pointer block leading-tight"
             >
-              {capitalize(member.name)}
+              {member.name ? capitalize(member.name) : 'Member'}
             </Link>
             <div className="flex items-center gap-1 mt-0.5">
               <Shield size={10} className="text-muted-foreground" />
@@ -42,11 +42,19 @@ const MemberCard = ({ member }) => {
           <span className="text-foreground/80 font-medium">{member.phone}</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <Mail size={14} className="text-muted-foreground" />
-          <span className="text-foreground/80 font-medium truncate">
-            {member.email}
+          <Shield size={14} className="text-muted-foreground" />
+          <span className="text-foreground/80 font-mono text-[11px]">
+            {member.cnic}
           </span>
         </div>
+        {member.email && (
+          <div className="flex items-center gap-3 text-sm">
+            <Mail size={14} className="text-muted-foreground" />
+            <span className="text-foreground/80 font-medium truncate">
+              {member.email}
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60 mt-1">
           <Calendar size={12} />
           <span>Joined: {new Date(member.createdAt).toLocaleDateString()}</span>

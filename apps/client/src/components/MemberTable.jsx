@@ -102,11 +102,16 @@ const MemberTable = ({
                       className="block hover:opacity-70 transition-opacity"
                     >
                       <div className="font-semibold text-sm">
-                        {capitalize(member.name)}
+                        {member.name ? capitalize(member.name) : 'Member'}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {member.email}
+                      <div className="text-[10px] text-muted-foreground font-mono">
+                        {member.cnic}
                       </div>
+                      {member.email && (
+                        <div className="text-[10px] text-muted-foreground/60 italic lowercase">
+                          {member.email}
+                        </div>
+                      )}
                     </Link>
                   </div>
                 </td>

@@ -8,6 +8,7 @@ import {
   Zap,
   TrendingUp,
 } from 'lucide-react';
+import { formatCNIC } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/button';
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
+    cnic: '',
     name: '',
     email: '',
     phone: '',
@@ -42,14 +44,16 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       await api.post('/members', {
         ...formData,
-        name: formData.name.trim().toLowerCase(),
-        email: formData.email.trim().toLowerCase(),
+        cnic: formData.cnic?.trim(),
+        name: formData.name?.trim().toLowerCase(),
+        email: formData.email?.trim().toLowerCase(),
         initialInvestment: parseFloat(formData.initialInvestment) || 0,
         profitRate: parseFloat(formData.profitRate) || 0,
       });
       onSuccess();
       onClose();
       setFormData({
+        cnic: '',
         name: '',
         email: '',
         phone: '',
@@ -91,32 +95,51 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Arshad Nawaz"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  CNIC Number *
+                </label>
+                <input
+                  type="text"
+                  name="cnic"
+                  value={formData.cnic}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      cnic: formatCNIC(e.target.value),
+                    })
+                  }
+                  required
+                  placeholder="00000-0000000-0"
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  Full Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="e.g. Arshad Nawaz"
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> Email Address *
+                  <Mail className="w-3 h-3" /> Email Address (Optional)
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   placeholder="name@nexus.com"
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
                 />

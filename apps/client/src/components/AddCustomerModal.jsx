@@ -26,6 +26,7 @@ import {
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { formatCNIC } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -116,17 +117,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleCNICChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, '').slice(0, 13);
-    let formattedValue = rawValue;
-
-    if (rawValue.length > 5) {
-      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5)}`;
-    }
-    if (rawValue.length > 12) {
-      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5, 12)}-${rawValue.slice(12)}`;
-    }
-
-    setFormData({ ...formData, cnic: formattedValue });
+    setFormData({ ...formData, cnic: formatCNIC(e.target.value) });
   };
 
   const handleSubmit = async (e) => {
@@ -222,7 +213,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="grid grid-cols-1 gap-4 sm:gap-5 max-h-[60vh] overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-primary/10">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                Full Name
+                Full Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 name="name"
@@ -237,7 +228,8 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> Email Address
+                  <Mail className="w-3 h-3" /> Email Address{' '}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   name="email"

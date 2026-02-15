@@ -33,13 +33,14 @@ const loginMember = async (req, res) => {
 
     // Find member by email and verify they belong to this business
     const member = await Member.findOne({
-      email: email.toLowerCase(),
+      email: email.toLowerCase().trim(),
       user: business._id,
     }).populate('user', 'name businessName securityCode');
 
     if (!member) {
       return res.status(401).json({
-        message: 'Invalid credentials or you do not belong to this business',
+        message:
+          'Invalid credentials or information does not match our records',
       });
     }
 
@@ -50,8 +51,8 @@ const loginMember = async (req, res) => {
     }
 
     if (await member.matchPassword(password)) {
-      member.lastLoginAt = new Date();
-      await member.save();
+      // Update lastLoginAt without triggering full validation hooks
+      await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
 
       res.json({
         _id: member._id,
@@ -249,7 +250,6 @@ const deleteAccount = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { email, securityCode } = req.body;
-  const lowercaseEmail = email?.toLowerCase();
 
   try {
     // 1. Find business by security code
@@ -266,7 +266,7 @@ const forgotPassword = async (req, res) => {
 
     // 2. Find member in this business
     const member = await Member.findOne({
-      email: lowercaseEmail,
+      email: email?.toLowerCase().trim(),
       user: business._id,
     });
 

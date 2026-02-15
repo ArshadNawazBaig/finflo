@@ -2,10 +2,17 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import api from '@/lib/axios';
-import { Mail, Loader2, ArrowLeft, ShieldCheck, KeyRound } from 'lucide-react';
+import {
+  Mail,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import Logo from '@/components/Logo';
 
 const MemberForgotPassword = () => {
   const [securityCode, setSecurityCode] = useState('');
@@ -19,10 +26,10 @@ const MemberForgotPassword = () => {
     try {
       await api.post('/member-auth/forgotpassword', {
         securityCode: securityCode.trim(),
-        email: email.trim().toLowerCase(),
+        email: email.trim(),
       });
       setSubmitted(true);
-      toast.success('Reset link sent to your email');
+      toast.success('Reset link sent to your registered email');
     } catch (err) {
       console.error('Forgot password error:', err);
       toast.error(err.response?.data?.message || 'Failed to send reset link');
@@ -33,26 +40,26 @@ const MemberForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-      {/* Dynamic Background Blobs (Blue Theme) */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-cyan-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+      {/* Dynamic Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
       <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500/50" />
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-primary/50" />
 
-        <CardHeader className="space-y-4 pt-10 px-8 text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 shadow-sm group">
-            <KeyRound className="w-8 h-8 group-hover:rotate-12 transition-transform duration-300" />
-          </div>
+        <CardHeader className="space-y-4 pt-10 px-8 text-center flex flex-col items-center">
+          <Link to="/" className="mb-2">
+            <Logo showText={false} className="h-12" />
+          </Link>
           <div className="space-y-1">
-            <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              {submitted ? 'Check Email' : 'Reset Password'}
+            <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              {submitted ? 'Check Email' : 'Recover Access'}
             </CardTitle>
-            <p className="text-muted-foreground text-sm font-medium px-4">
+            <p className="text-muted-foreground text-sm font-medium">
               {submitted
-                ? "We've sent a password reset link to your email."
-                : "Enter your details and we'll send you a recovery link."}
+                ? "We've sent recovery instructions to your registered email"
+                : 'Enter your credentials to reset your security credentials'}
             </p>
           </div>
         </CardHeader>
@@ -69,7 +76,7 @@ const MemberForgotPassword = () => {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   </div>
                   <input
                     id="securityCode"
@@ -81,7 +88,7 @@ const MemberForgotPassword = () => {
                     }
                     required
                     maxLength={6}
-                    className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase"
+                    className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase"
                   />
                 </div>
               </div>
@@ -95,7 +102,7 @@ const MemberForgotPassword = () => {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                    <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   </div>
                   <input
                     id="email"
@@ -104,7 +111,7 @@ const MemberForgotPassword = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-blue-500/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                    className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
                   />
                 </div>
               </div>
@@ -112,7 +119,8 @@ const MemberForgotPassword = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group bg-gradient-to-r from-blue-600 to-cyan-500 hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all font-mono"
+                variant="gradient"
+                className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group"
               >
                 <span
                   className={cn(
@@ -120,7 +128,8 @@ const MemberForgotPassword = () => {
                     loading ? 'opacity-0' : 'opacity-100',
                   )}
                 >
-                  Send Reset Link
+                  Send Reset Link{' '}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
                 {loading && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -132,7 +141,7 @@ const MemberForgotPassword = () => {
               <div className="text-center pt-2">
                 <Link
                   to="/member/login"
-                  className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-blue-500 transition-colors"
+                  className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                 >
                   <ArrowLeft className="w-3 h-3" />
                   Back to Login
@@ -140,12 +149,11 @@ const MemberForgotPassword = () => {
               </div>
             </form>
           ) : (
-            <div className="space-y-6 text-center">
-              <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+            <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Please check your inbox at{' '}
-                  <span className="text-blue-500 font-bold">{email}</span>.
-                  Don't forget to check your spam folder if you don't see it.
+                  Please check your registered inbox. Don't forget to check your
+                  spam folder if you don't see the email.
                 </p>
               </div>
               <Button
@@ -158,7 +166,7 @@ const MemberForgotPassword = () => {
               <div className="text-center">
                 <Link
                   to="/member/login"
-                  className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-blue-500 transition-colors"
+                  className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                 >
                   <ArrowLeft className="w-3 h-3" />
                   Back to Login

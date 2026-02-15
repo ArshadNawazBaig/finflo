@@ -26,7 +26,7 @@ import {
   Copy,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, capitalize } from '@/lib/utils';
+import { cn, capitalize, formatCNIC } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -625,12 +625,17 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
   const [formData, setFormData] = useState({
     name: member.name || '',
     email: member.email || '',
+    cnic: member.cnic || '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (member) {
-      setFormData({ name: member.name || '', email: member.email || '' });
+      setFormData({
+        name: member.name || '',
+        email: member.email || '',
+        cnic: member.cnic || '',
+      });
     }
   }, [member]);
 
@@ -668,7 +673,22 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Full Name
+              CNIC Number (Required)
+            </label>
+            <input
+              type="text"
+              value={formData.cnic}
+              onChange={(e) =>
+                setFormData({ ...formData, cnic: formatCNIC(e.target.value) })
+              }
+              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              required
+              placeholder="00000-0000000-0"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Full Name (Optional)
             </label>
             <input
               type="text"
@@ -677,12 +697,12 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
                 setFormData({ ...formData, name: e.target.value })
               }
               className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              required
+              placeholder="Enter your name"
             />
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Email Address
+              Email Address (Optional)
             </label>
             <input
               type="email"
@@ -691,7 +711,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
                 setFormData({ ...formData, email: e.target.value })
               }
               className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              required
+              placeholder="Enter your email"
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">

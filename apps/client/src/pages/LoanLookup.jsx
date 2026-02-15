@@ -6,24 +6,21 @@ import { Label } from '@/components/ui/label';
 import {
   Loader2,
   ShieldCheck,
-  Mail,
-  User,
   Search,
-  ArrowLeft,
-  TrendingUp,
-  Calendar,
-  DollarSign,
   AlertCircle,
   FileText,
   Download,
+  Fingerprint,
+  Mail,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '@/lib/axios';
 import { format } from 'date-fns';
-import { cn, formatPKR } from '@/lib/utils';
+import { cn, formatPKR, formatCNIC } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import EmptyState from '@/components/ui/EmptyState';
+import Logo from '@/components/Logo';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
@@ -127,28 +124,27 @@ const generateLoanPDF = (loan, customerName, businessName) => {
 };
 
 const LoanLookup = () => {
-  const [scrollY, setScrollY] = useState(0);
   const [formData, setFormData] = useState({
     securityCode: '',
-    email: '',
-    name: '',
+    cnic: '',
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'securityCode' ? value.toUpperCase() : value,
-    }));
+    if (name === 'cnic') {
+      setFormData((prev) => ({
+        ...prev,
+        cnic: formatCNIC(value),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: name === 'securityCode' ? value.toUpperCase() : value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -158,7 +154,7 @@ const LoanLookup = () => {
     setResult(null);
 
     try {
-      const { data } = await axios.post('/api/public/loan-lookup', formData);
+      const { data } = await api.post('/public/loan-lookup', formData);
       setResult(data);
       toast.success('Loans retrieved successfully');
     } catch (err) {
@@ -175,88 +171,64 @@ const LoanLookup = () => {
 
   const resetLookup = () => {
     setResult(null);
-    setFormData({ securityCode: '', email: '', name: '' });
+    setFormData({ securityCode: '', cnic: '' });
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground font-sans overflow-x-hidden selection:bg-primary/20">
-      {/* Background Elements */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-indigo-500/5 dark:bg-indigo-500/5 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
-      </div>
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden selection:bg-primary/20">
+      {/* Dynamic Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-      {/* Navigation */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-          scrollY > 30
-            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
-            : 'py-8'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 sm:px-0 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/30 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:rotate-6 transition-all duration-500">
-              <ArrowLeft size={20} />
-            </div>
-            <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">
-              Return Home
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
-              <ShieldCheck className="w-5 h-5 text-blue-500" />
-            </div>
-            <span className="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-200">
-              Secure Loan Lookup
-            </span>
-          </div>
-        </div>
-      </nav>
-
-      <main className="relative z-10 flex-1 container mx-auto px-4 pt-32 pb-8 flex items-center justify-center">
+      <main className="relative z-10 flex-1 container mx-auto px-4 pt-10 pb-20 flex items-center justify-center">
         {!result ? (
-          <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-            <div className="text-center mb-8 space-y-2">
-              <h1 className="text-3xl font-black tracking-tight">
-                Check Your Loan Status
-              </h1>
-              <p className="text-muted-foreground">
-                Enter your details and the business security code to view your
-                active loans and repayment history.
-              </p>
-            </div>
+          <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-700 delay-100">
+            <Card className="glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-primary/50" />
 
-            <Card className="glass dark:glass-dark border-border/50 shadow-xl rounded-[2rem] overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500" />
-              <CardContent className="p-8 pt-10">
-                <form onSubmit={handleSubmit} className="space-y-5">
+              <CardHeader className="space-y-4 pt-12 px-8 text-center flex flex-col items-center">
+                <Link to="/" className="mb-2">
+                  <Logo showText={false} className="h-12" />
+                </Link>
+                <div className="space-y-1">
+                  <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Loan Lookup
+                  </CardTitle>
+                  <p className="text-muted-foreground text-sm font-medium leading-relaxed">
+                    Verify your active loans and schedules instantly
+                  </p>
+                </div>
+              </CardHeader>
+
+              <CardContent className="px-8 pb-12 pt-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   {error && (
-                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-widest p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>
                   )}
 
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div className="space-y-2">
                       <Label
                         htmlFor="securityCode"
-                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                        className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1"
                       >
                         Business Security Code
                       </Label>
                       <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                         </div>
-                        <Input
+                        <input
                           id="securityCode"
                           name="securityCode"
-                          placeholder="e.g. ABC123"
+                          placeholder="E.G. ABC123"
                           value={formData.securityCode}
                           onChange={handleChange}
-                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50 uppercase font-mono tracking-wider"
+                          className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase tracking-widest"
                           maxLength={6}
                           required
                         />
@@ -265,46 +237,22 @@ const LoanLookup = () => {
 
                     <div className="space-y-2">
                       <Label
-                        htmlFor="name"
-                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                        htmlFor="cnic"
+                        className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1"
                       >
-                        Full Name
+                        CNIC Number
                       </Label>
                       <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <User className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                          <Fingerprint className="h-4 w-4 text-muted-foreground" />
                         </div>
-                        <Input
-                          id="name"
-                          name="name"
-                          placeholder="John Doe"
-                          value={formData.name}
+                        <input
+                          id="cnic"
+                          name="cnic"
+                          placeholder="00000-0000000-0"
+                          value={formData.cnic}
                           onChange={handleChange}
-                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="email"
-                        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                      >
-                        Email Address
-                      </Label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-blue-500 transition-colors" />
-                        </div>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="john@example.com"
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="pl-11 h-12 rounded-xl bg-muted/30 border-border/50 focus:border-blue-500/50"
+                          className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
                           required
                         />
                       </div>
@@ -314,14 +262,21 @@ const LoanLookup = () => {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:brightness-110 shadow-lg shadow-blue-500/20 transition-all text-sm uppercase tracking-wide"
+                    variant="gradient"
+                    className="h-12 w-full rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] group relative overflow-hidden"
                   >
-                    {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        Look Up Loans <Search className="ml-2 w-4 h-4" />
-                      </>
+                    <span
+                      className={cn(
+                        'flex items-center justify-center gap-2 group-hover:scale-105 transition-transform duration-300',
+                        loading ? 'opacity-0' : 'opacity-100',
+                      )}
+                    >
+                      Execute Lookup <Search className="w-4 h-4" />
+                    </span>
+                    {loading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      </div>
                     )}
                   </Button>
                 </form>
@@ -330,26 +285,35 @@ const LoanLookup = () => {
           </div>
         ) : (
           <div className="w-full max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/50 backdrop-blur-sm border border-border/50 p-6 rounded-[2rem]">
-              <div>
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 p-8 rounded-[2.5rem] shadow-2xl shadow-black/5 animate-in slide-in-from-bottom-4 duration-700">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                  <span className="text-primary capitalize">
                     {result.customer.name}
                   </span>
+                  <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                    Verified
+                  </span>
                 </h2>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 mt-2 text-sm text-muted-foreground">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground font-medium">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> {result.customer.email}
+                    <div className="p-1.5 rounded-full bg-primary/10 text-primary">
+                      <Mail size={12} />
+                    </div>
+                    {result.customer.email}
                   </div>
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" /> {result.businessName}
+                    <div className="p-1.5 rounded-full bg-emerald-500/10 text-emerald-600">
+                      <ShieldCheck size={12} />
+                    </div>
+                    {result.businessName}
                   </div>
                 </div>
               </div>
               <Button
                 variant="outline"
                 onClick={resetLookup}
-                className="rounded-full"
+                className="rounded-full px-8 border-primary/20 hover:bg-primary/5 text-primary font-black uppercase tracking-widest text-[10px] h-12"
               >
                 New Search
               </Button>
@@ -360,7 +324,7 @@ const LoanLookup = () => {
                 result.loans.map((loan) => (
                   <Card
                     key={loan._id}
-                    className="group hover:shadow-lg transition-all duration-300 border-border/50 overflow-hidden relative flex flex-col"
+                    className="group hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border-white/20 dark:border-slate-800/50 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem]"
                   >
                     <div
                       className={cn(
@@ -535,7 +499,7 @@ const LoanLookup = () => {
                   icon={FileText}
                   title="No Loans Found"
                   description="We couldn't find any loan records associated with these details."
-                  className="col-span-full border-none bg-card/30"
+                  className="col-span-full border-white/20 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] shadow-sm"
                 />
               )}
             </div>
@@ -543,10 +507,12 @@ const LoanLookup = () => {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 py-6 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">
-        © 2026 LoanPortal System
-      </footer>
+      {/* Minimal Footer */}
+      <div className="relative z-10 py-10 text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-20 px-4">
+          © 2026 Financial Intelligence Portal • Integrity via Technology
+        </p>
+      </div>
     </div>
   );
 };

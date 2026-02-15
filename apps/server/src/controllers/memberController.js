@@ -29,16 +29,16 @@ const convertCustomerToMember = async (req, res) => {
       return res.status(400).json({ message: 'Customer is already a member' });
     }
 
-    // Check if member with this email already exists under this user
+    // Check if member with this CNIC already exists under this user
     const memberExists = await Member.findOne({
       user: customer.user,
-      email: customer.email,
+      cnic: customer.cnic,
     });
 
     if (memberExists) {
       return res
         .status(400)
-        .json({ message: 'Member account already exists for this email' });
+        .json({ message: 'Member account already exists for this CNIC' });
     }
 
     // Create Member
@@ -47,6 +47,7 @@ const convertCustomerToMember = async (req, res) => {
       customer: customer._id,
       branchId: customer.branchId, // Inherit branch from customer
       name: customer.name?.toLowerCase(),
+      cnic: customer.cnic,
       email: customer.email?.toLowerCase(),
       phone: customer.phone,
       address: customer.address,
@@ -109,6 +110,7 @@ const getMembers = async (req, res) => {
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
+        { cnic: { $regex: search, $options: 'i' } },
         { savingAccountNumber: { $regex: search, $options: 'i' } },
         { currentAccountNumber: { $regex: search, $options: 'i' } },
       ];
@@ -253,6 +255,7 @@ const createMember = async (req, res) => {
       name,
       email,
       phone,
+      cnic,
       address,
       initialInvestment,
       profitRate,
@@ -262,15 +265,15 @@ const createMember = async (req, res) => {
     const lowercaseEmail = email?.toLowerCase();
     const lowercaseName = name?.toLowerCase();
 
-    // Check if email already exists for this user
+    // Check if CNIC already exists for this user
     const existingMember = await Member.findOne({
       user: userId,
-      email: lowercaseEmail,
+      cnic: cnic?.trim(),
     });
     if (existingMember) {
       return res
         .status(400)
-        .json({ message: 'Member with this email already exists' });
+        .json({ message: 'Member with this CNIC already exists' });
     }
 
     // Check plan limits
@@ -298,6 +301,7 @@ const createMember = async (req, res) => {
       name: lowercaseName,
       email: lowercaseEmail,
       phone,
+      cnic: cnic?.trim(),
       address,
       totalInvested: initialInvestment || 0,
       currentBalance: initialInvestment || 0,
@@ -373,20 +377,20 @@ const updateMember = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { name, email, phone, address, status, profitRate } = req.body;
+    const { name, email, phone, cnic, address, status, profitRate } = req.body;
 
     const member = await Member.findOne({ _id: id, user: userId });
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    // Check if email is being changed and if it already exists
-    if (email && email !== member.email) {
-      const existingMember = await Member.findOne({ user: userId, email });
+    // Check if CNIC is being changed and if it already exists
+    if (cnic && cnic !== member.cnic) {
+      const existingMember = await Member.findOne({ user: userId, cnic });
       if (existingMember) {
         return res
           .status(400)
-          .json({ message: 'Member with this email already exists' });
+          .json({ message: 'Member with this CNIC already exists' });
       }
     }
 
@@ -396,6 +400,7 @@ const updateMember = async (req, res) => {
         name: name?.toLowerCase(),
         email: email?.toLowerCase(),
         phone,
+        cnic: cnic?.trim(),
         address,
         status,
         profitRate,

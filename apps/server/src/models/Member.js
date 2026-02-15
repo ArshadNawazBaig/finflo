@@ -17,8 +17,8 @@ const memberSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
-    name: { type: String, required: true, lowercase: true },
-    email: { type: String, required: true, lowercase: true },
+    name: { type: String, lowercase: true }, // Name now optional based on user feedback
+    email: { type: String, lowercase: true }, // Email now optional
     phone: { type: String, required: true },
     password: { type: String, required: true },
     role: {
@@ -39,7 +39,7 @@ const memberSchema = new mongoose.Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
-    cnic: { type: String },
+    cnic: { type: String, required: true },
     job: { type: String },
     monthlyIncome: { type: Number },
     savingAccountNumber: { type: String, sparse: true },
@@ -58,8 +58,8 @@ const memberSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Prevent duplicate emails per user
-memberSchema.index({ user: 1, email: 1 }, { unique: true });
+// Prevent duplicate CNICs per user (business)
+memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
 
 // Hash password before saving
 memberSchema.pre('save', async function () {

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { formatCNIC } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
@@ -134,17 +135,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   if (!customer) return null;
 
   const handleCNICChange = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, '').slice(0, 13);
-    let formattedValue = rawValue;
-
-    if (rawValue.length > 5) {
-      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5)}`;
-    }
-    if (rawValue.length > 12) {
-      formattedValue = `${rawValue.slice(0, 5)}-${rawValue.slice(5, 12)}-${rawValue.slice(12)}`;
-    }
-
-    setFormData({ ...formData, cnic: formattedValue });
+    setFormData({ ...formData, cnic: formatCNIC(e.target.value) });
   };
 
   const handleSubmit = async (e) => {
@@ -223,7 +214,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 htmlFor="name"
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
               >
-                Full Name
+                Full Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"
@@ -243,7 +234,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   htmlFor="email"
                   className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
                 >
-                  Email Address
+                  Email Address <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="email"
