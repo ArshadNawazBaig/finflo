@@ -44,12 +44,12 @@ const loginValidation = [
 
 // Loan Validations
 const loanValidation = [
-  body('amount')
+  body('principal')
     .isNumeric()
-    .withMessage('Amount must be a number')
+    .withMessage('Principal must be a number')
     .custom((value) => value > 0)
-    .withMessage('Amount must be greater than 0'),
-  body('interestRate')
+    .withMessage('Principal must be greater than 0'),
+  body('rate')
     .isNumeric()
     .withMessage('Interest rate must be a number')
     .custom((value) => value >= 0)
