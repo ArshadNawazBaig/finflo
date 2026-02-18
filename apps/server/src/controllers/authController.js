@@ -219,6 +219,15 @@ const updateDetails = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'profile_updated',
+      category: 'auth',
+      details: `User updated their profile details: ${user.email}`,
+      req,
+    });
+
     res.status(200).json({
       success: true,
       data: user,
@@ -247,6 +256,15 @@ const uploadProfilePicture = async (req, res) => {
 
     user.profilePicture = req.file.path;
     await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'profile_picture_updated',
+      category: 'auth',
+      details: 'User uploaded a new profile picture',
+      req,
+    });
 
     res.json({
       success: true,
@@ -342,6 +360,15 @@ const forgotPassword = async (req, res) => {
       res.status(200).json({
         success: true,
         data: 'Email sent',
+      });
+
+      // Log activity
+      await logActivity({
+        userId: user._id,
+        action: 'forgot_password_requested',
+        category: 'auth',
+        details: `Password reset link sent to: ${user.email}`,
+        req,
       });
     } catch (err) {
       console.error('Email send error:', err);
@@ -480,6 +507,15 @@ const resendVerificationCode = async (req, res) => {
     res
       .status(200)
       .json({ success: true, message: 'Verification code resent' });
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'verification_code_resent',
+      category: 'auth',
+      details: `New verification code sent to: ${user.email}`,
+      req,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -542,6 +578,15 @@ const deleteAccount = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // Log activity
+    await logActivity({
+      userId: userId,
+      action: 'account_deleted',
+      category: 'auth',
+      details: `User permanently deleted their account: ${user.email}`,
+      req,
+    });
 
     res.status(200).json({
       success: true,

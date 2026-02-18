@@ -32,6 +32,16 @@ const createGoal = async (req, res) => {
       deadline,
     });
 
+    // Log activity
+    await logActivity({
+      userId: req.member._id,
+      action: 'goal_created',
+      category: 'member',
+      details: `Created new saving goal: ${goal.title}`,
+      metadata: { goalId: goal._id },
+      req,
+    });
+
     res.status(201).json(goal);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -61,6 +71,16 @@ const updateGoal = async (req, res) => {
     goal.status = status || goal.status;
 
     const updatedGoal = await goal.save();
+    // Log activity
+    await logActivity({
+      userId: req.member._id,
+      action: 'goal_updated',
+      category: 'member',
+      details: `Updated saving goal: ${updatedGoal.title}`,
+      metadata: { goalId: updatedGoal._id },
+      req,
+    });
+
     res.json(updatedGoal);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -80,6 +100,16 @@ const deleteGoal = async (req, res) => {
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }
+
+    // Log activity
+    await logActivity({
+      userId: req.member._id,
+      action: 'goal_deleted',
+      category: 'member',
+      details: `Deleted saving goal: ${goal.title}`,
+      metadata: { goalId: req.params.id },
+      req,
+    });
 
     res.json({ message: 'Goal removed' });
   } catch (error) {
@@ -113,7 +143,7 @@ const contributeToGoal = async (req, res) => {
     // But we update the currentAmount of the goal.
     // However, if we want to "WOW" the user, we should track it as "Allocated" funds.
 
-    goal.currentAmount += Number(amount);
+    goal.currentAmount += Math.ceil(Number(amount));
 
     if (goal.currentAmount >= goal.targetAmount) {
       goal.status = 'completed';

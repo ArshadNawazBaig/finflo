@@ -1,6 +1,7 @@
 const Branch = require('../models/Branch');
 const User = require('../models/User');
 const FinancialTransaction = require('../models/FinancialTransaction');
+const { logActivity } = require('./activityLogController');
 
 // @desc    Create a new branch
 // @route   POST /api/branches
@@ -28,6 +29,16 @@ const createBranch = async (req, res) => {
     if (managerId) {
       await User.findByIdAndUpdate(managerId, { branchId: branch._id });
     }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'branch_created',
+      category: 'branch',
+      details: `Created new branch: ${branch.name}`,
+      metadata: { branchId: branch._id },
+      req,
+    });
 
     res.status(201).json(branch);
   } catch (error) {
@@ -156,6 +167,17 @@ const updateBranch = async (req, res) => {
     branch.branding = branding || branch.branding;
 
     await branch.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'branch_updated',
+      category: 'branch',
+      details: `Updated branch details: ${branch.name}`,
+      metadata: { branchId: branch._id },
+      req,
+    });
+
     res.json(branch);
   } catch (error) {
     console.error(error);
@@ -191,6 +213,16 @@ const deleteBranch = async (req, res) => {
       { branchId: req.params.id },
       { $unset: { branchId: '' } },
     );
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'branch_deleted',
+      category: 'branch',
+      details: `Deleted branch: ${branch.name}`,
+      metadata: { branchId: req.params.id },
+      req,
+    });
 
     res.json({ message: 'Branch removed' });
   } catch (error) {
@@ -265,6 +297,20 @@ const addBranchExpense = async (req, res) => {
       amount,
       description,
       date: date || new Date(),
+    });
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'branch_expense_added',
+      category: 'branch',
+      details: `Added ${category || 'other'} expense of ${amount} to branch: ${branchId}`,
+      metadata: {
+        branchId,
+        amount,
+        expenseId: expense._id,
+      },
+      req,
     });
 
     res.status(201).json(expense);

@@ -59,7 +59,7 @@ const getDashboardStats = async (req, res) => {
       }, 0);
     };
 
-    const totalProfit = calculateProfit(repayments);
+    const totalProfit = Math.ceil(calculateProfit(repayments));
 
     const prevRepayments = await Repayment.find({
       ...query,
@@ -88,9 +88,8 @@ const getDashboardStats = async (req, res) => {
     const loansChange = calculatePercentageChange(activeLoans, prevActiveLoans);
 
     // 3. Total Repaid
-    const totalRepaid = loans.reduce(
-      (sum, loan) => sum + (loan.paidAmount || 0),
-      0,
+    const totalRepaid = Math.ceil(
+      loans.reduce((sum, loan) => sum + (loan.paidAmount || 0), 0),
     );
 
     const currMonthRepaid = repayments
@@ -106,9 +105,8 @@ const getDashboardStats = async (req, res) => {
     );
 
     // 4. Outstanding Amount
-    const outstandingAmount = loans.reduce(
-      (sum, loan) => sum + (loan.remainingAmount || 0),
-      0,
+    const outstandingAmount = Math.ceil(
+      loans.reduce((sum, loan) => sum + (loan.remainingAmount || 0), 0),
     );
 
     const prevOutstanding = loans.reduce((sum, loan) => {
@@ -126,21 +124,18 @@ const getDashboardStats = async (req, res) => {
     // 5a. Total Deposits (Liability): currentBalance = what we owe members
     const Member = require('../models/Member');
     const members = await Member.find(query);
-    const totalDeposits = members.reduce(
-      (sum, m) => sum + (m.currentBalance || 0),
-      0,
+    const totalDeposits = Math.ceil(
+      members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
     );
 
     // 5a-2. Total Invested (Lifetime capital inflow from members)
-    const totalInvested = members.reduce(
-      (sum, m) => sum + (m.totalInvested || 0),
-      0,
+    const totalInvested = Math.ceil(
+      members.reduce((sum, m) => sum + (m.totalInvested || 0), 0),
     );
 
     // 5b. Total Disbursed (Asset Deployment): Sum of all loan principals
-    const totalDisbursed = loans.reduce(
-      (sum, l) => sum + (l.principal || 0),
-      0,
+    const totalDisbursed = Math.ceil(
+      loans.reduce((sum, l) => sum + (l.principal || 0), 0),
     );
     // Previous month disbursed for trend
     const prevDisbursed = loans
@@ -153,9 +148,8 @@ const getDashboardStats = async (req, res) => {
 
     // 5c. Net Cash Flow / Liquidity Position
     // Available Cash = (Invested + Repaid) - (Disbursed + Withdrawn + Expenses)
-    const totalWithdrawn = members.reduce(
-      (sum, m) => sum + (m.totalWithdrawn || 0),
-      0,
+    const totalWithdrawn = Math.ceil(
+      members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0),
     );
 
     // Fetch Operating Expenses only (exclude capital movements like disbursements/withdrawals
@@ -178,15 +172,16 @@ const getDashboardStats = async (req, res) => {
     const expenses = await FinancialTransaction.find(expenseQuery);
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
-    const netLiquidity =
+    const netLiquidity = Math.ceil(
       totalInvested +
-      totalRepaid -
-      totalDisbursed -
-      totalWithdrawn -
-      totalExpenses;
+        totalRepaid -
+        totalDisbursed -
+        totalWithdrawn -
+        totalExpenses,
+    );
 
-    // Net Profit = Interest Earnings - Operating Expenses
-    const netProfit = totalProfit - totalExpenses;
+    // Net Profit = Interest Earnings (As per user request, excluding operating expenses)
+    const netProfit = totalProfit;
 
     // 5. Recent Transactions
     const recentTransactions = await Repayment.find(query)

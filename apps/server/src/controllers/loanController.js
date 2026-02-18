@@ -35,6 +35,7 @@ const createLoan = async (req, res) => {
     duration: durationInput,
     startDate,
     interestType = 'simple',
+    grantorIdentifier, // New: Optional Grantor CNIC or Phone
   } = req.body;
 
   const principal = Number(principalInput);
@@ -42,12 +43,40 @@ const createLoan = async (req, res) => {
   const duration = Number(durationInput);
 
   try {
+    let grantorId = null;
+    if (grantorIdentifier) {
+      const Member = require('../models/Member');
+      const grantor = await Member.findOne({
+        user: req.user.effectiveOwnerId,
+        $or: [{ cnic: grantorIdentifier }, { phone: grantorIdentifier }],
+      });
+
+      if (!grantor) {
+        return res.status(404).json({
+          message:
+            'Grantor not found. Please provide a valid Member CNIC or Phone number or leave blank.',
+        });
+      }
+      grantorId = grantor._id;
+    }
+
     const customer = await Customer.findById(customerId);
     if (
       !customer ||
       customer.user.toString() !== req.user.effectiveOwnerId.toString()
     ) {
       return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    // Validation: Grantor cannot be the borrower
+    if (
+      grantorId &&
+      customer.memberId &&
+      grantorId.toString() === customer.memberId.toString()
+    ) {
+      return res.status(400).json({
+        message: 'A borrower cannot be their own grantor.',
+      });
     }
 
     if (
@@ -99,10 +128,10 @@ const createLoan = async (req, res) => {
 
     if (interestType === 'simple') {
       const result = calculateSimpleInterest(principal, rate, duration);
-      emi = result.emi;
-      totalAmount = result.totalAmount;
+      emi = Math.ceil(result.emi);
+      totalAmount = Math.ceil(result.totalAmount);
     } else {
-      emi = calculateEMI(principal, rate, duration);
+      emi = Math.ceil(calculateEMI(principal, rate, duration));
       totalAmount = emi * duration;
     }
 
@@ -123,10 +152,29 @@ const createLoan = async (req, res) => {
       remainingAmount: totalAmount,
       interestType,
       status: 'pending',
+      grantor: grantorId,
+      grantorStatus: 'pending',
       riskDetails,
     });
 
     const createdLoan = await loan.save();
+
+    // Notify Grantor if assigned
+    if (grantorId) {
+      try {
+        const Notification = require('../models/Notification');
+        const notification = new Notification({
+          recipient: grantorId,
+          recipientModel: 'Member',
+          title: 'New Grantor Assignment',
+          message: `Admin has assigned you as a grantor for a new loan of ${principal} for customer ${customer.name}.`,
+          type: 'info',
+        });
+        await notification.save();
+      } catch (notifError) {
+        console.error('Failed to notify grantor:', notifError);
+      }
+    }
 
     // Notify Admin if created by staff
     if (req.user.role === 'staff') {
@@ -175,16 +223,22 @@ const requestLoan = async (req, res) => {
     principal: principalInput,
     rate: rateInput,
     duration: durationInput,
-    notes, // Purpose/Notes
+    grantorIdentifier, // New: Grantor CNIC or Phone
+    notes,
   } = req.body;
 
   const principal = Number(principalInput);
-  const rate = Number(rateInput || 0); // Members might not know rate, or it's fixed. Let's assume request contains desired/estimated rate or 0.
+  const rate = Number(rateInput || 0);
   const duration = Number(durationInput);
 
   try {
+    if (!grantorIdentifier) {
+      return res
+        .status(400)
+        .json({ message: 'Grantor information is required' });
+    }
+
     const customer = await Customer.findById(req.member.customer);
-    // Member must have a linked customer profile and an account number
     if (
       !customer ||
       (!customer.accountNumber &&
@@ -193,11 +247,36 @@ const requestLoan = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          'Cannot request loan: Your profile is missing an account number (Saving or Current). Please contact support.',
+          'Cannot request loan: Your profile is missing an account number. Please contact support.',
       });
     }
 
-    // Check for existing pending/active loan
+    // Find grantor (another member)
+    const Member = require('../models/Member');
+
+    // Explicit check for own identifier to give better error message
+    if (
+      req.member.cnic === grantorIdentifier ||
+      req.member.phone === grantorIdentifier
+    ) {
+      return res.status(400).json({
+        message: 'You cannot be your own grantor.',
+      });
+    }
+
+    const grantor = await Member.findOne({
+      user: req.member.user,
+      $or: [{ cnic: grantorIdentifier }, { phone: grantorIdentifier }],
+      _id: { $ne: req.member._id }, // Cannot be own grantor
+    });
+
+    if (!grantor) {
+      return res.status(404).json({
+        message:
+          'Grantor not found. Please provide a valid Member CNIC or Phone number.',
+      });
+    }
+
     const existingLoan = await Loan.findOne({
       customer: req.member.customer,
       status: { $in: ['active', 'pending'] },
@@ -209,57 +288,145 @@ const requestLoan = async (req, res) => {
       });
     }
 
-    // Default calculations (can be updated by Admin upon approval)
-    // If rate is not provided, use 0 for now (Admin sets it)
     let emi = 0,
       totalAmount = principal;
     if (rate > 0) {
       const result = calculateSimpleInterest(principal, rate, duration);
-      emi = result.emi;
-      totalAmount = result.totalAmount;
+      emi = Math.ceil(result.emi);
+      totalAmount = Math.ceil(result.totalAmount);
     }
 
-    // Calculate Risk Score
     const customerHistory = await Loan.find({ customer: req.member.customer });
     const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
 
     const loan = new Loan({
-      user: req.member.user, // The business owner
+      user: req.member.user,
       customer: req.member.customer,
       principal,
       rate,
       duration,
       emi,
       totalAmount,
-      startDate: new Date(), // Provisional start date
+      startDate: new Date(),
       remainingAmount: totalAmount,
       interestType: 'simple',
       status: 'pending',
-      documents: [], // Can add docs later
+      grantor: grantor._id,
+      grantorStatus: 'pending',
       riskDetails,
     });
 
     const createdLoan = await loan.save();
 
-    // Notify Admin (Business Owner)
+    // Notify Grantor
     try {
+      const Notification = require('../models/Notification');
       const notification = new Notification({
-        recipient: req.member.user, // Notify the admin
-        recipientModel: 'User',
-        title: 'New Loan Request',
-        message: `Member ${req.member.name} has requested a loan of ${principal}.`,
+        recipient: grantor._id,
+        recipientModel: 'Member',
+        title: 'New Grantor Request',
+        message: `${req.member.name} has requested you to be a grantor for a loan of ${principal}.`,
         type: 'info',
       });
       await notification.save();
     } catch (notifError) {
-      console.error(
-        'Failed to create notification for loan request:',
-        notifError,
-      );
-      // Proceed without failing the request
+      console.error('Failed to notify grantor:', notifError);
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.member._id,
+      action: 'loan_requested',
+      category: 'loan',
+      details: `Member requested a loan of ${principal}`,
+      metadata: {
+        loanId: createdLoan._id,
+        principal,
+      },
+      req,
+    });
+
     res.status(201).json(createdLoan);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Get loans where the member is a grantor
+ * @route   GET /api/loans/grantor-loans
+ * @access  Private (Member)
+ */
+const getGrantorLoans = async (req, res) => {
+  try {
+    const loans = await Loan.find({
+      grantor: req.member._id,
+      status: 'pending',
+    }).populate('customer', 'name phone cnic');
+
+    res.json(loans);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Approve or Reject grantor request
+ * @route   PATCH /api/loans/:id/grantor-status
+ * @access  Private (Member)
+ */
+const updateGrantorStatus = async (req, res) => {
+  const { status } = req.body; // 'approved' or 'rejected'
+  try {
+    const loan = await Loan.findOne({
+      _id: req.params.id,
+      grantor: req.member._id,
+    });
+
+    if (!loan) {
+      return res
+        .status(404)
+        .json({ message: 'Loan request not found or you are not the grantor' });
+    }
+
+    if (loan.status !== 'pending') {
+      return res.status(400).json({ message: 'Loan is no longer pending' });
+    }
+
+    loan.grantorStatus = status;
+    if (status === 'approved') {
+      loan.grantorApprovedAt = new Date();
+    }
+
+    await loan.save();
+
+    // Notify Admin if approved
+    if (status === 'approved') {
+      const Notification = require('../models/Notification');
+      const notification = new Notification({
+        recipient: loan.user,
+        recipientModel: 'User',
+        title: 'Grantor Approved Loan',
+        message: `Grantor ${req.member.name} has approved the loan request for ${loan._id}.`,
+        type: 'info',
+      });
+      await notification.save();
+    }
+
+    // Log activity
+    await logActivity({
+      userId: req.member._id,
+      action: 'grantor_status_updated',
+      category: 'loan',
+      details: `Grantor ${status} loan request #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        status,
+      },
+      req,
+    });
+
+    res.json(loan);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -443,7 +610,22 @@ const addRepayment = async (req, res) => {
     // Update loan stats
     const repaymentsCount = await Repayment.countDocuments({ loan: loanId });
     loan.paidAmount += Number(amount);
-    loan.remainingAmount = Math.max(0, loan.totalAmount - loan.paidAmount);
+    loan.remainingAmount = Math.ceil(
+      Math.max(0, loan.totalAmount - loan.paidAmount),
+    );
+
+    if (loan.remainingAmount <= 0) {
+      loan.status = 'completed';
+      // Log activity for auto-completion
+      await logActivity({
+        userId: req.user?._id || loan.user,
+        action: 'loan_status_completed',
+        category: 'loan',
+        details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} automatically marked as completed`,
+        metadata: { loanId: loan._id },
+        req,
+      });
+    }
 
     await loan.save();
 
@@ -497,6 +679,20 @@ const addRepayment = async (req, res) => {
       console.error('Error updating trust rating:', ratingError);
       // Don't fail the repayment if rating update fails
     }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_repayment_added',
+      category: 'loan',
+      details: `Added repayment of ${amount} for loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        amount,
+        repaymentId: repayment._id,
+      },
+      req,
+    });
 
     res.status(201).json(repayment);
   } catch (error) {
@@ -598,10 +794,10 @@ const updateLoan = async (req, res) => {
           newRate,
           newDuration,
         );
-        emi = result.emi;
-        totalAmount = result.totalAmount;
+        emi = Math.ceil(result.emi);
+        totalAmount = Math.ceil(result.totalAmount);
       } else {
-        emi = calculateEMI(newPrincipal, newRate, newDuration);
+        emi = Math.ceil(calculateEMI(newPrincipal, newRate, newDuration));
         totalAmount = emi * newDuration;
       }
 
@@ -611,7 +807,19 @@ const updateLoan = async (req, res) => {
       loan.interestType = newInterestType;
       loan.emi = emi;
       loan.totalAmount = totalAmount;
-      loan.remainingAmount = totalAmount - loan.paidAmount;
+      loan.remainingAmount = Math.ceil(totalAmount - loan.paidAmount);
+      if (loan.remainingAmount <= 0) {
+        loan.status = 'completed';
+        // Log activity for auto-completion
+        await logActivity({
+          userId: req.user?._id || loan.user,
+          action: 'loan_status_completed',
+          category: 'loan',
+          details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} automatically marked as completed via update`,
+          metadata: { loanId: loan._id },
+          req,
+        });
+      }
     }
 
     await loan.save();
@@ -781,6 +989,19 @@ const deleteLoan = async (req, res) => {
     // Delete the loan
     await Loan.findByIdAndDelete(req.params.id);
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_deleted',
+      category: 'loan',
+      details: `Deleted loan #${loan._id.toString().slice(-6).toUpperCase()} and its repayments`,
+      metadata: {
+        loanId: req.params.id,
+        customerName: loan.customer?.name,
+      },
+      req,
+    });
+
     res.json({ message: 'Loan deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -806,6 +1027,19 @@ const uploadDocument = async (req, res) => {
 
     loan.documents.push(document);
     await loan.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_document_uploaded',
+      category: 'loan',
+      details: `Uploaded document "${document.name}" for loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        documentName: document.name,
+      },
+      req,
+    });
 
     res.status(201).json(loan);
   } catch (error) {
@@ -837,6 +1071,19 @@ const deleteDocument = async (req, res) => {
     loan.documents.pull(req.params.docId);
     await loan.save();
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'loan_document_deleted',
+      category: 'loan',
+      details: `Deleted document "${document.name}" for loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+      metadata: {
+        loanId: loan._id,
+        documentId: req.params.docId,
+      },
+      req,
+    });
+
     res.json({ message: 'Document deleted', loan });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -857,14 +1104,60 @@ const approveLoan = async (req, res) => {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
+    const { principal, rate, duration, interestType, startDate } = req.body;
+
     if (loan.status !== 'pending') {
       return res.status(400).json({ message: 'Loan is not in pending status' });
     }
 
-    loan.status = 'active';
+    // Apply term overrides if provided
+    if (principal || rate || duration || interestType) {
+      const newPrincipal = principal ? Number(principal) : loan.principal;
+      const newRate = rate ? Number(rate) : loan.rate;
+      const newDuration = duration ? Number(duration) : loan.duration;
+      const newInterestType = interestType || loan.interestType || 'emi';
+
+      let emi, totalAmount;
+      if (newInterestType === 'simple') {
+        const result = calculateSimpleInterest(
+          newPrincipal,
+          newRate,
+          newDuration,
+        );
+        emi = Math.ceil(result.emi);
+        totalAmount = Math.ceil(result.totalAmount);
+      } else {
+        emi = Math.ceil(calculateEMI(newPrincipal, newRate, newDuration));
+        totalAmount = emi * newDuration;
+      }
+
+      loan.principal = newPrincipal;
+      loan.rate = newRate;
+      loan.duration = newDuration;
+      loan.interestType = newInterestType;
+      loan.emi = emi;
+      loan.totalAmount = totalAmount;
+      loan.remainingAmount = Math.ceil(totalAmount - loan.paidAmount);
+      if (loan.remainingAmount <= 0) {
+        loan.status = 'completed';
+        // Log activity for auto-completion
+        await logActivity({
+          userId: req.user?._id || loan.user,
+          action: 'loan_status_completed',
+          category: 'loan',
+          details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} automatically marked as completed via approval`,
+          metadata: { loanId: loan._id },
+          req,
+        });
+      }
+    }
+
+    if (loan.status !== 'completed') {
+      loan.status = 'active';
+    }
     loan.approvedBy = req.user._id;
     loan.approvedAt = new Date();
-    loan.startDate = new Date();
+    loan.startDate = startDate ? new Date(startDate) : new Date();
 
     await loan.save();
 
@@ -1059,4 +1352,6 @@ module.exports = {
   getLoanSchedule,
   getMemberLoanById,
   getMemberLoanSchedule,
+  getGrantorLoans,
+  updateGrantorStatus,
 };

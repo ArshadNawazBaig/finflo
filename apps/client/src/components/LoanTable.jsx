@@ -174,7 +174,7 @@ const LoanTable = ({
                       {loan.status === 'pending' && (
                         <div className="mr-2 pr-2 border-r border-border/50">
                           <ApprovalActions
-                            loanId={loan._id}
+                            loan={loan}
                             onSuccess={() => {
                               if (onRefresh) onRefresh();
                               if (pagination && pagination.onPageChange) {

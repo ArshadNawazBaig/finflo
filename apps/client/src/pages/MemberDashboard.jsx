@@ -44,6 +44,7 @@ const MemberDashboard = () => {
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [loans, setLoans] = useState([]);
+  const [grantorLoans, setGrantorLoans] = useState([]);
   const [goals, setGoals] = useState([]);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,20 +76,25 @@ const MemberDashboard = () => {
         const pageToFetch = isAppend ? currentPage + 1 : 1;
 
         if (!isAppend) {
-          const [memberRes, goalsRes, activityRes] = await Promise.all([
-            api.get('/member-auth/me', {
-              headers: { Authorization: `Bearer ${memberToken}` },
-            }),
-            api.get('/saving-goals', {
-              headers: { Authorization: `Bearer ${memberToken}` },
-            }),
-            api.get('/members/portal/activity?limit=100', {
-              headers: { Authorization: `Bearer ${memberToken}` },
-            }),
-          ]);
+          const [memberRes, goalsRes, activityRes, grantorLoansRes] =
+            await Promise.all([
+              api.get('/member-auth/me', {
+                headers: { Authorization: `Bearer ${memberToken}` },
+              }),
+              api.get('/saving-goals', {
+                headers: { Authorization: `Bearer ${memberToken}` },
+              }),
+              api.get('/members/portal/activity?limit=100', {
+                headers: { Authorization: `Bearer ${memberToken}` },
+              }),
+              api.get('/loans/grantor-loans', {
+                headers: { Authorization: `Bearer ${memberToken}` },
+              }),
+            ]);
           setMember(memberRes.data);
           setGoals(goalsRes.data);
           setActivity(activityRes.data.data || []);
+          setGrantorLoans(grantorLoansRes.data || []);
         }
 
         const { data: response } = await api.get(
@@ -123,6 +129,21 @@ const MemberDashboard = () => {
     },
     [currentPage],
   );
+
+  const handleGrantorStatus = async (loanId, status) => {
+    try {
+      const memberToken = localStorage.getItem('memberToken');
+      await api.patch(
+        `/loans/${loanId}/grantor-status`,
+        { status },
+        { headers: { Authorization: `Bearer ${memberToken}` } },
+      );
+      toast.success(`Loan request ${status} successfully`);
+      fetchDashboardData(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    }
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -276,7 +297,7 @@ const MemberDashboard = () => {
             <div className="lg:col-span-2 space-y-8">
               <WealthInsights member={member} loans={loans} goals={goals} />
 
-              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8 mt-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter">
@@ -345,6 +366,68 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
+              {grantorLoans.length > 0 && (
+                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/5">
+                  <div>
+                    <h3 className="text-xl font-black tracking-tighter text-primary">
+                      Loans Pending My Approval (Grantor)
+                    </h3>
+                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                      You have been requested as a grantor for these loans.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {grantorLoans.map((loan) => (
+                      <div
+                        key={loan._id}
+                        className="p-6 rounded-[2rem] border border-border/50 bg-card hover:bg-muted/30 transition-all group"
+                      >
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-bold text-lg">
+                                {loan.customer?.name} -{' '}
+                                {formatPKR(loan.principal)}
+                              </h4>
+                              {loan.grantorStatus === 'pending' && (
+                                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600">
+                                  Your Approval Required
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              Duration: {loan.duration} months | Amount:{' '}
+                              {formatPKR(loan.principal)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={() =>
+                                handleGrantorStatus(loan._id, 'approved')
+                              }
+                              variant="outline"
+                              className="rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() =>
+                                handleGrantorStatus(loan._id, 'rejected')
+                              }
+                              variant="outline"
+                              className="rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
@@ -394,9 +477,22 @@ const MemberDashboard = () => {
                                 {formatPKR(loan.principal)} Loan
                               </h4>
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${loan.status === 'active' ? 'bg-emerald-500/10 text-emerald-600' : loan.status === 'pending' ? 'bg-amber-500/10 text-amber-600' : loan.status === 'completed' ? 'bg-blue-500/10 text-blue-600' : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'}`}
+                                className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                  loan.status === 'active'
+                                    ? 'bg-emerald-500/10 text-emerald-600'
+                                    : loan.status === 'pending'
+                                      ? loan.grantorStatus === 'pending'
+                                        ? 'bg-blue-500/10 text-blue-600'
+                                        : 'bg-amber-500/10 text-amber-600'
+                                      : loan.status === 'completed'
+                                        ? 'bg-blue-500/10 text-blue-600'
+                                        : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
+                                }`}
                               >
-                                {loan.status}
+                                {loan.status === 'pending' &&
+                                loan.grantorStatus === 'pending'
+                                  ? 'Pending Grantor'
+                                  : loan.status}
                               </span>
                             </div>
                             <p className="text-sm text-muted-foreground font-medium">

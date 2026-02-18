@@ -5,6 +5,7 @@ const Notification = require('../models/Notification');
 const { canAddCustomer } = require('../utils/planLimits');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
+const { logActivity } = require('./activityLogController');
 
 const getCustomers = async (req, res) => {
   try {
@@ -170,6 +171,15 @@ const createCustomer = async (req, res) => {
       }
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_created',
+      category: 'customer',
+      details: `New customer created: ${createdCustomer.name} (${createdCustomer.email})`,
+      req,
+    });
+
     res.status(201).json(createdCustomer);
   } catch (error) {
     console.error('Create Customer Error:', error);
@@ -251,6 +261,15 @@ const updateCustomer = async (req, res) => {
       }
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_updated',
+      category: 'customer',
+      details: `Customer details updated: ${updatedCustomer.name}`,
+      req,
+    });
+
     res.json(updatedCustomer);
   } catch (error) {
     res.status(400).json({ message: getFriendlyErrorMessage(error) });
@@ -289,6 +308,15 @@ const deleteCustomer = async (req, res) => {
     const user = await User.findById(req.user.effectiveOwnerId);
     user.customerCount = Math.max(0, user.customerCount - 1);
     await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_deleted',
+      category: 'customer',
+      details: `Customer deleted: ${customer.name} (${customer.email})`,
+      req,
+    });
 
     res.json({ message: 'Customer removed' });
   } catch (error) {
@@ -350,6 +378,15 @@ const uploadDocuments = async (req, res) => {
       }
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_documents_uploaded',
+      category: 'customer',
+      details: `Uploaded ${newDocuments.length} document(s) for customer: ${customer.name}`,
+      req,
+    });
+
     res.json(customer);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -401,6 +438,15 @@ const deleteDocument = async (req, res) => {
         await member.save();
       }
     }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_document_deleted',
+      category: 'customer',
+      details: `Deleted document "${docToDelete?.name || 'Unknown'}" for customer: ${customer.name}`,
+      req,
+    });
 
     res.json(customer);
   } catch (error) {
@@ -454,6 +500,15 @@ const updateDocumentStatus = async (req, res) => {
         }
       }
     }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'customer_document_status_updated',
+      category: 'customer',
+      details: `Document "${document.name}" status updated to ${status} for customer: ${customer.name}`,
+      req,
+    });
 
     res.json(customer);
   } catch (error) {

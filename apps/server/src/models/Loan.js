@@ -42,6 +42,16 @@ const loanSchema = new mongoose.Schema(
     approvedAt: { type: Date },
     rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     rejectionReason: { type: String },
+    grantor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Member',
+    },
+    grantorStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
+    grantorApprovedAt: { type: Date },
     riskDetails: {
       grade: { type: String }, // A+, A, B, C, D, F
       score: { type: Number }, // 0-100

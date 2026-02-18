@@ -8,6 +8,7 @@ import {
   Calculator,
   DollarSign,
   Clock,
+  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,29 +37,94 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       principal: '',
       duration: '',
       notes: '',
+      grantorIdentifier: '',
     },
   });
 
   const [defaultInterestRate, setDefaultInterestRate] = useState(0);
+  const [grantorName, setGrantorName] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [currentMember, setCurrentMember] = useState(null);
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await api.get('/system-settings');
-        if (data && data.defaultInterestRate) {
-          setDefaultInterestRate(data.defaultInterestRate);
+        const [settingsRes, memberRes] = await Promise.all([
+          api.get('/system-settings'),
+          api.get('/member-auth/me', {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('memberToken')}`,
+            },
+          }),
+        ]);
+
+        if (settingsRes.data && settingsRes.data.defaultInterestRate) {
+          setDefaultInterestRate(settingsRes.data.defaultInterestRate);
         }
+        setCurrentMember(memberRes.data);
       } catch (error) {
-        console.error('Failed to fetch system settings:', error);
+        console.error('Failed to fetch modal data:', error);
       }
     };
     if (isOpen) {
-      fetchSettings();
+      fetchData();
     }
   }, [isOpen]);
 
   const principal = watch('principal');
   const duration = watch('duration');
+  const grantorIdentifier = watch('grantorIdentifier');
+
+  // Auto-lookup grantor
+  useEffect(() => {
+    const lookup = async () => {
+      if (grantorIdentifier && grantorIdentifier.length >= 3) {
+        setIsLookingUp(true);
+        try {
+          const memberToken = localStorage.getItem('memberToken');
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${grantorIdentifier}`,
+            { headers: { Authorization: `Bearer ${memberToken}` } },
+          );
+
+          // Filter out current member from results
+          const filteredResults = currentMember
+            ? data.filter((m) => m._id !== currentMember._id)
+            : data;
+
+          setSearchResults(filteredResults);
+
+          // Use digit-only comparison for more robust exact match detection
+          const normalize = (val) => val?.replace(/\D/g, '') || '';
+          const targetDigits = normalize(grantorIdentifier);
+
+          const exactMatch = filteredResults.find(
+            (m) =>
+              normalize(m.cnic) === targetDigits ||
+              normalize(m.phone) === targetDigits,
+          );
+
+          if (exactMatch && targetDigits.length >= 11) {
+            setGrantorName(exactMatch.name);
+          } else {
+            setGrantorName('');
+          }
+        } catch (error) {
+          setSearchResults([]);
+          setGrantorName('');
+        } finally {
+          setIsLookingUp(false);
+        }
+      } else {
+        setSearchResults([]);
+        setGrantorName('');
+      }
+    };
+
+    const timeoutId = setTimeout(lookup, 400);
+    return () => clearTimeout(timeoutId);
+  }, [grantorIdentifier]);
 
   // Flat Interest Calculation
   const estimatedMonthlyPayment =
@@ -122,7 +188,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-[2rem] bg-card border border-border/50 p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-visible rounded-[2rem] bg-card border border-border/50 p-6 text-left align-middle shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-6">
                   <Dialog.Title as="div" className="flex items-center gap-3">
                     <div className="p-3 rounded-2xl bg-primary/10 text-primary shrink-0">
@@ -204,6 +270,113 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     {errors.duration && (
                       <p className="text-[10px] text-destructive font-bold ml-1">
                         {errors.duration.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-1.5">
+                      <FileText className="w-2.5 h-2.5 text-blue-500" /> Grantor
+                      (Member Phone or CNIC)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        {...register('grantorIdentifier', {
+                          required: 'Grantor information is required',
+                        })}
+                        autoComplete="off"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                        placeholder="Search by Name, CNIC, or Phone"
+                      />
+                      {isLookingUp && searchResults.length === 0 && (
+                        <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
+                          <Loader2 size={10} className="animate-spin" />{' '}
+                          Searching...
+                        </p>
+                      )}
+
+                      {searchResults.length > 0 && !grantorName && (
+                        <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                          {searchResults.map((member) => (
+                            <button
+                              key={member._id}
+                              type="button"
+                              onClick={() => {
+                                // Add a small delay to selection to show the click
+                                setValue(
+                                  'grantorIdentifier',
+                                  member.cnic || member.phone,
+                                );
+                                setGrantorName(member.name);
+                                setTimeout(() => setSearchResults([]), 100);
+                                clearErrors('grantorIdentifier');
+                              }}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group ${
+                                (() => {
+                                  const norm = (v) =>
+                                    v?.replace(/\D/g, '') || '';
+                                  return (
+                                    norm(member.cnic) ===
+                                      norm(grantorIdentifier) ||
+                                    norm(member.phone) ===
+                                      norm(grantorIdentifier)
+                                  );
+                                })()
+                                  ? 'bg-primary/5 border border-primary/20'
+                                  : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                  <User size={14} />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-black uppercase tracking-tight">
+                                    {member.name}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground font-medium">
+                                    {member.cnic || member.phone}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {!isLookingUp &&
+                        grantorIdentifier &&
+                        grantorIdentifier.length >= 3 &&
+                        searchResults.length === 0 &&
+                        !grantorName && (
+                          <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="flex flex-col items-center justify-center gap-2 py-2">
+                              <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
+                                <X size={16} />
+                              </div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                No Member Found
+                              </p>
+                              <p className="text-[9px] text-muted-foreground font-medium text-center px-4">
+                                No member matches "{grantorIdentifier}"
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                      {grantorName && (
+                        <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
+                          <User size={10} className="shrink-0" />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">
+                            Verified: {grantorName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {errors.grantorIdentifier && (
+                      <p className="text-[10px] text-destructive font-bold ml-1">
+                        {errors.grantorIdentifier.message}
                       </p>
                     )}
                   </div>

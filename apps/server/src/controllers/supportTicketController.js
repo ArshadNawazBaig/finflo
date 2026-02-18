@@ -1,6 +1,6 @@
 const SupportTicket = require('../models/SupportTicket');
 const User = require('../models/User');
-const ActivityLog = require('../models/ActivityLog');
+const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
 // @desc    Create a new support ticket
@@ -34,12 +34,13 @@ const createTicket = async (req, res) => {
       attachments,
     });
 
-    await ActivityLog.create({
-      user: req.user._id,
+    await logActivity({
+      userId: req.user._id,
       action: 'ticket_created',
       category: 'support',
       details: `Created support ticket: ${subject}`,
       metadata: { ticketId: ticket._id },
+      req,
     });
 
     res.status(201).json(ticket);
@@ -183,12 +184,13 @@ const updateTicketStatus = async (req, res) => {
     ticket.status = status;
     await ticket.save();
 
-    await ActivityLog.create({
-      user: req.user._id,
+    await logActivity({
+      userId: req.user._id,
       action: 'ticket_status_updated',
       category: 'support',
       details: `Updated ticket ${ticket._id} status to ${status}`,
       metadata: { ticketId: ticket._id, status },
+      req,
     });
 
     res.json(ticket);
@@ -316,12 +318,13 @@ const deleteTicket = async (req, res) => {
 
     await SupportTicket.findByIdAndDelete(req.params.id);
 
-    await ActivityLog.create({
-      user: req.user._id,
+    await logActivity({
+      userId: req.user._id,
       action: 'ticket_deleted',
       category: 'support',
       details: `Deleted support ticket: ${ticket.subject}`,
       metadata: { ticketId: ticket._id, subject: ticket.subject },
+      req,
     });
 
     res.json({ message: 'Ticket removed' });

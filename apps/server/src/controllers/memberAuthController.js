@@ -1,5 +1,6 @@
 const Member = require('../models/Member');
 const jwt = require('jsonwebtoken');
+const { logActivity } = require('./activityLogController');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -53,6 +54,15 @@ const loginMember = async (req, res) => {
     if (await member.matchPassword(password)) {
       // Update lastLoginAt without triggering full validation hooks
       await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
+
+      // Log activity
+      await logActivity({
+        userId: member._id,
+        action: 'member_login',
+        category: 'auth',
+        details: `Member logged in: ${member.email}`,
+        req,
+      });
 
       res.json({
         _id: member._id,
@@ -126,6 +136,15 @@ const updateDetails = async (req, res) => {
       data: member,
       message: 'Member details updated successfully',
     });
+
+    // Log activity
+    await logActivity({
+      userId: member._id,
+      action: 'member_profile_updated',
+      category: 'auth',
+      details: `Member updated their profile: ${member.email}`,
+      req,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -169,6 +188,15 @@ const uploadProfilePicture = async (req, res) => {
       profilePicture: member.profilePicture,
       message: 'Profile picture updated successfully',
     });
+
+    // Log activity
+    await logActivity({
+      userId: member._id,
+      action: 'member_profile_picture_updated',
+      category: 'auth',
+      details: 'Member updated their profile picture',
+      req,
+    });
   } catch (error) {
     console.error('Upload Error:', error);
     res.status(500).json({ message: error.message });
@@ -198,6 +226,15 @@ const updatePassword = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Password updated successfully',
+    });
+
+    // Log activity
+    await logActivity({
+      userId: member._id,
+      action: 'member_password_changed',
+      category: 'auth',
+      details: 'Member changed their password',
+      req,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -235,6 +272,15 @@ const deleteAccount = async (req, res) => {
 
     // Finally delete the member
     await Member.findByIdAndDelete(memberId);
+
+    // Log activity
+    await logActivity({
+      userId: memberId,
+      action: 'member_account_deleted',
+      category: 'auth',
+      details: `Member permanently deleted their account: ${member.email}`,
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -313,6 +359,15 @@ const forgotPassword = async (req, res) => {
         success: true,
         data: 'Email sent',
       });
+
+      // Log activity
+      await logActivity({
+        userId: member._id,
+        action: 'member_forgot_password_requested',
+        category: 'auth',
+        details: `Member password reset link sent to: ${member.email}`,
+        req,
+      });
     } catch (err) {
       console.error('Email send error:', err);
       member.resetPasswordToken = undefined;
@@ -356,6 +411,15 @@ const resetPassword = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Password reset successful',
+    });
+
+    // Log activity
+    await logActivity({
+      userId: member._id,
+      action: 'member_password_reset',
+      category: 'auth',
+      details: 'Member reset their password via token',
+      req,
     });
   } catch (error) {
     console.error('Member Reset Password Error:', error);

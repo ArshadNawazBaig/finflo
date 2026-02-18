@@ -365,6 +365,16 @@ const createMember = async (req, res) => {
       }
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_created',
+      category: 'members',
+      details: `Created new member: ${member.name} (${member.email})`,
+      metadata: { memberId: member._id },
+      req,
+    });
+
     res.status(201).json(member);
   } catch (error) {
     console.error('Create Member Error:', error);
@@ -418,6 +428,16 @@ const updateMember = async (req, res) => {
       });
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_updated',
+      category: 'members',
+      details: `Updated member: ${updatedMember.name}`,
+      metadata: { memberId: updatedMember._id },
+      req,
+    });
+
     res.json(updatedMember);
   } catch (error) {
     console.error('Update Member Error:', error);
@@ -462,6 +482,16 @@ const deleteMember = async (req, res) => {
     }
 
     await Member.findByIdAndDelete(id);
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_deleted',
+      category: 'members',
+      details: `Deleted member: ${member.name} (${member.email})`,
+      metadata: { memberId: id },
+      req,
+    });
+
     res.json({ message: 'Member deleted successfully' });
   } catch (error) {
     console.error('Delete Member Error:', error);
@@ -557,6 +587,20 @@ const addInvestment = async (req, res) => {
     });
     await financialTx.save();
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_investment_added',
+      category: 'members',
+      details: `Added investment of ${amount} for member: ${member.name}`,
+      metadata: {
+        memberId: id,
+        amount,
+        investmentId: investment._id,
+      },
+      req,
+    });
+
     res.status(201).json({ investment, member });
   } catch (error) {
     console.error('Add Investment Error:', error);
@@ -617,6 +661,20 @@ const withdrawInvestment = async (req, res) => {
     });
     await financialTx.save();
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_withdrawal_added',
+      category: 'members',
+      details: `Processed withdrawal of ${amount} for member: ${member.name}`,
+      metadata: {
+        memberId: id,
+        amount,
+        investmentId: investment._id,
+      },
+      req,
+    });
+
     res.status(201).json({ investment, member });
   } catch (error) {
     console.error('Withdraw Investment Error:', error);
@@ -670,8 +728,9 @@ const distributeProfit = async (req, res) => {
       for (const member of members) {
         if (member.currentBalance > 0 && member.profitRate > 0) {
           // Calculate profit based on custom rate: (balance * rate / 100)
-          const profitAmount =
-            (member.currentBalance * member.profitRate) / 100;
+          const profitAmount = Math.ceil(
+            (member.currentBalance * member.profitRate) / 100,
+          );
 
           // Update member profit
           member.totalProfit += profitAmount;
@@ -725,8 +784,9 @@ const distributeProfit = async (req, res) => {
       for (const member of members) {
         if (member.currentBalance > 0) {
           const share = (member.currentBalance / totalInvested) * 100;
-          const profitAmount =
-            (member.currentBalance / totalInvested) * totalProfit;
+          const profitAmount = Math.ceil(
+            (member.currentBalance / totalInvested) * totalProfit,
+          );
 
           // Update member profit
           member.totalProfit += profitAmount;
@@ -771,10 +831,26 @@ const distributeProfit = async (req, res) => {
       }
     }
 
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'profit_distributed',
+      category: 'members',
+      details: `Distributed total profit of ${totalProfit} to ${distributions.length} members for period: ${period}`,
+      metadata: {
+        totalProfit,
+        period,
+        membersCount: distributions.length,
+      },
+      req,
+    });
+
     res.status(201).json({
       message: 'Profit distributed successfully',
       distributions,
-      totalDistributed: distributions.reduce((sum, d) => sum + d.amount, 0),
+      totalDistributed: Math.ceil(
+        distributions.reduce((sum, d) => sum + d.amount, 0),
+      ),
       membersCount: distributions.length,
     });
   } catch (error) {
@@ -953,7 +1029,7 @@ const transferFunds = async (req, res) => {
       throw new Error('Cannot transfer to yourself');
     }
 
-    const transferAmount = parseFloat(amount);
+    const transferAmount = Math.ceil(parseFloat(amount));
 
     // Update balances
     sender.currentBalance -= transferAmount;
@@ -1086,7 +1162,7 @@ const adminTransferFunds = async (req, res) => {
       throw new Error('Cannot transfer to the same member');
     }
 
-    const transferAmount = parseFloat(amount);
+    const transferAmount = Math.ceil(parseFloat(amount));
 
     // Update balances
     sender.currentBalance -= transferAmount;
@@ -1156,6 +1232,44 @@ const adminTransferFunds = async (req, res) => {
   }
 };
 
+const lookupMember = async (req, res) => {
+  const { identifier } = req.query;
+
+  if (!identifier || identifier.length < 3) {
+    return res.json([]); // Return empty for short queries
+  }
+
+  try {
+    const effectiveOwnerId = req.user
+      ? req.user.effectiveOwnerId
+      : req.member.user;
+
+    // Escape special characters in regex
+    const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedIdentifier, 'i');
+
+    const orConditions = [{ name: regex }, { cnic: regex }, { phone: regex }];
+
+    // If identifier looks like a number/CNIC, also try matching purely digits
+    const digitsOnly = identifier.replace(/\D/g, '');
+    if (digitsOnly.length >= 3) {
+      orConditions.push({ cnic: new RegExp(digitsOnly) });
+      orConditions.push({ phone: new RegExp(digitsOnly) });
+    }
+
+    const members = await Member.find({
+      user: effectiveOwnerId,
+      $or: orConditions,
+    })
+      .select('name cnic phone')
+      .limit(6);
+
+    res.json(members);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -1171,4 +1285,5 @@ module.exports = {
   getMemberActivity,
   transferFunds,
   adminTransferFunds,
+  lookupMember,
 };

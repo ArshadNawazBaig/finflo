@@ -16,6 +16,8 @@ const {
   getLoanSchedule,
   getMemberLoanById,
   getMemberLoanSchedule,
+  getGrantorLoans,
+  updateGrantorStatus,
 } = require('../controllers/loanController');
 const {
   protect,
@@ -30,6 +32,8 @@ const { loanValidation } = require('../middleware/validationMiddleware');
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.route('/request').post(protectMember, requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
+router.route('/grantor-loans').get(protectMember, getGrantorLoans);
+router.patch('/:id/grantor-status', protectMember, updateGrantorStatus);
 router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
 

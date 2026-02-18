@@ -394,7 +394,7 @@ const LoanDetail = () => {
             </span>
             {loan.status === 'pending' && (
               <div className="pl-3 border-l border-border/50">
-                <ApprovalActions loanId={loan._id} onSuccess={fetchData} />
+                <ApprovalActions loan={loan} onSuccess={fetchData} />
               </div>
             )}
           </div>

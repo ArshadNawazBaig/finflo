@@ -15,6 +15,7 @@ const {
   getMemberActivity,
   transferFunds,
   adminTransferFunds,
+  lookupMember,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -22,6 +23,8 @@ const { protectMember } = require('../middleware/memberAuthMiddleware');
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
 router.post('/portal/transfer', protectMember, transferFunds);
+router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
+router.get('/lookup', protect, lookupMember); // Admin can lookup members
 
 // All subsequent routes require staff/admin authentication
 router.use(protect);

@@ -84,6 +84,9 @@ const LoanRequestTable = ({
                 Notes
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Grantor Status
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 AI Risk
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap">
@@ -146,6 +149,19 @@ const LoanRequestTable = ({
                   <div className="text-xs text-muted-foreground max-w-xs truncate">
                     {request.notes || '—'}
                   </div>
+                </td>
+                <td className="py-4 px-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      request.grantorStatus === 'approved'
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : request.grantorStatus === 'rejected'
+                          ? 'bg-red-500/10 text-red-600'
+                          : 'bg-amber-500/10 text-amber-600'
+                    }`}
+                  >
+                    {request.grantorStatus || 'pending'}
+                  </span>
                 </td>
                 <td className="py-4 px-4">
                   {request.riskDetails ? (

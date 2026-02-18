@@ -60,7 +60,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const sidebarClasses = cn(
     'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
     isMobile
-      ? `w-64 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
+      ? `w-full transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : isExpanded
         ? 'w-64 items-start px-4'
         : 'w-[70px] items-center px-2',
