@@ -117,6 +117,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
+              minLength={8}
               className="rounded-xl border-border/50"
             />
           </div>

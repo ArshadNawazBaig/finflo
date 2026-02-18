@@ -753,6 +753,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       toast.error('New passwords do not match');
       return;
     }
+    if (formData.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
     setLoading(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
@@ -824,7 +828,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   onChange={(e) =>
                     setFormData({ ...formData, newPassword: e.target.value })
                   }
-                  className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                  minLength={8}
+                  className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="Enter new password"
                   required
                 />
                 <button

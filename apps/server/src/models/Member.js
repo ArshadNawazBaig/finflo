@@ -20,7 +20,7 @@ const memberSchema = new mongoose.Schema(
     name: { type: String, lowercase: true }, // Name now optional based on user feedback
     email: { type: String, lowercase: true }, // Email now optional
     phone: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, minlength: 8 },
     role: {
       type: String,
       default: 'member',

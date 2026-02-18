@@ -23,7 +23,23 @@ const createBranch = async (req, res) => {
         .json({ message: 'Not authorized to create branches' });
     }
 
-    const { name, address, contactNumber, managerId, branding } = req.body;
+    let { name, address, contactNumber, managerId, branding } = req.body;
+
+    // Parse branding if it's a string (FormData sends it as string)
+    if (typeof branding === 'string') {
+      try {
+        branding = JSON.parse(branding);
+      } catch (e) {
+        branding = {};
+      }
+    } else {
+      branding = branding || {};
+    }
+
+    // Handle logo upload
+    if (req.file) {
+      branding.logoUrl = req.file.path;
+    }
 
     const branch = await Branch.create({
       name,
@@ -31,7 +47,7 @@ const createBranch = async (req, res) => {
       contactNumber,
       manager: managerId || null,
       owner: req.user._id,
-      branding: branding || {},
+      branding,
     });
 
     if (managerId) {
@@ -172,7 +188,28 @@ const updateBranch = async (req, res) => {
       branch.manager = managerId !== undefined ? managerId : branch.manager;
       branch.isActive = isActive !== undefined ? isActive : branch.isActive;
     }
-    branch.branding = branding || branch.branding;
+
+    // Parse branding if it's a string
+    let parsedBranding = branding;
+    if (typeof branding === 'string') {
+      try {
+        parsedBranding = JSON.parse(branding);
+      } catch (e) {
+        parsedBranding = branch.branding;
+      }
+    }
+
+    if (parsedBranding) {
+      branch.branding = {
+        ...branch.branding.toObject(),
+        ...parsedBranding,
+      };
+    }
+
+    // Handle logo upload
+    if (req.file) {
+      branch.branding.logoUrl = req.file.path;
+    }
 
     await branch.save();
 

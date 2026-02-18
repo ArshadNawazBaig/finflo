@@ -30,6 +30,14 @@ import {
 
 export function DateRangePicker({ className, date, setDate }) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [tempDate, setTempDate] = React.useState(date);
+
+  // Sync tempDate when popover opens or date prop changes externally
+  React.useEffect(() => {
+    if (isOpen) {
+      setTempDate(date);
+    }
+  }, [isOpen, date]);
 
   return (
     <div className={cn('grid gap-2', className)}>
@@ -98,9 +106,9 @@ export function DateRangePicker({ className, date, setDate }) {
             <Calendar
               initialFocus
               mode="range"
-              defaultMonth={date?.to || date?.from}
-              selected={date}
-              onSelect={setDate}
+              defaultMonth={tempDate?.to || tempDate?.from}
+              selected={tempDate}
+              onSelect={setTempDate}
               numberOfMonths={1}
               fromYear={2015}
               toYear={2040}
@@ -228,14 +236,21 @@ export function DateRangePicker({ className, date, setDate }) {
             <div className="px-2 py-3 bg-accent/20 border-t border-border gap-1 flex items-center justify-between">
               <div className="bg-background px-2 py-1 rounded-full border border-border shadow-sm">
                 <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-tight">
-                  {date?.from ? format(date.from, 'MMM dd, yyyy') : '...'}
+                  {tempDate?.from
+                    ? format(tempDate.from, 'MMM dd, yyyy')
+                    : '...'}
                   <span className="mx-2 text-muted-foreground/50">→</span>
-                  {date?.to ? format(date.to, 'MMM dd, yyyy') : '...'}
+                  {tempDate?.to ? format(tempDate.to, 'MMM dd, yyyy') : '...'}
                 </span>
               </div>
               <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-full px-5 h-8 transition-all active:scale-95 shadow-lg shadow-primary/10"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  if (tempDate?.from && tempDate?.to) {
+                    setDate(tempDate);
+                  }
+                  setIsOpen(false);
+                }}
               >
                 Apply
               </Button>

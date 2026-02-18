@@ -11,13 +11,17 @@ const {
   addBranchExpense,
 } = require('../controllers/branchController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const upload = require('../middleware/branchUploadMiddleware');
 
-router.route('/').post(protect, admin, createBranch).get(protect, getBranches);
+router
+  .route('/')
+  .post(protect, admin, upload.single('logo'), createBranch)
+  .get(protect, getBranches);
 
 router
   .route('/:id')
   .get(protect, getBranch)
-  .put(protect, admin, updateBranch)
+  .put(protect, admin, upload.single('logo'), updateBranch)
   .delete(protect, admin, deleteBranch);
 
 router.get('/:id/financials', protect, admin, getBranchFinancials);

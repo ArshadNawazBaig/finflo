@@ -35,8 +35,8 @@ const ResetPassword = () => {
       return setError('Passwords do not match');
     }
 
-    if (formData.password.length < 6) {
-      return setError('Password must be at least 6 characters long');
+    if (formData.password.length < 8) {
+      return setError('Password must be at least 8 characters long');
     }
 
     setLoading(true);

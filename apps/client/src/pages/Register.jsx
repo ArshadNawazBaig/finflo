@@ -138,6 +138,7 @@ const Register = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  minLength={8}
                   className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
                 />
               </div>

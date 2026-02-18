@@ -787,6 +787,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       toast.error('New passwords do not match');
       return;
     }
+    if (formData.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
     setLoading(true);
     try {
       await api.put('/auth/updatepassword', {
@@ -834,6 +838,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               onChange={(e) =>
                 setFormData({ ...formData, newPassword: e.target.value })
               }
+              minLength={8}
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
               required
             />

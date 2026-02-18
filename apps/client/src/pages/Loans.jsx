@@ -67,17 +67,18 @@ const Loans = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await api.get('/dashboard/stats');
-        setStats(data.stats);
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      }
-    };
-    fetchStats();
+  const fetchStats = useCallback(async () => {
+    try {
+      const { data } = await api.get('/dashboard/stats');
+      setStats(data.stats);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   useEffect(() => {
     if (isMobile) {
@@ -176,6 +177,7 @@ const Loans = () => {
       await api.delete(`/loans/${deleteLoan._id}`);
       toast.success('Loan deleted successfully');
       fetchLoans();
+      fetchStats();
       setDeleteLoan(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete loan');
@@ -269,7 +271,10 @@ const Loans = () => {
                   loan={loan}
                   onEdit={setEditLoan}
                   onDelete={setDeleteLoan}
-                  onRefresh={fetchLoans}
+                  onRefresh={() => {
+                    fetchLoans();
+                    fetchStats();
+                  }}
                 />
               ))}
             </div>
@@ -298,7 +303,10 @@ const Loans = () => {
           <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <LoanTable
               data={loans}
-              onRefresh={fetchLoans}
+              onRefresh={() => {
+                fetchLoans();
+                fetchStats();
+              }}
               pagination={{
                 currentPage,
                 totalPages,
@@ -325,14 +333,20 @@ const Loans = () => {
       <AddLoanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchLoans}
+        onSuccess={() => {
+          fetchLoans();
+          fetchStats();
+        }}
       />
 
       <RepayLoanModal
         isOpen={!!repayLoan}
         onClose={() => setRepayLoan(null)}
         loan={repayLoan}
-        onSuccess={fetchLoans}
+        onSuccess={() => {
+          fetchLoans();
+          fetchStats();
+        }}
       />
 
       <LoanDetailsModal
@@ -341,7 +355,8 @@ const Loans = () => {
         loan={detailLoan}
         onUpdate={(updatedLoan) => {
           setDetailLoan(updatedLoan);
-          fetchLoans(); // Refresh list to catch any status/paidAmount changes if applicable
+          fetchLoans();
+          fetchStats();
         }}
       />
 
@@ -349,7 +364,10 @@ const Loans = () => {
         isOpen={!!editLoan}
         onClose={() => setEditLoan(null)}
         loan={editLoan}
-        onSuccess={fetchLoans}
+        onSuccess={() => {
+          fetchLoans();
+          fetchStats();
+        }}
       />
 
       <AlertDialog open={!!deleteLoan} onOpenChange={() => setDeleteLoan(null)}>

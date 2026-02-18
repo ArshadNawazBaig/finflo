@@ -123,6 +123,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               value={formData.password}
               onChange={handleChange}
               required
+              minLength={8}
               className="rounded-xl border-border/50"
             />
           </div>

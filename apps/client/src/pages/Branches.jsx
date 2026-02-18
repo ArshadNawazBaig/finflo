@@ -13,6 +13,7 @@ import {
   PowerOff,
   Trash2,
   UserCog,
+  Loader2,
 } from 'lucide-react';
 import {
   Select,
@@ -93,6 +94,9 @@ const Branches = () => {
     },
     managerId: '',
   });
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const fetchBranches = async () => {
     try {
@@ -123,11 +127,31 @@ const Branches = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('address', formData.address);
+      data.append('contactNumber', formData.contactNumber);
+      data.append('managerId', formData.managerId);
+      data.append('branding', JSON.stringify(formData.branding));
+      if (formData.isActive !== undefined)
+        data.append('isActive', formData.isActive);
+
+      if (logoFile) {
+        data.append('logo', logoFile);
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
       if (currentBranch) {
-        await api.put(`/branches/${currentBranch._id}`, formData);
+        await api.put(`/branches/${currentBranch._id}`, data, config);
         toast.success('Branch updated successfully');
       } else {
-        await api.post('/branches', formData);
+        await api.post('/branches', data, config);
         toast.success('Branch created successfully');
       }
       setIsDialogOpen(false);
@@ -138,6 +162,8 @@ const Branches = () => {
       toast.error(
         currentBranch ? 'Failed to update branch' : 'Failed to create branch',
       );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -186,6 +212,8 @@ const Branches = () => {
 
   const resetForm = () => {
     setCurrentBranch(null);
+    setLogoPreview(null);
+    setLogoFile(null);
     setFormData({
       name: '',
       address: '',
@@ -538,21 +566,70 @@ const Branches = () => {
                     placeholder="Name shown on invoices/reports"
                   />
                 </div>
-                <div className="col-span-2 space-y-2">
-                  <Label>Logo URL</Label>
-                  <Input
-                    value={formData.branding.logoUrl}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        branding: {
-                          ...formData.branding,
-                          logoUrl: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="https://..."
-                  />
+                <div className="col-span-2 space-y-4">
+                  <Label>Branch Logo</Label>
+                  <div className="flex items-center gap-6">
+                    <div className="relative group">
+                      <div className="w-24 h-24 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-primary/40 transition-all duration-500">
+                        {logoPreview || formData.branding.logoUrl ? (
+                          <img
+                            src={logoPreview || formData.branding.logoUrl}
+                            alt="Logo preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Store
+                            className="text-muted-foreground/30"
+                            size={32}
+                          />
+                        )}
+                        <label
+                          htmlFor="logo-upload"
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all duration-300"
+                        >
+                          <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover:scale-100 transition-transform">
+                            <Plus size={20} className="text-white" />
+                          </div>
+                        </label>
+                      </div>
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setLogoFile(file);
+                            setLogoPreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Upload Image
+                      </p>
+                      <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                        PNG, JPG or WEBP. Max size 5MB. This logo will be used
+                        on invoices and portal branding.
+                      </p>
+                      <Input
+                        value={formData.branding.logoUrl}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branding: {
+                              ...formData.branding,
+                              logoUrl: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Or paste direct image URL..."
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Primary Color</Label>
@@ -626,9 +703,17 @@ const Branches = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} className="font-bold">
-              <Check size={16} className="mr-2" />
-              Save Branch
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="font-bold min-w-[120px]"
+            >
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Check size={16} className="mr-2" />
+              )}
+              {currentBranch ? 'Update Branch' : 'Save Branch'}
             </Button>
           </DialogFooter>
         </DialogContent>

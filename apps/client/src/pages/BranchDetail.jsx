@@ -84,6 +84,7 @@ const BranchDetail = () => {
   const [summary, setSummary] = useState({
     totalTransactions: 0,
     totalExpenses: 0,
+    liquidity: null, // Initialized as null to track first load
   });
   const [fetchingFinancials, setFetchingFinancials] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -281,20 +282,22 @@ const BranchDetail = () => {
     }
   }, []);
 
+  // Initial Mount
   useEffect(() => {
     fetchBranch();
     fetchStaff();
-    // Fetch initial stats and analytics
+    // Pre-fetch ledger/stats immediately for a seamless overview experience
     fetchLedger(false);
-    fetchAnalytics();
-  }, [fetchBranch, fetchStaff, fetchLedger, fetchAnalytics]);
+  }, [fetchBranch, fetchStaff, fetchLedger]);
 
+  // Date Range Trigger for Analytics
   useEffect(() => {
-    if (dateRange?.from && dateRange?.to) {
+    if (dateRange?.from && dateRange?.to && activeTab === 'overview') {
       fetchAnalytics();
     }
-  }, [dateRange, fetchAnalytics]);
+  }, [dateRange, fetchAnalytics, activeTab]);
 
+  // Tab Specific Triggers
   useEffect(() => {
     if (activeTab === 'expenses') {
       fetchExpenses(false);
@@ -391,39 +394,48 @@ const BranchDetail = () => {
     }
   };
 
-  if (loading) {
-    return <SplashScreen />;
-  }
-
-  if (!branch) return null;
+  // No full-page SplashScreen to ensure instant transitions
+  // if (loading) {
+  //   return <SplashScreen />;
+  // }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-12">
       <PageHeader
-        title={branch.name}
+        title={loading ? 'Loading Branch...' : branch?.name || 'Unknown Branch'}
         description={`Branch ID: ${id.slice(-6).toUpperCase()}`}
         onBack={() => navigate('/branches')}
       >
         <div className="flex items-center gap-3">
           <span
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-500 ${
-              branch.isActive
-                ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/20'
-                : 'bg-red-500/5 text-red-500 border-red-500/20'
+              loading
+                ? 'bg-muted/30 text-muted-foreground border-border/50'
+                : branch?.isActive
+                  ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/20'
+                  : 'bg-red-500/5 text-red-500 border-red-500/20'
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full animate-pulse ${
-                branch.isActive ? 'bg-emerald-500' : 'bg-red-500'
+              className={`w-2 h-2 rounded-full ${
+                loading
+                  ? 'bg-muted-foreground/30'
+                  : branch?.isActive
+                    ? 'bg-emerald-500 animate-pulse'
+                    : 'bg-red-500'
               }`}
             />
-            {branch.isActive ? 'Operational' : 'Closed'}
+            {loading
+              ? 'Fetching...'
+              : branch?.isActive
+                ? 'Operational'
+                : 'Closed'}
           </span>
         </div>
       </PageHeader>
 
       {/* Financial Intelligence Cards */}
-      {fetchingFinancials ? (
+      {fetchingFinancials && summary.liquidity === null ? (
         <CardsSkeleton count={4} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -526,18 +538,23 @@ const BranchDetail = () => {
                     <div
                       className="absolute inset-0 opacity-20"
                       style={{
-                        background: `linear-gradient(135deg, ${branch.branding?.primaryColor || 'var(--primary)'} 0%, ${branch.branding?.secondaryColor || 'var(--primary-foreground)'} 100%)`,
+                        background: loading
+                          ? 'var(--muted)'
+                          : `linear-gradient(135deg, ${branch?.branding?.primaryColor || 'var(--primary)'} 0%, ${branch?.branding?.secondaryColor || 'var(--primary-foreground)'} 100%)`,
                       }}
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      {branch.branding?.logoUrl ? (
+                      {branch?.branding?.logoUrl ? (
                         <img
                           src={branch.branding.logoUrl}
                           alt="Logo"
                           className="h-24 object-contain"
                         />
                       ) : (
-                        <Store size={80} className="text-primary opacity-20" />
+                        <Store
+                          size={80}
+                          className={`${loading ? 'text-muted-foreground/10' : 'text-primary opacity-20'}`}
+                        />
                       )}
                     </div>
                   </div>
@@ -549,12 +566,20 @@ const BranchDetail = () => {
                             Branch Identity
                           </Label>
                           <h3 className="text-3xl font-black tracking-tight">
-                            {branch.name}
+                            {loading ? (
+                              <div className="h-9 w-48 bg-muted animate-pulse rounded-lg" />
+                            ) : (
+                              branch?.name
+                            )}
                           </h3>
-                          <p className="text-muted-foreground font-medium">
-                            {branch.branding?.companyName ||
-                              'Corporate Location'}
-                          </p>
+                          <div className="text-muted-foreground font-medium">
+                            {loading ? (
+                              <div className="h-5 w-32 bg-muted animate-pulse rounded-lg mt-2" />
+                            ) : (
+                              branch?.branding?.companyName ||
+                              'Corporate Location'
+                            )}
+                          </div>
                         </div>
                         <div className="space-y-4 pt-4">
                           <div className="flex items-start gap-4 p-5 rounded-2xl bg-muted/30 border border-border/20">
@@ -563,9 +588,13 @@ const BranchDetail = () => {
                               <span className="text-sm font-black block mb-1">
                                 Permanent Address
                               </span>
-                              <span className="text-sm text-muted-foreground font-medium">
-                                {branch.address}
-                              </span>
+                              <div className="text-sm text-muted-foreground font-medium">
+                                {loading ? (
+                                  <div className="h-4 w-full bg-muted animate-pulse rounded-lg mt-1" />
+                                ) : (
+                                  branch?.address
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-4 p-5 rounded-2xl bg-muted/30 border border-border/20">
@@ -574,9 +603,13 @@ const BranchDetail = () => {
                               <span className="text-sm font-black block mb-1">
                                 Direct Contact
                               </span>
-                              <span className="text-sm text-muted-foreground font-medium">
-                                {branch.contactNumber}
-                              </span>
+                              <div className="text-sm text-muted-foreground font-medium">
+                                {loading ? (
+                                  <div className="h-4 w-32 bg-muted animate-pulse rounded-lg mt-1" />
+                                ) : (
+                                  branch?.contactNumber
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

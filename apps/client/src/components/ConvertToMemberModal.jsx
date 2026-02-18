@@ -104,8 +104,8 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         {...register('password', {
                           required: 'Password is required',
                           minLength: {
-                            value: 6,
-                            message: 'Password must be at least 6 characters',
+                            value: 8,
+                            message: 'Password must be at least 8 characters',
                           },
                         })}
                         className="w-full pl-10 pr-4 py-3 bg-secondary/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium placeholder:text-muted-foreground/50"
