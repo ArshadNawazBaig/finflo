@@ -6,6 +6,8 @@ const {
   getBranch,
   updateBranch,
   deleteBranch,
+  getBranchFinancials,
+  addBranchExpense,
 } = require('../controllers/branchController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -16,5 +18,8 @@ router
   .get(protect, getBranch)
   .put(protect, admin, updateBranch)
   .delete(protect, admin, deleteBranch);
+
+router.get('/:id/financials', protect, admin, getBranchFinancials);
+router.post('/:id/expenses', protect, admin, addBranchExpense);
 
 module.exports = router;

@@ -13,7 +13,7 @@ const financialTransactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['income', 'expense'],
+      enum: ['income', 'expense', 'loan'],
       required: true,
     },
     category: {
@@ -25,6 +25,11 @@ const financialTransactionSchema = new mongoose.Schema(
         'withdrawal',
         'profit_distribution',
         'fee',
+        'rent',
+        'salary',
+        'utilities',
+        'marketing',
+        'maintenance',
         'other',
       ],
       required: true,

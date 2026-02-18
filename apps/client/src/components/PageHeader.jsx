@@ -54,7 +54,7 @@ const PageHeader = ({
         {onBack && (
           <button
             onClick={onBack}
-            className="p-2.5 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group hidden sm:block"
+            className="p-2.5 rounded-full hover:bg-muted border border-border/50 text-muted-foreground hover:text-foreground transition-all group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>

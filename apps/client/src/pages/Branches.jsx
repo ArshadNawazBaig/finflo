@@ -12,8 +12,17 @@ import {
   Power,
   PowerOff,
   Trash2,
+  UserCog,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,12 +60,25 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 
 const Branches = () => {
+  const navigate = useNavigate();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentBranch, setCurrentBranch] = useState(null);
   const [deleteBranchId, setDeleteBranchId] = useState(null);
+  const [staff, setStaff] = useState([]);
+
+  // Get user for role-based rendering
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isManager = user.isManager && user.role === 'staff';
+
+  // Manager auto-redirect: managers see only their branch detail page
+  useEffect(() => {
+    if (isManager && user.branchId) {
+      navigate(`/branches/${user.branchId}`, { replace: true });
+    }
+  }, [isManager, user.branchId, navigate]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -69,6 +91,7 @@ const Branches = () => {
       primaryColor: '#000000',
       secondaryColor: '#ffffff',
     },
+    managerId: '',
   });
 
   const fetchBranches = async () => {
@@ -84,8 +107,18 @@ const Branches = () => {
     }
   };
 
+  const fetchStaff = async () => {
+    try {
+      const { data } = await api.get('/staff?limit=100');
+      setStaff(data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch staff', error);
+    }
+  };
+
   useEffect(() => {
     fetchBranches();
+    fetchStaff();
   }, []);
 
   const handleSave = async () => {
@@ -120,6 +153,7 @@ const Branches = () => {
         primaryColor: branch.branding?.primaryColor || '#000000',
         secondaryColor: branch.branding?.secondaryColor || '#ffffff',
       },
+      managerId: branch.manager?._id || '',
     });
     setIsDialogOpen(true);
   };
@@ -162,12 +196,17 @@ const Branches = () => {
         primaryColor: '#000000',
         secondaryColor: '#ffffff',
       },
+      managerId: '',
     });
   };
 
   const filteredBranches = branches.filter((branch) =>
     branch.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const handleOpenDetails = (branch) => {
+    navigate(`/branches/${branch._id}`);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -214,7 +253,10 @@ const Branches = () => {
                 className="group relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[2.5rem] -m-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <Card className="relative overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem]">
+                <Card
+                  onClick={() => handleOpenDetails(branch)}
+                  className="relative overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] cursor-pointer"
+                >
                   <CardContent className="p-0">
                     {/* Branding Preview Header */}
                     <div
@@ -235,6 +277,7 @@ const Branches = () => {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={(e) => e.stopPropagation()}
                               className="h-9 w-9 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 transition-all duration-300"
                             >
                               <MoreVertical size={18} />
@@ -245,13 +288,19 @@ const Branches = () => {
                             className="w-48 rounded-[1.2rem] border-border/40 p-1.5"
                           >
                             <DropdownMenuItem
-                              onClick={() => handleEdit(branch)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(branch);
+                              }}
                               className="rounded-xl py-2.5 font-bold focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
                             >
                               <Edit size={14} className="mr-3" /> Edit Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => toggleStatus(branch)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleStatus(branch);
+                              }}
                               className="rounded-xl py-2.5 font-bold focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
                             >
                               {branch.isActive ? (
@@ -274,7 +323,10 @@ const Branches = () => {
                             </DropdownMenuItem>
                             <div className="h-px bg-border/40 my-1 mx-2" />
                             <DropdownMenuItem
-                              onClick={() => setDeleteBranchId(branch._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteBranchId(branch._id);
+                              }}
                               className="rounded-xl py-2.5 font-bold text-red-500 focus:bg-red-50 focus:text-red-600 transition-colors cursor-pointer"
                             >
                               <Trash2 size={14} className="mr-3" /> Delete
@@ -421,6 +473,46 @@ const Branches = () => {
                     }
                     placeholder="Full street address"
                   />
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCog size={14} className="text-primary" />
+                    <Label className="text-sm font-bold">Branch Manager</Label>
+                  </div>
+                  <Select
+                    value={formData.managerId || 'none'}
+                    onValueChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        managerId: val === 'none' ? '' : val,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-border/40">
+                      <SelectValue placeholder="Assign a Manager (Optional)" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/40">
+                      <SelectItem value="none" className="rounded-lg">
+                        No Manager Assigned
+                      </SelectItem>
+                      {staff.map((member) => (
+                        <SelectItem
+                          key={member._id}
+                          value={member._id}
+                          className="rounded-lg"
+                        >
+                          <div className="flex flex-col py-0.5">
+                            <span className="font-bold text-sm">
+                              {member.name}
+                            </span>
+                            <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
+                              {member.email}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>

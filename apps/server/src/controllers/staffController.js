@@ -50,7 +50,12 @@ const getStaff = async (req, res) => {
     const { page = 1, limit = 10, search = '' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const query = { ownerId: req.user._id };
+    let query = { ownerId: req.user._id };
+
+    // Branch Restricted Admin logic
+    if (req.user.isManager && req.user.role === 'staff') {
+      query = { ownerId: req.user.ownerId, branchId: req.user.branchId };
+    }
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -80,7 +85,17 @@ const getStaff = async (req, res) => {
 const toggleStaffStatus = async (req, res) => {
   try {
     const staff = await User.findById(req.params.id);
-    if (!staff || staff.ownerId.toString() !== req.user._id.toString()) {
+
+    // Authorization check: Must be owner OR the staff's branch manager
+    const isOwner =
+      staff && staff.ownerId.toString() === req.user._id.toString();
+    const isBranchManager =
+      req.user.isManager &&
+      staff &&
+      staff.ownerId.toString() === req.user.ownerId.toString() &&
+      staff.branchId?.toString() === req.user.branchId?.toString();
+
+    if (!staff || (!isOwner && !isBranchManager)) {
       return res.status(404).json({ message: 'Staff member not found' });
     }
 
@@ -106,7 +121,17 @@ const updateStaff = async (req, res) => {
   const { name, email, password, branchId } = req.body;
   try {
     const staff = await User.findById(req.params.id);
-    if (!staff || staff.ownerId.toString() !== req.user._id.toString()) {
+
+    // Authorization check: Must be owner OR the staff's branch manager
+    const isOwner =
+      staff && staff.ownerId.toString() === req.user._id.toString();
+    const isBranchManager =
+      req.user.isManager &&
+      staff &&
+      staff.ownerId.toString() === req.user.ownerId.toString() &&
+      staff.branchId?.toString() === req.user.branchId?.toString();
+
+    if (!staff || (!isOwner && !isBranchManager)) {
       return res.status(404).json({ message: 'Staff member not found' });
     }
 
@@ -141,7 +166,17 @@ const updateStaff = async (req, res) => {
 const deleteStaff = async (req, res) => {
   try {
     const staff = await User.findById(req.params.id);
-    if (!staff || staff.ownerId.toString() !== req.user._id.toString()) {
+
+    // Authorization check: Must be owner OR the staff's branch manager
+    const isOwner =
+      staff && staff.ownerId.toString() === req.user._id.toString();
+    const isBranchManager =
+      req.user.isManager &&
+      staff &&
+      staff.ownerId.toString() === req.user.ownerId.toString() &&
+      staff.branchId?.toString() === req.user.branchId?.toString();
+
+    if (!staff || (!isOwner && !isBranchManager)) {
       return res.status(404).json({ message: 'Staff member not found' });
     }
 

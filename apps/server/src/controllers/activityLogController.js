@@ -45,9 +45,15 @@ const getAllActivityLogs = async (req, res) => {
     // Build query
     let query = {};
 
-    // Branch Segregation: Staff only see their own branch logs
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation: Staff/Managers only see their own branch logs
+    if (req.user.role === 'staff') {
+      if (req.user.isManager && req.user.managedBranchId) {
+        // Managers see all logs from their managed branch
+        query.branchId = req.user.managedBranchId;
+      } else if (req.user.branchId) {
+        // Regular staff see their own branch logs
+        query.branchId = req.user.branchId;
+      }
     }
 
     // Filter by effectiveOwnerId for regular admins

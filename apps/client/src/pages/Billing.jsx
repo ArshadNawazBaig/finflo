@@ -435,7 +435,10 @@ const Billing = () => {
                                         : ''
                                     }
                                   >
-                                    ${inv.amount?.toFixed(2)}
+                                    $
+                                    {Math.ceil(
+                                      inv.amount || 0,
+                                    ).toLocaleString()}
                                   </span>
                                   {inv.status === 'refunded' && (
                                     <span className="ml-2 text-xs text-destructive font-bold">

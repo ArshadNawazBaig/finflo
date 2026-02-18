@@ -90,7 +90,7 @@ const backfill = async () => {
       transactions.push({
         user: l.user,
         branchId: l.branchId,
-        type: 'expense',
+        type: 'loan',
         category: 'loan_disbursement',
         amount: l.principal,
         date: l.approvedAt || l.startDate || l.createdAt,

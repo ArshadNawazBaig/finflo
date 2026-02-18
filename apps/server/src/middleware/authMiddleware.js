@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Branch = require('../models/Branch');
 
 const protect = async (req, res, next) => {
   let token;
@@ -17,14 +18,21 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User not found' });
       }
 
+      // Check if this staff member is a branch manager
+      if (req.user.role === 'staff') {
+        const managedBranch = await Branch.findOne({ manager: req.user._id });
+        req.user.isManager = !!managedBranch;
+        req.user.managedBranchId = managedBranch ? managedBranch._id : null;
+      } else {
+        req.user.isManager = false;
+        req.user.managedBranchId = null;
+      }
+
       // Set effective owner ID for data filtering
       // If super_admin, they see all (or filtered by query).
       // If staff/admin with branchId, they see branch data.
       req.user.effectiveOwnerId =
         req.user.role === 'staff' ? req.user.ownerId : req.user._id;
-
-      // Populate branchId if available (already on user model, but ensuring it's accessible)
-      // req.user.branchId is available directly from the User model
 
       next();
     } catch (error) {
@@ -41,7 +49,9 @@ const protect = async (req, res, next) => {
 const admin = (req, res, next) => {
   if (
     req.user &&
-    (req.user.role === 'admin' || req.user.role === 'super_admin')
+    (req.user.role === 'admin' ||
+      req.user.role === 'super_admin' ||
+      req.user.isManager)
   ) {
     next();
   } else {

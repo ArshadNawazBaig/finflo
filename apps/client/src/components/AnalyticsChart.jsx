@@ -37,12 +37,16 @@ const AnalyticsChart = ({
             {payload.map((entry, index) => {
               const colors = {
                 inflow: 'text-primary',
+                deposits: 'text-blue-500',
+                expenses: 'text-orange-500',
                 outflow: 'text-rose-500',
                 profit: 'text-emerald-500',
                 projected: 'text-primary/60',
               };
               const labels = {
                 inflow: 'Inflow',
+                deposits: 'Deposits',
+                expenses: 'Expenses',
                 outflow: 'Outflow',
                 profit: 'Profit',
                 projected: 'Projected Inflow',
@@ -164,6 +168,28 @@ const AnalyticsChart = ({
                   fill: 'hsl(var(--primary))',
                 }}
                 animationDuration={1500}
+              />
+              <Line
+                type="monotone"
+                dataKey="deposits"
+                name="Deposits"
+                stroke="#3b82f6" // blue-500
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#3b82f6' }}
+                animationDuration={1500}
+                opacity={0.9}
+              />
+              <Line
+                type="monotone"
+                dataKey="expenses"
+                name="Expenses"
+                stroke="#f97316" // orange-500
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#f97316' }}
+                animationDuration={1500}
+                opacity={0.85}
               />
               <Line
                 type="monotone"

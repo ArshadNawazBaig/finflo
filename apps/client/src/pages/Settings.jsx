@@ -61,6 +61,9 @@ const Settings = () => {
     JSON.parse(localStorage.getItem('user') || '{}'),
   );
 
+  const isManager = user.isManager && user.role === 'staff';
+  const isAdmin = ['admin', 'Admin'].includes(user.role);
+
   // Modal States
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -131,7 +134,7 @@ const Settings = () => {
     },
   ];
 
-  if (['admin', 'Admin'].includes(user.role)) {
+  if (isAdmin) {
     tabs.push({
       id: 'configuration',
       label: 'Configuration',
@@ -149,8 +152,12 @@ const Settings = () => {
       </div>
 
       <PageHeader
-        title="Admin Settings"
-        description="Manage your profile, notifications, security, and global configuration."
+        title={isManager ? 'Branch Manager Settings' : 'Admin Settings'}
+        description={
+          isManager
+            ? 'Manage your profile, notifications, and security.'
+            : 'Manage your profile, notifications, security, and global configuration.'
+        }
         className="mb-10"
       />
 
@@ -448,38 +455,40 @@ const Settings = () => {
                     </div>
                   </section>
 
-                  {/* Danger Zone */}
-                  <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
-                    <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  {/* Danger Zone — Admin only */}
+                  {isAdmin && (
+                    <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
+                      <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                    <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
-                      <div className="space-y-1">
-                        <h3 className="text-xl font-black tracking-tight text-rose-500">
-                          Danger Zone
-                        </h3>
-                        <p className="text-muted-foreground text-xs font-medium">
-                          Irreversible actions that affect your entire business
-                          ecosystem.
+                      <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
+                        <div className="space-y-1">
+                          <h3 className="text-xl font-black tracking-tight text-rose-500">
+                            Danger Zone
+                          </h3>
+                          <p className="text-muted-foreground text-xs font-medium">
+                            Irreversible actions that affect your entire
+                            business ecosystem.
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsDeleteModalOpen(true)}
+                          className="rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-black/20"
+                        >
+                          Delete Account Permanently
+                        </Button>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 relative z-10">
+                        <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                          <Info size={14} />
+                          WARNING: THIS ACTION WILL PERMANENTLY SCRUB ALL LOANS,
+                          CUSTOMERS, AND FINANCIAL RECORDS.
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        className="rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-black/20"
-                      >
-                        Delete Account Permanently
-                      </Button>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 relative z-10">
-                      <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <Info size={14} />
-                        WARNING: THIS ACTION WILL PERMANENTLY SCRUB ALL LOANS,
-                        CUSTOMERS, AND FINANCIAL RECORDS.
-                      </p>
-                    </div>
-                  </section>
+                    </section>
+                  )}
                 </>
               )}
 
@@ -574,49 +583,54 @@ const Settings = () => {
                         Change Password
                       </Button>
                     </div>
-                    <div className="flex items-start justify-between pb-4 border-b border-border/50">
-                      <div className="flex items-center gap-3">
-                        <ShieldCheck
-                          size={18}
-                          className="text-muted-foreground"
-                        />
-                        <div>
-                          <p className="font-medium text-sm">
-                            Business Security Code
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Share this code with your members for portal access
-                          </p>
+                    {isAdmin && (
+                      <div className="flex items-start justify-between pb-4 border-b border-border/50">
+                        <div className="flex items-center gap-3">
+                          <ShieldCheck
+                            size={18}
+                            className="text-muted-foreground"
+                          />
+                          <div>
+                            <p className="font-medium text-sm">
+                              Business Security Code
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Share this code with your members for portal
+                              access
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-mono text-lg font-black text-primary tracking-wider">
+                            {user.securityCode || 'LOADING...'}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 px-3"
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                user.securityCode || '',
+                              );
+                              setCopiedSecurityCode(true);
+                              toast.success(
+                                'Security code copied to clipboard',
+                              );
+                              setTimeout(
+                                () => setCopiedSecurityCode(false),
+                                2000,
+                              );
+                            }}
+                          >
+                            {copiedSecurityCode ? (
+                              <Check size={16} className="text-emerald-500" />
+                            ) : (
+                              <Copy size={16} />
+                            )}
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-mono text-lg font-black text-primary tracking-wider">
-                          {user.securityCode || 'LOADING...'}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 px-3"
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              user.securityCode || '',
-                            );
-                            setCopiedSecurityCode(true);
-                            toast.success('Security code copied to clipboard');
-                            setTimeout(
-                              () => setCopiedSecurityCode(false),
-                              2000,
-                            );
-                          }}
-                        >
-                          {copiedSecurityCode ? (
-                            <Check size={16} className="text-emerald-500" />
-                          ) : (
-                            <Copy size={16} />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <LogOut size={18} className="text-muted-foreground" />

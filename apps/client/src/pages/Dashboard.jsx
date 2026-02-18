@@ -119,7 +119,7 @@ const Dashboard = () => {
             <strong className="text-foreground capitalize font-black">
               {capitalize(userName)}
             </strong>
-            . Here's your portfolio performance today.
+            . Here's your portfolio performance.
           </>
         }
       />
@@ -178,32 +178,34 @@ const Dashboard = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           <StatsCard
-            title="Profit"
-            amount={formatPKR(stats?.profit?.amount || 0)}
-            percentage={stats?.profit?.percentage}
-            icon={<DollarSign size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Active Loans"
-            amount={stats?.activeLoans?.count || 0}
-            percentage={stats?.activeLoans?.percentage}
-            icon={<ExternalLink size={20} />}
-            color="bg-orange-500 shadow-orange-500/20"
-          />
-          <StatsCard
-            title="Total Repaid"
-            amount={formatPKR(stats?.totalRepaid?.amount || 0)}
-            percentage={stats?.totalRepaid?.percentage}
+            title="Net Liquidity"
+            amount={formatPKR(stats?.banking?.liquidity || 0)}
+            subtitle="Available Cash"
             icon={<Coins size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
-            title="Outstanding"
-            amount={formatPKR(stats?.outstanding?.amount || 0)}
-            percentage={stats?.outstanding?.percentage}
+            title="Total Deposits"
+            amount={formatPKR(stats?.banking?.deposits || 0)}
+            subtitle="Member Capital"
             icon={<Download size={20} />}
-            color="bg-rose-500 shadow-rose-500/20"
+            color="bg-blue-500 shadow-blue-500/20"
+          />
+          <StatsCard
+            title="Net Profit"
+            amount={formatPKR(stats?.profit?.amount || 0)}
+            percentage={stats?.profit?.percentage}
+            subtitle="Interest Earnings"
+            icon={<TrendingUp size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Total Disbursed"
+            amount={formatPKR(stats?.banking?.disbursed?.amount || 0)}
+            percentage={stats?.banking?.disbursed?.percentage}
+            subtitle="Portfolio Value"
+            icon={<ExternalLink size={20} />}
+            color="bg-orange-500 shadow-orange-500/20"
           />
           {/* <StatsCard
             title="Forecast (6M)"

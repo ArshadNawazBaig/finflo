@@ -129,6 +129,15 @@ const loginUser = async (req, res) => {
       user.lastLoginAt = new Date();
       await user.save();
 
+      // Detect manager status directly (middleware hasn't run yet at login)
+      let isManager = false;
+      let branchId = user.branchId;
+      if (user.role === 'staff') {
+        const managedBranch = await Branch.findOne({ manager: user._id });
+        isManager = !!managedBranch;
+        if (managedBranch) branchId = managedBranch._id;
+      }
+
       // Log activity
       await logActivity({
         userId: user._id,
@@ -143,6 +152,8 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isManager,
+        branchId,
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
@@ -160,12 +171,23 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('branchId'); // req.user set by protect middleware
     if (user) {
+      // Detect manager status
+      let isManager = false;
+      let branchId = user.branchId;
+      if (user.role === 'staff') {
+        const managedBranch = await Branch.findOne({ manager: user._id });
+        isManager = !!managedBranch;
+        if (managedBranch) branchId = managedBranch._id;
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        branch: user.branchId, // Return full branch object
+        isManager,
+        branchId: branchId?._id || branchId, // Return ID, not populated object
+        branch: user.branchId, // Return full branch object for backward compat
         plan: user.plan,
         customerCount: user.customerCount,
         businessName: user.businessName,
@@ -477,11 +499,9 @@ const deleteAccount = async (req, res) => {
 
     // Protection for super admin (optional, but safer)
     if (user.role === 'super_admin') {
-      return res
-        .status(403)
-        .json({
-          message: 'Super Admin account cannot be deleted via this endpoint.',
-        });
+      return res.status(403).json({
+        message: 'Super Admin account cannot be deleted via this endpoint.',
+      });
     }
 
     // Cloudinary Cleanup: Profile Picture

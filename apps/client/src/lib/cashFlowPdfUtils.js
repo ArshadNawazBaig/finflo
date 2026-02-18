@@ -44,12 +44,10 @@ export const exportCashFlowStatement = async (
     startY: 60,
     body: [
       ['Total Cash Inflow', formatPKR(summary.inflow || 0)],
+      ['Total Deposits', formatPKR(summary.deposits || 0)],
       ['Total Cash Outflow', formatPKR(summary.outflow || 0)],
       ['Net Profit (Interest)', formatPKR(summary.profit || 0)],
-      [
-        'Total Repayment Transactions',
-        (summary.totalTransactions || 0).toString(),
-      ],
+      ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
@@ -68,12 +66,12 @@ export const exportCashFlowStatement = async (
   if (repayments && repayments.length > 0) {
     autoTable(doc, {
       startY: tableY + 5,
-      head: [['Date', 'Description', 'Customer', 'Loan ID', 'Amount']],
+      head: [['Date', 'Description', 'Entity', 'Ref', 'Amount']],
       body: repayments.map((t) => [
         format(new Date(t.date), 'MMM dd, yyyy'),
-        t.type === 'repayment' ? 'Loan Repayment' : 'Transaction',
-        t.customer?.name || 'N/A',
-        t.loan?.loanId || 'N/A',
+        t.type === 'repayment' ? 'Loan Repayment' : 'Member Deposit',
+        t.entityName || t.customer?.name || t.member?.name || 'N/A', // Handle both new and old structure if needed
+        t.reference || t.loan?.loanId || 'Deposit',
         formatPKR(t.amount),
       ]),
       theme: 'grid',

@@ -6,6 +6,8 @@ const {
   getMonthDates,
 } = require('../utils/reportUtils');
 
+const FinancialTransaction = require('../models/FinancialTransaction');
+
 const getDashboardStats = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
@@ -16,8 +18,11 @@ const getDashboardStats = async (req, res) => {
     const query = { user: req.user.effectiveOwnerId };
 
     // Branch Segregation
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.isManager
+        ? req.user.managedBranchId
+        : req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     let filterStart, filterEnd;
@@ -39,6 +44,10 @@ const getDashboardStats = async (req, res) => {
       'loan',
       'principal totalAmount',
     );
+
+    // Fetch Deposits (Investments)
+    const depositQuery = { ...query, category: 'investment' };
+    const deposits = await FinancialTransaction.find(depositQuery);
 
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
@@ -113,6 +122,72 @@ const getDashboardStats = async (req, res) => {
       prevOutstanding,
     );
 
+    // 5. Banking Metrics (New for Banking Expert View)
+    // 5a. Total Deposits (Liability): currentBalance = what we owe members
+    const Member = require('../models/Member');
+    const members = await Member.find(query);
+    const totalDeposits = members.reduce(
+      (sum, m) => sum + (m.currentBalance || 0),
+      0,
+    );
+
+    // 5a-2. Total Invested (Lifetime capital inflow from members)
+    const totalInvested = members.reduce(
+      (sum, m) => sum + (m.totalInvested || 0),
+      0,
+    );
+
+    // 5b. Total Disbursed (Asset Deployment): Sum of all loan principals
+    const totalDisbursed = loans.reduce(
+      (sum, l) => sum + (l.principal || 0),
+      0,
+    );
+    // Previous month disbursed for trend
+    const prevDisbursed = loans
+      .filter((l) => new Date(l.createdAt) <= prevEnd)
+      .reduce((sum, l) => sum + (l.principal || 0), 0);
+    const disbursedChange = calculatePercentageChange(
+      totalDisbursed,
+      prevDisbursed,
+    );
+
+    // 5c. Net Cash Flow / Liquidity Position
+    // Available Cash = (Invested + Repaid) - (Disbursed + Withdrawn + Expenses)
+    const totalWithdrawn = members.reduce(
+      (sum, m) => sum + (m.totalWithdrawn || 0),
+      0,
+    );
+
+    // Fetch Operating Expenses only (exclude capital movements like disbursements/withdrawals
+    // which are already accounted for via totalDisbursed and totalWithdrawn)
+    const expenseQuery = {
+      ...query,
+      type: 'expense',
+      category: {
+        $in: [
+          'rent',
+          'salary',
+          'utilities',
+          'marketing',
+          'maintenance',
+          'fee',
+          'other',
+        ],
+      },
+    };
+    const expenses = await FinancialTransaction.find(expenseQuery);
+    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    const netLiquidity =
+      totalInvested +
+      totalRepaid -
+      totalDisbursed -
+      totalWithdrawn -
+      totalExpenses;
+
+    // Net Profit = Interest Earnings - Operating Expenses
+    const netProfit = totalProfit - totalExpenses;
+
     // 5. Recent Transactions
     const recentTransactions = await Repayment.find(query)
       .sort({ date: -1 })
@@ -152,6 +227,24 @@ const getDashboardStats = async (req, res) => {
         const inflow = monthRepayments.reduce((sum, r) => sum + r.amount, 0);
         const profit = calculateProfit(monthRepayments);
 
+        // Deposits
+        const monthDeposits = deposits.filter(
+          (d) => d.date >= mStart && d.date <= mEnd,
+        );
+        const depositAmount = monthDeposits.reduce(
+          (sum, d) => sum + d.amount,
+          0,
+        );
+
+        // Expenses
+        const monthExpenses = expenses.filter(
+          (e) => e.date >= mStart && e.date <= mEnd,
+        );
+        const expenseAmount = monthExpenses.reduce(
+          (sum, e) => sum + e.amount,
+          0,
+        );
+
         // Outflow: Principal of loans disbursed in this month
         const monthLoans = loans.filter(
           (l) => l.startDate >= mStart && l.startDate <= mEnd,
@@ -166,6 +259,8 @@ const getDashboardStats = async (req, res) => {
           inflow,
           outflow,
           profit,
+          deposits: depositAmount,
+          expenses: expenseAmount,
           actual: inflow, // Fallback for backward compatibility
         });
 
@@ -180,6 +275,24 @@ const getDashboardStats = async (req, res) => {
         );
         const inflow = monthRepayments.reduce((sum, r) => sum + r.amount, 0);
         const profit = calculateProfit(monthRepayments);
+
+        // Deposits
+        const monthDeposits = deposits.filter(
+          (d) => d.date >= start && d.date <= end,
+        );
+        const depositAmount = monthDeposits.reduce(
+          (sum, d) => sum + d.amount,
+          0,
+        );
+
+        // Expenses
+        const monthExpenses = expenses.filter(
+          (e) => e.date >= start && e.date <= end,
+        );
+        const expenseAmount = monthExpenses.reduce(
+          (sum, e) => sum + e.amount,
+          0,
+        );
 
         // Outflow
         const monthLoans = loans.filter(
@@ -196,6 +309,8 @@ const getDashboardStats = async (req, res) => {
           inflow,
           outflow,
           profit,
+          deposits: depositAmount,
+          expenses: expenseAmount,
           actual: inflow,
         });
       }
@@ -280,7 +395,7 @@ const getDashboardStats = async (req, res) => {
 
     res.json({
       stats: {
-        profit: { amount: totalProfit, percentage: profitChange },
+        profit: { amount: netProfit, percentage: profitChange },
         activeLoans: { count: activeLoans, percentage: loansChange },
         totalRepaid: { amount: totalRepaid, percentage: repaidChange },
         outstanding: {
@@ -290,6 +405,12 @@ const getDashboardStats = async (req, res) => {
         forecast: {
           total6Months: totalProjected,
           percentage: forecastPercentage,
+        },
+        banking: {
+          deposits: totalDeposits,
+          disbursed: { amount: totalDisbursed, percentage: disbursedChange },
+          liquidity: netLiquidity,
+          expenses: totalExpenses,
         },
       },
       recentTransactions,
@@ -313,14 +434,41 @@ const downloadStatement = async (req, res) => {
       };
     }
 
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.isManager
+        ? req.user.managedBranchId
+        : req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
-
     const repayments = await Repayment.find(query)
       .populate('customer', 'name')
       .populate('loan', 'loanId principal totalAmount')
       .sort({ date: -1 });
+
+    // Fetch Deposits
+    const depositQuery = { ...query, category: 'investment' };
+    const deposits = await FinancialTransaction.find(depositQuery)
+      .populate('member', 'name')
+      .sort({ date: -1 });
+
+    const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
+
+    // Combine for statement
+    // We'll normalize them to a common structure for the response
+    const combinedTransactions = [
+      ...repayments.map((r) => ({
+        ...r.toObject(),
+        type: 'repayment',
+        entityName: r.customer?.name || 'Unknown',
+        reference: r.loan?.loanId || 'N/A',
+      })),
+      ...deposits.map((d) => ({
+        ...d.toObject(),
+        type: 'deposit',
+        entityName: d.member?.name || 'Unknown',
+        reference: 'Deposit',
+      })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Calculate Summary Metrics for the period
     const inflow = repayments.reduce((sum, r) => sum + r.amount, 0);
@@ -345,30 +493,36 @@ const downloadStatement = async (req, res) => {
         $lte: new Date(endDate),
       };
     }
-    if (req.user.role === 'staff' && req.user.branchId) {
-      loanQuery.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.isManager
+        ? req.user.managedBranchId
+        : req.user.branchId;
+      if (branchScope) loanQuery.branchId = branchScope;
     }
     const loans = await Loan.find(loanQuery);
     const outflow = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
     if (format === 'json') {
       return res.json({
-        repayments,
+        repayments: combinedTransactions, // Sending combined list as 'repayments' to keep frontend contract similar, or we can rename
         summary: {
           inflow,
+          deposits: totalDeposits,
           outflow,
           profit,
-          totalTransactions: repayments.length,
+          totalTransactions: combinedTransactions.length,
         },
       });
     }
 
-    let csv = 'Date,Customer,Loan ID,Amount,Type\n';
-    repayments.forEach((r) => {
-      const date = new Date(r.date).toLocaleDateString();
-      const customer = r.customer?.name || 'Unknown';
-      const loanId = r.loan?.loanId || 'N/A';
-      csv += `${date},"${customer}",${loanId},${r.amount},${r.type}\n`;
+    let csv = 'Date,Description,Entity,Reference,Amount,Type\n';
+    combinedTransactions.forEach((t) => {
+      const date = new Date(t.date).toLocaleDateString();
+      const description =
+        t.type === 'repayment' ? 'Loan Repayment' : 'Member Deposit';
+      const entity = t.entityName;
+      const reference = t.reference;
+      csv += `${date},"${description}","${entity}",${reference},${t.amount},${t.type}\n`;
     });
 
     res.setHeader('Content-Type', 'text/csv');

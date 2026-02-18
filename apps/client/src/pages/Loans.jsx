@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Search, Loader2, CreditCard } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Loader2,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  ExternalLink,
+  Coins,
+  Download,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TableSearch from '@/components/ui/TableSearch';
 import {
@@ -25,6 +35,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import CountUp from 'react-countup';
+import StatsCard from '@/components/StatsCard';
+import CardsSkeleton from '@/components/CardsSkeleton';
+import { formatPKR } from '@/lib/utils';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -43,6 +57,7 @@ const Loans = () => {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [stats, setStats] = useState(null);
 
   const observerTarget = useRef(null);
 
@@ -50,6 +65,18 @@ const Loans = () => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await api.get('/dashboard/stats');
+        setStats(data.stats);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -170,6 +197,48 @@ const Loans = () => {
           New Loan
         </Button>
       </PageHeader>
+
+      {/* Stats Grid - Moved from Dashboard */}
+      {/* Stats Grid - Moved from Dashboard */}
+      {!stats ? (
+        <div className="mb-8">
+          <CardsSkeleton />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatsCard
+            title="Active Loans"
+            amount={stats.activeLoans?.count || 0}
+            percentage={stats.activeLoans?.percentage}
+            subtitle="Currently Active"
+            icon={<ExternalLink size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Outstanding"
+            amount={formatPKR(stats.outstanding?.amount || 0)}
+            percentage={stats.outstanding?.percentage}
+            subtitle="Total Receivable"
+            icon={<Download size={20} />}
+            color="bg-orange-500 shadow-orange-500/20"
+          />
+          <StatsCard
+            title="Total Repaid"
+            amount={formatPKR(stats.totalRepaid?.amount || 0)}
+            percentage={stats.totalRepaid?.percentage}
+            subtitle="Successfully Recovered"
+            icon={<Coins size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Total Loans"
+            amount={totalEntries}
+            subtitle="Lifetime Issuance"
+            icon={<CreditCard size={20} />}
+            color="bg-blue-500 shadow-blue-500/20"
+          />
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <TableSearch

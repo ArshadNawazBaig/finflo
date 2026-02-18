@@ -25,6 +25,7 @@ const Loans = lazy(() => import('@/pages/Loans'));
 const Transactions = lazy(() => import('@/pages/Transactions'));
 const Reports = lazy(() => import('@/pages/Reports'));
 const Branches = lazy(() => import('@/pages/Branches'));
+const BranchDetail = lazy(() => import('@/pages/BranchDetail'));
 const Team = lazy(() => import('@/pages/Team'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const Billing = lazy(() => import('@/pages/Billing'));
@@ -123,6 +124,7 @@ function App() {
                   <Route path="/transactions" element={<Transactions />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/branches" element={<Branches />} />
+                  <Route path="/branches/:id" element={<BranchDetail />} />
                   <Route path="/team" element={<Team />} />
 
                   {/* Admin Only Routes */}

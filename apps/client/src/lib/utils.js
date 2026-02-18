@@ -7,12 +7,11 @@ export function cn(...inputs) {
 
 export const formatPKR = (num) => {
   if (num === undefined || num === null) return 'Rs. 0';
+  num = Math.ceil(num);
   const absNum = Math.abs(num);
-  let formatted = num;
+  let formatted;
   if (absNum >= 1000000) {
     formatted = (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  } else if (absNum >= 1000) {
-    formatted = (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   } else {
     formatted = num.toLocaleString();
   }
@@ -20,12 +19,11 @@ export const formatPKR = (num) => {
 };
 export const formatCompactValue = (num) => {
   if (num === undefined || num === null) return '0';
+  num = Math.ceil(num);
   const absNum = Math.abs(num);
-  let formatted = num;
+  let formatted;
   if (absNum >= 1000000) {
     formatted = (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  } else if (absNum >= 1000) {
-    formatted = (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
   } else {
     formatted = num.toLocaleString();
   }

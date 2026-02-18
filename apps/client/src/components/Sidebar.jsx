@@ -119,7 +119,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         .slice(0, 2)
     : 'JS';
   const userName = user.name || 'John Smith';
-  const userRole = user.role || 'User';
+  const userRole = user.isManager ? 'Branch Manager' : user.role || 'User';
 
   const sidebarClasses = cn(
     'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
@@ -187,17 +187,17 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             isExpanded={isLayoutExpanded}
           />
           <NavItem
-            to="/loans"
-            icon={<WalletMinimal size={18} />}
-            active={isActive('/loans')}
-            label="Loans"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
             to="/loan-requests"
             icon={<FileQuestion size={18} />}
             active={isActive('/loan-requests')}
             label="Requests"
+            isExpanded={isLayoutExpanded}
+          />
+          <NavItem
+            to="/loans"
+            icon={<WalletMinimal size={18} />}
+            active={isActive('/loans')}
+            label="Loans"
             isExpanded={isLayoutExpanded}
           />
           <NavItem
@@ -214,30 +214,36 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Reports"
             isExpanded={isLayoutExpanded}
           />
-          {user.role === 'admin' && (
-            <>
-              <NavItem
-                to="/team"
-                icon={<Users size={18} />}
-                active={isActive('/team')}
-                label="Team"
-                isExpanded={isLayoutExpanded}
-              />
-              <NavItem
-                to="/branches"
-                icon={<ShieldCheck size={18} />}
-                active={isActive('/branches')}
-                label="Branches"
-                isExpanded={isLayoutExpanded}
-              />
-              <NavItem
-                to="/audit-logs"
-                icon={<Archive size={18} />}
-                active={isActive('/audit-logs')}
-                label="Audit Trail"
-                isExpanded={isLayoutExpanded}
-              />
-            </>
+          {(user.role === 'admin' || user.isManager) && (
+            <NavItem
+              to="/team"
+              icon={<Users size={18} />}
+              active={isActive('/team')}
+              label="Team"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {(user.role === 'admin' || user.isManager) && (
+            <NavItem
+              to={user.isManager ? `/branches/${user.branchId}` : '/branches'}
+              icon={<ShieldCheck size={18} />}
+              active={
+                user.isManager
+                  ? isActive(`/branches/${user.branchId}`)
+                  : isActive('/branches')
+              }
+              label={user.isManager ? 'My Branch' : 'Branches'}
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {(user.role === 'admin' || user.isManager) && (
+            <NavItem
+              to="/audit-logs"
+              icon={<Archive size={18} />}
+              active={isActive('/audit-logs')}
+              label="Audit Trail"
+              isExpanded={isLayoutExpanded}
+            />
           )}
           <NavItem
             to="/notifications"
@@ -249,17 +255,17 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           {user.role === 'admin' && (
             <>
               <NavItem
-                to="/billing"
-                icon={<CreditCard size={18} />}
-                active={isActive('/billing')}
-                label="Billing"
-                isExpanded={isLayoutExpanded}
-              />
-              <NavItem
                 to="/pricing"
                 icon={<Gem size={18} />}
                 active={isActive('/pricing')}
                 label="Pricing"
+                isExpanded={isLayoutExpanded}
+              />
+              <NavItem
+                to="/billing"
+                icon={<CreditCard size={18} />}
+                active={isActive('/billing')}
+                label="Billing"
                 isExpanded={isLayoutExpanded}
               />
             </>

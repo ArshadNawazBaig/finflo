@@ -697,18 +697,14 @@ const getUpcomingRepayments = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Look ahead 90 days and back 30 days (for overdue)
-    const ninetyDaysAhead = new Date();
-    ninetyDaysAhead.setDate(today.getDate() + 90);
-
     for (const loan of loans) {
-      const repaymentsCount = await Repayment.countDocuments({
-        loan: loan._id,
-      });
+      // Calculate how many installments are covered by the total amount paid
+      // This allows a single payment to cover multiple installments correctly
+      const installmentsPaid = Math.floor((loan.paidAmount || 0) / loan.emi);
 
       const unpaidInstallments = [];
       for (let i = 1; i <= loan.duration; i++) {
-        if (i > repaymentsCount) {
+        if (i > installmentsPaid) {
           const dueDate = new Date(loan.startDate);
           dueDate.setMonth(dueDate.getMonth() + i);
 
@@ -730,32 +726,28 @@ const getUpcomingRepayments = async (req, res) => {
       // If we have remaining installments, redistribute overdue amounts to them
       if (remaining.length > 0) {
         remaining.forEach((inst) => {
-          if (inst.dueDate <= ninetyDaysAhead) {
-            upcoming.push({
-              _id: `${loan._id}-${inst.installment}`,
-              loanId: loan._id,
-              customer: loan.customer,
-              amount: loan.emi + redistributionAmount,
-              dueDate: inst.dueDate,
-              installment: inst.installment,
-              isOverdue: false,
-            });
-          }
+          upcoming.push({
+            _id: `${loan._id}-${inst.installment}`,
+            loanId: loan._id,
+            customer: loan.customer,
+            amount: loan.emi + redistributionAmount,
+            dueDate: inst.dueDate,
+            installment: inst.installment,
+            isOverdue: false,
+          });
         });
       } else {
         // If no future installments left, keep overdue as is
         overdue.forEach((inst) => {
-          if (inst.dueDate <= ninetyDaysAhead) {
-            upcoming.push({
-              _id: `${loan._id}-${inst.installment}`,
-              loanId: loan._id,
-              customer: loan.customer,
-              amount: loan.emi,
-              dueDate: inst.dueDate,
-              installment: inst.installment,
-              isOverdue: true,
-            });
-          }
+          upcoming.push({
+            _id: `${loan._id}-${inst.installment}`,
+            loanId: loan._id,
+            customer: loan.customer,
+            amount: loan.emi,
+            dueDate: inst.dueDate,
+            installment: inst.installment,
+            isOverdue: true,
+          });
         });
       }
     }
@@ -880,7 +872,7 @@ const approveLoan = async (req, res) => {
     const financialTx = new FinancialTransaction({
       user: req.user.effectiveOwnerId,
       branchId: loan.branchId,
-      type: 'expense',
+      type: 'loan',
       category: 'loan_disbursement',
       amount: loan.principal,
       date: new Date(),
