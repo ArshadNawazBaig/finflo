@@ -6,7 +6,7 @@ import {
   Download,
   TrendingUp,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { subMonths, format } from 'date-fns';
 import StatsCard from '@/components/StatsCard';
 import AnalyticsChart from '@/components/AnalyticsChart';
 import PageHeader from '@/components/PageHeader';
@@ -19,6 +19,8 @@ import api from '@/lib/axios';
 import { formatPKR, capitalize } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/RepaymentCalendar';
+import { toast } from 'sonner';
+import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -26,10 +28,47 @@ const Dashboard = () => {
   const [upcomingPayments, setUpcomingPayments] = useState([]);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartLoading, setChartLoading] = useState(false);
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
   const [userName, setUserName] = useState('admin');
+  const [dateRange, setDateRange] = useState({
+    from: subMonths(new Date(), 6),
+    to: new Date(),
+  });
   const navigate = useNavigate();
+
+  const fetchDashboardData = async (isInitial = false) => {
+    try {
+      if (isInitial) setLoading(true);
+      else setChartLoading(true);
+
+      const params = {};
+      if (dateRange?.from && dateRange?.to) {
+        params.startDate = dateRange.from.toISOString();
+        params.endDate = dateRange.to.toISOString();
+      }
+
+      const [statsRes, upcomingRes, billingRes] = await Promise.all([
+        api.get('/dashboard/stats', { params }),
+        api.get('/loans/upcoming'),
+        api.get('/subscription'),
+      ]);
+
+      setStats(statsRes.data.stats);
+      setTransactions(statsRes.data.recentTransactions);
+      setAnalyticsData(statsRes.data.analyticsData || []);
+      setUpcomingPayments(upcomingRes.data);
+      setUserPlan(billingRes.data.plan || 'Free');
+      setLoanCount(statsRes.data.stats?.activeLoans?.count || 0);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data', error);
+      toast.error('Failed to update dashboard data');
+    } finally {
+      setLoading(false);
+      setChartLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Get user name from localStorage
@@ -37,28 +76,37 @@ const Dashboard = () => {
     if (user?.name) {
       setUserName(user.name);
     }
-
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, upcomingRes, billingRes] = await Promise.all([
-          api.get('/dashboard/stats'),
-          api.get('/loans/upcoming'),
-          api.get('/subscription'),
-        ]);
-        setStats(statsRes.data.stats);
-        setTransactions(statsRes.data.recentTransactions);
-        setAnalyticsData(statsRes.data.analyticsData || []);
-        setUpcomingPayments(upcomingRes.data);
-        setUserPlan(billingRes.data.plan || 'Free');
-        setLoanCount(statsRes.data.stats?.activeLoans?.count || 0);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboardData();
+    fetchDashboardData(true);
   }, []);
+
+  useEffect(() => {
+    if (dateRange?.from && dateRange?.to) {
+      fetchDashboardData();
+    }
+  }, [dateRange]);
+
+  const handleDownload = async () => {
+    try {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error('Please select a date range first');
+        return;
+      }
+
+      const response = await api.get('/dashboard/download-statement', {
+        params: {
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString(),
+          format: 'json',
+        },
+      });
+
+      await exportCashFlowStatement(response.data, dateRange, userName);
+      toast.success('Statement generated and downloaded as PDF');
+    } catch (error) {
+      console.error('Failed to download statement', error);
+      toast.error('Failed to download statement');
+    }
+  };
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -268,7 +316,13 @@ const Dashboard = () => {
           {loading ? (
             <ChartSkeleton />
           ) : (
-            <AnalyticsChart data={analyticsData} />
+            <AnalyticsChart
+              data={analyticsData}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              onDownload={handleDownload}
+              loading={chartLoading}
+            />
           )}
         </div>
       </div>

@@ -232,3 +232,11 @@
   font-size: 0.6875rem !important;
   line-height: 1rem !important;
 } */
+
+.day-range-end button {
+  color: white !important;
+}
+
+.day-range-start button {
+  color: white !important;
+}
