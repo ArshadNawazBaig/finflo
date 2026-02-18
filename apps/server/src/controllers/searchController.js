@@ -26,7 +26,8 @@ const globalSearch = async (req, res) => {
     const member = req.member;
 
     if (user) {
-      const isAdmin = user.role === 'super_admin';
+      const isSuperAdmin = user.role === 'super_admin';
+      const isAdmin = user.role === 'admin' || isSuperAdmin;
       const isManager = user.role === 'staff' && user.isManager;
       const effectiveOwnerId = user.effectiveOwnerId;
       const branchId = user.branchId;
@@ -113,10 +114,10 @@ const globalSearch = async (req, res) => {
         }),
       );
 
-      // 4. Search Branches (Admin only)
+      // 4. Search Branches (Admin/Super Admin only)
       if (isAdmin) {
         const branches = await Branch.find({
-          owner: user._id,
+          owner: isSuperAdmin ? user._id : effectiveOwnerId,
           name: searchRegex,
         }).limit(3);
 
@@ -130,9 +131,9 @@ const globalSearch = async (req, res) => {
           }),
         );
 
-        // 5. Search Staff/Managers (Users) - Admin only
+        // 5. Search Staff/Managers (Users) - Admin/Super Admin only
         const allStaff = await User.find({
-          ownerId: user._id,
+          ownerId: isSuperAdmin ? user._id : effectiveOwnerId,
           $or: [{ name: searchRegex }, { email: searchRegex }],
           role: { $in: ['admin', 'staff'] },
         }).limit(10);

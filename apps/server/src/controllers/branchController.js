@@ -1,7 +1,15 @@
 const Branch = require('../models/Branch');
 const User = require('../models/User');
+const Loan = require('../models/Loan');
+const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
+const Customer = require('../models/Customer');
+const Member = require('../models/Member');
 const { logActivity } = require('./activityLogController');
+const {
+  calculatePercentageChange,
+  getMonthDates,
+} = require('../utils/reportUtils');
 
 // @desc    Create a new branch
 // @route   POST /api/branches
@@ -237,7 +245,17 @@ const deleteBranch = async (req, res) => {
 const getBranchFinancials = async (req, res) => {
   try {
     const { startDate, endDate, type } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const branchId = req.params.id;
+    const mongoose = require('mongoose');
+    let branchOid;
+    try {
+      branchOid = new mongoose.Types.ObjectId(branchId);
+    } catch (e) {
+      return res.status(400).json({ message: 'Invalid Branch ID' });
+    }
 
     // Manager can only access their own branch financials
     if (req.user.isManager && req.user.role === 'staff') {
@@ -248,7 +266,29 @@ const getBranchFinancials = async (req, res) => {
       }
     }
 
-    const query = { branchId };
+    // Get all customers and members associated with this branch to capture implicit records
+    // We search more broadly here to ensure we find everyone linked to this branch OID
+    const [branchCustomers, branchMembers] = await Promise.all([
+      Customer.find({
+        $or: [{ branchId: branchOid }, { branchId: branchId }],
+      }).select('_id'),
+      Member.find({
+        $or: [{ branchId: branchOid }, { branchId: branchId }],
+      }).select('_id'),
+    ]);
+
+    const customerIds = branchCustomers.map((c) => c._id);
+    const memberIds = branchMembers.map((m) => m._id);
+
+    // Broad query for transactions
+    const query = {
+      $or: [
+        { branchId: branchOid },
+        { branchId: branchId },
+        { customer: { $in: customerIds } },
+        { member: { $in: memberIds } },
+      ],
+    };
 
     if (type) {
       query.type = type;
@@ -261,11 +301,95 @@ const getBranchFinancials = async (req, res) => {
       };
     }
 
+    const totalEntries = await FinancialTransaction.countDocuments(query);
     const financials = await FinancialTransaction.find(query)
       .sort({ date: -1 })
-      .populate('customer', 'name');
+      .skip(skip)
+      .limit(limit)
+      .populate('customer', 'name')
+      .populate('member', 'name')
+      .populate('loan', 'status');
 
-    res.json(financials);
+    // Get summary stats for the branch (full totals, not paginated)
+    // Type-agnostic to ensure stats are always consistent regardless of the active tab
+    const statsQuery = {
+      $or: [
+        { branchId: branchOid },
+        { branchId: branchId },
+        { customer: { $in: customerIds } },
+        { member: { $in: memberIds } },
+      ],
+    };
+
+    const allFinancials = await FinancialTransaction.find(statsQuery).select(
+      'type category amount',
+    );
+
+    // Calculate basic cash flow
+    const totalIncome = allFinancials
+      .filter((f) => f.type === 'income')
+      .reduce((sum, f) => sum + f.amount, 0);
+    const totalExpenses = allFinancials
+      .filter((f) => f.type === 'expense')
+      .reduce((sum, f) => sum + f.amount, 0);
+    const totalDisbursements = allFinancials
+      .filter((f) => f.category === 'loan_disbursement')
+      .reduce((sum, f) => sum + f.amount, 0);
+
+    // Get current liabilities (Deposits) from Members
+    const members = await Member.find({
+      $or: [{ branchId: branchOid }, { branchId: branchId }],
+    });
+    const totalDeposits = Math.ceil(
+      members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
+    );
+
+    // Get Portfolio Value (Disbursed) from Loans
+    const loans = await Loan.find({
+      $or: [
+        { branchId: branchOid },
+        { branchId: branchId },
+        { customer: { $in: customerIds } },
+      ],
+    });
+    const totalPortfolio = Math.ceil(
+      loans.reduce((sum, l) => sum + (l.principal || 0), 0),
+    );
+
+    // Calculate Net Profit from Repayments
+    const repayments = await Repayment.find({
+      $or: [
+        { branchId: branchOid },
+        { branchId: branchId },
+        { customer: { $in: customerIds } },
+      ],
+    }).populate('loan', 'principal totalAmount');
+
+    const calculateProfit = (repaymentsList) => {
+      return repaymentsList.reduce((sum, r) => {
+        if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
+          return sum;
+        const totalInterest = r.loan.totalAmount - r.loan.principal;
+        const profitRatio = totalInterest / r.loan.totalAmount;
+        return sum + r.amount * profitRatio;
+      }, 0);
+    };
+    const netProfit = Math.ceil(calculateProfit(repayments));
+
+    res.json({
+      data: financials,
+      totalEntries,
+      totalPages: Math.ceil(totalEntries / limit),
+      currentPage: page,
+      summary: {
+        totalTransactions: allFinancials.length,
+        totalExpenses: totalExpenses,
+        liquidity: totalIncome - totalExpenses - totalDisbursements,
+        totalDeposits,
+        netProfit,
+        totalDisbursed: totalPortfolio,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
@@ -320,6 +444,221 @@ const addBranchExpense = async (req, res) => {
   }
 };
 
+// @desc    Get branch analytics (Cash Flow)
+// @route   GET /api/branches/:id/analytics
+// @access  Private (Admin or Branch Manager)
+const getBranchAnalytics = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const branchId = req.params.id;
+    const mongoose = require('mongoose');
+    let branchOid;
+    try {
+      branchOid = new mongoose.Types.ObjectId(branchId);
+    } catch (e) {
+      return res.status(400).json({ message: 'Invalid Branch ID' });
+    }
+
+    // Manager can only access their own branch analytics
+    if (req.user.role === 'staff' && req.user.isManager) {
+      if (req.user.managedBranchId?.toString() !== branchId) {
+        return res
+          .status(403)
+          .json({ message: 'Not authorized to view this branch analytics' });
+      }
+    }
+
+    // Get all customers and members associated with this branch to capture implicit records
+    const [branchCustomers, branchMembers] = await Promise.all([
+      Customer.find({
+        $or: [{ branchId: branchOid }, { branchId: branchId }],
+      }).select('_id'),
+      Member.find({
+        $or: [{ branchId: branchOid }, { branchId: branchId }],
+      }).select('_id'),
+    ]);
+
+    const customerIds = branchCustomers.map((c) => c._id);
+    const memberIds = branchMembers.map((m) => m._id);
+
+    const query = {
+      $or: [
+        { branchId: branchOid },
+        { branchId: branchId },
+        { customer: { $in: customerIds } },
+        { member: { $in: memberIds } },
+      ],
+    };
+
+    // Fetch primary sources using the broad branch query
+    const [transactions, repayments, loans] = await Promise.all([
+      FinancialTransaction.find(query),
+      Repayment.find({
+        $or: [
+          { branchId: branchOid },
+          { branchId: branchId },
+          { customer: { $in: customerIds } },
+        ],
+      }).populate('loan', 'principal totalAmount'),
+      Loan.find({
+        $or: [
+          { branchId: branchOid },
+          { branchId: branchId },
+          { customer: { $in: customerIds } },
+        ],
+      }),
+    ]);
+
+    const calculateProfitAtDateRange = (repaymentsList) => {
+      return repaymentsList.reduce((sum, r) => {
+        if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
+          return sum;
+        const totalInterest = r.loan.totalAmount - r.loan.principal;
+        const profitRatio = totalInterest / r.loan.totalAmount;
+        return sum + r.amount * profitRatio;
+      }, 0);
+    };
+
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const monthlyHistory = [];
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      let current = new Date(start.getFullYear(), start.getMonth(), 1);
+
+      while (current <= end) {
+        const mStart = new Date(current.getFullYear(), current.getMonth(), 1);
+        const mEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+
+        const monthTransactions = transactions.filter(
+          (t) => new Date(t.date) >= mStart && new Date(t.date) <= mEnd,
+        );
+        const monthRepayments = repayments.filter(
+          (r) => new Date(r.date) >= mStart && new Date(r.date) <= mEnd,
+        );
+
+        monthlyHistory.push({
+          name: monthNames[current.getMonth()],
+          inflow: monthTransactions
+            .filter((t) => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0),
+          outflow: monthTransactions
+            .filter(
+              (t) => t.type === 'loan' && t.category === 'loan_disbursement',
+            )
+            .reduce((sum, t) => sum + t.amount, 0),
+          profit: calculateProfitAtDateRange(monthRepayments),
+          deposits: monthTransactions
+            .filter((t) => t.category === 'investment')
+            .reduce((sum, t) => sum + t.amount, 0),
+          expenses: monthTransactions
+            .filter((t) => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0),
+        });
+
+        current.setMonth(current.getMonth() + 1);
+      }
+    } else {
+      for (let i = 5; i >= 0; i--) {
+        const { start, end } = getMonthDates(i);
+        const monthTransactions = transactions.filter(
+          (t) => new Date(t.date) >= start && new Date(t.date) <= end,
+        );
+        const monthRepayments = repayments.filter(
+          (r) => new Date(r.date) >= start && new Date(r.date) <= end,
+        );
+
+        monthlyHistory.push({
+          name: monthNames[start.getMonth()],
+          inflow: monthTransactions
+            .filter((t) => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0),
+          outflow: monthTransactions
+            .filter(
+              (t) => t.type === 'loan' && t.category === 'loan_disbursement',
+            )
+            .reduce((sum, t) => sum + t.amount, 0),
+          profit: calculateProfitAtDateRange(monthRepayments),
+          deposits: monthTransactions
+            .filter((t) => t.category === 'investment')
+            .reduce((sum, t) => sum + t.amount, 0),
+          expenses: monthTransactions
+            .filter((t) => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0),
+        });
+      }
+    }
+
+    const forecastHistory = [];
+    if (!startDate) {
+      const activeLoansList = loans.filter((l) => l.status === 'active');
+      const loanRepaymentsCount = await Promise.all(
+        activeLoansList.map(async (loan) => {
+          const count = await Repayment.countDocuments({ loan: loan._id });
+          return { id: loan._id.toString(), count };
+        }),
+      );
+
+      const today = new Date();
+      for (let i = 1; i <= 6; i++) {
+        const forecastMonthDate = new Date(
+          today.getFullYear(),
+          today.getMonth() + i,
+          1,
+        );
+        const monthStart = new Date(
+          today.getFullYear(),
+          today.getMonth() + i,
+          1,
+        );
+        const monthEnd = new Date(
+          today.getFullYear(),
+          today.getMonth() + i + 1,
+          0,
+        );
+
+        let monthProjected = 0;
+        for (const loan of activeLoansList) {
+          const rCount =
+            loanRepaymentsCount.find((rc) => rc.id === loan._id.toString())
+              ?.count || 0;
+          for (let inst = rCount + 1; inst <= loan.duration; inst++) {
+            const dueDate = new Date(loan.startDate);
+            dueDate.setMonth(dueDate.getMonth() + inst);
+            if (dueDate >= monthStart && dueDate <= monthEnd) {
+              monthProjected += loan.emi;
+            }
+          }
+        }
+
+        forecastHistory.push({
+          name: monthNames[forecastMonthDate.getMonth()],
+          projected: monthProjected,
+        });
+      }
+    }
+
+    res.json([...monthlyHistory, ...forecastHistory]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   createBranch,
   getBranches,
@@ -327,5 +666,6 @@ module.exports = {
   updateBranch,
   deleteBranch,
   getBranchFinancials,
+  getBranchAnalytics,
   addBranchExpense,
 };

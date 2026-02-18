@@ -326,15 +326,29 @@ const createMember = async (req, res) => {
 
     const member = await Member.create(memberData);
 
-    // Create initial investment record if there's an initial investment
+    // Create initial investment record AND financial transaction if there's an initial investment
     if (initialInvestment && initialInvestment > 0) {
-      await Investment.create({
+      const investment = await Investment.create({
         user: userId,
         member: member._id,
+        branchId: member.branchId,
         type: 'deposit',
         amount: initialInvestment,
         description: 'Initial investment',
         balanceAfter: initialInvestment,
+      });
+
+      await FinancialTransaction.create({
+        user: userId,
+        branchId: member.branchId,
+        type: 'income',
+        category: 'investment',
+        amount: initialInvestment,
+        date: new Date(),
+        description: 'Initial investment',
+        member: member._id,
+        referenceId: investment._id,
+        referenceModel: 'Investment',
       });
     }
 

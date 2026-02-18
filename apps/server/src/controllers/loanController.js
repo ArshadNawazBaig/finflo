@@ -142,7 +142,7 @@ const createLoan = async (req, res) => {
     const loan = new Loan({
       user: req.user.effectiveOwnerId,
       customer: customerId,
-      branchId: req.user.branchId, // Automatically assign to branch
+      branchId: req.user.branchId || customer.branchId, // Prioritize user's branch, fall back to customer's branch
       principal,
       rate,
       duration,
@@ -1164,7 +1164,8 @@ const approveLoan = async (req, res) => {
     // Create Financial Transaction for disbursement
     const financialTx = new FinancialTransaction({
       user: req.user.effectiveOwnerId,
-      branchId: loan.branchId,
+      branchId:
+        loan.branchId || (await Customer.findById(loan.customer))?.branchId,
       type: 'loan',
       category: 'loan_disbursement',
       amount: loan.principal,

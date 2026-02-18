@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Plus,
   Store,
@@ -19,6 +19,10 @@ import {
   ArrowLeft,
   UserCog,
   Users,
+  Check,
+  Coins,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
 import {
   Select,
@@ -44,16 +48,26 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
+import SplashScreen from '@/components/ui/SplashScreen';
+import CardsSkeleton from '@/components/CardsSkeleton';
+import TableSkeleton from '@/components/TableSkeleton';
+import ChartSkeleton from '@/components/ChartSkeleton';
+import Pagination from '@/components/ui/Pagination';
+import TransactionTable from '@/components/TransactionTable';
+import TransactionCard from '@/components/TransactionCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
+import AnalyticsChart from '@/components/AnalyticsChart';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { subMonths } from 'date-fns';
+import { formatPKR, capitalize } from '@/lib/utils';
+import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 
 const BranchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [branch, setBranch] = useState(null);
-  const [financials, setFinancials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [fetchingFinancials, setFetchingFinancials] = useState(false);
   const [staff, setStaff] = useState([]);
   const [isUpdatingManager, setIsUpdatingManager] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -64,7 +78,60 @@ const BranchDetail = () => {
     description: '',
   });
 
+  // Financials Pagination States
+  const [expenses, setExpenses] = useState([]);
+  const [ledger, setLedger] = useState([]);
+  const [summary, setSummary] = useState({
+    totalTransactions: 0,
+    totalExpenses: 0,
+  });
+  const [fetchingFinancials, setFetchingFinancials] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Analytics Chart State
+  const [analyticsData, setAnalyticsData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    from: subMonths(new Date(), 6),
+    to: new Date(),
+  });
+
+  const expenseObserverTarget = useRef(null);
+  const ledgerObserverTarget = useRef(null);
+
+  const [expensePagination, setExpensePagination] = useState({
+    page: 1,
+    limit: 10,
+    totalEntries: 0,
+    totalPages: 0,
+  });
+
+  const [ledgerPagination, setLedgerPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalEntries: 0,
+    totalPages: 0,
+  });
+
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Set smaller limits for mobile infinite scroll
+    if (isMobile) {
+      setExpensePagination((prev) => ({ ...prev, limit: 5, page: 1 }));
+      setLedgerPagination((prev) => ({ ...prev, limit: 5, page: 1 }));
+    } else {
+      setExpensePagination((prev) => ({ ...prev, limit: 10, page: 1 }));
+      setLedgerPagination((prev) => ({ ...prev, limit: 10, page: 1 }));
+    }
+  }, [isMobile]);
 
   const fetchBranch = useCallback(async () => {
     try {
@@ -80,17 +147,130 @@ const BranchDetail = () => {
     }
   }, [id, navigate]);
 
-  const fetchFinancials = useCallback(async () => {
+  const fetchExpenses = useCallback(
+    async (isAppend = false) => {
+      try {
+        if (isAppend) setIsFetchingMore(true);
+        else setFetchingFinancials(true);
+
+        const pageToFetch = isAppend ? expensePagination.page + 1 : 1;
+
+        const { data } = await api.get(`/branches/${id}/financials`, {
+          params: {
+            type: 'expense',
+            page: pageToFetch,
+            limit: expensePagination.limit,
+          },
+        });
+
+        if (isAppend) {
+          setExpenses((prev) => [...prev, ...data.data]);
+        } else {
+          setExpenses(data.data);
+        }
+
+        setSummary(data.summary);
+        setExpensePagination((prev) => ({
+          ...prev,
+          page: pageToFetch,
+          totalEntries: data.totalEntries,
+          totalPages: data.totalPages,
+        }));
+      } catch (error) {
+        toast.error('Failed to fetch expenses');
+      } finally {
+        setFetchingFinancials(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [id, expensePagination.page, expensePagination.limit],
+  );
+
+  const fetchLedger = useCallback(
+    async (isAppend = false) => {
+      try {
+        if (isAppend) setIsFetchingMore(true);
+        else setFetchingFinancials(true);
+
+        const pageToFetch = isAppend ? ledgerPagination.page + 1 : 1;
+
+        const { data } = await api.get(`/branches/${id}/financials`, {
+          params: {
+            page: pageToFetch,
+            limit: ledgerPagination.limit,
+          },
+        });
+
+        if (isAppend) {
+          setLedger((prev) => [...prev, ...data.data]);
+        } else {
+          setLedger(data.data);
+        }
+
+        setSummary(data.summary);
+        setLedgerPagination((prev) => ({
+          ...prev,
+          page: pageToFetch,
+          totalEntries: data.totalEntries,
+          totalPages: data.totalPages,
+        }));
+      } catch (error) {
+        toast.error('Failed to fetch ledger');
+      } finally {
+        setFetchingFinancials(false);
+        setIsFetchingMore(false);
+      }
+    },
+    [id, ledgerPagination.page, ledgerPagination.limit],
+  );
+
+  const fetchAnalytics = useCallback(async () => {
     try {
-      setFetchingFinancials(true);
-      const { data } = await api.get(`/branches/${id}/financials`);
-      setFinancials(data);
+      setChartLoading(true);
+      const params = {};
+      if (dateRange?.from && dateRange?.to) {
+        params.startDate = dateRange.from.toISOString();
+        params.endDate = dateRange.to.toISOString();
+      }
+
+      const { data } = await api.get(`/branches/${id}/analytics`, { params });
+      setAnalyticsData(data);
     } catch (error) {
-      toast.error('Failed to fetch financials');
+      console.error('Failed to fetch analytics:', error);
+      toast.error('Failed to load chart data');
     } finally {
-      setFetchingFinancials(false);
+      setChartLoading(false);
     }
-  }, [id]);
+  }, [id, dateRange]);
+
+  const handleDownload = async () => {
+    try {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error('Please select a date range first');
+        return;
+      }
+
+      const response = await api.get('/dashboard/download-statement', {
+        params: {
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString(),
+          format: 'json',
+          branchId: id,
+        },
+      });
+
+      await exportCashFlowStatement(
+        response.data,
+        dateRange,
+        user.name,
+        branch?.name,
+      );
+      toast.success('Statement generated and downloaded as PDF');
+    } catch (error) {
+      console.error('Failed to download statement', error);
+      toast.error('Failed to download statement');
+    }
+  };
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -103,9 +283,70 @@ const BranchDetail = () => {
 
   useEffect(() => {
     fetchBranch();
-    fetchFinancials();
     fetchStaff();
-  }, [fetchBranch, fetchFinancials, fetchStaff]);
+    // Fetch initial stats and analytics
+    fetchLedger(false);
+    fetchAnalytics();
+  }, [fetchBranch, fetchStaff, fetchLedger, fetchAnalytics]);
+
+  useEffect(() => {
+    if (dateRange?.from && dateRange?.to) {
+      fetchAnalytics();
+    }
+  }, [dateRange, fetchAnalytics]);
+
+  useEffect(() => {
+    if (activeTab === 'expenses') {
+      fetchExpenses(false);
+    } else if (activeTab === 'ledger') {
+      fetchLedger(false);
+    } else if (activeTab === 'overview') {
+      fetchAnalytics();
+    }
+  }, [activeTab, fetchExpenses, fetchLedger, fetchAnalytics]);
+
+  // Infinite Scroll Observers
+  useEffect(() => {
+    if (!isMobile || activeTab !== 'expenses') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          expensePagination.page < expensePagination.totalPages
+        ) {
+          fetchExpenses(true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (expenseObserverTarget.current)
+      observer.observe(expenseObserverTarget.current);
+    return () => observer.disconnect();
+  }, [isMobile, activeTab, isFetchingMore, expensePagination, fetchExpenses]);
+
+  useEffect(() => {
+    if (!isMobile || activeTab !== 'ledger') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMore &&
+          ledgerPagination.page < ledgerPagination.totalPages
+        ) {
+          fetchLedger(true);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    if (ledgerObserverTarget.current)
+      observer.observe(ledgerObserverTarget.current);
+    return () => observer.disconnect();
+  }, [isMobile, activeTab, isFetchingMore, ledgerPagination, fetchLedger]);
 
   const toggleStatus = async () => {
     try {
@@ -128,7 +369,8 @@ const BranchDetail = () => {
       toast.success('Expense recorded successfully');
       setIsExpenseModalOpen(false);
       setExpenseData({ amount: '', category: 'rent', description: '' });
-      fetchFinancials(); // Refresh financials
+      if (activeTab === 'expenses') fetchExpenses();
+      else if (activeTab === 'ledger') fetchLedger();
     } catch (error) {
       toast.error('Failed to record expense');
     } finally {
@@ -150,21 +392,13 @@ const BranchDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full"
-        />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (!branch) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-12">
       <PageHeader
         title={branch.name}
         description={`Branch ID: ${id.slice(-6).toUpperCase()}`}
@@ -188,40 +422,41 @@ const BranchDetail = () => {
         </div>
       </PageHeader>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <StatsCard
-          title="Total Transactions"
-          amount={financials.length.toString()}
-          icon={<History size={18} />}
-          color="bg-primary text-primary border-primary/20"
-          isGlass
-        />
-        <StatsCard
-          title="Total Expenses"
-          amount={`PKR ${financials
-            .filter((f) => f.type === 'expense')
-            .reduce((sum, f) => sum + f.amount, 0)
-            .toLocaleString()}`}
-          icon={<TrendingDown size={18} />}
-          color="bg-red-500 text-red-600 border-red-500/20"
-          isGlass
-        />
-        <StatsCard
-          title="Manager"
-          amount={branch.manager?.name || 'Unassigned'}
-          icon={<LayoutDashboard size={18} />}
-          color="bg-indigo-500 text-indigo-600 border-indigo-500/20"
-          isGlass
-        />
-        <StatsCard
-          title="Contact"
-          amount={branch.contactNumber}
-          icon={<Phone size={18} />}
-          color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
-          isGlass
-        />
-      </div>
+      {/* Financial Intelligence Cards */}
+      {fetchingFinancials ? (
+        <CardsSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <StatsCard
+            title="Net Liquidity"
+            amount={formatPKR(summary.liquidity || 0)}
+            subtitle="Available Cash"
+            icon={<Coins size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Total Deposits"
+            amount={formatPKR(summary.totalDeposits || 0)}
+            subtitle="Member Capital"
+            icon={<Download size={20} />}
+            color="bg-blue-500 shadow-blue-500/20"
+          />
+          <StatsCard
+            title="Net Profit"
+            amount={formatPKR(summary.netProfit || 0)}
+            subtitle="Interest Earnings"
+            icon={<TrendingUp size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Total Disbursed"
+            amount={formatPKR(summary.totalDisbursed || 0)}
+            subtitle="Portfolio Value"
+            icon={<ExternalLink size={20} />}
+            color="bg-orange-500 shadow-orange-500/20"
+          />
+        </div>
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mt-4 sm:mt-8">
@@ -270,8 +505,22 @@ const BranchDetail = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8"
+                className="space-y-6 sm:space-y-8"
               >
+                {/* Analytics Chart Section */}
+                <div className="w-full">
+                  {chartLoading ? (
+                    <ChartSkeleton />
+                  ) : (
+                    <AnalyticsChart
+                      data={analyticsData}
+                      dateRange={dateRange}
+                      setDateRange={setDateRange}
+                      onDownload={handleDownload}
+                      loading={chartLoading}
+                    />
+                  )}
+                </div>
                 <Card className="rounded-[2.5rem] border-border/40 overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
                   <div className="h-48 relative overflow-hidden">
                     <div
@@ -375,9 +624,10 @@ const BranchDetail = () => {
                   </Button>
                 </div>
 
-                <div className="grid gap-4">
-                  {financials.filter((f) => f.type === 'expense').length ===
-                  0 ? (
+                <div className="space-y-4">
+                  {fetchingFinancials && expenses.length === 0 ? (
+                    <TableSkeleton />
+                  ) : expenses.length === 0 ? (
                     <div className="py-24 text-center bg-muted/10 rounded-[3rem] border-2 border-dashed border-border/50">
                       <Receipt
                         size={64}
@@ -387,52 +637,42 @@ const BranchDetail = () => {
                         No recorded disbursements
                       </p>
                     </div>
-                  ) : (
-                    financials
-                      .filter((f) => f.type === 'expense')
-                      .map((expense, idx) => (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.05 }}
+                  ) : isMobile ? (
+                    <div className="space-y-4">
+                      {expenses.map((expense) => (
+                        <TransactionCard
                           key={expense._id}
-                          className="p-6 rounded-[2rem] bg-card border border-border/40 flex items-center justify-between group hover:border-red-500/30 transition-all duration-500"
-                        >
-                          <div className="flex items-center gap-6">
-                            <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shadow-inner group-hover:scale-110 transition-transform">
-                              <TrendingDown size={28} />
-                            </div>
-                            <div>
-                              <span className="text-lg font-black block tracking-tight leading-none mb-2 uppercase italic">
-                                {expense.description || expense.category}
-                              </span>
-                              <div className="flex items-center gap-3">
-                                <Badge
-                                  variant="subtle"
-                                  className="text-[9px] font-black uppercase bg-red-500/5 text-red-600 border-none px-2"
-                                >
-                                  {expense.category}
-                                </Badge>
-                                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">
-                                  {new Date(expense.date).toLocaleDateString(
-                                    'en-US',
-                                    {
-                                      month: 'long',
-                                      day: 'numeric',
-                                      year: 'numeric',
-                                    },
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-2xl font-black text-red-600 tracking-tighter">
-                              -PKR {expense.amount.toLocaleString()}
-                            </span>
-                          </div>
-                        </motion.div>
-                      ))
+                          transaction={expense}
+                        />
+                      ))}
+                      {/* Infinite Scroll Trigger */}
+                      {expensePagination.page <
+                        expensePagination.totalPages && (
+                        <div ref={expenseObserverTarget}>
+                          <InfiniteLoader isFetchingMore={isFetchingMore} />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
+                      <TransactionTable
+                        data={expenses}
+                        pagination={{
+                          currentPage: expensePagination.page,
+                          totalPages: expensePagination.totalPages,
+                          totalEntries: expensePagination.totalEntries,
+                          limit: expensePagination.limit,
+                          onPageChange: (page) =>
+                            setExpensePagination((prev) => ({ ...prev, page })),
+                          onLimitChange: (limit) =>
+                            setExpensePagination((prev) => ({
+                              ...prev,
+                              limit,
+                              page: 1,
+                            })),
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -455,8 +695,10 @@ const BranchDetail = () => {
                   </p>
                 </div>
 
-                <div className="grid gap-4">
-                  {financials.length === 0 ? (
+                <div className="space-y-4">
+                  {fetchingFinancials && ledger.length === 0 ? (
+                    <TableSkeleton />
+                  ) : ledger.length === 0 ? (
                     <div className="py-24 text-center bg-muted/10 rounded-[3rem] border-2 border-dashed border-border/50">
                       <History
                         size={64}
@@ -466,56 +708,41 @@ const BranchDetail = () => {
                         Zero historical entries
                       </p>
                     </div>
+                  ) : isMobile ? (
+                    <div className="space-y-4">
+                      {ledger.map((transaction) => (
+                        <TransactionCard
+                          key={transaction._id}
+                          transaction={transaction}
+                        />
+                      ))}
+                      {/* Infinite Scroll Trigger */}
+                      {ledgerPagination.page < ledgerPagination.totalPages && (
+                        <div ref={ledgerObserverTarget}>
+                          <InfiniteLoader isFetchingMore={isFetchingMore} />
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    financials.map((transaction, idx) => (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        key={transaction._id}
-                        className="p-6 rounded-[2rem] bg-card border border-border/40 flex items-center justify-between group hover:border-primary/30 transition-all duration-500"
-                      >
-                        <div className="flex items-center gap-6">
-                          <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner transition-all duration-500 group-hover:-translate-y-1 ${transaction.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
-                          >
-                            {transaction.type === 'income' ? (
-                              <TrendingUp size={28} />
-                            ) : (
-                              <TrendingDown size={28} />
-                            )}
-                          </div>
-                          <div>
-                            <span className="text-lg font-black block tracking-tight leading-none mb-2 uppercase">
-                              {transaction.description ||
-                                transaction.customer?.name ||
-                                'Authorized Operation'}
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <Badge
-                                variant="subtle"
-                                className={`text-[9px] font-black uppercase border-none px-2 ${transaction.type === 'income' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}
-                              >
-                                {transaction.category}
-                              </Badge>
-                              <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60 font-mono">
-                                {new Date(
-                                  transaction.date,
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span
-                            className={`text-2xl font-black tracking-tighter ${transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}
-                          >
-                            {transaction.type === 'income' ? '+' : '-'}PKR{' '}
-                            {transaction.amount.toLocaleString()}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))
+                    <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
+                      <TransactionTable
+                        data={ledger}
+                        pagination={{
+                          currentPage: ledgerPagination.page,
+                          totalPages: ledgerPagination.totalPages,
+                          totalEntries: ledgerPagination.totalEntries,
+                          limit: ledgerPagination.limit,
+                          onPageChange: (page) =>
+                            setLedgerPagination((prev) => ({ ...prev, page })),
+                          onLimitChange: (limit) =>
+                            setLedgerPagination((prev) => ({
+                              ...prev,
+                              limit,
+                              page: 1,
+                            })),
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               </motion.div>
