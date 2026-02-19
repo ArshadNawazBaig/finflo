@@ -1,0 +1,20 @@
+<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logo-gradient-refined" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+  </defs>
+  <!-- White background for the icon -->
+  <rect width="40" height="40" rx="10" fill="#ffffff"/>
+  <!-- The Pulse Wave -->
+  <path
+    d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20"
+    stroke="url(#logo-gradient-refined)"
+    stroke-width="4.5"
+    stroke-linecap="round"
+  />
+  <!-- Kinetic Point -->
+  <circle cx="34" cy="20" r="3.5" fill="#ec4899" />
+</svg>
