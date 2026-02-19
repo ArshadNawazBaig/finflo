@@ -1,0 +1,150 @@
+import { formatPKR, capitalize } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Hash } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Pagination from '../ui/Pagination';
+import EmptyState from '@/components/ui/EmptyState';
+
+const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
+  const renderSortIcon = (column) => {
+    if (sortBy !== column)
+      return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
+    return sortOrder === 'asc' ? (
+      <ArrowUp size={14} className="text-primary" />
+    ) : (
+      <ArrowDown size={14} className="text-primary" />
+    );
+  };
+  return (
+    <div className="w-full bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left border-collapse">
+          <thead>
+            <tr className="border-b border-border/50 text-left bg-muted/30">
+              <th
+                className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onSort('date')}
+              >
+                <div className="flex items-center gap-1">
+                  Date
+                  {renderSortIcon('date')}
+                </div>
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Related To
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Type
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Category
+              </th>
+              <th
+                className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onSort('amount')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  Amount
+                  {renderSortIcon('amount')}
+                </div>
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Notes
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((transaction) => (
+              <tr
+                key={transaction._id}
+                className="group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors"
+              >
+                <td className="py-4 px-4 text-muted-foreground font-medium">
+                  {format(new Date(transaction.date), 'MMM d, yyyy')}
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
+                        transaction.customer
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-blue-500/10 text-blue-500',
+                      )}
+                    >
+                      {(
+                        transaction.customer?.name ||
+                        transaction.member?.name ||
+                        'U'
+                      ).charAt(0)}
+                    </div>
+                    <div className="font-semibold text-sm">
+                      {capitalize(
+                        transaction.customer?.name ||
+                          transaction.member?.name ||
+                          'System',
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <span
+                    className={cn(
+                      'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                      transaction.type === 'income'
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : 'bg-rose-500/10 text-rose-600',
+                    )}
+                  >
+                    {transaction.type}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <span className="text-muted-foreground text-xs font-medium capitalize">
+                    {transaction.category.replace('_', ' ')}
+                  </span>
+                </td>
+                <td className="py-4 px-4 text-right">
+                  <div
+                    className={cn(
+                      'font-bold tabular-nums',
+                      transaction.type === 'income'
+                        ? 'text-emerald-600'
+                        : 'text-rose-600',
+                    )}
+                  >
+                    {transaction.type === 'income' ? '+' : '-'}
+                    {formatPKR(transaction.amount)}
+                  </div>
+                </td>
+                <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
+                  {transaction.description || transaction.notes || '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {data.length === 0 && (
+        <EmptyState
+          icon={Hash}
+          title="No Transactions"
+          description="No financial transactions have been recorded yet."
+          className="border-none bg-transparent py-12"
+        />
+      )}
+      {pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalEntries={pagination.totalEntries}
+          limit={pagination.limit}
+          onPageChange={pagination.onPageChange}
+          onLimitChange={pagination.onLimitChange}
+        />
+      )}
+    </div>
+  );
+};
+
+export default TransactionTable;

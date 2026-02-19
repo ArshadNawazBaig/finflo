@@ -18,7 +18,7 @@ import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import SendNotificationModal from '@/components/SendNotificationModal';
+import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import {
   AreaChart,
   Area,

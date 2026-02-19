@@ -502,13 +502,33 @@ const downloadStatement = async (req, res) => {
     const loans = await Loan.find(loanQuery);
     const outflow = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
+    // Fetch Operating Expenses for the period
+    const expenseQuery = {
+      ...query,
+      type: 'expense',
+      category: {
+        $in: [
+          'rent',
+          'salary',
+          'utilities',
+          'marketing',
+          'maintenance',
+          'fee',
+          'other',
+        ],
+      },
+    };
+    const expenses = await FinancialTransaction.find(expenseQuery);
+    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
     if (format === 'json') {
       return res.json({
-        repayments: combinedTransactions, // Sending combined list as 'repayments' to keep frontend contract similar, or we can rename
+        repayments: combinedTransactions, // Sending combined list as 'repayments' to keep frontend contract similar
         summary: {
           inflow,
           deposits: totalDeposits,
           outflow,
+          expenses: totalExpenses,
           profit,
           totalTransactions: combinedTransactions.length,
         },

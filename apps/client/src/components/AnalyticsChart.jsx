@@ -38,21 +38,23 @@ const AnalyticsChart = ({
               const colors = {
                 inflow: 'text-primary',
                 deposits: 'text-blue-500',
-                expenses: 'text-orange-500',
-                outflow: 'text-rose-500',
+                expenses: 'text-rose-500',
+                outflow: 'text-orange-500',
                 profit: 'text-emerald-500',
                 projected: 'text-primary/60',
               };
               const labels = {
                 inflow: 'Inflow',
                 deposits: 'Deposits',
-                expenses: 'Expenses',
-                outflow: 'Outflow',
-                profit: 'Profit',
+                expenses: 'Operating Expenses',
+                outflow: 'Disbursements',
+                profit: 'Interest Profit',
                 projected: 'Projected Inflow',
               };
 
-              if (entry.value === 0 && entry.dataKey !== 'profit') return null;
+              // Show all active data points even if zero
+              if (entry.value === undefined || entry.value === null)
+                return null;
 
               return (
                 <div
@@ -184,23 +186,23 @@ const AnalyticsChart = ({
                 type="monotone"
                 dataKey="expenses"
                 name="Expenses"
-                stroke="#f97316" // orange-500
+                stroke="#f43f5e" // rose-500
                 strokeWidth={3}
                 dot={false}
-                activeDot={{ r: 5, strokeWidth: 0, fill: '#f97316' }}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#f43f5e' }}
                 animationDuration={1500}
                 opacity={0.85}
               />
               <Line
                 type="monotone"
                 dataKey="outflow"
-                name="Outflow"
-                stroke="#f43f5e" // rose-500
+                name="Disbursements"
+                stroke="#f97316" // orange-500
                 strokeWidth={3}
                 dot={false}
-                activeDot={{ r: 5, strokeWidth: 0, fill: '#f43f5e' }}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#f97316' }}
                 animationDuration={1500}
-                opacity={0.8}
+                opacity={0.9}
               />
               <Line
                 type="monotone"

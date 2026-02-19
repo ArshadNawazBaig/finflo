@@ -16,9 +16,21 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
 
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem('user') || '{}'),
+  );
+
   useEffect(() => {
     setActiveTab(location.pathname);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUser(JSON.parse(localStorage.getItem('user') || '{}'));
+    };
+    window.addEventListener('userUpdated', handleUserUpdate);
+    return () => window.removeEventListener('userUpdated', handleUserUpdate);
+  }, []);
 
   const isSuperAdminPath = location.pathname.startsWith('/super-admin');
 
@@ -61,6 +73,15 @@ const MobileBottomNav = () => {
         },
         { icon: <Users size={20} />, label: 'Users', path: '/customers' },
         { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
+        ...(user.plan && user.plan !== 'Free'
+          ? [
+              {
+                icon: <LifeBuoy size={20} />,
+                label: 'Support',
+                path: '/support',
+              },
+            ]
+          : []),
         { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
       ];
 

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import MemberSidebar from '@/components/MemberSidebar';
-import MemberNavbar from '@/components/MemberNavbar';
-import MemberBottomNav from '@/components/MemberBottomNav';
+import MemberSidebar from '@/components/member/MemberSidebar';
+import MemberNavbar from '@/components/member/MemberNavbar';
+import MemberBottomNav from '@/components/member/MemberBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
 const MemberLayout = () => {
