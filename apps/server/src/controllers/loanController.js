@@ -288,6 +288,27 @@ const requestLoan = async (req, res) => {
       });
     }
 
+    // Check plan limits
+    const owner = await User.findById(req.member.user).select('plan');
+    const userPlan = owner.plan || 'Free';
+
+    // Count existing loans for this organization
+    const loanCount = await Loan.countDocuments({
+      user: req.member.user,
+    });
+
+    // Validate against plan limits
+    const limitCheck = await canCreateLoan(userPlan, loanCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: userPlan,
+        upgradeRequired: true,
+      });
+    }
+
     let emi = 0,
       totalAmount = principal;
     if (rate > 0) {

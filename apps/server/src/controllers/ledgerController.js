@@ -11,13 +11,25 @@ const getLedger = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const searchQuery = req.query.search || '';
-    const type = req.query.type; // income or expense
-    const category = req.query.category; // repayment, investment, etc.
-    const sortBy = req.query.sortBy || 'date';
-    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const {
+      search,
+      startDate,
+      endDate,
+      type,
+      category,
+      sortBy = 'date',
+      sortOrder: sortOrderQuery,
+    } = req.query;
+    const sortOrder = sortOrderQuery === 'asc' ? 1 : -1;
 
     const query = { user: req.user.effectiveOwnerId };
+
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
 
     // Branch Segregation
     if (req.user.role === 'staff' && req.user.branchId) {
@@ -28,20 +40,20 @@ const getLedger = async (req, res) => {
     if (category) query.category = category;
 
     // Search logic (complex because of customer/member names)
-    if (searchQuery) {
+    if (search) {
       const [matchingCustomers, matchingMembers] = await Promise.all([
         Customer.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: searchQuery, $options: 'i' },
+          name: { $regex: search, $options: 'i' },
         }).select('_id'),
         Member.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: searchQuery, $options: 'i' },
+          name: { $regex: search, $options: 'i' },
         }).select('_id'),
       ]);
 
       query.$or = [
-        { description: { $regex: searchQuery, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
         { customer: { $in: matchingCustomers.map((c) => c._id) } },
         { member: { $in: matchingMembers.map((m) => m._id) } },
       ];

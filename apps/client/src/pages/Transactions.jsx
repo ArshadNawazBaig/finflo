@@ -6,7 +6,12 @@ import {
   Hash,
   Loader2,
   ArrowDown,
+  Download,
 } from 'lucide-react';
+import { subMonths } from 'date-fns';
+import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Button } from '@/components/ui/button';
 import TableSearch from '@/components/ui/TableSearch';
 import StatsCard from '@/components/StatsCard';
 import TransactionTable from '@/components/TransactionTable';
@@ -32,6 +37,11 @@ const Transactions = () => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [dateRange, setDateRange] = useState({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const observerTarget = useRef(null);
 
@@ -60,9 +70,17 @@ const Transactions = () => {
         }
 
         const pageToFetch = isAppend ? currentPage + 1 : currentPage;
-        const { data } = await api.get(
-          `/ledger?page=${pageToFetch}&limit=${limit}&search=${searchQuery}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
-        );
+        const { data } = await api.get('/ledger', {
+          params: {
+            page: pageToFetch,
+            limit,
+            search: searchQuery,
+            sortBy,
+            sortOrder,
+            startDate: dateRange?.from?.toISOString(),
+            endDate: dateRange?.to?.toISOString(),
+          },
+        });
 
         if (isAppend) {
           setTransactions((prev) => {
@@ -87,7 +105,7 @@ const Transactions = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchQuery, sortBy, sortOrder],
+    [currentPage, limit, searchQuery, sortBy, sortOrder, dateRange],
   );
 
   useEffect(() => {
@@ -129,7 +147,35 @@ const Transactions = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, sortBy, sortOrder, limit, isMobile]);
+  }, [searchQuery, sortBy, sortOrder, limit, isMobile, dateRange]);
+
+  const handleDownload = async () => {
+    try {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error('Please select a date range first');
+        return;
+      }
+
+      const response = await api.get('/dashboard/download-statement', {
+        params: {
+          startDate: dateRange.from.toISOString(),
+          endDate: dateRange.to.toISOString(),
+          format: 'json',
+        },
+      });
+
+      await exportCashFlowStatement(
+        response.data,
+        dateRange,
+        user?.name,
+        'Global Ledger',
+      );
+      toast.success('Statement generated successfully');
+    } catch (error) {
+      console.error('Failed to download statement', error);
+      toast.error('Failed to download statement');
+    }
+  };
 
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
@@ -188,15 +234,35 @@ const Transactions = () => {
 
       {/* Filter and Table Section */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <TableSearch
-            value={searchQuery}
-            onChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search transactions..."
-          />
+        {/* Filter Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full justify-between">
+            <TableSearch
+              value={searchQuery}
+              onChange={(value) => {
+                setSearchQuery(value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search transactions..."
+              className="w-full sm:w-auto sm:min-w-[300px]"
+            />
+            <div className="flex items-center gap-2">
+              <DateRangePicker
+                date={dateRange}
+                setDate={setDateRange}
+                className="w-full sm:w-auto"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                onClick={handleDownload}
+                title="Download Statement (PDF)"
+              >
+                <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {loading && !isFetchingMore ? (

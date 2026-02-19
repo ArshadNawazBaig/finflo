@@ -419,7 +419,7 @@ const getDashboardStats = async (req, res) => {
 
 const downloadStatement = async (req, res) => {
   try {
-    const { startDate, endDate, format } = req.query;
+    const { startDate, endDate, format, branchId } = req.query;
     const query = { user: req.user.effectiveOwnerId };
 
     if (startDate && endDate) {
@@ -429,11 +429,16 @@ const downloadStatement = async (req, res) => {
       };
     }
 
+    // Determine branch scope
+    let branchScope = branchId;
     if (req.user.role === 'staff') {
-      const branchScope = req.user.isManager
-        ? req.user.managedBranchId
-        : req.user.branchId;
-      if (branchScope) query.branchId = branchScope;
+      branchScope = req.user.isManager
+        ? req.user.managedBranchId?.toString()
+        : req.user.branchId?.toString();
+    }
+
+    if (branchScope) {
+      query.branchId = branchScope;
     }
     const repayments = await Repayment.find(query)
       .populate('customer', 'name')

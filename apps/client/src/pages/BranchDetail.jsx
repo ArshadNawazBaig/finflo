@@ -62,6 +62,8 @@ import { toast } from 'sonner';
 import { subMonths } from 'date-fns';
 import { formatPKR, capitalize } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
+import TableSearch from '@/components/ui/TableSearch';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 
 const BranchDetail = () => {
   const { id } = useParams();
@@ -95,6 +97,20 @@ const BranchDetail = () => {
   const [chartLoading, setChartLoading] = useState(false);
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 6),
+    to: new Date(),
+  });
+
+  // Ledger Filter States
+  const [ledgerSearch, setLedgerSearch] = useState('');
+  const [ledgerDateRange, setLedgerDateRange] = useState({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
+
+  // Expense Filter States
+  const [expenseSearch, setExpenseSearch] = useState('');
+  const [expenseDateRange, setExpenseDateRange] = useState({
+    from: subMonths(new Date(), 1),
     to: new Date(),
   });
 
@@ -161,6 +177,9 @@ const BranchDetail = () => {
             type: 'expense',
             page: pageToFetch,
             limit: expensePagination.limit,
+            search: expenseSearch,
+            startDate: expenseDateRange?.from?.toISOString(),
+            endDate: expenseDateRange?.to?.toISOString(),
           },
         });
 
@@ -184,7 +203,13 @@ const BranchDetail = () => {
         setIsFetchingMore(false);
       }
     },
-    [id, expensePagination.page, expensePagination.limit],
+    [
+      id,
+      expensePagination.page,
+      expensePagination.limit,
+      expenseSearch,
+      expenseDateRange,
+    ],
   );
 
   const fetchLedger = useCallback(
@@ -199,6 +224,9 @@ const BranchDetail = () => {
           params: {
             page: pageToFetch,
             limit: ledgerPagination.limit,
+            search: ledgerSearch,
+            startDate: ledgerDateRange?.from?.toISOString(),
+            endDate: ledgerDateRange?.to?.toISOString(),
           },
         });
 
@@ -222,7 +250,13 @@ const BranchDetail = () => {
         setIsFetchingMore(false);
       }
     },
-    [id, ledgerPagination.page, ledgerPagination.limit],
+    [
+      id,
+      ledgerPagination.page,
+      ledgerPagination.limit,
+      ledgerSearch,
+      ledgerDateRange,
+    ],
   );
 
   const fetchAnalytics = useCallback(async () => {
@@ -273,6 +307,66 @@ const BranchDetail = () => {
     }
   };
 
+  const handleLedgerDownload = async () => {
+    try {
+      if (!ledgerDateRange?.from || !ledgerDateRange?.to) {
+        toast.error('Please select a date range first');
+        return;
+      }
+
+      const response = await api.get('/dashboard/download-statement', {
+        params: {
+          startDate: ledgerDateRange.from.toISOString(),
+          endDate: ledgerDateRange.to.toISOString(),
+          format: 'json',
+          branchId: id,
+        },
+      });
+
+      await exportCashFlowStatement(
+        response.data,
+        ledgerDateRange,
+        user.name,
+        branch?.name,
+      );
+      toast.success('Ledger statement generated as PDF');
+    } catch (error) {
+      console.error('Failed to download ledger', error);
+      toast.error('Failed to download ledger');
+    }
+  };
+
+  const handleExpenseDownload = async () => {
+    try {
+      if (!expenseDateRange?.from || !expenseDateRange?.to) {
+        toast.error('Please select a date range first');
+        return;
+      }
+
+      // Expenses are part of the statement, but we might want to filter specifically by type if the API supported it
+      // For now, use the same statement API which includes expenses
+      const response = await api.get('/dashboard/download-statement', {
+        params: {
+          startDate: expenseDateRange.from.toISOString(),
+          endDate: expenseDateRange.to.toISOString(),
+          format: 'json',
+          branchId: id,
+        },
+      });
+
+      await exportCashFlowStatement(
+        response.data,
+        expenseDateRange,
+        user.name,
+        branch?.name,
+      );
+      toast.success('Expense statement generated as PDF');
+    } catch (error) {
+      console.error('Failed to download expenses', error);
+      toast.error('Failed to download expenses');
+    }
+  };
+
   const fetchStaff = useCallback(async () => {
     try {
       const { data } = await api.get('/staff?limit=100'); // Get all staff
@@ -307,6 +401,22 @@ const BranchDetail = () => {
       fetchAnalytics();
     }
   }, [activeTab, fetchExpenses, fetchLedger, fetchAnalytics]);
+
+  // Handle Ledger Filters
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (activeTab === 'ledger') fetchLedger(false);
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [ledgerSearch, ledgerDateRange, activeTab, fetchLedger]);
+
+  // Handle Expense Filters
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (activeTab === 'expenses') fetchExpenses(false);
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [expenseSearch, expenseDateRange, activeTab, fetchExpenses]);
 
   // Infinite Scroll Observers
   useEffect(() => {
@@ -640,18 +750,32 @@ const BranchDetail = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between px-4">
-                  <div>
-                    <h3 className="text-2xl font-black tracking-tight">
-                      Expense Logs
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-medium">
-                      Capture operational disbursement events.
-                    </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full">
+                    <TableSearch
+                      value={expenseSearch}
+                      onChange={(val) => setExpenseSearch(val)}
+                      placeholder="Search expenses..."
+                      className="w-full sm:w-auto sm:min-w-[300px]"
+                    />
+                    <DateRangePicker
+                      date={expenseDateRange}
+                      setDate={setExpenseDateRange}
+                      className="w-full sm:w-auto"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      onClick={handleExpenseDownload}
+                      title="Download Expense Statement (PDF)"
+                    >
+                      <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+                    </Button>
                   </div>
                   <Button
                     onClick={() => setIsExpenseModalOpen(true)}
-                    className="rounded-full shadow-2xl shadow-primary/30 font-black uppercase tracking-widest text-[10px] h-12 px-8"
+                    className="rounded-full shadow-2xl shadow-primary/30 font-black uppercase tracking-widest text-[10px] h-12 px-8 w-full md:w-auto shrink-0"
                   >
                     <Plus size={18} className="mr-2" /> Log Expense
                   </Button>
@@ -719,13 +843,37 @@ const BranchDetail = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="px-4">
-                  <h3 className="text-2xl font-black tracking-tight">
-                    Financial Ledger
-                  </h3>
-                  <p className="text-sm text-muted-foreground font-medium">
-                    Complete audit trail of capital flow.
-                  </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tight">
+                      Financial Ledger
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      Complete audit trail of capital flow.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <TableSearch
+                      value={ledgerSearch}
+                      onChange={(val) => setLedgerSearch(val)}
+                      placeholder="Search ledger..."
+                      className="w-full sm:w-auto sm:min-w-[300px]"
+                    />
+                    <DateRangePicker
+                      date={ledgerDateRange}
+                      setDate={setLedgerDateRange}
+                      className="w-full sm:w-auto"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      onClick={handleLedgerDownload}
+                      title="Download Ledger Statement (PDF)"
+                    >
+                      <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">

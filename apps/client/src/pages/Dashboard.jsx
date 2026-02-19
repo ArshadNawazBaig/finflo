@@ -31,6 +31,8 @@ const Dashboard = () => {
   const [chartLoading, setChartLoading] = useState(false);
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
+  const [memberCount, setMemberCount] = useState(0);
+  const [planLimits, setPlanLimits] = useState(null);
   const [userName, setUserName] = useState('admin');
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 6),
@@ -59,8 +61,16 @@ const Dashboard = () => {
       setTransactions(statsRes.data.recentTransactions);
       setAnalyticsData(statsRes.data.analyticsData || []);
       setUpcomingPayments(upcomingRes.data);
-      setUserPlan(billingRes.data.plan || 'Free');
-      setLoanCount(statsRes.data.stats?.activeLoans?.count || 0);
+
+      const billingData = billingRes.data;
+      setUserPlan(billingData.plan || 'Free');
+      setLoanCount(
+        billingData.usage?.loans ||
+          statsRes.data.stats?.activeLoans?.count ||
+          0,
+      );
+      setMemberCount(billingData.usage?.members || 0);
+      setPlanLimits(billingData.limits || null);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
       toast.error('Failed to update dashboard data');
@@ -128,38 +138,60 @@ const Dashboard = () => {
       {!loading &&
         userPlan !== 'Pro' &&
         (() => {
-          const planLimits = { Free: 10, Basic: 1000 };
-          const limit = planLimits[userPlan] || 10;
-          const usagePercent = Math.min(100, (loanCount / limit) * 100);
-          const isNearLimit = usagePercent >= 80;
+          // Use dynamic limits from API if available, fallback to defaults
+          const limits = planLimits || {
+            loans: userPlan === 'Basic' ? 50 : 5,
+            members: userPlan === 'Basic' ? 3 : 1,
+          };
 
-          if (isNearLimit) {
+          const loanUsagePercent = Math.min(
+            100,
+            (loanCount / limits.loans) * 100,
+          );
+          const memberUsagePercent = Math.min(
+            100,
+            (memberCount / limits.members) * 100,
+          );
+
+          const isNearLoanLimit = loanUsagePercent >= 80;
+          const isNearMemberLimit = memberUsagePercent >= 80;
+
+          if (isNearLoanLimit || isNearMemberLimit) {
+            const isAtLimit =
+              loanUsagePercent >= 100 || memberUsagePercent >= 100;
+            const primaryMetric = isNearMemberLimit ? 'members' : 'loans';
+            const current = isNearMemberLimit ? memberCount : loanCount;
+            const limit = isNearMemberLimit ? limits.members : limits.loans;
+            const usagePercent = isNearMemberLimit
+              ? memberUsagePercent
+              : loanUsagePercent;
+
             return (
-              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between">
+              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-foreground mb-1">
-                    {usagePercent >= 100
+                  <h3 className="text-lg font-black text-foreground mb-1">
+                    {isAtLimit
                       ? 'Plan Limit Reached'
                       : 'Approaching Plan Limit'}
                   </h3>
                   <p className="text-sm text-muted-foreground font-medium mb-3">
                     You're using{' '}
                     <strong className="text-foreground">
-                      {loanCount} of {limit}
+                      {current} of {limit}
                     </strong>{' '}
-                    loans on your {userPlan} plan.
+                    {primaryMetric} on your {userPlan} plan.
                   </p>
                   <div className="flex items-center gap-4">
                     <div className="flex-1 max-w-md">
                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-1000"
                           style={{ width: `${usagePercent}%` }}
                         />
                       </div>
                     </div>
                     <Button
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => navigate('/billing')}
                       variant="gradient"
                       className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
                     >

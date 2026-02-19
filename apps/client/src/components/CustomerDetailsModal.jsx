@@ -7,7 +7,14 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { formatPKR, capitalize } from '@/lib/utils';
-import { Mail, Phone, MapPin, DollarSign, UserPlus } from 'lucide-react';
+import {
+  Mail,
+  Phone,
+  MapPin,
+  DollarSign,
+  UserPlus,
+  Loader2,
+} from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,6 +27,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
     initialInvestment: '',
     profitRate: '',
   });
+  const [memberLoading, setMemberLoading] = useState(false);
 
   useEffect(() => {
     const fetchCustomerLoans = async () => {
@@ -47,6 +55,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
 
   const handleMakeMember = async (e) => {
     e.preventDefault();
+    setMemberLoading(true);
     try {
       await api.post('/members', {
         name: customer.name,
@@ -63,6 +72,8 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
       onClose();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create member');
+    } finally {
+      setMemberLoading(false);
     }
   };
 
@@ -285,9 +296,17 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                 <Button
                   type="submit"
                   variant="gradient"
-                  className="px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest"
+                  disabled={memberLoading}
+                  className="px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-2"
                 >
-                  Confirm Membership
+                  {memberLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Confirm Membership'
+                  )}
                 </Button>
               </div>
             </form>

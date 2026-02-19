@@ -281,7 +281,7 @@ const deleteBranch = async (req, res) => {
 // @access  Private (Admin or Branch Manager)
 const getBranchFinancials = async (req, res) => {
   try {
-    const { startDate, endDate, type } = req.query;
+    const { startDate, endDate, type, search } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -304,7 +304,6 @@ const getBranchFinancials = async (req, res) => {
     }
 
     // Get all customers and members associated with this branch to capture implicit records
-    // We search more broadly here to ensure we find everyone linked to this branch OID
     const [branchCustomers, branchMembers] = await Promise.all([
       Customer.find({
         $or: [{ branchId: branchOid }, { branchId: branchId }],
@@ -336,6 +335,18 @@ const getBranchFinancials = async (req, res) => {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       };
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { description: searchRegex },
+          { category: searchRegex },
+          { notes: searchRegex },
+        ],
+      });
     }
 
     const totalEntries = await FinancialTransaction.countDocuments(query);

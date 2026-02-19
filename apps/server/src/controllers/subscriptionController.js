@@ -2,6 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 const Loan = require('../models/Loan');
 const Member = require('../models/Member');
+const { getPlanLimits } = require('../utils/planLimits');
 
 const getBaseUrl = (req) => {
   // Try environment variable first (best for consistent email links)
@@ -188,15 +189,30 @@ const createPortalSession = async (req, res) => {
 
 const getBillingInfo = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select(
-      'plan subscriptionStatus nextBillingDate stripeCustomerId',
+    const billingUserId = req.user.effectiveOwnerId;
+    const user = await User.findById(billingUserId).select(
+      'plan stripeCustomerId subscriptionStatus nextBillingDate',
     );
 
+    const userPlan = user.plan || 'Free';
+    const planLimits = await getPlanLimits(userPlan);
+
     if (!user.stripeCustomerId) {
+      // Fetch usage counts even if no Stripe ID
+      const [loanCount, memberCount] = await Promise.all([
+        Loan.countDocuments({ user: req.user.effectiveOwnerId }),
+        Member.countDocuments({ user: req.user.effectiveOwnerId }),
+      ]);
+
       return res.json({
         ...user.toObject(),
         paymentMethods: [],
         invoices: [],
+        usage: {
+          loans: loanCount,
+          members: memberCount,
+        },
+        limits: planLimits,
       });
     }
 
@@ -336,10 +352,10 @@ const getBillingInfo = async (req, res) => {
       ...formattedCanceledSubscriptions,
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // Fetch usage counts
+    // Fetch usage counts (All-time regardless of status)
     const [loanCount, memberCount] = await Promise.all([
-      Loan.countDocuments({ user: user._id }),
-      Member.countDocuments({ user: user._id }),
+      Loan.countDocuments({ user: req.user.effectiveOwnerId }),
+      Member.countDocuments({ user: req.user.effectiveOwnerId }),
     ]);
 
     res.json({
@@ -351,6 +367,7 @@ const getBillingInfo = async (req, res) => {
         loans: loanCount,
         members: memberCount,
       },
+      limits: planLimits,
     });
   } catch (error) {
     console.error('Error fetching billing info:', error);

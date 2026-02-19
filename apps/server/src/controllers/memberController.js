@@ -41,6 +41,25 @@ const convertCustomerToMember = async (req, res) => {
         .json({ message: 'Member account already exists for this CNIC' });
     }
 
+    // Check plan limits
+    const owner = await User.findById(customer.user).select('plan');
+    const userPlan = owner.plan || 'Free';
+
+    // Count existing members for this owner
+    const memberCount = await Member.countDocuments({ user: customer.user });
+
+    // Validate against plan limits
+    const limitCheck = await canAddMember(userPlan, memberCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: userPlan,
+        upgradeRequired: true,
+      });
+    }
+
     // Create Member
     const member = await Member.create({
       user: customer.user, // Admin/Business Owner
@@ -63,7 +82,7 @@ const convertCustomerToMember = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'customer_converted_to_member',
-      category: 'members',
+      category: 'member',
       details: `Converted customer ${customer.name} to member`,
       req,
     });
@@ -383,7 +402,7 @@ const createMember = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'member_created',
-      category: 'members',
+      category: 'member',
       details: `Created new member: ${member.name} (${member.email})`,
       metadata: { memberId: member._id },
       req,
@@ -446,7 +465,7 @@ const updateMember = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'member_updated',
-      category: 'members',
+      category: 'member',
       details: `Updated member: ${updatedMember.name}`,
       metadata: { memberId: updatedMember._id },
       req,
@@ -500,7 +519,7 @@ const deleteMember = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'member_deleted',
-      category: 'members',
+      category: 'member',
       details: `Deleted member: ${member.name} (${member.email})`,
       metadata: { memberId: id },
       req,
@@ -605,7 +624,7 @@ const addInvestment = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'member_investment_added',
-      category: 'members',
+      category: 'member',
       details: `Added investment of ${amount} for member: ${member.name}`,
       metadata: {
         memberId: id,
@@ -679,7 +698,7 @@ const withdrawInvestment = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'member_withdrawal_added',
-      category: 'members',
+      category: 'member',
       details: `Processed withdrawal of ${amount} for member: ${member.name}`,
       metadata: {
         memberId: id,
@@ -849,7 +868,7 @@ const distributeProfit = async (req, res) => {
     await logActivity({
       userId: req.user._id,
       action: 'profit_distributed',
-      category: 'members',
+      category: 'member',
       details: `Distributed total profit of ${totalProfit} to ${distributions.length} members for period: ${period}`,
       metadata: {
         totalProfit,
@@ -887,7 +906,18 @@ const getMemberActivity = async (req, res) => {
     const repaymentQuery = { customer: customerId };
     const goalLogQuery = { user: memberId, action: 'goal_contribution' };
 
-    const { category, search } = req.query;
+    const { category, search, startDate, endDate } = req.query;
+
+    if (startDate && endDate) {
+      const dateRange = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+      investmentQuery.date = dateRange;
+      profitQuery.date = dateRange;
+      repaymentQuery.date = dateRange;
+      goalLogQuery.createdAt = dateRange;
+    }
 
     if (search) {
       const searchRegex = { $regex: search, $options: 'i' };

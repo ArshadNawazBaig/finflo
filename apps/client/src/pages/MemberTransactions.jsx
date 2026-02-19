@@ -11,6 +11,8 @@ import {
   Calendar,
   Download,
 } from 'lucide-react';
+import { subMonths } from 'date-fns';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import PageHeader from '@/components/PageHeader';
@@ -41,6 +43,10 @@ const MemberTransactions = () => {
   const [limit, setLimit] = useState(5);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1024px)');
+  const [dateRange, setDateRange] = useState({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
   const observerTarget = useRef(null);
 
   const fetchActivity = useCallback(
@@ -59,12 +65,17 @@ const MemberTransactions = () => {
         }
 
         const [activityRes, memberRes] = await Promise.all([
-          api.get(
-            `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=${filter === 'all' ? '' : filter}&search=${search}`,
-            {
-              headers: { Authorization: `Bearer ${memberToken}` },
+          api.get('/members/portal/activity', {
+            params: {
+              page: pageToFetch,
+              limit,
+              category: filter === 'all' ? '' : filter,
+              search,
+              startDate: dateRange?.from?.toISOString(),
+              endDate: dateRange?.to?.toISOString(),
             },
-          ),
+            headers: { Authorization: `Bearer ${memberToken}` },
+          }),
           api.get('/member-auth/me', {
             headers: { Authorization: `Bearer ${memberToken}` },
           }),
@@ -94,12 +105,12 @@ const MemberTransactions = () => {
         setIsFetchingMore(false);
       }
     },
-    [filter, search, limit],
+    [filter, search, limit, dateRange],
   );
 
   useEffect(() => {
     fetchActivity(1, false);
-  }, [filter, search, limit]);
+  }, [filter, search, limit, dateRange]);
 
   useEffect(() => {
     if (!observerTarget.current) return;
@@ -196,17 +207,24 @@ const MemberTransactions = () => {
 
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
         <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="relative flex-1 max-w-md">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={18}
-              />
-              <Input
-                placeholder="Search transactions..."
-                className="pl-12 rounded-2xl h-12 bg-background border-none shadow-sm focus-visible:ring-primary/20"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 flex-1">
+              <div className="relative flex-1 w-full max-w-md">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={18}
+                />
+                <Input
+                  placeholder="Search transactions..."
+                  className="pl-12 rounded-2xl h-12 bg-background border-none shadow-sm focus-visible:ring-primary/20 w-full"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <DateRangePicker
+                date={dateRange}
+                setDate={setDateRange}
+                className="w-full sm:w-auto"
               />
             </div>
 
