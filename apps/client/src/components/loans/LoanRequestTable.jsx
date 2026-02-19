@@ -6,14 +6,15 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,
+  FileQuestion,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatPKR, capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
-import { FileQuestion } from 'lucide-react';
 
 const LoanRequestTable = ({
   requests,
@@ -101,18 +102,25 @@ const LoanRequestTable = ({
                 className="group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors"
               >
                 <td className="py-4 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize">
+                  <Link
+                    to={
+                      request.customer?._id
+                        ? `/customers/${request.customer._id}`
+                        : '#'
+                    }
+                    className="flex items-center gap-3 group/link hover:opacity-80 transition-opacity"
+                  >
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize group-hover/link:bg-primary/20 transition-colors">
                       {request.customer?.name
                         ? request.customer.name.charAt(0).toUpperCase()
                         : '?'}
                     </div>
-                    <div className="font-semibold text-sm">
+                    <div className="font-semibold text-sm group-hover/link:text-primary transition-colors">
                       {request.customer?.name
                         ? capitalize(request.customer.name)
                         : 'Unknown'}
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="py-4 px-4">
                   <div className="font-bold text-sm text-primary">

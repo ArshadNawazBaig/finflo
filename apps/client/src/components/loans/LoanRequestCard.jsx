@@ -1,4 +1,5 @@
 import { Check, X, Loader2, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatPKR } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,14 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
     <div className="bg-card p-4 rounded-xl border border-border/50 hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h3 className="text-base font-bold">{request.customer?.name}</h3>
+          <Link
+            to={
+              request.customer?._id ? `/customers/${request.customer._id}` : '#'
+            }
+            className="text-base font-bold hover:text-primary transition-colors"
+          >
+            {request.customer?.name}
+          </Link>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
             <Calendar size={12} />
             {format(new Date(request.createdAt), 'MMM dd, yyyy')}
