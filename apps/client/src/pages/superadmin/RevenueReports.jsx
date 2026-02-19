@@ -232,7 +232,7 @@ const RevenueReports = () => {
               />
               <StatsCard
                 title="Avg Revenue Per Business"
-                amount={`$${Math.ceil(overview.arpu).toLocaleString()}`}
+                amount={`$${Math.round(overview.arpu).toLocaleString()}`}
                 icon={<Users size={20} />}
                 color="bg-emerald-500 shadow-emerald-500/20"
               />

@@ -7,7 +7,7 @@ export function cn(...inputs) {
 
 export const formatPKR = (num) => {
   if (num === undefined || num === null) return 'Rs. 0';
-  num = Math.ceil(num);
+  num = Math.round(num);
   const absNum = Math.abs(num);
   let formatted;
   if (absNum >= 1000000) {
@@ -19,7 +19,7 @@ export const formatPKR = (num) => {
 };
 export const formatCompactValue = (num) => {
   if (num === undefined || num === null) return '0';
-  num = Math.ceil(num);
+  num = Math.round(num);
   const absNum = Math.abs(num);
   let formatted;
   if (absNum >= 1000000) {

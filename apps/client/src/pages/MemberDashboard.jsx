@@ -183,7 +183,7 @@ const MemberDashboard = () => {
 
   // Format large numbers for chart display
   const formatChartValue = (value) => {
-    value = Math.ceil(value);
+    value = Math.round(value);
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M`;
     }

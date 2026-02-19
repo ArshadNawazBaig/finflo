@@ -742,7 +742,7 @@ const distributeProfit = async (req, res) => {
       for (const member of members) {
         if (member.currentBalance > 0 && member.profitRate > 0) {
           // Calculate profit based on custom rate: (balance * rate / 100)
-          const profitAmount = Math.ceil(
+          const profitAmount = Math.round(
             (member.currentBalance * member.profitRate) / 100,
           );
 
@@ -798,7 +798,7 @@ const distributeProfit = async (req, res) => {
       for (const member of members) {
         if (member.currentBalance > 0) {
           const share = (member.currentBalance / totalInvested) * 100;
-          const profitAmount = Math.ceil(
+          const profitAmount = Math.round(
             (member.currentBalance / totalInvested) * totalProfit,
           );
 
@@ -862,7 +862,7 @@ const distributeProfit = async (req, res) => {
     res.status(201).json({
       message: 'Profit distributed successfully',
       distributions,
-      totalDistributed: Math.ceil(
+      totalDistributed: Math.round(
         distributions.reduce((sum, d) => sum + d.amount, 0),
       ),
       membersCount: distributions.length,
@@ -1043,7 +1043,7 @@ const transferFunds = async (req, res) => {
       throw new Error('Cannot transfer to yourself');
     }
 
-    const transferAmount = Math.ceil(parseFloat(amount));
+    const transferAmount = Math.round(parseFloat(amount));
 
     // Update balances
     sender.currentBalance -= transferAmount;
@@ -1176,7 +1176,7 @@ const adminTransferFunds = async (req, res) => {
       throw new Error('Cannot transfer to the same member');
     }
 
-    const transferAmount = Math.ceil(parseFloat(amount));
+    const transferAmount = Math.round(parseFloat(amount));
 
     // Update balances
     sender.currentBalance -= transferAmount;

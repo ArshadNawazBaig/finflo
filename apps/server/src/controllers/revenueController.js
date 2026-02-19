@@ -31,7 +31,7 @@ const getRevenueOverview = async (req, res) => {
 
     // Calculate ARPU (Average Revenue Per Business)
     const arpu =
-      totalActiveBusinesses > 0 ? Math.ceil(mrr / totalActiveBusinesses) : 0;
+      totalActiveBusinesses > 0 ? Math.round(mrr / totalActiveBusinesses) : 0;
 
     // Get previous month MRR for growth calculation
     const oneMonthAgo = new Date();
@@ -96,7 +96,7 @@ const getRevenueByPlan = async (req, res) => {
     const revenueByPlan = usersByPlan.map(({ _id, count }) => ({
       plan: _id,
       users: count,
-      monthlyRevenue: Math.ceil((planPrices[_id] || 0) * count),
+      monthlyRevenue: Math.round((planPrices[_id] || 0) * count),
       price: planPrices[_id] || 0,
     }));
 

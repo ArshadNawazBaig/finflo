@@ -69,7 +69,7 @@ const InvoiceCard = ({ invoice }) => {
                 status === 'refunded' ? 'line-through text-destructive' : ''
               }
             >
-              {Math.ceil(invoice.amount || 0).toLocaleString()}
+              {Math.round(invoice.amount || 0).toLocaleString()}
             </span>
             {status === 'refunded' && (
               <span className="ml-1 text-[9px] text-destructive font-bold">

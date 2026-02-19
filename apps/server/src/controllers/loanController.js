@@ -128,10 +128,10 @@ const createLoan = async (req, res) => {
 
     if (interestType === 'simple') {
       const result = calculateSimpleInterest(principal, rate, duration);
-      emi = Math.ceil(result.emi);
-      totalAmount = Math.ceil(result.totalAmount);
+      emi = Math.round(result.emi);
+      totalAmount = Math.round(result.totalAmount);
     } else {
-      emi = Math.ceil(calculateEMI(principal, rate, duration));
+      emi = Math.round(calculateEMI(principal, rate, duration));
       totalAmount = emi * duration;
     }
 
@@ -292,8 +292,8 @@ const requestLoan = async (req, res) => {
       totalAmount = principal;
     if (rate > 0) {
       const result = calculateSimpleInterest(principal, rate, duration);
-      emi = Math.ceil(result.emi);
-      totalAmount = Math.ceil(result.totalAmount);
+      emi = Math.round(result.emi);
+      totalAmount = Math.round(result.totalAmount);
     }
 
     const customerHistory = await Loan.find({ customer: req.member.customer });
@@ -610,7 +610,7 @@ const addRepayment = async (req, res) => {
     // Update loan stats
     const repaymentsCount = await Repayment.countDocuments({ loan: loanId });
     loan.paidAmount += Number(amount);
-    loan.remainingAmount = Math.ceil(
+    loan.remainingAmount = Math.round(
       Math.max(0, loan.totalAmount - loan.paidAmount),
     );
 
@@ -794,10 +794,10 @@ const updateLoan = async (req, res) => {
           newRate,
           newDuration,
         );
-        emi = Math.ceil(result.emi);
-        totalAmount = Math.ceil(result.totalAmount);
+        emi = Math.round(result.emi);
+        totalAmount = Math.round(result.totalAmount);
       } else {
-        emi = Math.ceil(calculateEMI(newPrincipal, newRate, newDuration));
+        emi = Math.round(calculateEMI(newPrincipal, newRate, newDuration));
         totalAmount = emi * newDuration;
       }
 
@@ -807,7 +807,7 @@ const updateLoan = async (req, res) => {
       loan.interestType = newInterestType;
       loan.emi = emi;
       loan.totalAmount = totalAmount;
-      loan.remainingAmount = Math.ceil(totalAmount - loan.paidAmount);
+      loan.remainingAmount = Math.round(totalAmount - loan.paidAmount);
       if (loan.remainingAmount <= 0) {
         loan.status = 'completed';
         // Log activity for auto-completion
@@ -1124,10 +1124,10 @@ const approveLoan = async (req, res) => {
           newRate,
           newDuration,
         );
-        emi = Math.ceil(result.emi);
-        totalAmount = Math.ceil(result.totalAmount);
+        emi = Math.round(result.emi);
+        totalAmount = Math.round(result.totalAmount);
       } else {
-        emi = Math.ceil(calculateEMI(newPrincipal, newRate, newDuration));
+        emi = Math.round(calculateEMI(newPrincipal, newRate, newDuration));
         totalAmount = emi * newDuration;
       }
 
@@ -1137,7 +1137,7 @@ const approveLoan = async (req, res) => {
       loan.interestType = newInterestType;
       loan.emi = emi;
       loan.totalAmount = totalAmount;
-      loan.remainingAmount = Math.ceil(totalAmount - loan.paidAmount);
+      loan.remainingAmount = Math.round(totalAmount - loan.paidAmount);
       if (loan.remainingAmount <= 0) {
         loan.status = 'completed';
         // Log activity for auto-completion

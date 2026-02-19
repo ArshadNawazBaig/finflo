@@ -24,7 +24,7 @@ import Logo from '@/components/Logo';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
-  amount = Math.ceil(amount);
+  amount = Math.round(amount);
   if (amount >= 1000000) {
     return `${(amount / 1000000).toFixed(1)}M`;
   }

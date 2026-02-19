@@ -377,7 +377,7 @@ const getBranchFinancials = async (req, res) => {
     const members = await Member.find({
       $or: [{ branchId: branchOid }, { branchId: branchId }],
     });
-    const totalDeposits = Math.ceil(
+    const totalDeposits = Math.round(
       members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
     );
 
@@ -389,7 +389,7 @@ const getBranchFinancials = async (req, res) => {
         { customer: { $in: customerIds } },
       ],
     });
-    const totalPortfolio = Math.ceil(
+    const totalPortfolio = Math.round(
       loans.reduce((sum, l) => sum + (l.principal || 0), 0),
     );
 
@@ -411,7 +411,7 @@ const getBranchFinancials = async (req, res) => {
         return sum + r.amount * profitRatio;
       }, 0);
     };
-    const netProfit = Math.ceil(calculateProfit(repayments));
+    const netProfit = Math.round(calculateProfit(repayments));
 
     res.json({
       data: financials,

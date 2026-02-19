@@ -139,7 +139,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           const totalAmount = p + totalInterest;
           const monthlyPayment = totalAmount / n;
 
-          return Math.ceil(monthlyPayment);
+          return Math.round(monthlyPayment);
         })()
       : 0;
 

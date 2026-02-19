@@ -436,7 +436,7 @@ const Billing = () => {
                                     }
                                   >
                                     $
-                                    {Math.ceil(
+                                    {Math.round(
                                       inv.amount || 0,
                                     ).toLocaleString()}
                                   </span>

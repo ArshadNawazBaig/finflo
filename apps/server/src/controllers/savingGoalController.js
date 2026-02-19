@@ -143,7 +143,7 @@ const contributeToGoal = async (req, res) => {
     // But we update the currentAmount of the goal.
     // However, if we want to "WOW" the user, we should track it as "Allocated" funds.
 
-    goal.currentAmount += Math.ceil(Number(amount));
+    goal.currentAmount += Math.round(Number(amount));
 
     if (goal.currentAmount >= goal.targetAmount) {
       goal.status = 'completed';
