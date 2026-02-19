@@ -1332,7 +1332,19 @@ const getMemberLoanById = async (req, res) => {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
-    res.json(loan);
+    // Compute next payment date from amortization schedule
+    let nextPaymentDate = null;
+    if (loan.status === 'active' && loan.emi > 0) {
+      const installmentsPaid = Math.floor((loan.paidAmount || 0) / loan.emi);
+      const nextInstallment = installmentsPaid + 1;
+      if (nextInstallment <= loan.duration) {
+        const dueDate = new Date(loan.startDate);
+        dueDate.setMonth(dueDate.getMonth() + nextInstallment);
+        nextPaymentDate = dueDate;
+      }
+    }
+
+    res.json({ ...loan.toObject(), nextPaymentDate });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

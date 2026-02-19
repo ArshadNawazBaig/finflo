@@ -5,7 +5,6 @@ import {
   Calendar,
   DollarSign,
   TrendingUp,
-  Info,
   Clock,
   CheckCircle2,
   FileText,
@@ -72,7 +71,8 @@ const MemberLoanDetail = () => {
 
   const paidAmount = loan.totalAmount - loan.remainingAmount;
   const progressPercent = Math.round((paidAmount / loan.totalAmount) * 100);
-  const paidInstallments = loan.repayments?.length || 0; // Fallback if not populated correctly
+  const paidInstallments =
+    loan.emi > 0 ? Math.floor(loan.paidAmount / loan.emi) : 0;
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
@@ -193,10 +193,10 @@ const MemberLoanDetail = () => {
           color="bg-purple-500"
         />
         <StatsCard
-          title="Status"
-          amount={loan.status.toUpperCase()}
-          icon={<Info size={20} />}
-          color={loan.status === 'active' ? 'bg-emerald-500' : 'bg-blue-500'}
+          title="Amount Paid"
+          amount={formatPKR(paidAmount)}
+          icon={<CheckCircle2 size={20} />}
+          color="bg-emerald-500"
         />
         <StatsCard
           title="Next Due"
