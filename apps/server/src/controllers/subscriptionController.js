@@ -2,6 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 const Loan = require('../models/Loan');
 const Member = require('../models/Member');
+const Branch = require('../models/Branch');
 const { getPlanLimits } = require('../utils/planLimits');
 
 const getBaseUrl = (req) => {
@@ -198,10 +199,11 @@ const getBillingInfo = async (req, res) => {
     const planLimits = await getPlanLimits(userPlan);
 
     if (!user.stripeCustomerId) {
-      // Fetch usage counts even if no Stripe ID
-      const [loanCount, memberCount] = await Promise.all([
+      // Fetch usage counts even if no Stripe ID (includes branches)
+      const [loanCount, memberCount, branchCount] = await Promise.all([
         Loan.countDocuments({ user: req.user.effectiveOwnerId }),
         Member.countDocuments({ user: req.user.effectiveOwnerId }),
+        Branch.countDocuments({ owner: req.user.effectiveOwnerId }),
       ]);
 
       return res.json({
@@ -211,6 +213,7 @@ const getBillingInfo = async (req, res) => {
         usage: {
           loans: loanCount,
           members: memberCount,
+          branches: branchCount,
         },
         limits: planLimits,
       });
@@ -353,9 +356,10 @@ const getBillingInfo = async (req, res) => {
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Fetch usage counts (All-time regardless of status)
-    const [loanCount, memberCount] = await Promise.all([
+    const [loanCount, memberCount, branchCount] = await Promise.all([
       Loan.countDocuments({ user: req.user.effectiveOwnerId }),
       Member.countDocuments({ user: req.user.effectiveOwnerId }),
+      Branch.countDocuments({ owner: req.user.effectiveOwnerId }),
     ]);
 
     res.json({
@@ -366,6 +370,7 @@ const getBillingInfo = async (req, res) => {
       usage: {
         loans: loanCount,
         members: memberCount,
+        branches: branchCount,
       },
       limits: planLimits,
     });

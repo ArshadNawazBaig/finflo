@@ -86,13 +86,17 @@ const Pricing = () => {
       plan.limits.maxCustomers === -1
         ? 'Unlimited customers'
         : `Up to ${plan.limits.maxCustomers} customers`,
+      plan.limits.maxBranches === -1
+        ? 'Unlimited branches'
+        : `Up to ${plan.limits.maxBranches} ${plan.limits.maxBranches === 1 ? 'branch' : 'branches'}`,
     ];
 
     const baseFeatures = (plan.features || []).filter(
       (f) =>
         !f.toLowerCase().includes('loan') &&
         !f.toLowerCase().includes('member') &&
-        !f.toLowerCase().includes('customer'),
+        !f.toLowerCase().includes('customer') &&
+        !f.toLowerCase().includes('branch'),
     );
 
     return {

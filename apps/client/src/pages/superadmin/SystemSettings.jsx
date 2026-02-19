@@ -377,7 +377,7 @@ const SystemSettings = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
                           {[
                             {
                               label: 'Max Customers',
@@ -393,6 +393,11 @@ const SystemSettings = () => {
                               label: 'Team Members',
                               field: 'maxMembers',
                               count: plan.limits.maxMembers,
+                            },
+                            {
+                              label: 'Max Branches',
+                              field: 'maxBranches',
+                              count: plan.limits.maxBranches,
                             },
                           ].map((limit) => (
                             <div

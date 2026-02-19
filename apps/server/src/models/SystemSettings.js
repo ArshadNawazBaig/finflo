@@ -32,6 +32,11 @@ const subscriptionPlanSchema = new mongoose.Schema({
       required: true,
       default: -1,
     },
+    maxBranches: {
+      type: Number,
+      required: true,
+      default: -1,
+    },
   },
 });
 
@@ -55,6 +60,7 @@ const systemSettingsSchema = new mongoose.Schema(
             maxCustomers: 10,
             maxLoans: 5,
             maxMembers: 1,
+            maxBranches: 1,
           },
         },
         {
@@ -72,6 +78,7 @@ const systemSettingsSchema = new mongoose.Schema(
             maxCustomers: 100,
             maxLoans: 50,
             maxMembers: 3,
+            maxBranches: 3,
           },
         },
         {
@@ -90,6 +97,7 @@ const systemSettingsSchema = new mongoose.Schema(
             maxCustomers: -1,
             maxLoans: -1,
             maxMembers: -1,
+            maxBranches: -1,
           },
         },
       ],

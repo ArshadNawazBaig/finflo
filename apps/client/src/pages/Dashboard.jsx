@@ -29,9 +29,11 @@ const Dashboard = () => {
   const [analyticsData, setAnalyticsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(false);
+  const [userRole, setUserRole] = useState('');
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
   const [memberCount, setMemberCount] = useState(0);
+  const [branchCount, setBranchCount] = useState(0);
   const [planLimits, setPlanLimits] = useState(null);
   const [userName, setUserName] = useState('admin');
   const [dateRange, setDateRange] = useState({
@@ -70,6 +72,7 @@ const Dashboard = () => {
           0,
       );
       setMemberCount(billingData.usage?.members || 0);
+      setBranchCount(billingData.usage?.branches || 0);
       setPlanLimits(billingData.limits || null);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
@@ -85,6 +88,9 @@ const Dashboard = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user?.name) {
       setUserName(user.name);
+    }
+    if (user?.role) {
+      setUserRole(user.role);
     }
     fetchDashboardData(true);
   }, []);
@@ -136,12 +142,14 @@ const Dashboard = () => {
 
       {/* Plan Usage Banner */}
       {!loading &&
+        userRole !== 'super_admin' &&
         userPlan !== 'Pro' &&
         (() => {
-          // Use dynamic limits from API if available, fallback to defaults
-          const limits = planLimits || {
-            loans: userPlan === 'Basic' ? 50 : 5,
-            members: userPlan === 'Basic' ? 3 : 1,
+          // Use dynamic limits from API with per-field fallback to defaults
+          const limits = {
+            loans: planLimits?.loans ?? (userPlan === 'Basic' ? 50 : 5),
+            members: planLimits?.members ?? (userPlan === 'Basic' ? 3 : 1),
+            branches: planLimits?.branches ?? (userPlan === 'Basic' ? 3 : 1),
           };
 
           const loanUsagePercent = Math.min(
@@ -152,19 +160,40 @@ const Dashboard = () => {
             100,
             (memberCount / limits.members) * 100,
           );
+          const branchUsagePercent = Math.min(
+            100,
+            (branchCount / (limits.branches || 1)) * 100,
+          );
 
           const isNearLoanLimit = loanUsagePercent >= 80;
           const isNearMemberLimit = memberUsagePercent >= 80;
+          const isNearBranchLimit = branchUsagePercent >= 80;
 
-          if (isNearLoanLimit || isNearMemberLimit) {
+          if (isNearLoanLimit || isNearMemberLimit || isNearBranchLimit) {
             const isAtLimit =
-              loanUsagePercent >= 100 || memberUsagePercent >= 100;
-            const primaryMetric = isNearMemberLimit ? 'members' : 'loans';
-            const current = isNearMemberLimit ? memberCount : loanCount;
-            const limit = isNearMemberLimit ? limits.members : limits.loans;
-            const usagePercent = isNearMemberLimit
-              ? memberUsagePercent
-              : loanUsagePercent;
+              loanUsagePercent >= 100 ||
+              memberUsagePercent >= 100 ||
+              branchUsagePercent >= 100;
+            const primaryMetric = isNearBranchLimit
+              ? 'branches'
+              : isNearMemberLimit
+                ? 'members'
+                : 'loans';
+            const current = isNearBranchLimit
+              ? branchCount
+              : isNearMemberLimit
+                ? memberCount
+                : loanCount;
+            const limit = isNearBranchLimit
+              ? limits.branches
+              : isNearMemberLimit
+                ? limits.members
+                : limits.loans;
+            const usagePercent = isNearBranchLimit
+              ? branchUsagePercent
+              : isNearMemberLimit
+                ? memberUsagePercent
+                : loanUsagePercent;
 
             return (
               <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">

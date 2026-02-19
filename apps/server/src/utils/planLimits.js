@@ -4,6 +4,7 @@ const DEFAULT_PLAN_LIMITS = {
   Free: {
     loans: 5,
     members: 1,
+    branches: 1,
     customers: 10,
     users: 1,
     features: ['basic_reporting', 'email_support'],
@@ -11,6 +12,7 @@ const DEFAULT_PLAN_LIMITS = {
   Basic: {
     loans: 50,
     members: 3,
+    branches: 3,
     customers: 100,
     users: 3,
     features: [
@@ -23,6 +25,7 @@ const DEFAULT_PLAN_LIMITS = {
   Pro: {
     loans: Infinity,
     members: Infinity,
+    branches: Infinity,
     customers: Infinity,
     users: Infinity,
     features: [
@@ -54,6 +57,8 @@ const getDynamicLimits = async (planName) => {
         loans: plan.limits.maxLoans === -1 ? Infinity : plan.limits.maxLoans,
         members:
           plan.limits.maxMembers === -1 ? Infinity : plan.limits.maxMembers,
+        branches:
+          plan.limits.maxBranches === -1 ? Infinity : plan.limits.maxBranches,
         customers:
           plan.limits.maxCustomers === -1 ? Infinity : plan.limits.maxCustomers,
         users: plan.name === 'Pro' ? Infinity : plan.name === 'Basic' ? 3 : 1, // Features not fully in limits schema yet
@@ -209,12 +214,40 @@ const canAddCustomer = async (plan, currentCount) => {
   };
 };
 
+/**
+ * Check if a new branch can be added based on the plan
+ * @param {string} plan - User's current plan
+ * @param {number} currentCount - Current number of branches
+ * @returns {Promise<object>} { allowed: boolean, limit: number, message: string }
+ */
+const canAddBranch = async (plan, currentCount) => {
+  const limits = await getDynamicLimits(plan);
+  const limit = limits.branches;
+
+  if (currentCount >= limit) {
+    return {
+      allowed: false,
+      limit,
+      current: currentCount,
+      message: `You've reached your ${plan} plan limit of ${limit} branch(es). Upgrade to add more.`,
+    };
+  }
+
+  return {
+    allowed: true,
+    limit,
+    current: currentCount,
+    message: 'You can add a new branch.',
+  };
+};
+
 module.exports = {
   PLAN_LIMITS: DEFAULT_PLAN_LIMITS,
   canCreateLoan,
   canAddUser,
   canAddMember,
   canAddCustomer,
+  canAddBranch,
   hasFeature,
   getPlanLimits,
   getLoanUsagePercentage,

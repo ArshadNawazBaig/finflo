@@ -159,9 +159,24 @@ const Branches = () => {
       fetchBranches();
     } catch (error) {
       console.error(error);
-      toast.error(
-        currentBranch ? 'Failed to update branch' : 'Failed to create branch',
-      );
+      const serverMessage = error.response?.data?.message;
+      if (currentBranch) {
+        toast.error(serverMessage || 'Failed to update branch');
+      } else if (error.response?.data?.upgradeRequired) {
+        toast.error(
+          serverMessage ||
+            'Branch limit reached. Upgrade your plan to add more branches.',
+          {
+            duration: 6000,
+            action: {
+              label: 'Upgrade',
+              onClick: () => (window.location.href = '/billing'),
+            },
+          },
+        );
+      } else {
+        toast.error(serverMessage || 'Failed to create branch');
+      }
     } finally {
       setSaving(false);
     }

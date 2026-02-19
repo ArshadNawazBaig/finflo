@@ -10,6 +10,7 @@ const {
   calculatePercentageChange,
   getMonthDates,
 } = require('../utils/reportUtils');
+const { canAddBranch } = require('../utils/planLimits');
 
 // @desc    Create a new branch
 // @route   POST /api/branches
@@ -21,6 +22,25 @@ const createBranch = async (req, res) => {
       return res
         .status(403)
         .json({ message: 'Not authorized to create branches' });
+    }
+
+    // Check plan limits
+    const owner = await User.findById(req.user._id).select('plan');
+    const userPlan = owner.plan || 'Free';
+
+    // Count existing branches for this owner
+    const branchCount = await Branch.countDocuments({ owner: req.user._id });
+
+    // Validate against plan limits
+    const limitCheck = await canAddBranch(userPlan, branchCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: userPlan,
+        upgradeRequired: true,
+      });
     }
 
     let { name, address, contactNumber, managerId, branding } = req.body;
