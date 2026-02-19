@@ -89,8 +89,8 @@ const Notifications = () => {
   );
 
   useEffect(() => {
-    fetchNotifications(1);
-  }, [limit, search, sortBy, fetchNotifications]);
+    fetchNotifications(pagination.page);
+  }, [limit, search, sortBy, pagination.page, fetchNotifications]);
 
   // Intersection Observer for Infinite Scroll (Mobile)
   useEffect(() => {

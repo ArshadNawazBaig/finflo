@@ -87,8 +87,8 @@ const AuditLogs = () => {
   );
 
   useEffect(() => {
-    fetchLogs(1, false);
-  }, [fetchLogs]);
+    fetchLogs(pagination.page, false);
+  }, [pagination.page, fetchLogs]);
 
   const lastLogElementRef = useCallback(
     (node) => {

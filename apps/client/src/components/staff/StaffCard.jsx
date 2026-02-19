@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Shield,
   User as UserIcon,
@@ -20,12 +21,15 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete }) => {
   return (
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shadow-sm group-hover:bg-primary/20 transition-colors">
+        <Link
+          to={`/team/${item._id}`}
+          className="flex items-center gap-3 group/link cursor-pointer"
+        >
+          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shadow-sm group-hover/link:bg-primary group-hover/link:text-primary-foreground transition-all duration-300">
             {initials.slice(0, 2)}
           </div>
           <div className="flex flex-col">
-            <h3 className="font-bold text-base block leading-tight">
+            <h3 className="font-bold text-base block leading-tight group-hover/link:text-primary transition-colors">
               {item.name}
             </h3>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -39,7 +43,7 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete }) => {
               </span>
             </div>
           </div>
-        </div>
+        </Link>
         <span
           className={cn(
             'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',

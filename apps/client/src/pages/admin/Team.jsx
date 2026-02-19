@@ -37,6 +37,11 @@ const Team = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [deleteStaffId, setDeleteStaffId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [summary, setSummary] = useState({
+    total: 0,
+    active: 0,
+    admins: 0,
+  });
 
   // Mobile & Infinite Scroll State
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -50,7 +55,7 @@ const Team = () => {
   }, []);
 
   const fetchStaff = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageOverride) => {
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -58,7 +63,8 @@ const Team = () => {
           setLoading(true);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const pageToFetch =
+          pageOverride || (isAppend ? currentPage + 1 : currentPage);
         const { data } = await api.get(
           `/staff?page=${pageToFetch}&limit=${limit}&search=${searchTerm}`,
         );
@@ -71,13 +77,17 @@ const Team = () => {
             );
             return [...prev, ...newStaff];
           });
-          setCurrentPage(pageToFetch);
         } else {
           setStaff(data.data || []);
         }
 
+        if (data.summary) {
+          setSummary(data.summary);
+        }
+
         setTotalEntries(data.totalEntries || 0);
         setTotalPages(data.totalPages || 0);
+        setCurrentPage(pageToFetch);
       } catch (error) {
         console.error('Failed to fetch staff', error);
         toast.error('Failed to load team members');
@@ -86,27 +96,17 @@ const Team = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchTerm],
+    [limit, searchTerm, currentPage],
   );
 
-  useEffect(() => {
-    if (!isMobile) {
-      fetchStaff();
-    }
-  }, [fetchStaff, isMobile]);
-
-  // Initial Fetch & Search Debounce
+  // Search Debounce
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      } else {
-        fetchStaff(false);
-      }
-    }, 300);
+      fetchStaff(false, 1);
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, limit]);
+  }, [searchTerm, limit, isMobile]);
 
   // Infinite Scroll Observer
   useEffect(() => {
@@ -195,12 +195,8 @@ const Team = () => {
       s.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const stats = {
-    total: staff.length,
-    active: staff.filter((s) => s.isActive).length,
-    admins: staff.filter((s) => s.role === 'admin' || s.role === 'super_admin')
-      .length,
-  };
+  // Use backend summary for stats
+  const statsDisplay = summary;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -220,30 +216,27 @@ const Team = () => {
         )}
       </PageHeader>
 
-      {loading ? (
-        <CardsSkeleton count={3} />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          <StatsCard
-            title="Total Team"
-            amount={stats.total}
-            icon={<Users size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Active Staff"
-            amount={stats.active}
-            icon={<UserCheck size={20} />}
-            color="bg-emerald-500 shadow-emerald-500/20"
-          />
-          <StatsCard
-            title="Privileged Users"
-            amount={stats.admins}
-            icon={<ShieldCheck size={20} />}
-            color="bg-purple-500 shadow-purple-500/20"
-          />
-        </div>
-      )}
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <StatsCard
+          title="Total Team"
+          amount={statsDisplay.total}
+          icon={<Users size={20} />}
+          color="bg-primary shadow-primary/20"
+        />
+        <StatsCard
+          title="Active Staff"
+          amount={statsDisplay.active}
+          icon={<UserCheck size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+        />
+        <StatsCard
+          title="Privileged Users"
+          amount={statsDisplay.admins}
+          icon={<ShieldCheck size={20} />}
+          color="bg-purple-500 shadow-purple-500/20"
+        />
+      </div>
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -307,10 +300,9 @@ const Team = () => {
                     totalPages,
                     totalEntries,
                     limit,
-                    onPageChange: setCurrentPage,
+                    onPageChange: (page) => fetchStaff(false, page),
                     onLimitChange: (newLimit) => {
                       setLimit(newLimit);
-                      setCurrentPage(1);
                     },
                   }}
                 />

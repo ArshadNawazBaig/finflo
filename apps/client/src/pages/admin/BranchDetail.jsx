@@ -78,6 +78,7 @@ const BranchDetail = () => {
     amount: '',
     category: 'rent',
     description: '',
+    staffId: '',
   });
 
   // Financials Pagination States
@@ -117,6 +118,13 @@ const BranchDetail = () => {
   const expenseObserverTarget = useRef(null);
   const ledgerObserverTarget = useRef(null);
 
+  const [ledgerPagination, setLedgerPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalEntries: 0,
+    totalPages: 0,
+  });
+
   const [expensePagination, setExpensePagination] = useState({
     page: 1,
     limit: 10,
@@ -124,12 +132,10 @@ const BranchDetail = () => {
     totalPages: 0,
   });
 
-  const [ledgerPagination, setLedgerPagination] = useState({
-    page: 1,
-    limit: 10,
-    totalEntries: 0,
-    totalPages: 0,
-  });
+  const [ledgerSortBy, setLedgerSortBy] = useState('date');
+  const [ledgerSortOrder, setLedgerSortOrder] = useState('desc');
+  const [expenseSortBy, setExpenseSortBy] = useState('date');
+  const [expenseSortOrder, setExpenseSortOrder] = useState('desc');
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -165,12 +171,14 @@ const BranchDetail = () => {
   }, [id, navigate]);
 
   const fetchExpenses = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageOverride) => {
       try {
         if (isAppend) setIsFetchingMore(true);
         else setFetchingFinancials(true);
 
-        const pageToFetch = isAppend ? expensePagination.page + 1 : 1;
+        const pageToFetch =
+          pageOverride ||
+          (isAppend ? expensePagination.page + 1 : expensePagination.page);
 
         const { data } = await api.get(`/branches/${id}/financials`, {
           params: {
@@ -180,6 +188,8 @@ const BranchDetail = () => {
             search: expenseSearch,
             startDate: expenseDateRange?.from?.toISOString(),
             endDate: expenseDateRange?.to?.toISOString(),
+            sortBy: expenseSortBy,
+            sortOrder: expenseSortOrder,
           },
         });
 
@@ -209,16 +219,20 @@ const BranchDetail = () => {
       expensePagination.limit,
       expenseSearch,
       expenseDateRange,
+      expenseSortBy,
+      expenseSortOrder,
     ],
   );
 
   const fetchLedger = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageOverride) => {
       try {
         if (isAppend) setIsFetchingMore(true);
         else setFetchingFinancials(true);
 
-        const pageToFetch = isAppend ? ledgerPagination.page + 1 : 1;
+        const pageToFetch =
+          pageOverride ||
+          (isAppend ? ledgerPagination.page + 1 : ledgerPagination.page);
 
         const { data } = await api.get(`/branches/${id}/financials`, {
           params: {
@@ -227,6 +241,8 @@ const BranchDetail = () => {
             search: ledgerSearch,
             startDate: ledgerDateRange?.from?.toISOString(),
             endDate: ledgerDateRange?.to?.toISOString(),
+            sortBy: ledgerSortBy,
+            sortOrder: ledgerSortOrder,
           },
         });
 
@@ -256,6 +272,8 @@ const BranchDetail = () => {
       ledgerPagination.limit,
       ledgerSearch,
       ledgerDateRange,
+      ledgerSortBy,
+      ledgerSortOrder,
     ],
   );
 
@@ -391,32 +409,40 @@ const BranchDetail = () => {
     }
   }, [dateRange, fetchAnalytics, activeTab]);
 
-  // Tab Specific Triggers
+  // Tab Specific Triggers with Debouncing for filters
   useEffect(() => {
-    if (activeTab === 'expenses') {
-      fetchExpenses(false);
-    } else if (activeTab === 'ledger') {
-      fetchLedger(false);
-    } else if (activeTab === 'overview') {
-      fetchAnalytics();
-    }
-  }, [activeTab, fetchExpenses, fetchLedger, fetchAnalytics]);
+    const delayDebounceFn = setTimeout(
+      () => {
+        if (activeTab === 'expenses') {
+          fetchExpenses(false);
+        } else if (activeTab === 'ledger') {
+          fetchLedger(false);
+        } else if (activeTab === 'overview') {
+          fetchAnalytics();
+        }
+      },
+      expenseSearch || ledgerSearch ? 500 : 0,
+    ); // Debounce search, but not tab change
 
-  // Handle Ledger Filters
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (activeTab === 'ledger') fetchLedger(false);
-    }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [ledgerSearch, ledgerDateRange, activeTab, fetchLedger]);
-
-  // Handle Expense Filters
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (activeTab === 'expenses') fetchExpenses(false);
-    }, 300);
-    return () => clearTimeout(delayDebounceFn);
-  }, [expenseSearch, expenseDateRange, activeTab, fetchExpenses]);
+  }, [
+    activeTab,
+    ledgerSearch,
+    ledgerDateRange,
+    ledgerSortBy,
+    ledgerSortOrder,
+    ledgerPagination.page,
+    ledgerPagination.limit,
+    expenseSearch,
+    expenseDateRange,
+    expenseSortBy,
+    expenseSortOrder,
+    expensePagination.page,
+    expensePagination.limit,
+    fetchExpenses,
+    fetchLedger,
+    fetchAnalytics,
+  ]);
 
   // Infinite Scroll Observers
   useEffect(() => {
@@ -478,10 +504,19 @@ const BranchDetail = () => {
 
   const handleAddExpense = async () => {
     try {
+      if (expenseData.category === 'salary' && !expenseData.staffId) {
+        toast.error('Please select a staff member for salary expenses');
+        return;
+      }
       await api.post(`/branches/${id}/expenses`, expenseData);
       toast.success('Expense recorded successfully');
       setIsExpenseModalOpen(false);
-      setExpenseData({ amount: '', category: 'rent', description: '' });
+      setExpenseData({
+        amount: '',
+        category: 'rent',
+        description: '',
+        staffId: '',
+      });
 
       // Reset 'to' dates to now to ensure the new expense is included in filters
       const now = new Date();
@@ -763,13 +798,19 @@ const BranchDetail = () => {
                   <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full">
                     <TableSearch
                       value={expenseSearch}
-                      onChange={(val) => setExpenseSearch(val)}
+                      onChange={(val) => {
+                        setExpenseSearch(val);
+                        setExpensePagination((prev) => ({ ...prev, page: 1 }));
+                      }}
                       placeholder="Search expenses..."
                       className="w-full sm:w-auto sm:min-w-[300px]"
                     />
                     <DateRangePicker
                       date={expenseDateRange}
-                      setDate={setExpenseDateRange}
+                      setDate={(range) => {
+                        setExpenseDateRange(range);
+                        setExpensePagination((prev) => ({ ...prev, page: 1 }));
+                      }}
                       className="w-full sm:w-auto"
                     />
                     <Button
@@ -823,13 +864,29 @@ const BranchDetail = () => {
                     <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
                       <TransactionTable
                         data={expenses}
+                        sortBy={expenseSortBy}
+                        sortOrder={expenseSortOrder}
+                        onSort={(column) => {
+                          const newOrder =
+                            expenseSortBy === column &&
+                            expenseSortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc';
+                          setExpenseSortBy(column);
+                          setExpenseSortOrder(newOrder);
+                          setExpensePagination((prev) => ({
+                            ...prev,
+                            page: 1,
+                          }));
+                        }}
                         pagination={{
                           currentPage: expensePagination.page,
                           totalPages: expensePagination.totalPages,
                           totalEntries: expensePagination.totalEntries,
                           limit: expensePagination.limit,
-                          onPageChange: (page) =>
-                            setExpensePagination((prev) => ({ ...prev, page })),
+                          onPageChange: (page) => {
+                            setExpensePagination((prev) => ({ ...prev, page }));
+                          },
                           onLimitChange: (limit) =>
                             setExpensePagination((prev) => ({
                               ...prev,
@@ -864,13 +921,19 @@ const BranchDetail = () => {
                   <div className="flex flex-col sm:flex-row items-center gap-3">
                     <TableSearch
                       value={ledgerSearch}
-                      onChange={(val) => setLedgerSearch(val)}
+                      onChange={(val) => {
+                        setLedgerSearch(val);
+                        setLedgerPagination((prev) => ({ ...prev, page: 1 }));
+                      }}
                       placeholder="Search ledger..."
                       className="w-full sm:w-auto sm:min-w-[300px]"
                     />
                     <DateRangePicker
                       date={ledgerDateRange}
-                      setDate={setLedgerDateRange}
+                      setDate={(range) => {
+                        setLedgerDateRange(range);
+                        setLedgerPagination((prev) => ({ ...prev, page: 1 }));
+                      }}
                       className="w-full sm:w-auto"
                     />
                     <Button
@@ -917,13 +980,25 @@ const BranchDetail = () => {
                     <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
                       <TransactionTable
                         data={ledger}
+                        sortBy={ledgerSortBy}
+                        sortOrder={ledgerSortOrder}
+                        onSort={(column) => {
+                          const newOrder =
+                            ledgerSortBy === column && ledgerSortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc';
+                          setLedgerSortBy(column);
+                          setLedgerSortOrder(newOrder);
+                          setLedgerPagination((prev) => ({ ...prev, page: 1 }));
+                        }}
                         pagination={{
                           currentPage: ledgerPagination.page,
                           totalPages: ledgerPagination.totalPages,
                           totalEntries: ledgerPagination.totalEntries,
                           limit: ledgerPagination.limit,
-                          onPageChange: (page) =>
-                            setLedgerPagination((prev) => ({ ...prev, page })),
+                          onPageChange: (page) => {
+                            setLedgerPagination((prev) => ({ ...prev, page }));
+                          },
                           onLimitChange: (limit) =>
                             setLedgerPagination((prev) => ({
                               ...prev,
@@ -1124,6 +1199,42 @@ const BranchDetail = () => {
                   ))}
                 </div>
               </div>
+
+              {expenseData.category === 'salary' && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                    Select Staff Member
+                  </Label>
+                  <Select
+                    value={expenseData.staffId}
+                    onValueChange={(val) =>
+                      setExpenseData({ ...expenseData, staffId: val })
+                    }
+                  >
+                    <SelectTrigger className="h-14 rounded-2xl bg-muted/20 border-border/40 font-bold text-sm">
+                      <SelectValue placeholder="Select Staff Member" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-border/40">
+                      {staff.map((member) => (
+                        <SelectItem
+                          key={member._id}
+                          value={member._id}
+                          className="rounded-xl"
+                        >
+                          <div className="flex flex-col py-1">
+                            <span className="font-bold text-sm">
+                              {member.name}
+                            </span>
+                            <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
+                              {member.email}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">

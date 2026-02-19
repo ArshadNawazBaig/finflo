@@ -40,6 +40,7 @@ const LoanRequests = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [processingId, setProcessingId] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // Statistics State
   const [stats, setStats] = useState({
@@ -84,10 +85,9 @@ const LoanRequests = () => {
           setIsFetchingMore(true);
         } else {
           setLoading(true);
-          setCurrentPage(1);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : 1;
+        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
         const { data } = await api.get(
           `/loans?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         );
@@ -120,6 +120,7 @@ const LoanRequests = () => {
 
   const fetchStats = useCallback(async () => {
     try {
+      setStatsLoading(true);
       // Fetch all loans to calculate statistics
       const { data } = await api.get('/loans?limit=1000');
       const allLoans = data.data || [];
@@ -131,6 +132,8 @@ const LoanRequests = () => {
       });
     } catch (error) {
       console.error('Failed to fetch statistics', error);
+    } finally {
+      setStatsLoading(false);
     }
   }, []);
 
@@ -166,14 +169,15 @@ const LoanRequests = () => {
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchRequests]);
 
+  // Fetch requests on changes including pagination
   useEffect(() => {
-    // Only call fetchRequests without isAppend to RESET when search/sort/limit changes
-    // We explicitly EXCLUDE currentPage from this effect's trigger logic
-    // but the useCallback still needs it for pagination.
     fetchRequests(false);
+  }, [searchTerm, sortBy, sortOrder, limit, currentPage, fetchRequests]);
+
+  // Fetch stats only on filters/init (not page changes)
+  useEffect(() => {
     fetchStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, sortBy, sortOrder, limit, fetchStats]);
+  }, [searchTerm, fetchStats]);
 
   const handleApproveClick = (request) => {
     setSelectedRequest(request);
@@ -205,7 +209,7 @@ const LoanRequests = () => {
       />
 
       {/* Statistics Cards */}
-      {loading ? (
+      {statsLoading && stats.pending === 0 && stats.approved === 0 ? (
         <CardsSkeleton count={3} />
       ) : (
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">

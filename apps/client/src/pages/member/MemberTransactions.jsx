@@ -42,6 +42,10 @@ const MemberTransactions = () => {
   const [totalEntries, setTotalEntries] = useState(0);
   const [limit, setLimit] = useState(5);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [summary, setSummary] = useState({
+    totalDeposits: 0,
+    totalWithdrawals: 0,
+  });
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 1),
@@ -52,10 +56,10 @@ const MemberTransactions = () => {
   const fetchActivity = useCallback(
     async (pageToFetch = 1, isAppend = false) => {
       try {
-        if (!isAppend) {
-          setLoading(true);
-        } else {
+        if (isAppend) {
           setIsFetchingMore(true);
+        } else {
+          setLoading(true);
         }
 
         const memberToken = localStorage.getItem('memberToken');
@@ -93,6 +97,10 @@ const MemberTransactions = () => {
           setActivity(newActivity);
         }
 
+        if (activityRes.data.summary) {
+          setSummary(activityRes.data.summary);
+        }
+
         setMember(memberRes.data);
         setTotalPages(activityRes.data.totalPages || 0);
         setTotalEntries(activityRes.data.totalEntries || 0);
@@ -109,7 +117,11 @@ const MemberTransactions = () => {
   );
 
   useEffect(() => {
-    fetchActivity(1, false);
+    const delayDebounceFn = setTimeout(() => {
+      fetchActivity(1, false);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
   }, [filter, search, limit, dateRange]);
 
   useEffect(() => {
@@ -204,6 +216,60 @@ const MemberTransactions = () => {
         title="Activity Ledger"
         description="Every movement of your funds, recorded with absolute transparency."
       />
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600">
+              <ArrowUpRight size={20} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+              Inflow
+            </span>
+          </div>
+          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
+            Total Deposits
+          </h3>
+          <p className="text-2xl font-black tracking-tighter text-foreground">
+            {formatPKR(summary.totalDeposits)}
+          </p>
+        </div>
+
+        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-xl bg-rose-500/10 text-rose-600">
+              <ArrowDownLeft size={20} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+              Outflow
+            </span>
+          </div>
+          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
+            Total Withdrawals
+          </h3>
+          <p className="text-2xl font-black tracking-tighter text-foreground">
+            {formatPKR(summary.totalWithdrawals)}
+          </p>
+        </div>
+
+        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-xl bg-primary text-white">
+              <TrendingUp size={20} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+              Net Result
+            </span>
+          </div>
+          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
+            Total Net Balance
+          </h3>
+          <p className="text-2xl font-black tracking-tighter text-foreground">
+            {formatPKR(summary.totalDeposits - summary.totalWithdrawals)}
+          </p>
+        </div>
+      </div>
 
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
         <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   UserX,
   UserCheck,
@@ -47,14 +48,17 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
                 className="group hover:bg-muted/20 transition-colors"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                  <Link
+                    to={`/team/${item._id}`}
+                    className="flex items-center gap-3 group/link w-fit"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs group-hover/link:bg-primary group-hover/link:text-primary-foreground transition-all duration-300">
                       {item.name[0].toUpperCase()}
                     </div>
-                    <span className="font-bold text-foreground capitalize">
+                    <span className="font-bold text-foreground capitalize group-hover/link:text-primary transition-colors">
                       {item.name}
                     </span>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
                   {item.email}

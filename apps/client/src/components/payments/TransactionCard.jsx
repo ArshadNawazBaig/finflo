@@ -7,6 +7,7 @@ import {
   TrendingUp,
   ArrowDown,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const TransactionCard = ({ transaction }) => {
@@ -28,8 +29,17 @@ const TransactionCard = ({ transaction }) => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-sm text-foreground capitalize">
-              {transaction.category.replace('_', ' ')}
+              {transaction.category.replace(/_/g, ' ')}
             </span>
+            {transaction.category === 'salary' && transaction.referenceId && (
+              <Link
+                to={`/team/${transaction.referenceId._id || transaction.referenceId}`}
+                className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-full bg-primary/10 text-[8px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
+              >
+                <User size={8} />
+                {transaction.referenceId.name}
+              </Link>
+            )}
             <span className="text-[10px] text-muted-foreground font-medium">
               {format(new Date(transaction.date), 'MMM d, yyyy • hh:mm a')}
             </span>
@@ -61,6 +71,7 @@ const TransactionCard = ({ transaction }) => {
             {capitalize(
               transaction.customer?.name ||
                 transaction.member?.name ||
+                (transaction.category === 'salary' && 'Branch Operations') ||
                 'System',
             )}
           </span>

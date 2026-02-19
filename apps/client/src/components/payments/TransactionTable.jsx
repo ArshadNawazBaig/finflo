@@ -1,6 +1,7 @@
 import { formatPKR, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowUp, ArrowDown, ChevronsUpDown, Hash } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
@@ -69,19 +70,24 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                         'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
                         transaction.customer
                           ? 'bg-primary/10 text-primary'
-                          : 'bg-blue-500/10 text-blue-500',
+                          : transaction.category === 'salary'
+                            ? 'bg-orange-500/10 text-orange-600'
+                            : 'bg-blue-500/10 text-blue-500',
                       )}
                     >
                       {(
                         transaction.customer?.name ||
                         transaction.member?.name ||
+                        (transaction.category === 'salary' && 'B') ||
                         'U'
                       ).charAt(0)}
                     </div>
-                    <div className="font-semibold text-sm">
+                    <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
                       {capitalize(
                         transaction.customer?.name ||
                           transaction.member?.name ||
+                          (transaction.category === 'salary' &&
+                            'Branch Operations') ||
                           'System',
                       )}
                     </div>
@@ -100,9 +106,21 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                   </span>
                 </td>
                 <td className="py-4 px-4">
-                  <span className="text-muted-foreground text-xs font-medium capitalize">
-                    {transaction.category.replace('_', ' ')}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-xs font-medium capitalize">
+                      {transaction.category.replace('_', ' ')}
+                    </span>
+                    {transaction.category === 'salary' &&
+                      transaction.referenceId && (
+                        <Link
+                          to={`/team/${transaction.referenceId._id || transaction.referenceId}`}
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
+                        >
+                          <User size={10} />
+                          {transaction.referenceId.name}
+                        </Link>
+                      )}
+                  </div>
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div

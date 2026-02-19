@@ -46,6 +46,11 @@ const Members = () => {
   const [deleteMemberId, setDeleteMemberId] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [summary, setSummary] = useState({
+    totalInvested: 0,
+    totalProfit: 0,
+    activeMembers: 0,
+  });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const observerTarget = useRef(null);
@@ -66,7 +71,7 @@ const Members = () => {
   }, [isMobile]);
 
   const fetchMembers = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageOverride) => {
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -74,7 +79,8 @@ const Members = () => {
           setLoading(true);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const pageToFetch =
+          pageOverride || (isAppend ? currentPage + 1 : currentPage);
         const { data } = await api.get(
           `/members?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         );
@@ -87,13 +93,17 @@ const Members = () => {
             );
             return [...prev, ...newMembers];
           });
-          setCurrentPage(pageToFetch);
         } else {
           setMembers(data.data || []);
         }
 
+        if (data.summary) {
+          setSummary(data.summary);
+        }
+
         setTotalEntries(data.totalEntries || 0);
         setTotalPages(data.totalPages || 0);
+        setCurrentPage(pageToFetch);
       } catch (error) {
         console.error('Failed to fetch members', error);
         toast.error('Failed to load members');
@@ -102,7 +112,7 @@ const Members = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchTerm, sortBy, sortOrder],
+    [limit, searchTerm, sortBy, sortOrder, currentPage],
   );
 
   useEffect(() => {
@@ -140,8 +150,8 @@ const Members = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchMembers(false);
-    }, 300);
+      fetchMembers(false, 1);
+    }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, sortBy, sortOrder, limit, isMobile]);
@@ -168,12 +178,12 @@ const Members = () => {
     }
   };
 
-  // Calculate stats
-  const stats = {
-    totalMembers: members.length,
-    totalInvested: members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
-    totalProfit: members.reduce((sum, m) => sum + (m.totalProfit || 0), 0),
-    activeMembers: members.filter((m) => m.status === 'Active').length,
+  // Use backend summary for stats
+  const statsDisplay = {
+    totalMembers: totalEntries,
+    totalInvested: summary.totalInvested,
+    totalProfit: summary.totalProfit,
+    activeMembers: summary.activeMembers,
   };
 
   return (
@@ -194,36 +204,32 @@ const Members = () => {
       />
 
       {/* Stats Cards */}
-      {loading && !isFetchingMore ? (
-        <CardsSkeleton count={4} />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Members"
-            amount={stats.totalMembers}
-            icon={<Users size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Active Members"
-            amount={stats.activeMembers}
-            icon={<TrendingUp size={20} />}
-            color="bg-emerald-500 shadow-emerald-500/20"
-          />
-          <StatsCard
-            title="Total Invested"
-            amount={formatPKR(stats.totalInvested)}
-            icon={<Wallet size={20} />}
-            color="bg-blue-500 shadow-blue-500/20"
-          />
-          <StatsCard
-            title="Total Profit Distributed"
-            amount={formatPKR(stats.totalProfit)}
-            icon={<DollarSign size={20} />}
-            color="bg-purple-500 shadow-purple-500/20"
-          />
-        </div>
-      )}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total Members"
+          amount={statsDisplay.totalMembers}
+          icon={<Users size={20} />}
+          color="bg-primary shadow-primary/20"
+        />
+        <StatsCard
+          title="Active Members"
+          amount={statsDisplay.activeMembers}
+          icon={<TrendingUp size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+        />
+        <StatsCard
+          title="Total Invested"
+          amount={formatPKR(statsDisplay.totalInvested)}
+          icon={<Wallet size={20} />}
+          color="bg-blue-500 shadow-blue-500/20"
+        />
+        <StatsCard
+          title="Total Profit Distributed"
+          amount={formatPKR(statsDisplay.totalProfit)}
+          icon={<DollarSign size={20} />}
+          color="bg-purple-500 shadow-purple-500/20"
+        />
+      </div>
 
       {/* Search and Table */}
       <div className="space-y-4">
@@ -281,10 +287,9 @@ const Members = () => {
                 totalPages,
                 totalEntries,
                 limit,
-                onPageChange: setCurrentPage,
+                onPageChange: (page) => fetchMembers(false, page),
                 onLimitChange: (newLimit) => {
                   setLimit(newLimit);
-                  setCurrentPage(1);
                 },
               }}
               sortBy={sortBy}

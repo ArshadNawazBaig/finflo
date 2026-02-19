@@ -168,7 +168,7 @@ const Loans = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit, isMobile]); // Remove fetchLoans from deps to prevent infinite loop or re-fetch on every render
+  }, [searchTerm, sortBy, sortOrder, limit, currentPage, isMobile]); // Include currentPage to trigger refetch on page change
 
   const handleDeleteConfirm = async () => {
     if (!deleteLoan) return;

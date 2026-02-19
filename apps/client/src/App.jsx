@@ -28,6 +28,7 @@ const Reports = lazy(() => import('@/pages/admin/Reports'));
 const Branches = lazy(() => import('@/pages/admin/Branches'));
 const BranchDetail = lazy(() => import('@/pages/admin/BranchDetail'));
 const Team = lazy(() => import('@/pages/admin/Team'));
+const StaffProfile = lazy(() => import('@/pages/admin/StaffProfile'));
 const Settings = lazy(() => import('@/pages/admin/Settings'));
 const Billing = lazy(() => import('@/pages/billing/Billing'));
 const Pricing = lazy(() => import('@/pages/billing/Pricing'));
@@ -71,14 +72,20 @@ const ApiDocumentation = lazy(() => import('@/pages/static/ApiDocumentation'));
 const AuditLogs = lazy(() => import('@/pages/admin/AuditLogs'));
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 const Valentine = lazy(() => import('@/pages/static/Valentine'));
-const MemberTransactions = lazy(() => import('@/pages/member/MemberTransactions'));
+const MemberTransactions = lazy(
+  () => import('@/pages/member/MemberTransactions'),
+);
 const MemberLoanDetail = lazy(() => import('@/pages/member/MemberLoanDetail'));
 const MemberLoans = lazy(() => import('@/pages/member/MemberLoans'));
 const MemberTransfer = lazy(() => import('@/pages/member/MemberTransfer'));
 const MemberSettings = lazy(() => import('@/pages/member/MemberSettings'));
 const MemberInvestment = lazy(() => import('@/pages/member/MemberInvestment'));
-const MemberForgotPassword = lazy(() => import('@/pages/member/MemberForgotPassword'));
-const MemberResetPassword = lazy(() => import('@/pages/member/MemberResetPassword'));
+const MemberForgotPassword = lazy(
+  () => import('@/pages/member/MemberForgotPassword'),
+);
+const MemberResetPassword = lazy(
+  () => import('@/pages/member/MemberResetPassword'),
+);
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -127,6 +134,7 @@ function App() {
                   <Route path="/branches" element={<Branches />} />
                   <Route path="/branches/:id" element={<BranchDetail />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/team/:id" element={<StaffProfile />} />
 
                   {/* Admin Only Routes */}
                   <Route element={<RequireAdmin />}>

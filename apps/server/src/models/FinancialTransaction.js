@@ -58,10 +58,12 @@ const financialTransactionSchema = new mongoose.Schema(
       ref: 'Loan',
     },
     referenceId: {
-      type: mongoose.Schema.Types.ObjectId, // Link to Repayment, Investment, or Loan ID
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'referenceModel',
     },
     referenceModel: {
-      type: String, // 'Repayment', 'Investment', 'Loan'
+      type: String,
+      enum: ['Repayment', 'Investment', 'Loan', 'User'],
     },
   },
   {

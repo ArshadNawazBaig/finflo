@@ -41,6 +41,11 @@ const Transactions = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
+  const [summary, setSummary] = useState({
+    totalTransactions: 0,
+    totalIncome: 0,
+    totalExpense: 0,
+  });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const observerTarget = useRef(null);
@@ -61,7 +66,7 @@ const Transactions = () => {
   }, [isMobile]);
 
   const fetchTransactions = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageOverride) => {
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -69,7 +74,8 @@ const Transactions = () => {
           setLoading(true);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const pageToFetch =
+          pageOverride || (isAppend ? currentPage + 1 : currentPage);
         const { data } = await api.get('/ledger', {
           params: {
             page: pageToFetch,
@@ -95,6 +101,9 @@ const Transactions = () => {
           setTransactions(data.data || []);
         }
 
+        if (data.summary) {
+          setSummary(data.summary);
+        }
         setTotalEntries(data.totalEntries || 0);
         setTotalPages(data.totalPages || 0);
       } catch (error) {
@@ -142,12 +151,24 @@ const Transactions = () => {
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchTransactions(false);
-    }, 300);
+    const delayDebounceFn = setTimeout(
+      () => {
+        fetchTransactions(false);
+      },
+      searchQuery ? 500 : 0,
+    );
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, sortBy, sortOrder, limit, isMobile, dateRange]);
+  }, [
+    searchQuery,
+    sortBy,
+    sortOrder,
+    limit,
+    isMobile,
+    dateRange,
+    currentPage,
+    fetchTransactions,
+  ]);
 
   const handleDownload = async () => {
     try {
@@ -177,13 +198,7 @@ const Transactions = () => {
     }
   };
 
-  const totalIncome = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const netCashFlow = totalIncome - totalExpense;
+  const netCashFlow = summary.totalIncome - summary.totalExpense;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -197,25 +212,25 @@ const Transactions = () => {
       />
 
       {/* Summary Cards */}
-      {loading && !isFetchingMore ? (
+      {loading && !transactions.length ? (
         <CardsSkeleton count={3} className="md:grid-cols-3 lg:grid-cols-3" />
       ) : (
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           <StatsCard
             title="Total Transactions"
-            amount={transactions.length}
+            amount={summary.totalTransactions}
             icon={<Hash size={20} />}
             color="bg-primary shadow-primary/20"
           />
           <StatsCard
             title="Total Income"
-            amount={formatPKR(totalIncome)}
+            amount={formatPKR(summary.totalIncome)}
             icon={<TrendingUp size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
             title="Total Expense"
-            amount={formatPKR(totalExpense)}
+            amount={formatPKR(summary.totalExpense)}
             icon={<ArrowDown size={20} />}
             color="bg-rose-500 shadow-rose-500/20"
           />
