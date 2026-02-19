@@ -1,4 +1,4 @@
-# Custom Rules for Loan App Project
+# Custom Rules for Finance App Project
 
 ## Code Creation Protocol
 
@@ -32,6 +32,7 @@
 ## Implementation Checklist
 
 When adding a new feature:
+
 - [ ] Read PROJECT_RULES.md
 - [ ] Identify similar existing features
 - [ ] Reuse existing components and patterns

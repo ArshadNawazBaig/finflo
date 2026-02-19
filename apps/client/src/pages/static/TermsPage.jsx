@@ -28,7 +28,7 @@ const TermsPage = () => {
       title: 'Acceptance of Terms',
       icon: <FileCheck className="w-5 h-5 text-blue-500" />,
       content:
-        'By accessing or using the LoanMaster platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site. These materials are protected by applicable copyright and trademark law.',
+        'By accessing or using the FinFlow platform, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site. These materials are protected by applicable copyright and trademark law.',
     },
     {
       title: 'User Responsibilities',
@@ -40,19 +40,19 @@ const TermsPage = () => {
       title: 'Loan Agreement Terms',
       icon: <Scale className="w-5 h-5 text-emerald-500" />,
       content:
-        'All loans processed through LoanMaster are subject to specific loan agreements. These agreements outline the interest rates, repayment schedules, fees, and penalties associated with your loan. By accepting a loan offer, you are electronically signing a legally binding contract and agreeing to repay the full amount according to the terms specified.',
+        'All loans processed through FinFlow are subject to specific loan agreements. These agreements outline the interest rates, repayment schedules, fees, and penalties associated with your loan. By accepting a loan offer, you are electronically signing a legally binding contract and agreeing to repay the full amount according to the terms specified.',
     },
     {
       title: 'Limitation of Liability',
       icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
       content:
-        "In no event shall LoanMaster or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on LoanMaster's website, even if LoanMaster or a LoanMaster authorized representative has been notified orally or in writing of the possibility of such damage.",
+        "In no event shall FinFlow or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on FinFlow's website, even if FinFlow or a FinFlow authorized representative has been notified orally or in writing of the possibility of such damage.",
     },
     {
       title: 'Governing Law',
       icon: <Gavel className="w-5 h-5 text-rose-500" />,
       content:
-        'These terms and conditions are governed by and construed in accordance with the laws of the jurisdiction in which LoanMaster operates and you irrevocably submit to the exclusive jurisdiction of the courts in that location. Any disputes arising from these terms will be resolved through binding arbitration.',
+        'These terms and conditions are governed by and construed in accordance with the laws of the jurisdiction in which FinFlow operates and you irrevocably submit to the exclusive jurisdiction of the courts in that location. Any disputes arising from these terms will be resolved through binding arbitration.',
     },
   ];
 
@@ -120,7 +120,7 @@ const TermsPage = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            These terms define the relationship between you and LoanMaster. By
+            These terms define the relationship between you and FinFlow. By
             using our platform, you agree to operate within the framework of
             these guidelines to ensure a secure and fair ecosystem.
           </motion.p>
@@ -204,8 +204,8 @@ const TermsPage = () => {
       <footer className="py-12 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#020617]">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-slate-400 text-sm font-medium">
-            &copy; {new Date().getFullYear()} LoanMaster Infrastructure. All
-            rights reserved.
+            &copy; {new Date().getFullYear()} FinFlow Infrastructure. All rights
+            reserved.
           </p>
         </div>
       </footer>

@@ -3,7 +3,7 @@
  */
 
 const getBaseTemplate = (content, title, logoUrl = null) => {
-  const brandName = process.env.FROM_NAME || 'Loan Master';
+  const brandName = process.env.FROM_NAME || 'FinFlow';
   const primaryColor = '#2563eb'; // Modern Blue
 
   // Custom Cloudinary Logo

@@ -932,7 +932,7 @@ const ApiDocumentation = () => {
                     description={{
                       text: 'Get basic system settings.',
                       response: {
-                        siteName: 'LoanMaster',
+                        siteName: 'FinFlow',
                         maintenanceMode: false,
                         defaultInterestRate: 5,
                       },

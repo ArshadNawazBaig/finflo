@@ -5,9 +5,9 @@ import { cn } from '@/lib/utils';
 
 const faqData = [
   {
-    question: 'What is LoanMaster?',
+    question: 'What is FinFlow?',
     answer:
-      'LoanMaster is a secure, cloud-native loan management system designed for global financial institutions. It streamlines the entire lending lifecycle from customer onboarding to final repayment with real-time analytics.',
+      'FinFlow is a secure, cloud-native finance management system designed for global financial institutions. It streamlines the entire finance lifecycle from customer onboarding to final repayment with real-time analytics.',
   },
   {
     question: 'Is my financial data secure?',
@@ -15,9 +15,9 @@ const faqData = [
       'Absolutely. We utilize Business Security Code protocols and an immutable ledger system where every transaction is cryptographically hashed, ensuring an indisputable audit trail and bank-grade security.',
   },
   {
-    question: 'Can I integrate LoanMaster with other apps?',
+    question: 'Can I integrate FinFlow with other apps?',
     answer:
-      'Yes, LoanMaster is built with an API-first philosophy. We provide a high-performance REST API that allows you to seamlessly integrate with your existing CRM, accounting software, or external payment providers.',
+      'Yes, FinFlow is built with an API-first philosophy. We provide a high-performance REST API that allows you to seamlessly integrate with your existing CRM, accounting software, or external payment providers.',
   },
   {
     question: 'Do you support multicurrency and global operations?',
