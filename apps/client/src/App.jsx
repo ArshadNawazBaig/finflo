@@ -14,6 +14,7 @@ import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
 import RequireMemberAuth from '@/components/RequireMemberAuth';
 import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
 import RequireAdmin from '@/components/RequireAdmin';
+import RequirePaidPlan from '@/components/RequirePaidPlan';
 import { Toaster } from 'sonner';
 
 // Lazy Load Pages
@@ -134,7 +135,11 @@ function App() {
                   </Route>
 
                   <Route path="/settings" element={<Settings />} />
-                  <Route path="/support" element={<Support />} />
+
+                  {/* Paid-plan only routes */}
+                  <Route element={<RequirePaidPlan />}>
+                    <Route path="/support" element={<Support />} />
+                  </Route>
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/audit-logs" element={<AuditLogs />} />
                   <Route path="/payment/success" element={<PaymentSuccess />} />

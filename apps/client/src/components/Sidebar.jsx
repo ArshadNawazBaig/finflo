@@ -270,13 +270,15 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               />
             </>
           )}
-          <NavItem
-            to="/support"
-            icon={<LifeBuoy size={18} />}
-            active={isActive('/support')}
-            label="Support"
-            isExpanded={isLayoutExpanded}
-          />
+          {user.plan && user.plan !== 'Free' && (
+            <NavItem
+              to="/support"
+              icon={<LifeBuoy size={18} />}
+              active={isActive('/support')}
+              label="Support"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
         </nav>
 
         <div
