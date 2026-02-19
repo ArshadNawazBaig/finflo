@@ -53,16 +53,16 @@ const Documentation = () => {
       title: 'Introduction',
       icon: <Book className="w-4 h-4" />,
       searchContent:
-        'introduction welcome loan master comprehensive loan management saas platform p2p fund transfers member portal quick start architecture api reference',
+        'introduction welcome finflow comprehensive core banking & lending platform p2p fund transfers member portal quick start architecture api reference',
       content: (
         // ... (content remains same, just adding searchContent above)
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h2 className="text-3xl font-black tracking-tight mb-4">
-              Welcome to Loan <span className="text-primary">Master</span>
+              Welcome to Fin<span className="text-primary">flow</span>
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Loan Master is a comprehensive loan management SaaS platform
+              Finflow is a comprehensive core banking and lending platform
               designed to streamline your lending operations. From customer
               onboarding to loan tracking,{' '}
               <strong className="text-foreground">P2P fund transfers</strong>,
@@ -114,8 +114,8 @@ const Documentation = () => {
                 API Reference
               </h3>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Integrate Loan Master with your existing tools using our robust
-                REST API.
+                Integrate Finflow with your existing tools using our robust REST
+                API.
               </p>
               <Button
                 variant="outline"
@@ -219,7 +219,7 @@ const Documentation = () => {
               Getting Started
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Follow these steps to set up your Loan Master account and start
+              Follow these steps to set up your Finflow account and start
               lending.
             </p>
           </div>
@@ -232,7 +232,7 @@ const Documentation = () => {
               <div className="space-y-2">
                 <h3 className="text-xl font-bold">Create an Account</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Sign up for a Loan Master account or clone the repository for
+                  Sign up for a Finflow account or clone the repository for
                   local development. You'll start on the Free plan, which is
                   perfect for testing the platform. No credit card required.
                 </p>
@@ -294,7 +294,7 @@ const Documentation = () => {
               Key Features
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Explore the powerful tools built into Loan Master.
+              Explore the powerful tools built into Finflow.
             </p>
           </div>
           {/* ... content remains same ... */}
@@ -573,7 +573,7 @@ const Documentation = () => {
             className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed"
           >
             Comprehensive guides and resources to help you build, manage, and
-            scale your lending operations with LoanMaster.
+            scale your financial operations with Finflow.
           </motion.p>
         </div>
       </header>

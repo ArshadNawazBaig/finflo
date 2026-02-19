@@ -1,13 +1,13 @@
-# Loan Management SaaS
+# Finance Management SaaS
 
-A comprehensive Loan Management System designed to streamline the lending process for financial institutions. This SaaS application manages the entire loan lifecycle, from customer onboarding and loan issuance to repayment tracking and status management.
+A comprehensive Finance Management System designed to streamline the lending process for financial institutions. This SaaS application manages the entire loan lifecycle, from customer onboarding and loan issuance to repayment tracking and status management.
 
 ## 🚀 Key Features
 
 - **Dashboard & Analytics**: Real-time overview of active loans, revenue, and customer statistics with modern, interactive charts.
 - **Multi-Branch Infrastructure**: Centralized management with branch-specific staff access and localized branding.
 - **Intelligent Risk Engine**: AI-driven credit scoring based on income, debt, and historical behavior.
-- **Loan Management**:
+- **Finance Management**:
   - **Issue Loans**: Flexible configuration for loan amount, interest rate, tenure, and repayment frequency.
   - **Repayments**: Track manual payments and update loan balances automatically.
   - **Status Tracking**: Monitor loans through various stages (Active, Paid, Defaulted, etc.).
@@ -61,7 +61,7 @@ Ensure you have the following installed on your machine:
 
     ```bash
     git clone <repository-url>
-    cd loan-management-app
+    cd finance-management-app
     ```
 
 2.  **Install Dependencies**

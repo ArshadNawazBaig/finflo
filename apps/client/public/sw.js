@@ -1,5 +1,5 @@
-const CACHE_NAME = 'loanmaster-v4'; // Increment version to trigger update
-const urlsToCache = ['/', '/index.html', '/manifest.json'];
+const CACHE_NAME = 'financeflow-v2'; // Increment version to trigger update
+const urlsToCache = ['/', '/index.html', '/manifest.json', '/ff-icon.svg'];
 
 // Install event - Cache initial assets
 self.addEventListener('install', (event) => {

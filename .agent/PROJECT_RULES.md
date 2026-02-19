@@ -1,6 +1,6 @@
-# Loan App - Development Rules & Conventions
+# Finance App - Development Rules & Conventions
 
-This document defines the design patterns, conventions, and implementation standards for the Loan Management Application. Follow these rules when adding new features or modifying existing code.
+This document defines the design patterns, conventions, and implementation standards for the Finance Management Application. Follow these rules when adding new features or modifying existing code.
 
 ---
 

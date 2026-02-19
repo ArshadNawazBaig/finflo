@@ -6,12 +6,12 @@ const Logo = ({ className = 'h-8', showText = true }) => {
   );
 
   const logoUrl = user.branch?.branding?.logoUrl;
-  const companyName = user.branch?.branding?.companyName || 'Loan Master';
+  const companyName = user.branch?.branding?.companyName || 'Finflow';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Icon */}
-      <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center">
+      <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
         {logoUrl ? (
           <img
             src={logoUrl}
@@ -20,37 +20,45 @@ const Logo = ({ className = 'h-8', showText = true }) => {
           />
         ) : (
           <svg
-            viewBox="0 0 100 100"
+            viewBox="0 0 40 40"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full drop-shadow-2xl"
+            className="w-full h-full drop-shadow-sm transition-all duration-700 group-hover:scale-110"
           >
-            {/* Background Shape */}
-            <rect
-              x="10"
-              y="10"
-              width="80"
-              height="80"
-              rx="24"
-              className="fill-primary"
-            />
+            <defs>
+              <linearGradient
+                id="logo-gradient-refined"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="50%" stopColor="#8b5cf6" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
 
-            {/* Abstract 'L' and 'M' Intersection */}
-            <path
-              d="M30 35V65H45M45 65V45L60 60L75 45V65"
-              stroke="white"
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            {/* Accent Glow */}
+            {/* Reduced Background Mesh */}
             <circle
-              cx="75"
-              cy="25"
-              r="8"
-              className="fill-emerald-400 animate-pulse opacity-80"
+              cx="20"
+              cy="20"
+              r="14"
+              fill="url(#logo-gradient-refined)"
+              className="opacity-[0.04] dark:opacity-[0.08] blur-[8px]"
             />
+
+            {/* Enlarged Pulse Wave Line */}
+            <path
+              d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20"
+              stroke="url(#logo-gradient-refined)"
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              className="drop-shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+            />
+
+            {/* Kinetic Point */}
+            <circle cx="34" cy="20" r="3.5" fill="#ec4899" />
           </svg>
         )}
       </div>
@@ -58,18 +66,17 @@ const Logo = ({ className = 'h-8', showText = true }) => {
       {/* Text */}
       {showText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-[14px] font-black tracking-tighter text-slate-900 dark:text-white uppercase line-clamp-1">
+          <span className="text-[17px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1">
             {logoUrl ? (
               companyName
             ) : (
               <>
-                Loan
-                <span className="text-primary ml-1">Master</span>
+                Finance<span className="text-primary">Flow</span>
               </>
             )}
           </span>
-          <span className="text-[6px] font-bold tracking-[0.3em] text-slate-500 uppercase">
-            {logoUrl ? 'Partner Portal' : 'Fintech Excellence'}
+          <span className="text-[7px] font-black tracking-[0.7em] text-slate-500 uppercase">
+            {logoUrl ? 'Partner Portal' : 'Banking OS'}
           </span>
         </div>
       )}
