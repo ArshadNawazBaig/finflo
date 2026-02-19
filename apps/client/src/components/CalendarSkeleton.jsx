@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const CalendarSkeleton = () => {
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[500px] animate-in fade-in duration-500">
+    <div className="flex flex-col lg:flex-row gap-6 h-[500px] animate-in fade-in duration-500 overflow-hidden">
       {/* Calendar Section Skeleton */}
       <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-6 shadow-sm flex flex-col">
         <header className="flex items-center justify-between mb-8 px-2">
@@ -24,7 +24,7 @@ const CalendarSkeleton = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1 flex-1">
+        <div className="grid grid-cols-7 gap-1 flex-1 overflow-hidden">
           {[...Array(35)].map((_, i) => (
             <div
               key={i}
@@ -41,8 +41,8 @@ const CalendarSkeleton = () => {
       </div>
 
       {/* Details Side-pane Skeleton */}
-      <div className="w-full lg:w-80 flex flex-col gap-6">
-        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2rem] p-6 shadow-sm flex flex-col">
+      <div className="w-full lg:w-80 flex flex-col gap-6 overflow-hidden max-h-full">
+        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2rem] p-6 shadow-sm flex flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-6">
             <div>
               <Skeleton className="h-4 w-24 mb-2" />
