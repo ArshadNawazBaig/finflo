@@ -64,15 +64,30 @@ const getLedger = async (req, res) => {
       .populate('customer', 'name email')
       .populate('member', 'name email')
       .populate('loan', 'principal totalAmount Status')
+      .populate('referenceId', 'name')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit);
+
+    // Calculate full summary ignoring pagination but respecting search/date filters
+    const allMatching =
+      await FinancialTransaction.find(query).select('type amount');
+    const summary = {
+      totalIncome: allMatching
+        .filter((t) => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0),
+      totalExpense: allMatching
+        .filter((t) => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0),
+      totalTransactions: totalEntries,
+    };
 
     res.json({
       data: transactions,
       totalEntries,
       totalPages: Math.ceil(totalEntries / limit),
       currentPage: page,
+      summary,
     });
   } catch (error) {
     console.error('Ledger Error:', error);

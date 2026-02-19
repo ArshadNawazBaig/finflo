@@ -369,14 +369,20 @@ const getBranchFinancials = async (req, res) => {
       });
     }
 
+    const sortBy = req.query.sortBy || 'date';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder;
+
     const totalEntries = await FinancialTransaction.countDocuments(query);
     const financials = await FinancialTransaction.find(query)
-      .sort({ date: -1 })
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .populate('customer', 'name')
       .populate('member', 'name')
-      .populate('loan', 'status');
+      .populate('loan', 'status')
+      .populate('referenceId', 'name');
 
     // Get summary stats for the branch (full totals, not paginated)
     // Type-agnostic to ensure stats are always consistent regardless of the active tab
@@ -469,7 +475,7 @@ const getBranchFinancials = async (req, res) => {
 // @access  Private (Admin or Branch Manager)
 const addBranchExpense = async (req, res) => {
   try {
-    const { amount, category, description, date } = req.body;
+    const { amount, category, description, date, staffId } = req.body;
     const branchId = req.params.id;
 
     // Manager can only add expenses to their own branch
@@ -481,7 +487,7 @@ const addBranchExpense = async (req, res) => {
       }
     }
 
-    const expense = await FinancialTransaction.create({
+    const expenseData = {
       user: req.user.effectiveOwnerId,
       branchId,
       type: 'expense',
@@ -489,18 +495,27 @@ const addBranchExpense = async (req, res) => {
       amount,
       description,
       date: date || new Date(),
-    });
+    };
+
+    // If it's a salary expense and staffId is provided, link it
+    if (category === 'salary' && staffId) {
+      expenseData.referenceId = staffId;
+      expenseData.referenceModel = 'User';
+    }
+
+    const expense = await FinancialTransaction.create(expenseData);
 
     // Log activity
     await logActivity({
       userId: req.user._id,
       action: 'branch_expense_added',
       category: 'branch',
-      details: `Added ${category || 'other'} expense of ${amount} to branch: ${branchId}`,
+      details: `Added ${category || 'other'} expense of ${amount} to branch: ${branchId}${staffId ? ' (Staff Salary)' : ''}`,
       metadata: {
         branchId,
         amount,
         expenseId: expense._id,
+        staffId: staffId || null,
       },
       req,
     });

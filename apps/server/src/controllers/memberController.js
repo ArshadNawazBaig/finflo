@@ -146,6 +146,27 @@ const getMembers = async (req, res) => {
     const sortBy = req.query.sortBy || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
+    // Calculate Summary (Ignoring pagination but respecting filters)
+    const [summaryResult] = await Member.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalInvested: { $sum: '$currentBalance' },
+          totalProfit: { $sum: '$totalProfit' },
+          activeMembers: {
+            $sum: { $cond: [{ $eq: ['$status', 'Active'] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    const summary = summaryResult || {
+      totalInvested: 0,
+      totalProfit: 0,
+      activeMembers: 0,
+    };
+
     const members = await Member.find(query)
       .sort({ [sortBy]: sortOrder })
       .limit(limit * 1)
@@ -213,6 +234,7 @@ const getMembers = async (req, res) => {
       totalPages: Math.ceil(count / limit),
       currentPage: page,
       totalEntries: count,
+      summary,
     });
   } catch (error) {
     console.error('Get Members Error:', error);
@@ -997,6 +1019,19 @@ const getMemberActivity = async (req, res) => {
 
     activity.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    // Calculate Summary (on full filtered activity)
+    const summary = activity.reduce(
+      (acc, item) => {
+        if (item.type === 'deposit') {
+          acc.totalDeposits += item.amount;
+        } else if (item.type === 'withdrawal') {
+          acc.totalWithdrawals += item.amount;
+        }
+        return acc;
+      },
+      { totalDeposits: 0, totalWithdrawals: 0 },
+    );
+
     // Pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -1010,6 +1045,7 @@ const getMemberActivity = async (req, res) => {
       totalEntries,
       totalPages: Math.ceil(totalEntries / limit),
       currentPage: page,
+      summary,
     });
   } catch (error) {
     console.error('Get Member Activity Error:', error);

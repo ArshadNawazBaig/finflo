@@ -21,7 +21,7 @@ export const exportCashFlowStatement = async (
   doc.setFontSize(10);
   doc.setTextColor(100);
   doc.setFont('helvetica', 'normal');
-  doc.text('FINANCIAL INTELLIGENCE DASHBOARD', 14, 28);
+  doc.text('CASH FLOW ANALYSIS', 14, 28);
 
   doc.setFontSize(9);
   doc.text(
@@ -45,8 +45,9 @@ export const exportCashFlowStatement = async (
     body: [
       ['Total Cash Inflow', formatPKR(summary.inflow || 0)],
       ['Total Deposits', formatPKR(summary.deposits || 0)],
-      ['Total Cash Outflow', formatPKR(summary.outflow || 0)],
-      ['Net Profit (Interest)', formatPKR(summary.profit || 0)],
+      ['Total Disbursements', formatPKR(summary.outflow || 0)],
+      ['Interest Profit', formatPKR(summary.profit || 0)],
+      ['Operating Expenses', formatPKR(summary.expenses || 0)],
       ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'plain',

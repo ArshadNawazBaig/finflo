@@ -17,7 +17,7 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
-import TableSkeleton from '@/components/TableSkeleton';
+import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import {
@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import ActivityLogCard from '@/components/ActivityLogCard';
+import ActivityLogCard from '@/components/notifications/ActivityLogCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 

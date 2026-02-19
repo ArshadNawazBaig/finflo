@@ -62,7 +62,7 @@ const PageHeader = ({
 
         <div className="space-y-1 relative">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
               {renderTitle()}
             </h1>
             {badge && <div className="flex items-center">{badge}</div>}

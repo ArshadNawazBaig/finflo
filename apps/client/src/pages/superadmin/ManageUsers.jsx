@@ -19,11 +19,11 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
-import TableSkeleton from '@/components/TableSkeleton';
+import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import SendNotificationModal from '@/components/SendNotificationModal';
+import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import UserCard from '@/components/UserCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';

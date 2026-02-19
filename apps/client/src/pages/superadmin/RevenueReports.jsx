@@ -12,7 +12,7 @@ import { useRef, useCallback } from 'react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatsCard from '@/components/StatsCard';
-import PaymentCard from '@/components/PaymentCard';
+import PaymentCard from '@/components/payments/PaymentCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import {
   Card,

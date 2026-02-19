@@ -18,36 +18,37 @@ import RequirePaidPlan from '@/components/RequirePaidPlan';
 import { Toaster } from 'sonner';
 
 // Lazy Load Pages
-const Landing = lazy(() => import('@/pages/Landing'));
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Customers = lazy(() => import('@/pages/Customers'));
-const Members = lazy(() => import('@/pages/Members'));
-const Loans = lazy(() => import('@/pages/Loans'));
-const Transactions = lazy(() => import('@/pages/Transactions'));
-const Reports = lazy(() => import('@/pages/Reports'));
-const Branches = lazy(() => import('@/pages/Branches'));
-const BranchDetail = lazy(() => import('@/pages/BranchDetail'));
-const Team = lazy(() => import('@/pages/Team'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const Billing = lazy(() => import('@/pages/Billing'));
-const Pricing = lazy(() => import('@/pages/Pricing'));
-const MemberProfile = lazy(() => import('@/pages/MemberProfile'));
-const CustomerProfile = lazy(() => import('@/pages/CustomerProfile'));
-const Login = lazy(() => import('@/pages/Login'));
-const Register = lazy(() => import('@/pages/Register'));
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
-const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
-const Support = lazy(() => import('@/pages/Support'));
-const LoanLookup = lazy(() => import('@/pages/LoanLookup'));
-const Notifications = lazy(() => import('@/pages/Notifications'));
-const LoanDetail = lazy(() => import('@/pages/LoanDetail'));
-const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPage'));
-const TermsOfService = lazy(() => import('@/pages/TermsPage'));
-const PaymentSuccess = lazy(() => import('@/pages/PaymentSuccess'));
-const PaymentCancel = lazy(() => import('@/pages/PaymentCancel'));
-const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
-const MemberLogin = lazy(() => import('@/pages/MemberLogin'));
-const MemberDashboard = lazy(() => import('@/pages/MemberDashboard'));
+const Landing = lazy(() => import('@/pages/static/Landing'));
+const Dashboard = lazy(() => import('@/pages/admin/Dashboard'));
+const Customers = lazy(() => import('@/pages/admin/Customers'));
+const Members = lazy(() => import('@/pages/admin/Members'));
+const Loans = lazy(() => import('@/pages/admin/Loans'));
+const Transactions = lazy(() => import('@/pages/admin/Transactions'));
+const Reports = lazy(() => import('@/pages/admin/Reports'));
+const Branches = lazy(() => import('@/pages/admin/Branches'));
+const BranchDetail = lazy(() => import('@/pages/admin/BranchDetail'));
+const Team = lazy(() => import('@/pages/admin/Team'));
+const StaffProfile = lazy(() => import('@/pages/admin/StaffProfile'));
+const Settings = lazy(() => import('@/pages/admin/Settings'));
+const Billing = lazy(() => import('@/pages/billing/Billing'));
+const Pricing = lazy(() => import('@/pages/billing/Pricing'));
+const MemberProfile = lazy(() => import('@/pages/admin/MemberProfile'));
+const CustomerProfile = lazy(() => import('@/pages/admin/CustomerProfile'));
+const Login = lazy(() => import('@/pages/auth/Login'));
+const Register = lazy(() => import('@/pages/auth/Register'));
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'));
+const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'));
+const Support = lazy(() => import('@/pages/admin/Support'));
+const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
+const Notifications = lazy(() => import('@/pages/admin/Notifications'));
+const LoanDetail = lazy(() => import('@/pages/admin/LoanDetail'));
+const PrivacyPolicy = lazy(() => import('@/pages/static/PrivacyPage'));
+const TermsOfService = lazy(() => import('@/pages/static/TermsPage'));
+const PaymentSuccess = lazy(() => import('@/pages/billing/PaymentSuccess'));
+const PaymentCancel = lazy(() => import('@/pages/billing/PaymentCancel'));
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'));
+const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
+const MemberDashboard = lazy(() => import('@/pages/member/MemberDashboard'));
 const SuperAdminDashboard = lazy(
   () => import('@/pages/superadmin/SuperAdminDashboard'),
 );
@@ -64,21 +65,27 @@ const SystemSettings = lazy(() => import('@/pages/superadmin/SystemSettings'));
 const RevenueReports = lazy(() => import('@/pages/superadmin/RevenueReports'));
 const BackupExport = lazy(() => import('@/pages/superadmin/BackupExport'));
 const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
-const LoanRequests = lazy(() => import('@/pages/LoanRequests'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
-const Documentation = lazy(() => import('@/pages/Documentation'));
-const ApiDocumentation = lazy(() => import('@/pages/ApiDocumentation'));
-const AuditLogs = lazy(() => import('@/pages/AuditLogs'));
-const Maintenance = lazy(() => import('@/pages/Maintenance'));
-const Valentine = lazy(() => import('@/pages/Valentine'));
-const MemberTransactions = lazy(() => import('@/pages/MemberTransactions'));
-const MemberLoanDetail = lazy(() => import('@/pages/MemberLoanDetail'));
-const MemberLoans = lazy(() => import('@/pages/MemberLoans'));
-const MemberTransfer = lazy(() => import('@/pages/MemberTransfer'));
-const MemberSettings = lazy(() => import('@/pages/MemberSettings'));
-const MemberInvestment = lazy(() => import('@/pages/MemberInvestment'));
-const MemberForgotPassword = lazy(() => import('@/pages/MemberForgotPassword'));
-const MemberResetPassword = lazy(() => import('@/pages/MemberResetPassword'));
+const LoanRequests = lazy(() => import('@/pages/admin/LoanRequests'));
+const NotFound = lazy(() => import('@/pages/static/NotFound'));
+const Documentation = lazy(() => import('@/pages/static/Documentation'));
+const ApiDocumentation = lazy(() => import('@/pages/static/ApiDocumentation'));
+const AuditLogs = lazy(() => import('@/pages/admin/AuditLogs'));
+const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
+const Valentine = lazy(() => import('@/pages/static/Valentine'));
+const MemberTransactions = lazy(
+  () => import('@/pages/member/MemberTransactions'),
+);
+const MemberLoanDetail = lazy(() => import('@/pages/member/MemberLoanDetail'));
+const MemberLoans = lazy(() => import('@/pages/member/MemberLoans'));
+const MemberTransfer = lazy(() => import('@/pages/member/MemberTransfer'));
+const MemberSettings = lazy(() => import('@/pages/member/MemberSettings'));
+const MemberInvestment = lazy(() => import('@/pages/member/MemberInvestment'));
+const MemberForgotPassword = lazy(
+  () => import('@/pages/member/MemberForgotPassword'),
+);
+const MemberResetPassword = lazy(
+  () => import('@/pages/member/MemberResetPassword'),
+);
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -127,6 +134,7 @@ function App() {
                   <Route path="/branches" element={<Branches />} />
                   <Route path="/branches/:id" element={<BranchDetail />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/team/:id" element={<StaffProfile />} />
 
                   {/* Admin Only Routes */}
                   <Route element={<RequireAdmin />}>

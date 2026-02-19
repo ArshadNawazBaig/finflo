@@ -36,8 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import SendNotificationModal from '@/components/SendNotificationModal';
-import NotificationCard from '@/components/NotificationCard';
+import SendNotificationModal from '@/components/notifications/SendNotificationModal';
+import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 

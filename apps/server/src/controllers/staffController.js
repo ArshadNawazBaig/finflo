@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const ActivityLog = require('../models/ActivityLog');
 const { logActivity } = require('./activityLogController');
 
 // Create Staff Member
@@ -70,11 +71,31 @@ const getStaff = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
+    // Calculate Summary (Ignoring pagination but respecting filters)
+    const [summaryResult] = await User.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          active: { $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] } },
+          admins: {
+            $sum: {
+              $cond: [{ $in: ['$role', ['admin', 'super_admin']] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const summary = summaryResult || { total: 0, active: 0, admins: 0 };
+
     res.json({
       data: staffMembers,
       totalEntries,
       totalPages: Math.ceil(totalEntries / parseInt(limit)),
       currentPage: parseInt(page),
+      summary,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -196,9 +217,61 @@ const deleteStaff = async (req, res) => {
   }
 };
 
+// Get Single Staff Member by ID
+const getStaffById = async (req, res) => {
+  try {
+    const staff = await User.findById(req.params.id).populate(
+      'branchId',
+      'name',
+    );
+
+    // Authorization check: Must be owner OR the staff's branch manager
+    const isOwner =
+      staff &&
+      staff.ownerId &&
+      staff.ownerId.toString() === req.user._id.toString();
+    const isBranchManager =
+      req.user.isManager &&
+      staff &&
+      staff.ownerId &&
+      staff.ownerId.toString() === req.user.ownerId.toString() &&
+      staff.branchId?.toString() === req.user.branchId?.toString();
+
+    if (!staff || (!isOwner && !isBranchManager)) {
+      return res.status(404).json({ message: 'Staff member not found' });
+    }
+
+    // Pagination for activity logs
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalEntries = await ActivityLog.countDocuments({
+      user: req.params.id,
+    });
+
+    // Fetch activity for this staff
+    const recentActivity = await ActivityLog.find({ user: req.params.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      staff,
+      recentActivity,
+      totalPages: Math.ceil(totalEntries / limit),
+      totalEntries,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createStaff,
   getStaff,
+  getStaffById,
   toggleStaffStatus,
   updateStaff,
   deleteStaff,

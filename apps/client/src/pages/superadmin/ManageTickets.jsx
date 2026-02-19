@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import TicketChat from '@/components/TicketChat';
+import TicketChat from '@/components/support/TicketChat';
 import EmptyState from '@/components/ui/EmptyState';
 import {
   AlertDialog,
