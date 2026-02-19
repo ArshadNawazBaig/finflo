@@ -24,7 +24,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
-import InfiniteLoader from '@/components/InfiniteLoader';
+import MemberTransactionsSkeleton from '@/components/MemberTransactionsSkeleton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberActivityCard from '@/components/MemberActivityCard';
 import { cn } from '@/lib/utils';
@@ -258,9 +258,7 @@ const MemberTransactions = () => {
 
         <div className="divide-y divide-border/40">
           {loading ? (
-            <div className="py-20 flex justify-center items-center">
-              <InfiniteLoader isFetchingMore={true} />
-            </div>
+            <MemberTransactionsSkeleton count={6} />
           ) : displayActivity.length === 0 ? (
             <div className="p-20">
               <EmptyState
@@ -355,13 +353,6 @@ const MemberTransactions = () => {
                 </div>
               </div>
             ))
-          )}
-          {/* Infinite Scroll Trigger */}
-          <div ref={observerTarget} className="h-4 w-full" />
-          {currentPage < totalPages && (
-            <div className="py-8">
-              <InfiniteLoader isFetchingMore={isFetchingMore} />
-            </div>
           )}
         </div>
       </div>

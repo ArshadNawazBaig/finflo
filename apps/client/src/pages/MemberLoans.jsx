@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/MemberLoanRequestModal';
-import InfiniteLoader from '@/components/InfiniteLoader';
+import MemberLoansSkeleton from '@/components/MemberLoansSkeleton';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatPKR } from '@/lib/utils';
@@ -160,9 +160,7 @@ const MemberLoans = () => {
 
         <div className="divide-y divide-border/40">
           {loading && !isFetchingMore ? (
-            <div className="py-20 flex justify-center items-center">
-              <InfiniteLoader isFetchingMore={true} />
-            </div>
+            <MemberLoansSkeleton count={4} />
           ) : loans.length === 0 ? (
             <div className="py-20">
               <EmptyState
@@ -285,14 +283,6 @@ const MemberLoans = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Infinite Scroll Trigger */}
-          <div ref={observerTarget} className="h-4 w-full" />
-          {currentPage < totalPages && (
-            <div className="py-8">
-              <InfiniteLoader isFetchingMore={isFetchingMore} />
             </div>
           )}
         </div>

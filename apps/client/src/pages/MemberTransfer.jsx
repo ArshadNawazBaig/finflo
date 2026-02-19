@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { formatPKR, capitalize } from '@/lib/utils';
 import StatsCard from '@/components/StatsCard';
 import QRScanner from '@/components/QRScanner';
+import MemberTransferSkeleton from '@/components/MemberTransferSkeleton';
 
 const MemberTransfer = () => {
   const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
@@ -30,6 +31,7 @@ const MemberTransfer = () => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
@@ -46,6 +48,8 @@ const MemberTransfer = () => {
     } catch (error) {
       console.error('Failed to fetch member data', error);
       toast.error('Failed to load profile');
+    } finally {
+      setPageLoading(false);
     }
   };
 
@@ -95,7 +99,7 @@ const MemberTransfer = () => {
     // console.warn(error);
   };
 
-  if (!member) return null;
+  if (pageLoading) return <MemberTransferSkeleton />;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

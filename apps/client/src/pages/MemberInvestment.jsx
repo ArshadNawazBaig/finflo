@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
-import CardsSkeleton from '@/components/CardsSkeleton';
-import InfiniteLoader from '@/components/InfiniteLoader';
+import MemberInvestmentSkeleton from '@/components/MemberInvestmentSkeleton';
 import MemberActivityCard from '@/components/MemberActivityCard';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
@@ -147,33 +146,43 @@ const MemberInvestment = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {loading ? (
-          <CardsSkeleton count={3} />
-        ) : (
-          stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-4 rounded-2xl ${stat.bgColor} ${stat.color} group-hover:scale-110 transition-transform`}
-                >
-                  <stat.icon size={24} />
+        {loading
+          ? [...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm animate-pulse"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-14 w-14 rounded-2xl bg-muted/40" />
+                  <div className="h-4 w-20 bg-muted/30 rounded" />
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-                  Live Portfolio
-                </div>
+                <div className="h-4 w-24 bg-muted/30 rounded mb-2" />
+                <div className="h-9 w-36 bg-muted/40 rounded-lg" />
               </div>
-              <h3 className="text-sm font-bold text-muted-foreground mb-1">
-                {stat.label}
-              </h3>
-              <p className="text-3xl font-black tracking-tighter text-foreground">
-                {stat.value}
-              </p>
-            </div>
-          ))
-        )}
+            ))
+          : stats.map((stat, index) => (
+              <div
+                key={index}
+                className="bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`p-4 rounded-2xl ${stat.bgColor} ${stat.color} group-hover:scale-110 transition-transform`}
+                  >
+                    <stat.icon size={24} />
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                    Live Portfolio
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-muted-foreground mb-1">
+                  {stat.label}
+                </h3>
+                <p className="text-3xl font-black tracking-tighter text-foreground">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
       </div>
 
       {/* Investment History */}
@@ -197,9 +206,7 @@ const MemberInvestment = () => {
 
         <div className="divide-y divide-border/40">
           {loading && !isFetchingMore ? (
-            <div className="py-20 flex justify-center items-center">
-              <InfiniteLoader isFetchingMore={true} />
-            </div>
+            <MemberInvestmentSkeleton count={5} />
           ) : (
             <>
               {investments.length === 0 ? (
@@ -277,14 +284,6 @@ const MemberInvestment = () => {
                         ),
                       )}
                     </div>
-
-                    {/* Infinite Scroll Trigger */}
-                    <div ref={observerTarget} className="h-4 w-full" />
-                    {currentPage < totalPages && (
-                      <div className="py-8">
-                        <InfiniteLoader isFetchingMore={isFetchingMore} />
-                      </div>
-                    )}
                   </div>
                 </>
               )}

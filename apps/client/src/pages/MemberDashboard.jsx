@@ -24,13 +24,13 @@ import {
 import { Button } from '@/components/ui/button';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
-import CardsSkeleton from '@/components/CardsSkeleton';
+import MemberDashboardSkeleton from '@/components/MemberDashboardSkeleton';
 import MemberLoanRequestModal from '@/components/MemberLoanRequestModal';
 import WealthInsights from '@/components/WealthInsights';
 import SavingGoalsList from '@/components/SavingGoalsList';
 import CreateSavingGoalModal from '@/components/CreateSavingGoalModal';
 import ContributeGoalModal from '@/components/ContributeGoalModal';
-import InfiniteLoader from '@/components/InfiniteLoader';
+
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatPKR, capitalize } from '@/lib/utils';
@@ -238,7 +238,7 @@ const MemberDashboard = () => {
       />
 
       {loading && loans.length === 0 ? (
-        <CardsSkeleton />
+        <MemberDashboardSkeleton />
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -547,8 +547,24 @@ const MemberDashboard = () => {
                     ))}
                     {isMobile ? (
                       currentPage < totalPages && (
-                        <div ref={observerTarget}>
-                          <InfiniteLoader isFetchingMore={isFetchingMore} />
+                        <div
+                          ref={observerTarget}
+                          className="space-y-3 animate-pulse"
+                        >
+                          {[1, 2].map((i) => (
+                            <div
+                              key={i}
+                              className="p-6 rounded-[2rem] border border-border/50 bg-muted/20"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-2 flex-1">
+                                  <div className="h-4 w-32 bg-muted/50 rounded" />
+                                  <div className="h-3 w-24 bg-muted/40 rounded" />
+                                </div>
+                                <div className="h-8 w-20 bg-muted/50 rounded-full" />
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )
                     ) : (
