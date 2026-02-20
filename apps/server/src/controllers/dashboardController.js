@@ -25,6 +25,9 @@ const getDashboardStats = async (req, res) => {
       if (branchScope) query.branchId = branchScope;
     }
 
+    // Exclude rejected loans from financial aggregations
+    query.status = { $ne: 'rejected' };
+
     let filterStart, filterEnd;
     if (startDate && endDate) {
       filterStart = new Date(startDate);
@@ -486,7 +489,10 @@ const downloadStatement = async (req, res) => {
     const profit = calculateProfit(repayments);
 
     // Outflow Calculation (Loans disbursed in this period)
-    const loanQuery = { user: req.user.effectiveOwnerId };
+    const loanQuery = {
+      user: req.user.effectiveOwnerId,
+      status: { $ne: 'rejected' },
+    };
     if (startDate && endDate) {
       loanQuery.startDate = {
         $gte: new Date(startDate),

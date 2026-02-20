@@ -86,6 +86,9 @@ const MemberForgotPassword = lazy(
 const MemberResetPassword = lazy(
   () => import('@/pages/member/MemberResetPassword'),
 );
+const MemberNotifications = lazy(
+  () => import('@/pages/member/MemberNotifications'),
+);
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -219,6 +222,10 @@ function App() {
                     element={<MemberInvestment />}
                   />
                   <Route path="/member/settings" element={<MemberSettings />} />
+                  <Route
+                    path="/member/notifications"
+                    element={<MemberNotifications />}
+                  />
                 </Route>
               </Route>
 

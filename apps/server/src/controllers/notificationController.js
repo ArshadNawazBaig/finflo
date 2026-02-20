@@ -138,6 +138,7 @@ const getMyNotifications = async (req, res) => {
 };
 
 // User/Member: Mark as Read
+// User/Member: Mark as Read
 const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
@@ -163,6 +164,28 @@ const markAsRead = async (req, res) => {
     notification.read = true;
     await notification.save();
     res.json(notification);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// User/Member: Delete My Notification
+const deleteMyNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const recipientId = req.user ? req.user._id : req.member._id;
+
+    const notification = await Notification.findOne({
+      _id: id,
+      recipient: recipientId,
+    });
+
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    await Notification.findByIdAndDelete(id);
+    res.json({ message: 'Notification deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -262,6 +285,7 @@ module.exports = {
   sendNotification,
   getMyNotifications,
   markAsRead,
+  deleteMyNotification,
   getAllNotifications,
   deleteNotification,
 };

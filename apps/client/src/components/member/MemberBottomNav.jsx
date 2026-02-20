@@ -1,6 +1,13 @@
 import { useRef, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutGrid, FileText, History, Send, TrendingUp } from 'lucide-react';
+import {
+  LayoutGrid,
+  FileText,
+  History,
+  Send,
+  TrendingUp,
+  Bell,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MemberBottomNav = () => {
@@ -28,6 +35,11 @@ const MemberBottomNav = () => {
       path: '/member/investments',
     },
     { icon: <Send size={20} />, label: 'Transfer', path: '/member/transfer' },
+    {
+      icon: <Bell size={20} />,
+      label: 'Alerts',
+      path: '/member/notifications',
+    },
     { icon: <FileText size={20} />, label: 'Loans', path: '/member/loans' },
   ];
 

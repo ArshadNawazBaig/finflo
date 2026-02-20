@@ -33,12 +33,14 @@ import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 import ApproveLoanModal from '@/components/loans/ApproveLoanModal';
+import RejectLoanModal from '@/components/loans/RejectLoanModal';
 
 const LoanRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [processingId, setProcessingId] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -190,20 +192,11 @@ const LoanRequests = () => {
     setIsApproveModalOpen(true);
   };
 
-  const handleReject = async (id) => {
-    if (!confirm('Are you sure you want to reject this loan request?')) return;
-
-    setProcessingId(id);
-    try {
-      await api.put(`/loans/${id}`, { status: 'rejected' });
-      toast.success('Loan request rejected');
-      fetchRequests();
-      fetchStats(); // Refresh statistics
-    } catch (error) {
-      console.error('Reject failed', error);
-      toast.error('Failed to reject loan');
-    } finally {
-      setProcessingId(null);
+  const handleRejectClick = (id) => {
+    const request = requests.find((r) => r._id === id);
+    if (request) {
+      setSelectedRequest(request);
+      setIsRejectModalOpen(true);
     }
   };
 
@@ -272,7 +265,7 @@ const LoanRequests = () => {
               <LoanRequestTable
                 requests={requests}
                 onApprove={handleApproveClick}
-                onReject={handleReject}
+                onReject={handleRejectClick}
                 processingId={processingId}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
@@ -315,7 +308,7 @@ const LoanRequests = () => {
                   key={request._id}
                   request={request}
                   onApprove={handleApproveClick}
-                  onReject={handleReject}
+                  onReject={handleRejectClick}
                   processingId={processingId}
                 />
               ))}
@@ -330,16 +323,28 @@ const LoanRequests = () => {
       )}
 
       {selectedRequest && (
-        <ApproveLoanModal
-          isOpen={isApproveModalOpen}
-          onClose={() => setIsApproveModalOpen(false)}
-          loan={selectedRequest}
-          onSuccess={() => {
-            fetchRequests();
-            fetchStats(); // Refresh statistics
-            setIsApproveModalOpen(false);
-          }}
-        />
+        <>
+          <ApproveLoanModal
+            isOpen={isApproveModalOpen}
+            onClose={() => setIsApproveModalOpen(false)}
+            loan={selectedRequest}
+            onSuccess={() => {
+              fetchRequests();
+              fetchStats(); // Refresh statistics
+              setIsApproveModalOpen(false);
+            }}
+          />
+          <RejectLoanModal
+            isOpen={isRejectModalOpen}
+            onClose={() => setIsRejectModalOpen(false)}
+            loan={selectedRequest}
+            onSuccess={() => {
+              fetchRequests();
+              fetchStats(); // Refresh statistics
+              setIsRejectModalOpen(false);
+            }}
+          />
+        </>
       )}
     </div>
   );

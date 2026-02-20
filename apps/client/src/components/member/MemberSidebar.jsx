@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
+import { Bell } from 'lucide-react';
 import Logo from '@/components/Logo';
 
 const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
@@ -141,6 +142,13 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           icon={<Send size={18} />}
           active={isActive('/member/transfer')}
           label="Transfer"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/member/notifications"
+          icon={<Bell size={18} />}
+          active={isActive('/member/notifications')}
+          label="Notifications"
           isExpanded={isLayoutExpanded}
         />
         <NavItem

@@ -4,10 +4,12 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ApproveLoanModal from './ApproveLoanModal';
+import RejectLoanModal from './RejectLoanModal';
 
 const ApprovalActions = ({ loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   const handleAction = async (action) => {
     if (action === 'approve') {
@@ -15,19 +17,9 @@ const ApprovalActions = ({ loan, onSuccess }) => {
       return;
     }
 
-    if (!confirm('Are you sure you want to reject this loan?')) return;
-
-    setLoading(true);
-    try {
-      await api.patch(`/loans/${loan._id}/${action}`);
-      toast.success(
-        `Loan ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
-      );
-      onSuccess();
-    } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to ${action} loan`);
-    } finally {
-      setLoading(false);
+    if (action === 'reject') {
+      setIsRejectModalOpen(true);
+      return;
     }
   };
 
@@ -35,7 +27,10 @@ const ApprovalActions = ({ loan, onSuccess }) => {
     <>
       <div className="flex items-center gap-2">
         <Button
-          onClick={() => handleAction('approve')}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAction('approve');
+          }}
           disabled={loading}
           size="sm"
           variant="outline"
@@ -48,7 +43,10 @@ const ApprovalActions = ({ loan, onSuccess }) => {
           )}
         </Button>
         <Button
-          onClick={() => handleAction('reject')}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAction('reject');
+          }}
           disabled={loading}
           size="sm"
           variant="outline"
@@ -68,6 +66,15 @@ const ApprovalActions = ({ loan, onSuccess }) => {
         loan={loan}
         onSuccess={() => {
           setIsApproveModalOpen(false);
+          onSuccess();
+        }}
+      />
+      <RejectLoanModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        loan={loan}
+        onSuccess={() => {
+          setIsRejectModalOpen(false);
           onSuccess();
         }}
       />

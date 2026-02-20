@@ -15,9 +15,12 @@ const getReportStats = async (req, res) => {
       query.branchId = req.user.branchId;
     }
 
+    // Exclude rejected loans from financial metrics
+    const loanQuery = { ...query, status: { $ne: 'rejected' } };
+
     // Aggregate monthly loans
     const monthlyLoans = await Loan.aggregate([
-      { $match: query },
+      { $match: loanQuery },
       {
         $group: {
           _id: { $month: '$startDate' },
@@ -66,7 +69,7 @@ const getReportStats = async (req, res) => {
     }));
 
     // Summary Metrics
-    const totalLoans = await Loan.find(query);
+    const totalLoans = await Loan.find(loanQuery);
     const totalVolume = totalLoans.reduce((sum, l) => sum + l.principal, 0);
     const activeLoansCount = totalLoans.filter(
       (l) => l.status === 'active',

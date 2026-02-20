@@ -7,8 +7,15 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const memberToken = localStorage.getItem('memberToken');
+
+    // Prioritize memberToken if on a member route, otherwise use token
+    const finalToken = window.location.pathname.startsWith('/member')
+      ? memberToken || token
+      : token || memberToken;
+
+    if (finalToken) {
+      config.headers.Authorization = `Bearer ${finalToken}`;
     }
     return config;
   },

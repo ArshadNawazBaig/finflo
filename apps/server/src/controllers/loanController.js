@@ -237,22 +237,41 @@ const requestLoan = async (req, res) => {
   const duration = Number(durationInput);
 
   try {
+    if (!principal || !duration) {
+      return res
+        .status(400)
+        .json({ message: 'Principal and duration are required.' });
+    }
+
     if (!grantorIdentifier) {
       return res
         .status(400)
         .json({ message: 'Grantor information is required' });
     }
 
+    // Defensive check: Ensure member has a linked customer profile
+    if (!req.member.customer) {
+      return res.status(400).json({
+        message:
+          'Your profile is not fully set up. Please contact admin to link your customer record.',
+      });
+    }
+
     const customer = await Customer.findById(req.member.customer);
+    if (!customer) {
+      return res.status(400).json({
+        message: 'Linked customer profile not found. Please contact support.',
+      });
+    }
+
     if (
-      !customer ||
-      (!customer.accountNumber &&
-        !customer.savingAccountNumber &&
-        !customer.currentAccountNumber)
+      !customer.accountNumber &&
+      !customer.savingAccountNumber &&
+      !customer.currentAccountNumber
     ) {
       return res.status(400).json({
         message:
-          'Cannot request loan: Your profile is missing an account number. Please contact support.',
+          'Cannot request loan: Your profile is missing an account number. Please contact admin to update your profile.',
       });
     }
 
@@ -278,7 +297,7 @@ const requestLoan = async (req, res) => {
     if (!grantor) {
       return res.status(404).json({
         message:
-          'Grantor not found. Please provide a valid Member CNIC or Phone number.',
+          'Grantor not found. Please provide a valid Member CNIC or Phone number of another member.',
       });
     }
 
@@ -295,6 +314,13 @@ const requestLoan = async (req, res) => {
 
     // Check plan limits
     const owner = await User.findById(req.member.user).select('plan');
+    if (!owner) {
+      return res
+        .status(400)
+        .json({
+          message: 'Organization data not found. Please contact support.',
+        });
+    }
     const userPlan = owner.plan || 'Free';
 
     // Count existing loans for this organization
@@ -316,10 +342,15 @@ const requestLoan = async (req, res) => {
 
     let emi = 0,
       totalAmount = principal;
+
     if (rate > 0) {
       const result = calculateSimpleInterest(principal, rate, duration);
       emi = Math.round(result.emi);
       totalAmount = Math.round(result.totalAmount);
+    } else {
+      // FIX: 0% interest still requires an EMI based on principal
+      emi = Math.round(principal / duration);
+      totalAmount = principal;
     }
 
     const customerHistory = await Loan.find({ customer: req.member.customer });
@@ -328,6 +359,7 @@ const requestLoan = async (req, res) => {
     const loan = new Loan({
       user: req.member.user,
       customer: req.member.customer,
+      branchId: req.member.branchId || customer.branchId, // Set branchId for proper segregation
       principal,
       rate,
       duration,
@@ -340,6 +372,9 @@ const requestLoan = async (req, res) => {
       grantor: grantor._id,
       grantorStatus: 'pending',
       riskDetails,
+      documents: notes
+        ? [{ name: 'Request Notes', url: 'N/A', type: 'text' }]
+        : [], // Optionally store notes
     });
 
     const createdLoan = await loan.save();
@@ -351,8 +386,9 @@ const requestLoan = async (req, res) => {
         recipient: grantor._id,
         recipientModel: 'Member',
         title: 'New Grantor Request',
-        message: `${req.member.name} has requested you to be a grantor for a loan of ${principal}.`,
+        message: `${req.member.name} has requested you to be a grantor for a loan of Rs. ${principal.toLocaleString()}.`,
         type: 'info',
+        branchId: req.member.branchId || customer.branchId,
       });
       await notification.save();
     } catch (notifError) {
@@ -361,20 +397,27 @@ const requestLoan = async (req, res) => {
 
     // Log activity
     await logActivity({
-      userId: req.member._id,
+      userId: req.member.user, // Use the admin User ID if possible, or leave it as the Member's owning user
       action: 'loan_requested',
       category: 'loan',
-      details: `Member requested a loan of ${principal}`,
+      details: `Member ${req.member.name} requested a loan of ${principal}`,
       metadata: {
         loanId: createdLoan._id,
         principal,
+        memberId: req.member._id,
       },
-      req,
+      req, // ensure req is passed
     });
 
     res.status(201).json(createdLoan);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Member requestLoan Error:', error);
+    res
+      .status(400)
+      .json({
+        message:
+          error.message || 'An error occurred while processing your request.',
+      });
   }
 };
 

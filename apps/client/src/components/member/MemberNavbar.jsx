@@ -264,6 +264,15 @@ const MemberNavbar = ({ onMenuClick }) => {
                     </div>
                   )}
                 </div>
+                {notifications.length > 0 && (
+                  <Link
+                    to="/member/notifications"
+                    onClick={() => setShowNotifications(false)}
+                    className="p-3 border-t border-border/50 text-center text-xs font-black uppercase tracking-widest text-primary hover:bg-muted/50 transition-colors block"
+                  >
+                    View all notifications
+                  </Link>
+                )}
               </div>
             )}
           </div>

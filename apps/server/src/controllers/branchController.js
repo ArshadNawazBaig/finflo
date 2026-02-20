@@ -407,6 +407,7 @@ const getBranchFinancials = async (req, res) => {
             { branchId: branchId },
             { customer: { $in: customerIds } },
           ],
+          status: { $ne: 'rejected' },
         }).select('principal paidAmount'),
         FinancialTransaction.find({
           ...allTimeBranchQuery,
@@ -613,6 +614,7 @@ const getBranchAnalytics = async (req, res) => {
           { branchId: branchId },
           { customer: { $in: customerIds } },
         ],
+        status: { $ne: 'rejected' },
       }),
     ]);
 
