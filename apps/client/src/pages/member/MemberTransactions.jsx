@@ -218,12 +218,12 @@ const MemberTransactions = () => {
   const displayActivity = activity;
 
   const getItemStyle = (category, type) => {
-    if (category === 'investment')
-      return {
-        color: 'text-primary',
-        sign: '+',
-        icon: <TrendingUp className="text-primary" size={18} />,
-      };
+    const isCredit = [
+      'deposit',
+      'transfer_receive',
+      'external_receive',
+    ].includes(type);
+
     if (category === 'profit')
       return {
         color: 'text-emerald-600',
@@ -242,17 +242,25 @@ const MemberTransactions = () => {
         sign: '-',
         icon: <FileText className="text-amber-500" size={18} />,
       };
-    return type === 'deposit'
-      ? {
-          color: 'text-emerald-600',
-          sign: '+',
-          icon: <ArrowUpRight className="text-emerald-500" size={18} />,
-        }
-      : {
-          color: 'text-rose-600',
-          sign: '-',
-          icon: <ArrowDownLeft className="text-red-500" size={18} />,
-        };
+
+    if (isCredit) {
+      return {
+        color: category === 'investment' ? 'text-primary' : 'text-emerald-600',
+        sign: '+',
+        icon:
+          category === 'investment' ? (
+            <TrendingUp className="text-primary" size={18} />
+          ) : (
+            <ArrowUpRight className="text-emerald-500" size={18} />
+          ),
+      };
+    } else {
+      return {
+        color: 'text-rose-600',
+        sign: '-',
+        icon: <ArrowDownLeft className="text-rose-500" size={18} />,
+      };
+    }
   };
 
   return (
@@ -279,6 +287,9 @@ const MemberTransactions = () => {
           <p className="text-2xl font-black tracking-tighter text-foreground">
             {formatPKR(summary.totalDeposits)}
           </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1 font-medium">
+            Investments, profits & received transfers
+          </p>
         </div>
 
         <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm">
@@ -296,22 +307,52 @@ const MemberTransactions = () => {
           <p className="text-2xl font-black tracking-tighter text-foreground">
             {formatPKR(summary.totalWithdrawals)}
           </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1 font-medium">
+            Withdrawals, transfers & repayments
+          </p>
         </div>
 
-        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
+        <div
+          className={cn(
+            'p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm transition-all duration-500',
+            member?.currentBalance < 0
+              ? 'bg-gradient-to-br from-rose-500/5 to-rose-500/10 border-rose-500/20'
+              : 'bg-gradient-to-br from-primary/5 to-primary/10',
+          )}
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-primary text-white">
+            <div
+              className={cn(
+                'p-3 rounded-xl text-white transition-colors duration-500',
+                member?.currentBalance < 0 ? 'bg-rose-500' : 'bg-primary',
+              )}
+            >
               <TrendingUp size={20} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+            <span
+              className={cn(
+                'text-[10px] font-black uppercase tracking-widest',
+                member?.currentBalance < 0
+                  ? 'text-rose-500/60'
+                  : 'text-primary/60',
+              )}
+            >
               Net Result
             </span>
           </div>
           <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
-            Total Net Balance
+            Portfolio Balance
           </h3>
-          <p className="text-2xl font-black tracking-tighter text-foreground">
-            {formatPKR(summary.totalDeposits - summary.totalWithdrawals)}
+          <p
+            className={cn(
+              'text-2xl font-black tracking-tighter',
+              member?.currentBalance < 0 ? 'text-rose-600' : 'text-foreground',
+            )}
+          >
+            {formatPKR(member?.currentBalance ?? 0)}
+          </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1 font-medium">
+            Available investment portfolio balance
           </p>
         </div>
       </div>

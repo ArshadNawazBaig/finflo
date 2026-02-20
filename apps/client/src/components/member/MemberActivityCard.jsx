@@ -16,15 +16,14 @@ import { cn } from '@/lib/utils';
 const MemberActivityCard = ({ activity }) => {
   const balanceAfter = activity.metadata?.balanceAfter || activity.balanceAfter;
 
-  // Determine display style based on category first, then type
+  // Determine display style based on category AND type
   const getStyle = (category, type) => {
-    if (category === 'investment')
-      return {
-        color: 'text-primary',
-        bg: 'bg-primary/10 text-primary',
-        sign: '+',
-        icon: <TrendingUp size={24} />,
-      };
+    const isCredit = [
+      'deposit',
+      'transfer_receive',
+      'external_receive',
+    ].includes(type);
+
     if (category === 'profit')
       return {
         color: 'text-emerald-600',
@@ -46,20 +45,31 @@ const MemberActivityCard = ({ activity }) => {
         sign: '-',
         icon: <FileText size={24} />,
       };
-    // fallback to type
-    return type === 'deposit'
-      ? {
-          color: 'text-emerald-600',
-          bg: 'bg-emerald-500/10 text-emerald-600',
-          sign: '+',
-          icon: <ArrowUpRight size={24} />,
-        }
-      : {
-          color: 'text-rose-600',
-          bg: 'bg-rose-500/10 text-rose-600',
-          sign: '-',
-          icon: <ArrowDownLeft size={24} />,
-        };
+
+    // fallback / default to type (includes 'investment' category)
+    if (isCredit) {
+      return {
+        color: category === 'investment' ? 'text-primary' : 'text-emerald-600',
+        bg:
+          category === 'investment'
+            ? 'bg-primary/10 text-primary'
+            : 'bg-emerald-500/10 text-emerald-600',
+        sign: '+',
+        icon:
+          category === 'investment' ? (
+            <TrendingUp size={24} />
+          ) : (
+            <ArrowUpRight size={24} />
+          ),
+      };
+    } else {
+      return {
+        color: 'text-rose-600',
+        bg: 'bg-rose-500/10 text-rose-600',
+        sign: '-',
+        icon: <ArrowDownLeft size={24} />,
+      };
+    }
   };
 
   const style = getStyle(activity.category, activity.type);

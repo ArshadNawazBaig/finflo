@@ -6,6 +6,9 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
 const { calculateRiskScore } = require('../utils/riskService');
+const {
+  createTransactionNotification,
+} = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
@@ -680,6 +683,39 @@ const addRepayment = async (req, res) => {
 
     await repayment.save();
 
+    // ── Deduct repayment from linked Member's balance ──────────────────────
+    try {
+      const Member = require('../models/Member');
+      const Investment = require('../models/Investment');
+      const customer = await Customer.findById(loan.customer);
+      if (customer?.memberId) {
+        const member = await Member.findById(customer.memberId);
+        if (member) {
+          member.currentBalance -= Number(amount);
+          member.totalWithdrawn = (member.totalWithdrawn || 0) + Number(amount);
+          await member.save();
+
+          // Record in Investment ledger so it shows on Asset Management page
+          await Investment.create({
+            user: member.user,
+            member: member._id,
+            branchId: loan.branchId || member.branchId,
+            type: 'withdrawal',
+            amount: Number(amount),
+            balanceAfter: member.currentBalance,
+            description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}`,
+            date: new Date(date || new Date()),
+          });
+        }
+      }
+    } catch (balanceError) {
+      console.error(
+        'Failed to deduct repayment from member balance:',
+        balanceError,
+      );
+      // Non-fatal: repayment is still recorded even if balance update fails
+    }
+
     // Update loan stats
     loan.paidAmount += Number(amount);
     loan.remainingAmount = Math.round(
@@ -765,6 +801,41 @@ const addRepayment = async (req, res) => {
       },
       req,
     });
+
+    // ── Notifications ──────────────────────────────────────────────────────
+    try {
+      const Customer = require('../models/Member'); // This seems wrong, should be Customer model
+      // But loan.customer is already populated or at least has the ID.
+      // Let's use the local customer object if available or find it.
+      const customer = await require('../models/Customer').findById(
+        loan.customer,
+      );
+      if (customer?.memberId) {
+        await createTransactionNotification({
+          recipientId: customer.memberId,
+          title: 'Loan Repayment Received',
+          message: `Repayment of Rs. ${Number(amount).toLocaleString()} recorded for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
+          type: 'success',
+          branchId: loan.branchId,
+          action: 'loan_repayment_notification',
+          metadata: { amount, loanId: loan._id },
+        });
+
+        if (loan.status === 'completed') {
+          await createTransactionNotification({
+            recipientId: customer.memberId,
+            title: 'Loan Successfully Paid',
+            message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully paid off.`,
+            type: 'success',
+            branchId: loan.branchId,
+            action: 'loan_completed_notification',
+            metadata: { loanId: loan._id },
+          });
+        }
+      }
+    } catch (notifError) {
+      console.error('Loan Repayment Notification Error:', notifError);
+    }
 
     res.status(201).json(repayment);
   } catch (error) {

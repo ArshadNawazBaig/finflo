@@ -236,8 +236,24 @@ const MemberInvestment = () => {
                         !isMobile && 'divide-y divide-border/40 gap-0',
                       )}
                     >
-                      {investments.map((item) =>
-                        isMobile ? (
+                      {investments.map((item) => {
+                        // Determine credit/debit for ALL investment types
+                        const isCredit = [
+                          'deposit',
+                          'transfer_receive',
+                          'external_receive',
+                        ].includes(item.type);
+                        const typeLabel =
+                          {
+                            deposit: 'Deposit',
+                            withdrawal: 'Withdrawal',
+                            transfer_send: 'Transfer Sent',
+                            transfer_receive: 'Transfer Received',
+                            external_send: 'External Send',
+                            external_receive: 'External Receive',
+                          }[item.type] ?? item.type;
+
+                        return isMobile ? (
                           <MemberActivityCard key={item._id} activity={item} />
                         ) : (
                           <div
@@ -246,9 +262,9 @@ const MemberInvestment = () => {
                           >
                             <div className="flex items-center gap-5">
                               <div
-                                className={`p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform ${item.type === 'deposit' ? 'text-emerald-500' : 'text-rose-500'}`}
+                                className={`p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform ${isCredit ? 'text-emerald-500' : 'text-rose-500'}`}
                               >
-                                {item.type === 'deposit' ? (
+                                {isCredit ? (
                                   <ArrowUpRight size={18} />
                                 ) : (
                                   <ArrowDownLeft size={18} />
@@ -259,8 +275,10 @@ const MemberInvestment = () => {
                                   {item.description}
                                 </h4>
                                 <div className="flex items-center gap-3 mt-1">
-                                  <p className="text-[10px] font-black uppercase text-primary tracking-widest">
-                                    {item.type}
+                                  <p
+                                    className={`text-[10px] font-black uppercase tracking-widest ${isCredit ? 'text-emerald-600' : 'text-rose-500'}`}
+                                  >
+                                    {typeLabel}
                                   </p>
                                   <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -279,9 +297,9 @@ const MemberInvestment = () => {
 
                             <div className="text-right">
                               <p
-                                className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}`}
+                                className={`text-xl font-black tracking-tighter ${isCredit ? 'text-emerald-600' : 'text-rose-600'}`}
                               >
-                                {item.type === 'deposit' ? '+' : '-'}
+                                {isCredit ? '+' : '-'}
                                 {formatPKR(item.amount)}
                               </p>
                               {item.balanceAfter && (
@@ -291,8 +309,8 @@ const MemberInvestment = () => {
                               )}
                             </div>
                           </div>
-                        ),
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
                   {/* Infinite Scroll Trigger */}

@@ -191,7 +191,9 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             )}
           >
             <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-primary transition-all duration-500 hover:brightness-110 overflow-hidden">
+              <div
+                className={`w-10 h-10 rounded-full ${member.profilePicture ? 'bg-primary/10' : 'bg-primary'} flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-primary transition-all duration-500 hover:brightness-110 overflow-hidden`}
+              >
                 {member.profilePicture ? (
                   <img
                     src={member.profilePicture}
