@@ -385,9 +385,8 @@ const getBranchFinancials = async (req, res) => {
       .populate('loan', 'status')
       .populate('referenceId', 'name');
 
-    // Get summary stats for the branch (full totals, not paginated)
-    // Type-agnostic to ensure stats are always consistent regardless of the active tab
-    const statsQuery = {
+    // Base query for all-time branch data (unfiltered by date/search)
+    const allTimeBranchQuery = {
       $or: [
         { branchId: branchOid },
         { branchId: branchId },
@@ -396,49 +395,67 @@ const getBranchFinancials = async (req, res) => {
       ],
     };
 
-    const allFinancials = await FinancialTransaction.find(statsQuery).select(
-      'type category amount',
+    // Get summary stats for the branch using model aggregates (source of truth)
+    const [branchMembersStats, branchLoansStats, branchExpenses] =
+      await Promise.all([
+        Member.find({
+          $or: [{ branchId: branchOid }, { branchId: branchId }],
+        }).select('totalInvested totalWithdrawn currentBalance totalProfit'),
+        Loan.find({
+          $or: [
+            { branchId: branchOid },
+            { branchId: branchId },
+            { customer: { $in: customerIds } },
+          ],
+        }).select('principal paidAmount'),
+        FinancialTransaction.find({
+          ...allTimeBranchQuery,
+          type: 'expense',
+          category: {
+            $in: [
+              'rent',
+              'salary',
+              'utilities',
+              'marketing',
+              'maintenance',
+              'fee',
+              'other',
+            ],
+          },
+        }).select('amount'),
+      ]);
+
+    const totalInvested = branchMembersStats.reduce(
+      (sum, m) => sum + (m.totalInvested || 0),
+      0,
     );
-
-    // Calculate basic cash flow
-    const totalIncome = allFinancials
-      .filter((f) => f.type === 'income')
-      .reduce((sum, f) => sum + f.amount, 0);
-    const totalExpenses = allFinancials
-      .filter((f) => f.type === 'expense')
-      .reduce((sum, f) => sum + f.amount, 0);
-    const totalDisbursements = allFinancials
-      .filter((f) => f.category === 'loan_disbursement')
-      .reduce((sum, f) => sum + f.amount, 0);
-
-    // Get current liabilities (Deposits) from Members
-    const members = await Member.find({
-      $or: [{ branchId: branchOid }, { branchId: branchId }],
-    });
+    const totalWithdrawn = branchMembersStats.reduce(
+      (sum, m) => sum + (m.totalWithdrawn || 0),
+      0,
+    );
     const totalDeposits = Math.round(
-      members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
+      branchMembersStats.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
     );
 
-    // Get Portfolio Value (Disbursed) from Loans
-    const loans = await Loan.find({
-      $or: [
-        { branchId: branchOid },
-        { branchId: branchId },
-        { customer: { $in: customerIds } },
-      ],
-    });
-    const totalPortfolio = Math.round(
-      loans.reduce((sum, l) => sum + (l.principal || 0), 0),
+    const totalDisbursed = branchLoansStats.reduce(
+      (sum, l) => sum + (l.principal || 0),
+      0,
+    );
+    const totalRepaid = branchLoansStats.reduce(
+      (sum, l) => sum + (l.paidAmount || 0),
+      0,
     );
 
-    // Calculate Net Profit from Repayments
-    const repayments = await Repayment.find({
-      $or: [
-        { branchId: branchOid },
-        { branchId: branchId },
-        { customer: { $in: customerIds } },
-      ],
-    }).populate('loan', 'principal totalAmount');
+    const totalExpenses = branchExpenses.reduce(
+      (sum, e) => sum + (e.amount || 0),
+      0,
+    );
+
+    // Calculate Net Profit from Repayments (Interest Portion)
+    const repayments = await Repayment.find(allTimeBranchQuery).populate(
+      'loan',
+      'principal totalAmount',
+    );
 
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
@@ -457,12 +474,18 @@ const getBranchFinancials = async (req, res) => {
       totalPages: Math.ceil(totalEntries / limit),
       currentPage: page,
       summary: {
-        totalTransactions: allFinancials.length,
+        totalTransactions: totalEntries,
         totalExpenses: totalExpenses,
-        liquidity: totalIncome - totalExpenses - totalDisbursements,
+        liquidity: Math.round(
+          totalInvested +
+            totalRepaid -
+            totalDisbursed -
+            totalWithdrawn -
+            totalExpenses,
+        ),
         totalDeposits,
         netProfit,
-        totalDisbursed: totalPortfolio,
+        totalDisbursed: totalDisbursed,
       },
     });
   } catch (error) {

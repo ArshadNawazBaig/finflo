@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Check,
   Copy,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, capitalize, formatCNIC } from '@/lib/utils';
@@ -343,17 +344,64 @@ const ProfileSection = ({
             ) : (
               initials
             )}
-            <div
-              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"
-              onClick={onUpload}
-            >
-              <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover/avatar:scale-100 transition-transform">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={onUpload}
+                className="bg-white/20 hover:bg-white/40 backdrop-blur-md p-2 rounded-xl transition-all"
+                title="Upload Picture"
+              >
                 {uploading ? (
-                  <Loader2 size={20} className="text-white animate-spin" />
+                  <Loader2 size={16} className="text-white animate-spin" />
                 ) : (
-                  <Camera size={20} className="text-white" />
+                  <Camera size={16} className="text-white" />
                 )}
-              </div>
+              </button>
+
+              {member.profilePicture && (
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (uploading) return;
+                    setUploading(true);
+                    try {
+                      const memberToken = localStorage.getItem('memberToken');
+                      const { data } = await api.delete(
+                        '/member-auth/deleteprofilepicture',
+                        {
+                          headers: {
+                            Authorization: `Bearer ${memberToken}`,
+                          },
+                        },
+                      );
+                      if (data.success) {
+                        const updatedMember = {
+                          ...member,
+                          profilePicture: undefined,
+                        };
+                        setMember(updatedMember);
+                        localStorage.setItem(
+                          'member',
+                          JSON.stringify(updatedMember),
+                        );
+                        window.dispatchEvent(new Event('memberUpdated'));
+                        toast.success('Profile picture removed');
+                      }
+                    } catch (error) {
+                      toast.error('Failed to remove profile picture');
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                  className="bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all"
+                  title="Delete Picture"
+                >
+                  <Trash2 size={16} className="text-white" />
+                </button>
+              )}
             </div>
           </div>
           <input

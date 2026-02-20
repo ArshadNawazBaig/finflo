@@ -6,9 +6,10 @@ const {
   updateDetails,
   uploadProfilePicture,
   updatePassword,
-  deleteAccount,
   forgotPassword,
   resetPassword,
+  deleteAccount,
+  deleteProfilePicture,
 } = require('../controllers/memberAuthController');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -25,6 +26,7 @@ router.put(
   uploadProfilePicture,
 );
 router.put('/updatepassword', protectMember, updatePassword);
+router.delete('/deleteprofilepicture', protectMember, deleteProfilePicture);
 router.delete('/deleteaccount', protectMember, deleteAccount);
 
 module.exports = router;

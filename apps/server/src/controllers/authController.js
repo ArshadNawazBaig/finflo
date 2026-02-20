@@ -606,12 +606,47 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+const deleteProfilePicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.profilePicture) {
+      await deleteCloudinaryFileByUrl(user.profilePicture, 'image');
+      user.profilePicture = undefined;
+      await user.save();
+
+      // Log activity
+      await logActivity({
+        userId: user._id,
+        action: 'profile_picture_deleted',
+        category: 'auth',
+        details: 'User deleted their profile picture',
+        req,
+      });
+
+      res.json({
+        success: true,
+        message: 'Profile picture deleted successfully',
+      });
+    } else {
+      res.status(400).json({ message: 'No profile picture to delete' });
+    }
+  } catch (error) {
+    console.error('Delete Profile Picture Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   updateDetails,
   uploadProfilePicture,
+  deleteProfilePicture,
   updatePassword,
   forgotPassword,
   resetPassword,

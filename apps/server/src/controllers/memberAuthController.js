@@ -427,11 +427,58 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const deleteProfilePicture = async (req, res) => {
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    if (member.profilePicture) {
+      const {
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      await deleteCloudinaryFileByUrl(member.profilePicture, 'image');
+
+      member.profilePicture = undefined;
+      await member.save();
+
+      // Sync with Customer if linked
+      if (member.customer) {
+        const Customer = require('../models/Customer');
+        await Customer.findByIdAndUpdate(member.customer, {
+          profilePicture: undefined,
+        });
+      }
+
+      // Log activity
+      await logActivity({
+        userId: member._id,
+        action: 'member_profile_picture_deleted',
+        category: 'auth',
+        details: 'Member deleted their profile picture',
+        req,
+      });
+
+      res.json({
+        success: true,
+        message: 'Profile picture deleted successfully',
+      });
+    } else {
+      res.status(400).json({ message: 'No profile picture to delete' });
+    }
+  } catch (error) {
+    console.error('Delete Member Profile Picture Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   loginMember,
   getMe,
   updateDetails,
   uploadProfilePicture,
+  deleteProfilePicture,
   updatePassword,
   deleteAccount,
   forgotPassword,

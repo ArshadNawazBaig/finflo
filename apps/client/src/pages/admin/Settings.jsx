@@ -29,6 +29,7 @@ import {
   Info,
   Sparkles,
   Save,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -288,22 +289,69 @@ const Settings = () => {
                           )}
 
                           {/* Hover Overlay */}
-                          <div
-                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"
-                            onClick={() =>
-                              document.getElementById('profile-upload').click()
-                            }
-                          >
-                            <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover/avatar:scale-100 transition-transform">
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() =>
+                                document
+                                  .getElementById('profile-upload')
+                                  .click()
+                              }
+                              className="bg-white/20 hover:bg-white/40 backdrop-blur-md p-2 rounded-xl transition-all"
+                              title="Upload Picture"
+                            >
                               {loading ? (
                                 <Loader2
-                                  size={20}
+                                  size={16}
                                   className="text-white animate-spin"
                                 />
                               ) : (
-                                <Camera size={20} className="text-white" />
+                                <Camera size={16} className="text-white" />
                               )}
-                            </div>
+                            </button>
+
+                            {user.profilePicture && (
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (loading) return;
+                                  setLoading(true);
+                                  try {
+                                    const { data } = await api.delete(
+                                      '/auth/delete-profile-picture',
+                                    );
+                                    if (data.success) {
+                                      const updatedUser = {
+                                        ...user,
+                                        profilePicture: undefined,
+                                      };
+                                      setUser(updatedUser);
+                                      localStorage.setItem(
+                                        'user',
+                                        JSON.stringify(updatedUser),
+                                      );
+                                      window.dispatchEvent(
+                                        new Event('userUpdated'),
+                                      );
+                                      toast.success('Profile picture removed');
+                                    }
+                                  } catch (error) {
+                                    toast.error(
+                                      'Failed to delete profile picture',
+                                    );
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }}
+                                className="bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all"
+                                title="Delete Picture"
+                              >
+                                <Trash2 size={16} className="text-white" />
+                              </button>
+                            )}
                           </div>
                         </div>
 

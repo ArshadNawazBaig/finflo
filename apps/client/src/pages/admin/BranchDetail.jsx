@@ -1107,7 +1107,10 @@ const BranchDetail = () => {
                           }
                         >
                           <SelectTrigger className="h-14 rounded-2xl bg-muted/20 border-border/40 font-bold text-sm">
-                            <SelectValue placeholder="Select Manager" />
+                            <SelectValue
+                              className="capitalize"
+                              placeholder="Select Manager"
+                            />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-border/40">
                             <SelectItem value="none" className="rounded-xl">
@@ -1120,7 +1123,7 @@ const BranchDetail = () => {
                                 className="rounded-xl"
                               >
                                 <div className="flex flex-col py-1">
-                                  <span className="font-bold text-sm">
+                                  <span className="font-bold text-sm capitalize">
                                     {member.name}
                                   </span>
                                   <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
