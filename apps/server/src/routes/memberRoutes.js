@@ -16,6 +16,7 @@ const {
   transferFunds,
   adminTransferFunds,
   lookupMember,
+  recalculateBalance,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -37,6 +38,7 @@ router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
 router.post('/admin/transfer', adminTransferFunds);
+router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
 // Investment management
 router.get('/:id/investments', getMemberInvestments);

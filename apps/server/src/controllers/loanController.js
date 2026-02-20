@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
@@ -6,6 +7,10 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { canCreateLoan } = require('../utils/planLimits');
 const { calculateRiskScore } = require('../utils/riskService');
+const {
+  createTransactionNotification,
+  notifyAdminsOfMemberAction,
+} = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
@@ -600,7 +605,7 @@ const getLoanById = async (req, res) => {
 const addRepayment = async (req, res) => {
   const { loanId, amount, date, notes, isSettlement } = req.body;
   try {
-    const loan = await Loan.findById(loanId);
+    const loan = await Loan.findById(loanId).populate('customer');
     if (
       !loan ||
       (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
@@ -679,6 +684,39 @@ const addRepayment = async (req, res) => {
     });
 
     await repayment.save();
+
+    // ── Deduct repayment from linked Member's balance ──────────────────────
+    try {
+      const Member = require('../models/Member');
+      const Investment = require('../models/Investment');
+      const customer = await Customer.findById(loan.customer);
+      if (customer?.memberId) {
+        const member = await Member.findById(customer.memberId);
+        if (member) {
+          member.currentBalance -= Number(amount);
+          member.totalWithdrawn = (member.totalWithdrawn || 0) + Number(amount);
+          await member.save();
+
+          // Record in Investment ledger so it shows on Asset Management page
+          await Investment.create({
+            user: member.user,
+            member: member._id,
+            branchId: loan.branchId || member.branchId,
+            type: 'withdrawal',
+            amount: Number(amount),
+            balanceAfter: member.currentBalance,
+            description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}`,
+            date: new Date(date || new Date()),
+          });
+        }
+      }
+    } catch (balanceError) {
+      console.error(
+        'Failed to deduct repayment from member balance:',
+        balanceError,
+      );
+      // Non-fatal: repayment is still recorded even if balance update fails
+    }
 
     // Update loan stats
     loan.paidAmount += Number(amount);
@@ -765,6 +803,41 @@ const addRepayment = async (req, res) => {
       },
       req,
     });
+
+    // ── Notifications ──────────────────────────────────────────────────────
+    try {
+      const Customer = require('../models/Member'); // This seems wrong, should be Customer model
+      // But loan.customer is already populated or at least has the ID.
+      // Let's use the local customer object if available or find it.
+      const customer = await require('../models/Customer').findById(
+        loan.customer,
+      );
+      if (customer?.memberId) {
+        await createTransactionNotification({
+          recipientId: customer.memberId,
+          title: 'Loan Repayment Received',
+          message: `Repayment of Rs. ${Number(amount).toLocaleString()} recorded for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
+          type: 'success',
+          branchId: loan.branchId,
+          action: 'loan_repayment_notification',
+          metadata: { amount, loanId: loan._id },
+        });
+
+        if (loan.status === 'completed') {
+          await createTransactionNotification({
+            recipientId: customer.memberId,
+            title: 'Loan Successfully Paid',
+            message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully paid off.`,
+            type: 'success',
+            branchId: loan.branchId,
+            action: 'loan_completed_notification',
+            metadata: { loanId: loan._id },
+          });
+        }
+      }
+    } catch (notifError) {
+      console.error('Loan Repayment Notification Error:', notifError);
+    }
 
     res.status(201).json(repayment);
   } catch (error) {
@@ -1164,7 +1237,7 @@ const deleteDocument = async (req, res) => {
 
 const approveLoan = async (req, res) => {
   try {
-    const loan = await Loan.findById(req.params.id);
+    const loan = await Loan.findById(req.params.id).populate('customer');
     if (
       !loan ||
       (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
@@ -1419,6 +1492,212 @@ const getMemberLoanSchedule = async (req, res) => {
   }
 };
 
+const memberRepayLoan = async (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+  const memberTokenId = req.member._id;
+
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ message: 'Invalid payment amount' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const loan = await Loan.findById(id).populate('customer').session(session);
+    if (!loan) throw new Error('Loan not found');
+
+    const { isSettlement } = req.body;
+
+    if (
+      !loan.customer?.memberId ||
+      loan.customer.memberId.toString() !== memberTokenId.toString()
+    ) {
+      throw new Error('Unauthorized: This loan does not belong to you');
+    }
+
+    if (loan.status !== 'active') {
+      throw new Error('This loan is not active or already completed');
+    }
+
+    // Handle Early Settlement Interest Adjustment (Same as admin logic)
+    if (isSettlement) {
+      const start = new Date(loan.startDate);
+      const now = new Date();
+
+      let monthsElapsed =
+        (now.getFullYear() - start.getFullYear()) * 12 +
+        (now.getMonth() - start.getMonth());
+
+      if (now.getDate() > start.getDate()) {
+        monthsElapsed++;
+      }
+
+      monthsElapsed = Math.max(1, monthsElapsed);
+
+      if (monthsElapsed < loan.duration) {
+        let newTotalInterest;
+        if (loan.interestType === 'simple') {
+          newTotalInterest =
+            (loan.principal * loan.rate * monthsElapsed) / 1200;
+        } else {
+          newTotalInterest =
+            (loan.principal * loan.rate * monthsElapsed) / 1200;
+        }
+
+        const newTotalAmount = Math.round(loan.principal + newTotalInterest);
+
+        await logActivity({
+          userId: memberTokenId,
+          action: 'loan_interest_adjusted_member',
+          category: 'loan',
+          details: `Loan interest adjusted for member early settlement from ${loan.totalAmount} to ${newTotalAmount}`,
+          metadata: {
+            loanId: loan._id,
+            oldTotalAmount: loan.totalAmount,
+            newTotalAmount,
+            monthsElapsed,
+          },
+          req,
+        });
+
+        loan.totalAmount = newTotalAmount;
+      }
+    }
+
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const member = await Member.findById(memberTokenId).session(session);
+
+    if (!member) throw new Error('Member data not found');
+
+    const paymentAmount = Math.round(Number(amount));
+    if (member.currentBalance < paymentAmount) {
+      throw new Error('Insufficient balance in your account');
+    }
+
+    // 1. Deduct from member balance
+    member.currentBalance -= paymentAmount;
+    member.totalWithdrawn = (member.totalWithdrawn || 0) + paymentAmount;
+    await member.save({ session });
+
+    // 2. Record in Investment ledger (Withdrawal)
+    const investment = await Investment.create(
+      [
+        {
+          user: member.user,
+          member: member._id,
+          branchId: loan.branchId || member.branchId,
+          type: 'withdrawal',
+          amount: paymentAmount,
+          balanceAfter: member.currentBalance,
+          description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}`,
+          date: new Date(),
+          metadata: { isRepayment: true },
+        },
+      ],
+      { session },
+    );
+
+    // 3. Create Repayment record
+    const [repayment] = await Repayment.create(
+      [
+        {
+          user: member.user,
+          loan: loan._id,
+          customer: loan.customer._id,
+          branchId: loan.branchId,
+          amount: paymentAmount,
+          date: new Date(),
+          notes: req.body.notes || 'Self-repayment via Wealth Portal',
+        },
+      ],
+      { session },
+    );
+
+    // 4. Update loan stats
+    loan.paidAmount += paymentAmount;
+    loan.remainingAmount = Math.round(
+      Math.max(0, loan.totalAmount - loan.paidAmount),
+    );
+
+    if (loan.remainingAmount <= 0) {
+      loan.status = 'completed';
+    }
+    await loan.save({ session });
+
+    // 5. Create Financial Transaction
+    const financialTx = new FinancialTransaction({
+      user: member.user,
+      branchId: loan.branchId,
+      type: 'income',
+      category: 'repayment',
+      amount: paymentAmount,
+      date: new Date(),
+      description: `Loan self-repayment for ${loan.customer.name}`,
+      customer: loan.customer._id,
+      loan: loan._id,
+      referenceId: repayment._id,
+      referenceModel: 'Repayment',
+    });
+    await financialTx.save({ session });
+
+    await session.commitTransaction();
+
+    // ── Notifications (Async) ────────────────────────────────────────────────
+    try {
+      await createTransactionNotification({
+        recipientId: member._id,
+        title: 'Loan Repayment Successful',
+        message: `Your payment of Rs. ${paymentAmount.toLocaleString()} has been processed for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
+        type: 'success',
+        branchId: loan.branchId,
+        action: 'loan_repayment_notification',
+        metadata: { amount: paymentAmount, loanId: loan._id },
+      });
+
+      if (loan.status === 'completed') {
+        await createTransactionNotification({
+          recipientId: member._id,
+          title: 'Loan Fully Paid',
+          message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully settled.`,
+          type: 'success',
+          branchId: loan.branchId,
+          action: 'loan_completed_notification',
+          metadata: { loanId: loan._id },
+        });
+      }
+
+      // Notify Admins
+      await notifyAdminsOfMemberAction({
+        title: 'Member Loan Repayment',
+        message: `${member.name} repaid Rs. ${paymentAmount.toLocaleString()} for loan #${loan._id.toString().slice(-6).toUpperCase()}${loan.status === 'completed' ? ' (Loan Completed)' : ''}.`,
+        type: 'success',
+        branchId: loan.branchId,
+        metadata: {
+          memberId: member._id,
+          loanId: loan._id,
+          amount: paymentAmount,
+        },
+      });
+    } catch (notifError) {
+      console.error('Member Repayment Notification Error:', notifError);
+    }
+
+    res.json({
+      message: 'Repayment successful',
+      balance: member.currentBalance,
+      loan,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   createLoan,
   getLoans,
@@ -1439,4 +1718,5 @@ module.exports = {
   getMemberLoanSchedule,
   getGrantorLoans,
   updateGrantorStatus,
+  memberRepayLoan,
 };

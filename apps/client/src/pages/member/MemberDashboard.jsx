@@ -252,7 +252,11 @@ const MemberDashboard = () => {
               title="Main Balance"
               amount={formatPKR(member?.currentBalance || 0)}
               icon={<Wallet size={20} />}
-              color="bg-primary shadow-primary/20"
+              color={
+                member?.currentBalance < 0
+                  ? 'bg-rose-500 shadow-rose-500/20'
+                  : 'bg-primary shadow-primary/20'
+              }
             />
             <StatsCard
               title="Total Invested"

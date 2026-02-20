@@ -20,6 +20,7 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import Pagination from '@/components/ui/Pagination';
 
 const MemberLoans = () => {
   const navigate = useNavigate();
@@ -299,6 +300,22 @@ const MemberLoans = () => {
             </div>
           )}
         </div>
+
+        {/* Desktop Pagination */}
+        {!isMobile && totalEntries > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages || 1}
+            totalEntries={totalEntries}
+            limit={limit}
+            onPageChange={(page) => fetchLoans(page, false)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+              fetchLoans(1, false);
+            }}
+          />
+        )}
       </div>
 
       <MemberLoanRequestModal

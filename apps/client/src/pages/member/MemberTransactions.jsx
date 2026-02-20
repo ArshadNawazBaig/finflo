@@ -12,10 +12,13 @@ import {
   Download,
   TrendingUp,
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { subMonths } from 'date-fns';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import api from '@/lib/axios';
@@ -218,12 +221,12 @@ const MemberTransactions = () => {
   const displayActivity = activity;
 
   const getItemStyle = (category, type) => {
-    if (category === 'investment')
-      return {
-        color: 'text-primary',
-        sign: '+',
-        icon: <TrendingUp className="text-primary" size={18} />,
-      };
+    const isCredit = [
+      'deposit',
+      'transfer_receive',
+      'external_receive',
+    ].includes(type);
+
     if (category === 'profit')
       return {
         color: 'text-emerald-600',
@@ -242,17 +245,25 @@ const MemberTransactions = () => {
         sign: '-',
         icon: <FileText className="text-amber-500" size={18} />,
       };
-    return type === 'deposit'
-      ? {
-          color: 'text-emerald-600',
-          sign: '+',
-          icon: <ArrowUpRight className="text-emerald-500" size={18} />,
-        }
-      : {
-          color: 'text-rose-600',
-          sign: '-',
-          icon: <ArrowDownLeft className="text-red-500" size={18} />,
-        };
+
+    if (isCredit) {
+      return {
+        color: category === 'investment' ? 'text-primary' : 'text-emerald-600',
+        sign: '+',
+        icon:
+          category === 'investment' ? (
+            <TrendingUp className="text-primary" size={18} />
+          ) : (
+            <ArrowUpRight className="text-emerald-500" size={18} />
+          ),
+      };
+    } else {
+      return {
+        color: 'text-rose-600',
+        sign: '-',
+        icon: <ArrowDownLeft className="text-rose-500" size={18} />,
+      };
+    }
   };
 
   return (
@@ -264,56 +275,39 @@ const MemberTransactions = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-600">
-              <ArrowUpRight size={20} />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-              Inflow
-            </span>
-          </div>
-          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
-            Total Deposits
-          </h3>
-          <p className="text-2xl font-black tracking-tighter text-foreground">
-            {formatPKR(summary.totalDeposits)}
-          </p>
-        </div>
+        <StatsCard
+          title="Total Inflow"
+          amount={formatPKR(summary.totalDeposits)}
+          icon={<ArrowUpRight size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+          subtitle="Investments, profits & received transfers"
+        />
 
-        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-rose-500/10 text-rose-600">
-              <ArrowDownLeft size={20} />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-              Outflow
-            </span>
-          </div>
-          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
-            Total Withdrawals
-          </h3>
-          <p className="text-2xl font-black tracking-tighter text-foreground">
-            {formatPKR(summary.totalWithdrawals)}
-          </p>
-        </div>
+        <StatsCard
+          title="Total Outflow"
+          amount={formatPKR(summary.totalWithdrawals)}
+          icon={<ArrowDownLeft size={20} />}
+          color="bg-rose-500 shadow-rose-500/20"
+          subtitle="Withdrawals, transfers & repayments"
+        />
 
-        <div className="bg-card p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-xl bg-primary text-white">
-              <TrendingUp size={20} />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">
-              Net Result
-            </span>
-          </div>
-          <h3 className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider">
-            Total Net Balance
-          </h3>
-          <p className="text-2xl font-black tracking-tighter text-foreground">
-            {formatPKR(summary.totalDeposits - summary.totalWithdrawals)}
-          </p>
-        </div>
+        <StatsCard
+          title="Portfolio Balance"
+          amount={formatPKR(member?.currentBalance ?? 0)}
+          icon={<TrendingUp size={20} />}
+          color={
+            member?.currentBalance < 0
+              ? 'bg-rose-500 shadow-rose-500/20'
+              : 'bg-primary shadow-primary/20'
+          }
+          subtitle="Available investment portfolio balance"
+          badge={member?.currentBalance < 0 ? 'Negative' : 'Active'}
+          badgeTooltip={
+            member?.currentBalance < 0
+              ? 'Your balance is currently in arrears'
+              : 'Your portfolio is currently active'
+          }
+        />
       </div>
 
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
@@ -340,12 +334,12 @@ const MemberTransactions = () => {
             </div>
 
             <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-              {['all', 'investment', 'profit', 'repayment', 'goal'].map((f) => (
+              {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
                 <button
                   key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    filter === f
+                  onClick={() => setFilter(f.toLowerCase())}
+                  className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                    filter === f.toLowerCase()
                       ? 'bg-primary text-white shadow-lg shadow-primary/20'
                       : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                   }`}
@@ -466,6 +460,22 @@ const MemberTransactions = () => {
             ))
           )}
         </div>
+
+        {/* Desktop Pagination */}
+        {!isMobile && totalEntries > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages || 1}
+            totalEntries={totalEntries}
+            limit={limit}
+            onPageChange={(page) => fetchActivity(page, false)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+              fetchActivity(1, false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

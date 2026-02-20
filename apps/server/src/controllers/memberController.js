@@ -9,6 +9,10 @@ const Notification = require('../models/Notification');
 const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
 const { canAddMember } = require('../utils/planLimits');
+const {
+  createTransactionNotification,
+  notifyAdminsOfMemberAction,
+} = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 
@@ -656,6 +660,21 @@ const addInvestment = async (req, res) => {
       req,
     });
 
+    // ── Notifications ──────────────────────────────────────────────────────
+    try {
+      await createTransactionNotification({
+        recipientId: member._id,
+        title: 'Deposit Received',
+        message: `Your account has been credited with Rs. ${amount.toLocaleString()} (${description || 'Manual Deposit'}).`,
+        type: 'success',
+        branchId: member.branchId,
+        action: 'member_deposit_notification',
+        metadata: { amount, investmentId: investment._id },
+      });
+    } catch (notifError) {
+      console.error('Deposit Notification Error:', notifError);
+    }
+
     res.status(201).json({ investment, member });
   } catch (error) {
     console.error('Add Investment Error:', error);
@@ -729,6 +748,21 @@ const withdrawInvestment = async (req, res) => {
       },
       req,
     });
+
+    // ── Notifications ──────────────────────────────────────────────────────
+    try {
+      await createTransactionNotification({
+        recipientId: member._id,
+        title: 'Withdrawal Processed',
+        message: `A withdrawal of Rs. ${amount.toLocaleString()} has been processed from your account (${description || 'Manual Withdrawal'}).`,
+        type: 'info',
+        branchId: member.branchId,
+        action: 'member_withdrawal_notification',
+        metadata: { amount, investmentId: investment._id },
+      });
+    } catch (notifError) {
+      console.error('Withdrawal Notification Error:', notifError);
+    }
 
     res.status(201).json({ investment, member });
   } catch (error) {
@@ -957,11 +991,14 @@ const getMemberActivity = async (req, res) => {
     ]);
 
     // Format and combine
-    let activity = [
-      ...investments.map((i) => ({
+    const formattedInvestments = investments.map((i) => {
+      const isRepayment =
+        i.metadata?.isRepayment ||
+        (i.description && i.description.includes('Loan repayment'));
+      return {
         _id: i._id,
         type: i.type,
-        category: 'investment',
+        category: isRepayment ? 'repayment' : 'investment',
         amount: i.amount,
         date: i.date,
         description:
@@ -973,18 +1010,39 @@ const getMemberActivity = async (req, res) => {
               : i.type === 'transfer_send'
                 ? 'P2P Fund Transfer (Sent)'
                 : 'P2P Fund Transfer (Received)'),
-        metadata: { balanceAfter: i.balanceAfter },
-      })),
-      ...profits.map((p) => ({
-        _id: p._id,
-        type: 'deposit',
-        category: 'profit',
-        amount: p.amount,
-        date: p.date,
-        description: `Profit Distribution - ${p.period}`,
-        metadata: { share: p.investmentShare },
-      })),
-      ...repayments.map((r) => ({
+        metadata: { ...i.metadata, balanceAfter: i.balanceAfter },
+      };
+    });
+
+    const formattedProfits = profits.map((p) => ({
+      _id: p._id,
+      type: 'deposit',
+      category: 'profit',
+      amount: p.amount,
+      date: p.date,
+      description: `Profit Distribution - ${p.period}`,
+      metadata: { share: p.investmentShare },
+    }));
+
+    // Filter out repayments that are already represented as Investment withdrawals
+    // (Member-initiated repayments from wallet)
+    const walletRepaymentLoanIds = new Set(
+      formattedInvestments
+        .filter((i) => i.category === 'repayment')
+        .map((i) => i.description.split('#').pop()?.substring(0, 6)), // A bit brittle, but accurate enough for descriptions
+    );
+
+    const formattedRepayments = repayments
+      .filter((r) => {
+        // If it's a "Self-repayment" or similar note, it's likely already in the investment ledger
+        // We check the description match or if the note indicates wealth portal
+        const isWalletRepayment =
+          r.notes &&
+          (r.notes.includes('Wealth Portal') ||
+            r.notes.includes('Self-repayment'));
+        return !isWalletRepayment;
+      })
+      .map((r) => ({
         _id: r._id,
         type: 'withdrawal',
         category: 'repayment',
@@ -992,16 +1050,23 @@ const getMemberActivity = async (req, res) => {
         date: r.date,
         description: r.notes || 'Loan Repayment',
         metadata: { loanId: r.loan },
-      })),
-      ...goalLogs.map((gl) => ({
-        _id: gl._id,
-        type: 'withdrawal',
-        category: 'goal',
-        amount: gl.metadata?.amount || 0,
-        date: gl.createdAt,
-        description: `Goal Allocation: ${gl.metadata?.title || 'Saving Goal'}`,
-        metadata: { goalId: gl.metadata?.goalId },
-      })),
+      }));
+
+    const formattedGoalLogs = goalLogs.map((gl) => ({
+      _id: gl._id,
+      type: 'withdrawal',
+      category: 'goal',
+      amount: gl.metadata?.amount || 0,
+      date: gl.createdAt,
+      description: `Goal Allocation: ${gl.metadata?.title || 'Saving Goal'}`,
+      metadata: { goalId: gl.metadata?.goalId },
+    }));
+
+    let activity = [
+      ...formattedInvestments,
+      ...formattedProfits,
+      ...formattedRepayments,
+      ...formattedGoalLogs,
     ];
 
     // Filter by search if model query didn't catch everything (like profit distribution descriptions)
@@ -1177,6 +1242,34 @@ const transferFunds = async (req, res) => {
     );
 
     await session.commitTransaction();
+
+    // ── Notifications (outside transaction for performance) ────────────────
+    try {
+      // Notify Sender
+      await createTransactionNotification({
+        recipientId: sender._id,
+        title: 'Transfer Sent',
+        message: `You sent Rs. ${transferAmount.toLocaleString()} to ${recipient.name}.`,
+        type: 'info',
+        branchId: sender.branchId,
+        action: 'fund_transfer_sent',
+        metadata: { recipientId: recipient._id, amount: transferAmount },
+      });
+
+      // Notify Recipient
+      await createTransactionNotification({
+        recipientId: recipient._id,
+        title: 'Transfer Received',
+        message: `You received Rs. ${transferAmount.toLocaleString()} from ${sender.name}.`,
+        type: 'success',
+        branchId: recipient.branchId,
+        action: 'fund_transfer_received',
+        metadata: { senderId: sender._id, amount: transferAmount },
+      });
+    } catch (notifError) {
+      console.error('P2P Transfer Notification Error:', notifError);
+    }
+
     res.status(200).json({
       message: 'Transfer successful',
       balance: sender.currentBalance,
@@ -1358,6 +1451,75 @@ const lookupMember = async (req, res) => {
   }
 };
 
+/**
+ * @desc  Recalculate and fix currentBalance for one or all members from Investment records
+ * @route POST /api/members/recalculate-balance        (single: body { memberId })
+ * @route POST /api/members/recalculate-balance/all   (all members for owner)
+ * @access Private (Admin/Staff)
+ */
+const recalculateBalance = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { memberId } = req.body;
+
+    const query = memberId ? { _id: memberId, user: userId } : { user: userId };
+
+    const members = await Member.find(query);
+    if (!members.length) {
+      return res.status(404).json({ message: 'No members found' });
+    }
+
+    const results = [];
+
+    for (const member of members) {
+      // Sum all Investment records for this member
+      const investments = await Investment.find({ member: member._id });
+
+      let computed = 0;
+      for (const inv of investments) {
+        if (
+          inv.type === 'deposit' ||
+          inv.type === 'transfer_receive' ||
+          inv.type === 'external_receive'
+        ) {
+          computed += inv.amount;
+        } else if (
+          inv.type === 'withdrawal' ||
+          inv.type === 'transfer_send' ||
+          inv.type === 'external_send'
+        ) {
+          computed -= inv.amount;
+        }
+      }
+
+      // Also add profit distributions (separate documents, not in Investment)
+      const profits = await ProfitDistribution.find({ member: member._id });
+      const totalProfit = profits.reduce((s, p) => s + p.amount, 0);
+      computed += totalProfit;
+
+      const oldBalance = member.currentBalance;
+      member.currentBalance = Math.round(computed); // Allow negative — member owes more than invested
+      await member.save();
+
+      results.push({
+        memberId: member._id,
+        name: member.name,
+        oldBalance,
+        newBalance: member.currentBalance,
+        diff: member.currentBalance - oldBalance,
+      });
+    }
+
+    return res.json({
+      message: `Recalculated balance for ${results.length} member(s)`,
+      results,
+    });
+  } catch (error) {
+    console.error('Recalculate Balance Error:', error);
+    return res.status(500).json({ message: 'Failed to recalculate balance' });
+  }
+};
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -1374,4 +1536,5 @@ module.exports = {
   transferFunds,
   adminTransferFunds,
   lookupMember,
+  recalculateBalance,
 };

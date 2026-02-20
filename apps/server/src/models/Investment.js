@@ -25,6 +25,7 @@ const investmentSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     description: { type: String },
     balanceAfter: { type: Number }, // Member's balance after this transaction
+    metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true },
 );

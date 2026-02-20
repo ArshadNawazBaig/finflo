@@ -10,6 +10,7 @@ import {
   Mail,
   Zap,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Dialog,
@@ -33,6 +34,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
+  const [recalcLoading, setRecalcLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && member) {
@@ -91,6 +93,30 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
       toast.error(
         error.response?.data?.message || 'Failed to update profit rate',
       );
+    }
+  };
+
+  const handleRecalcBalance = async () => {
+    try {
+      setRecalcLoading(true);
+      const res = await api.post('/members/recalculate-balance', {
+        memberId: member._id,
+      });
+      const result = res.data.results?.[0];
+      if (result) {
+        toast.success(
+          `Balance reconciled: ${formatPKR(result.oldBalance)} → ${formatPKR(result.newBalance)}`,
+        );
+      } else {
+        toast.success('Balance recalculated successfully');
+      }
+      onUpdate();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || 'Failed to recalculate balance',
+      );
+    } finally {
+      setRecalcLoading(false);
     }
   };
 
@@ -231,30 +257,46 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                 {/* Investment Actions */}
                 <div className="space-y-3">
                   {!showInvestmentForm ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        onClick={() => {
-                          setInvestmentType('deposit');
-                          setShowInvestmentForm(true);
-                        }}
-                        variant="success"
-                        className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            setInvestmentType('deposit');
+                            setShowInvestmentForm(true);
+                          }}
+                          variant="success"
+                          className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
+                        >
+                          <ArrowUpCircle className="w-5 h-5 mb-1" />
+                          Deposit Funds
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setInvestmentType('withdrawal');
+                            setShowInvestmentForm(true);
+                          }}
+                          variant="gradient"
+                          className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
+                        >
+                          <ArrowDownCircle className="w-5 h-5 mb-1" />
+                          Withdraw Funds
+                        </Button>
+                      </div>
+                      {/* Balance Reconciliation */}
+                      <button
+                        onClick={handleRecalcBalance}
+                        disabled={recalcLoading}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-dashed border-primary/30 text-primary/70 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all text-[10px] font-black uppercase tracking-widest"
                       >
-                        <ArrowUpCircle className="w-5 h-5 mb-1" />
-                        Deposit Funds
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setInvestmentType('withdrawal');
-                          setShowInvestmentForm(true);
-                        }}
-                        variant="gradient"
-                        className="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 h-auto"
-                      >
-                        <ArrowDownCircle className="w-5 h-5 mb-1" />
-                        Withdraw Funds
-                      </Button>
-                    </div>
+                        <RefreshCw
+                          size={13}
+                          className={recalcLoading ? 'animate-spin' : ''}
+                        />
+                        {recalcLoading
+                          ? 'Syncing...'
+                          : 'Sync Balance from Ledger'}
+                      </button>
+                    </>
                   ) : (
                     <form
                       onSubmit={handleInvestmentSubmit}
