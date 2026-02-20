@@ -21,6 +21,7 @@ import { formatPKR, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
+import MemberRepayModal from '@/components/member/MemberRepayModal';
 
 const MemberLoanDetail = () => {
   const { id } = useParams();
@@ -28,6 +29,7 @@ const MemberLoanDetail = () => {
   const [loan, setLoan] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchLoanData = async () => {
@@ -53,6 +55,26 @@ const MemberLoanDetail = () => {
     };
     fetchLoanData();
   }, [id, navigate]);
+
+  const handleRepaySuccess = async () => {
+    try {
+      setLoading(true);
+      const memberToken = localStorage.getItem('memberToken');
+      const headers = { Authorization: `Bearer ${memberToken}` };
+
+      const [loanRes, scheduleRes] = await Promise.all([
+        api.get(`/loans/my-loans/${id}`, { headers }),
+        api.get(`/loans/my-loans/${id}/schedule`, { headers }),
+      ]);
+
+      setLoan(loanRes.data);
+      setSchedule(scheduleRes.data);
+    } catch (error) {
+      console.error('Failed to refresh loan details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading)
     return (
@@ -144,6 +166,16 @@ const MemberLoanDetail = () => {
                   Due: {formatPKR(loan.remainingAmount)}
                 </span>
               </div>
+              {loan.status === 'active' && (
+                <Button
+                  onClick={() => setIsRepayModalOpen(true)}
+                  variant="gradient"
+                  className="rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20"
+                >
+                  <DollarSign size={14} strokeWidth={3} />
+                  Repay Now
+                </Button>
+              )}
             </div>
           </div>
 
@@ -230,6 +262,13 @@ const MemberLoanDetail = () => {
           </p>
         </div>
       </div>
+
+      <MemberRepayModal
+        isOpen={isRepayModalOpen}
+        onClose={() => setIsRepayModalOpen(false)}
+        loan={loan}
+        onSuccess={handleRepaySuccess}
+      />
     </div>
   );
 };

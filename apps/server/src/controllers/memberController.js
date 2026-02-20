@@ -11,6 +11,7 @@ const ActivityLog = require('../models/ActivityLog');
 const { canAddMember } = require('../utils/planLimits');
 const {
   createTransactionNotification,
+  notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
@@ -990,11 +991,14 @@ const getMemberActivity = async (req, res) => {
     ]);
 
     // Format and combine
-    let activity = [
-      ...investments.map((i) => ({
+    const formattedInvestments = investments.map((i) => {
+      const isRepayment =
+        i.metadata?.isRepayment ||
+        (i.description && i.description.includes('Loan repayment'));
+      return {
         _id: i._id,
         type: i.type,
-        category: 'investment',
+        category: isRepayment ? 'repayment' : 'investment',
         amount: i.amount,
         date: i.date,
         description:
@@ -1006,18 +1010,39 @@ const getMemberActivity = async (req, res) => {
               : i.type === 'transfer_send'
                 ? 'P2P Fund Transfer (Sent)'
                 : 'P2P Fund Transfer (Received)'),
-        metadata: { balanceAfter: i.balanceAfter },
-      })),
-      ...profits.map((p) => ({
-        _id: p._id,
-        type: 'deposit',
-        category: 'profit',
-        amount: p.amount,
-        date: p.date,
-        description: `Profit Distribution - ${p.period}`,
-        metadata: { share: p.investmentShare },
-      })),
-      ...repayments.map((r) => ({
+        metadata: { ...i.metadata, balanceAfter: i.balanceAfter },
+      };
+    });
+
+    const formattedProfits = profits.map((p) => ({
+      _id: p._id,
+      type: 'deposit',
+      category: 'profit',
+      amount: p.amount,
+      date: p.date,
+      description: `Profit Distribution - ${p.period}`,
+      metadata: { share: p.investmentShare },
+    }));
+
+    // Filter out repayments that are already represented as Investment withdrawals
+    // (Member-initiated repayments from wallet)
+    const walletRepaymentLoanIds = new Set(
+      formattedInvestments
+        .filter((i) => i.category === 'repayment')
+        .map((i) => i.description.split('#').pop()?.substring(0, 6)), // A bit brittle, but accurate enough for descriptions
+    );
+
+    const formattedRepayments = repayments
+      .filter((r) => {
+        // If it's a "Self-repayment" or similar note, it's likely already in the investment ledger
+        // We check the description match or if the note indicates wealth portal
+        const isWalletRepayment =
+          r.notes &&
+          (r.notes.includes('Wealth Portal') ||
+            r.notes.includes('Self-repayment'));
+        return !isWalletRepayment;
+      })
+      .map((r) => ({
         _id: r._id,
         type: 'withdrawal',
         category: 'repayment',
@@ -1025,16 +1050,23 @@ const getMemberActivity = async (req, res) => {
         date: r.date,
         description: r.notes || 'Loan Repayment',
         metadata: { loanId: r.loan },
-      })),
-      ...goalLogs.map((gl) => ({
-        _id: gl._id,
-        type: 'withdrawal',
-        category: 'goal',
-        amount: gl.metadata?.amount || 0,
-        date: gl.createdAt,
-        description: `Goal Allocation: ${gl.metadata?.title || 'Saving Goal'}`,
-        metadata: { goalId: gl.metadata?.goalId },
-      })),
+      }));
+
+    const formattedGoalLogs = goalLogs.map((gl) => ({
+      _id: gl._id,
+      type: 'withdrawal',
+      category: 'goal',
+      amount: gl.metadata?.amount || 0,
+      date: gl.createdAt,
+      description: `Goal Allocation: ${gl.metadata?.title || 'Saving Goal'}`,
+      metadata: { goalId: gl.metadata?.goalId },
+    }));
+
+    let activity = [
+      ...formattedInvestments,
+      ...formattedProfits,
+      ...formattedRepayments,
+      ...formattedGoalLogs,
     ];
 
     // Filter by search if model query didn't catch everything (like profit distribution descriptions)

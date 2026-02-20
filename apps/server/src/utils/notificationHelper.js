@@ -1,17 +1,9 @@
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const { logActivity } = require('../controllers/activityLogController');
 
 /**
  * Creates a notification and logs the activity.
- * @param {Object} options - Notification options
- * @param {string} options.recipientId - ID of the member or user
- * @param {string} options.recipientModel - 'Member' or 'User'
- * @param {string} options.title - Notification title
- * @param {string} options.message - Notification message
- * @param {string} [options.type='info'] - 'info', 'success', 'warning', 'error'
- * @param {string} [options.branchId] - Optional branch ID
- * @param {Object} [options.metadata] - Optional metadata for activity log
- * @param {string} [options.action='notification_triggered'] - Action for activity log
  */
 const createTransactionNotification = async ({
   recipientId,
@@ -35,11 +27,7 @@ const createTransactionNotification = async ({
     });
     await notification.save();
 
-    // 2. (Optional) In a real app, you'd trigger Socket.io here for real-time alerts
-
-    // 3. Log the event in Activity Logs
-    // We don't use the 'req' object here as this is often triggered in background or different context
-    // So we call logActivity carefully
+    // 2. Log the event in Activity Logs
     try {
       await logActivity({
         userId: recipientModel === 'User' ? recipientId : null,
@@ -56,11 +44,76 @@ const createTransactionNotification = async ({
     return notification;
   } catch (error) {
     console.error('Failed to create notification:', error);
-    // We don't throw here to avoid breaking the main transaction flow
     return null;
+  }
+};
+
+/**
+ * Notifies all super admins and the relevant branch manager of a member action.
+ * @param {Object} options - Notification options
+ * @param {string} options.title - Notification title
+ * @param {string} options.message - Notification message
+ * @param {string} [options.type='info'] - 'info', 'success', 'warning', 'error'
+ * @param {string} [options.branchId] - Branch ID to notify branch manager
+ * @param {Object} [options.metadata] - Optional metadata for activity log
+ */
+const notifyAdminsOfMemberAction = async ({
+  title,
+  message,
+  type = 'info',
+  branchId,
+  metadata = {},
+}) => {
+  try {
+    // Find all super admins
+    const superAdmins = await User.find({
+      role: 'super_admin',
+      isActive: true,
+    });
+
+    // Find branch-specific admins if branchId is provided
+    let branchAdmins = [];
+    if (branchId) {
+      branchAdmins = await User.find({
+        role: 'admin',
+        branchId,
+        isActive: true,
+      });
+    }
+
+    // Combine recipients (unique list)
+    const adminRecipients = [...superAdmins, ...branchAdmins];
+    const uniqueAdminIds = [
+      ...new Set(adminRecipients.map((u) => u._id.toString())),
+    ];
+
+    // Create notifications for all identified admins
+    const notificationPromises = uniqueAdminIds.map((adminId) =>
+      new Notification({
+        recipient: adminId,
+        recipientModel: 'User',
+        title,
+        message,
+        type,
+        branchId: branchId, // Source branch context
+      }).save(),
+    );
+
+    await Promise.all(notificationPromises);
+
+    // Single activity log entry for the system-wide action
+    await logActivity({
+      action: 'admin_broadcast_notification',
+      category: 'system',
+      details: `Admin Broadcast: ${title} - ${message}`,
+      metadata: { ...metadata, recipientsCount: uniqueAdminIds.length },
+    });
+  } catch (error) {
+    console.error('Failed to notify admins:', error);
   }
 };
 
 module.exports = {
   createTransactionNotification,
+  notifyAdminsOfMemberAction,
 };

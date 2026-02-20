@@ -4,6 +4,7 @@ const Investment = require('../models/Investment');
 const ExternalTransfer = require('../models/ExternalTransfer');
 const {
   createTransactionNotification,
+  notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
 
 /**
@@ -103,6 +104,15 @@ const initiateExternalTransfer = async (req, res) => {
           bankName,
           referenceId: ext.referenceId,
         },
+      });
+
+      // Notify Admins
+      await notifyAdminsOfMemberAction({
+        title: 'External Transfer Sent',
+        message: `${member.name} sent Rs. ${transferAmount.toLocaleString()} to ${bankName} (${accountIdentifier}).`,
+        type: 'warning',
+        branchId,
+        metadata: { memberId, bankName, amount: transferAmount },
       });
     } catch (notifError) {
       console.error('External Send Notification Error:', notifError);
@@ -212,6 +222,15 @@ const recordExternalReceive = async (req, res) => {
           bankName,
           referenceId: ext.referenceId,
         },
+      });
+
+      // Notify Admins
+      await notifyAdminsOfMemberAction({
+        title: 'External Funds Received',
+        message: `${member.name} recorded an incoming transfer of Rs. ${receiveAmount.toLocaleString()} from ${bankName}.`,
+        type: 'success',
+        branchId,
+        metadata: { memberId, bankName, amount: receiveAmount },
       });
     } catch (notifError) {
       console.error('External Receive Notification Error:', notifError);

@@ -3,6 +3,7 @@ const Member = require('../models/Member');
 const { logActivity } = require('./activityLogController');
 const {
   createTransactionNotification,
+  notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
 
 // @desc    Get all saving goals for a member
@@ -210,6 +211,19 @@ const contributeToGoal = async (req, res) => {
           metadata: { goalId: goal._id },
         });
       }
+
+      // Notify Admins
+      await notifyAdminsOfMemberAction({
+        title: 'Saving Goal Contribution',
+        message: `${member.name} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${goal.title}.`,
+        type: 'success',
+        branchId: member.branchId,
+        metadata: {
+          memberId: member._id,
+          goalId: goal._id,
+          amount: contributionAmount,
+        },
+      });
     } catch (notifError) {
       console.error('Goal Notification Error:', notifError);
     }

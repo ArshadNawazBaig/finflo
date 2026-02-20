@@ -8,11 +8,13 @@ import {
   History,
   Info,
   Loader2,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberInvestmentSkeleton from '@/components/member/MemberInvestmentSkeleton';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
+import StatsCard from '@/components/StatsCard';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { formatPKR } from '@/lib/utils';
@@ -20,6 +22,7 @@ import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MemberInvestment = () => {
   const [investments, setInvestments] = useState([]);
@@ -29,17 +32,13 @@ const MemberInvestment = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-  const limit = 3;
+  const isMobile = useMediaQuery('(max-width: 1024px)');
+  const [limit, setLimit] = useState(5);
+  const [search, setSearch] = useState('');
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const isInitialMount = useRef(true);
 
   const fetchInvestments = useCallback(
     async (pageToFetch = 1, isAppend = false) => {
@@ -58,7 +57,7 @@ const MemberInvestment = () => {
 
         const [invRes, memberRes] = await Promise.all([
           api.get(
-            `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=investment`,
+            `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=investment&search=${search}`,
             {
               headers: { Authorization: `Bearer ${memberToken}` },
             },
@@ -91,7 +90,7 @@ const MemberInvestment = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit],
+    [limit, search],
   );
 
   useEffect(() => {
@@ -116,12 +115,23 @@ const MemberInvestment = () => {
   }, [isFetchingMore, currentPage, totalPages, fetchInvestments]);
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      fetchInvestments(1, false);
+      return;
+    }
+
     if (skipNextEffect.current) {
       skipNextEffect.current = false;
       return;
     }
-    fetchInvestments(1);
-  }, []); // Run once on mount
+
+    const timer = setTimeout(() => {
+      fetchInvestments(1, false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [limit, search, fetchInvestments]);
 
   const stats = [
     {
@@ -156,43 +166,33 @@ const MemberInvestment = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {loading
-          ? [...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm animate-pulse"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-14 w-14 rounded-2xl bg-muted/40" />
-                  <div className="h-4 w-20 bg-muted/30 rounded" />
-                </div>
-                <div className="h-4 w-24 bg-muted/30 rounded mb-2" />
-                <div className="h-9 w-36 bg-muted/40 rounded-lg" />
-              </div>
-            ))
-          : stats.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div
-                    className={`p-4 rounded-2xl ${stat.bgColor} ${stat.color} group-hover:scale-110 transition-transform`}
-                  >
-                    <stat.icon size={24} />
-                  </div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-                    Live Portfolio
-                  </div>
-                </div>
-                <h3 className="text-sm font-bold text-muted-foreground mb-1">
-                  {stat.label}
-                </h3>
-                <p className="text-3xl font-black tracking-tighter text-foreground">
-                  {stat.value}
-                </p>
-              </div>
-            ))}
+        <StatsCard
+          title="Current Balance"
+          amount={formatPKR(member?.currentBalance || 0)}
+          icon={<Wallet size={20} />}
+          color={
+            member?.currentBalance < 0
+              ? 'bg-rose-500 shadow-rose-500/20'
+              : 'bg-emerald-500 shadow-emerald-500/20'
+          }
+          subtitle="Available account balance"
+        />
+
+        <StatsCard
+          title="Total Invested"
+          amount={formatPKR(member?.totalInvested || 0)}
+          icon={<TrendingUp size={20} />}
+          color="bg-primary shadow-primary/20"
+          subtitle="Total capital committed"
+        />
+
+        <StatsCard
+          title="Total Profit"
+          amount={formatPKR(member?.totalProfit || 0)}
+          icon={<PieChart size={20} />}
+          color="bg-indigo-500 shadow-indigo-500/20"
+          subtitle="Accumulated earnings"
+        />
       </div>
 
       {/* Investment History */}
@@ -206,11 +206,18 @@ const MemberInvestment = () => {
               Investment Ledger
             </h2>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10">
-            <Info size={14} className="text-primary" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-              Profit Rate: {member?.profitRate || 0}%
-            </span>
+          <div className="relative w-full max-w-xs hidden sm:block">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={16}
+            />
+            <input
+              type="text"
+              placeholder="Search investments..."
+              className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
 
@@ -244,14 +251,16 @@ const MemberInvestment = () => {
                           'external_receive',
                         ].includes(item.type);
                         const typeLabel =
-                          {
-                            deposit: 'Deposit',
-                            withdrawal: 'Withdrawal',
-                            transfer_send: 'Transfer Sent',
-                            transfer_receive: 'Transfer Received',
-                            external_send: 'External Send',
-                            external_receive: 'External Receive',
-                          }[item.type] ?? item.type;
+                          item.category === 'repayment'
+                            ? 'Repayment'
+                            : ({
+                                deposit: 'Deposit',
+                                withdrawal: 'Withdrawal',
+                                transfer_send: 'Transfer Sent',
+                                transfer_receive: 'Transfer Received',
+                                external_send: 'External Send',
+                                external_receive: 'External Receive',
+                              }[item.type] ?? item.type);
 
                         return isMobile ? (
                           <MemberActivityCard key={item._id} activity={item} />
@@ -324,6 +333,21 @@ const MemberInvestment = () => {
             </>
           )}
         </div>
+
+        {/* Desktop Pagination */}
+        {!isMobile && totalEntries > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages || 1}
+            totalEntries={totalEntries}
+            limit={limit}
+            onPageChange={(page) => fetchInvestments(page, false)}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+            }}
+          />
+        )}
       </div>
     </div>
   );

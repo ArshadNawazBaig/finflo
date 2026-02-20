@@ -20,8 +20,8 @@ import {
   ArrowDownCircle,
   Banknote,
 } from 'lucide-react';
-import { formatPKR } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { formatPKR, cn } from '@/lib/utils';
+import { Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 
 const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -195,6 +195,45 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
           className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
         >
           <div className="space-y-4 sm:space-y-5">
+            {/* Quick Option: Monthly Installment */}
+            {loan.emi > 0 && !isSettlement && (
+              <div
+                onClick={() =>
+                  setFormData({ ...formData, amount: loan.emi.toString() })
+                }
+                className={cn(
+                  'p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
+                  Number(formData.amount) === loan.emi
+                    ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
+                    : 'bg-muted/30 border-border/50 hover:border-emerald-500/30',
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'p-2 rounded-xl transition-colors',
+                      Number(formData.amount) === loan.emi
+                        ? 'bg-emerald-500/20 text-emerald-600'
+                        : 'bg-background text-muted-foreground group-hover:text-emerald-500',
+                    )}
+                  >
+                    <CalendarIcon size={16} />
+                  </div>
+                  <div className="space-y-0.5 text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Monthly Installment
+                    </p>
+                    <p className="text-sm font-black text-foreground">
+                      {formatPKR(loan.emi)}
+                    </p>
+                  </div>
+                </div>
+                {Number(formData.amount) === loan.emi && (
+                  <CheckCircle2 size={20} className="text-emerald-500" />
+                )}
+              </div>
+            )}
+
             {/* Settlement Toggle */}
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-2xl border border-border/50">
               <div className="space-y-0.5">
