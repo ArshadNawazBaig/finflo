@@ -598,7 +598,7 @@ const getLoanById = async (req, res) => {
 
 // Add Repayment
 const addRepayment = async (req, res) => {
-  const { loanId, amount, date, notes } = req.body;
+  const { loanId, amount, date, notes, isSettlement } = req.body;
   try {
     const loan = await Loan.findById(loanId);
     if (
@@ -616,6 +616,58 @@ const addRepayment = async (req, res) => {
       return res.status(400).json({ message: 'Loan is already completed' });
     }
 
+    // Handle Early Settlement Interest Adjustment
+    if (isSettlement) {
+      const start = new Date(loan.startDate);
+      const now = new Date(date || new Date());
+
+      // Calculate months elapsed (minimum 1 month as per requirement)
+      let monthsElapsed =
+        (now.getFullYear() - start.getFullYear()) * 12 +
+        (now.getMonth() - start.getMonth());
+
+      // If the day of month is past the start day, it's a full month
+      if (now.getDate() > start.getDate()) {
+        monthsElapsed++;
+      }
+
+      monthsElapsed = Math.max(1, monthsElapsed);
+
+      // Only adjust if monthsElapsed is less than original duration
+      if (monthsElapsed < loan.duration) {
+        let newTotalInterest;
+        if (loan.interestType === 'simple') {
+          newTotalInterest =
+            (loan.principal * loan.rate * monthsElapsed) / 1200;
+        } else {
+          // For EMI, it's more complex, but we'll follow simple interest logic for settlement for now
+          // or we could use the amortization schedule. Given the request "interest charge accordingly",
+          // simple interest pro-rata is the most common interpretation.
+          newTotalInterest =
+            (loan.principal * loan.rate * monthsElapsed) / 1200;
+        }
+
+        const newTotalAmount = Math.round(loan.principal + newTotalInterest);
+
+        // Log the adjustment
+        await logActivity({
+          userId: req.user._id,
+          action: 'loan_interest_adjusted',
+          category: 'loan',
+          details: `Loan interest adjusted for early settlement from ${loan.totalAmount} to ${newTotalAmount} (${monthsElapsed} months)`,
+          metadata: {
+            loanId: loan._id,
+            oldTotalAmount: loan.totalAmount,
+            newTotalAmount,
+            monthsElapsed,
+          },
+          req,
+        });
+
+        loan.totalAmount = newTotalAmount;
+      }
+    }
+
     const repayment = new Repayment({
       user: req.user.effectiveOwnerId,
       loan: loanId,
@@ -629,7 +681,6 @@ const addRepayment = async (req, res) => {
     await repayment.save();
 
     // Update loan stats
-    const repaymentsCount = await Repayment.countDocuments({ loan: loanId });
     loan.paidAmount += Number(amount);
     loan.remainingAmount = Math.round(
       Math.max(0, loan.totalAmount - loan.paidAmount),
