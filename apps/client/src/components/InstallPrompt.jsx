@@ -19,16 +19,16 @@ const InstallPrompt = () => {
     new URLSearchParams(window.location.search).get('debug_pwa') === 'true';
 
   useEffect(() => {
-    console.log('🔍 PWA component: check visibility:', {
-      canInstall,
-      isIOS,
-      forceShow,
-      isInstalled,
-      isReadyForPrompt,
-      displayMode: window.matchMedia('(display-mode: standalone)').matches
-        ? 'standalone'
-        : 'browser',
-    });
+    // console.log('🔍 PWA component: check visibility:', {
+    //   canInstall,
+    //   isIOS,
+    //   forceShow,
+    //   isInstalled,
+    //   isReadyForPrompt,
+    //   displayMode: window.matchMedia('(display-mode: standalone)').matches
+    //     ? 'standalone'
+    //     : 'browser',
+    // });
 
     if (forceShow) {
       console.log('🚀 PWA: Force-show enabled');

@@ -153,7 +153,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           className={cn('mb-8 transition-all', isLayoutExpanded ? 'px-2' : '')}
         >
           <Link to="/dashboard">
-            <Logo showText={isLayoutExpanded} />
+            <Logo showText={isLayoutExpanded} custom />
           </Link>
         </div>
 

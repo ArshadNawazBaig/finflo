@@ -1,18 +1,19 @@
 import React from 'react';
 
-const Logo = ({ className = 'h-8', showText = true }) => {
+const Logo = ({ className = 'h-8', showText = true, custom = false }) => {
   const [user] = React.useState(() =>
     JSON.parse(localStorage.getItem('user') || '{}'),
   );
 
-  const logoUrl = user.branch?.branding?.logoUrl;
-  const companyName = user.branch?.branding?.companyName || 'Finflow';
+  const logoUrl = user?.profilePicture || user?.branch?.branding?.logoUrl;
+  const companyName =
+    user?.name || user?.branch?.branding?.companyName || 'Finflow';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Icon */}
       <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
-        {logoUrl ? (
+        {logoUrl && custom ? (
           <img
             src={logoUrl}
             alt="Logo"
@@ -67,7 +68,7 @@ const Logo = ({ className = 'h-8', showText = true }) => {
       {showText && (
         <div className="flex flex-col leading-tight">
           <span className="text-[17px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1">
-            {logoUrl ? (
+            {logoUrl && custom ? (
               companyName
             ) : (
               <>
@@ -76,7 +77,7 @@ const Logo = ({ className = 'h-8', showText = true }) => {
             )}
           </span>
           <span className="text-[7px] font-black tracking-[0.7em] text-slate-500 uppercase">
-            {logoUrl ? 'Partner Portal' : 'Banking OS'}
+            {logoUrl && custom ? 'Partner Portal' : 'Banking OS'}
           </span>
         </div>
       )}
