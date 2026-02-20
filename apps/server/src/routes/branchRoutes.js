@@ -24,8 +24,8 @@ router
   .put(protect, admin, upload.single('logo'), updateBranch)
   .delete(protect, admin, deleteBranch);
 
-router.get('/:id/financials', protect, admin, getBranchFinancials);
-router.get('/:id/analytics', protect, admin, getBranchAnalytics);
-router.post('/:id/expenses', protect, admin, addBranchExpense);
+router.get('/:id/financials', protect, getBranchFinancials);
+router.get('/:id/analytics', protect, getBranchAnalytics);
+router.post('/:id/expenses', protect, addBranchExpense);
 
 module.exports = router;

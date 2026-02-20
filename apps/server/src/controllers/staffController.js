@@ -23,6 +23,7 @@ const createStaff = async (req, res) => {
       branchId: branchId || null,
       businessName: req.user.businessName, // Inherit business name
       securityCode: req.user.securityCode, // Shared security code
+      isVerified: true, // Staff created by admin are implicitly verified
     });
 
     await logActivity({

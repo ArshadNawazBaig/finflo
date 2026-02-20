@@ -115,8 +115,12 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Check if email is verified (super_admin is exempt)
-    if (user.role !== 'super_admin' && !user.isVerified) {
+    // Check if email is verified (super_admin and staff are exempt)
+    if (
+      user.role !== 'super_admin' &&
+      user.role !== 'staff' &&
+      !user.isVerified
+    ) {
       return res.status(403).json({
         message: 'Please verify your email address to log in.',
         notVerified: true,

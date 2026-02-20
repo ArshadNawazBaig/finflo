@@ -133,7 +133,9 @@ const getBranch = async (req, res) => {
 
     // Manager can only view their own branch
     if (req.user.isManager && req.user.role === 'staff') {
-      if (branch.manager?.toString() !== req.user._id.toString()) {
+      const branchManagerId =
+        branch.manager?._id?.toString() || branch.manager?.toString();
+      if (branchManagerId !== req.user._id.toString()) {
         return res
           .status(403)
           .json({ message: 'Not authorized to view this branch' });
@@ -163,9 +165,10 @@ const updateBranch = async (req, res) => {
 
     // Authorization: Admin (owner) OR the branch's manager
     const isOwner = branch.owner.toString() === req.user._id.toString();
+    const branchManagerId =
+      branch.manager?._id?.toString() || branch.manager?.toString();
     const isBranchManager =
-      req.user.isManager &&
-      branch.manager?.toString() === req.user._id.toString();
+      req.user.isManager && branchManagerId === req.user._id.toString();
 
     if (!isOwner && !isBranchManager) {
       return res.status(401).json({ message: 'Not authorized' });
@@ -173,7 +176,7 @@ const updateBranch = async (req, res) => {
 
     // Managers cannot: reassign manager, deactivate branch
     if (isBranchManager && !isOwner) {
-      if (managerId !== undefined && managerId !== branch.manager?.toString()) {
+      if (managerId !== undefined && managerId !== branchManagerId) {
         return res
           .status(403)
           .json({ message: 'Managers cannot reassign branch managers' });
@@ -186,13 +189,11 @@ const updateBranch = async (req, res) => {
     }
 
     // If manager changed (admin only), update users
-    if (
-      isOwner &&
-      managerId !== undefined &&
-      branch.manager?.toString() !== managerId
-    ) {
-      if (branch.manager) {
-        await User.findByIdAndUpdate(branch.manager, {
+    const currentManagerId =
+      branch.manager?._id?.toString() || branch.manager?.toString();
+    if (isOwner && managerId !== undefined && currentManagerId !== managerId) {
+      if (currentManagerId) {
+        await User.findByIdAndUpdate(currentManagerId, {
           $unset: { branchId: 1 },
         });
       }
