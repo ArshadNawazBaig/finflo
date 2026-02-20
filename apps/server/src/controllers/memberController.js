@@ -1316,7 +1316,7 @@ const lookupMember = async (req, res) => {
   const { identifier } = req.query;
 
   if (!identifier || identifier.length < 3) {
-    return res.json([]); // Return empty for short queries
+    return res.json([]);
   }
 
   try {
@@ -1324,24 +1324,32 @@ const lookupMember = async (req, res) => {
       ? req.user.effectiveOwnerId
       : req.member.user;
 
-    // Escape special characters in regex
     const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(escapedIdentifier, 'i');
 
-    const orConditions = [{ name: regex }, { cnic: regex }, { phone: regex }];
+    const orConditions = [
+      { name: regex },
+      { cnic: regex },
+      { phone: regex },
+      { email: regex },
+      { savingAccountNumber: regex },
+      { currentAccountNumber: regex },
+    ];
 
-    // If identifier looks like a number/CNIC, also try matching purely digits
+    // Also try digits-only match for account/phone numbers
     const digitsOnly = identifier.replace(/\D/g, '');
     if (digitsOnly.length >= 3) {
       orConditions.push({ cnic: new RegExp(digitsOnly) });
       orConditions.push({ phone: new RegExp(digitsOnly) });
+      orConditions.push({ savingAccountNumber: new RegExp(digitsOnly) });
+      orConditions.push({ currentAccountNumber: new RegExp(digitsOnly) });
     }
 
     const members = await Member.find({
       user: effectiveOwnerId,
       $or: orConditions,
     })
-      .select('name cnic phone')
+      .select('name email phone savingAccountNumber currentAccountNumber')
       .limit(6);
 
     res.json(members);

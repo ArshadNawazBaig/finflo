@@ -19,6 +19,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const MemberLoans = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const MemberLoans = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   const fetchLoans = useCallback(
     async (pageToFetch = 1, isAppend = false) => {
@@ -70,6 +72,7 @@ const MemberLoans = () => {
 
         setTotalPages(response.totalPages || 0);
         setTotalEntries(response.totalEntries || 0);
+        if (isAppend) skipNextEffect.current = true;
         setCurrentPage(pageToFetch);
       } catch (error) {
         console.error('Failed to fetch loans:', error);
@@ -83,6 +86,10 @@ const MemberLoans = () => {
   );
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     fetchLoans(1, false);
   }, [filter, search, limit, fetchLoans]);
 
@@ -283,6 +290,12 @@ const MemberLoans = () => {
                   </div>
                 </div>
               ))}
+              {/* Infinite Scroll Trigger */}
+              {isMobile && currentPage < totalPages && (
+                <div ref={observerTarget} className="py-4">
+                  <InfiniteLoader isFetchingMore={isFetchingMore} />
+                </div>
+              )}
             </div>
           )}
         </div>

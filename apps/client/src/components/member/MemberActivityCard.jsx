@@ -14,19 +14,55 @@ import {
 import { cn } from '@/lib/utils';
 
 const MemberActivityCard = ({ activity }) => {
-  const isDeposit = activity.type === 'deposit';
   const balanceAfter = activity.metadata?.balanceAfter || activity.balanceAfter;
 
-  const getIcon = (category, type) => {
-    if (category === 'profit') return <PieChart size={24} />;
-    if (category === 'goal') return <Target size={24} />;
-    if (category === 'repayment') return <FileText size={24} />;
-    return type === 'deposit' ? (
-      <ArrowUpRight size={24} />
-    ) : (
-      <ArrowDownLeft size={24} />
-    );
+  // Determine display style based on category first, then type
+  const getStyle = (category, type) => {
+    if (category === 'investment')
+      return {
+        color: 'text-primary',
+        bg: 'bg-primary/10 text-primary',
+        sign: '+',
+        icon: <TrendingUp size={24} />,
+      };
+    if (category === 'profit')
+      return {
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-500/10 text-emerald-600',
+        sign: '+',
+        icon: <PieChart size={24} />,
+      };
+    if (category === 'goal')
+      return {
+        color: 'text-indigo-600',
+        bg: 'bg-indigo-500/10 text-indigo-600',
+        sign: '-',
+        icon: <Target size={24} />,
+      };
+    if (category === 'repayment')
+      return {
+        color: 'text-amber-600',
+        bg: 'bg-amber-500/10 text-amber-600',
+        sign: '-',
+        icon: <FileText size={24} />,
+      };
+    // fallback to type
+    return type === 'deposit'
+      ? {
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-500/10 text-emerald-600',
+          sign: '+',
+          icon: <ArrowUpRight size={24} />,
+        }
+      : {
+          color: 'text-rose-600',
+          bg: 'bg-rose-500/10 text-rose-600',
+          sign: '-',
+          icon: <ArrowDownLeft size={24} />,
+        };
   };
+
+  const style = getStyle(activity.category, activity.type);
 
   return (
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all duration-300 group">
@@ -35,12 +71,10 @@ const MemberActivityCard = ({ activity }) => {
           <div
             className={cn(
               'h-12 w-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110',
-              isDeposit
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-rose-500/10 text-rose-600',
+              style.bg,
             )}
           >
-            {getIcon(activity.category, activity.type)}
+            {style.icon}
           </div>
           <div className="flex flex-col">
             <span className="font-black text-[10px] uppercase tracking-widest text-primary mb-0.5">
@@ -48,7 +82,9 @@ const MemberActivityCard = ({ activity }) => {
             </span>
             <span className="font-bold text-sm text-foreground leading-tight">
               {activity.description ||
-                (isDeposit ? 'Activity Deposit' : 'Activity Withdrawal')}
+                (activity.type === 'deposit'
+                  ? 'Activity Deposit'
+                  : 'Activity Withdrawal')}
             </span>
           </div>
         </div>
@@ -56,10 +92,10 @@ const MemberActivityCard = ({ activity }) => {
           <div
             className={cn(
               'font-black text-xl tracking-tighter tabular-nums',
-              isDeposit ? 'text-emerald-600' : 'text-rose-600',
+              style.color,
             )}
           >
-            {isDeposit ? '+' : '-'}
+            {style.sign}
             {formatPKR(activity.amount)}
           </div>
           <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-black opacity-40">

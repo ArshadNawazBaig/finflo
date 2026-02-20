@@ -62,8 +62,12 @@ const MemberTransfer = () => {
       if (recipient && recipient.trim().length >= 3) {
         setIsLookingUp(true);
         try {
+          const memberToken = localStorage.getItem('memberToken');
           const { data } = await api.get(
-            `/members/lookup?identifier=${recipient.trim()}`,
+            `/members/portal/lookup?identifier=${recipient.trim()}`,
+            {
+              headers: { Authorization: `Bearer ${memberToken}` },
+            },
           );
 
           // Exclude self from search results
@@ -77,7 +81,11 @@ const MemberTransfer = () => {
             (m) =>
               m.email?.toLowerCase() === recipient.trim().toLowerCase() ||
               m.phone?.replace(/\D/g, '') ===
-                recipient.trim().replace(/\D/g, ''),
+                recipient.trim().replace(/\D/g, '') ||
+              m.savingAccountNumber?.toLowerCase() ===
+                recipient.trim().toLowerCase() ||
+              m.currentAccountNumber?.toLowerCase() ===
+                recipient.trim().toLowerCase(),
           );
 
           if (exactMatch) {
@@ -241,7 +249,7 @@ const MemberTransfer = () => {
                           setRecipient(e.target.value);
                           setRecipientName('');
                         }}
-                        placeholder="Email or Phone Number"
+                        placeholder="Email, Phone, or Account Number"
                         className="w-full pl-14 pr-6 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-black text-sm"
                         required
                       />
@@ -254,7 +262,13 @@ const MemberTransfer = () => {
                               key={m._id}
                               type="button"
                               onClick={() => {
-                                setRecipient(m.email || m.phone);
+                                // prefer account number as identifier for transfer
+                                const id =
+                                  m.savingAccountNumber ||
+                                  m.currentAccountNumber ||
+                                  m.email ||
+                                  m.phone;
+                                setRecipient(id);
                                 setRecipientName(m.name);
                                 setTimeout(() => setSearchResults([]), 100);
                               }}
@@ -269,7 +283,10 @@ const MemberTransfer = () => {
                                     {m.name}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground font-medium">
-                                    {m.email || m.phone}
+                                    {m.savingAccountNumber ||
+                                      m.currentAccountNumber ||
+                                      m.email ||
+                                      m.phone}
                                   </p>
                                 </div>
                               </div>
@@ -429,7 +446,7 @@ const MemberTransfer = () => {
 
               <div className="p-8 bg-white rounded-[2.5rem] shadow-inner border-[12px] border-primary/5">
                 <QRCodeSVG
-                  value={`wealthportal:${member.email}`}
+                  value={`wealthportal:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
                   size={200}
                   level="H"
                   includeMargin={false}
@@ -447,9 +464,20 @@ const MemberTransfer = () => {
               <div className="space-y-4 w-full">
                 <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex flex-col gap-1 items-center">
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Member Identifier
+                    Account Number
                   </span>
-                  <span className="font-black text-primary">
+                  <span className="font-black text-primary text-lg tracking-widest">
+                    {member.savingAccountNumber ||
+                      member.currentAccountNumber ||
+                      '—'}
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex flex-col gap-1 items-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Email
+                  </span>
+                  <span className="font-black text-primary text-sm">
                     {member.email}
                   </span>
                 </div>

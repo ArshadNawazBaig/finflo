@@ -10,6 +10,7 @@ import {
   FileText,
   Calendar,
   Download,
+  TrendingUp,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -27,6 +28,7 @@ import Pagination from '@/components/ui/Pagination';
 import MemberTransactionsSkeleton from '@/components/member/MemberTransactionsSkeleton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
+import InfiniteLoader from '@/components/InfiniteLoader';
 import { cn } from '@/lib/utils';
 
 const MemberTransactions = () => {
@@ -52,6 +54,22 @@ const MemberTransactions = () => {
     to: new Date(),
   });
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
+
+  // Fetch all-time summary once on mount (not affected by filters)
+  const fetchSummary = useCallback(async () => {
+    try {
+      const memberToken = localStorage.getItem('memberToken');
+      if (!memberToken) return;
+      const res = await api.get('/members/portal/activity', {
+        params: { page: 1, limit: 1 }, // summary comes from backend regardless of limit
+        headers: { Authorization: `Bearer ${memberToken}` },
+      });
+      if (res.data.summary) setSummary(res.data.summary);
+    } catch (e) {
+      // silently fail, summary is non-critical
+    }
+  }, []);
 
   const fetchActivity = useCallback(
     async (pageToFetch = 1, isAppend = false) => {
@@ -97,13 +115,12 @@ const MemberTransactions = () => {
           setActivity(newActivity);
         }
 
-        if (activityRes.data.summary) {
-          setSummary(activityRes.data.summary);
-        }
-
         setMember(memberRes.data);
         setTotalPages(activityRes.data.totalPages || 0);
         setTotalEntries(activityRes.data.totalEntries || 0);
+        if (isAppend) {
+          skipNextEffect.current = true;
+        }
         setCurrentPage(pageToFetch);
       } catch (error) {
         console.error('Failed to fetch activity:', error);
@@ -123,6 +140,11 @@ const MemberTransactions = () => {
 
     return () => clearTimeout(delayDebounceFn);
   }, [filter, search, limit, dateRange]);
+
+  // Fetch all-time summary once on mount
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   useEffect(() => {
     if (!observerTarget.current) return;
@@ -195,19 +217,42 @@ const MemberTransactions = () => {
   // Filtering and searching are now handled on the backend
   const displayActivity = activity;
 
-  const getIcon = (category, type) => {
+  const getItemStyle = (category, type) => {
+    if (category === 'investment')
+      return {
+        color: 'text-primary',
+        sign: '+',
+        icon: <TrendingUp className="text-primary" size={18} />,
+      };
     if (category === 'profit')
-      return <PieChart className="text-emerald-500" size={18} />;
+      return {
+        color: 'text-emerald-600',
+        sign: '+',
+        icon: <PieChart className="text-emerald-500" size={18} />,
+      };
     if (category === 'goal')
-      return <Target className="text-primary" size={18} />;
+      return {
+        color: 'text-indigo-600',
+        sign: '-',
+        icon: <Target className="text-indigo-500" size={18} />,
+      };
     if (category === 'repayment')
-      return <FileText className="text-red-500" size={18} />;
-
-    return type === 'deposit' ? (
-      <ArrowUpRight className="text-emerald-500" size={18} />
-    ) : (
-      <ArrowDownLeft className="text-red-500" size={18} />
-    );
+      return {
+        color: 'text-amber-600',
+        sign: '-',
+        icon: <FileText className="text-amber-500" size={18} />,
+      };
+    return type === 'deposit'
+      ? {
+          color: 'text-emerald-600',
+          sign: '+',
+          icon: <ArrowUpRight className="text-emerald-500" size={18} />,
+        }
+      : {
+          color: 'text-rose-600',
+          sign: '-',
+          icon: <ArrowDownLeft className="text-red-500" size={18} />,
+        };
   };
 
   return (
@@ -356,7 +401,7 @@ const MemberTransactions = () => {
               >
                 <div className="flex items-center gap-5">
                   <div className="p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform">
-                    {getIcon(item.category, item.type)}
+                    {getItemStyle(item.category, item.type).icon}
                   </div>
                   <div>
                     <h4 className="font-bold text-lg tracking-tight capitalize">
@@ -382,9 +427,9 @@ const MemberTransactions = () => {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p
-                      className={`text-xl font-black tracking-tighter ${item.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}`}
+                      className={`text-xl font-black tracking-tighter ${getItemStyle(item.category, item.type).color}`}
                     >
-                      {item.type === 'deposit' ? '+' : '-'}
+                      {getItemStyle(item.category, item.type).sign}
                       {formatPKR(item.amount)}
                     </p>
                     {item.metadata?.balanceAfter && (

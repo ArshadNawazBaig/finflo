@@ -43,10 +43,17 @@ const Team = () => {
     admins: 0,
   });
 
-  // Mobile & Infinite Scroll State
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observerTarget = useRef(null);
+
+  // Fetch all-time summary on mount (unaffected by search)
+  const fetchSummary = useCallback(async () => {
+    try {
+      const { data } = await api.get('/staff?page=1&limit=1');
+      if (data.summary) setSummary(data.summary);
+    } catch (e) {} // silently fail
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -81,10 +88,6 @@ const Team = () => {
           setStaff(data.data || []);
         }
 
-        if (data.summary) {
-          setSummary(data.summary);
-        }
-
         setTotalEntries(data.totalEntries || 0);
         setTotalPages(data.totalPages || 0);
         setCurrentPage(pageToFetch);
@@ -107,6 +110,11 @@ const Team = () => {
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, limit, isMobile]);
+
+  // Fetch all-time summary once
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   // Infinite Scroll Observer
   useEffect(() => {

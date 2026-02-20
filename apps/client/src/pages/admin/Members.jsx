@@ -55,6 +55,14 @@ const Members = () => {
 
   const observerTarget = useRef(null);
 
+  // Fetch all-time summary on mount (unaffected by search/sort)
+  const fetchSummary = useCallback(async () => {
+    try {
+      const { data } = await api.get('/members?page=1&limit=1');
+      if (data.summary) setSummary(data.summary);
+    } catch (e) {} // silently fail
+  }, []);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -97,10 +105,6 @@ const Members = () => {
           setMembers(data.data || []);
         }
 
-        if (data.summary) {
-          setSummary(data.summary);
-        }
-
         setTotalEntries(data.totalEntries || 0);
         setTotalPages(data.totalPages || 0);
         setCurrentPage(pageToFetch);
@@ -137,6 +141,10 @@ const Members = () => {
 
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchMembers]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   const handleSort = (column) => {
     if (sortBy === column) {

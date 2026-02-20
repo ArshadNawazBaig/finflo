@@ -61,6 +61,7 @@ const MemberDashboard = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   const fetchDashboardData = useCallback(
     async (isAppend = false) => {
@@ -112,6 +113,7 @@ const MemberDashboard = () => {
             const filtered = newLoans.filter((l) => !existingIds.has(l._id));
             return [...prev, ...filtered];
           });
+          skipNextEffect.current = true;
           setCurrentPage(pageToFetch);
         } else {
           setLoans(newLoans);
@@ -146,6 +148,10 @@ const MemberDashboard = () => {
   };
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     fetchDashboardData();
   }, [limit]);
 

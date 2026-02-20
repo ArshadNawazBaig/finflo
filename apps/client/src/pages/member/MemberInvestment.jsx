@@ -19,6 +19,7 @@ import { formatPKR } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const MemberInvestment = () => {
   const [investments, setInvestments] = useState([]);
@@ -32,6 +33,7 @@ const MemberInvestment = () => {
   const limit = 3;
 
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
@@ -68,7 +70,11 @@ const MemberInvestment = () => {
 
         const newData = invRes.data.data || [];
         if (isAppend) {
-          setInvestments((prev) => [...prev, ...newData]);
+          setInvestments((prev) => {
+            const existingIds = new Set(prev.map((i) => i._id));
+            return [...prev, ...newData.filter((i) => !existingIds.has(i._id))];
+          });
+          skipNextEffect.current = true;
         } else {
           setInvestments(newData);
         }
@@ -110,6 +116,10 @@ const MemberInvestment = () => {
   }, [isFetchingMore, currentPage, totalPages, fetchInvestments]);
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     fetchInvestments(1);
   }, []); // Run once on mount
 
@@ -285,6 +295,12 @@ const MemberInvestment = () => {
                       )}
                     </div>
                   </div>
+                  {/* Infinite Scroll Trigger */}
+                  {isMobile && currentPage < totalPages && (
+                    <div ref={observerTarget} className="py-4 px-4">
+                      <InfiniteLoader isFetchingMore={isFetchingMore} />
+                    </div>
+                  )}
                 </>
               )}
             </>
