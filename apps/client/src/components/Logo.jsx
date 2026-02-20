@@ -5,9 +5,13 @@ const Logo = ({ className = 'h-8', showText = true, custom = false }) => {
     JSON.parse(localStorage.getItem('user') || '{}'),
   );
 
-  const logoUrl = user?.profilePicture || user?.branch?.branding?.logoUrl;
-  const companyName =
-    user?.name || user?.branch?.branding?.companyName || 'Finflow';
+  const logoUrl = false;
+  // ((user?.role === 'admin' || user?.isManager) && user?.profilePicture) ||
+  // user?.branch?.branding?.logoUrl;
+  const companyName = false;
+  // ((user?.role === 'admin' || user?.isManager) && user?.name) ||
+  // user?.branch?.branding?.companyName ||
+  // 'Finflow';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
