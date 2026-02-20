@@ -62,6 +62,7 @@ const LoanRequests = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -100,6 +101,7 @@ const LoanRequests = () => {
             const newRequests = allLoans.filter((r) => !existingIds.has(r._id));
             return [...prev, ...newRequests];
           });
+          skipNextEffect.current = true;
           setCurrentPage(pageToFetch);
         } else {
           setRequests(allLoans);
@@ -171,6 +173,10 @@ const LoanRequests = () => {
 
   // Fetch requests on changes including pagination
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     fetchRequests(false);
   }, [searchTerm, sortBy, sortOrder, limit, currentPage, fetchRequests]);
 

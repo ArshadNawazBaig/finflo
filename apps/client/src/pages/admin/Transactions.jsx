@@ -49,6 +49,7 @@ const Transactions = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -96,6 +97,7 @@ const Transactions = () => {
             );
             return [...prev, ...newTransactions];
           });
+          skipNextEffect.current = true;
           setCurrentPage(pageToFetch);
         } else {
           setTransactions(data.data || []);
@@ -151,6 +153,11 @@ const Transactions = () => {
   };
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
+
     const delayDebounceFn = setTimeout(
       () => {
         fetchTransactions(false);

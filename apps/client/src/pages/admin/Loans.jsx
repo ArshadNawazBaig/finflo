@@ -60,6 +60,7 @@ const Loans = () => {
   const [stats, setStats] = useState(null);
 
   const observerTarget = useRef(null);
+  const skipNextEffect = useRef(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -111,6 +112,7 @@ const Loans = () => {
             );
             return [...prev, ...newLoans];
           });
+          skipNextEffect.current = true;
           setCurrentPage(pageToFetch);
         } else {
           setLoans(data.data || []);
@@ -163,6 +165,11 @@ const Loans = () => {
   };
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
+
     const delayDebounceFn = setTimeout(() => {
       fetchLoans(false);
     }, 300);

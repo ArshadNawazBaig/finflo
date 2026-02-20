@@ -117,6 +117,8 @@ const BranchDetail = () => {
 
   const expenseObserverTarget = useRef(null);
   const ledgerObserverTarget = useRef(null);
+  const skipNextEffect = useRef(false);
+  const initialFetchDone = useRef(false);
 
   const [ledgerPagination, setLedgerPagination] = useState({
     page: 1,
@@ -194,7 +196,12 @@ const BranchDetail = () => {
         });
 
         if (isAppend) {
-          setExpenses((prev) => [...prev, ...data.data]);
+          setExpenses((prev) => {
+            const existingIds = new Set(prev.map((e) => e._id));
+            const newItems = data.data.filter((e) => !existingIds.has(e._id));
+            return [...prev, ...newItems];
+          });
+          skipNextEffect.current = true;
         } else {
           setExpenses(data.data);
         }
@@ -247,7 +254,12 @@ const BranchDetail = () => {
         });
 
         if (isAppend) {
-          setLedger((prev) => [...prev, ...data.data]);
+          setLedger((prev) => {
+            const existingIds = new Set(prev.map((l) => l._id));
+            const newItems = data.data.filter((l) => !existingIds.has(l._id));
+            return [...prev, ...newItems];
+          });
+          skipNextEffect.current = true;
         } else {
           setLedger(data.data);
         }
@@ -396,10 +408,13 @@ const BranchDetail = () => {
 
   // Initial Mount
   useEffect(() => {
-    fetchBranch();
-    fetchStaff();
-    // Pre-fetch ledger/stats immediately for a seamless overview experience
-    fetchLedger(false);
+    if (!initialFetchDone.current) {
+      fetchBranch();
+      fetchStaff();
+      // Pre-fetch ledger/stats immediately for a seamless overview experience
+      fetchLedger(false);
+      initialFetchDone.current = true;
+    }
   }, [fetchBranch, fetchStaff, fetchLedger]);
 
   // Date Range Trigger for Analytics
@@ -411,6 +426,11 @@ const BranchDetail = () => {
 
   // Tab Specific Triggers with Debouncing for filters
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
+
     const delayDebounceFn = setTimeout(
       () => {
         if (activeTab === 'expenses') {
@@ -458,7 +478,7 @@ const BranchDetail = () => {
           fetchExpenses(true);
         }
       },
-      { threshold: 1.0 },
+      { threshold: 0.1, rootMargin: '100px' },
     );
 
     if (expenseObserverTarget.current)
@@ -479,7 +499,7 @@ const BranchDetail = () => {
           fetchLedger(true);
         }
       },
-      { threshold: 1.0 },
+      { threshold: 0.1, rootMargin: '100px' },
     );
 
     if (ledgerObserverTarget.current)

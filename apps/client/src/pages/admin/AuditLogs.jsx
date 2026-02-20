@@ -53,6 +53,7 @@ const AuditLogs = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observer = useRef();
+  const skipNextEffect = useRef(false);
 
   const fetchLogs = useCallback(
     async (page = 1, append = false) => {
@@ -72,7 +73,15 @@ const AuditLogs = () => {
 
         const { data } = await api.get(`/activity-logs?${params}`);
         const newLogs = data.logs || [];
-        setLogs((prev) => (append ? [...prev, ...newLogs] : newLogs));
+        if (append) {
+          setLogs((prev) => {
+            const existingIds = new Set(prev.map((l) => l._id));
+            return [...prev, ...newLogs.filter((l) => !existingIds.has(l._id))];
+          });
+          skipNextEffect.current = true;
+        } else {
+          setLogs(newLogs);
+        }
         setPagination(data.pagination);
         setHasMore(data.pagination.page < data.pagination.pages);
       } catch (error) {
@@ -87,6 +96,10 @@ const AuditLogs = () => {
   );
 
   useEffect(() => {
+    if (skipNextEffect.current) {
+      skipNextEffect.current = false;
+      return;
+    }
     fetchLogs(pagination.page, false);
   }, [pagination.page, fetchLogs]);
 
