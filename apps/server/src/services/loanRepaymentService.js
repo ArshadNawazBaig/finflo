@@ -220,9 +220,8 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         branchId: loan.branchId,
         action: 'loan_repayment_notification',
         metadata: {
-          amount: repaymentAmount,
-          loanId: loan._id,
           isAuto: isAutoValue,
+          link: '/member/loans', // Link to member loans list
         },
       });
 
@@ -234,7 +233,10 @@ const processRepayment = async (loan, amount, req, options = {}) => {
           type: 'success',
           branchId: loan.branchId,
           action: 'loan_completed_notification',
-          metadata: { loanId: loan._id },
+          metadata: {
+            loanId: loan._id,
+            link: '/member/loans',
+          },
         });
       }
     }

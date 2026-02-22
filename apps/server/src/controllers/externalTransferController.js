@@ -105,6 +105,7 @@ const initiateExternalTransfer = async (req, res) => {
           amount: transferAmount,
           bankName,
           referenceId: ext.referenceId,
+          link: '/member/transactions',
         },
       });
 
@@ -114,7 +115,12 @@ const initiateExternalTransfer = async (req, res) => {
         message: `${member.name} sent Rs. ${transferAmount.toLocaleString()} to ${bankName} (${accountIdentifier}).`,
         type: 'warning',
         branchId,
-        metadata: { memberId, bankName, amount: transferAmount },
+        metadata: {
+          memberId,
+          bankName,
+          amount: transferAmount,
+          link: '/transactions',
+        },
       });
     } catch (notifError) {
       console.error('External Send Notification Error:', notifError);
@@ -257,6 +263,7 @@ const recordExternalReceive = async (req, res) => {
           amount: receiveAmount,
           bankName,
           referenceId: ext.referenceId,
+          link: '/member/transactions',
         },
       });
 
@@ -266,7 +273,12 @@ const recordExternalReceive = async (req, res) => {
         message: `${member.name} recorded an incoming transfer of Rs. ${receiveAmount.toLocaleString()} from ${bankName}.`,
         type: 'success',
         branchId,
-        metadata: { memberId, bankName, amount: receiveAmount },
+        metadata: {
+          memberId,
+          bankName,
+          amount: receiveAmount,
+          link: '/transactions',
+        },
       });
     } catch (notifError) {
       console.error('External Receive Notification Error:', notifError);

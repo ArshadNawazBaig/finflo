@@ -90,6 +90,7 @@ const sendReminder = async (loan, installment, type) => {
         title,
         message,
         type: type === 'upcoming' ? 'info' : 'warning',
+        link: '/member/loans', // Direct link to loans list
         branchId: loan.branchId,
       });
       await notification.save();

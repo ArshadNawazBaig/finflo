@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Search,
@@ -11,6 +12,7 @@ import {
   Check,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { cn, getSafeNotificationLink } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
@@ -47,6 +49,7 @@ const Notifications = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
+  const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const observerTarget = useRef(null);
 
@@ -258,11 +261,25 @@ const Notifications = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
+                  onClick={() => {
+                    if (notification.link) {
+                      const user = JSON.parse(
+                        localStorage.getItem('user') || '{}',
+                      );
+                      const safeLink = getSafeNotificationLink(
+                        notification.link,
+                        user.role,
+                      );
+                      if (safeLink) {
+                        navigate(safeLink);
+                      }
+                    }
+                  }}
                   className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 p-4 sm:p-5 ${
                     notification.read
                       ? 'bg-card/30 border-border/40 hover:bg-card/50 hover:border-border/60'
                       : 'bg-card/80 border-primary/20 hover:bg-card hover:border-primary/40 shadow-lg shadow-primary/5'
-                  }`}
+                  } ${notification.link ? 'cursor-pointer hover:shadow-md active:scale-[0.98]' : ''}`}
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -294,7 +311,10 @@ const Notifications = () => {
                       <div className="flex items-center gap-2">
                         {!notification.read && (
                           <Button
-                            onClick={() => handleMarkAsRead(notification._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsRead(notification._id);
+                            }}
                             variant="ghost"
                             size="sm"
                             className="h-8 rounded-lg text-xs font-bold text-primary hover:text-primary hover:bg-primary/10"
@@ -308,7 +328,10 @@ const Notifications = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                          onClick={() => handleDelete(notification._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(notification._id);
+                          }}
                         >
                           <Trash2 size={16} />
                         </Button>

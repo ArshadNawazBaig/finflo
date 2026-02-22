@@ -83,6 +83,22 @@ const handleWebhook = async (req, res) => {
             plan: updatedUser.plan,
             subscriptionStatus: updatedUser.subscriptionStatus,
           });
+
+          // Notify User
+          try {
+            const Notification = require('../models/Notification');
+            await new Notification({
+              recipient: updatedUser._id,
+              recipientModel: 'User',
+              title: 'Subscription Activated',
+              message: `Your ${plan} plan is now active! Enjoy your new features.`,
+              type: 'success',
+              link: '/billing', // Redirect to billing
+              action: 'subscription_activated',
+            }).save();
+          } catch (notifErr) {
+            console.error('Failed to notify user of subscription:', notifErr);
+          }
         } catch (error) {
           console.error('❌ Error updating user from checkout session:', error);
         }
@@ -227,6 +243,22 @@ const handleWebhook = async (req, res) => {
             `✅ User ${user._id} downgraded to Free plan due to refund`,
           );
 
+          // Notify User
+          try {
+            const Notification = require('../models/Notification');
+            await new Notification({
+              recipient: user._id,
+              recipientModel: 'User',
+              title: 'Account Downgraded',
+              message: `Your account has been downgraded to Free plan following a refund.`,
+              type: 'warning',
+              link: '/billing',
+              action: 'account_downgraded_refund',
+            }).save();
+          } catch (notifErr) {
+            console.error('Failed to notify user of downgrade:', notifErr);
+          }
+
           // Find and update the payment record
           const payment = await Payment.findOne({
             stripePaymentIntentId: charge.payment_intent,
@@ -277,6 +309,22 @@ const handleWebhook = async (req, res) => {
           user.stripeSubscriptionId = null;
           await user.save();
           console.log(`Subscription canceled for user ${user._id}`);
+
+          // Notify User
+          try {
+            const Notification = require('../models/Notification');
+            await new Notification({
+              recipient: user._id,
+              recipientModel: 'User',
+              title: 'Subscription Canceled',
+              message: `Your subscription has been canceled and your plan is now Free.`,
+              type: 'warning',
+              link: '/billing',
+              action: 'subscription_canceled',
+            }).save();
+          } catch (notifErr) {
+            console.error('Failed to notify user of cancellation:', notifErr);
+          }
         }
       } catch (error) {
         console.error('Error cancelling subscription:', error);

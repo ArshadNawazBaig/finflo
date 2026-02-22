@@ -388,6 +388,8 @@ const requestLoan = async (req, res) => {
         message: `${req.member.name} has requested you to be a grantor for a loan of Rs. ${principal.toLocaleString()}.`,
         type: 'info',
         branchId: req.member.branchId || customer.branchId,
+        link: '/member/loans', // Grantors can see requests in their loans list
+        action: 'grantor_request',
       });
       await notification.save();
     } catch (notifError) {
@@ -474,6 +476,8 @@ const updateGrantorStatus = async (req, res) => {
         title: 'Grantor Approved Loan',
         message: `Grantor ${req.member.name} has approved the loan request for ${loan._id}.`,
         type: 'info',
+        link: `/loan-requests`, // Admins can check the request
+        action: 'grantor_approved',
       });
       await notification.save();
     }
@@ -902,6 +906,8 @@ const updateLoan = async (req, res) => {
             title: notificationTitle,
             message: notificationMessage,
             type: notificationType,
+            link: '/member/loans',
+            action: status === 'active' ? 'loan_approved' : 'loan_rejected',
           });
           await notification.save();
         }
@@ -1235,6 +1241,8 @@ const approveLoan = async (req, res) => {
           title: 'Loan Approved',
           message: `Your loan request for ${loan.principal} has been approved.`,
           type: 'success',
+          link: '/member/loans',
+          action: 'loan_approved',
         });
         await notification.save();
       }
@@ -1296,6 +1304,8 @@ const rejectLoan = async (req, res) => {
           title: 'Loan Rejected',
           message: `Your loan request for ${loan.principal} has been rejected. Reason: ${reason || 'Not specified'}`,
           type: 'error',
+          link: '/member/loans',
+          action: 'loan_rejected',
         });
         await notification.save();
       }
@@ -1543,7 +1553,11 @@ const memberRepayLoan = async (req, res) => {
         type: 'success',
         branchId: loan.branchId,
         action: 'loan_repayment_notification',
-        metadata: { amount: paymentAmount, loanId: loan._id },
+        metadata: {
+          amount: paymentAmount,
+          loanId: loan._id,
+          link: '/member/loans',
+        },
       });
 
       if (loan.status === 'completed') {
@@ -1554,7 +1568,7 @@ const memberRepayLoan = async (req, res) => {
           type: 'success',
           branchId: loan.branchId,
           action: 'loan_completed_notification',
-          metadata: { loanId: loan._id },
+          metadata: { loanId: loan._id, link: '/member/loans' },
         });
       }
 
@@ -1568,6 +1582,7 @@ const memberRepayLoan = async (req, res) => {
           memberId: member._id,
           loanId: loan._id,
           amount: paymentAmount,
+          link: '/loans', // Admin loans list
         },
       });
     } catch (notifError) {

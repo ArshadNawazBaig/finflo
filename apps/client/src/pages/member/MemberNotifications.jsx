@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Search,
@@ -12,7 +13,7 @@ import {
   Filter,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { cn } from '@/lib/utils';
+import { cn, getSafeNotificationLink } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
@@ -59,6 +60,7 @@ const MemberNotifications = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
+  const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
 
@@ -302,11 +304,26 @@ const MemberNotifications = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
+                  onClick={() => {
+                    if (notification.link) {
+                      const member = JSON.parse(
+                        localStorage.getItem('member') || '{}',
+                      );
+                      const safeLink = getSafeNotificationLink(
+                        notification.link,
+                        member.role || 'member',
+                      );
+                      if (safeLink) {
+                        navigate(safeLink);
+                      }
+                    }
+                  }}
                   className={cn(
                     'group relative overflow-hidden rounded-2xl border transition-all duration-500 p-5',
                     notification.read
                       ? 'bg-card/40 border-border/40 hover:bg-card/60 shadow-sm hover:shadow-md'
                       : 'bg-card border-primary/20 shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10',
+                    notification.link && 'cursor-pointer active:scale-[0.98]',
                   )}
                 >
                   <div className="flex items-start gap-4">
@@ -339,7 +356,10 @@ const MemberNotifications = () => {
                       <div className="flex items-center gap-2">
                         {!notification.read && (
                           <Button
-                            onClick={() => handleMarkAsRead(notification._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsRead(notification._id);
+                            }}
                             variant="ghost"
                             size="sm"
                             className="h-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 px-3"
@@ -353,7 +373,10 @@ const MemberNotifications = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
-                          onClick={() => handleDelete(notification._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(notification._id);
+                          }}
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -408,11 +431,26 @@ const MemberNotifications = () => {
                   {notifications.map((notification) => (
                     <TableRow
                       key={notification._id}
+                      onClick={() => {
+                        if (notification.link) {
+                          const member = JSON.parse(
+                            localStorage.getItem('member') || '{}',
+                          );
+                          const safeLink = getSafeNotificationLink(
+                            notification.link,
+                            member.role || 'member',
+                          );
+                          if (safeLink) {
+                            navigate(safeLink);
+                          }
+                        }
+                      }}
                       className={cn(
                         'group border-border/40 transition-colors',
                         !notification.read
                           ? 'bg-primary/[0.02] hover:bg-primary/[0.04]'
                           : 'hover:bg-muted/20',
+                        notification.link && 'cursor-pointer',
                       )}
                     >
                       <TableCell>
@@ -472,7 +510,10 @@ const MemberNotifications = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-primary hover:bg-primary/10 rounded-lg"
-                              onClick={() => handleMarkAsRead(notification._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsRead(notification._id);
+                              }}
                             >
                               <Check size={16} />
                             </Button>
@@ -481,7 +522,10 @@ const MemberNotifications = () => {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-lg"
-                            onClick={() => handleDelete(notification._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(notification._id);
+                            }}
                           >
                             <Trash2 size={16} />
                           </Button>

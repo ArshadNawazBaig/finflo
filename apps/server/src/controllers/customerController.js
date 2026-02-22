@@ -161,6 +161,8 @@ const createCustomer = async (req, res) => {
           title: 'New Customer Created',
           message: `Staff member ${req.user.name} has created a new customer: ${name}.`,
           type: 'info',
+          link: '/customers', // Redirect to customer management
+          action: 'customer_created_staff',
         });
         await notification.save();
       } catch (notifError) {

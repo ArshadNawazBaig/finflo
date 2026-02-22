@@ -26,6 +26,22 @@ const createStaff = async (req, res) => {
       isVerified: true, // Staff created by admin are implicitly verified
     });
 
+    // Notify Staff Member
+    try {
+      const Notification = require('../models/Notification');
+      await new Notification({
+        recipient: staff._id,
+        recipientModel: 'User',
+        title: 'Welcome to the Team',
+        message: `Your staff account has been created by ${req.user.name}.`,
+        type: 'success',
+        link: '/dashboard',
+        action: 'staff_account_created',
+      }).save();
+    } catch (notifErr) {
+      console.error('Failed to notify staff member:', notifErr);
+    }
+
     await logActivity({
       userId: req.user._id,
       action: 'staff_created',

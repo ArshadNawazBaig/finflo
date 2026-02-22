@@ -72,6 +72,20 @@ const createBranch = async (req, res) => {
 
     if (managerId) {
       await User.findByIdAndUpdate(managerId, { branchId: branch._id });
+      try {
+        const Notification = require('../models/Notification');
+        await new Notification({
+          recipient: managerId,
+          recipientModel: 'User',
+          title: 'Branch Assignment',
+          message: `You have been assigned as the manager for branch: ${name}`,
+          type: 'info',
+          link: `/branches/${branch._id}`, // Redirect to branch details
+          action: 'branch_manager_assigned',
+        }).save();
+      } catch (err) {
+        console.error('Failed to notify manager:', err);
+      }
     }
 
     // Log activity
@@ -199,6 +213,20 @@ const updateBranch = async (req, res) => {
       }
       if (managerId) {
         await User.findByIdAndUpdate(managerId, { branchId: branch._id });
+        try {
+          const Notification = require('../models/Notification');
+          await new Notification({
+            recipient: managerId,
+            recipientModel: 'User',
+            title: 'Branch Assignment',
+            message: `You have been assigned as the manager for branch: ${branch.name}`,
+            type: 'info',
+            link: `/branches/${branch._id}`,
+            action: 'branch_manager_assigned',
+          }).save();
+        } catch (err) {
+          console.error('Failed to notify manager:', err);
+        }
       }
     }
 

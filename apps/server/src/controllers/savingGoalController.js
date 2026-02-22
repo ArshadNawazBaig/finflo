@@ -197,7 +197,11 @@ const contributeToGoal = async (req, res) => {
         type: 'info',
         branchId: member.branchId,
         action: 'goal_contribution_notification',
-        metadata: { goalId: goal._id, amount: contributionAmount },
+        metadata: {
+          goalId: goal._id,
+          amount: contributionAmount,
+          link: '/member/dashboard',
+        },
       });
 
       if (goal.status === 'completed') {
@@ -208,7 +212,7 @@ const contributeToGoal = async (req, res) => {
           type: 'success',
           branchId: member.branchId,
           action: 'goal_completed_notification',
-          metadata: { goalId: goal._id },
+          metadata: { goalId: goal._id, link: '/member/dashboard' },
         });
       }
 
@@ -222,6 +226,7 @@ const contributeToGoal = async (req, res) => {
           memberId: member._id,
           goalId: goal._id,
           amount: contributionAmount,
+          link: `/admin/members/${member._id}`,
         },
       });
     } catch (notifError) {

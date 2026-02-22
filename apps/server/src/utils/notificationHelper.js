@@ -23,6 +23,8 @@ const createTransactionNotification = async ({
       title,
       message,
       type,
+      link: metadata.link || metadata.url, // Support common names
+      action,
       branchId,
     });
     await notification.save();
@@ -63,6 +65,7 @@ const notifyAdminsOfMemberAction = async ({
   type = 'info',
   branchId,
   metadata = {},
+  link, // Added link support
 }) => {
   try {
     // Find all super admins
@@ -95,6 +98,7 @@ const notifyAdminsOfMemberAction = async ({
         title,
         message,
         type,
+        link: link || metadata.link || metadata.url, // Support common names
         branchId: branchId, // Source branch context
       }).save(),
     );

@@ -21,6 +21,8 @@ const notificationSchema = new mongoose.Schema(
       default: 'info',
     },
     read: { type: Boolean, default: false },
+    link: { type: String }, // URL to redirect to on click
+    action: { type: String }, // Optional action key for frontend logic
     branchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',

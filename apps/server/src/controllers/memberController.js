@@ -671,7 +671,11 @@ const addInvestment = async (req, res) => {
         type: 'success',
         branchId: member.branchId,
         action: 'member_deposit_notification',
-        metadata: { amount, investmentId: investment._id },
+        metadata: {
+          amount,
+          investmentId: investment._id,
+          link: '/member/investments',
+        },
       });
     } catch (notifError) {
       console.error('Deposit Notification Error:', notifError);
@@ -797,7 +801,11 @@ const withdrawInvestment = async (req, res) => {
         type: 'info',
         branchId: member.branchId,
         action: 'member_withdrawal_notification',
-        metadata: { amount, investmentId: investment._id },
+        metadata: {
+          amount,
+          investmentId: investment._id,
+          link: '/member/investments',
+        },
       });
     } catch (notifError) {
       console.error('Withdrawal Notification Error:', notifError);
@@ -1073,12 +1081,18 @@ const getMemberActivity = async (req, res) => {
 
     const formattedRepayments = repayments
       .filter((r) => {
-        // If it's a "Self-repayment" or similar note, it's likely already in the investment ledger
-        // We check the description match or if the note indicates wealth portal
+        // Exclude repayments that are already represented as Investment records
+        const loanShortId = r.loan.toString().slice(-6).toUpperCase();
+        if (walletRepaymentLoanIds.has(loanShortId)) {
+          return false;
+        }
+
+        // Fallback checks for notes if something didn't match exactly
         const isWalletRepayment =
           r.notes &&
           (r.notes.includes('Wealth Portal') ||
-            r.notes.includes('Self-repayment'));
+            r.notes.includes('Self-repayment') ||
+            r.notes.includes('Automatic deduction'));
         return !isWalletRepayment;
       })
       .map((r) => ({
@@ -1292,7 +1306,11 @@ const transferFunds = async (req, res) => {
         type: 'info',
         branchId: sender.branchId,
         action: 'fund_transfer_sent',
-        metadata: { recipientId: recipient._id, amount: transferAmount },
+        metadata: {
+          recipientId: recipient._id,
+          amount: transferAmount,
+          link: '/member/transactions',
+        },
       });
 
       // Notify Recipient
@@ -1303,7 +1321,11 @@ const transferFunds = async (req, res) => {
         type: 'success',
         branchId: recipient.branchId,
         action: 'fund_transfer_received',
-        metadata: { senderId: sender._id, amount: transferAmount },
+        metadata: {
+          senderId: sender._id,
+          amount: transferAmount,
+          link: '/member/transactions',
+        },
       });
     } catch (notifError) {
       console.error('P2P Transfer Notification Error:', notifError);

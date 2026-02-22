@@ -10,6 +10,7 @@ const sendNotification = async (req, res) => {
     message,
     type,
     recipientModel = 'User',
+    link, // Added link support
   } = req.body;
 
   try {
@@ -21,6 +22,7 @@ const sendNotification = async (req, res) => {
         title,
         message,
         type,
+        link, // Added link support
       }));
       await Notification.insertMany(notifications);
 
@@ -45,6 +47,7 @@ const sendNotification = async (req, res) => {
       message,
       type,
       recipientModel,
+      link, // Added link support
     });
     await notification.save();
 

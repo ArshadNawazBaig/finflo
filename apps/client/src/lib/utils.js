@@ -51,3 +51,42 @@ export const formatCNIC = (value) => {
   }
   return rawValue;
 };
+
+/**
+ * Validates and returns a safe redirection link based on the user's role.
+ * Fallback to notifications page if the route is unauthorized.
+ */
+export const getSafeNotificationLink = (link, role) => {
+  if (!link) return null;
+
+  // 1. Member Role Logic
+  if (role === 'member') {
+    if (link.startsWith('/member')) return link;
+    return '/member/notifications';
+  }
+
+  // 2. Admin / Staff / Super Admin Logic
+  const validAdminRoles = ['super_admin', 'admin', 'staff', 'user'];
+  if (validAdminRoles.includes(role)) {
+    const isSuperAdmin = role === 'super_admin';
+
+    // Super Admin: access to super-admin routes + general admin routes
+    if (isSuperAdmin && link.startsWith('/super-admin')) return link;
+
+    // Reject member routes for all non-member users
+    if (link.startsWith('/member')) {
+      return isSuperAdmin ? '/super-admin/notifications' : '/notifications';
+    }
+
+    // Regular Admins/Staff: Reject super-admin routes
+    if (!isSuperAdmin && link.startsWith('/super-admin')) {
+      return '/notifications';
+    }
+
+    // Default: Allow general admin routes
+    return link;
+  }
+
+  // Final Fallback for unknown roles or public routes
+  return link;
+};

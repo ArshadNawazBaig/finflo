@@ -16,7 +16,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { cn, capitalize } from '@/lib/utils';
+import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
 
@@ -217,9 +217,22 @@ const MemberNavbar = ({ onMenuClick }) => {
                       {notifications.map((notification) => (
                         <div
                           key={notification._id}
+                          onClick={() => {
+                            if (notification.link) {
+                              const safeLink = getSafeNotificationLink(
+                                notification.link,
+                                member.role || 'member',
+                              );
+                              if (safeLink) {
+                                navigate(safeLink);
+                                setShowNotifications(false);
+                              }
+                            }
+                          }}
                           className={cn(
                             'p-4 hover:bg-muted/50 transition-colors flex gap-3 items-start group',
                             !notification.read ? 'bg-primary/5' : '',
+                            notification.link ? 'cursor-pointer' : '',
                           )}
                         >
                           <div

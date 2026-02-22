@@ -43,6 +43,22 @@ const createTicket = async (req, res) => {
       req,
     });
 
+    // Notify User
+    try {
+      const Notification = require('../models/Notification');
+      await new Notification({
+        recipient: req.user._id,
+        recipientModel: 'User',
+        title: 'Ticket Received',
+        message: `Your support ticket "${subject}" has been submitted successfully.`,
+        type: 'success',
+        link: '/support',
+        action: 'ticket_created',
+      }).save();
+    } catch (notifErr) {
+      console.error('Failed to notify user of ticket creation:', notifErr);
+    }
+
     res.status(201).json(ticket);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -163,6 +179,41 @@ const addReply = async (req, res) => {
       .populate('user', 'name email businessName')
       .populate('replies.user', 'name role');
 
+    // Notify the other party
+    try {
+      const Notification = require('../models/Notification');
+      const isSuperAdmin = req.user.role === 'super_admin';
+      const recipientId = isSuperAdmin ? ticket.user : null; // If admin replies, notify user
+
+      if (recipientId) {
+        // Notify User
+        await new Notification({
+          recipient: recipientId,
+          recipientModel: 'User',
+          title: 'New Reply on Support Ticket',
+          message: `Technical support has replied to your ticket: ${ticket.subject}`,
+          type: 'info',
+          link: '/support', // Users see their tickets on /support
+          action: 'ticket_reply_received',
+        }).save();
+      } else if (!isSuperAdmin) {
+        // If user replies, notify super admin (broadcast or specific)
+        // Here we can use a helper or just broad notification to super admins
+        const {
+          notifyAdminsOfMemberAction,
+        } = require('../utils/notificationHelper');
+        await notifyAdminsOfMemberAction({
+          title: 'Support Ticket Reply',
+          message: `${req.user.name} replied to ticket: ${ticket.subject}`,
+          type: 'info',
+          link: `/super-admin/tickets`, // Direct link for super admin
+          metadata: { ticketId: ticket._id },
+        });
+      }
+    } catch (notifErr) {
+      console.error('Failed to send ticket notification:', notifErr);
+    }
+
     res.status(201).json(populatedTicket);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -192,6 +243,22 @@ const updateTicketStatus = async (req, res) => {
       metadata: { ticketId: ticket._id, status },
       req,
     });
+
+    // Notify User of status change
+    try {
+      const Notification = require('../models/Notification');
+      await new Notification({
+        recipient: ticket.user,
+        recipientModel: 'User',
+        title: 'Ticket Status Updated',
+        message: `Your ticket "${ticket.subject}" status has been updated to: ${status}`,
+        type: 'info',
+        link: '/support',
+        action: 'ticket_status_changed',
+      }).save();
+    } catch (notifErr) {
+      console.error('Failed to notify user of status update:', notifErr);
+    }
 
     res.json(ticket);
   } catch (error) {

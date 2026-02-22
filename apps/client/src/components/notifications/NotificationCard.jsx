@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   User,
@@ -7,9 +8,22 @@ import {
   XCircle,
   Trash2,
 } from 'lucide-react';
-import { capitalize } from '@/lib/utils';
+import { capitalize, getSafeNotificationLink } from '@/lib/utils';
 
 const NotificationCard = ({ notification, onDelete }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    if (notification.link) {
+      const user = JSON.parse(
+        localStorage.getItem('user') || localStorage.getItem('member') || '{}',
+      );
+      const safeLink = getSafeNotificationLink(notification.link, user.role);
+      if (safeLink) {
+        navigate(safeLink);
+      }
+    }
+  };
   const getTypeIcon = (type) => {
     switch (type) {
       case 'success':
@@ -37,7 +51,14 @@ const NotificationCard = ({ notification, onDelete }) => {
   };
 
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm">
+    <div
+      onClick={handleCardClick}
+      className={`bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm transition-all duration-300 ${
+        notification.link
+          ? 'cursor-pointer hover:bg-card/60 hover:shadow-md hover:border-primary/20 active:scale-[0.98]'
+          : ''
+      }`}
+    >
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <h3 className="font-bold text-sm text-foreground">
@@ -91,7 +112,10 @@ const NotificationCard = ({ notification, onDelete }) => {
           )}
         </div>
         <button
-          onClick={() => onDelete(notification._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(notification._id);
+          }}
           className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-90"
         >
           <Trash2 size={18} />

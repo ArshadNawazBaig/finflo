@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { cn, getSafeNotificationLink } from '@/lib/utils';
 import {
   Bell,
   Search,
@@ -51,6 +53,7 @@ const ManageNotifications = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const observerTarget = useRef(null);
@@ -291,7 +294,24 @@ const ManageNotifications = () => {
                 {notifications.map((notification) => (
                   <tr
                     key={notification._id}
-                    className="hover:bg-muted/30 transition-colors"
+                    onClick={() => {
+                      if (notification.link) {
+                        const user = JSON.parse(
+                          localStorage.getItem('user') || '{}',
+                        );
+                        const safeLink = getSafeNotificationLink(
+                          notification.link,
+                          user.role,
+                        );
+                        if (safeLink) {
+                          navigate(safeLink);
+                        }
+                      }
+                    }}
+                    className={cn(
+                      'hover:bg-muted/30 transition-colors',
+                      notification.link && 'cursor-pointer',
+                    )}
                   >
                     <td className="px-6 py-4">
                       <div className="space-y-1">
@@ -350,7 +370,10 @@ const ManageNotifications = () => {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-full"
-                        onClick={() => handleDelete(notification._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(notification._id);
+                        }}
                       >
                         <Trash2 size={16} />
                       </Button>
