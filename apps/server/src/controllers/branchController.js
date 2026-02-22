@@ -662,9 +662,7 @@ const getBranchAnalytics = async (req, res) => {
 
         monthlyHistory.push({
           name: monthNames[current.getMonth()],
-          inflow: monthTransactions
-            .filter((t) => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0),
+          inflow: monthRepayments.reduce((sum, r) => sum + r.amount, 0),
           outflow: monthTransactions
             .filter(
               (t) => t.type === 'loan' && t.category === 'loan_disbursement',
@@ -693,9 +691,7 @@ const getBranchAnalytics = async (req, res) => {
 
         monthlyHistory.push({
           name: monthNames[start.getMonth()],
-          inflow: monthTransactions
-            .filter((t) => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0),
+          inflow: monthRepayments.reduce((sum, r) => sum + r.amount, 0),
           outflow: monthTransactions
             .filter(
               (t) => t.type === 'loan' && t.category === 'loan_disbursement',

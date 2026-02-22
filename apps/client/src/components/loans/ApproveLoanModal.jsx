@@ -106,6 +106,39 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </div>
         )}
 
+        {/* Grantor Status Section */}
+        {loan.grantor && (
+          <div className="mt-4 p-4 rounded-xl border border-border/50 bg-muted/30">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Grantor Verification
+              </h4>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                  loan.grantorStatus === 'approved'
+                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                    : loan.grantorStatus === 'rejected'
+                      ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                      : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                }`}
+              >
+                {loan.grantorStatus || 'Pending'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold capitalize">
+                {loan.grantor?.name || 'Assigned Grantor'}
+              </p>
+              {loan.grantorApprovedAt && (
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Approved on{' '}
+                  {new Date(loan.grantorApprovedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -119,8 +152,8 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-1">
-                Interest Rate <Percent size={12} />
+              <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
+                Interest Rate
               </label>
               <input
                 type="number"
@@ -143,8 +176,8 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-1">
-                Start Date <Calendar size={12} />
+              <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
+                Start Date
               </label>
               <input
                 type="date"

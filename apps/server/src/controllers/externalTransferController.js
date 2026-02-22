@@ -6,6 +6,8 @@ const {
   createTransactionNotification,
   notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
+const Loan = require('../models/Loan');
+const loanRepaymentService = require('../services/loanRepaymentService');
 
 /**
  * @desc  Initiate an external bank / wallet transfer (send money out)
@@ -207,6 +209,40 @@ const recordExternalReceive = async (req, res) => {
     );
 
     await session.commitTransaction();
+
+    // ── Automatic Loan Deduction ───────────────────────────────────────────
+    try {
+      const activeLoan = await Loan.findOne({
+        customer: req.member.customer,
+        status: 'active',
+      });
+
+      if (activeLoan) {
+        const deductionAmount = Math.min(
+          receiveAmount,
+          activeLoan.remainingAmount,
+        );
+        if (deductionAmount > 0) {
+          const context = {
+            user: { effectiveOwnerId: member.user, branchId: member.branchId },
+          };
+          await loanRepaymentService.processRepayment(
+            activeLoan,
+            deductionAmount,
+            context,
+            {
+              notes: `Auto-deduction from external receive: ${bankName}`,
+              isAutoValue: true,
+            },
+          );
+        }
+      }
+    } catch (autoRepoError) {
+      console.error(
+        'Auto Repayment Error in recordExternalReceive:',
+        autoRepoError,
+      );
+    }
 
     // ── Notifications ──────────────────────────────────────────────────────
     try {

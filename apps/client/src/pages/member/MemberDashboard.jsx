@@ -376,8 +376,8 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
-              {grantorLoans.length > 0 && (
-                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/5">
+              {grantorLoans.some((l) => l.grantorStatus === 'pending') && (
+                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/10 transition-all duration-500">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter text-primary">
                       Loans Pending My Approval (Grantor)
@@ -388,52 +388,100 @@ const MemberDashboard = () => {
                   </div>
 
                   <div className="space-y-3">
-                    {grantorLoans.map((loan) => (
-                      <div
-                        key={loan._id}
-                        className="p-6 rounded-[2rem] border border-border/50 bg-card hover:bg-muted/30 transition-all group"
-                      >
-                        <div className="flex items-center justify-between flex-wrap gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-bold text-lg">
-                                {loan.customer?.name} -{' '}
-                                {formatPKR(loan.principal)}
-                              </h4>
-                              {loan.grantorStatus === 'pending' && (
+                    {grantorLoans
+                      .filter((loan) => loan.grantorStatus === 'pending')
+                      .map((loan) => (
+                        <div
+                          key={loan._id}
+                          className="p-6 rounded-[2rem] border border-border/50 bg-card hover:bg-muted/30 transition-all group"
+                        >
+                          <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="font-bold text-lg capitalize">
+                                  {loan.customer?.name} -{' '}
+                                  {formatPKR(loan.principal)}
+                                </h4>
                                 <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600">
                                   Your Approval Required
                                 </span>
-                              )}
+                              </div>
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Duration: {loan.duration} months | Amount:{' '}
+                                {formatPKR(loan.principal)}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground font-medium">
-                              Duration: {loan.duration} months | Amount:{' '}
-                              {formatPKR(loan.principal)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              onClick={() =>
-                                handleGrantorStatus(loan._id, 'approved')
-                              }
-                              variant="outline"
-                              className="rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              onClick={() =>
-                                handleGrantorStatus(loan._id, 'rejected')
-                              }
-                              variant="outline"
-                              className="rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
-                            >
-                              Reject
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={() =>
+                                  handleGrantorStatus(loan._id, 'approved')
+                                }
+                                variant="outline"
+                                className="rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleGrantorStatus(loan._id, 'rejected')
+                                }
+                                variant="outline"
+                                className="rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
+                              >
+                                Reject
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {grantorLoans.some((l) => l.grantorStatus !== 'pending') && (
+                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-muted/20">
+                  <div>
+                    <h3 className="text-xl font-black tracking-tighter">
+                      My Grantor History
+                    </h3>
+                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                      History of loans where you served as a grantor.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {grantorLoans
+                      .filter((loan) => loan.grantorStatus !== 'pending')
+                      .map((loan) => (
+                        <div
+                          key={loan._id}
+                          className="p-6 rounded-[2rem] border border-border/50 bg-card/60 backdrop-blur-sm transition-all"
+                        >
+                          <div className="flex items-center justify-between flex-wrap gap-4 opacity-75">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-1">
+                                <h4 className="font-bold text-base capitalize">
+                                  {loan.customer?.name} -{' '}
+                                  {formatPKR(loan.principal)}
+                                </h4>
+                                <span
+                                  className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    loan.grantorStatus === 'approved'
+                                      ? 'bg-emerald-500/10 text-emerald-600'
+                                      : 'bg-rose-500/10 text-rose-600'
+                                  }`}
+                                >
+                                  {loan.grantorStatus}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground font-medium">
+                                Duration: {loan.duration} months | Loan Status:{' '}
+                                {capitalize(loan.status)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -508,6 +556,27 @@ const MemberDashboard = () => {
                             <p className="text-sm text-muted-foreground font-medium">
                               {loan.duration} months @ {loan.rate}% interest
                             </p>
+                            {loan.grantor && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                  Grantor:
+                                </span>
+                                <span className="text-xs font-bold capitalize">
+                                  {loan.grantor.name}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${
+                                    loan.grantorStatus === 'approved'
+                                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                      : loan.grantorStatus === 'rejected'
+                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                                  }`}
+                                >
+                                  {loan.grantorStatus || 'Pending'}
+                                </span>
+                              </div>
+                            )}
                             {loan.status === 'active' && (
                               <div className="mt-3">
                                 <div className="flex items-center justify-between text-xs font-bold mb-1">

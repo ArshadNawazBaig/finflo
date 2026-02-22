@@ -13,6 +13,7 @@ const {
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
+const loanRepaymentService = require('../services/loanRepaymentService');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -315,11 +316,9 @@ const requestLoan = async (req, res) => {
     // Check plan limits
     const owner = await User.findById(req.member.user).select('plan');
     if (!owner) {
-      return res
-        .status(400)
-        .json({
-          message: 'Organization data not found. Please contact support.',
-        });
+      return res.status(400).json({
+        message: 'Organization data not found. Please contact support.',
+      });
     }
     const userPlan = owner.plan || 'Free';
 
@@ -412,12 +411,10 @@ const requestLoan = async (req, res) => {
     res.status(201).json(createdLoan);
   } catch (error) {
     console.error('Member requestLoan Error:', error);
-    res
-      .status(400)
-      .json({
-        message:
-          error.message || 'An error occurred while processing your request.',
-      });
+    res.status(400).json({
+      message:
+        error.message || 'An error occurred while processing your request.',
+    });
   }
 };
 
@@ -430,7 +427,6 @@ const getGrantorLoans = async (req, res) => {
   try {
     const loans = await Loan.find({
       grantor: req.member._id,
-      status: 'pending',
     }).populate('customer', 'name phone cnic');
 
     res.json(loans);
@@ -555,6 +551,7 @@ const getLoans = async (req, res) => {
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
       .populate('customer', 'name email isMember memberId')
+      .populate('grantor', 'name')
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sortOrder });
@@ -608,6 +605,7 @@ const getMyLoans = async (req, res) => {
 
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
+      .populate('grantor', 'name')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -625,10 +623,9 @@ const getMyLoans = async (req, res) => {
 
 const getLoanById = async (req, res) => {
   try {
-    const loan = await Loan.findById(req.params.id).populate(
-      'customer',
-      'name email phone trustRating',
-    );
+    const loan = await Loan.findById(req.params.id)
+      .populate('customer', 'name email phone trustRating')
+      .populate('grantor', 'name');
     if (
       loan &&
       (loan.user.toString() === req.user.effectiveOwnerId.toString() ||
@@ -716,175 +713,24 @@ const addRepayment = async (req, res) => {
       }
     }
 
-    const repayment = new Repayment({
-      user: req.user.effectiveOwnerId,
-      loan: loanId,
-      customer: loan.customer,
-      branchId: loan.branchId, // Tag repayment with loan's branch
+    // Use shared service to process repayment
+    const { repayment } = await loanRepaymentService.processRepayment(
+      loan,
       amount,
-      date,
-      notes,
-    });
-
-    await repayment.save();
-
-    // ── Deduct repayment from linked Member's balance ──────────────────────
-    try {
-      const Member = require('../models/Member');
-      const Investment = require('../models/Investment');
-      const customer = await Customer.findById(loan.customer);
-      if (customer?.memberId) {
-        const member = await Member.findById(customer.memberId);
-        if (member) {
-          member.currentBalance -= Number(amount);
-          member.totalWithdrawn = (member.totalWithdrawn || 0) + Number(amount);
-          await member.save();
-
-          // Record in Investment ledger so it shows on Asset Management page
-          await Investment.create({
-            user: member.user,
-            member: member._id,
-            branchId: loan.branchId || member.branchId,
-            type: 'withdrawal',
-            amount: Number(amount),
-            balanceAfter: member.currentBalance,
-            description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}`,
-            date: new Date(date || new Date()),
-          });
-        }
-      }
-    } catch (balanceError) {
-      console.error(
-        'Failed to deduct repayment from member balance:',
-        balanceError,
-      );
-      // Non-fatal: repayment is still recorded even if balance update fails
-    }
-
-    // Update loan stats
-    loan.paidAmount += Number(amount);
-    loan.remainingAmount = Math.round(
-      Math.max(0, loan.totalAmount - loan.paidAmount),
-    );
-
-    if (loan.remainingAmount <= 0) {
-      loan.status = 'completed';
-      // Log activity for auto-completion
-      await logActivity({
-        userId: req.user?._id || loan.user,
-        action: 'loan_status_completed',
-        category: 'loan',
-        details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} automatically marked as completed`,
-        metadata: { loanId: loan._id },
-        req,
-      });
-    }
-
-    await loan.save();
-
-    // Create Financial Transaction
-    const financialTx = new FinancialTransaction({
-      user: req.user.effectiveOwnerId,
-      branchId: req.user.branchId || loan.branchId,
-      type: 'income',
-      category: 'repayment',
-      amount,
-      date: new Date(date || new Date()),
-      description: `Loan repayment for ${loan.customer.name}`,
-      customer: loan.customer._id || loan.customer,
-      loan: loan._id,
-      referenceId: repayment._id,
-      referenceModel: 'Repayment',
-    });
-    await financialTx.save();
-
-    // Update Customer Trust Rating
-    try {
-      const customer = await Customer.findById(loan.customer);
-      if (customer) {
-        // Calculate how many installments this payment covers
-        const installmentsCovered = Math.floor(Number(amount) / loan.emi);
-        const previouslyPaidInstallments = Math.floor(
-          (loan.paidAmount - Number(amount)) / loan.emi,
-        );
-
-        // Apply rating adjustment for each installment covered
-        let totalRatingAdjustment = 0;
-        const paymentDate = new Date(date || new Date());
-
-        for (let i = 0; i < installmentsCovered; i++) {
-          const installmentNumber = previouslyPaidInstallments + i + 1;
-          const dueDate = new Date(loan.startDate);
-          dueDate.setMonth(dueDate.getMonth() + installmentNumber);
-
-          const isOnTime = paymentDate <= dueDate;
-          totalRatingAdjustment += isOnTime ? 0.2 : -0.5;
-        }
-
-        customer.trustRating = Math.min(
-          10,
-          Math.max(0, (customer.trustRating || 5) + totalRatingAdjustment),
-        );
-
-        await customer.save();
-      }
-    } catch (ratingError) {
-      console.error('Error updating trust rating:', ratingError);
-      // Don't fail the repayment if rating update fails
-    }
-
-    // Log activity
-    await logActivity({
-      userId: req.user._id,
-      action: 'loan_repayment_added',
-      category: 'loan',
-      details: `Added repayment of ${amount} for loan #${loan._id.toString().slice(-6).toUpperCase()}`,
-      metadata: {
-        loanId: loan._id,
-        amount,
-        repaymentId: repayment._id,
-      },
       req,
-    });
-
-    // ── Notifications ──────────────────────────────────────────────────────
-    try {
-      const Customer = require('../models/Member'); // This seems wrong, should be Customer model
-      // But loan.customer is already populated or at least has the ID.
-      // Let's use the local customer object if available or find it.
-      const customer = await require('../models/Customer').findById(
-        loan.customer,
-      );
-      if (customer?.memberId) {
-        await createTransactionNotification({
-          recipientId: customer.memberId,
-          title: 'Loan Repayment Received',
-          message: `Repayment of Rs. ${Number(amount).toLocaleString()} recorded for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
-          type: 'success',
-          branchId: loan.branchId,
-          action: 'loan_repayment_notification',
-          metadata: { amount, loanId: loan._id },
-        });
-
-        if (loan.status === 'completed') {
-          await createTransactionNotification({
-            recipientId: customer.memberId,
-            title: 'Loan Successfully Paid',
-            message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully paid off.`,
-            type: 'success',
-            branchId: loan.branchId,
-            action: 'loan_completed_notification',
-            metadata: { loanId: loan._id },
-          });
-        }
-      }
-    } catch (notifError) {
-      console.error('Loan Repayment Notification Error:', notifError);
-    }
+      {
+        date,
+        notes,
+        isAutoValue: false,
+      },
+    );
 
     res.status(201).json(repayment);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Add Repayment Error:', error);
+    res
+      .status(500)
+      .json({ message: error.message || 'Failed to add repayment' });
   }
 };
 

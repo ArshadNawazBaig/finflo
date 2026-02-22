@@ -8,6 +8,8 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
+const Loan = require('../models/Loan');
+const loanRepaymentService = require('../services/loanRepaymentService');
 const { canAddMember } = require('../utils/planLimits');
 const {
   createTransactionNotification,
@@ -673,6 +675,43 @@ const addInvestment = async (req, res) => {
       });
     } catch (notifError) {
       console.error('Deposit Notification Error:', notifError);
+    }
+
+    // ── Automatic Loan Deduction ───────────────────────────────────────────
+    try {
+      const activeLoan = await Loan.findOne({
+        customer: member.customer,
+        status: 'active',
+      });
+
+      if (activeLoan) {
+        const deductionAmount = Math.min(amount, activeLoan.remainingAmount);
+        if (deductionAmount > 0) {
+          await loanRepaymentService.processRepayment(
+            activeLoan,
+            deductionAmount,
+            req,
+            {
+              notes: `Auto-deduction from deposit: ${description || 'Manual Deposit'}`,
+              isAutoValue: true,
+            },
+          );
+          // Refetch member to get updated balance for the response
+          const updatedMember = await Member.findById(member._id);
+          return res.status(201).json({
+            investment,
+            member: updatedMember,
+            autoRepayment: {
+              applied: true,
+              amount: deductionAmount,
+              loanId: activeLoan._id,
+            },
+          });
+        }
+      }
+    } catch (autoRepoError) {
+      console.error('Auto Repayment Error in addInvestment:', autoRepoError);
+      // Non-fatal, return the deposit success
     }
 
     res.status(201).json({ investment, member });
@@ -1393,6 +1432,39 @@ const adminTransferFunds = async (req, res) => {
     );
 
     await session.commitTransaction();
+
+    // ── Automatic Loan Deduction for Recipient ─────────────────────────────
+    try {
+      const activeLoan = await Loan.findOne({
+        customer: recipient.customer,
+        status: 'active',
+      });
+
+      if (activeLoan) {
+        const deductionAmount = Math.min(
+          transferAmount,
+          activeLoan.remainingAmount,
+        );
+        if (deductionAmount > 0) {
+          // We need a dummy req-like object if we are outside a standard path or just pass req
+          await loanRepaymentService.processRepayment(
+            activeLoan,
+            deductionAmount,
+            req,
+            {
+              notes: `Auto-deduction from received transfer: ${description || 'Admin Transfer'}`,
+              isAutoValue: true,
+            },
+          );
+        }
+      }
+    } catch (autoRepoError) {
+      console.error(
+        'Auto Repayment Error in adminTransferFunds:',
+        autoRepoError,
+      );
+    }
+
     res.status(200).json({
       message: 'Admin transfer successful',
       senderBalance: sender.currentBalance,
