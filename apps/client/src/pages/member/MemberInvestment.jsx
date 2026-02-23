@@ -23,6 +23,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 
 const MemberInvestment = () => {
   const [investments, setInvestments] = useState([]);
@@ -165,35 +166,39 @@ const MemberInvestment = () => {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Current Balance"
-          amount={formatPKR(member?.currentBalance || 0)}
-          icon={<Wallet size={20} />}
-          color={
-            member?.currentBalance < 0
-              ? 'bg-rose-500 shadow-rose-500/20'
-              : 'bg-emerald-500 shadow-emerald-500/20'
-          }
-          subtitle="Available account balance"
-        />
+      {loading && !member ? (
+        <CardsSkeleton count={3} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatsCard
+            title="Current Balance"
+            amount={formatPKR(member?.currentBalance || 0)}
+            icon={<Wallet size={20} />}
+            color={
+              member?.currentBalance < 0
+                ? 'bg-rose-500 shadow-rose-500/20'
+                : 'bg-emerald-500 shadow-emerald-500/20'
+            }
+            subtitle="Available account balance"
+          />
 
-        <StatsCard
-          title="Total Invested"
-          amount={formatPKR(member?.totalInvested || 0)}
-          icon={<TrendingUp size={20} />}
-          color="bg-primary shadow-primary/20"
-          subtitle="Total capital committed"
-        />
+          <StatsCard
+            title="Total Invested"
+            amount={formatPKR(member?.totalInvested || 0)}
+            icon={<TrendingUp size={20} />}
+            color="bg-primary shadow-primary/20"
+            subtitle="Total capital committed"
+          />
 
-        <StatsCard
-          title="Total Profit"
-          amount={formatPKR(member?.totalProfit || 0)}
-          icon={<PieChart size={20} />}
-          color="bg-indigo-500 shadow-indigo-500/20"
-          subtitle="Accumulated earnings"
-        />
-      </div>
+          <StatsCard
+            title="Total Profit"
+            amount={formatPKR(member?.totalProfit || 0)}
+            icon={<PieChart size={20} />}
+            color="bg-indigo-500 shadow-indigo-500/20"
+            subtitle="Accumulated earnings"
+          />
+        </div>
+      )}
 
       {/* Investment History */}
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
