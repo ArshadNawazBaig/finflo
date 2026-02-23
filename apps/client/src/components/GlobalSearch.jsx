@@ -157,7 +157,7 @@ const GlobalSearch = ({ isMember = false }) => {
                       {getIcon(result.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">
+                      <p className="text-sm font-bold truncate group-hover:text-primary transition-colors capitalize">
                         {result.title}
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate flex items-center gap-2 uppercase tracking-widest font-black">
