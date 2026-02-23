@@ -274,41 +274,45 @@ const MemberTransactions = () => {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Total Inflow"
-          amount={formatPKR(summary.totalDeposits)}
-          icon={<ArrowUpRight size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-          subtitle="Investments, profits & received transfers"
-        />
+      {loading ? (
+        <CardsSkeleton count={3} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatsCard
+            title="Total Inflow"
+            amount={formatPKR(summary.totalDeposits)}
+            icon={<ArrowUpRight size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+            subtitle="Investments, profits & received transfers"
+          />
 
-        <StatsCard
-          title="Total Outflow"
-          amount={formatPKR(summary.totalWithdrawals)}
-          icon={<ArrowDownLeft size={20} />}
-          color="bg-rose-500 shadow-rose-500/20"
-          subtitle="Withdrawals, transfers & repayments"
-        />
+          <StatsCard
+            title="Total Outflow"
+            amount={formatPKR(summary.totalWithdrawals)}
+            icon={<ArrowDownLeft size={20} />}
+            color="bg-rose-500 shadow-rose-500/20"
+            subtitle="Withdrawals, transfers & repayments"
+          />
 
-        <StatsCard
-          title="Portfolio Balance"
-          amount={formatPKR(member?.currentBalance ?? 0)}
-          icon={<TrendingUp size={20} />}
-          color={
-            member?.currentBalance < 0
-              ? 'bg-rose-500 shadow-rose-500/20'
-              : 'bg-primary shadow-primary/20'
-          }
-          subtitle="Available investment portfolio balance"
-          badge={member?.currentBalance < 0 ? 'Negative' : 'Active'}
-          badgeTooltip={
-            member?.currentBalance < 0
-              ? 'Your balance is currently in arrears'
-              : 'Your portfolio is currently active'
-          }
-        />
-      </div>
+          <StatsCard
+            title="Portfolio Balance"
+            amount={formatPKR(member?.currentBalance ?? 0)}
+            icon={<TrendingUp size={20} />}
+            color={
+              member?.currentBalance < 0
+                ? 'bg-rose-500 shadow-rose-500/20'
+                : 'bg-primary shadow-primary/20'
+            }
+            subtitle="Available investment portfolio balance"
+            badge={member?.currentBalance < 0 ? 'Negative' : 'Active'}
+            badgeTooltip={
+              member?.currentBalance < 0
+                ? 'Your balance is currently in arrears'
+                : 'Your portfolio is currently active'
+            }
+          />
+        </div>
+      )}
 
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
         <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
