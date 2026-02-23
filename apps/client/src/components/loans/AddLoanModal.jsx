@@ -37,7 +37,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     duration: '',
     startDate: new Date(),
     interestType: 'simple',
-    grantorIdentifier: '', // New field
+    grantorIdentifier: '', // Field used for input display/typing
+    grantorIdentifierForBackend: '', // Hidden field for actual identifier
   });
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -81,7 +82,16 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
   }, [isOpen]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'grantorIdentifier') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        grantorIdentifierForBackend: '', // Reset backend identifier when typing
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   // Auto-lookup grantor
@@ -89,7 +99,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     const lookup = async () => {
       if (
         formData.grantorIdentifier &&
-        formData.grantorIdentifier.length >= 3
+        formData.grantorIdentifier.length >= 3 &&
+        !formData.grantorIdentifierForBackend // Skip lookup if already selected
       ) {
         setIsLookingUp(true);
         try {
@@ -130,9 +141,11 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         } finally {
           setIsLookingUp(false);
         }
-      } else {
+      } else if (!formData.grantorIdentifierForBackend) {
         setSearchResults([]);
         setGrantorName('');
+      } else {
+        setSearchResults([]);
       }
     };
 
@@ -148,8 +161,13 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     try {
       const submissionData = {
         ...formData,
+        grantorIdentifier:
+          formData.grantorIdentifierForBackend || formData.grantorIdentifier,
         startDate: formData.startDate.toISOString().split('T')[0],
       };
+      // Remove temporary display field if not needed by backend, but backend takes grantorIdentifier
+      delete submissionData.grantorIdentifierForBackend;
+
       await api.post('/loans', submissionData);
       onSuccess();
       onClose();
@@ -162,6 +180,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         startDate: new Date(),
         interestType: 'emi',
         grantorIdentifier: '',
+        grantorIdentifierForBackend: '',
       });
     } catch (err) {
       // Check if it's a plan limit error
@@ -225,12 +244,16 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 }}
                 required
               >
-                <SelectTrigger className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20 capitalize">
                   <SelectValue placeholder="Choose a customer..." />
                 </SelectTrigger>
                 <SelectContent>
                   {customers.map((c) => (
-                    <SelectItem key={c._id} value={c._id}>
+                    <SelectItem
+                      key={c._id}
+                      value={c._id}
+                      className="capitalize"
+                    >
                       {c.name}
                     </SelectItem>
                   ))}
@@ -371,17 +394,17 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             {/* Grantor Selection */}
             <div className="space-y-1.5 relative">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                <User className="w-3 h-3 text-blue-500" /> Grantor (Member Phone
-                or CNIC)
+                <User className="w-3 h-3 text-blue-500" /> Grantor (Member Name,
+                CNIC or Phone)
               </label>
               <input
                 name="grantorIdentifier"
                 type="text"
                 autoComplete="off"
-                placeholder="Search by Name, CNIC, or Phone"
+                placeholder="Search by CNIC, Name, or Phone"
                 value={formData.grantorIdentifier}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize"
               />
               {isLookingUp && searchResults.length === 0 && (
                 <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
@@ -406,7 +429,9 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                         onClick={() => {
                           setFormData({
                             ...formData,
-                            grantorIdentifier: member.cnic || member.phone,
+                            grantorIdentifier: member.name, // Show name in input
+                            grantorIdentifierForBackend:
+                              member.cnic || member.phone, // Store identifier for backend
                           });
                           setGrantorName(member.name);
                           setTimeout(() => setSearchResults([]), 100);
@@ -422,7 +447,9 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                               {member.name}
                             </p>
                             <p className="text-[10px] text-muted-foreground font-medium">
-                              {member.cnic || member.phone}
+                              {member.cnic
+                                ? `CNIC: ${member.cnic}`
+                                : `Phone: ${member.phone}`}
                             </p>
                           </div>
                         </div>
@@ -456,7 +483,10 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
                   <User size={10} className="shrink-0" />
                   <span className="text-[10px] font-black uppercase tracking-tighter">
-                    Verified: {grantorName}
+                    Verified: {grantorName} (
+                    {formData.grantorIdentifierForBackend ||
+                      formData.grantorIdentifier}
+                    )
                   </span>
                 </div>
               )}
