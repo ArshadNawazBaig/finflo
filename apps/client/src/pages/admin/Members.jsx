@@ -51,6 +51,7 @@ const Members = () => {
     totalProfit: 0,
     activeMembers: 0,
   });
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const observerTarget = useRef(null);
@@ -58,9 +59,13 @@ const Members = () => {
   // Fetch all-time summary on mount (unaffected by search/sort)
   const fetchSummary = useCallback(async () => {
     try {
+      setSummaryLoading(true);
       const { data } = await api.get('/members?page=1&limit=1');
       if (data.summary) setSummary(data.summary);
-    } catch (e) {} // silently fail
+    } catch (e) {
+    } finally {
+      setSummaryLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -212,32 +217,36 @@ const Members = () => {
       />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Members"
-          amount={statsDisplay.totalMembers}
-          icon={<Users size={20} />}
-          color="bg-primary shadow-primary/20"
-        />
-        <StatsCard
-          title="Active Members"
-          amount={statsDisplay.activeMembers}
-          icon={<TrendingUp size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-        />
-        <StatsCard
-          title="Total Invested"
-          amount={formatPKR(statsDisplay.totalInvested)}
-          icon={<Wallet size={20} />}
-          color="bg-blue-500 shadow-blue-500/20"
-        />
-        <StatsCard
-          title="Total Profit Distributed"
-          amount={formatPKR(statsDisplay.totalProfit)}
-          icon={<DollarSign size={20} />}
-          color="bg-purple-500 shadow-purple-500/20"
-        />
-      </div>
+      {summaryLoading ? (
+        <CardsSkeleton count={4} />
+      ) : (
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatsCard
+            title="Total Members"
+            amount={statsDisplay.totalMembers}
+            icon={<Users size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Active Members"
+            amount={statsDisplay.activeMembers}
+            icon={<TrendingUp size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Total Invested"
+            amount={formatPKR(statsDisplay.totalInvested)}
+            icon={<Wallet size={20} />}
+            color="bg-blue-500 shadow-blue-500/20"
+          />
+          <StatsCard
+            title="Total Profit Distributed"
+            amount={formatPKR(statsDisplay.totalProfit)}
+            icon={<DollarSign size={20} />}
+            color="bg-purple-500 shadow-purple-500/20"
+          />
+        </div>
+      )}
 
       {/* Search and Table */}
       <div className="space-y-4">
