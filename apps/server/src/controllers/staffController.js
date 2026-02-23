@@ -88,6 +88,19 @@ const getStaff = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
+    const Branch = require('../models/Branch');
+    const managedBranchIds = await Branch.find({
+      owner: req.user.effectiveOwnerId,
+      manager: { $exists: true, $ne: null },
+    }).distinct('manager');
+
+    const staffWithManagerFlag = staffMembers.map((member) => ({
+      ...member.toObject(),
+      isManager: managedBranchIds.some(
+        (id) => id.toString() === member._id.toString(),
+      ),
+    }));
+
     // Calculate Summary (Ignoring pagination but respecting filters)
     const [summaryResult] = await User.aggregate([
       { $match: query },
@@ -108,7 +121,7 @@ const getStaff = async (req, res) => {
     const summary = summaryResult || { total: 0, active: 0, admins: 0 };
 
     res.json({
-      data: staffMembers,
+      data: staffWithManagerFlag,
       totalEntries,
       totalPages: Math.ceil(totalEntries / parseInt(limit)),
       currentPage: parseInt(page),

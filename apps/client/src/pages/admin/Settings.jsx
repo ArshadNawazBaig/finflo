@@ -420,6 +420,11 @@ const Settings = () => {
                           <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
                             {user.role || 'User'}
                           </span>
+                          {isManager && (
+                            <span className="bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
+                              manager
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

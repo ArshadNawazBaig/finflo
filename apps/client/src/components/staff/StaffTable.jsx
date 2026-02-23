@@ -71,7 +71,11 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
                       <UserIcon size={14} className="text-blue-500" />
                     )}
                     <span className="capitalize text-xs font-bold">
-                      {item.role}
+                      {item.role === 'admin'
+                        ? 'admin'
+                        : item.isManager
+                          ? 'manager'
+                          : 'staff'}
                     </span>
                   </div>
                 </td>
