@@ -512,7 +512,7 @@ const getBranchFinancials = async (req, res) => {
             totalWithdrawn -
             totalExpenses,
         ),
-        totalDeposits,
+        totalDeposits: totalInvested,
         netProfit,
         totalDisbursed: totalDisbursed,
       },

@@ -405,7 +405,7 @@ const getDashboardStats = async (req, res) => {
           percentage: forecastPercentage,
         },
         banking: {
-          deposits: totalDeposits,
+          deposits: totalInvested,
           disbursed: { amount: totalDisbursed, percentage: disbursedChange },
           liquidity: netLiquidity,
           expenses: totalExpenses,
