@@ -77,7 +77,7 @@ const getLedger = async (req, res) => {
         .filter((t) => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0),
       totalExpense: allMatching
-        .filter((t) => t.type === 'expense')
+        .filter((t) => t.type === 'expense' || t.type === 'loan')
         .reduce((sum, t) => sum + t.amount, 0),
       totalTransactions: totalEntries,
     };
