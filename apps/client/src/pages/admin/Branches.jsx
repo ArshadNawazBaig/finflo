@@ -55,7 +55,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import BranchCardSkeleton from '@/components/skeletons/BranchCardSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -282,7 +282,7 @@ const Branches = () => {
       </div>
 
       {loading ? (
-        <CardsSkeleton />
+        <BranchCardSkeleton />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
