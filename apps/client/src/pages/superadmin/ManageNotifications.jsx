@@ -181,253 +181,268 @@ const ManageNotifications = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header */}
-      <PageHeader
-        title="Notification History"
-        description="View all notifications sent to business owners"
-      >
-        <div className="flex items-center gap-3">
-          <span className="px-4 py-3 rounded-full bg-muted text-sm font-bold min-w-[120px] justify-center flex">
-            {pagination.total} Total Sent
-          </span>
-          <Button
-            onClick={() => setIsNotificationModalOpen(true)}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
-          >
-            <Send className="w-4 h-4" />
-            Send New
-          </Button>
-        </div>
-      </PageHeader>
+    <div className="relative pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Background Gradients */}
+      <div className="fixed inset-0 -z-10 pointer-events-none"></div>
 
-      {/* Search & Sort */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-          <input
-            type="text"
-            placeholder="Search by title, message, or recipient..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-        <div className="space-y-2">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px] h-[48px] rounded-2xl">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <div className="space-y-6 relative z-10">
+        {/* Header */}
+        <PageHeader
+          title="Notification History"
+          description="View all notifications sent to business owners"
+        >
+          <div className="flex items-center gap-3">
+            <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase min-w-[120px] justify-center flex">
+              {pagination.total} TOTAL SENT
+            </span>
+            <Button
+              onClick={() => setIsNotificationModalOpen(true)}
+              variant="gradient"
+              className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto shadow-lg shadow-primary/20"
+            >
+              <Send className="w-4 h-4" />
+              Send New
+            </Button>
+          </div>
+        </PageHeader>
 
-      {/* Content Area */}
-      {loading && !isFetchingMore && notifications.length === 0 ? (
-        <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
-          ))}
+        {/* Search & Sort */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
+            <input
+              type="text"
+              placeholder="Search by title, message, or recipient..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 shadow-sm hover:shadow-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px] h-[54px] rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-border/50 bg-card/95 backdrop-blur-md">
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      ) : notifications.length === 0 ? (
-        <EmptyState
-          icon={Bell}
-          title="No Notifications Found"
-          description={
-            search
-              ? "We couldn't find any notifications matching your search."
-              : 'Your broadcast history is currently empty. Start by sending a notification to all users.'
-          }
-          className="border-none bg-card/50"
-        />
-      ) : isMobile ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            {notifications.map((notification) => (
-              <NotificationCard
-                key={notification._id}
-                notification={notification}
-                onDelete={handleDelete}
-              />
+
+        {/* Content Area */}
+        {loading && !isFetchingMore && notifications.length === 0 ? (
+          <div className="p-6 space-y-4 rounded-2xl border border-border/50 bg-card">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-16 rounded-xl" />
             ))}
           </div>
-
-          {/* Infinite Scroll Trigger */}
-          {pagination.page < pagination.pages && (
-            <div ref={observerTarget}>
-              <InfiniteLoader isFetchingMore={isFetchingMore} />
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Notification
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Recipient
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Type
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Sent Date
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {notifications.map((notification) => (
-                  <tr
-                    key={notification._id}
-                    onClick={() => {
-                      if (notification.link) {
-                        const user = JSON.parse(
-                          localStorage.getItem('user') || '{}',
-                        );
-                        const safeLink = getSafeNotificationLink(
-                          notification.link,
-                          user.role,
-                        );
-                        if (safeLink) {
-                          navigate(safeLink);
-                        }
-                      }
-                    }}
-                    className={cn(
-                      'hover:bg-muted/30 transition-colors',
-                      notification.link && 'cursor-pointer',
-                    )}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <p className="font-bold text-sm">
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground line-clamp-1 max-w-md">
-                          {notification.message}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold capitalize">
-                          {notification.recipient?.name?.charAt(0) || 'U'}
-                        </div>
-                        <div className="text-sm">
-                          <p className="font-medium capitalize">
-                            {notification.recipient?.name || 'Unknown User'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {notification.recipient?.email}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold capitalize border ${getTypeStyles(
-                          notification.type,
-                        )}`}
-                      >
-                        {getTypeIcon(notification.type)}
-                        {notification.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar size={14} />
-                        {new Date(notification.createdAt).toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {notification.read ? (
-                        <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                          <CheckCircle2 size={12} /> Read
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1">
-                          <Info size={12} /> Unread
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(notification._id);
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Pagination (Desktop) */}
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.pages}
-            totalEntries={pagination.total}
-            limit={limit}
-            onPageChange={(page) => fetchNotifications(page)}
-            onLimitChange={(newLimit) => {
-              setLimit(newLimit);
-            }}
+        ) : notifications.length === 0 ? (
+          <EmptyState
+            icon={Bell}
+            title="No Notifications Found"
+            description={
+              search
+                ? "We couldn't find any notifications matching your search."
+                : 'Your broadcast history is currently empty. Start by sending a notification to all users.'
+            }
+            className="border-none bg-card/50"
           />
-        </div>
-      )}
+        ) : isMobile ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              {notifications.map((notification) => (
+                <NotificationCard
+                  key={notification._id}
+                  notification={notification}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
 
-      <SendNotificationModal
-        isOpen={isNotificationModalOpen}
-        onClose={() => {
-          setIsNotificationModalOpen(false);
-          fetchNotifications(1); // Refresh list after sending
-        }}
-      />
+            {/* Infinite Scroll Trigger */}
+            {pagination.page < pagination.pages && (
+              <div ref={observerTarget}>
+                <InfiniteLoader isFetchingMore={isFetchingMore} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-border/50 bg-card overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/30">
+                  <tr>
+                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Notification
+                    </th>
+                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Recipient
+                    </th>
+                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Type
+                    </th>
+                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Sent Date
+                    </th>
+                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Status
+                    </th>
+                    <th className="text-right px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {notifications.map((notification) => (
+                    <tr
+                      key={notification._id}
+                      onClick={() => {
+                        if (notification.link) {
+                          const user = JSON.parse(
+                            localStorage.getItem('user') || '{}',
+                          );
+                          const safeLink = getSafeNotificationLink(
+                            notification.link,
+                            user.role,
+                          );
+                          if (safeLink) {
+                            navigate(safeLink);
+                          }
+                        }
+                      }}
+                      className={cn(
+                        'hover:bg-primary/[0.04] transition-colors',
+                        notification.link && 'cursor-pointer',
+                      )}
+                    >
+                      <td className="px-6 py-5">
+                        <div className="space-y-0.5">
+                          <p className="font-black text-sm tracking-tight text-foreground">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs font-medium text-muted-foreground line-clamp-1 max-w-md">
+                            {notification.message}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black capitalize border border-primary/20">
+                            {notification.recipient?.name?.charAt(0) || 'U'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm capitalize tracking-tight text-foreground">
+                              {notification.recipient?.name || 'Unknown User'}
+                            </p>
+                            <p className="text-[10px] font-medium text-muted-foreground">
+                              {notification.recipient?.email}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${getTypeStyles(
+                            notification.type,
+                          )}`}
+                        >
+                          {getTypeIcon(notification.type)}
+                          {notification.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground/70">
+                          <Calendar
+                            size={14}
+                            className="text-muted-foreground/40"
+                          />
+                          {new Date(
+                            notification.createdAt,
+                          ).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        {notification.read ? (
+                          <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+                            <CheckCircle2 size={12} strokeWidth={3} /> Read
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                            <Info size={12} strokeWidth={3} /> Unread
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all active:scale-90"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(notification._id);
+                          }}
+                        >
+                          <Trash2 size={18} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-6 border-t border-border/40">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.pages}
+                totalEntries={pagination.total}
+                limit={limit}
+                onPageChange={(page) => fetchNotifications(page)}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                }}
+              />
+            </div>
+          </div>
+        )}
 
-      <AlertDialog
-        open={!!deleteConfirmation}
-        onOpenChange={(open) => !open && setDeleteConfirmation(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              notification from the history.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <SendNotificationModal
+          isOpen={isNotificationModalOpen}
+          onClose={() => {
+            setIsNotificationModalOpen(false);
+            fetchNotifications(1); // Refresh list after sending
+          }}
+        />
+
+        <AlertDialog
+          open={!!deleteConfirmation}
+          onOpenChange={(open) => !open && setDeleteConfirmation(null)}
+        >
+          <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
+                Delete Alert?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
+                This will permanently delete the notification from the history.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
+              <AlertDialogCancel className="w-full rounded-2xl border-none bg-muted h-12 font-black uppercase tracking-widest text-[10px] hover:bg-muted/80">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="w-full bg-destructive hover:bg-destructive/90 rounded-2xl h-12 font-black uppercase tracking-widest text-[10px] text-white shadow-xl shadow-destructive/20"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 };

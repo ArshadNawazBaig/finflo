@@ -194,26 +194,33 @@ const MemberNavbar = ({ onMenuClick }) => {
             </Tooltip>
 
             {showNotifications && (
-              <div className="fixed sm:absolute inset-x-4 sm:inset-auto sm:right-0 top-16 sm:top-full mt-2 w-auto sm:w-80 md:w-96 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
-                <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/30">
-                  <h3 className="font-semibold">Notifications</h3>
+              <div className="fixed sm:absolute inset-x-4 sm:inset-auto sm:right-0 top-16 sm:top-full mt-3 w-auto sm:w-[400px] bg-card border border-border/40 rounded-lg shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in zoom-in-95 duration-300 z-50">
+                <div className="px-6 py-5 border-b border-border/10 flex items-center justify-between bg-muted/20">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Notifications
+                  </h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
                       disabled={loading}
-                      className="text-xs text-primary hover:underline disabled:opacity-50"
+                      className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                     >
-                      Mark all as read
+                      Clear All
                     </button>
                   )}
                 </div>
-                <div className="max-h-[400px] overflow-y-auto">
+                <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
                   {notifications.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground text-sm">
-                      No notifications
+                    <div className="p-12 text-center flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-muted/30 flex items-center justify-center">
+                        <Bell className="w-6 h-6 text-muted-foreground/30" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                        No new alerts
+                      </p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-border/50">
+                    <div className="divide-y divide-border/5">
                       {notifications.map((notification) => (
                         <div
                           key={notification._id}
@@ -230,62 +237,73 @@ const MemberNavbar = ({ onMenuClick }) => {
                             }
                           }}
                           className={cn(
-                            'p-4 hover:bg-muted/50 transition-colors flex gap-3 items-start group',
-                            !notification.read ? 'bg-primary/5' : '',
+                            'p-5 transition-all duration-300 flex gap-4 items-start group relative',
+                            !notification.read ? 'bg-primary/[0.03]' : '',
                             notification.link ? 'cursor-pointer' : '',
                           )}
                         >
-                          <div
-                            className={cn(
-                              'w-2 h-2 rounded-full mt-2 shrink-0',
-                              !notification.read
-                                ? 'bg-primary'
-                                : 'bg-transparent',
-                            )}
-                          />
-                          <div className="flex-1 space-y-1">
+                          {!notification.read && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                          )}
+                          <div className="flex-1 space-y-1.5 min-w-0">
+                            <div className="flex justify-between items-start gap-4">
+                              <p
+                                className={cn(
+                                  'text-sm font-black tracking-tight leading-none truncate',
+                                  !notification.read
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground',
+                                )}
+                              >
+                                {notification.title}
+                              </p>
+                              {!notification.read && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead(notification._id);
+                                  }}
+                                  className="text-[10px] text-primary font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  Mark read
+                                </button>
+                              )}
+                            </div>
                             <p
                               className={cn(
-                                'text-sm font-medium leading-none',
+                                'text-xs leading-relaxed font-medium line-clamp-2',
                                 !notification.read
-                                  ? 'text-foreground'
-                                  : 'text-muted-foreground',
+                                  ? 'text-foreground/70'
+                                  : 'text-muted-foreground/60',
                               )}
                             >
-                              {notification.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">
                               {notification.message}
                             </p>
-                            <p className="text-[10px] text-muted-foreground/70">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 pt-1">
                               {new Date(
                                 notification.createdAt,
-                              ).toLocaleString()}
+                              ).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}{' '}
+                              •{' '}
+                              {new Date(
+                                notification.createdAt,
+                              ).toLocaleDateString()}
                             </p>
                           </div>
-                          {!notification.read && (
-                            <button
-                              onClick={() => markAsRead(notification._id)}
-                              className="text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Mark as read"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                          )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                {notifications.length > 0 && (
-                  <Link
-                    to="/member/notifications"
-                    onClick={() => setShowNotifications(false)}
-                    className="p-3 border-t border-border/50 text-center text-xs font-black uppercase tracking-widest text-primary hover:bg-muted/50 transition-colors block"
-                  >
-                    View all notifications
-                  </Link>
-                )}
+                <Link
+                  to="/member/notifications"
+                  onClick={() => setShowNotifications(false)}
+                  className="p-5 bg-muted/10 border-t border-border/10 text-center text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:bg-primary/5 transition-all block"
+                >
+                  View All History
+                </Link>
               </div>
             )}
           </div>

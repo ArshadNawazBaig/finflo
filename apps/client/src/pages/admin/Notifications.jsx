@@ -10,7 +10,17 @@ import {
   Calendar,
   Trash2,
   Check,
+  Filter,
 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import api from '@/lib/axios';
 import { cn, getSafeNotificationLink } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,6 +54,7 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [unreadCount, setUnreadCount] = useState(0);
   const [limit, setLimit] = useState(10);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
@@ -80,6 +91,7 @@ const Notifications = () => {
             total: data.pagination.total,
           });
         }
+        setUnreadCount(data.unreadCount || 0);
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
         toast.error('Failed to fetch notifications');
@@ -129,10 +141,23 @@ const Notifications = () => {
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
       toast.success('Notification marked as read');
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       toast.error('Failed to update notification');
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.put(`/notifications/all/read`);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+      toast.error('Failed to update notifications');
     }
   };
 
@@ -186,21 +211,32 @@ const Notifications = () => {
   return (
     <div className="relative pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Background Gradients */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
-      </div>
+      <div className="fixed inset-0 -z-10 pointer-events-none"></div>
 
       <div className="space-y-6 relative z-10">
         {/* Header */}
-        <PageHeader
-          title="Notifications"
-          description="Stay updated with important alerts and messages"
-        >
-          <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-bold border border-primary/20 backdrop-blur-sm">
-            {pagination.total} Total Notifications
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <PageHeader
+            title="Notifications"
+            description="Stay updated with important alerts and messages"
+          />
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && (
+              <Button
+                onClick={handleMarkAllAsRead}
+                variant="outline"
+                size="sm"
+                className="rounded-xl font-bold bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary hover:text-white transition-all duration-300"
+              >
+                <Check size={16} className="mr-2" />
+                Mark all as read
+              </Button>
+            )}
+            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase">
+              {unreadCount} UNREAD
+            </div>
           </div>
-        </PageHeader>
+        </div>
 
         {/* Search & Sort */}
         <div className="flex flex-col md:flex-row gap-4">
@@ -227,36 +263,39 @@ const Notifications = () => {
           </div>
         </div>
 
-        {/* Notifications List */}
+        {/* Notifications View */}
         <div className="space-y-4">
           {loading ? (
-            [...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
-              >
-                <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
-                <div className="flex-1 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="h-4 w-1/4 rounded bg-muted/30" />
-                    <div className="h-3 w-16 rounded bg-muted/30" />
+            <div className="grid gap-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
+                  <div className="flex-1 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 w-1/4 rounded bg-muted/30" />
+                      <div className="h-3 w-16 rounded bg-muted/30" />
+                    </div>
+                    <div className="h-4 w-3/4 rounded bg-muted/30" />
                   </div>
-                  <div className="h-4 w-3/4 rounded bg-muted/30" />
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : notifications.length === 0 ? (
             <EmptyState
               icon={Bell}
-              title="No Notifications Yet"
+              title="No Notifications Found"
               description={
                 search
                   ? "We couldn't find any notifications matching your search."
-                  : "Running smoothly! We'll notify you when something important happens."
+                  : "You're all caught up! No recent activity to show."
               }
-              className="border-none bg-card/50"
+              className="border-none bg-card/50 py-20"
             />
-          ) : (
+          ) : isMobile ? (
+            /* Mobile Card View with Infinite Scroll */
             <div className="grid gap-4">
               {notifications.map((notification) => (
                 <div
@@ -275,11 +314,13 @@ const Notifications = () => {
                       }
                     }
                   }}
-                  className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 p-4 sm:p-5 ${
+                  className={cn(
+                    'group relative overflow-hidden rounded-2xl border transition-all duration-500 p-5',
                     notification.read
-                      ? 'bg-card/30 border-border/40 hover:bg-card/50 hover:border-border/60'
-                      : 'bg-card/80 border-primary/20 hover:bg-card hover:border-primary/40 shadow-lg shadow-primary/5'
-                  } ${notification.link ? 'cursor-pointer hover:shadow-md active:scale-[0.98]' : ''}`}
+                      ? 'bg-card/40 border-border/40 hover:bg-card/60 shadow-sm hover:shadow-md'
+                      : 'bg-card border-primary/20 shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10',
+                    notification.link && 'cursor-pointer active:scale-[0.98]',
+                  )}
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -291,19 +332,19 @@ const Notifications = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <h3
-                          className={`font-bold text-base ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}
+                          className={`font-black text-sm tracking-tight ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}
                         >
                           {notification.title}
                         </h3>
-                        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap flex items-center gap-1.5 bg-muted/30 px-2 py-1 rounded-lg">
-                          <Calendar size={12} />
+                        <span className="text-[10px] font-black text-muted-foreground whitespace-nowrap flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-lg">
+                          <Calendar size={10} />
                           {new Date(
                             notification.createdAt,
                           ).toLocaleDateString()}
                         </span>
                       </div>
                       <p
-                        className={`text-sm leading-relaxed mb-3 ${!notification.read ? 'text-foreground/80' : 'text-muted-foreground/80'}`}
+                        className={`text-xs leading-relaxed mb-4 font-medium ${!notification.read ? 'text-foreground/80' : 'text-muted-foreground/80'}`}
                       >
                         {notification.message}
                       </p>
@@ -317,17 +358,17 @@ const Notifications = () => {
                             }}
                             variant="ghost"
                             size="sm"
-                            className="h-8 rounded-lg text-xs font-bold text-primary hover:text-primary hover:bg-primary/10"
+                            className="h-8 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 px-3"
                           >
                             <Check size={14} className="mr-1.5" />
-                            Mark as Read
+                            Read
                           </Button>
                         )}
                         <div className="grow" />
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                          className="h-8 w-8 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDelete(notification._id);
@@ -340,73 +381,197 @@ const Notifications = () => {
                   </div>
 
                   {!notification.read && (
-                    <div className="absolute top-5 right-0 w-1 h-8 bg-primary rounded-l-full" />
+                    <div className="absolute top-0 right-0 w-1.5 h-full bg-primary" />
                   )}
                 </div>
               ))}
+              <div ref={observerTarget} className="py-4">
+                {isFetchingMore && (
+                  <InfiniteLoader isFetchingMore={true} className="py-6" />
+                )}
+                {!isFetchingMore &&
+                  pagination.page >= pagination.pages &&
+                  notifications.length > 0 && (
+                    <div className="text-center py-8">
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+                        End of notifications
+                      </span>
+                    </div>
+                  )}
+              </div>
+            </div>
+          ) : (
+            /* Desktop Table View */
+            <div className="rounded-lg border border-border/50 bg-card overflow-hidden shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
+                    <TableHead className="w-[80px] font-black text-[10px] uppercase tracking-widest">
+                      Type
+                    </TableHead>
+                    <TableHead className="font-black text-[10px] uppercase tracking-widest">
+                      Content
+                    </TableHead>
+                    <TableHead className="w-[120px] font-black text-[10px] uppercase tracking-widest">
+                      Date
+                    </TableHead>
+                    <TableHead className="w-[100px] font-black text-[10px] uppercase tracking-widest">
+                      Status
+                    </TableHead>
+                    <TableHead className="w-[100px] text-right font-black text-[10px] uppercase tracking-widest">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {notifications.map((notification) => (
+                    <TableRow
+                      key={notification._id}
+                      onClick={() => {
+                        if (notification.link) {
+                          const user = JSON.parse(
+                            localStorage.getItem('user') || '{}',
+                          );
+                          const safeLink = getSafeNotificationLink(
+                            notification.link,
+                            user.role,
+                          );
+                          if (safeLink) {
+                            navigate(safeLink);
+                          }
+                        }
+                      }}
+                      className={cn(
+                        'group border-border/40 transition-colors',
+                        !notification.read
+                          ? 'bg-primary/[0.02] hover:bg-primary/[0.04]'
+                          : 'hover:bg-muted/20',
+                        notification.link && 'cursor-pointer',
+                      )}
+                    >
+                      <TableCell>
+                        <div
+                          className={cn(
+                            'p-2 w-fit rounded-lg',
+                            getTypeStyles(notification.type),
+                          )}
+                        >
+                          {getTypeIcon(notification.type)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-md">
+                        <div className="space-y-0.5">
+                          <div
+                            className={cn(
+                              'text-sm font-black tracking-tight',
+                              !notification.read
+                                ? 'text-foreground'
+                                : 'text-muted-foreground',
+                            )}
+                          >
+                            {notification.title}
+                          </div>
+                          <div
+                            className={cn(
+                              'text-xs font-medium line-clamp-2',
+                              !notification.read
+                                ? 'text-foreground/70'
+                                : 'text-muted-foreground/60',
+                            )}
+                          >
+                            {notification.message}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-muted-foreground/70">
+                        {new Date(notification.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={notification.read ? 'ghost' : 'default'}
+                          className={cn(
+                            'text-[9px] font-black uppercase tracking-widest h-5',
+                            notification.read
+                              ? 'bg-muted/50 text-muted-foreground'
+                              : 'bg-primary text-white',
+                          )}
+                        >
+                          {notification.read ? 'READ' : 'UNREAD'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {!notification.read && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-primary hover:bg-primary/10 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsRead(notification._id);
+                              }}
+                            >
+                              <Check size={16} />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(notification._id);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="p-4 border-t border-border/40">
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={pagination.pages}
+                  totalEntries={pagination.total}
+                  limit={limit}
+                  onPageChange={(page) =>
+                    setPagination((prev) => ({ ...prev, page }))
+                  }
+                  onLimitChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPagination((prev) => ({ ...prev, page: 1 }));
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
-
-        {/* Pagination (Desktop Only) */}
-        {!isMobile && notifications.length > 0 && (
-          <div>
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.pages}
-              totalEntries={pagination.total}
-              limit={limit}
-              onPageChange={(page) =>
-                setPagination((prev) => ({ ...prev, page }))
-              }
-              onLimitChange={(newLimit) => {
-                setLimit(newLimit);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            />
-          </div>
-        )}
-
-        {/* Mobile Infinite Scroll Target */}
-        {isMobile && (
-          <div ref={observerTarget} className="py-4">
-            {isFetchingMore && (
-              <InfiniteLoader isFetchingMore={true} className="py-6" />
-            )}
-            {!isFetchingMore &&
-              pagination.page >= pagination.pages &&
-              notifications.length > 0 && (
-                <div className="text-center py-8">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
-                    You've caught up!
-                  </span>
-                </div>
-              )}
-          </div>
-        )}
       </div>
 
       <AlertDialog
         open={!!deleteConfirmation}
         onOpenChange={(open) => !open && setDeleteConfirmation(null)}
       >
-        <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
+        <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-foreground">
-              Delete Notification?
+            <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
+              Delete Alert?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground font-medium">
-              This will permanently remove this notification from your history.
-              This action cannot be undone.
+            <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
+              This message will be permanently removed. This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl border-none bg-muted font-bold hover:bg-muted/80">
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
+            <AlertDialogCancel className="w-full rounded-2xl border-none bg-muted h-12 font-black uppercase tracking-widest text-[10px] hover:bg-muted/80">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90 rounded-xl font-bold text-white shadow-lg shadow-destructive/30"
+              className="w-full bg-destructive hover:bg-destructive/90 rounded-2xl h-12 font-black uppercase tracking-widest text-[10px] text-white shadow-xl shadow-destructive/20"
             >
               Delete
             </AlertDialogAction>
