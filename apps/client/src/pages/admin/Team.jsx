@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 const Team = () => {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
@@ -37,7 +38,7 @@ const Team = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [deleteStaffId, setDeleteStaffId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [summary, setSummary] = useState({
+  const [summaryDisplay, setSummaryDisplay] = useState({
     total: 0,
     active: 0,
     admins: 0,
@@ -50,9 +51,13 @@ const Team = () => {
   // Fetch all-time summary on mount (unaffected by search)
   const fetchSummary = useCallback(async () => {
     try {
+      setSummaryLoading(true);
       const { data } = await api.get('/staff?page=1&limit=1');
-      if (data.summary) setSummary(data.summary);
-    } catch (e) {} // silently fail
+      if (data.summary) setSummaryDisplay(data.summary);
+    } catch (e) {
+    } finally {
+      setSummaryLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -204,7 +209,7 @@ const Team = () => {
   );
 
   // Use backend summary for stats
-  const statsDisplay = summary;
+  const statsDisplay = summaryDisplay;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -225,26 +230,30 @@ const Team = () => {
       </PageHeader>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <StatsCard
-          title="Total Team"
-          amount={statsDisplay.total}
-          icon={<Users size={20} />}
-          color="bg-primary shadow-primary/20"
-        />
-        <StatsCard
-          title="Active Staff"
-          amount={statsDisplay.active}
-          icon={<UserCheck size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-        />
-        <StatsCard
-          title="Privileged Users"
-          amount={statsDisplay.admins}
-          icon={<ShieldCheck size={20} />}
-          color="bg-purple-500 shadow-purple-500/20"
-        />
-      </div>
+      {summaryLoading ? (
+        <CardsSkeleton count={3} />
+      ) : (
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <StatsCard
+            title="Total Team"
+            amount={statsDisplay.total}
+            icon={<Users size={20} />}
+            color="bg-primary shadow-primary/20"
+          />
+          <StatsCard
+            title="Active Staff"
+            amount={statsDisplay.active}
+            icon={<UserCheck size={20} />}
+            color="bg-emerald-500 shadow-emerald-500/20"
+          />
+          <StatsCard
+            title="Privileged Users"
+            amount={statsDisplay.admins}
+            icon={<ShieldCheck size={20} />}
+            color="bg-purple-500 shadow-purple-500/20"
+          />
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
