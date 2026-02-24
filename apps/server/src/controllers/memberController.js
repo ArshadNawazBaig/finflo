@@ -1852,9 +1852,14 @@ const withdrawShareInvestment = async (req, res) => {
 const distributeShareProfit = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { totalProfit: profitPool, period, description } = req.body;
+    const {
+      totalProfit: profitPool,
+      period,
+      description,
+      useCustomRates,
+    } = req.body;
 
-    if (!profitPool || profitPool <= 0) {
+    if (!useCustomRates && (!profitPool || profitPool <= 0)) {
       return res.status(400).json({ message: 'Invalid profit amount' });
     }
 
@@ -1873,10 +1878,28 @@ const distributeShareProfit = async (req, res) => {
     const distributions = [];
 
     for (const member of members) {
-      const share = (member.shareBalance / totalSharePool) * 100;
-      const profitAmount = Math.round(
-        (member.shareBalance / totalSharePool) * profitPool,
-      );
+      let profitAmount = 0;
+      let calculationInfo = '';
+      let sharePercent = 0;
+
+      if (useCustomRates) {
+        if (member.shareProfitRate > 0) {
+          profitAmount = Math.round(
+            (member.shareBalance * member.shareProfitRate) / 100,
+          );
+          calculationInfo = `Custom rate: ${member.shareProfitRate}% of share balance`;
+          sharePercent = member.shareProfitRate;
+        } else {
+          continue; // Skip if no rate set and using custom rates
+        }
+      } else {
+        sharePercent = (member.shareBalance / totalSharePool) * 100;
+        profitAmount = Math.round(
+          (member.shareBalance / totalSharePool) * profitPool,
+        );
+        calculationInfo = `Proportional share: ${sharePercent.toFixed(2)}% of Rs. ${profitPool.toLocaleString()}`;
+      }
+
       if (profitAmount <= 0) continue;
 
       // Credit profit to share balance (re-invest) AND to totalProfit (net profit)
@@ -1893,7 +1916,7 @@ const distributeShareProfit = async (req, res) => {
         amount: profitAmount,
         description:
           description ||
-          `Share profit distribution for ${period || 'current period'}`,
+          `Share profit distribution for ${period || 'current period'}${useCustomRates ? ' (Custom Rates)' : ''}`,
         shareBalanceAfter: member.shareBalance,
         period:
           period ||
@@ -1911,7 +1934,7 @@ const distributeShareProfit = async (req, res) => {
         category: 'profit_distribution',
         amount: profitAmount,
         date: new Date(),
-        description: `Share profit for ${period || 'current period'}`,
+        description: `Share profit: ${calculationInfo}`,
         member: member._id,
         referenceId: shareRecord._id,
         referenceModel: 'BusinessShare',
@@ -1922,7 +1945,7 @@ const distributeShareProfit = async (req, res) => {
         await createTransactionNotification({
           recipientId: member._id,
           title: 'Share Profit Credited',
-          message: `Rs. ${profitAmount.toLocaleString()} share profit for ${period || 'this period'} has been added to your portfolio (${share.toFixed(2)}% share).`,
+          message: `Rs. ${profitAmount.toLocaleString()} share profit has been added to your portfolio (${calculationInfo}).`,
           type: 'success',
           branchId: member.branchId,
           action: 'member_share_profit_notification',
@@ -1939,12 +1962,18 @@ const distributeShareProfit = async (req, res) => {
       distributions.push(shareRecord);
     }
 
+    // Log activity
     await logActivity({
       userId: req.user._id,
       action: 'share_profit_distributed',
       category: 'member',
-      details: `Distributed share profit of ${profitPool} to ${distributions.length} members for ${period}`,
-      metadata: { profitPool, period, membersCount: distributions.length },
+      details: `Distributed share profit to ${distributions.length} members for ${period} using ${useCustomRates ? 'custom rates' : 'proportional method'}`,
+      metadata: {
+        profitPool: useCustomRates ? 'Custom Rates' : profitPool,
+        period,
+        membersCount: distributions.length,
+        method: useCustomRates ? 'custom' : 'proportional',
+      },
       req,
     });
 

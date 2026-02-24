@@ -38,6 +38,7 @@ const memberSchema = new mongoose.Schema(
     shareBalance: { type: Number, default: 0 },
     totalShareInvested: { type: Number, default: 0 },
     totalShareProfit: { type: Number, default: 0 },
+    shareProfitRate: { type: Number, default: 0 }, // Custom profit rate for shares
     status: {
       type: String,
       enum: ['Active', 'Inactive'],

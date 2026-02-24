@@ -100,7 +100,9 @@ const MemberProfile = () => {
     cnic: '',
     address: '',
     status: '',
+    shareProfitRate: '',
   });
+  const [useShareCustomRates, setUseShareCustomRates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Pagination State
@@ -127,9 +129,13 @@ const MemberProfile = () => {
   const [shareTotalPages, setShareTotalPages] = useState(1);
   const [shareTotal, setShareTotal] = useState(0);
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
+  const [shareProfitRate, setShareProfitRate] = useState('');
+  const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
+  const [shareLimit, setShareLimit] = useState(5);
 
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
+  const shareObserverTarget = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -153,6 +159,7 @@ const MemberProfile = () => {
         cnic: memberRes.data.cnic || '',
         address: memberRes.data.address || '',
         status: memberRes.data.status || '',
+        shareProfitRate: memberRes.data.shareProfitRate || 0,
       });
 
       const investmentData = investmentsRes.data || {};
@@ -265,6 +272,37 @@ const MemberProfile = () => {
     }, 500);
   }, [member, loanPage, hasMoreLoans, isFetchingMoreLoans]);
 
+  // ── Business Share handlers ─────────────────────────────────────────────────
+  const fetchMemberShares = useCallback(
+    async (page = 1, isAppend = false) => {
+      if (isAppend) {
+        setIsFetchingMoreShares(true);
+      } else {
+        setIsSharesLoading(true);
+      }
+      try {
+        const { data } = await api.get(
+          `/members/${id}/shares?page=${page}&limit=${shareLimit}`,
+        );
+        const newData = data.shares || [];
+        if (isAppend) {
+          setShares((prev) => [...prev, ...newData]);
+        } else {
+          setShares(newData);
+        }
+        setShareCurrentPage(data.currentPage || 1);
+        setShareTotalPages(data.totalPages || 1);
+        setShareTotal(data.total || 0);
+      } catch (error) {
+        toast.error('Failed to load share history');
+      } finally {
+        setIsSharesLoading(false);
+        setIsFetchingMoreShares(false);
+      }
+    },
+    [id],
+  );
+
   // Infinite Scroll Observers
   useEffect(() => {
     if (!isMobile) return;
@@ -312,6 +350,35 @@ const MemberProfile = () => {
 
     return () => loanObserver.disconnect();
   }, [isMobile, isFetchingMoreLoans, hasMoreLoans, loadMoreLoans]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const shareObserver = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !isFetchingMoreShares &&
+          shareCurrentPage < shareTotalPages
+        ) {
+          fetchMemberShares(shareCurrentPage + 1, true);
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (shareObserverTarget.current) {
+      shareObserver.observe(shareObserverTarget.current);
+    }
+
+    return () => shareObserver.disconnect();
+  }, [
+    isMobile,
+    isFetchingMoreShares,
+    shareCurrentPage,
+    shareTotalPages,
+    fetchMemberShares,
+  ]);
 
   useEffect(() => {
     fetchMemberData();
@@ -434,25 +501,6 @@ const MemberProfile = () => {
   };
 
   // ── Business Share handlers ─────────────────────────────────────────────────
-  const fetchMemberShares = useCallback(
-    async (page = 1) => {
-      setIsSharesLoading(true);
-      try {
-        const { data } = await api.get(
-          `/members/${id}/shares?page=${page}&limit=5`,
-        );
-        setShares(data.shares || []);
-        setShareCurrentPage(data.currentPage || 1);
-        setShareTotalPages(data.totalPages || 1);
-        setShareTotal(data.total || 0);
-      } catch (error) {
-        toast.error('Failed to load share history');
-      } finally {
-        setIsSharesLoading(false);
-      }
-    },
-    [id],
-  );
 
   const handleShareSubmit = async (e) => {
     e.preventDefault();
@@ -460,11 +508,14 @@ const MemberProfile = () => {
     try {
       if (shareFormType === 'profit') {
         await api.post('/members/distribute-share-profit', {
-          totalProfit: parseFloat(shareAmount),
+          totalProfit: parseFloat(shareAmount) || 0,
           period: sharePeriod,
           description: shareDescription,
+          useCustomRates: useShareCustomRates,
         });
-        toast.success('Share profit distributed to all share holders');
+        toast.success(
+          `Share profit distributed to all share holders (${useShareCustomRates ? 'Custom Rates' : 'Proportional'})`,
+        );
       } else {
         const endpoint =
           shareFormType === 'deposit' ? 'share-invest' : 'share-withdraw';
@@ -483,7 +534,7 @@ const MemberProfile = () => {
       setSharePeriod('');
       setShowShareForm(false);
       fetchMemberData();
-      fetchMemberShares(1);
+      fetchMemberShares(1, false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
     } finally {
@@ -494,8 +545,8 @@ const MemberProfile = () => {
 
   // Fetch share history after fetchMemberShares is defined
   useEffect(() => {
-    if (id) fetchMemberShares(1);
-  }, [id, fetchMemberShares]);
+    if (id) fetchMemberShares(1, false);
+  }, [id, fetchMemberShares, shareLimit]);
 
   const handleRecalcBalance = async () => {
     try {
@@ -1039,6 +1090,25 @@ const MemberProfile = () => {
                         <option value="Suspended">Suspended</option>
                       </select>
                     </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Share Profit Rate (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.shareProfitRate}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            shareProfitRate: e.target.value,
+                          })
+                        }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="0.00"
+                      />
+                    </div>
+
                     <div className="space-y-2 md:col-span-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                         Physical Address
@@ -1600,19 +1670,63 @@ const MemberProfile = () => {
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         {shareFormType === 'profit'
-                          ? 'Total Profit Pool (Rs.)'
+                          ? useShareCustomRates
+                            ? 'Total Profit Reference (Rs.)'
+                            : 'Total Profit Pool (Rs.)'
                           : 'Amount (Rs.)'}
                       </label>
                       <input
                         type="number"
-                        required
+                        required={
+                          !useShareCustomRates || shareFormType !== 'profit'
+                        }
                         min="1"
                         value={shareAmount}
                         onChange={(e) => setShareAmount(e.target.value)}
-                        placeholder="Enter amount"
+                        placeholder={
+                          useShareCustomRates && shareFormType === 'profit'
+                            ? 'Optional reference amount'
+                            : 'Enter amount'
+                        }
                         className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
                       />
                     </div>
+                    {shareFormType === 'profit' && (
+                      <div className="md:col-span-2 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-amber-600">
+                            Distribution Method
+                          </label>
+                          <div className="flex bg-muted p-1 rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => setUseShareCustomRates(false)}
+                              className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${!useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                            >
+                              Proportional
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setUseShareCustomRates(true)}
+                              className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${useShareCustomRates ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                            >
+                              Custom Rates
+                            </button>
+                          </div>
+                        </div>
+                        {useShareCustomRates ? (
+                          <p className="text-[10px] font-medium text-amber-600 italic">
+                            Profit will be calculated for each member using
+                            their individual Share Profit Rate setting.
+                          </p>
+                        ) : (
+                          <p className="text-[10px] font-medium text-amber-600 italic">
+                            Profit pool will be split among all members based on
+                            their share balance size.
+                          </p>
+                        )}
+                      </div>
+                    )}
                     {shareFormType === 'profit' && (
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -1744,20 +1858,25 @@ const MemberProfile = () => {
                       </div>
                     );
                   })}
-                  {shareTotalPages > 1 && (
-                    <div className="flex justify-center gap-2 pt-2">
-                      {Array.from(
-                        { length: shareTotalPages },
-                        (_, i) => i + 1,
-                      ).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => fetchMemberShares(p)}
-                          className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${p === shareCurrentPage ? 'bg-violet-500 text-white' : 'bg-muted/50 hover:bg-muted text-muted-foreground'}`}
-                        >
-                          {p}
-                        </button>
-                      ))}
+                  {isMobile && shareCurrentPage < shareTotalPages && (
+                    <div ref={shareObserverTarget} className="py-4 px-4">
+                      <InfiniteLoader isFetchingMore={isFetchingMoreShares} />
+                    </div>
+                  )}
+
+                  {!isMobile && shares.length > 0 && (
+                    <div className="mt-6 border-t border-border/50 pt-6">
+                      <Pagination
+                        currentPage={shareCurrentPage}
+                        totalPages={shareTotalPages}
+                        totalEntries={shareTotal}
+                        limit={shareLimit}
+                        onPageChange={(p) => fetchMemberShares(p, false)}
+                        onLimitChange={(newLimit) => {
+                          setShareLimit(newLimit);
+                          setShareCurrentPage(1);
+                        }}
+                      />
                     </div>
                   )}
                 </>
