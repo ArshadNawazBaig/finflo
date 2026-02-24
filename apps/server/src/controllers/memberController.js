@@ -905,6 +905,25 @@ const distributeProfit = async (req, res) => {
           });
           await financialTx.save();
 
+          // Notify member
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: 'Profit Credited',
+              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added to your account for ${period || 'current period'} (${member.profitRate}% rate).`,
+              type: 'success',
+              branchId: member.branchId,
+              action: 'member_profit_notification',
+              metadata: {
+                amount: profitAmount,
+                distributionId: distribution._id,
+                link: '/member/investments',
+              },
+            });
+          } catch (notifError) {
+            console.error('Profit Notification Error:', notifError);
+          }
+
           distributions.push(distribution);
         }
       }
@@ -962,6 +981,25 @@ const distributeProfit = async (req, res) => {
             referenceModel: 'ProfitDistribution',
           });
           await financialTx.save();
+
+          // Notify member
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: 'Profit Credited',
+              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added to your account for ${period || 'current period'} (${share.toFixed(2)}% share).`,
+              type: 'success',
+              branchId: member.branchId,
+              action: 'member_profit_notification',
+              metadata: {
+                amount: profitAmount,
+                distributionId: distribution._id,
+                link: '/member/investments',
+              },
+            });
+          } catch (notifError) {
+            console.error('Profit Notification Error:', notifError);
+          }
 
           distributions.push(distribution);
         }

@@ -1600,7 +1600,7 @@ const MemberProfile = () => {
                 >
                   <ArrowDownCircle size={14} /> Withdraw
                 </button>
-                <button
+                {/* <button
                   onClick={() => {
                     setShareFormType('profit');
                     setShowShareForm(true);
@@ -1608,7 +1608,7 @@ const MemberProfile = () => {
                   className="px-4 py-2 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
                 >
                   <BadgeDollarSign size={14} /> Distribute Profit
-                </button>
+                </button> */}
               </div>
             </div>
 

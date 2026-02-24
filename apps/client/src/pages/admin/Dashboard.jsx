@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/loans/RepaymentCalendar';
 import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
+import DistributeProfitModal from '@/components/DistributeProfitModal';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -40,6 +41,7 @@ const Dashboard = () => {
     from: subMonths(new Date(), 6),
     to: new Date(),
   });
+  const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchDashboardData = async (isInitial = false) => {
@@ -138,7 +140,21 @@ const Dashboard = () => {
             . Here's your portfolio performance.
           </>
         }
-      />
+      >
+        {!loading &&
+          (userRole === 'admin' ||
+            (userRole === 'staff' &&
+              (stats?.isManager || userName === 'admin'))) && (
+            <Button
+              onClick={() => setIsProfitModalOpen(true)}
+              variant="gradient"
+              className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-2"
+            >
+              <TrendingUp size={14} />
+              Distribute Profit
+            </Button>
+          )}
+      </PageHeader>
 
       {/* Plan Usage Banner */}
       {!loading &&
@@ -389,6 +405,12 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <DistributeProfitModal
+        isOpen={isProfitModalOpen}
+        onClose={() => setIsProfitModalOpen(false)}
+        onSuccess={fetchDashboardData}
+      />
     </div>
   );
 };
