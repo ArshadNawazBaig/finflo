@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
+const BusinessShare = require('../models/BusinessShare');
 const ProfitDistribution = require('../models/ProfitDistribution');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
@@ -1614,6 +1615,382 @@ const recalculateBalance = async (req, res) => {
   }
 };
 
+// @desc  Get logged-in member's own business share history
+// @route GET /api/members/portal/shares
+// @access Private (Member)
+const getPortalShares = async (req, res) => {
+  try {
+    const memberId = req.member._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    const query = { member: memberId };
+    if (search) {
+      query.description = { $regex: search, $options: 'i' };
+    }
+
+    const [shares, total] = await Promise.all([
+      BusinessShare.find(query).sort({ date: -1 }).skip(skip).limit(limit),
+      BusinessShare.countDocuments(query),
+    ]);
+
+    res.json({
+      shares,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error('Get Portal Shares Error:', error);
+    res.status(500).json({ message: 'Failed to fetch share history' });
+  }
+};
+
+// ─── BUSINESS SHARE FUNCTIONS ─────────────────────────────────────────────────
+
+// @desc  Get member's business share transaction history
+// @route GET /api/members/:id/shares
+// @access Private (Admin/Staff)
+const getMemberShares = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [shares, total] = await Promise.all([
+      BusinessShare.find({ member: id, user: userId })
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit),
+      BusinessShare.countDocuments({ member: id, user: userId }),
+    ]);
+
+    res.json({
+      shares,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error('Get Business Shares Error:', error);
+    res.status(500).json({ message: 'Failed to fetch business shares' });
+  }
+};
+
+// @desc  Add a business share investment (deposit)
+//        NOTE: intentionally does NOT trigger auto-loan repayment
+// @route POST /api/members/:id/share-invest
+// @access Private (Admin/Staff)
+const addShareInvestment = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+    const { amount, description } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid share investment amount' });
+    }
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    // Update member share fields only — currentBalance is untouched
+    member.shareBalance += amount;
+    member.totalShareInvested += amount;
+    await member.save();
+
+    // Create business share record
+    const shareRecord = await BusinessShare.create({
+      user: userId,
+      member: id,
+      branchId: member.branchId,
+      type: 'share_deposit',
+      amount,
+      description: description || 'Business share investment',
+      shareBalanceAfter: member.shareBalance,
+    });
+
+    // Financial transaction (income — share investment inflow)
+    await FinancialTransaction.create({
+      user: userId,
+      branchId: member.branchId,
+      type: 'income',
+      category: 'investment',
+      amount,
+      date: new Date(),
+      description: description || 'Business share investment',
+      member: member._id,
+      referenceId: shareRecord._id,
+      referenceModel: 'BusinessShare',
+    });
+
+    // Notify member
+    try {
+      await createTransactionNotification({
+        recipientId: member._id,
+        title: 'Business Share Invested',
+        message: `Rs. ${amount.toLocaleString()} has been added to your business share portfolio (${description || 'Business Share Deposit'}).`,
+        type: 'success',
+        branchId: member.branchId,
+        action: 'member_share_deposit_notification',
+        metadata: { amount, shareId: shareRecord._id, link: '/member/shares' },
+      });
+    } catch (notifError) {
+      console.error('Share Deposit Notification Error:', notifError);
+    }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_share_invested',
+      category: 'member',
+      details: `Added share investment of ${amount} for member: ${member.name}`,
+      metadata: { memberId: id, amount, shareId: shareRecord._id },
+      req,
+    });
+
+    res.status(201).json({ shareRecord, member });
+  } catch (error) {
+    console.error('Add Share Investment Error:', error);
+    res.status(500).json({ message: 'Failed to add share investment' });
+  }
+};
+
+// @desc  Withdraw from business share balance
+// @route POST /api/members/:id/share-withdraw
+// @access Private (Admin/Staff)
+const withdrawShareInvestment = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+    const { amount, description } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid withdrawal amount' });
+    }
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    if (member.shareBalance < amount) {
+      return res
+        .status(400)
+        .json({ message: 'Insufficient share balance for withdrawal' });
+    }
+
+    member.shareBalance -= amount;
+    await member.save();
+
+    const shareRecord = await BusinessShare.create({
+      user: userId,
+      member: id,
+      branchId: member.branchId,
+      type: 'share_withdrawal',
+      amount,
+      description: description || 'Business share withdrawal',
+      shareBalanceAfter: member.shareBalance,
+    });
+
+    await FinancialTransaction.create({
+      user: userId,
+      branchId: member.branchId,
+      type: 'expense',
+      category: 'withdrawal',
+      amount,
+      date: new Date(),
+      description: description || 'Business share withdrawal',
+      member: member._id,
+      referenceId: shareRecord._id,
+      referenceModel: 'BusinessShare',
+    });
+
+    try {
+      await createTransactionNotification({
+        recipientId: member._id,
+        title: 'Business Share Withdrawal',
+        message: `Rs. ${amount.toLocaleString()} has been withdrawn from your business share portfolio.`,
+        type: 'info',
+        branchId: member.branchId,
+        action: 'member_share_withdrawal_notification',
+        metadata: { amount, shareId: shareRecord._id, link: '/member/shares' },
+      });
+    } catch (notifError) {
+      console.error('Share Withdrawal Notification Error:', notifError);
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_share_withdrawn',
+      category: 'member',
+      details: `Processed share withdrawal of ${amount} for member: ${member.name}`,
+      metadata: { memberId: id, amount },
+      req,
+    });
+
+    res.status(201).json({ shareRecord, member });
+  } catch (error) {
+    console.error('Withdraw Share Investment Error:', error);
+    res.status(500).json({ message: 'Failed to withdraw share investment' });
+  }
+};
+
+// @desc  Distribute share profit to all active members with share balance
+//        Profit is proportional to shareBalance.
+//        Credited to: shareBalance (re-invested) + totalProfit (net profit reporting)
+// @route POST /api/members/distribute-share-profit
+// @access Private (Admin)
+const distributeShareProfit = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const {
+      totalProfit: profitPool,
+      period,
+      description,
+      useCustomRates,
+    } = req.body;
+
+    if (!useCustomRates && (!profitPool || profitPool <= 0)) {
+      return res.status(400).json({ message: 'Invalid profit amount' });
+    }
+
+    const members = await Member.find({
+      user: userId,
+      status: 'Active',
+      shareBalance: { $gt: 0 },
+    });
+    if (members.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'No active members with share investments found' });
+    }
+
+    const totalSharePool = members.reduce((sum, m) => sum + m.shareBalance, 0);
+    const distributions = [];
+
+    for (const member of members) {
+      let profitAmount = 0;
+      let calculationInfo = '';
+      let sharePercent = 0;
+
+      if (useCustomRates) {
+        if (member.shareProfitRate > 0) {
+          profitAmount = Math.round(
+            (member.shareBalance * member.shareProfitRate) / 100,
+          );
+          calculationInfo = `Custom rate: ${member.shareProfitRate}% of share balance`;
+          sharePercent = member.shareProfitRate;
+        } else {
+          continue; // Skip if no rate set and using custom rates
+        }
+      } else {
+        sharePercent = (member.shareBalance / totalSharePool) * 100;
+        profitAmount = Math.round(
+          (member.shareBalance / totalSharePool) * profitPool,
+        );
+        calculationInfo = `Proportional share: ${sharePercent.toFixed(2)}% of Rs. ${profitPool.toLocaleString()}`;
+      }
+
+      if (profitAmount <= 0) continue;
+
+      // Credit profit to share balance (re-invest) AND to totalProfit (net profit)
+      member.shareBalance += profitAmount;
+      member.totalShareProfit += profitAmount;
+      member.totalProfit += profitAmount; // Reflected in net profits
+      await member.save();
+
+      const shareRecord = await BusinessShare.create({
+        user: userId,
+        member: member._id,
+        branchId: member.branchId,
+        type: 'share_profit',
+        amount: profitAmount,
+        description:
+          description ||
+          `Share profit distribution for ${period || 'current period'}${useCustomRates ? ' (Custom Rates)' : ''}`,
+        shareBalanceAfter: member.shareBalance,
+        period:
+          period ||
+          new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric',
+          }),
+      });
+
+      // FinancialTransaction — expense so it appears in net profit outflow
+      await FinancialTransaction.create({
+        user: userId,
+        branchId: member.branchId,
+        type: 'expense',
+        category: 'profit_distribution',
+        amount: profitAmount,
+        date: new Date(),
+        description: `Share profit: ${calculationInfo}`,
+        member: member._id,
+        referenceId: shareRecord._id,
+        referenceModel: 'BusinessShare',
+      });
+
+      // Notify member
+      try {
+        await createTransactionNotification({
+          recipientId: member._id,
+          title: 'Share Profit Credited',
+          message: `Rs. ${profitAmount.toLocaleString()} share profit has been added to your portfolio (${calculationInfo}).`,
+          type: 'success',
+          branchId: member.branchId,
+          action: 'member_share_profit_notification',
+          metadata: {
+            amount: profitAmount,
+            shareId: shareRecord._id,
+            link: '/member/shares',
+          },
+        });
+      } catch (notifError) {
+        console.error('Share Profit Notification Error:', notifError);
+      }
+
+      distributions.push(shareRecord);
+    }
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'share_profit_distributed',
+      category: 'member',
+      details: `Distributed share profit to ${distributions.length} members for ${period} using ${useCustomRates ? 'custom rates' : 'proportional method'}`,
+      metadata: {
+        profitPool: useCustomRates ? 'Custom Rates' : profitPool,
+        period,
+        membersCount: distributions.length,
+        method: useCustomRates ? 'custom' : 'proportional',
+      },
+      req,
+    });
+
+    res.status(201).json({
+      message: 'Share profit distributed successfully',
+      distributions,
+      totalDistributed: distributions.reduce((sum, d) => sum + d.amount, 0),
+      membersCount: distributions.length,
+    });
+  } catch (error) {
+    console.error('Distribute Share Profit Error:', error);
+    res.status(500).json({ message: 'Failed to distribute share profit' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -1631,4 +2008,10 @@ module.exports = {
   adminTransferFunds,
   lookupMember,
   recalculateBalance,
+  // Business Share
+  getMemberShares,
+  addShareInvestment,
+  withdrawShareInvestment,
+  distributeShareProfit,
+  getPortalShares,
 };
