@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const api = axios.create({
   baseURL: '/api', // Vite proxy handles this
@@ -6,20 +7,43 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    const memberToken = localStorage.getItem('memberToken');
+    const isMemberRoute = window.location.pathname.startsWith('/member/');
+    const token = isMemberRoute
+      ? localStorage.getItem('memberToken')
+      : localStorage.getItem('token');
 
-    // Prioritize memberToken if on a member route, otherwise use token
-    const finalToken = window.location.pathname.startsWith('/member')
-      ? memberToken || token
-      : token || memberToken;
-
-    if (finalToken) {
-      config.headers.Authorization = `Bearer ${finalToken}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error),
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isMemberRoute = window.location.pathname.startsWith('/member/');
+
+      if (isMemberRoute) {
+        localStorage.removeItem('memberToken');
+        localStorage.removeItem('member');
+        // Avoid redirect loop if already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/member/login';
+        }
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Avoid redirect loop if already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  },
 );
 
 export default api;
