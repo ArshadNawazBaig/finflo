@@ -17,12 +17,19 @@ const {
   adminTransferFunds,
   lookupMember,
   recalculateBalance,
+  // Business Share
+  getMemberShares,
+  addShareInvestment,
+  withdrawShareInvestment,
+  distributeShareProfit,
+  getPortalShares,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
+router.get('/portal/shares', protectMember, getPortalShares);
 router.post('/portal/transfer', protectMember, transferFunds);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
 router.get('/lookup', protect, lookupMember); // Admin can lookup members
@@ -40,7 +47,7 @@ router.delete('/:id', deleteMember);
 router.post('/admin/transfer', adminTransferFunds);
 router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
-// Investment management
+// Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);
 router.post('/:id/invest', addInvestment);
 router.post('/:id/withdraw', withdrawInvestment);
@@ -48,5 +55,11 @@ router.post('/:id/withdraw', withdrawInvestment);
 // Profit management
 router.get('/:id/profits', getMemberProfits);
 router.post('/distribute-profit', distributeProfit);
+
+// Business Share management (separate from main balance — no auto loan deduction)
+router.get('/:id/shares', getMemberShares);
+router.post('/:id/share-invest', addShareInvestment);
+router.post('/:id/share-withdraw', withdrawShareInvestment);
+router.post('/distribute-share-profit', distributeShareProfit);
 
 module.exports = router;

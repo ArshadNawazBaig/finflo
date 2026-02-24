@@ -63,7 +63,7 @@ const financialTransactionSchema = new mongoose.Schema(
     },
     referenceModel: {
       type: String,
-      enum: ['Repayment', 'Investment', 'Loan', 'User'],
+      enum: ['Repayment', 'Investment', 'Loan', 'User', 'BusinessShare'],
     },
   },
   {

@@ -80,6 +80,9 @@ const MemberLoans = lazy(() => import('@/pages/member/MemberLoans'));
 const MemberTransfer = lazy(() => import('@/pages/member/MemberTransfer'));
 const MemberSettings = lazy(() => import('@/pages/member/MemberSettings'));
 const MemberInvestment = lazy(() => import('@/pages/member/MemberInvestment'));
+const MemberBusinessShare = lazy(
+  () => import('@/pages/member/MemberBusinessShare'),
+);
 const MemberForgotPassword = lazy(
   () => import('@/pages/member/MemberForgotPassword'),
 );
@@ -220,6 +223,10 @@ function App() {
                   <Route
                     path="/member/investments"
                     element={<MemberInvestment />}
+                  />
+                  <Route
+                    path="/member/shares"
+                    element={<MemberBusinessShare />}
                   />
                   <Route path="/member/settings" element={<MemberSettings />} />
                   <Route

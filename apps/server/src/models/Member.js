@@ -34,6 +34,10 @@ const memberSchema = new mongoose.Schema(
     totalProfit: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
     profitRate: { type: Number, default: 0 }, // Custom profit rate if needed
+    // Business Share (separate from main balance – never auto-deducted for loans)
+    shareBalance: { type: Number, default: 0 },
+    totalShareInvested: { type: Number, default: 0 },
+    totalShareProfit: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ['Active', 'Inactive'],

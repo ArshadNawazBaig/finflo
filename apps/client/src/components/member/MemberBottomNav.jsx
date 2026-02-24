@@ -7,6 +7,7 @@ import {
   Send,
   TrendingUp,
   Bell,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,11 @@ const MemberBottomNav = () => {
       icon: <TrendingUp size={20} />,
       label: 'Assets',
       path: '/member/investments',
+    },
+    {
+      icon: <Building2 size={20} />,
+      label: 'Shares',
+      path: '/member/shares',
     },
     { icon: <Send size={20} />, label: 'Transfer', path: '/member/transfer' },
     {
