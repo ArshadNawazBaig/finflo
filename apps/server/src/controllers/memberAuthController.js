@@ -1,15 +1,7 @@
 const Member = require('../models/Member');
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
-const otplib = require('otplib');
-// Configure otplib to use audited plugins and maintain interface compatibility
-const authenticator = {
-  ...otplib,
-  generateSecret: (length) => otplib.generateSecret({ length }),
-  generate: (secret) => otplib.generate({ secret }),
-  verify: (options) => otplib.verify(options),
-  toURI: (options) => otplib.generateURI(options),
-};
+const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
@@ -532,11 +524,7 @@ const generate2FA = async (req, res) => {
     await member.save({ validateBeforeSave: false });
 
     const appName = 'ACE Wealth Portal';
-    const otpauthUrl = authenticator.toURI({
-      label: member.email,
-      issuer: appName,
-      secret: secret,
-    });
+    const otpauthUrl = authenticator.keyuri(member.email, appName, secret);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 
     res.json({ qrCode: qrCodeDataUrl, secret });
