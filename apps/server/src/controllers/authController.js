@@ -21,7 +21,7 @@ const {
   passwordResetEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
-const { authenticator } = require('otplib');
+const { authenticator } = require('otplib/authenticator');
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
