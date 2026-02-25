@@ -12,10 +12,38 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id)
+        .select('-password')
+        .populate('roleRef');
 
       if (!req.user) {
         return res.status(401).json({ message: 'User not found' });
+      }
+
+      // Populate permissions from roleRef or provide defaults based on legacy string role
+      req.user.permissions = req.user.roleRef
+        ? req.user.roleRef.permissions
+        : [];
+
+      // Legacy fallback for permissions if no custom role is assigned
+      if (req.user.permissions.length === 0) {
+        if (req.user.role === 'super_admin') {
+          req.user.permissions = ['*']; // Full access
+        } else if (req.user.role === 'admin' || req.user.isManager) {
+          req.user.permissions = [
+            'view_all',
+            'manage_loans',
+            'manage_members',
+            'manage_branches',
+            'view_reports',
+          ];
+        } else if (req.user.role === 'staff') {
+          req.user.permissions = [
+            'view_assigned',
+            'create_loan',
+            'create_member',
+          ];
+        }
       }
 
       // Check if this staff member is a branch manager
@@ -74,4 +102,34 @@ const staffOrAdmin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, staffOrAdmin };
+const authorizePermissions = (...requiredPermissions) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Super admin has all permissions
+    if (req.user.permissions.includes('*') || req.user.role === 'super_admin') {
+      return next();
+    }
+
+    const hasPermission = requiredPermissions.every((perm) =>
+      req.user.permissions.includes(perm),
+    );
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        message: 'Permission denied. You do not have the required access.',
+      });
+    }
+
+    next();
+  };
+};
+
+module.exports = {
+  protect,
+  admin,
+  staffOrAdmin,
+  authorizePermissions,
+};

@@ -40,7 +40,7 @@ const MemberBottomNav = () => {
       label: 'Shares',
       path: '/member/shares',
     },
-    { icon: <Send size={20} />, label: 'Transfer', path: '/member/transfer' },
+    // { icon: <Send size={20} />, label: 'Transfer', path: '/member/transfer' },
     {
       icon: <Bell size={20} />,
       label: 'Alerts',

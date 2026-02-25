@@ -21,6 +21,12 @@ const {
   passwordResetEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } = require('otplib');
+const authenticator = new TOTP({
+  crypto: new NobleCryptoPlugin(),
+  base32: new ScureBase32Plugin(),
+});
+const QRCode = require('qrcode');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -28,6 +34,11 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+  const { validateEmail } = require('../utils/emailValidator');
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
+  }
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
@@ -102,7 +113,9 @@ const loginUser = async (req, res) => {
   const lowercaseEmail = email?.toLowerCase();
 
   try {
-    const user = await User.findOne({ email: lowercaseEmail });
+    const user = await User.findOne({ email: lowercaseEmail }).populate(
+      'roleRef',
+    );
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -129,6 +142,16 @@ const loginUser = async (req, res) => {
     }
 
     if (await user.matchPassword(password)) {
+      // If 2FA is enabled, return a pending token and prompt for OTP
+      if (user.isTwoFactorEnabled) {
+        const pendingToken = jwt.sign(
+          { id: user._id, pending2FA: true },
+          process.env.JWT_SECRET,
+          { expiresIn: '5m' },
+        );
+        return res.json({ requires2FA: true, pendingToken });
+      }
+
       // Update last login
       user.lastLoginAt = new Date();
       await user.save();
@@ -151,6 +174,23 @@ const loginUser = async (req, res) => {
         req,
       });
 
+      const token = generateToken(user._id);
+
+      if (user.mustChangePassword) {
+        return res.json({
+          mustChangePassword: true,
+          token,
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isManager,
+          branchId,
+          businessName: user.businessName,
+          permissions: user.getPermissions(),
+        });
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -161,7 +201,8 @@ const loginUser = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
-        token: generateToken(user._id),
+        permissions: user.getPermissions(),
+        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -173,7 +214,9 @@ const loginUser = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('branchId'); // req.user set by protect middleware
+    const user = await User.findById(req.user._id)
+      .populate('branchId')
+      .populate('roleRef'); // req.user set by protect middleware
     if (user) {
       // Detect manager status
       let isManager = false;
@@ -197,6 +240,7 @@ const getMe = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
+        permissions: user.getPermissions(),
       });
     } else {
       res.status(404);
@@ -208,6 +252,13 @@ const getMe = async (req, res) => {
 };
 
 const updateDetails = async (req, res) => {
+  if (req.body.email) {
+    const { validateEmail } = require('../utils/emailValidator');
+    const emailValidation = validateEmail(req.body.email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+  }
   const fieldsToUpdate = {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
@@ -443,7 +494,7 @@ const verifyEmail = async (req, res) => {
       email: lowercaseEmail,
       verificationCode: code,
       verificationCodeExpire: { $gt: Date.now() },
-    });
+    }).populate('roleRef');
 
     if (!user) {
       return res
@@ -472,6 +523,7 @@ const verifyEmail = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      permissions: user.getPermissions(),
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -640,6 +692,241 @@ const deleteProfilePicture = async (req, res) => {
   }
 };
 
+// ─── Two-Factor Authentication ───────────────────────────────────────────────
+
+/** Generate a TOTP secret & return a QR code for the authenticator app */
+const generate2FA = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.isTwoFactorEnabled)
+      return res.status(400).json({ message: '2FA is already enabled' });
+
+    const secret = authenticator.generateSecret();
+    // Temporarily store secret until the user verifies
+    user.twoFactorSecret = secret;
+    await user.save({ validateBeforeSave: false });
+
+    const appName = 'ACE Wealth Portal';
+    const otpauthUrl = authenticator.toURI({
+      label: user.email,
+      issuer: appName,
+      secret: secret,
+    });
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
+    res.json({ qrCode: qrCodeDataUrl, secret });
+  } catch (error) {
+    console.error('2FA Generate Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Verify the OTP code and permanently enable 2FA */
+const verify2FA = async (req, res) => {
+  const { code } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.twoFactorSecret)
+      return res
+        .status(400)
+        .json({ message: 'No 2FA secret found. Generate one first.' });
+
+    const isValid = await authenticator.verify(code, {
+      secret: user.twoFactorSecret,
+    });
+    if (!isValid)
+      return res.status(400).json({ message: 'Invalid or expired code' });
+
+    user.isTwoFactorEnabled = true;
+    await user.save({ validateBeforeSave: false });
+
+    await logActivity({
+      userId: user._id,
+      action: '2fa_enabled',
+      category: 'auth',
+      details: 'User enabled Two-Factor Authentication',
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: 'Two-Factor Authentication enabled successfully.',
+    });
+  } catch (error) {
+    console.error('2FA Verify Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Disable 2FA after validating current password */
+const disable2FA = async (req, res) => {
+  const { password } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.isTwoFactorEnabled)
+      return res.status(400).json({ message: '2FA is not enabled' });
+
+    if (!(await user.matchPassword(password)))
+      return res
+        .status(401)
+        .json({ message: 'Incorrect password. Cannot disable 2FA.' });
+
+    user.isTwoFactorEnabled = false;
+    user.twoFactorSecret = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    await logActivity({
+      userId: user._id,
+      action: '2fa_disabled',
+      category: 'auth',
+      details: 'User disabled Two-Factor Authentication',
+      req,
+    });
+
+    res.json({ success: true, message: 'Two-Factor Authentication disabled.' });
+  } catch (error) {
+    console.error('2FA Disable Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Second step of the 2FA login flow: verify the OTP, return full user payload */
+const verifyLogin2FA = async (req, res) => {
+  const { pendingToken, code } = req.body;
+  try {
+    let decoded;
+    try {
+      decoded = jwt.verify(pendingToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return res
+        .status(401)
+        .json({ message: 'Invalid or expired session. Please log in again.' });
+    }
+
+    if (!decoded.pending2FA)
+      return res.status(400).json({ message: 'Invalid 2FA token' });
+
+    const user = await User.findById(decoded.id).populate('roleRef');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const isValid = await authenticator.verify(code, {
+      secret: user.twoFactorSecret,
+    });
+    if (!isValid)
+      return res.status(400).json({ message: 'Invalid or expired 2FA code' });
+
+    // Update last login
+    user.lastLoginAt = new Date();
+    await user.save({ validateBeforeSave: false });
+
+    let isManager = false;
+    let branchId = user.branchId;
+    if (user.role === 'staff') {
+      const managedBranch = await Branch.findOne({ manager: user._id });
+      isManager = !!managedBranch;
+      if (managedBranch) branchId = managedBranch._id;
+    }
+
+    await logActivity({
+      userId: user._id,
+      action: 'user_login',
+      category: 'auth',
+      details: `User logged in with 2FA: ${user.email}`,
+      req,
+    });
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isManager,
+      branchId,
+      businessName: user.businessName,
+      securityCode: user.securityCode,
+      profilePicture: user.profilePicture,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+      permissions: user.getPermissions(),
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    console.error('Verify Login 2FA Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const requestPasswordChangeCode = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordChangeCode = code;
+    user.passwordChangeCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    // Send Email
+    try {
+      const { verificationEmail } = require('../utils/emailTemplates');
+      const { sendEmail } = require('../utils/email');
+      const emailSent = await sendEmail({
+        to: user.email,
+        subject: 'Security Code for Password Change',
+        html: verificationEmail(code),
+      });
+
+      if (!emailSent) {
+        return res
+          .status(500)
+          .json({
+            message:
+              'Failed to send security code email. Please check SMTP settings.',
+          });
+      }
+
+      res.json({ success: true, message: 'Security code sent to email' });
+    } catch (emailErr) {
+      console.error('Failed to send password change code email:', emailErr);
+      res.status(500).json({ message: 'Failed to send email' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const forceChangePassword = async (req, res) => {
+  const { code, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (
+      !user.passwordChangeCode ||
+      user.passwordChangeCode !== code ||
+      user.passwordChangeCodeExpire < Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired security code' });
+    }
+
+    user.password = newPassword;
+    user.mustChangePassword = false;
+    user.passwordChangeCode = undefined;
+    user.passwordChangeCodeExpire = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -653,4 +940,10 @@ module.exports = {
   verifyEmail,
   resendVerificationCode,
   deleteAccount,
+  generate2FA,
+  verify2FA,
+  disable2FA,
+  verifyLogin2FA,
+  requestPasswordChangeCode,
+  forceChangePassword,
 };

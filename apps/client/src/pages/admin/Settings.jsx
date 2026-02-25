@@ -30,10 +30,13 @@ import {
   Sparkles,
   Save,
   Trash2,
+  QrCode,
+  KeyRound,
+  UserPlus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
-import { cn, capitalize } from '@/lib/utils';
+import { cn, capitalize, validateEmail } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -71,6 +74,13 @@ const Settings = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
+
+  // 2FA state
+  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState(null);
+  const [twoFACode, setTwoFACode] = useState('');
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [disable2FAPassword, setDisable2FAPassword] = useState('');
 
   // Fetch latest user data on mount
   useEffect(() => {
@@ -637,53 +647,265 @@ const Settings = () => {
                       </Button>
                     </div>
                     {isAdmin && (
-                      <div className="flex items-start justify-between pb-4 border-b border-border/50">
-                        <div className="flex items-center gap-3">
-                          <ShieldCheck
-                            size={18}
-                            className="text-muted-foreground"
-                          />
-                          <div>
-                            <p className="font-medium text-sm">
-                              Business Security Code
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Share this code with your members for portal
-                              access
-                            </p>
+                      <div className="flex flex-col gap-6 pb-4 border-b border-border/50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <ShieldCheck
+                              size={18}
+                              className="text-muted-foreground"
+                            />
+                            <div>
+                              <p className="font-medium text-sm">
+                                Business Security Code
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Identifies your organization in the system
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-mono text-lg font-black text-primary tracking-wider">
+                              {user.securityCode || 'LOADING...'}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-9 px-3"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  user.securityCode || '',
+                                );
+                                setCopiedSecurityCode(true);
+                                toast.success(
+                                  'Security code copied to clipboard',
+                                );
+                                setTimeout(
+                                  () => setCopiedSecurityCode(false),
+                                  2000,
+                                );
+                              }}
+                            >
+                              {copiedSecurityCode ? (
+                                <Check size={16} className="text-emerald-500" />
+                              ) : (
+                                <Copy size={16} />
+                              )}
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="font-mono text-lg font-black text-primary tracking-wider">
-                            {user.securityCode || 'LOADING...'}
+
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <UserPlus
+                              size={18}
+                              className="text-muted-foreground"
+                            />
+                            <div>
+                              <p className="font-medium text-sm">
+                                Member Registration Link
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Share this link to let members self-onboard
+                              </p>
+                            </div>
                           </div>
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            className="h-9 px-3"
+                            className="font-bold tracking-tight text-xs h-9 px-4"
                             onClick={() => {
-                              navigator.clipboard.writeText(
-                                user.securityCode || '',
-                              );
-                              setCopiedSecurityCode(true);
-                              toast.success(
-                                'Security code copied to clipboard',
-                              );
-                              setTimeout(
-                                () => setCopiedSecurityCode(false),
-                                2000,
-                              );
+                              const url = `${window.location.origin}/join/${user.securityCode || ''}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success('Registration link copied!');
                             }}
                           >
-                            {copiedSecurityCode ? (
-                              <Check size={16} className="text-emerald-500" />
-                            ) : (
-                              <Copy size={16} />
-                            )}
+                            Copy Link <Copy size={14} className="ml-2" />
                           </Button>
                         </div>
                       </div>
                     )}
+                    {/* ─── Two-Factor Authentication Panel ─── */}
+                    <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4 pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <QrCode size={18} className="text-muted-foreground" />
+                          <div>
+                            <p className="font-medium text-sm">
+                              Two-Factor Authentication
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {is2FAEnabled
+                                ? '2FA is currently active on your account.'
+                                : 'Add an extra layer of security via TOTP app.'}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                            is2FAEnabled
+                              ? 'bg-emerald-500/10 text-emerald-600'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {is2FAEnabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </div>
+
+                      {!is2FAEnabled && (
+                        <div className="space-y-3">
+                          {!qrCodeData ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={twoFALoading}
+                              onClick={async () => {
+                                try {
+                                  setTwoFALoading(true);
+                                  const { data } =
+                                    await api.post('/auth/2fa/generate');
+                                  setQrCodeData(data.qrCode);
+                                } catch (e) {
+                                  toast.error(
+                                    e.response?.data?.message ||
+                                      'Failed to generate QR',
+                                  );
+                                } finally {
+                                  setTwoFALoading(false);
+                                }
+                              }}
+                            >
+                              {twoFALoading ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <QrCode size={14} />
+                              )}
+                              <span className="ml-2">Set Up 2FA</span>
+                            </Button>
+                          ) : (
+                            <div className="space-y-3 animate-in fade-in">
+                              <p className="text-xs text-muted-foreground">
+                                Scan this QR code with Google Authenticator or
+                                Authy, then enter the 6-digit code below to
+                                confirm.
+                              </p>
+                              <img
+                                src={qrCodeData}
+                                alt="2FA QR Code"
+                                className="w-40 h-40 rounded-xl border border-border/50 p-2 bg-white mx-auto"
+                              />
+                              <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                  <KeyRound
+                                    size={14}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                                  />
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={6}
+                                    placeholder="Enter 6-digit code"
+                                    value={twoFACode}
+                                    onChange={(e) =>
+                                      setTwoFACode(
+                                        e.target.value.replace(/\D/g, ''),
+                                      )
+                                    }
+                                    className="w-full h-10 pl-9 pr-3 rounded-xl bg-background border border-border/50 text-sm font-mono tracking-widest outline-none focus:border-primary/50"
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  disabled={
+                                    twoFACode.length < 6 || twoFALoading
+                                  }
+                                  onClick={async () => {
+                                    try {
+                                      setTwoFALoading(true);
+                                      await api.post('/auth/2fa/verify', {
+                                        code: twoFACode,
+                                      });
+                                      setIs2FAEnabled(true);
+                                      setQrCodeData(null);
+                                      setTwoFACode('');
+                                      toast.success(
+                                        '2FA enabled! Your account is now secure.',
+                                      );
+                                    } catch (e) {
+                                      toast.error(
+                                        e.response?.data?.message ||
+                                          'Verification failed',
+                                      );
+                                    } finally {
+                                      setTwoFALoading(false);
+                                    }
+                                  }}
+                                >
+                                  {twoFALoading ? (
+                                    <Loader2
+                                      size={14}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <Check size={14} />
+                                  )}
+                                  <span className="ml-1">Verify</span>
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {is2FAEnabled && (
+                        <div className="space-y-2 animate-in fade-in">
+                          <p className="text-xs text-muted-foreground">
+                            Enter your password to disable Two-Factor
+                            Authentication.
+                          </p>
+                          <div className="flex gap-2">
+                            <input
+                              type="password"
+                              placeholder="Current password"
+                              value={disable2FAPassword}
+                              onChange={(e) =>
+                                setDisable2FAPassword(e.target.value)
+                              }
+                              className="flex-1 h-10 px-3 rounded-xl bg-background border border-border/50 text-sm outline-none focus:border-destructive/50"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={!disable2FAPassword || twoFALoading}
+                              onClick={async () => {
+                                try {
+                                  setTwoFALoading(true);
+                                  await api.post('/auth/2fa/disable', {
+                                    password: disable2FAPassword,
+                                  });
+                                  setIs2FAEnabled(false);
+                                  setDisable2FAPassword('');
+                                  toast.success('2FA disabled.');
+                                } catch (e) {
+                                  toast.error(
+                                    e.response?.data?.message ||
+                                      'Failed to disable',
+                                  );
+                                } finally {
+                                  setTwoFALoading(false);
+                                }
+                              }}
+                            >
+                              {twoFALoading ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                'Disable'
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <LogOut size={18} className="text-muted-foreground" />
@@ -708,7 +930,9 @@ const Settings = () => {
               )}
 
               {/* Configuration Section */}
-              {activeSection === 'configuration' && <ConfigurationSection />}
+              {activeSection === 'configuration' && (
+                <ConfigurationSection user={user} />
+              )}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -741,17 +965,27 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
   const [formData, setFormData] = useState({
     name: user.name || '',
     email: user.email || '',
+    businessName: user.businessName || '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setFormData({ name: user.name || '', email: user.email || '' });
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        businessName: user.businessName || '',
+      });
     }
   }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await api.put('/auth/updatedetails', formData);
@@ -936,9 +1170,23 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 };
 
 // Configuration Section Component
-const ConfigurationSection = () => {
+const ConfigurationSection = ({ user }) => {
   const [settings, setSettings] = useState({
     defaultInterestRate: 5,
+    defaultLoanTerm: 12,
+    platformName: '',
+    platformDescription: '',
+    supportEmail: '',
+    maintenanceMode: false,
+    estimatedMaintenanceTime: '',
+    smtpConfig: {
+      host: '',
+      port: 587,
+      secure: false,
+      auth: { user: '', pass: '' },
+      fromEmail: '',
+      fromName: '',
+    },
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -955,6 +1203,20 @@ const ConfigurationSection = () => {
       if (data) {
         setSettings({
           defaultInterestRate: data.defaultInterestRate || 5,
+          defaultLoanTerm: data.defaultLoanTerm || 12,
+          platformName: data.platformName || '',
+          platformDescription: data.platformDescription || '',
+          supportEmail: data.supportEmail || '',
+          maintenanceMode: data.maintenanceMode || false,
+          estimatedMaintenanceTime: data.estimatedMaintenanceTime || '',
+          smtpConfig: data.smtpConfig || {
+            host: '',
+            port: 587,
+            secure: false,
+            auth: { user: '', pass: '' },
+            fromEmail: '',
+            fromName: '',
+          },
         });
       }
     } catch (error) {
@@ -969,8 +1231,13 @@ const ConfigurationSection = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.put('/system-settings/loan-configuration', settings);
-      toast.success('Loan configuration updated successfully');
+      // Admins can update loan config, Super Admins can update everything
+      const endpoint =
+        user.role === 'super_admin'
+          ? '/system-settings'
+          : '/system-settings/loan-configuration';
+      await api.put(endpoint, settings);
+      toast.success('System configuration updated successfully');
     } catch (error) {
       console.error('Failed to update settings:', error);
       toast.error('Failed to update settings');
@@ -1015,7 +1282,7 @@ const ConfigurationSection = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-8 relative z-10">
-        <div className="bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
           <ModernSlider
             label="Default Annual Interest Rate (%)"
             min={0}
@@ -1030,11 +1297,328 @@ const ConfigurationSection = () => {
               })
             }
           />
-          <p className="text-[10px] text-muted-foreground/60 mt-4 ml-1 italic font-medium">
-            * This rate is used to calculate estimated EMIs for all new loan
-            requests system-wide.
+          <ModernSlider
+            label="Default Loan Term (Months)"
+            min={1}
+            max={120}
+            step={1}
+            value={settings.defaultLoanTerm}
+            suffix=" Mo"
+            onChange={(val) =>
+              setSettings({
+                ...settings,
+                defaultLoanTerm: val,
+              })
+            }
+          />
+          <p className="md:col-span-2 text-[10px] text-muted-foreground/60 mt-2 ml-1 italic font-medium">
+            * These defaults are used to calculate estimated EMIs for all new
+            loan requests system-wide.
           </p>
         </div>
+
+        {/* Super Admin Branding Section */}
+        {user.role === 'super_admin' && (
+          <div className="space-y-6 pt-4 border-t border-border/20">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 mb-2">
+                <Sparkles size={14} />
+                Platform Branding
+              </h3>
+              <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+                Customize the global appearance and metadata of the platform as
+                seen by all users.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Platform Name
+                </label>
+                <input
+                  type="text"
+                  value={settings.platformName}
+                  onChange={(e) =>
+                    setSettings({ ...settings, platformName: e.target.value })
+                  }
+                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Support Email
+                </label>
+                <input
+                  type="email"
+                  value={settings.supportEmail}
+                  onChange={(e) =>
+                    setSettings({ ...settings, supportEmail: e.target.value })
+                  }
+                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                />
+              </div>
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Platform Description
+                </label>
+                <textarea
+                  value={settings.platformDescription}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      platformDescription: e.target.value,
+                    })
+                  }
+                  rows={2}
+                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium resize-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Maintenance Section */}
+        {user.role === 'super_admin' && (
+          <div className="space-y-6 pt-4 border-t border-border/20">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-rose-500 flex items-center gap-2 mb-2">
+                <AlertTriangle size={14} />
+                System Maintenance
+              </h3>
+              <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+                Restrict access to the platform for all non-administrative users
+                during scheduled updates.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-[2rem] bg-rose-500/5 border border-rose-500/10">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-widest mb-1">
+                      Maintenance Mode
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Platform will be inaccessible to regular users
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.maintenanceMode}
+                    onCheckedChange={() =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        maintenanceMode: !prev.maintenanceMode,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Estimated Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.estimatedMaintenanceTime}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        estimatedMaintenanceTime: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. 2 hours"
+                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SMTP Configuration Section */}
+        {user.role === 'super_admin' && (
+          <div className="space-y-6 pt-4 border-t border-border/20">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2 mb-2">
+                <Mail size={14} />
+                SMTP Configuration
+              </h3>
+              <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+                Configure the outgoing mail server to enable automated email
+                notifications.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  SMTP Host
+                </label>
+                <input
+                  type="text"
+                  placeholder="smtp.example.com"
+                  value={settings.smtpConfig?.host || ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      smtpConfig: {
+                        ...settings.smtpConfig,
+                        host: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                />
+              </div>
+              <div className="space-y-1.5 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Port
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="587"
+                    value={settings.smtpConfig?.port || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        smtpConfig: {
+                          ...settings.smtpConfig,
+                          port: Number(e.target.value),
+                        },
+                      })
+                    }
+                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Secure (SSL/TLS)
+                  </label>
+                  <div className="h-[46px] px-5 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl flex items-center justify-between">
+                    <span className="text-sm font-semibold">
+                      {settings.smtpConfig?.secure ? 'Yes' : 'No'}
+                    </span>
+                    <Switch
+                      checked={settings.smtpConfig?.secure || false}
+                      onCheckedChange={(checked) =>
+                        setSettings({
+                          ...settings,
+                          smtpConfig: {
+                            ...settings.smtpConfig,
+                            secure: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 border-t border-border/20 pt-4 md:col-span-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
+                  Authentication
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="user@example.com"
+                      value={settings.smtpConfig?.auth?.user || ''}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          smtpConfig: {
+                            ...settings.smtpConfig,
+                            auth: {
+                              ...settings.smtpConfig?.auth,
+                              user: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={settings.smtpConfig?.auth?.pass || ''}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          smtpConfig: {
+                            ...settings.smtpConfig,
+                            auth: {
+                              ...settings.smtpConfig?.auth,
+                              pass: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 border-t border-border/20 pt-4 md:col-span-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
+                  Sender Details
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      From Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Loan Platform"
+                      value={settings.smtpConfig?.fromName || ''}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          smtpConfig: {
+                            ...settings.smtpConfig,
+                            fromName: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      From Email
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="noreply@example.com"
+                      value={settings.smtpConfig?.fromEmail || ''}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          smtpConfig: {
+                            ...settings.smtpConfig,
+                            fromEmail: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end pt-2">
           <Button

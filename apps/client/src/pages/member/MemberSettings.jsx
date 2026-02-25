@@ -25,9 +25,11 @@ import {
   Check,
   Copy,
   Trash2,
+  QrCode,
+  KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, capitalize, formatCNIC } from '@/lib/utils';
+import { cn, capitalize, formatCNIC, validateEmail } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -35,6 +37,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import ColorPalette from '@/components/ui/ColorPalette';
 
@@ -54,6 +57,13 @@ const MemberSettings = () => {
 
   // Navigation State
   const [activeSection, setActiveSection] = useState('general');
+
+  // 2FA state
+  const [is2FAEnabled, setIs2FAEnabled] = useState(member.isTwoFactorEnabled);
+  const [qrCodeData, setQrCodeData] = useState(null);
+  const [twoFACode, setTwoFACode] = useState('');
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [disable2FAPassword, setDisable2FAPassword] = useState('');
 
   useEffect(() => {
     const fetchMemberData = async () => {
@@ -235,6 +245,16 @@ const MemberSettings = () => {
                 <SecuritySection
                   onChangePassword={() => setIsPasswordModalOpen(true)}
                   onLogout={handleLogout}
+                  is2FAEnabled={is2FAEnabled}
+                  setIs2FAEnabled={setIs2FAEnabled}
+                  qrCodeData={qrCodeData}
+                  setQrCodeData={setQrCodeData}
+                  twoFACode={twoFACode}
+                  setTwoFACode={setTwoFACode}
+                  twoFALoading={twoFALoading}
+                  setTwoFALoading={setTwoFALoading}
+                  disable2FAPassword={disable2FAPassword}
+                  setDisable2FAPassword={setDisable2FAPassword}
                 />
               )}
               {activeSection === 'notifications' && <NotificationSection />}
@@ -509,7 +529,20 @@ const AppearanceSection = ({
   </section>
 );
 
-const SecuritySection = ({ onChangePassword, onLogout }) => (
+const SecuritySection = ({
+  onChangePassword,
+  onLogout,
+  is2FAEnabled,
+  setIs2FAEnabled,
+  qrCodeData,
+  setQrCodeData,
+  twoFACode,
+  setTwoFACode,
+  twoFALoading,
+  setTwoFALoading,
+  disable2FAPassword,
+  setDisable2FAPassword,
+}) => (
   <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
     <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -541,6 +574,218 @@ const SecuritySection = ({ onChangePassword, onLogout }) => (
         >
           Update
         </Button>
+      </div>
+
+      {/* 2FA Panel */}
+      <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <QrCode size={18} className="text-muted-foreground" />
+            <div>
+              <p className="font-bold text-sm">Two-Factor Authentication</p>
+              <p className="text-[10px] text-muted-foreground font-medium">
+                {is2FAEnabled
+                  ? '2FA is currently active on your account.'
+                  : 'Add an extra layer of security via TOTP app.'}
+              </p>
+            </div>
+          </div>
+          <span
+            className={cn(
+              'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
+              is2FAEnabled
+                ? 'bg-emerald-500/10 text-emerald-600'
+                : 'bg-muted text-muted-foreground',
+            )}
+          >
+            {is2FAEnabled ? 'Enabled' : 'Disabled'}
+          </span>
+        </div>
+
+        {!is2FAEnabled && (
+          <div className="space-y-3">
+            {!qrCodeData ? (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={twoFALoading}
+                onClick={async () => {
+                  try {
+                    setTwoFALoading(true);
+                    const memberToken = localStorage.getItem('memberToken');
+                    const { data } = await api.post(
+                      '/member-auth/2fa/generate',
+                      {},
+                      {
+                        headers: { Authorization: `Bearer ${memberToken}` },
+                      },
+                    );
+                    setQrCodeData(data.qrCode);
+                  } catch (e) {
+                    toast.error(
+                      e.response?.data?.message || 'Failed to generate QR',
+                    );
+                  } finally {
+                    setTwoFALoading(false);
+                  }
+                }}
+                className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+              >
+                {twoFALoading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <QrCode size={14} />
+                )}
+                <span className="ml-2">Set Up 2FA</span>
+              </Button>
+            ) : (
+              <div className="space-y-3 animate-in fade-in">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Scan this QR code with Google Authenticator or Authy, then
+                  enter the 6-digit code below to confirm.
+                </p>
+                <img
+                  src={qrCodeData}
+                  alt="2FA QR Code"
+                  className="w-40 h-40 rounded-xl border border-border/50 p-2 bg-white mx-auto"
+                />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <KeyRound
+                      size={14}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={twoFACode}
+                      onChange={(e) => setTwoFACode(e.target.value)}
+                      className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={twoFALoading || twoFACode.length !== 6}
+                    onClick={async () => {
+                      try {
+                        setTwoFALoading(true);
+                        const memberToken = localStorage.getItem('memberToken');
+                        const { data } = await api.post(
+                          '/member-auth/2fa/verify',
+                          { code: twoFACode },
+                          {
+                            headers: { Authorization: `Bearer ${memberToken}` },
+                          },
+                        );
+                        if (data.success) {
+                          setIs2FAEnabled(true);
+                          setQrCodeData(null);
+                          setTwoFACode('');
+                          toast.success('2FA enabled successfully!');
+                          // Update local storage member data
+                          const member = JSON.parse(
+                            localStorage.getItem('member') || '{}',
+                          );
+                          member.isTwoFactorEnabled = true;
+                          localStorage.setItem(
+                            'member',
+                            JSON.stringify(member),
+                          );
+                        }
+                      } catch (e) {
+                        toast.error(
+                          e.response?.data?.message || 'Invalid code',
+                        );
+                      } finally {
+                        setTwoFALoading(false);
+                      }
+                    }}
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+                  >
+                    Verify
+                  </Button>
+                </div>
+                <button
+                  onClick={() => {
+                    setQrCodeData(null);
+                    setTwoFACode('');
+                  }}
+                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline w-full text-center"
+                >
+                  Cancel Setup
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {is2FAEnabled && (
+          <div className="pt-2 space-y-3">
+            <p className="text-[10px] text-muted-foreground font-medium">
+              To disable 2FA, please enter your password for confirmation.
+            </p>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Lock
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  value={disable2FAPassword}
+                  onChange={(e) => setDisable2FAPassword(e.target.value)}
+                  className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs"
+                />
+              </div>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={twoFALoading || !disable2FAPassword}
+                onClick={async () => {
+                  if (
+                    !window.confirm(
+                      'Are you sure you want to disable Two-Factor Authentication?',
+                    )
+                  )
+                    return;
+                  try {
+                    setTwoFALoading(true);
+                    const memberToken = localStorage.getItem('memberToken');
+                    const { data } = await api.post(
+                      '/member-auth/2fa/disable',
+                      { password: disable2FAPassword },
+                      {
+                        headers: { Authorization: `Bearer ${memberToken}` },
+                      },
+                    );
+                    if (data.success) {
+                      setIs2FAEnabled(false);
+                      setDisable2FAPassword('');
+                      toast.success('2FA disabled successfully');
+                      // Update local storage member data
+                      const member = JSON.parse(
+                        localStorage.getItem('member') || '{}',
+                      );
+                      member.isTwoFactorEnabled = false;
+                      localStorage.setItem('member', JSON.stringify(member));
+                    }
+                  } catch (e) {
+                    toast.error(
+                      e.response?.data?.message || 'Failed to disable 2FA',
+                    );
+                  } finally {
+                    setTwoFALoading(false);
+                  }
+                }}
+                className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+              >
+                Disable
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
@@ -689,6 +934,11 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      return;
+    }
     setLoading(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
@@ -717,6 +967,10 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
           <DialogTitle className="text-xl font-black tracking-tight">
             Edit Profile
           </DialogTitle>
+          <DialogDescription>
+            Update your personal information including your name, email, and
+            CNIC.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           <div className="space-y-2">
@@ -839,6 +1093,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           <DialogTitle className="text-xl font-black tracking-tight">
             Security Update
           </DialogTitle>
+          <DialogDescription>
+            Enter your current password and your new password to update your
+            account security.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -964,10 +1222,10 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
           <DialogTitle className="text-center text-xl font-black tracking-tight text-rose-500">
             Irreversible Deletion
           </DialogTitle>
-          <p className="text-center text-[10px] text-muted-foreground font-medium px-4 pt-2">
+          <DialogDescription className="text-center text-[10px] text-muted-foreground font-medium px-4 pt-2">
             This will permanently remove your portal access and activity
-            history.
-          </p>
+            history. This action cannot be undone.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 pt-4">
           <div className="space-y-2">

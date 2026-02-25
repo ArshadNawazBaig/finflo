@@ -1,36 +1,62 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@/lib/axios';
 import { Lock, Loader2, ArrowRight, ShieldCheck, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import Logo from '@/components/Logo';
+import AuthLayout from '@/layouts/AuthLayout';
 
 const MemberLogin = () => {
   const navigate = useNavigate();
-  const [securityCode, setSecurityCode] = useState('');
+  const [searchParams] = useSearchParams();
+  const [securityCode, setSecurityCode] = useState(
+    searchParams.get('code')?.toUpperCase() || '',
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Handle auto-population if URL changes
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      setSecurityCode(code.toUpperCase());
+    }
+  }, [searchParams]);
+
+  // 2FA state
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [pendingToken, setPendingToken] = useState('');
+  const [otpCode, setOtpCode] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      // Login as Member
       const { data } = await api.post('/member-auth/login', {
         securityCode,
         email: email.trim(),
         password,
       });
 
-      // Store in separate keys to allow Admin/Member sessions to coexist
+      if (data.twoFactorRequired) {
+        setTwoFactorRequired(true);
+        setPendingToken(data.pendingToken);
+        setLoading(false);
+        return;
+      }
+
+      if (data.mustChangePassword) {
+        localStorage.setItem('memberToken', data.token);
+        localStorage.setItem('member', JSON.stringify(data));
+        navigate('/member/force-password-change');
+        return;
+      }
+
       localStorage.setItem('memberToken', data.token);
       localStorage.setItem('member', JSON.stringify(data));
-
       navigate('/member/dashboard');
     } catch (err) {
       console.error('Login error:', err);
@@ -40,160 +66,237 @@ const MemberLogin = () => {
     }
   };
 
+  const handleVerify2FA = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { data } = await api.post('/member-auth/2fa/verify-login', {
+        pendingToken,
+        code: otpCode,
+      });
+
+      localStorage.setItem('memberToken', data.token);
+      localStorage.setItem('member', JSON.stringify(data));
+      navigate('/member/dashboard');
+    } catch (err) {
+      console.error('2FA verification error:', err);
+      setError(err.response?.data?.message || 'Invalid 2FA code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-      {/* Dynamic Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+    <AuthLayout
+      title={twoFactorRequired ? 'Security Check' : 'Member Portal'}
+      description={
+        twoFactorRequired
+          ? 'Enter your 6-digit authentication code'
+          : 'Securely access your investments and loans'
+      }
+      badge={twoFactorRequired ? 'Security Verification' : 'Member Gateway'}
+    >
+      {!twoFactorRequired ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
+              <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+              {error}
+            </div>
+          )}
 
-      <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-primary/50" />
-
-        <CardHeader className="space-y-4 pt-10 px-8 text-center flex flex-col items-center">
-          <Link to="/" className="mb-2">
-            <Logo showText={false} className="h-12" />
-          </Link>
-          <div className="space-y-1">
-            <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Member Portal
-            </CardTitle>
-            <p className="text-muted-foreground text-sm font-medium">
-              Securely access your investments and loans
-            </p>
+          <div className="space-y-2">
+            <label
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              htmlFor="securityCode"
+            >
+              Business Security Code
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <ShieldCheck
+                  size={16}
+                  className="text-muted-foreground group-focus-within:text-emerald-500 transition-colors"
+                />
+              </div>
+              <input
+                id="securityCode"
+                type="text"
+                placeholder="e.g. ABC123"
+                value={securityCode}
+                onChange={(e) => setSecurityCode(e.target.value.toUpperCase())}
+                required
+                maxLength={6}
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+              />
+            </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="px-8 pb-10 pt-2">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
-                <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-                {error}
+          <div className="space-y-2">
+            <label
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              htmlFor="email"
+            >
+              Email Address
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Mail
+                  size={16}
+                  className="text-muted-foreground group-focus-within:text-primary transition-colors"
+                />
+              </div>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center ml-1">
+              <label
+                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                htmlFor="password"
+              >
+                Password
+              </label>
+              <Link
+                to="/member/forgot-password"
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
+              >
+                Recovery
+              </Link>
+            </div>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock
+                  size={16}
+                  className="text-muted-foreground group-focus-within:text-primary transition-colors"
+                />
+              </div>
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            variant="gradient"
+            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10"
+          >
+            <span
+              className={cn(
+                'flex items-center gap-2',
+                loading ? 'opacity-0' : 'opacity-100',
+              )}
+            >
+              Sign In to Portal
+              <ArrowRight
+                size={14}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </span>
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin" />
               </div>
             )}
+          </Button>
 
-            <div className="space-y-2">
-              <label
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                htmlFor="securityCode"
-              >
-                Business Security Code
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  id="securityCode"
-                  type="text"
-                  placeholder="e.g., ABC123"
-                  value={securityCode}
-                  onChange={(e) =>
-                    setSecurityCode(e.target.value.toUpperCase())
-                  }
-                  required
-                  maxLength={6}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                htmlFor="email"
-              >
-                Email Address
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <Link
-                  to="/member/forgot-password"
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
-                >
-                  Recovery
-                </Link>
-              </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              variant="gradient"
-              className="h-12 w-full rounded-full font-black text-[11px] uppercase tracking-widest group"
-            >
-              <span
-                className={cn(
-                  'flex items-center gap-2',
-                  loading ? 'opacity-0' : 'opacity-100',
-                )}
-              >
-                Sign In{' '}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <div className="text-center pt-4">
+            <p className="text-sm text-muted-foreground font-medium">
+              Not a member yet?{' '}
+              <span className="text-muted-foreground/70">
+                Contact your provider.
               </span>
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                </div>
-              )}
-            </Button>
-
-            <div className="text-center pt-4">
-              <p className="text-sm text-muted-foreground font-medium">
-                Not a member yet?{' '}
-                <span className="text-muted-foreground/70">
-                  Contact your loan provider.
-                </span>
-              </p>
+            </p>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleVerify2FA} className="space-y-6">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+              {error}
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          )}
 
-      {/* Minimal Footer */}
-      <div className="absolute bottom-6 left-0 w-full text-center">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 px-4">
-          © 2026 Financial Intelligence Portal • Precision in every transaction
-        </p>
-      </div>
-    </div>
+          <div className="space-y-4">
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock
+                  size={16}
+                  className="text-muted-foreground group-focus-within:text-primary transition-colors"
+                />
+              </div>
+              <input
+                type="text"
+                maxLength={6}
+                placeholder="000000"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                required
+                autoFocus
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-mono tracking-[0.5em] text-center"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading || otpCode.length !== 6}
+            variant="gradient"
+            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative shadow-lg shadow-primary/10"
+          >
+            <span
+              className={cn(
+                'flex items-center gap-2',
+                loading ? 'opacity-0' : 'opacity-100',
+              )}
+            >
+              Verify Code{' '}
+              <ArrowRight
+                size={14}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </span>
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+            )}
+          </Button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTwoFactorRequired(false);
+              setOtpCode('');
+              setError('');
+            }}
+            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            disabled={loading}
+          >
+            Use different account
+          </button>
+        </form>
+      )}
+    </AuthLayout>
   );
 };
 

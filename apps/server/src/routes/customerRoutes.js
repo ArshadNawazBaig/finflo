@@ -9,11 +9,13 @@ const {
   uploadDocuments,
   deleteDocument,
   updateDocumentStatus,
+  getPendingDocuments,
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/customerUploadMiddleware');
 
 router.route('/').get(protect, getCustomers).post(protect, createCustomer);
+router.get('/documents/pending', protect, getPendingDocuments);
 
 router
   .route('/:id')

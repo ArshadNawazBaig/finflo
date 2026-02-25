@@ -17,15 +17,21 @@ const {
   adminTransferFunds,
   lookupMember,
   recalculateBalance,
+  getAllDistributions,
   // Business Share
   getMemberShares,
   addShareInvestment,
   withdrawShareInvestment,
   distributeShareProfit,
   getPortalShares,
+  selfRegister,
+  updateApprovalStatus,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+
+// Public routes
+router.post('/self-register', selfRegister);
 
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
@@ -39,6 +45,8 @@ router.use(protect);
 
 // Member CRUD (Admin/Staff only)
 router.get('/', getMembers);
+router.put('/:id/approval', updateApprovalStatus);
+router.get('/distributions', getAllDistributions); // Move above :id
 router.get('/:id', getMemberById);
 router.post('/', createMember);
 router.post('/convert', convertCustomerToMember);

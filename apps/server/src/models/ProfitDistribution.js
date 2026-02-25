@@ -17,6 +17,11 @@ const profitDistributionSchema = new mongoose.Schema(
       ref: 'Branch',
     },
     amount: { type: Number, required: true },
+    type: {
+      type: String,
+      enum: ['regular', 'share'],
+      default: 'regular',
+    },
     period: { type: String, required: true }, // e.g., "Jan 2026"
     calculationMethod: { type: String }, // Description of how profit was calculated
     investmentShare: { type: Number }, // Member's share percentage at time of distribution

@@ -8,7 +8,7 @@ import {
   Zap,
   TrendingUp,
 } from 'lucide-react';
-import { formatCNIC } from '@/lib/utils';
+import { formatCNIC, validateEmail } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,13 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      setError(emailValidation.message);
+      setLoading(false);
+      return;
+    }
 
     try {
       await api.post('/members', {
@@ -133,13 +140,14 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> Email Address (Optional)
+                  <Mail className="w-3 h-3" /> Email Address *
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  required
                   placeholder="name@nexus.com"
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
                 />

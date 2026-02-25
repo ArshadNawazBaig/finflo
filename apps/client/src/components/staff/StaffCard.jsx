@@ -39,11 +39,12 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete }) => {
                 <UserIcon size={12} className="text-blue-500" />
               )}
               <span className="capitalize text-[10px] font-black tracking-widest text-muted-foreground/80">
-                {item.role === 'admin'
-                  ? 'admin'
-                  : item.isManager
-                    ? 'manager'
-                    : 'staff'}
+                {item.roleRef?.name ||
+                  (item.role === 'admin'
+                    ? 'admin'
+                    : item.isManager
+                      ? 'manager'
+                      : 'staff')}
               </span>
             </div>
           </div>

@@ -164,7 +164,16 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={onClose}
+        aria-describedby="loan-request-description"
+      >
+        <p id="loan-request-description" className="sr-only">
+          Fill out this form to request a new loan. You will need to provide the
+          amount, duration, and a grantor.
+        </p>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

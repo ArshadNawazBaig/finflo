@@ -287,13 +287,13 @@ const MemberDashboard = () => {
               <Plus size={18} strokeWidth={3} />
               New Request
             </Button>
-            <Button
+            {/* <Button
               onClick={() => navigate('/member/transfer')}
               className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-primary/20 bg-primary transition-all"
             >
               <Send size={18} />
               Transfer Funds
-            </Button>
+            </Button> */}
             <Button
               onClick={() => setIsGoalModalOpen(true)}
               className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 transition-all"

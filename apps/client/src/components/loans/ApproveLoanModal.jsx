@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
@@ -52,6 +53,10 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <Check className="w-5 h-5 text-emerald-500" />
             Approve Loan
           </DialogTitle>
+          <DialogDescription>
+            Review and finalize the loan terms before activating it for the
+            member.
+          </DialogDescription>
         </DialogHeader>
 
         {loan.riskDetails ? (

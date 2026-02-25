@@ -4,12 +4,31 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, lowercase: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(v).isValid;
+        },
+        message: (props) => {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(props.value).message;
+        },
+      },
+    },
     password: { type: String, required: true, minlength: 8 },
     role: {
       type: String,
       enum: ['super_admin', 'admin', 'staff', 'user'],
       default: 'admin',
+    },
+    roleRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Role',
     },
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +49,9 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'past_due', 'canceled', 'incomplete'],
       default: 'active',
     },
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangeCode: { type: String },
+    passwordChangeCodeExpire: { type: Date },
     plan: { type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' },
     customerCount: { type: Number, default: 0 },
     nextBillingDate: { type: Date },
@@ -66,6 +88,8 @@ const userSchema = new mongoose.Schema(
     },
     verificationCode: String,
     verificationCodeExpire: Date,
+    twoFactorSecret: { type: String },
+    isTwoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
@@ -120,6 +144,34 @@ userSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+userSchema.methods.getPermissions = function () {
+  if (this.roleRef && this.roleRef.permissions) {
+    return this.roleRef.permissions;
+  }
+
+  // Legacy fallback
+  if (this.role === 'super_admin') return ['*'];
+  if (this.role === 'admin') {
+    return [
+      'view_all',
+      'manage_loans',
+      'manage_members',
+      'manage_branches',
+      'view_reports',
+      'manage_roles',
+      'system_settings',
+    ];
+  }
+  if (this.role === 'staff') {
+    return ['view_assigned', 'create_loan', 'create_member'];
+  }
+  if (this.role === 'user') {
+    return ['view_own_data'];
+  }
+
+  return [];
 };
 
 module.exports = mongoose.model('User', userSchema);

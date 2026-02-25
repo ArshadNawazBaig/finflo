@@ -8,6 +8,8 @@ import {
   EyeIcon,
   Copy,
   Users,
+  Check,
+  X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from '../ui/Pagination';
@@ -20,6 +22,8 @@ const MemberTable = ({
   data,
   pagination,
   onDelete,
+  onApprove,
+  onReject,
   sortBy,
   sortOrder,
   onSort,
@@ -171,34 +175,63 @@ const MemberTable = ({
                   </span>
                 </td>
                 <td className="py-4 px-4 text-center">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
-                      member.status === 'Active'
-                        ? 'bg-blue-500/10 text-blue-500'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {member.status}
-                  </span>
+                  {member.approvalStatus === 'pending' ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize bg-amber-500/10 text-amber-500">
+                      Pending
+                    </span>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
+                        member.status === 'Active'
+                          ? 'bg-blue-500/10 text-blue-500'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {member.status}
+                    </span>
+                  )}
                 </td>
                 <td className="py-4 px-4 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Tooltip content="View Details" position="top">
-                      <Link
-                        to={`/members/${member._id}`}
-                        className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        <EyeIcon size={16} />
-                      </Link>
-                    </Tooltip>
-                    <Tooltip content="Delete" position="top">
-                      <button
-                        onClick={() => onDelete(member._id)}
-                        className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </Tooltip>
+                    {member.approvalStatus === 'pending' ? (
+                      <>
+                        <Tooltip content="Reject" position="top">
+                          <button
+                            onClick={() => onReject(member._id)}
+                            className="p-1.5 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        </Tooltip>
+                        <Tooltip content="Approve" position="top">
+                          <button
+                            onClick={() => onApprove(member._id)}
+                            className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-500 transition-colors"
+                          >
+                            <Check size={16} />
+                          </button>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <>
+                        <Tooltip content="View Details" position="top">
+                          <Link
+                            to={`/members/${member._id}`}
+                            className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <EyeIcon size={16} />
+                          </Link>
+                        </Tooltip>
+                        <Tooltip content="Delete" position="top">
+                          <button
+                            onClick={() => onDelete(member._id)}
+                            className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </Tooltip>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

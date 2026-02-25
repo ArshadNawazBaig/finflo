@@ -18,7 +18,21 @@ const memberSchema = new mongoose.Schema(
       ref: 'Branch',
     },
     name: { type: String, lowercase: true }, // Name now optional based on user feedback
-    email: { type: String, lowercase: true }, // Email now optional
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(v).isValid;
+        },
+        message: (props) => {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(props.value).message;
+        },
+      },
+    },
     phone: { type: String, required: true },
     password: { type: String, required: true, minlength: 8 },
     role: {
@@ -34,6 +48,9 @@ const memberSchema = new mongoose.Schema(
     totalProfit: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
     profitRate: { type: Number, default: 0 }, // Custom profit rate if needed
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangeCode: { type: String },
+    passwordChangeCodeExpire: { type: Date },
     // Business Share (separate from main balance – never auto-deducted for loans)
     shareBalance: { type: Number, default: 0 },
     totalShareInvested: { type: Number, default: 0 },
@@ -43,6 +60,11 @@ const memberSchema = new mongoose.Schema(
       type: String,
       enum: ['Active', 'Inactive'],
       default: 'Active',
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'approved',
     },
     cnic: { type: String, required: true },
     job: { type: String },
@@ -59,6 +81,8 @@ const memberSchema = new mongoose.Schema(
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     joinDate: { type: Date, default: Date.now },
+    twoFactorSecret: { type: String },
+    isTwoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

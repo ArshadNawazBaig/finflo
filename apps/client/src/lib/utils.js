@@ -1,6 +1,41 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+export const DISPOSABLE_DOMAINS = [
+  'mailinator.com',
+  'guerrillamail.com',
+  'temp-mail.org',
+  '10minutemail.com',
+  'discard.email',
+  'getairmail.com',
+  'sharklasers.com',
+  'guerrillamailblock.com',
+  'guerrillamail.net',
+  'guerrillamail.org',
+  'guerrillamail.biz',
+  'spam4.me',
+  'grr.la',
+  'guerrillamail.de',
+  'yopmail.com',
+  'dispostable.com',
+  'trashmail.com',
+  'maildrop.cc',
+  'burners-email.com',
+  'fake-email.com',
+];
+
+export const validateEmail = (email) => {
+  if (!email) return { isValid: false, message: 'Email is required' };
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email))
+    return { isValid: false, message: 'Invalid email format' };
+  const domain = email.toLowerCase().split('@')[1];
+  if (DISPOSABLE_DOMAINS.includes(domain)) {
+    return { isValid: false, message: 'Disposable emails are not allowed' };
+  }
+  return { isValid: true };
+};
+
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
@@ -38,6 +73,15 @@ export const capitalize = (str) => {
     .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+};
+
+export const formatDate = (date) => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 };
 
 export const formatCNIC = (value) => {

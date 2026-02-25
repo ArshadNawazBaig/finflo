@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
@@ -59,6 +60,10 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <X className="w-5 h-5" />
             Reject Loan Request
           </DialogTitle>
+          <DialogDescription>
+            Please provide a reason for rejecting this loan application. This
+            action is irreversible.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-2 p-4 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 flex items-start gap-3 text-sm">

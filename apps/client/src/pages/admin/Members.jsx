@@ -38,14 +38,15 @@ const Members = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deleteMemberId, setDeleteMemberId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [deleteMemberId, setDeleteMemberId] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [activeTab, setActiveTab] = useState('approved'); // 'approved' or 'pending'
   const [summary, setSummary] = useState({
     totalInvested: 0,
     totalProfit: 0,
@@ -95,7 +96,7 @@ const Members = () => {
         const pageToFetch =
           pageOverride || (isAppend ? currentPage + 1 : currentPage);
         const { data } = await api.get(
-          `/members?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/members?approvalStatus=${activeTab}&page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         );
 
         if (isAppend) {
@@ -121,7 +122,7 @@ const Members = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, searchTerm, sortBy, sortOrder, currentPage],
+    [limit, searchTerm, sortBy, sortOrder, currentPage, activeTab],
   );
 
   useEffect(() => {
@@ -167,7 +168,7 @@ const Members = () => {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit, isMobile]);
+  }, [searchTerm, sortBy, sortOrder, limit, isMobile, activeTab]);
 
   const handleAddMember = () => {
     setIsAddModalOpen(true);
@@ -186,8 +187,36 @@ const Members = () => {
       toast.success('Member deleted successfully');
       setDeleteMemberId(null);
       fetchMembers(false);
+      fetchSummary();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete member');
+    }
+  };
+
+  const handleApproveMember = async (id) => {
+    try {
+      await api.put(`/members/${id}/approval`, { status: 'approved' });
+      toast.success('Member approved successfully');
+      fetchMembers(false);
+      fetchSummary();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to approve member');
+    }
+  };
+
+  const handleRejectMember = async (id) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to reject this member's application?",
+      )
+    )
+      return;
+    try {
+      await api.put(`/members/${id}/approval`, { status: 'rejected' });
+      toast.success('Member rejected');
+      fetchMembers(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to reject member');
     }
   };
 
@@ -248,9 +277,31 @@ const Members = () => {
         </div>
       )}
 
-      {/* Search and Table */}
-      <div className="space-y-4">
+      {/* Tabs and Search */}
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center gap-1 bg-muted/50 p-1.5 rounded-2xl w-full sm:w-auto">
+            <button
+              onClick={() => setActiveTab('approved')}
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                activeTab === 'approved'
+                  ? 'bg-white shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
+              }`}
+            >
+              Active Members
+            </button>
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                activeTab === 'pending'
+                  ? 'bg-white shadow-sm text-amber-600'
+                  : 'text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10'
+              }`}
+            >
+              Pending Approvals
+            </button>
+          </div>
           <TableSearch
             value={searchTerm}
             onChange={(value) => setSearchTerm(value)}
@@ -299,15 +350,15 @@ const Members = () => {
             <MemberTable
               data={members}
               onDelete={setDeleteMemberId}
+              onApprove={handleApproveMember}
+              onReject={handleRejectMember}
               pagination={{
                 currentPage,
                 totalPages,
                 totalEntries,
                 limit,
                 onPageChange: (page) => fetchMembers(false, page),
-                onLimitChange: (newLimit) => {
-                  setLimit(newLimit);
-                },
+                onLimitChange: (newLimit) => setLimit(newLimit),
               }}
               sortBy={sortBy}
               sortOrder={sortOrder}
