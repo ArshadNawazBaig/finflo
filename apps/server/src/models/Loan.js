@@ -65,6 +65,10 @@ const loanSchema = new mongoose.Schema(
         sentAt: { type: Date, default: Date.now },
       },
     ],
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LoanProduct',
+    },
   },
   { timestamps: true },
 );

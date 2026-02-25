@@ -145,13 +145,13 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           label="My Loans"
           isExpanded={isLayoutExpanded}
         />
-        <NavItem
+        {/* <NavItem
           to="/member/transfer"
           icon={<Send size={18} />}
           active={isActive('/member/transfer')}
           label="Transfer"
           isExpanded={isLayoutExpanded}
-        />
+        /> */}
         <NavItem
           to="/member/notifications"
           icon={<Bell size={18} />}

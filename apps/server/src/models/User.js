@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema(
       enum: ['super_admin', 'admin', 'staff', 'user'],
       default: 'admin',
     },
+    roleRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Role',
+    },
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -66,6 +70,8 @@ const userSchema = new mongoose.Schema(
     },
     verificationCode: String,
     verificationCodeExpire: Date,
+    twoFactorSecret: { type: String },
+    isTwoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
@@ -120,6 +126,34 @@ userSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+userSchema.methods.getPermissions = function () {
+  if (this.roleRef && this.roleRef.permissions) {
+    return this.roleRef.permissions;
+  }
+
+  // Legacy fallback
+  if (this.role === 'super_admin') return ['*'];
+  if (this.role === 'admin') {
+    return [
+      'view_all',
+      'manage_loans',
+      'manage_members',
+      'manage_branches',
+      'view_reports',
+      'manage_roles',
+      'system_settings',
+    ];
+  }
+  if (this.role === 'staff') {
+    return ['view_assigned', 'create_loan', 'create_member'];
+  }
+  if (this.role === 'user') {
+    return ['view_own_data'];
+  }
+
+  return [];
 };
 
 module.exports = mongoose.model('User', userSchema);

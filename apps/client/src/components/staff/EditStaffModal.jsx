@@ -20,19 +20,25 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
     email: '',
     password: '', // Optional
     branchId: '',
+    roleRef: '',
   });
   const [branches, setBranches] = useState([]);
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
-    const fetchBranches = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await api.get('/branches');
-        setBranches(data);
+        const [branchRes, roleRes] = await Promise.all([
+          api.get('/branches'),
+          api.get('/roles'),
+        ]);
+        setBranches(branchRes.data);
+        setRoles(roleRes.data);
       } catch (error) {
-        console.error('Failed to fetch branches', error);
+        console.error('Failed to fetch initial data', error);
       }
     };
-    fetchBranches();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -42,6 +48,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
         email: staff.email,
         password: '',
         branchId: staff.branchId?._id || staff.branchId || '',
+        roleRef: staff.roleRef?._id || staff.roleRef || '',
       });
     }
   }, [staff]);
@@ -136,6 +143,25 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
               {branches.map((b) => (
                 <option key={b._id} value={b._id}>
                   {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+              Assign Role (Optional)
+            </Label>
+            <select
+              value={formData.roleRef}
+              onChange={(e) =>
+                setFormData({ ...formData, roleRef: e.target.value })
+              }
+              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">Standard Staff</option>
+              {roles.map((r) => (
+                <option key={r._id} value={r._id}>
+                  {r.name}
                 </option>
               ))}
             </select>

@@ -152,6 +152,19 @@ const systemSettingsSchema = new mongoose.Schema(
       default: '25 mins',
     },
 
+    // SMTP Settings
+    smtpConfig: {
+      host: { type: String, default: '' },
+      port: { type: Number, default: 587 },
+      secure: { type: Boolean, default: false },
+      auth: {
+        user: { type: String, default: '' },
+        pass: { type: String, default: '' },
+      },
+      fromEmail: { type: String, default: '' },
+      fromName: { type: String, default: '' },
+    },
+
     // Email Templates (for future use)
     emailTemplates: {
       welcome: {

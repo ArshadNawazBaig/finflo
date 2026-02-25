@@ -135,6 +135,8 @@ app.use('/api/communication', require('./routes/communicationRoutes'));
 app.use('/api/saving-goals', require('./routes/savingGoalRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/external-transfers', require('./routes/externalTransferRoutes'));
+app.use('/api/loan-products', require('./routes/loanProductRoutes'));
+app.use('/api/roles', require('./routes/roleRoutes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');

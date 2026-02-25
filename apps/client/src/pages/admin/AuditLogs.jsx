@@ -488,11 +488,62 @@ const AuditLogs = () => {
                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest mb-2">
                     Metadata Insight
                   </p>
-                  <div className="p-6 rounded-[1.5rem] bg-slate-900 border border-white/5 text-[13px] overflow-x-auto">
-                    <pre className="text-primary-foreground/80 scrollbar-hide">
-                      {JSON.stringify(selectedLog.metadata, null, 2)}
-                    </pre>
-                  </div>
+
+                  {/* Before/After State Diff */}
+                  {selectedLog.metadata.before && selectedLog.metadata.after ? (
+                    <div className="rounded-[1.5rem] overflow-hidden border border-white/10">
+                      <div className="grid grid-cols-2 divide-x divide-white/10">
+                        <div className="p-4 bg-red-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-red-400/70 mb-3">
+                            Before
+                          </p>
+                          <div className="space-y-2">
+                            {Object.entries(selectedLog.metadata.before).map(
+                              ([key, val]) => (
+                                <div key={key}>
+                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                    {key.replace(/([A-Z])/g, ' $1')}
+                                  </span>
+                                  <p className="text-sm font-black text-red-300 line-through">
+                                    {typeof val === 'number'
+                                      ? val.toLocaleString()
+                                      : String(val)}
+                                  </p>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-emerald-900/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                            After
+                          </p>
+                          <div className="space-y-2">
+                            {Object.entries(selectedLog.metadata.after).map(
+                              ([key, val]) => (
+                                <div key={key}>
+                                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">
+                                    {key.replace(/([A-Z])/g, ' $1')}
+                                  </span>
+                                  <p className="text-sm font-black text-emerald-300">
+                                    {typeof val === 'number'
+                                      ? val.toLocaleString()
+                                      : String(val)}
+                                  </p>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 rounded-[1.5rem] bg-slate-900 border border-white/5 text-[13px] overflow-x-auto">
+                      <pre className="text-primary-foreground/80 scrollbar-hide">
+                        {JSON.stringify(selectedLog.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -16,6 +16,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     date = new Date(),
     notes = 'Automatic deduction from deposit',
     isAutoValue = true,
+    allowEarlySettlement = true,
   } = options;
 
   let repaymentAmount = Number(amount);
@@ -26,7 +27,10 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   let isEarlySettlement = false;
   let actualSettlementAmount = loan.totalAmount;
 
-  if (loan.status === 'active' || loan.status === 'pending') {
+  if (
+    allowEarlySettlement &&
+    (loan.status === 'active' || loan.status === 'pending')
+  ) {
     const startDate = new Date(loan.startDate);
     const now = new Date(date);
 

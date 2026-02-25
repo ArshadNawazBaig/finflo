@@ -43,6 +43,7 @@ import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { exportMemberStatement } from '@/lib/pdfExportUtils';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -132,6 +133,8 @@ const MemberProfile = () => {
   const [shareProfitRate, setShareProfitRate] = useState('');
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
+  const [applyDeduction, setApplyDeduction] = useState(true);
+  const [repaymentType, setRepaymentType] = useState('installment');
 
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
@@ -442,6 +445,8 @@ const MemberProfile = () => {
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
         description,
+        applyDeduction: investmentType === 'deposit' ? applyDeduction : false,
+        repaymentType: investmentType === 'deposit' ? repaymentType : undefined,
       });
       toast.success(
         `${investmentType === 'deposit' ? 'Investment added' : 'Withdrawal processed'} successfully`,
@@ -587,234 +592,11 @@ const MemberProfile = () => {
   const handleDownloadReport = async () => {
     try {
       setIsExporting(true);
-      const doc = new jsPDF();
-
-      // Ensure autoTable is initialized
-      // @ts-ignore
-      if (typeof doc.autoTable !== 'function') {
-        // @ts-ignore
-        try {
-          autoTable(doc);
-        } catch (e) {
-          console.warn('AutoTable initialization warning:', e);
-        }
-      }
-
-      const pageWidth = doc.internal.pageSize.width;
-
-      // Header
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('MEMBER FINANCIAL REPORT', pageWidth / 2, 20, {
-        align: 'center',
-      });
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(
-        `Generated on: ${new Date().toLocaleString()}`,
-        pageWidth / 2,
-        27,
-        { align: 'center' },
-      );
-      doc.line(20, 32, pageWidth - 20, 32);
-
-      // Member Info
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Member Information', 20, 42);
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Name: ${capitalize(member.name)}`, 20, 50);
-      doc.text(`Email: ${member.email}`, 20, 55);
-      doc.text(`Phone: ${member.phone || 'N/A'}`, 20, 60);
-      doc.text(`Status: ${member.status}`, 20, 65);
-      doc.text(
-        `Joined: ${new Date(member.createdAt).toLocaleDateString()}`,
-        20,
-        70,
-      );
-
-      // Financial Summary
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Financial Overview', 20, 85);
-
-      autoTable(doc, {
-        startY: 90,
-        head: [['Metric', 'Value']],
-        body: [
-          ['Current Balance', formatPKR(member.currentBalance)],
-          ['Total Invested', formatPKR(member.totalInvested)],
-          ['Total Profits', formatPKR(member.totalProfit)],
-          ['Active Loans', loans.length],
-          [
-            'Total Debt (Remaining)',
-            formatPKR(loans.reduce((acc, l) => acc + l.remainingAmount, 0)),
-          ],
-        ],
-        theme: 'striped',
-        headStyles: { fillColor: [79, 70, 229] },
-      });
-
-      // Investments Table
-      // @ts-ignore
-      let currentY = (doc.lastAutoTable?.finalY || 150) + 15;
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Investment & Withdrawal Registry', 20, currentY);
-
-      if (investments.length > 0) {
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Date', 'Type', 'Amount', 'Balance After', 'Description']],
-          body: investments.map((inv) => [
-            new Date(inv.date).toLocaleDateString(),
-            inv.type.toUpperCase(),
-            formatPKR(inv.amount),
-            formatPKR(inv.balanceAfter || 0),
-            inv.description || '-',
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [16, 185, 129] },
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', ' ');
-        doc.text('No investment activity recorded.', 20, currentY + 5);
-        // @ts-ignore
-        doc.lastAutoTable = { finalY: currentY + 5 };
-      }
-
-      // Profits Table
-      // @ts-ignore
-      currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
-      // @ts-ignore
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Yield / Profit History', 20, currentY);
-
-      if (profits.length > 0) {
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Date', 'Period', 'Amount']],
-          body: profits.map((p) => [
-            new Date(p.date).toLocaleDateString(),
-            p.period,
-            formatPKR(p.amount),
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [245, 158, 11] }, // Amber
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', ' ');
-        doc.text('No profit distributions recorded.', 20, currentY + 5);
-        // @ts-ignore
-        doc.lastAutoTable = { finalY: currentY + 5 };
-      }
-
-      // Associated Loans
-      // @ts-ignore
-      currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
-      // @ts-ignore
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Active Loans', 20, currentY);
-
-      if (loans.length > 0) {
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Loan ID', 'Principal', 'Remaining', 'Status', 'Duration']],
-          body: loans.map((l) => [
-            l._id.slice(-6).toUpperCase(),
-            formatPKR(l.principal),
-            formatPKR(l.remainingAmount),
-            l.status.toUpperCase(),
-            `${l.duration} Months`,
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [220, 38, 38] }, // Red
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', ' ');
-        doc.text('No associated loans.', 20, currentY + 5);
-        // @ts-ignore
-        doc.lastAutoTable = { finalY: currentY + 5 };
-      }
-
-      // Repayments Table
-      // @ts-ignore
-      currentY = (doc.lastAutoTable?.finalY || currentY) + 15;
-      // @ts-ignore
-      if (currentY > 250) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Consolidated Repayment Log', 20, currentY);
-
-      if (repayments.length > 0) {
-        autoTable(doc, {
-          startY: currentY + 5,
-          head: [['Date', 'Amount', 'Loan ID', 'Notes']],
-          body: repayments.map((rp) => [
-            new Date(rp.date).toLocaleDateString(),
-            formatPKR(rp.amount),
-            // @ts-ignore
-            rp.loan?._id?.slice(-6).toUpperCase() || rp.loan || 'N/A',
-            rp.notes || '-',
-          ]),
-          theme: 'grid',
-          headStyles: { fillColor: [16, 185, 129] },
-        });
-      } else {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', ' ');
-        doc.text('No repayments found.', 20, currentY + 5);
-        // @ts-ignore
-        doc.lastAutoTable = { finalY: currentY + 5 };
-      }
-
-      // Footer
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.text(
-          `Page ${i} of ${pageCount}`,
-          pageWidth - 30,
-          doc.internal.pageSize.height - 10,
-        );
-        doc.text(
-          'Official Member Report - Generated via Aurbitrage Loan Management SaaS',
-          pageWidth / 2,
-          doc.internal.pageSize.height - 10,
-          { align: 'center' },
-        );
-      }
-
-      doc.save(
-        `MemberReport_${member.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
-      );
-      toast.success('Member report downloaded successfully');
+      await exportMemberStatement(member, investments, profits);
+      toast.success('Member statement downloaded successfully');
     } catch (error) {
-      console.error('PDF Generation Error:', error);
-      toast.error('Failed to generate report');
+      console.error('Statement Generation Error:', error);
+      toast.error('Failed to generate statement');
     } finally {
       setIsExporting(false);
     }
@@ -1359,6 +1141,67 @@ const MemberProfile = () => {
                       />
                     </div>
                   </div>
+
+                  {investmentType === 'deposit' &&
+                    loans.some((l) => l.status === 'active') && (
+                      <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4 animate-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                              <BadgeDollarSign size={20} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black tracking-tight">
+                                Loan Auto-Deduction
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-medium">
+                                Automatically use part of this deposit to repay
+                                active loan.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setApplyDeduction(!applyDeduction)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${applyDeduction ? 'bg-indigo-600' : 'bg-muted'}`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${applyDeduction ? 'translate-x-6' : 'translate-x-1'}`}
+                            />
+                          </button>
+                        </div>
+
+                        {applyDeduction && (
+                          <div className="grid grid-cols-2 gap-3 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => setRepaymentType('installment')}
+                              className={`p-3 rounded-xl border-2 transition-all text-center ${repaymentType === 'installment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
+                            >
+                              <p className="text-[10px] font-black uppercase tracking-widest">
+                                installment
+                              </p>
+                              <p className="text-[9px] font-medium opacity-60">
+                                Exact EMI only
+                              </p>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setRepaymentType('settlement')}
+                              className={`p-3 rounded-xl border-2 transition-all text-center ${repaymentType === 'settlement' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
+                            >
+                              <p className="text-[10px] font-black uppercase tracking-widest">
+                                full settlement
+                              </p>
+                              <p className="text-[9px] font-medium opacity-60">
+                                Pay as much as possible
+                              </p>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                   <div className="flex gap-3 justify-end">
                     <button
                       type="submit"

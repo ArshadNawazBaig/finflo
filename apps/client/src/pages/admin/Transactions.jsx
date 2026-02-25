@@ -7,6 +7,7 @@ import {
   Loader2,
   ArrowDown,
   Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
@@ -29,6 +30,7 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -205,6 +207,40 @@ const Transactions = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const params = new URLSearchParams({
+        search: searchQuery,
+        sortBy,
+        sortOrder,
+        startDate: dateRange?.from?.toISOString() || '',
+        endDate: dateRange?.to?.toISOString() || '',
+      });
+
+      const response = await api.get(`/ledger/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute(
+        'download',
+        `transactions_export_${new Date().getTime()}.xlsx`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Excel export completed');
+    } catch (error) {
+      console.error('Failed to export to Excel', error);
+      toast.error('Failed to export transactions');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const netCashFlow = summary.totalIncome - summary.totalExpense;
 
   return (
@@ -282,6 +318,20 @@ const Transactions = () => {
                 title="Download Statement (PDF)"
               >
                 <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                onClick={handleExportExcel}
+                disabled={isExportingExcel}
+                title="Export to Excel"
+              >
+                {isExportingExcel ? (
+                  <Loader2 className="relative w-4 h-4 text-emerald-500 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
+                )}
               </Button>
             </div>
           </div>

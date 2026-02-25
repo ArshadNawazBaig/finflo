@@ -44,6 +44,11 @@ const memberSchema = new mongoose.Schema(
       enum: ['Active', 'Inactive'],
       default: 'Active',
     },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'approved',
+    },
     cnic: { type: String, required: true },
     job: { type: String },
     monthlyIncome: { type: Number },
@@ -59,6 +64,8 @@ const memberSchema = new mongoose.Schema(
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     joinDate: { type: Date, default: Date.now },
+    twoFactorSecret: { type: String },
+    isTwoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

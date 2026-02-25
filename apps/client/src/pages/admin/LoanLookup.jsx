@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Loader2,
   ShieldCheck,
@@ -12,15 +9,18 @@ import {
   Download,
   Fingerprint,
   Mail,
+  ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { format } from 'date-fns';
-import { cn, formatPKR, formatCNIC } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { cn, formatCNIC } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import EmptyState from '@/components/ui/EmptyState';
-import Logo from '@/components/Logo';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AuthLayout from '@/layouts/AuthLayout';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
@@ -173,346 +173,335 @@ const LoanLookup = () => {
     setFormData({ securityCode: '', cnic: '' });
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden selection:bg-primary/20">
-      {/* Dynamic Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
+  if (result) {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
+        {/* Dynamic Background Blobs */}
+        <div className="absolute top-0 -left-10 w-96 h-96 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+        <div className="absolute top-0 -right-10 w-96 h-96 bg-emerald-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-      <main className="relative z-10 flex-1 container mx-auto px-4 pt-10 pb-20 flex items-center justify-center">
-        {!result ? (
-          <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-700 delay-100">
-            <Card className="glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-primary/50" />
-
-              <CardHeader className="space-y-4 pt-12 px-8 text-center flex flex-col items-center">
-                <Link to="/" className="mb-2">
-                  <Logo showText={false} className="h-12" />
-                </Link>
-                <div className="space-y-1">
-                  <CardTitle className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                    Loan Lookup
-                  </CardTitle>
-                  <p className="text-muted-foreground text-sm font-medium leading-relaxed">
-                    Verify your active loans and schedules instantly
-                  </p>
-                </div>
-              </CardHeader>
-
-              <CardContent className="px-8 pb-12 pt-4">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {error && (
-                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-widest p-4 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-
-                  <div className="space-y-5">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="securityCode"
-                        className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1"
-                      >
-                        Business Security Code
-                      </Label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
-                          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <input
-                          id="securityCode"
-                          name="securityCode"
-                          placeholder="E.G. ABC123"
-                          value={formData.securityCode}
-                          onChange={handleChange}
-                          className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium uppercase tracking-widest"
-                          maxLength={6}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="cnic"
-                        className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1"
-                      >
-                        CNIC Number
-                      </Label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
-                          <Fingerprint className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <input
-                          id="cnic"
-                          name="cnic"
-                          placeholder="00000-0000000-0"
-                          value={formData.cnic}
-                          onChange={handleChange}
-                          className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    variant="gradient"
-                    className="h-12 w-full rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] group relative overflow-hidden"
-                  >
-                    <span
-                      className={cn(
-                        'flex items-center justify-center gap-2 group-hover:scale-105 transition-transform duration-300',
-                        loading ? 'opacity-0' : 'opacity-100',
-                      )}
-                    >
-                      Execute Lookup <Search className="w-4 h-4" />
-                    </span>
-                    {loading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      </div>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="w-full max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-slate-800/50 p-8 rounded-[2.5rem] shadow-2xl shadow-black/5 animate-in slide-in-from-bottom-4 duration-700">
-              <div className="space-y-1">
-                <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                  <span className="text-primary capitalize">
-                    {result.customer.name}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
-                    Verified
-                  </span>
+        <main className="relative z-10 flex-1 container mx-auto px-6 py-20 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <h2 className="text-4xl font-black tracking-tight capitalize">
+                  {result.customer.name}
                 </h2>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground font-medium">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-primary/10 text-primary">
-                      <Mail size={12} />
-                    </div>
-                    {result.customer.email}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                      <ShieldCheck size={12} />
-                    </div>
-                    {result.businessName}
-                  </div>
+                <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                  Verified Holder
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground font-medium">
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-primary" />
+                  {result.customer.email}
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-emerald-500" />
+                  {result.businessName}
                 </div>
               </div>
-              <Button
-                variant="outline"
-                onClick={resetLookup}
-                className="rounded-full px-8 border-primary/20 hover:bg-primary/5 text-primary font-black uppercase tracking-widest text-[10px] h-12"
-              >
-                New Search
-              </Button>
             </div>
+            <Button
+              variant="gradient"
+              onClick={resetLookup}
+              className="rounded-full px-10 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
+            >
+              Perform New Search
+            </Button>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {result.loans.length > 0 ? (
-                result.loans.map((loan) => (
-                  <Card
-                    key={loan._id}
-                    className="group hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 border-white/20 dark:border-slate-800/50 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem]"
-                  >
-                    <div
-                      className={cn(
-                        'absolute top-0 left-0 w-1 h-full transition-colors',
-                        loan.status === 'active'
-                          ? 'bg-emerald-500'
-                          : loan.status === 'completed'
-                            ? 'bg-blue-500'
-                            : loan.status === 'rejected'
-                              ? 'bg-red-500'
-                              : 'bg-yellow-500',
-                      )}
-                    />
-                    <CardHeader className="pb-3 pl-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            Loan ID
-                          </p>
-                          <CardTitle className="text-lg font-bold font-mono mt-0.5">
-                            #{loan.loanId || loan._id.slice(-6).toUpperCase()}
-                          </CardTitle>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',
-                              loan.status === 'active'
-                                ? 'bg-emerald-500/10 text-emerald-600'
-                                : loan.status === 'completed'
-                                  ? 'bg-blue-500/10 text-blue-600'
-                                  : loan.status === 'rejected'
-                                    ? 'bg-red-500/10 text-red-600'
-                                    : 'bg-yellow-500/10 text-yellow-600',
-                            )}
-                          >
-                            {loan.status}
-                          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {result.loans.length > 0 ? (
+              result.loans.map((loan) => (
+                <Card
+                  key={loan._id}
+                  className="group hover:-translate-y-2 transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] shadow-xl hover:shadow-primary/5"
+                >
+                  <div
+                    className={cn(
+                      'absolute top-0 left-0 w-1.5 h-full transition-colors',
+                      loan.status === 'active'
+                        ? 'bg-emerald-500'
+                        : loan.status === 'completed'
+                          ? 'bg-blue-500'
+                          : loan.status === 'rejected'
+                            ? 'bg-red-500'
+                            : 'bg-yellow-500',
+                    )}
+                  />
+                  <CardHeader className="pb-4 pt-10 px-8">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Loan Identity
+                        </p>
+                        <CardTitle className="text-xl font-black font-mono mt-1">
+                          #{loan.loanId || loan._id.slice(-6).toUpperCase()}
+                        </CardTitle>
+                      </div>
+                      <div
+                        className={cn(
+                          'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest',
+                          loan.status === 'active'
+                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : loan.status === 'completed'
+                              ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                              : loan.status === 'rejected'
+                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20',
+                        )}
+                      >
+                        {loan.status}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6 px-8 pb-10 flex-1 flex flex-col">
+                    <div className="flex items-end justify-between border-b border-border/50 pb-6">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                          Principal
+                        </p>
+                        <div className="text-3xl font-black text-primary flex items-baseline gap-1">
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Rs.
+                          </span>
+                          {formatAmount(loan.principal)}
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4 pl-6 flex-1 flex flex-col">
-                      <div className="flex items-baseline justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Principal Amount
-                          </p>
-                          <div className="text-2xl font-black text-primary flex items-baseline gap-1">
-                            <span className="text-sm font-normal text-muted-foreground">
-                              Rs.
+                      <div className="text-right">
+                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                          Rate
+                        </p>
+                        <div className="text-2xl font-black text-blue-500">
+                          {loan.rate}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-6 gap-x-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                          Duration
+                        </p>
+                        <p className="font-bold text-base">
+                          {loan.duration}{' '}
+                          <span className="text-xs text-muted-foreground">
+                            Months
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                          Start Date
+                        </p>
+                        <p className="font-bold text-base">
+                          {format(new Date(loan.startDate), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                          Monthly EMI
+                        </p>
+                        <p className="font-bold text-base">
+                          Rs. {formatAmount(loan.emi)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                          Total Value
+                        </p>
+                        <p className="font-bold text-base">
+                          Rs. {formatAmount(loan.totalAmount)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {loan.status === 'active' && (
+                      <div className="pt-4 space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-muted-foreground">
+                              Repayment Lifecycle
                             </span>
-                            {formatAmount(loan.principal)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            Interest Rate
-                          </p>
-                          <div className="text-xl font-black text-blue-600">
-                            {loan.rate}%
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs mb-0.5">
-                            Duration
-                          </p>
-                          <p className="font-semibold">
-                            {loan.duration} Months
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs mb-0.5">
-                            Start Date
-                          </p>
-                          <p className="font-semibold">
-                            {format(new Date(loan.startDate), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs mb-0.5">
-                            Monthly EMI
-                          </p>
-                          <p className="font-semibold">
-                            Rs. {formatAmount(loan.emi)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs mb-0.5">
-                            Total Amount
-                          </p>
-                          <p className="font-semibold">
-                            Rs. {formatAmount(loan.totalAmount)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {loan.status === 'active' && (
-                        <div className="pt-2">
-                          <div className="flex justify-between text-xs mb-1.5 font-medium">
-                            <span>Repayment Progress</span>
-                            <span>
+                            <span className="text-primary">
                               {Math.round(
                                 (loan.paidAmount / loan.totalAmount) * 100,
                               )}
                               %
                             </span>
                           </div>
-                          <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+                          <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden border border-border/50">
                             <div
-                              className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full transition-all duration-500"
+                              className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-1000"
                               style={{
-                                width: `${Math.round(
-                                  (loan.paidAmount / loan.totalAmount) * 100,
-                                )}%`,
+                                width: `${Math.round((loan.paidAmount / loan.totalAmount) * 100)}%`,
                               }}
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm mt-3">
-                            <div>
-                              <p className="text-muted-foreground text-xs mb-0.5">
-                                Paid Amount
-                              </p>
-                              <p className="font-semibold text-emerald-600">
-                                Rs. {formatAmount(loan.paidAmount)}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground text-xs mb-0.5">
-                                Remaining
-                              </p>
-                              <p className="font-semibold text-orange-600">
-                                Rs. {formatAmount(loan.remainingAmount)}
-                              </p>
-                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600/70 mb-1">
+                              Settled
+                            </p>
+                            <p className="font-black text-emerald-600">
+                              Rs. {formatAmount(loan.paidAmount)}
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-orange-500/5 border border-orange-500/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-orange-600/70 mb-1">
+                              Outstanding
+                            </p>
+                            <p className="font-black text-orange-600">
+                              Rs. {formatAmount(loan.remainingAmount)}
+                            </p>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      <div className="flex-grow"></div>
+                    <div className="flex-grow min-h-[20px]"></div>
 
-                      <Button
-                        size="sm"
-                        className={cn(
-                          'w-full rounded-xl text-white font-semibold hover:opacity-90 transition-opacity',
-                          loan.status === 'active'
-                            ? 'bg-emerald-500 hover:bg-emerald-500'
-                            : loan.status === 'completed'
-                              ? 'bg-blue-500 hover:bg-blue-500'
-                              : loan.status === 'rejected'
-                                ? 'bg-red-500 hover:bg-red-500'
-                                : 'bg-yellow-500 hover:bg-yellow-500',
-                        )}
-                        onClick={() =>
-                          generateLoanPDF(
-                            loan,
-                            result.customer.name,
-                            result.businessName,
-                          )
-                        }
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download PDF
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <EmptyState
-                  icon={FileText}
-                  title="No Loans Found"
-                  description="We couldn't find any loan records associated with these details."
-                  className="col-span-full border-white/20 dark:border-slate-800/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] shadow-sm"
-                />
-              )}
-            </div>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/50 hover:bg-muted/50 transition-all group/btn shadow-sm"
+                      onClick={() =>
+                        generateLoanPDF(
+                          loan,
+                          result.customer.name,
+                          result.businessName,
+                        )
+                      }
+                    >
+                      <Download className="w-4 h-4 mr-2 group-hover/btn:-translate-y-0.5 transition-transform" />
+                      Download PDF Report
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <EmptyState
+                icon={FileText}
+                title="No Loans Found"
+                description="We couldn't find any loan records associated with these details."
+                className="col-span-full border-white/20 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] py-20 shadow-xl"
+              />
+            )}
+          </div>
+        </main>
+
+        <footer className="relative z-10 py-10 text-center border-t border-border/50 bg-background/50 backdrop-blur-sm">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-30">
+            © 2026 Financial Flow Intelligence Portal • Immutable Records
+          </p>
+        </footer>
+      </div>
+    );
+  }
+
+  return (
+    <AuthLayout
+      title="Loan Lookup"
+      description="Verify your active loans and schedules instantly with your security credentials."
+      badge="Direct Verification"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-widest p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
-      </main>
 
-      {/* Minimal Footer */}
-      <div className="relative z-10 py-10 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-20 px-4">
-          © 2026 Financial Intelligence Portal • Integrity via Technology
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label
+              htmlFor="securityCode"
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            >
+              Organization Security Code
+            </Label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-500">
+                <ShieldCheck size={16} className="text-muted-foreground" />
+              </div>
+              <input
+                id="securityCode"
+                name="securityCode"
+                placeholder="E.G. ABC123"
+                value={formData.securityCode}
+                onChange={handleChange}
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
+                maxLength={6}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="cnic"
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            >
+              Registered CNIC / ID
+            </Label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                <Fingerprint size={16} className="text-muted-foreground" />
+              </div>
+              <input
+                id="cnic"
+                name="cnic"
+                placeholder="00000-0000000-0"
+                value={formData.cnic}
+                onChange={handleChange}
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="gradient"
+          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-lg shadow-primary/10 mt-4"
+        >
+          <span
+            className={cn(
+              'flex items-center justify-center gap-2 transition-all duration-300',
+              loading ? 'opacity-0' : 'opacity-100',
+            )}
+          >
+            Execute Search
+            <Search
+              size={14}
+              className="group-hover:scale-110 transition-transform"
+            />
+          </span>
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </div>
+          )}
+        </Button>
+      </form>
+
+      <div className="pt-8 border-t border-border flex flex-col items-center gap-4">
+        <p className="text-sm text-muted-foreground font-medium text-center">
+          Need specialized access?{' '}
+          <Link
+            to="/member/login"
+            className="text-primary font-black hover:underline"
+          >
+            Member Portal
+          </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

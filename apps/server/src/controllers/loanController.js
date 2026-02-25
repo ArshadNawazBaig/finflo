@@ -42,6 +42,7 @@ const createLoan = async (req, res) => {
     startDate,
     interestType = 'simple',
     grantorIdentifier, // New: Optional Grantor CNIC or Phone
+    product, // New: Optional LoanProduct ID
   } = req.body;
 
   const principal = Number(principalInput);
@@ -161,6 +162,7 @@ const createLoan = async (req, res) => {
       grantor: grantorId,
       grantorStatus: 'pending',
       riskDetails,
+      product: product || undefined,
     });
 
     const createdLoan = await loan.save();
@@ -556,6 +558,7 @@ const getLoans = async (req, res) => {
     const loans = await Loan.find(query)
       .populate('customer', 'name email isMember memberId')
       .populate('grantor', 'name')
+      .populate('product', 'name')
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sortOrder });
@@ -629,7 +632,8 @@ const getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id)
       .populate('customer', 'name email phone trustRating')
-      .populate('grantor', 'name');
+      .populate('grantor', 'name')
+      .populate('product', 'name');
     if (
       loan &&
       (loan.user.toString() === req.user.effectiveOwnerId.toString() ||
@@ -910,6 +914,24 @@ const updateLoan = async (req, res) => {
             action: status === 'active' ? 'loan_approved' : 'loan_rejected',
           });
           await notification.save();
+        }
+
+        // Email Notification to Customer/Member
+        if (customer && customer.email) {
+          const { sendEmail } = require('../utils/email');
+          const emailSubject =
+            status === 'active' ? 'Loan Approved' : 'Loan Application Update';
+          const emailHtml = `
+            <h2>Hello ${customer.name},</h2>
+            <p>Your loan request for <strong>Rs. ${loan.principal.toLocaleString()}</strong> has been <strong>${status === 'active' ? 'APPROVED' : 'REJECTED'}</strong>.</p>
+            ${status === 'active' ? '<p>The funds will be disbursed shortly.</p>' : ''}
+            <p>Thank you for choosing us.</p>
+          `;
+          await sendEmail({
+            to: customer.email,
+            subject: emailSubject,
+            html: emailHtml,
+          });
         }
       } catch (notifError) {
         console.error('Failed to send member notification:', notifError);
@@ -1602,6 +1624,171 @@ const memberRepayLoan = async (req, res) => {
   }
 };
 
+const bulkApproveLoans = async (req, res) => {
+  try {
+    const { loanIds, notes } = req.body;
+    if (!Array.isArray(loanIds) || loanIds.length === 0) {
+      return res.status(400).json({ message: 'No loans selected' });
+    }
+
+    const processed = [];
+    const failed = [];
+
+    for (const id of loanIds) {
+      try {
+        const loan = await Loan.findById(id).populate('customer');
+        if (!loan || loan.status !== 'pending') {
+          failed.push({ id, reason: 'Not found or not pending' });
+          continue;
+        }
+
+        if (
+          loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+          !(
+            req.user.role === 'staff' &&
+            loan.branchId?.toString() === req.user.branchId?.toString()
+          )
+        ) {
+          failed.push({ id, reason: 'Not authorized' });
+          continue;
+        }
+
+        loan.status = 'active';
+        loan.approvedBy = req.user._id;
+        loan.approvedAt = new Date();
+        loan.startDate = new Date();
+
+        await loan.save();
+
+        const financialTx = new FinancialTransaction({
+          user: req.user.effectiveOwnerId,
+          branchId:
+            loan.branchId || (await Customer.findById(loan.customer))?.branchId,
+          type: 'loan',
+          category: 'loan_disbursement',
+          amount: loan.principal,
+          date: new Date(),
+          description: `Bulk disbursement for ${loan.customer.name}${notes ? ` - ${notes}` : ''}`,
+          customer: loan.customer._id || loan.customer,
+          loan: loan._id,
+          referenceId: loan._id,
+          referenceModel: 'Loan',
+        });
+        await financialTx.save();
+
+        await logActivity({
+          userId: req.user._id,
+          action: 'loan_approved',
+          category: 'loan',
+          details: `Approved loan #${loan._id.toString().slice(-6).toUpperCase()} via Bulk Action${notes ? ` (${notes})` : ''}`,
+          metadata: { loanId: loan._id, customerId: loan.customer, bulk: true },
+          req,
+        });
+
+        const customer = await Customer.findById(loan.customer);
+        if (customer && customer.isMember && customer.memberId) {
+          await Notification.create({
+            recipient: customer.memberId,
+            recipientModel: 'Member',
+            title: 'Loan Approved',
+            message: `Your loan request for ${loan.principal} has been approved.`,
+            type: 'success',
+            link: '/member/loans',
+            action: 'loan_approved',
+          }).catch(() => {});
+        }
+
+        processed.push(id);
+      } catch (err) {
+        failed.push({ id, reason: err.message });
+      }
+    }
+
+    res.json({
+      message: 'Bulk approval complete',
+      processedCount: processed.length,
+      failedCount: failed.length,
+      failed,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const bulkRejectLoans = async (req, res) => {
+  try {
+    const { loanIds, reason } = req.body;
+    if (!Array.isArray(loanIds) || loanIds.length === 0) {
+      return res.status(400).json({ message: 'No loans selected' });
+    }
+
+    const processed = [];
+    const failed = [];
+
+    for (const id of loanIds) {
+      try {
+        const loan = await Loan.findById(id);
+        if (!loan || loan.status !== 'pending') {
+          failed.push({ id, reason: 'Not found or not pending' });
+          continue;
+        }
+
+        if (
+          loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+          !(
+            req.user.role === 'staff' &&
+            loan.branchId?.toString() === req.user.branchId?.toString()
+          )
+        ) {
+          failed.push({ id, reason: 'Not authorized' });
+          continue;
+        }
+
+        loan.status = 'rejected';
+        loan.rejectedBy = req.user._id;
+        loan.rejectionReason = reason;
+
+        await loan.save();
+
+        await logActivity({
+          userId: req.user._id,
+          action: 'loan_rejected',
+          category: 'loan',
+          details: `Rejected loan #${loan._id.toString().slice(-6).toUpperCase()} via Bulk Action`,
+          metadata: { loanId: loan._id, reason, bulk: true },
+          req,
+        });
+
+        const customer = await Customer.findById(loan.customer);
+        if (customer && customer.isMember && customer.memberId) {
+          await Notification.create({
+            recipient: customer.memberId,
+            recipientModel: 'Member',
+            title: 'Loan Rejected',
+            message: `Your loan request for ${loan.principal} has been rejected. Reason: ${reason || 'Not specified'}`,
+            type: 'error',
+            link: '/member/loans',
+            action: 'loan_rejected',
+          }).catch(() => {});
+        }
+
+        processed.push(id);
+      } catch (err) {
+        failed.push({ id, reason: err.message });
+      }
+    }
+
+    res.json({
+      message: 'Bulk rejection complete',
+      processedCount: processed.length,
+      failedCount: failed.length,
+      failed,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createLoan,
   getLoans,
@@ -1617,6 +1804,8 @@ module.exports = {
   getMyLoans,
   approveLoan,
   rejectLoan,
+  bulkApproveLoans,
+  bulkRejectLoans,
   getLoanSchedule,
   getMemberLoanById,
   getMemberLoanSchedule,

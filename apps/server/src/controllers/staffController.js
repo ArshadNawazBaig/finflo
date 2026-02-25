@@ -4,7 +4,7 @@ const { logActivity } = require('./activityLogController');
 
 // Create Staff Member
 const createStaff = async (req, res) => {
-  const { name, email, password, branchId } = req.body;
+  const { name, email, password, branchId, roleRef } = req.body;
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
@@ -19,6 +19,7 @@ const createStaff = async (req, res) => {
       email: lowercaseEmail,
       password,
       role: 'staff',
+      roleRef: roleRef || null,
       ownerId: req.user._id, // Linked to the Admin who created them
       branchId: branchId || null,
       businessName: req.user.businessName, // Inherit business name
@@ -84,6 +85,7 @@ const getStaff = async (req, res) => {
     const totalEntries = await User.countDocuments(query);
     const staffMembers = await User.find(query)
       .populate('branchId', 'name')
+      .populate('roleRef', 'name')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -169,7 +171,7 @@ const toggleStaffStatus = async (req, res) => {
 
 // Update Staff Member
 const updateStaff = async (req, res) => {
-  const { name, email, password, branchId } = req.body;
+  const { name, email, password, branchId, roleRef } = req.body;
   try {
     const staff = await User.findById(req.params.id);
 
@@ -190,6 +192,7 @@ const updateStaff = async (req, res) => {
     if (email) staff.email = email.toLowerCase();
     if (password) staff.password = password;
     if (branchId !== undefined) staff.branchId = branchId;
+    if (roleRef !== undefined) staff.roleRef = roleRef;
 
     const updatedStaff = await staff.save();
 

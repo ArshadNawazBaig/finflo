@@ -11,7 +11,13 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
+const DistributeProfitModal = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  type = 'regular',
+}) => {
+  const isShareDist = type === 'share';
   const [formData, setFormData] = useState({
     totalProfit: '',
     period: new Date().toLocaleDateString('en-US', {
@@ -25,10 +31,10 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type: inputType, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: inputType === 'checkbox' ? checked : value,
     });
   };
 
@@ -38,7 +44,10 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await api.post('/members/distribute-profit', {
+      const endpoint = isShareDist
+        ? '/members/distribute-share-profit'
+        : '/members/distribute-profit';
+      const response = await api.post(endpoint, {
         ...formData,
         totalProfit: parseFloat(formData.totalProfit) || 0,
       });
@@ -69,15 +78,19 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+            <div
+              className={`p-3 rounded-2xl ${isShareDist ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}
+            >
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
               <DialogTitle className="text-2xl font-black">
-                Distribute Profit
+                {isShareDist ? 'Distribute Share Profit' : 'Distribute Profit'}
               </DialogTitle>
               <DialogDescription className="text-sm font-medium">
-                Share earnings with active members.
+                {isShareDist
+                  ? 'Distribute earnings to business share holders.'
+                  : 'Share earnings with active regular members.'}
               </DialogDescription>
             </div>
           </div>
@@ -93,8 +106,10 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="space-y-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                <TrendingUp className="w-3 h-3 text-emerald-500" /> Total Profit
-                to Distribute *
+                <TrendingUp
+                  className={`w-3 h-3 ${isShareDist ? 'text-indigo-500' : 'text-emerald-500'}`}
+                />{' '}
+                Total Profit to Distribute *
               </label>
               <input
                 type="number"
@@ -138,28 +153,36 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
               />
             </div>
 
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/50 group cursor-pointer transition-colors hover:bg-muted/50">
-              <div className="flex-1">
-                <label
-                  htmlFor="useCustomRates"
-                  className="text-xs font-black uppercase tracking-wider cursor-pointer"
-                >
-                  Use Custom Rates
-                </label>
-                <p className="text-[10px] text-muted-foreground font-medium">
-                  Calculate based on individual member profit rates instead of
-                  proportional share.
-                </p>
+            {!isShareDist && (
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/50 group cursor-pointer transition-colors hover:bg-muted/50">
+                <div className="flex-1">
+                  <label
+                    htmlFor="useCustomRates"
+                    className="text-xs font-black uppercase tracking-wider cursor-pointer"
+                  >
+                    Use Custom Rates
+                  </label>
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    Calculate based on individual member profit rates instead of
+                    proportional share.
+                  </p>
+                </div>
+                <input
+                  id="useCustomRates"
+                  type="checkbox"
+                  name="useCustomRates"
+                  checked={formData.useCustomRates}
+                  onChange={handleChange}
+                  className="w-5 h-5 rounded-lg border-border/50 bg-background transition-all accent-primary cursor-pointer"
+                />
               </div>
-              <input
-                id="useCustomRates"
-                type="checkbox"
-                name="useCustomRates"
-                checked={formData.useCustomRates}
-                onChange={handleChange}
-                className="w-5 h-5 rounded-lg border-border/50 bg-background transition-all accent-primary cursor-pointer"
-              />
-            </div>
+            )}
+            {isShareDist && (
+              <p className="text-[10px] text-muted-foreground/60 italic px-1">
+                * Share profit is always distributed proportionally based on
+                active share holdings.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
@@ -173,15 +196,15 @@ const DistributeProfitModal = ({ isOpen, onClose, onSuccess }) => {
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
-              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+              variant={isShareDist ? 'outline' : 'gradient'}
+              className={`px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3 ${isShareDist ? 'border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white' : ''}`}
             >
               {loading ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : (
                 <Percent size={16} />
               )}
-              Distribute Profit
+              {isShareDist ? 'Distribute Share Profit' : 'Distribute Profit'}
             </Button>
           </div>
         </form>

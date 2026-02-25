@@ -518,6 +518,36 @@ const updateDocumentStatus = async (req, res) => {
   }
 };
 
+/** Get all customers that have at least one Pending document */
+const getPendingDocuments = async (req, res) => {
+  try {
+    const customers = await Customer.find({
+      user: req.user.effectiveOwnerId,
+      'documents.status': 'Pending',
+    }).select('name email phone documents');
+
+    // Flatten into a list of pending-doc entries for easy rendering
+    const queue = [];
+    customers.forEach((c) => {
+      c.documents
+        .filter((d) => d.status === 'Pending')
+        .forEach((d) => {
+          queue.push({
+            customerId: c._id,
+            customerName: c.name,
+            customerEmail: c.email,
+            customerPhone: c.phone,
+            doc: d,
+          });
+        });
+    });
+
+    res.json(queue);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomerById,
@@ -527,4 +557,5 @@ module.exports = {
   uploadDocuments,
   deleteDocument,
   updateDocumentStatus,
+  getPendingDocuments,
 };

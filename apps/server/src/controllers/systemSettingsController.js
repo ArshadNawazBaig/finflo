@@ -30,6 +30,7 @@ const updateSystemSettings = async (req, res) => {
       'maintenanceMode',
       'estimatedMaintenanceTime',
       'emailTemplates',
+      'smtpConfig',
     ];
 
     allowedFields.forEach((field) => {

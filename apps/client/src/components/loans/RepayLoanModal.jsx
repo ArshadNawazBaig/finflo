@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,9 +21,15 @@ import {
   Banknote,
 } from 'lucide-react';
 import { formatPKR, cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  AlertTriangle,
+} from 'lucide-react';
 
 const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
+  const [memberBalance, setMemberBalance] = useState(null);
+  const [isFetchingBalance, setIsFetchingBalance] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,6 +37,26 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
     date: new Date().toISOString().split('T')[0],
     notes: '',
   });
+
+  useEffect(() => {
+    if (isOpen && loan?.customer?.isMember && loan?.customer?.memberId) {
+      const fetchMemberBalance = async () => {
+        setIsFetchingBalance(true);
+        try {
+          const { data } = await api.get(`/members/${loan.customer.memberId}`);
+          setMemberBalance(data.currentBalance || 0);
+        } catch (error) {
+          console.error('Failed to fetch member balance', error);
+          // Fallback or handle error silently so it doesn't block entirely
+        } finally {
+          setIsFetchingBalance(false);
+        }
+      };
+      fetchMemberBalance();
+    } else {
+      setMemberBalance(null);
+    }
+  }, [isOpen, loan]);
 
   if (!loan) return null;
 
@@ -185,6 +211,38 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <div className="pt-1 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                 <span>Adjusted Interest</span>
                 <span>{formatPKR(details.interest)}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Member Balance Alert (Only for Members) */}
+          {memberBalance !== null && (
+            <div
+              className={cn(
+                'mt-3 p-3 rounded-xl border flex gap-3 transition-colors',
+                Number(formData.amount) > memberBalance
+                  ? 'bg-red-500/10 border-red-500/20 text-red-600'
+                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600',
+              )}
+            >
+              <Wallet className="w-5 h-5 shrink-0" />
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                  Available Member Balance
+                </p>
+                <p className="text-lg font-black tracking-tight">
+                  {isFetchingBalance ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    formatPKR(memberBalance)
+                  )}
+                </p>
+                {Number(formData.amount) > memberBalance &&
+                  !isFetchingBalance && (
+                    <p className="text-[10px] font-black text-red-500 flex items-center gap-1 mt-1">
+                      <AlertTriangle size={12} /> Exceeds available funds
+                    </p>
+                  )}
               </div>
             </div>
           )}
@@ -346,7 +404,12 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                (memberBalance !== null &&
+                  Number(formData.amount) > memberBalance &&
+                  !isFetchingBalance)
+              }
               variant={isSettlement ? 'gradient' : 'success'}
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >

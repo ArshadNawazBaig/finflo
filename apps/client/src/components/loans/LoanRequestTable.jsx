@@ -25,6 +25,9 @@ const LoanRequestTable = ({
   sortBy,
   sortOrder,
   onSort,
+  selectedIds = [],
+  onToggleSelect,
+  onSelectAll,
 }) => {
   const renderSortIcon = (column) => {
     if (sortBy !== column)
@@ -42,6 +45,20 @@ const LoanRequestTable = ({
         <table className="w-full text-sm text-left border-collapse">
           <thead>
             <tr className="border-b border-border/50 text-left bg-muted/30">
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground w-12">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-border/50 text-primary focus:ring-primary/20 bg-card"
+                  checked={
+                    requests.length > 0 &&
+                    requests.every(
+                      (r) =>
+                        r.status !== 'pending' || selectedIds.includes(r._id),
+                    )
+                  }
+                  onChange={(e) => onSelectAll?.(e.target.checked)}
+                />
+              </th>
               <th
                 className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => onSort('customer.name')}
@@ -99,8 +116,22 @@ const LoanRequestTable = ({
             {requests.map((request) => (
               <tr
                 key={request._id}
-                className="group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors"
+                className={`group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors ${selectedIds.includes(request._id) ? 'bg-primary/5' : ''}`}
               >
+                <td className="py-4 px-4 w-12">
+                  {request.status === 'pending' ? (
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-border/50 text-primary focus:ring-primary/20 bg-card"
+                      checked={selectedIds.includes(request._id)}
+                      onChange={(e) =>
+                        onToggleSelect?.(request._id, e.target.checked)
+                      }
+                    />
+                  ) : (
+                    <span className="text-muted-foreground/30">-</span>
+                  )}
+                </td>
                 <td className="py-4 px-4">
                   <Link
                     to={

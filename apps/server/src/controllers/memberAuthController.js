@@ -1,6 +1,12 @@
 const Member = require('../models/Member');
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
+const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } = require('otplib');
+const authenticator = new TOTP({
+  crypto: new NobleCryptoPlugin(),
+  base32: new ScureBase32Plugin(),
+});
+const QRCode = require('qrcode');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -52,6 +58,20 @@ const loginMember = async (req, res) => {
     }
 
     if (await member.matchPassword(password)) {
+      // If 2FA is enabled, return a pending status and temporary token
+      if (member.isTwoFactorEnabled) {
+        const pendingToken = jwt.sign(
+          { id: member._id, pending2FA: true },
+          process.env.JWT_SECRET,
+          { expiresIn: '5m' },
+        );
+        return res.json({
+          twoFactorRequired: true,
+          pendingToken,
+          email: member.email,
+        });
+      }
+
       // Update lastLoginAt without triggering full validation hooks
       await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
 
@@ -473,6 +493,160 @@ const deleteProfilePicture = async (req, res) => {
   }
 };
 
+/** Generate a TOTP secret & return a QR code for the member */
+const generate2FA = async (req, res) => {
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    if (member.isTwoFactorEnabled)
+      return res.status(400).json({ message: '2FA is already enabled' });
+
+    const secret = authenticator.generateSecret();
+    // Temporarily store secret until the user verifies
+    member.twoFactorSecret = secret;
+    await member.save({ validateBeforeSave: false });
+
+    const appName = 'ACE Wealth Portal';
+    const otpauthUrl = authenticator.toURI({
+      label: member.email,
+      issuer: appName,
+      secret: secret,
+    });
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
+    res.json({ qrCode: qrCodeDataUrl, secret });
+  } catch (error) {
+    console.error('2FA Generate Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Verify and Enable 2FA for the member */
+const verify2FA = async (req, res) => {
+  const { code } = req.body;
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    if (!member.twoFactorSecret)
+      return res
+        .status(400)
+        .json({ message: 'No 2FA secret found. Generate one first.' });
+
+    const isValid = await authenticator.verify(code, {
+      secret: member.twoFactorSecret,
+    });
+    if (!isValid)
+      return res.status(400).json({ message: 'Invalid or expired code' });
+
+    member.isTwoFactorEnabled = true;
+    await member.save({ validateBeforeSave: false });
+
+    await logActivity({
+      userId: member._id,
+      action: 'member_2fa_enabled',
+      category: 'auth',
+      details: 'Member enabled Two-Factor Authentication',
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: 'Two-Factor Authentication enabled successfully.',
+    });
+  } catch (error) {
+    console.error('2FA Verify Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Disable 2FA for the member */
+const disable2FA = async (req, res) => {
+  const { password } = req.body;
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    if (!(await member.matchPassword(password))) {
+      return res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    member.isTwoFactorEnabled = false;
+    member.twoFactorSecret = undefined;
+    await member.save({ validateBeforeSave: false });
+
+    await logActivity({
+      userId: member._id,
+      action: 'member_2fa_disabled',
+      category: 'auth',
+      details: 'Member disabled Two-Factor Authentication',
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: 'Two-Factor Authentication disabled successfully.',
+    });
+  } catch (error) {
+    console.error('2FA Disable Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/** Second step of the 2FA login flow for members */
+const verifyLogin2FA = async (req, res) => {
+  const { pendingToken, code } = req.body;
+  try {
+    let decoded;
+    try {
+      decoded = jwt.verify(pendingToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return res
+        .status(401)
+        .json({ message: 'Invalid or expired session. Please log in again.' });
+    }
+
+    if (!decoded.pending2FA)
+      return res.status(400).json({ message: 'Invalid 2FA token' });
+
+    const member = await Member.findById(decoded.id).populate(
+      'user',
+      'name businessName securityCode',
+    );
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    const isValid = await authenticator.verify(code, {
+      secret: member.twoFactorSecret,
+    });
+    if (!isValid)
+      return res.status(400).json({ message: 'Invalid or expired 2FA code' });
+
+    // Update last login
+    member.lastLoginAt = new Date();
+    await member.save({ validateBeforeSave: false });
+
+    await logActivity({
+      userId: member._id,
+      action: 'member_login',
+      category: 'auth',
+      details: `Member logged in with 2FA: ${member.email}`,
+      req,
+    });
+
+    res.json({
+      _id: member._id,
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      business: member.user,
+      token: generateToken(member._id),
+      isTwoFactorEnabled: member.isTwoFactorEnabled,
+    });
+  } catch (error) {
+    console.error('Verify Login 2FA Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   loginMember,
   getMe,
@@ -483,4 +657,8 @@ module.exports = {
   deleteAccount,
   forgotPassword,
   resetPassword,
+  generate2FA,
+  verify2FA,
+  disable2FA,
+  verifyLogin2FA,
 };

@@ -18,11 +18,16 @@ import {
   Users,
   Archive,
   ShieldCheck,
+  FileCheck2,
   ChevronDown,
+  Percent,
+  BookOpen,
+  Shield,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
+import usePermissions from '@/hooks/usePermissions';
 
 import {
   Tooltip,
@@ -110,6 +115,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
     return () => window.removeEventListener('userUpdated', handleUserUpdate);
   }, []);
 
+  const { hasPermission, hasAnyPermission } = usePermissions();
+
   const userInitials = user.name
     ? user.name
         .split(' ')
@@ -172,49 +179,88 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Dashboard"
             isExpanded={isLayoutExpanded}
           />
-          <NavItem
-            to="/customers"
-            icon={<UsersRound size={18} />}
-            active={isActive('/customers')}
-            label="Customers"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/members"
-            icon={<Landmark size={18} />}
-            active={isActive('/members')}
-            label="Members"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/loan-requests"
-            icon={<FileQuestion size={18} />}
-            active={isActive('/loan-requests')}
-            label="Requests"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/loans"
-            icon={<WalletMinimal size={18} />}
-            active={isActive('/loans')}
-            label="Loans"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/transactions"
-            icon={<ArrowRightLeft size={18} />}
-            active={isActive('/transactions')}
-            label="Transactions"
-            isExpanded={isLayoutExpanded}
-          />
-          <NavItem
-            to="/reports"
-            icon={<FileChartColumn size={18} />}
-            active={isActive('/reports')}
-            label="Reports"
-            isExpanded={isLayoutExpanded}
-          />
-          {(user.role === 'admin' || user.isManager) && (
+          {hasAnyPermission(['view_all', 'manage_members']) && (
+            <NavItem
+              to="/customers"
+              icon={<UsersRound size={18} />}
+              active={isActive('/customers')}
+              label="Customers"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasAnyPermission(['view_all', 'manage_members']) && (
+            <NavItem
+              to="/members"
+              icon={<Landmark size={18} />}
+              active={isActive('/members')}
+              label="Members"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('manage_loans') && (
+            <NavItem
+              to="/loan-requests"
+              icon={<FileQuestion size={18} />}
+              active={isActive('/loan-requests')}
+              label="Requests"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasAnyPermission(['view_all', 'manage_loans']) && (
+            <NavItem
+              to="/loans"
+              icon={<WalletMinimal size={18} />}
+              active={isActive('/loans')}
+              label="Loans"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasAnyPermission(['manage_loans', 'system_settings']) && (
+            <NavItem
+              to="/loan-products"
+              icon={<BookOpen size={18} />}
+              active={isActive('/loan-products')}
+              label="Product Catalog"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasAnyPermission(['view_all', 'view_reports', 'manage_loans']) && (
+            <NavItem
+              to="/transactions"
+              icon={<ArrowRightLeft size={18} />}
+              active={isActive('/transactions')}
+              label="Transactions"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasAnyPermission(['manage_members', 'view_reports']) && (
+            <NavItem
+              to="/distributions"
+              icon={<Percent size={18} />}
+              active={isActive('/distributions')}
+              label="Distributions"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('approve_members') && (
+            <NavItem
+              to="/verification-queue"
+              icon={<FileCheck2 size={18} />}
+              active={isActive('/verification-queue')}
+              label="Verify Docs"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('view_reports') && (
+            <NavItem
+              to="/reports"
+              icon={<FileChartColumn size={18} />}
+              active={isActive('/reports')}
+              label="Reports"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('manage_roles') && (
             <NavItem
               to="/team"
               icon={<Users size={18} />}
@@ -223,7 +269,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
-          {(user.role === 'admin' || user.isManager) && (
+          {hasPermission('manage_branches') && (
             <NavItem
               to={user.isManager ? `/branches/${user.branchId}` : '/branches'}
               icon={<ShieldCheck size={18} />}
@@ -236,12 +282,21 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
-          {(user.role === 'admin' || user.isManager) && (
+          {hasAnyPermission(['view_reports', 'manage_roles']) && (
             <NavItem
               to="/audit-logs"
               icon={<Archive size={18} />}
               active={isActive('/audit-logs')}
               label="Audit Trail"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('manage_roles') && (
+            <NavItem
+              to="/roles"
+              icon={<Shield size={18} />}
+              active={isActive('/roles')}
+              label="Roles"
               isExpanded={isLayoutExpanded}
             />
           )}
@@ -252,7 +307,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Notifications"
             isExpanded={isLayoutExpanded}
           />
-          {user.role === 'admin' && (
+          {hasPermission('system_settings') && (
             <>
               <NavItem
                 to="/pricing"

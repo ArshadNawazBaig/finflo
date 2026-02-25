@@ -40,6 +40,15 @@ export const capitalize = (str) => {
     .join(' ');
 };
 
+export const formatDate = (date) => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
 export const formatCNIC = (value) => {
   if (!value) return '';
   const rawValue = value.replace(/\D/g, '').slice(0, 13);

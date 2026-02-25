@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const BusinessShare = require('../models/BusinessShare');
@@ -18,6 +19,7 @@ const {
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { sendEmail } = require('../utils/email');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -128,7 +130,13 @@ const convertCustomerToMember = async (req, res) => {
 const getMembers = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { page = 1, limit = 10, search = '', status = '' } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      status = '',
+      approvalStatus,
+    } = req.query;
 
     const query = { user: userId };
     if (search) {
@@ -143,6 +151,14 @@ const getMembers = async (req, res) => {
     }
     if (status) {
       query.status = status;
+    }
+    if (approvalStatus === 'approved') {
+      query.approvalStatus = { $in: ['approved', null, undefined] };
+    } else if (approvalStatus) {
+      query.approvalStatus = approvalStatus;
+    } else if (req.query.includePending !== 'true') {
+      // Default to only showing approved members, unless explicitly bypassing
+      query.approvalStatus = { $in: ['approved', null, undefined] };
     }
 
     // Branch Segregation: Staff only see their own branch data
@@ -607,7 +623,12 @@ const addInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description } = req.body;
+    const {
+      amount,
+      description,
+      applyDeduction = true,
+      repaymentType = 'settlement',
+    } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid investment amount' });
@@ -617,6 +638,9 @@ const addInvestment = async (req, res) => {
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
+
+    const balanceBefore = member.currentBalance;
+    const investedBefore = member.totalInvested;
 
     // Update member balances
     member.totalInvested += amount;
@@ -649,7 +673,7 @@ const addInvestment = async (req, res) => {
     });
     await financialTx.save();
 
-    // Log activity
+    // Log activity with before/after state
     await logActivity({
       userId: req.user._id,
       action: 'member_investment_added',
@@ -659,6 +683,14 @@ const addInvestment = async (req, res) => {
         memberId: id,
         amount,
         investmentId: investment._id,
+        before: {
+          currentBalance: balanceBefore,
+          totalInvested: investedBefore,
+        },
+        after: {
+          currentBalance: member.currentBalance,
+          totalInvested: member.totalInvested,
+        },
       },
       req,
     });
@@ -678,6 +710,17 @@ const addInvestment = async (req, res) => {
           link: '/member/investments',
         },
       });
+
+      // Email Notification
+      if (member.email) {
+        await sendEmail({
+          to: member.email,
+          subject: 'Deposit Confirmation',
+          html: `<p>Hello ${member.name},</p>
+                 <p>Your deposit of <strong>Rs. ${amount.toLocaleString()}</strong> has been successfully processed.</p>
+                 <p>Current Balance: <strong>Rs. ${member.currentBalance.toLocaleString()}</strong></p>`,
+        });
+      }
     } catch (notifError) {
       console.error('Deposit Notification Error:', notifError);
     }
@@ -689,8 +732,14 @@ const addInvestment = async (req, res) => {
         status: 'active',
       });
 
-      if (activeLoan) {
-        const deductionAmount = Math.min(amount, activeLoan.remainingAmount);
+      if (activeLoan && applyDeduction) {
+        let deductionAmount = Math.min(amount, activeLoan.remainingAmount);
+
+        // If monthly installment, cap deduction at 1 EMI
+        if (repaymentType === 'installment') {
+          deductionAmount = Math.min(deductionAmount, activeLoan.emi);
+        }
+
         if (deductionAmount > 0) {
           await loanRepaymentService.processRepayment(
             activeLoan,
@@ -699,6 +748,7 @@ const addInvestment = async (req, res) => {
             {
               notes: `Auto-deduction from deposit: ${description || 'Manual Deposit'}`,
               isAutoValue: true,
+              allowEarlySettlement: repaymentType === 'settlement',
             },
           );
           // Refetch member to get updated balance for the response
@@ -748,6 +798,9 @@ const withdrawInvestment = async (req, res) => {
         .json({ message: 'Insufficient balance for withdrawal' });
     }
 
+    const balanceBefore = member.currentBalance;
+    const withdrawnBefore = member.totalWithdrawn;
+
     // Update member balances
     member.currentBalance -= amount;
     member.totalWithdrawn += amount;
@@ -757,7 +810,7 @@ const withdrawInvestment = async (req, res) => {
     const investment = await Investment.create({
       user: userId,
       member: id,
-      branchId: member.branchId, // Tag with member's branch
+      branchId: member.branchId,
       type: 'withdrawal',
       amount,
       description: description || 'Investment withdrawal',
@@ -779,7 +832,7 @@ const withdrawInvestment = async (req, res) => {
     });
     await financialTx.save();
 
-    // Log activity
+    // Log activity with before/after state
     await logActivity({
       userId: req.user._id,
       action: 'member_withdrawal_added',
@@ -789,6 +842,14 @@ const withdrawInvestment = async (req, res) => {
         memberId: id,
         amount,
         investmentId: investment._id,
+        before: {
+          currentBalance: balanceBefore,
+          totalWithdrawn: withdrawnBefore,
+        },
+        after: {
+          currentBalance: member.currentBalance,
+          totalWithdrawn: member.totalWithdrawn,
+        },
       },
       req,
     });
@@ -808,6 +869,17 @@ const withdrawInvestment = async (req, res) => {
           link: '/member/investments',
         },
       });
+
+      // Email Notification
+      if (member.email) {
+        await sendEmail({
+          to: member.email,
+          subject: 'Withdrawal Confirmation',
+          html: `<p>Hello ${member.name},</p>
+                 <p>A withdrawal of <strong>Rs. ${amount.toLocaleString()}</strong> has been processed from your account.</p>
+                 <p>Remaining Balance: <strong>Rs. ${member.currentBalance.toLocaleString()}</strong></p>`,
+        });
+      }
     } catch (notifError) {
       console.error('Withdrawal Notification Error:', notifError);
     }
@@ -880,6 +952,7 @@ const distributeProfit = async (req, res) => {
             member: member._id,
             branchId: member.branchId, // Tag with member's branch
             amount: profitAmount,
+            type: 'regular',
             period:
               period ||
               new Date().toLocaleDateString('en-US', {
@@ -920,6 +993,16 @@ const distributeProfit = async (req, res) => {
                 link: '/member/investments',
               },
             });
+
+            // Email Notification
+            if (member.email) {
+              await sendEmail({
+                to: member.email,
+                subject: 'Profit Distribution',
+                html: `<p>Hello ${member.name},</p>
+                       <p>Profit of <strong>Rs. ${profitAmount.toLocaleString()}</strong> has been added to your account for ${period || 'the current period'} (${member.profitRate}% rate).</p>`,
+              });
+            }
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
           }
@@ -955,6 +1038,7 @@ const distributeProfit = async (req, res) => {
             member: member._id,
             branchId: member.branchId, // Tag with member's branch
             amount: profitAmount,
+            type: 'regular',
             period:
               period ||
               new Date().toLocaleDateString('en-US', {
@@ -997,6 +1081,16 @@ const distributeProfit = async (req, res) => {
                 link: '/member/investments',
               },
             });
+
+            // Email Notification
+            if (member.email) {
+              await sendEmail({
+                to: member.email,
+                subject: 'Profit Distribution',
+                html: `<p>Hello ${member.name},</p>
+                       <p>Profit of <strong>Rs. ${profitAmount.toLocaleString()}</strong> has been added to your account for ${period || 'the current period'} (${share.toFixed(2)}% share).</p>`,
+              });
+            }
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
           }
@@ -1964,6 +2058,23 @@ const distributeShareProfit = async (req, res) => {
           }),
       });
 
+      // Create Profit Distribution record (Unified Hub)
+      await ProfitDistribution.create({
+        user: userId,
+        member: member._id,
+        branchId: member.branchId,
+        amount: profitAmount,
+        type: 'share',
+        period:
+          period ||
+          new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric',
+          }),
+        calculationMethod: calculationInfo,
+        investmentShare: sharePercent,
+      });
+
       // FinancialTransaction — expense so it appears in net profit outflow
       await FinancialTransaction.create({
         user: userId,
@@ -2029,6 +2140,192 @@ const distributeShareProfit = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Get all profit distributions (Admin)
+const getAllDistributions = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+
+    let query = { branchId: req.user.branchId || { $exists: true } };
+    if (req.user.role === 'admin') {
+      delete query.branchId;
+    }
+
+    // Add search functionality
+    if (search) {
+      const matchingMembers = await Member.find({
+        name: { $regex: search, $options: 'i' },
+      }).select('_id');
+      const memberIds = matchingMembers.map((m) => m._id);
+      query.member = { $in: memberIds };
+    }
+
+    const total = await ProfitDistribution.countDocuments(query);
+    const distributions = await ProfitDistribution.find(query)
+      .populate('member', 'name email')
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Summary stats
+    const allDistributions = await ProfitDistribution.find(query);
+    const summary = {
+      totalRegular: allDistributions
+        .filter((d) => d.type === 'regular' || !d.type)
+        .reduce((sum, d) => sum + d.amount, 0),
+      totalShare: allDistributions
+        .filter((d) => d.type === 'share')
+        .reduce((sum, d) => sum + d.amount, 0),
+      count: total,
+    };
+
+    res.json({
+      distributions,
+      summary,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get All Distributions Error:', error);
+    res.status(500).json({ message: 'Failed to fetch distributions' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Member Self-Onboarding
+
+/**
+ * @desc    Public endpoint for members to self-register
+ * @route   POST /api/members/self-register
+ * @access  Public
+ */
+const selfRegister = async (req, res) => {
+  try {
+    const { name, phone, email, cnic, password, securityCode } = req.body;
+
+    if (!phone || !cnic || !password || !securityCode || !name) {
+      return res.status(400).json({
+        message: 'Please provide all required fields including security code',
+      });
+    }
+
+    // Identify the business owner via securityCode
+    const businessOwner = await User.findOne({
+      securityCode: securityCode.toUpperCase(),
+      role: 'admin',
+    });
+    if (!businessOwner) {
+      return res
+        .status(404)
+        .json({ message: 'Invalid security code. Business not found.' });
+    }
+
+    // Check if phone or cnic already exists for this business
+    const existingMember = await Member.findOne({
+      user: businessOwner._id,
+      $or: [{ phone }, { cnic }],
+    });
+
+    if (existingMember) {
+      return res.status(400).json({
+        message:
+          'A member with this phone or CNIC already exists in this business',
+      });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create the member as pending
+    const member = await Member.create({
+      user: businessOwner._id,
+      name,
+      phone,
+      email: email || undefined,
+      cnic,
+      password: hashedPassword,
+      approvalStatus: 'pending',
+      isActive: false, // Prevents login until approved
+    });
+
+    // We can't log activity for the member yet because they aren't logged in, but we can log for the business
+    await logActivity({
+      userId: businessOwner._id,
+      action: 'member_registration_pending',
+      category: 'admin',
+      details: `New self-registration request from ${name}`,
+      metadata: { memberId: member._id, phone },
+      req,
+    });
+
+    res.status(201).json({
+      message:
+        'Registration successful. Your account is pending admin approval.',
+      memberId: member._id,
+    });
+  } catch (error) {
+    console.error('Self Register Error:', error);
+    res.status(500).json({ message: 'Registration failed. Please try again.' });
+  }
+};
+
+/**
+ * @desc    Admin endpoint to approve or reject a pending member
+ * @route   PUT /api/members/:id/approval
+ * @access  Private (Admin/Staff)
+ */
+const updateApprovalStatus = async (req, res) => {
+  try {
+    const { status } = req.body; // 'approved' or 'rejected'
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid status. Must be approved or rejected' });
+    }
+
+    const member = await Member.findOne({
+      _id: req.params.id,
+      user: req.user.effectiveOwnerId,
+    });
+
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    if (member.approvalStatus !== 'pending') {
+      return res
+        .status(400)
+        .json({ message: `Member is already ${member.approvalStatus}` });
+    }
+
+    member.approvalStatus = status;
+    member.isActive = status === 'approved';
+    await member.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: `member_registration_${status}`,
+      category: 'admin',
+      details: `Self-registration for ${member.name} was ${status}`,
+      metadata: { memberId: member._id },
+      req,
+    });
+
+    res.json({ message: `Member successfully ${status}`, member });
+  } catch (error) {
+    console.error('Update Approval Status Error:', error);
+    res.status(500).json({ message: 'Failed to update approval status' });
+  }
+};
+
 module.exports = {
   getMembers,
   getMemberById,
@@ -2046,10 +2343,12 @@ module.exports = {
   adminTransferFunds,
   lookupMember,
   recalculateBalance,
-  // Business Share
   getMemberShares,
   addShareInvestment,
   withdrawShareInvestment,
   distributeShareProfit,
   getPortalShares,
+  getAllDistributions,
+  selfRegister,
+  updateApprovalStatus,
 };

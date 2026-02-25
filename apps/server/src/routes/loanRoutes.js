@@ -13,6 +13,8 @@ const {
   getMyLoans,
   approveLoan,
   rejectLoan,
+  bulkApproveLoans,
+  bulkRejectLoans,
   getLoanSchedule,
   getMemberLoanById,
   getMemberLoanSchedule,
@@ -36,6 +38,10 @@ router.route('/grantor-loans').get(protectMember, getGrantorLoans);
 router.patch('/:id/grantor-status', protectMember, updateGrantorStatus);
 router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
+
+// Bulk actions
+router.post('/bulk-approve', protect, admin, bulkApproveLoans);
+router.post('/bulk-reject', protect, admin, bulkRejectLoans);
 
 router.patch('/:id/approve', protect, admin, approveLoan);
 router.patch('/:id/reject', protect, admin, rejectLoan);

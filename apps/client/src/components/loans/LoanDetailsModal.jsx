@@ -73,6 +73,11 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                   <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     ID: {loan._id.slice(-8)}
                   </span>
+                  {loan.product && (
+                    <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
+                      Product: {loan.product.name}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,6 +1,11 @@
 import React from 'react';
 
-const Logo = ({ className = 'h-8', showText = true, custom = false }) => {
+const Logo = ({
+  className = 'h-8',
+  showText = true,
+  custom = false,
+  innerTextColor = '',
+}) => {
   const [user] = React.useState(() =>
     JSON.parse(localStorage.getItem('user') || '{}'),
   );
@@ -76,7 +81,12 @@ const Logo = ({ className = 'h-8', showText = true, custom = false }) => {
               companyName
             ) : (
               <>
-                Finance<span className="text-primary">Flow</span>
+                <span
+                  className={`${innerTextColor && `text-${innerTextColor}`}`}
+                >
+                  Finance
+                </span>
+                <span className="text-primary">Flow</span>
               </>
             )}
           </span>

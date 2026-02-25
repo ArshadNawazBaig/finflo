@@ -314,8 +314,379 @@ const generateBasel3Report = async (req, res) => {
   }
 };
 
+const FinancialTransaction = require('../models/FinancialTransaction');
+const Member = require('../models/Member');
+
+const getTrialBalance = async (req, res) => {
+  try {
+    const query = { user: req.user.effectiveOwnerId };
+
+    // Branch Segregation (if needed)
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.isManager
+        ? req.user.managedBranchId
+        : req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
+    }
+
+    // 1. Assets
+    const loans = await Loan.find({ ...query, status: { $ne: 'rejected' } });
+    const members = await Member.find(query);
+    const transactions = await FinancialTransaction.find(query);
+    const repayments = await Repayment.find(query);
+
+    const loansReceivable = loans.reduce(
+      (sum, loan) => sum + (loan.remainingAmount || 0),
+      0,
+    );
+
+    const totalDeposits = members.reduce(
+      (sum, m) => sum + (m.totalInvested || 0),
+      0,
+    );
+    const totalWithdrawn = members.reduce(
+      (sum, m) => sum + (m.totalWithdrawn || 0),
+      0,
+    );
+    const totalRepaid = loans.reduce((sum, m) => sum + (m.paidAmount || 0), 0);
+    const totalDisbursed = loans.reduce(
+      (sum, l) => sum + (l.principal || 0),
+      0,
+    );
+    const totalExpenses = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const cashAtHand =
+      totalDeposits -
+      totalWithdrawn +
+      totalRepaid -
+      totalDisbursed -
+      totalExpenses;
+    const totalAssets = loansReceivable + cashAtHand;
+
+    // 2. Liabilities
+    const memberCapital = members.reduce(
+      (sum, m) => sum + (m.currentBalance || 0),
+      0,
+    );
+    const totalLiabilities = memberCapital;
+
+    // 3. Equity / Retained Earnings
+    const calculateProfit = (repaymentsList) => {
+      return repaymentsList.reduce((sum, r) => {
+        if (
+          !r.loan ||
+          !r.loan.totalAmount ||
+          r.loan.totalAmount === 0 ||
+          !r.loan.principal
+        )
+          return sum;
+        const totalInterest = r.loan.totalAmount - r.loan.principal;
+        const profitRatio = totalInterest / r.loan.totalAmount;
+        return sum + r.amount * profitRatio;
+      }, 0);
+    };
+
+    const populatedRepayments = await Repayment.find(query).populate(
+      'loan',
+      'principal totalAmount',
+    );
+    const totalInterestEarned = calculateProfit(populatedRepayments);
+
+    const ProfitDistribution = require('../models/ProfitDistribution');
+    const distributions = await ProfitDistribution.find(query);
+    const totalDistributed = distributions.reduce(
+      (sum, d) => sum + (d.amount || 0),
+      0,
+    );
+
+    const retainedEarnings =
+      totalInterestEarned - totalDistributed - totalExpenses;
+    const totalEquity = retainedEarnings;
+
+    const discrepancy = totalAssets - (totalLiabilities + totalEquity);
+
+    res.status(200).json({
+      assets: {
+        loansReceivable: Math.round(loansReceivable),
+        cashAtHand: Math.round(cashAtHand),
+        totalAssets: Math.round(totalAssets),
+      },
+      liabilities: {
+        memberCapital: Math.round(memberCapital),
+        totalLiabilities: Math.round(totalLiabilities),
+      },
+      equity: {
+        retainedEarnings: Math.round(retainedEarnings),
+        totalEquity: Math.round(totalEquity),
+      },
+      discrepancy: Math.round(discrepancy),
+    });
+  } catch (error) {
+    console.error('Error fetching trial balance:', error);
+    res.status(500).json({ message: 'Failed to fetch trial balance' });
+  }
+};
+
+const getProfitAndLoss = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const query = { user: req.user.effectiveOwnerId };
+
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.isManager
+        ? req.user.managedBranchId
+        : req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
+    }
+
+    let dateFilter = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    } else {
+      const now = new Date();
+      dateFilter = {
+        $gte: new Date(now.getFullYear(), now.getMonth(), 1),
+        $lte: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59),
+      };
+    }
+
+    // 1. Revenue
+    const repaymentsQuery = { ...query, date: dateFilter };
+    const repayments = await Repayment.find(repaymentsQuery).populate(
+      'loan',
+      'principal totalAmount',
+    );
+
+    const calculateProfit = (repaymentsList) => {
+      return repaymentsList.reduce((sum, r) => {
+        if (
+          !r.loan ||
+          !r.loan.totalAmount ||
+          r.loan.totalAmount === 0 ||
+          !r.loan.principal
+        )
+          return sum;
+        const totalInterest = r.loan.totalAmount - r.loan.principal;
+        const profitRatio = totalInterest / r.loan.totalAmount;
+        return sum + r.amount * profitRatio;
+      }, 0);
+    };
+
+    const interestRevenue = Math.round(calculateProfit(repayments));
+    const totalRevenue = interestRevenue;
+
+    // 2. Expenses
+    const expensesAgg = await FinancialTransaction.aggregate([
+      { $match: { ...query, date: dateFilter, type: 'expense' } },
+      { $group: { _id: '$category', total: { $sum: '$amount' } } },
+    ]);
+
+    let expensesBreakdown = {};
+    let totalExpenses = 0;
+    expensesAgg.forEach((exp) => {
+      const category = exp._id || 'other';
+      expensesBreakdown[category] = exp.total;
+      totalExpenses += exp.total;
+    });
+
+    // 3. Distributions
+    const ProfitDistribution = require('../models/ProfitDistribution');
+    const distributionsQuery = { ...query, distributionDate: dateFilter };
+    const distributionsAgg = await ProfitDistribution.aggregate([
+      { $match: distributionsQuery },
+      { $group: { _id: '$type', total: { $sum: '$amount' } } },
+    ]);
+
+    let distributionsBreakdown = {};
+    let totalDistributions = 0;
+    distributionsAgg.forEach((dist) => {
+      const type = dist._id || 'regular';
+      distributionsBreakdown[type] = dist.total;
+      totalDistributions += dist.total;
+    });
+
+    // 4. Net Income
+    const netIncome = totalRevenue - totalExpenses - totalDistributions;
+
+    res.status(200).json({
+      period: { startDate: dateFilter.$gte, endDate: dateFilter.$lte },
+      revenue: {
+        interestEarned: interestRevenue,
+        totalRevenue: totalRevenue,
+      },
+      expenses: {
+        breakdown: expensesBreakdown,
+        totalExpenses: totalExpenses,
+      },
+      distributions: {
+        breakdown: distributionsBreakdown,
+        totalDistributions: totalDistributions,
+      },
+      netIncome: netIncome,
+    });
+  } catch (error) {
+    console.error('Error fetching profit and loss:', error);
+    res.status(500).json({ message: 'Failed to fetch P&L report' });
+  }
+};
+
+const getBranchSummary = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+      return res
+        .status(403)
+        .json({ message: 'Access denied. Global admin only.' });
+    }
+
+    const Member = require('../models/Member');
+    const Branch = require('../models/Branch');
+
+    const query = { user: req.user.effectiveOwnerId };
+
+    // Aggregate Member data (total members, total invested grouped by branch)
+    const memberStats = await Member.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$branchId',
+          totalMembers: { $sum: 1 },
+          totalInvested: { $sum: '$currentBalance' },
+          totalProfit: { $sum: '$totalProfit' },
+        },
+      },
+    ]);
+
+    // Aggregate Loan data (total loans, active volume grouped by branch)
+    const loanStats = await Loan.aggregate([
+      { $match: { ...query, status: { $ne: 'rejected' } } },
+      {
+        $group: {
+          _id: '$branchId',
+          totalLoans: { $sum: 1 },
+          totalVolume: { $sum: '$principal' },
+          totalOutstanding: { $sum: '$remainingAmount' },
+          activeCount: {
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    // Aggregate Expenses by branch
+    const FinancialTransaction = require('../models/FinancialTransaction');
+    const expenseStats = await FinancialTransaction.aggregate([
+      { $match: { ...query, type: 'expense' } },
+      {
+        $group: {
+          _id: '$branchId',
+          totalExpenses: { $sum: '$amount' },
+        },
+      },
+    ]);
+
+    const branches = await Branch.find(query);
+
+    const branchSummaries = branches.map((branch) => {
+      const branchIdStr = branch._id.toString();
+      const mStats = memberStats.find(
+        (s) => s._id?.toString() === branchIdStr,
+      ) || { totalMembers: 0, totalInvested: 0, totalProfit: 0 };
+      const lStats = loanStats.find(
+        (s) => s._id?.toString() === branchIdStr,
+      ) || {
+        totalLoans: 0,
+        totalVolume: 0,
+        totalOutstanding: 0,
+        activeCount: 0,
+      };
+      const eStats = expenseStats.find(
+        (s) => s._id?.toString() === branchIdStr,
+      ) || { totalExpenses: 0 };
+
+      return {
+        _id: branch._id,
+        name: branch.name,
+        code: branch.code,
+        status: branch.status,
+        stats: {
+          totalMembers: mStats.totalMembers,
+          totalInvested: mStats.totalInvested,
+          totalProfit: mStats.totalProfit,
+          totalLoans: lStats.totalLoans,
+          totalVolume: lStats.totalVolume,
+          totalOutstanding: lStats.totalOutstanding,
+          activeLoans: lStats.activeCount,
+          totalExpenses: eStats.totalExpenses,
+        },
+      };
+    });
+
+    res.status(200).json(branchSummaries);
+  } catch (error) {
+    console.error('Error fetching branch summary:', error);
+    res.status(500).json({ message: 'Failed to fetch branch summary' });
+  }
+};
+
+const RegulatorySnapshot = require('../models/RegulatorySnapshot');
+
+const saveRegulatorySnapshot = async (req, res) => {
+  try {
+    const { title, reportType, snapshotData, periodStart, periodEnd } =
+      req.body;
+
+    if (!title || !reportType || !snapshotData) {
+      return res
+        .status(400)
+        .json({ message: 'Missing required snapshot data' });
+    }
+
+    const snapshot = await RegulatorySnapshot.create({
+      user: req.user.effectiveOwnerId,
+      generatedBy: req.user._id,
+      title,
+      reportType,
+      snapshotData,
+      periodStart: periodStart ? new Date(periodStart) : undefined,
+      periodEnd: periodEnd ? new Date(periodEnd) : undefined,
+    });
+
+    res.status(201).json({ message: 'Snapshot saved successfully', snapshot });
+  } catch (error) {
+    console.error('Error saving regulatory snapshot:', error);
+    res.status(500).json({ message: 'Failed to save snapshot' });
+  }
+};
+
+const getRegulatorySavedSnapshots = async (req, res) => {
+  try {
+    const { reportType } = req.query;
+    const query = { user: req.user.effectiveOwnerId };
+    if (reportType) query.reportType = reportType;
+
+    const snapshots = await RegulatorySnapshot.find(query)
+      .populate('generatedBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(snapshots);
+  } catch (error) {
+    console.error('Error fetching snapshots:', error);
+    res.status(500).json({ message: 'Failed to fetch saved snapshots' });
+  }
+};
+
 module.exports = {
   getReportStats,
   generateIFRS9Report,
   generateBasel3Report,
+  getTrialBalance,
+  getProfitAndLoss,
+  getBranchSummary,
+  saveRegulatorySnapshot,
+  getRegulatorySavedSnapshots,
 };

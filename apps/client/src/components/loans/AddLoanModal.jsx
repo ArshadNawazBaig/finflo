@@ -9,6 +9,7 @@ import {
   X,
   FileText,
   Calculator,
+  BookOpen,
 } from 'lucide-react';
 import UpgradePrompt from '@/components/pricing/UpgradePrompt';
 import {
@@ -39,8 +40,10 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     interestType: 'simple',
     grantorIdentifier: '', // Field used for input display/typing
     grantorIdentifierForBackend: '', // Hidden field for actual identifier
+    productId: '', // Selected loan product
   });
   const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -61,6 +64,16 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         }
       };
       fetchCustomers();
+
+      const fetchProducts = async () => {
+        try {
+          const { data } = await api.get('/loan-products');
+          setProducts(data.filter((p) => p.isActive));
+        } catch (err) {
+          console.error('Failed to fetch loan products', err);
+        }
+      };
+      fetchProducts();
 
       const fetchSettings = async () => {
         try {
@@ -153,6 +166,25 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     return () => clearTimeout(timeoutId);
   }, [formData.grantorIdentifier, formData.customerId]);
 
+  const handleProductChange = (productId) => {
+    const product = products.find((p) => p._id === productId);
+    if (product) {
+      setFormData((prev) => ({
+        ...prev,
+        productId,
+        rate: product.interestRate.toString(),
+        duration: product.duration.toString(),
+        interestType: product.interestType,
+        principal:
+          prev.principal ||
+          (product.minAmount ? product.minAmount.toString() : ''),
+      }));
+      toast.success(`Standardized terms for "${product.name}" applied`);
+    } else {
+      setFormData((prev) => ({ ...prev, productId: '' }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -161,6 +193,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     try {
       const submissionData = {
         ...formData,
+        product: formData.productId || undefined,
         grantorIdentifier:
           formData.grantorIdentifierForBackend || formData.grantorIdentifier,
         startDate: formData.startDate.toISOString().split('T')[0],
@@ -226,11 +259,39 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
-        >
-          <div className="space-y-4 sm:space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:space-y-5 h-[400px] overflow-y-auto pr-2 no-scrollbar">
+            {/* Loan Product Selection */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1 flex items-center gap-2">
+                <BookOpen className="w-3 h-3" /> Select Loan Product Template
+              </label>
+              <Select
+                value={formData.productId}
+                onValueChange={handleProductChange}
+              >
+                <SelectTrigger className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-black focus:ring-2 focus:ring-primary/20 capitalize">
+                  <SelectValue placeholder="Standardize terms... (Optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    value="none"
+                    className="font-bold text-muted-foreground"
+                  >
+                    Custom (No Template)
+                  </SelectItem>
+                  {products.map((p) => (
+                    <SelectItem
+                      key={p._id}
+                      value={p._id}
+                      className="capitalize font-bold"
+                    >
+                      {p.name} ({p.interestRate}%)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             {/* Customer Selection */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">

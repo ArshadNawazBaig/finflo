@@ -66,6 +66,9 @@ const LoanRequests = () => {
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -125,7 +128,6 @@ const LoanRequests = () => {
   const fetchStats = useCallback(async () => {
     try {
       setStatsLoading(true);
-      // Fetch all loans to calculate statistics
       const { data } = await api.get('/loans?limit=1000');
       const allLoans = data.data || [];
 
@@ -141,7 +143,6 @@ const LoanRequests = () => {
     }
   }, []);
 
-  // Handle Sort Change
   const handleSort = (column) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -152,7 +153,6 @@ const LoanRequests = () => {
     setCurrentPage(1);
   };
 
-  // Infinite Scroll Observer (Mobile)
   useEffect(() => {
     if (!isMobile || !observerTarget.current) return;
 
@@ -173,16 +173,16 @@ const LoanRequests = () => {
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchRequests]);
 
-  // Fetch requests on changes including pagination
   useEffect(() => {
     if (skipNextEffect.current) {
       skipNextEffect.current = false;
       return;
     }
+    // Clear selections on filter/page change to avoid stale state
+    setSelectedIds([]);
     fetchRequests(false);
   }, [searchTerm, sortBy, sortOrder, limit, currentPage, fetchRequests]);
 
-  // Fetch stats only on filters/init (not page changes)
   useEffect(() => {
     fetchStats();
   }, [searchTerm, fetchStats]);
@@ -200,8 +200,74 @@ const LoanRequests = () => {
     }
   };
 
+  // Bulk Selection Handlers
+  const handleToggleSelect = (id, isSelected) => {
+    if (isSelected) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((i) => i !== id));
+    }
+  };
+
+  const handleSelectAll = (isSelected) => {
+    if (isSelected) {
+      const allPendingIds = requests
+        .filter((r) => r.status === 'pending')
+        .map((r) => r._id);
+      setSelectedIds(allPendingIds);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBulkAction = async (action) => {
+    if (!selectedIds.length) return;
+
+    // Quick confirmation
+    if (
+      !window.confirm(
+        `Are you sure you want to ${action} ${selectedIds.length} loans?`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setIsBulkProcessing(true);
+      const endpoint =
+        action === 'approve' ? '/loans/bulk-approve' : '/loans/bulk-reject';
+      const payload = { loanIds: selectedIds };
+
+      // If rejecting, we should ideally ask for a reason, but we'll use a generic one for bulk
+      if (action === 'reject') {
+        payload.reason = 'Rejected via bulk action';
+      }
+
+      const res = await api.post(endpoint, payload);
+
+      if (res.data.failedCount > 0) {
+        toast.warning(
+          `${res.data.processedCount} processed, ${res.data.failedCount} failed.`,
+        );
+      } else {
+        toast.success(
+          `Successfully ${action}d ${res.data.processedCount} loans.`,
+        );
+      }
+
+      setSelectedIds([]);
+      fetchRequests();
+      fetchStats();
+    } catch (error) {
+      console.error(`Bulk ${action} error:`, error);
+      toast.error(error.response?.data?.message || `Failed to ${action} loans`);
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
       <PageHeader
         title="Loan Requests"
         description="Review and approve loan applications from members."
@@ -262,26 +328,31 @@ const LoanRequests = () => {
                 className="py-12 border-none bg-card/50"
               />
             ) : (
-              <LoanRequestTable
-                requests={requests}
-                onApprove={handleApproveClick}
-                onReject={handleRejectClick}
-                processingId={processingId}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                pagination={{
-                  currentPage,
-                  totalPages,
-                  totalEntries,
-                  limit,
-                  onPageChange: setCurrentPage,
-                  onLimitChange: (newLimit) => {
-                    setLimit(newLimit);
-                    setCurrentPage(1);
-                  },
-                }}
-              />
+              <div className="relative">
+                <LoanRequestTable
+                  requests={requests}
+                  onApprove={handleApproveClick}
+                  onReject={handleRejectClick}
+                  processingId={processingId}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onSelectAll={handleSelectAll}
+                  pagination={{
+                    currentPage,
+                    totalPages,
+                    totalEntries,
+                    limit,
+                    onPageChange: setCurrentPage,
+                    onLimitChange: (newLimit) => {
+                      setLimit(newLimit);
+                      setCurrentPage(1);
+                    },
+                  }}
+                />
+              </div>
             )}
           </>
         )}
@@ -345,6 +416,54 @@ const LoanRequests = () => {
             }}
           />
         </>
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="bg-slate-900 border border-border/50 shadow-2xl rounded-full px-6 py-3 flex items-center gap-6">
+            <span className="text-white font-bold text-sm tracking-tight">
+              {selectedIds.length}{' '}
+              <span className="text-white/60 font-medium">selected</span>
+            </span>
+            <div className="w-px h-6 bg-white/20" />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkAction('reject')}
+                disabled={isBulkProcessing}
+                className="rounded-full bg-white/5 border-white/10 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 text-white/80 transition-all font-bold tracking-tight"
+              >
+                {isBulkProcessing ? (
+                  <Loader2 size={14} className="animate-spin mr-1.5" />
+                ) : (
+                  <X size={14} className="mr-1.5" />
+                )}
+                Bulk Reject
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleBulkAction('approve')}
+                disabled={isBulkProcessing}
+                className="rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all font-bold tracking-tight"
+              >
+                {isBulkProcessing ? (
+                  <Loader2 size={14} className="animate-spin mr-1.5" />
+                ) : (
+                  <Check size={14} className="mr-1.5" />
+                )}
+                Bulk Approve
+              </Button>
+            </div>
+            <button
+              onClick={() => setSelectedIds([])}
+              className="ml-2 p-1.5 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
