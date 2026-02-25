@@ -1,11 +1,7 @@
 const Member = require('../models/Member');
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
-const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } = require('otplib');
-const authenticator = new TOTP({
-  crypto: new NobleCryptoPlugin(),
-  base32: new ScureBase32Plugin(),
-});
+const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
@@ -690,12 +686,10 @@ const requestMemberPasswordChangeCode = async (req, res) => {
       });
 
       if (!emailSent) {
-        return res
-          .status(500)
-          .json({
-            message:
-              'Failed to send security code email. Please check SMTP settings.',
-          });
+        return res.status(500).json({
+          message:
+            'Failed to send security code email. Please check SMTP settings.',
+        });
       }
 
       res.json({ success: true, message: 'Security code sent to email' });
