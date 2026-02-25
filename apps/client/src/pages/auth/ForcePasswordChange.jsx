@@ -13,6 +13,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const ForcePasswordChange = ({ isMember = false }) => {
   const navigate = useNavigate();
@@ -139,44 +140,36 @@ const ForcePasswordChange = ({ isMember = false }) => {
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               New Password
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              placeholder="••••••••"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              leftIcon={
                 <Lock
                   size={16}
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
-              </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Confirm New Password
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              leftIcon={
                 <ShieldCheck
                   size={16}
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
-              </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -726,19 +727,12 @@ const SecuritySection = ({
               To disable 2FA, please enter your password for confirmation.
             </p>
             <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Lock
-                  size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  type="password"
-                  placeholder="Enter password"
-                  value={disable2FAPassword}
-                  onChange={(e) => setDisable2FAPassword(e.target.value)}
-                  className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs"
-                />
-              </div>
+              <PasswordInput
+                placeholder="Enter password"
+                value={disable2FAPassword}
+                onChange={(e) => setDisable2FAPassword(e.target.value)}
+                className="h-10 flex-1"
+              />
               <Button
                 size="sm"
                 variant="destructive"
@@ -1152,8 +1146,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Confirm New Password
               </label>
-              <input
-                type={showNew ? 'text' : 'password'}
+              <PasswordInput
                 value={formData.confirmNewPassword}
                 onChange={(e) =>
                   setFormData({
@@ -1161,7 +1154,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                     confirmNewPassword: e.target.value,
                   })
                 }
-                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full h-12 px-5 rounded-2xl"
                 required
               />
             </div>

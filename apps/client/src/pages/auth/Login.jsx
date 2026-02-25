@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/axios';
+import PasswordInput from '@/components/ui/PasswordInput';
 import {
   Mail,
   Lock,
@@ -223,20 +224,16 @@ const Login = () => {
                 Forgot?
               </Link>
             </div>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              leftIcon={
                 <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
 
           <Button

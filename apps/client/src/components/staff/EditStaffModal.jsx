@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { validateEmail } from '@/lib/utils';
@@ -125,14 +126,13 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
               New Password (Leave blank to keep current)
             </Label>
-            <Input
-              type="password"
+            <PasswordInput
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
               minLength={8}
-              className="rounded-xl border-border/50"
+              placeholder="Leave blank to keep current"
             />
           </div>
           <div className="space-y-1.5">

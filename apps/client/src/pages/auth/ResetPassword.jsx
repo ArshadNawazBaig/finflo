@@ -12,6 +12,7 @@ import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -83,20 +84,16 @@ const ResetPassword = () => {
             >
               New Password
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              leftIcon={
                 <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
 
           <div className="space-y-2">
@@ -106,20 +103,16 @@ const ResetPassword = () => {
             >
               Confirm Password
             </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              id="confirmPassword"
+              placeholder="••••••••"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              leftIcon={
                 <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              </div>
-              <input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
 
           <div className="pt-2">

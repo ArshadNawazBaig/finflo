@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { cn, validateEmail } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -114,21 +115,17 @@ const Register = () => {
           >
             Security Password
           </label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <PasswordInput
+            id="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            minLength={8}
+            leftIcon={
               <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            </div>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
-            />
-          </div>
+            }
+          />
         </div>
 
         <Button

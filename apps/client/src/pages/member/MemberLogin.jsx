@@ -5,6 +5,7 @@ import { Lock, Loader2, ArrowRight, ShieldCheck, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const MemberLogin = () => {
   const navigate = useNavigate();
@@ -174,23 +175,20 @@ const MemberLogin = () => {
                 Recovery
               </Link>
             </div>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="h-11"
+              leftIcon={
                 <Lock
                   size={16}
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
-              </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
-              />
-            </div>
+              }
+            />
           </div>
 
           <Button

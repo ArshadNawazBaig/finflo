@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import PasswordInput from '@/components/ui/PasswordInput';
 import {
   User,
   Bell,
@@ -863,14 +864,13 @@ const Settings = () => {
                             Authentication.
                           </p>
                           <div className="flex gap-2">
-                            <input
-                              type="password"
+                            <PasswordInput
                               placeholder="Current password"
                               value={disable2FAPassword}
                               onChange={(e) =>
                                 setDisable2FAPassword(e.target.value)
                               }
-                              className="flex-1 h-10 px-3 rounded-xl bg-background border border-border/50 text-sm outline-none focus:border-destructive/50"
+                              className="h-10 flex-1"
                             />
                             <Button
                               variant="destructive"
@@ -1107,33 +1107,30 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-medium">Current Password</label>
-            <input
-              type="password"
+            <PasswordInput
               value={formData.currentPassword}
               onChange={(e) =>
                 setFormData({ ...formData, currentPassword: e.target.value })
               }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full h-10"
               required
             />
           </div>
           <div>
             <label className="text-sm font-medium">New Password</label>
-            <input
-              type="password"
+            <PasswordInput
               value={formData.newPassword}
               onChange={(e) =>
                 setFormData({ ...formData, newPassword: e.target.value })
               }
               minLength={8}
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full h-10"
               required
             />
           </div>
           <div>
             <label className="text-sm font-medium">Confirm New Password</label>
-            <input
-              type="password"
+            <PasswordInput
               value={formData.confirmNewPassword}
               onChange={(e) =>
                 setFormData({
@@ -1141,7 +1138,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   confirmNewPassword: e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full h-10"
               required
             />
           </div>
@@ -1547,8 +1544,7 @@ const ConfigurationSection = ({ user }) => {
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       Password
                     </label>
-                    <input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       value={settings.smtpConfig?.auth?.pass || ''}
                       onChange={(e) =>
@@ -1563,7 +1559,7 @@ const ConfigurationSection = ({ user }) => {
                           },
                         })
                       }
-                      className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                      className="h-12"
                     />
                   </div>
                 </div>

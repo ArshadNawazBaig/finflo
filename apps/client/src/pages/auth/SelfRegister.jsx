@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, validateEmail } from '@/lib/utils';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 /**
  * Public facing page where members can self-register given a business security code inline.
@@ -257,26 +258,23 @@ const SelfRegister = () => {
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
             Security Password
           </label>
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <PasswordInput
+            placeholder="Minimum 8 characters"
+            className="h-11"
+            leftIcon={
               <Lock
                 size={16}
                 className="text-muted-foreground group-focus-within:text-primary transition-colors"
               />
-            </div>
-            <input
-              type="password"
-              placeholder="Minimum 8 characters"
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
-              })}
-            />
-          </div>
+            }
+            {...register('password', {
+              required: 'Password is required',
+              minLength: {
+                value: 8,
+                message: 'Password must be at least 8 characters',
+              },
+            })}
+          />
           {errors.password && (
             <p className="text-destructive text-[10px] font-bold pl-1">
               {errors.password.message}

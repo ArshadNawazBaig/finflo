@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { validateEmail } from '@/lib/utils';
@@ -128,15 +129,13 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
             >
               Password
             </Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Create password"
               value={formData.password}
               onChange={handleChange}
               required
               minLength={8}
-              className="rounded-xl border-border/50"
             />
           </div>
           <div className="space-y-2">

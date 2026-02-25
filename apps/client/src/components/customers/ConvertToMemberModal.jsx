@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { X, UserPlus, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -97,21 +98,19 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       Set Password
                     </label>
-                    <div className="relative group">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-                      <input
-                        type="password"
-                        {...register('password', {
-                          required: 'Password is required',
-                          minLength: {
-                            value: 8,
-                            message: 'Password must be at least 8 characters',
-                          },
-                        })}
-                        className="w-full pl-10 pr-4 py-3 bg-secondary/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium placeholder:text-muted-foreground/50"
-                        placeholder="Create a password for the member"
-                      />
-                    </div>
+                    <PasswordInput
+                      {...register('password', {
+                        required: 'Password is required',
+                        minLength: {
+                          value: 8,
+                          message: 'Password must be at least 8 characters',
+                        },
+                      })}
+                      placeholder="Create a password for the member"
+                      leftIcon={
+                        <Lock className="w-4 h-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                      }
+                    />
                     {errors.password && (
                       <p className="text-[11px] font-medium text-destructive ml-1">
                         {errors.password.message}
