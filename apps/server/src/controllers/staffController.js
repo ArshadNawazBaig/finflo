@@ -5,6 +5,11 @@ const { logActivity } = require('./activityLogController');
 // Create Staff Member
 const createStaff = async (req, res) => {
   const { name, email, password, branchId, roleRef } = req.body;
+  const { validateEmail } = require('../utils/emailValidator');
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
+  }
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
@@ -25,6 +30,7 @@ const createStaff = async (req, res) => {
       businessName: req.user.businessName, // Inherit business name
       securityCode: req.user.securityCode, // Shared security code
       isVerified: true, // Staff created by admin are implicitly verified
+      mustChangePassword: true,
     });
 
     // Notify Staff Member
@@ -172,6 +178,13 @@ const toggleStaffStatus = async (req, res) => {
 // Update Staff Member
 const updateStaff = async (req, res) => {
   const { name, email, password, branchId, roleRef } = req.body;
+  if (email) {
+    const { validateEmail } = require('../utils/emailValidator');
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+  }
   try {
     const staff = await User.findById(req.params.id);
 

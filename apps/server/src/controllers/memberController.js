@@ -80,6 +80,7 @@ const convertCustomerToMember = async (req, res) => {
       phone: customer.phone,
       address: customer.address,
       password, // Will be hashed by pre-save middleware
+      mustChangePassword: true,
     });
 
     // Update Customer
@@ -326,6 +327,12 @@ const createMember = async (req, res) => {
       customerId,
     } = req.body;
 
+    const { validateEmail } = require('../utils/emailValidator');
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+
     const lowercaseEmail = email?.toLowerCase();
     const lowercaseName = name?.toLowerCase();
 
@@ -370,6 +377,8 @@ const createMember = async (req, res) => {
       totalInvested: initialInvestment || 0,
       currentBalance: initialInvestment || 0,
       profitRate: profitRate || 0,
+      password: 'Welcome@123', // Default password for admin-created members
+      mustChangePassword: true,
     };
 
     // Link to customer if provided
@@ -466,6 +475,14 @@ const updateMember = async (req, res) => {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
     const { name, email, phone, cnic, address, status, profitRate } = req.body;
+
+    if (email) {
+      const { validateEmail } = require('../utils/emailValidator');
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        return res.status(400).json({ message: emailValidation.message });
+      }
+    }
 
     const member = await Member.findOne({ _id: id, user: userId });
     if (!member) {

@@ -8,7 +8,21 @@ const customerSchema = new mongoose.Schema(
       ref: 'Branch',
     },
     name: { type: String, required: true, lowercase: true },
-    email: { type: String, required: true, lowercase: true },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(v).isValid;
+        },
+        message: (props) => {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(props.value).message;
+        },
+      },
+    },
     phone: { type: String, required: true },
     address: { type: String },
     profilePicture: { type: String },

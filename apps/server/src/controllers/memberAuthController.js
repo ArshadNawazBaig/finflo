@@ -75,6 +75,20 @@ const loginMember = async (req, res) => {
       // Update lastLoginAt without triggering full validation hooks
       await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
 
+      const token = generateToken(member._id);
+
+      if (member.mustChangePassword) {
+        return res.json({
+          mustChangePassword: true,
+          token,
+          _id: member._id,
+          name: member.name,
+          email: member.email,
+          role: member.role,
+          business: member.user,
+        });
+      }
+
       // Log activity
       await logActivity({
         userId: member._id,
@@ -90,7 +104,7 @@ const loginMember = async (req, res) => {
         email: member.email,
         role: member.role,
         business: member.user, // The business this member belongs to
-        token: generateToken(member._id),
+        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
@@ -126,6 +140,13 @@ const getMe = async (req, res) => {
 // @route   PUT /api/member-auth/updatedetails
 // @access  Private (Member)
 const updateDetails = async (req, res) => {
+  if (req.body.email) {
+    const { validateEmail } = require('../utils/emailValidator');
+    const emailValidation = validateEmail(req.body.email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+  }
   const fieldsToUpdate = {
     name: req.body.name,
     email: req.body.email?.toLowerCase(),
@@ -647,6 +668,75 @@ const verifyLogin2FA = async (req, res) => {
   }
 };
 
+const requestMemberPasswordChangeCode = async (req, res) => {
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    member.passwordChangeCode = code;
+    member.passwordChangeCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await member.save({ validateBeforeSave: false });
+
+    // Send Email
+    try {
+      const { verificationEmail } = require('../utils/emailTemplates');
+      const { sendEmail } = require('../utils/email');
+      const emailSent = await sendEmail({
+        to: member.email,
+        subject: 'Security Code for Password Change',
+        html: verificationEmail(code),
+      });
+
+      if (!emailSent) {
+        return res
+          .status(500)
+          .json({
+            message:
+              'Failed to send security code email. Please check SMTP settings.',
+          });
+      }
+
+      res.json({ success: true, message: 'Security code sent to email' });
+    } catch (emailErr) {
+      console.error('Failed to send password change code email:', emailErr);
+      res.status(500).json({ message: 'Failed to send email' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const forceMemberChangePassword = async (req, res) => {
+  const { code, newPassword } = req.body;
+
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    if (
+      !member.passwordChangeCode ||
+      member.passwordChangeCode !== code ||
+      member.passwordChangeCodeExpire < Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired security code' });
+    }
+
+    member.password = newPassword;
+    member.mustChangePassword = false;
+    member.passwordChangeCode = undefined;
+    member.passwordChangeCodeExpire = undefined;
+    await member.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   loginMember,
   getMe,
@@ -661,4 +751,6 @@ module.exports = {
   verify2FA,
   disable2FA,
   verifyLogin2FA,
+  requestPasswordChangeCode: requestMemberPasswordChangeCode,
+  forceChangePassword: forceMemberChangePassword,
 };

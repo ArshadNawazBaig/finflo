@@ -4,7 +4,22 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, lowercase: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      validate: {
+        validator: function (v) {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(v).isValid;
+        },
+        message: (props) => {
+          const { validateEmail } = require('../utils/emailValidator');
+          return validateEmail(props.value).message;
+        },
+      },
+    },
     password: { type: String, required: true, minlength: 8 },
     role: {
       type: String,
@@ -34,6 +49,9 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'past_due', 'canceled', 'incomplete'],
       default: 'active',
     },
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangeCode: { type: String },
+    passwordChangeCodeExpire: { type: Date },
     plan: { type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' },
     customerCount: { type: Number, default: 0 },
     nextBillingDate: { type: Date },

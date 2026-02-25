@@ -26,7 +26,7 @@ import {
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { formatCNIC } from '@/lib/utils';
+import { formatCNIC, validateEmail } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -122,6 +122,13 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      setError(emailValidation.message);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError('');
 

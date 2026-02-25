@@ -44,6 +44,13 @@ const Login = () => {
         return;
       }
 
+      if (data.mustChangePassword) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data));
+        navigate('/force-password-change');
+        return;
+      }
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
 

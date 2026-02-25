@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCNIC } from '@/lib/utils';
+import { formatCNIC, validateEmail } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
@@ -140,6 +140,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     try {

@@ -34,6 +34,11 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+  const { validateEmail } = require('../utils/emailValidator');
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.isValid) {
+    return res.status(400).json({ message: emailValidation.message });
+  }
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
@@ -169,6 +174,23 @@ const loginUser = async (req, res) => {
         req,
       });
 
+      const token = generateToken(user._id);
+
+      if (user.mustChangePassword) {
+        return res.json({
+          mustChangePassword: true,
+          token,
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isManager,
+          branchId,
+          businessName: user.businessName,
+          permissions: user.getPermissions(),
+        });
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -180,7 +202,7 @@ const loginUser = async (req, res) => {
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
         permissions: user.getPermissions(),
-        token: generateToken(user._id),
+        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -230,6 +252,13 @@ const getMe = async (req, res) => {
 };
 
 const updateDetails = async (req, res) => {
+  if (req.body.email) {
+    const { validateEmail } = require('../utils/emailValidator');
+    const emailValidation = validateEmail(req.body.email);
+    if (!emailValidation.isValid) {
+      return res.status(400).json({ message: emailValidation.message });
+    }
+  }
   const fieldsToUpdate = {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
@@ -829,6 +858,75 @@ const verifyLogin2FA = async (req, res) => {
   }
 };
 
+const requestPasswordChangeCode = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordChangeCode = code;
+    user.passwordChangeCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    // Send Email
+    try {
+      const { verificationEmail } = require('../utils/emailTemplates');
+      const { sendEmail } = require('../utils/email');
+      const emailSent = await sendEmail({
+        to: user.email,
+        subject: 'Security Code for Password Change',
+        html: verificationEmail(code),
+      });
+
+      if (!emailSent) {
+        return res
+          .status(500)
+          .json({
+            message:
+              'Failed to send security code email. Please check SMTP settings.',
+          });
+      }
+
+      res.json({ success: true, message: 'Security code sent to email' });
+    } catch (emailErr) {
+      console.error('Failed to send password change code email:', emailErr);
+      res.status(500).json({ message: 'Failed to send email' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const forceChangePassword = async (req, res) => {
+  const { code, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (
+      !user.passwordChangeCode ||
+      user.passwordChangeCode !== code ||
+      user.passwordChangeCodeExpire < Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid or expired security code' });
+    }
+
+    user.password = newPassword;
+    user.mustChangePassword = false;
+    user.passwordChangeCode = undefined;
+    user.passwordChangeCodeExpire = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -846,4 +944,6 @@ module.exports = {
   verify2FA,
   disable2FA,
   verifyLogin2FA,
+  requestPasswordChangeCode,
+  forceChangePassword,
 };

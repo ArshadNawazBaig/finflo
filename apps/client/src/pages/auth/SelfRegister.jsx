@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
-import { formatCNIC } from '@/lib/utils';
+import { formatCNIC, validateEmail } from '@/lib/utils';
 
 /**
  * Public facing page where members can self-register given a business security code inline.
@@ -223,7 +223,7 @@ const SelfRegister = () => {
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Email (Optional)
+              Email Address
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -236,9 +236,20 @@ const SelfRegister = () => {
                 type="email"
                 placeholder="mail@example.com"
                 className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
-                {...register('email')}
+                {...register('email', {
+                  required: 'Email is required',
+                  validate: (value) => {
+                    const result = validateEmail(value);
+                    return result.isValid || result.message;
+                  },
+                })}
               />
             </div>
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
         </div>
 

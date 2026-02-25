@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { validateEmail } from '@/lib/utils';
 
 const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,11 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      return;
+    }
     setLoading(true);
     const payload = {
       ...formData,

@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
+import { toast } from 'sonner';
+import { validateEmail } from '@/lib/utils';
 
 const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,11 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      return;
+    }
     setLoading(true);
     try {
       // Create payload. Only include password if it's not empty.

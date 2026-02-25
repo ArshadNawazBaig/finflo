@@ -17,6 +17,8 @@ const {
   verify2FA,
   disable2FA,
   verifyLogin2FA,
+  requestPasswordChangeCode,
+  forceChangePassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -48,5 +50,13 @@ router.delete('/delete-account', protect, deleteAccount);
 router.post('/2fa/generate', protect, generate2FA);
 router.post('/2fa/verify', protect, verify2FA);
 router.post('/2fa/disable', protect, disable2FA);
+
+// Forced Password Change Routes
+router.post(
+  '/request-password-change-code',
+  protect,
+  requestPasswordChangeCode,
+);
+router.post('/force-change-password', protect, forceChangePassword);
 
 module.exports = router;

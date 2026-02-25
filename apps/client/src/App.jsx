@@ -38,6 +38,9 @@ const CustomerProfile = lazy(() => import('@/pages/admin/CustomerProfile'));
 const Login = lazy(() => import('@/pages/auth/Login'));
 const Register = lazy(() => import('@/pages/auth/Register'));
 const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'));
+const ForcePasswordChange = lazy(
+  () => import('@/pages/auth/ForcePasswordChange'),
+);
 const SelfRegister = lazy(() => import('@/pages/auth/SelfRegister'));
 const Support = lazy(() => import('@/pages/admin/Support'));
 const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
@@ -303,6 +306,10 @@ function App() {
                   path="/reset-password/:token"
                   element={<ResetPassword />}
                 />
+                <Route
+                  path="/force-password-change"
+                  element={<ForcePasswordChange />}
+                />
               </Route>
 
               {/* Member Portal Routes */}
@@ -315,6 +322,10 @@ function App() {
                 <Route
                   path="/member/reset-password/:token"
                   element={<MemberResetPassword />}
+                />
+                <Route
+                  path="/member/force-password-change"
+                  element={<ForcePasswordChange isMember />}
                 />
               </Route>
 

@@ -23,14 +23,18 @@ const createTransporter = async () => {
     }
 
     // Fallback to Env Vars if DB is empty
-    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
+    const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+
+    if (process.env.SMTP_HOST && user) {
       return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT || 587,
-        secure: process.env.SMTP_SECURE === 'true',
+        secure:
+          process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT == 465,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user: user,
+          pass: pass,
         },
       });
     }

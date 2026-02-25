@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
-import { cn, capitalize } from '@/lib/utils';
+import { cn, capitalize, validateEmail } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -981,6 +981,11 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await api.put('/auth/updatedetails', formData);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, validateEmail } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 
@@ -29,6 +29,13 @@ const Register = () => {
       name: formData.name.trim().toLowerCase(),
       email: formData.email.trim().toLowerCase(),
     };
+
+    const emailValidation = validateEmail(payload.email);
+    if (!emailValidation.isValid) {
+      setError(emailValidation.message);
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await api.post('/auth/register', payload);
       localStorage.setItem('temp_user_email', JSON.stringify(payload.email));
