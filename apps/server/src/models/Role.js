@@ -10,7 +10,6 @@ const roleSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -46,6 +45,9 @@ const roleSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+// Compound unique index for multi-tenant support
+roleSchema.index({ slug: 1, user: 1 }, { unique: true });
 
 const Role = mongoose.model('Role', roleSchema);
 

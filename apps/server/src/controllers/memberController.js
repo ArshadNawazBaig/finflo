@@ -2165,8 +2165,12 @@ const getAllDistributions = async (req, res) => {
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
 
-    let query = { branchId: req.user.branchId || { $exists: true } };
-    if (req.user.role === 'admin') {
+    let query = {
+      user: req.user.effectiveOwnerId,
+      branchId: req.user.branchId || { $exists: true },
+    };
+
+    if (req.user.role === 'admin' || req.user.role === 'super_admin') {
       delete query.branchId;
     }
 
