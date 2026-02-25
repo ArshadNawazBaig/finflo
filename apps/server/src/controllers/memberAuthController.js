@@ -1,7 +1,7 @@
 const Member = require('../models/Member');
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
-const { authenticator } = require('otplib');
+const { authenticator } = require('otplib/authenticator');
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
