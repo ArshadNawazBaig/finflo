@@ -10,22 +10,38 @@ import {
 import { AuthContext } from '../../context/AuthContext';
 import { dashboardApi } from '../../api/dashboard';
 import { colors, typography, spacing } from '../../theme/theme';
-import { LogOut, Users, Landmark, DollarSign } from 'lucide-react-native';
+import {
+  LogOut,
+  Users,
+  Landmark,
+  DollarSign,
+  AlertCircle,
+} from 'lucide-react-native';
 import StatsCard from '../../components/StatsCard';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ActivityFeed from '../../components/ActivityFeed';
 
 export default function DashboardScreen() {
   const { user, logout } = useContext(AuthContext);
   const [stats, setStats] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStats = async () => {
     try {
+      setError(null);
       const data = await dashboardApi.getStats();
       if (data.success) {
         setStats(data.stats);
+      } else {
+        setError('Failed to load dashboard data.');
       }
     } catch (error) {
       console.error('Failed to fetch stats', error);
+      setError('An error occurred while loading data.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,6 +54,12 @@ export default function DashboardScreen() {
     await fetchStats();
     setRefreshing(false);
   };
+
+  if (loading && !refreshing) {
+    return <LoadingSpinner message="Loading Dashboard..." />;
+  }
+
+  const currencySymbol = (user as any)?.currency || 'Rs.';
 
   return (
     <View style={styles.container}>
@@ -61,6 +83,17 @@ export default function DashboardScreen() {
           />
         }
       >
+        {error ? (
+          <View style={styles.errorContainer}>
+            <AlertCircle
+              color={colors.danger}
+              size={24}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
         <Text style={styles.sectionTitle}>Overview</Text>
 
         <View style={styles.statsGrid}>
@@ -79,7 +112,7 @@ export default function DashboardScreen() {
           />
           <StatsCard
             label="Total Loan Amount"
-            value={`$${stats?.totalLoanAmount?.toLocaleString() || 0}`}
+            value={`${currencySymbol}${stats?.totalLoanAmount?.toLocaleString() || 0}`}
             icon={DollarSign}
             iconColor={colors.success}
             style={{ width: '100%', marginTop: spacing.md }}
@@ -87,9 +120,7 @@ export default function DashboardScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <View style={styles.activityCard}>
-          <Text style={styles.emptyText}>Activity feed coming soon...</Text>
-        </View>
+        <ActivityFeed />
       </ScrollView>
     </View>
   );
@@ -169,5 +200,20 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.text.muted,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: spacing.md,
+    borderRadius: 8,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: typography.sizes.sm,
+    flex: 1,
   },
 });

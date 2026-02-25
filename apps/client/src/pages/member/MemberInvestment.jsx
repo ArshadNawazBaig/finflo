@@ -17,7 +17,7 @@ import MemberActivityCard from '@/components/member/MemberActivityCard';
 import StatsCard from '@/components/StatsCard';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -137,21 +137,21 @@ const MemberInvestment = () => {
   const stats = [
     {
       label: 'Current Balance',
-      value: formatPKR(member?.currentBalance || 0),
+      value: formatCurrency(member?.currentBalance || 0),
       icon: Wallet,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10',
     },
     {
       label: 'Total Invested',
-      value: formatPKR(member?.totalInvested || 0),
+      value: formatCurrency(member?.totalInvested || 0),
       icon: TrendingUp,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
     },
     {
       label: 'Total Profit',
-      value: formatPKR(member?.totalProfit || 0),
+      value: formatCurrency(member?.totalProfit || 0),
       icon: PieChart,
       color: 'text-indigo-500',
       bgColor: 'bg-indigo-500/10',
@@ -172,7 +172,7 @@ const MemberInvestment = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
             title="Current Balance"
-            amount={formatPKR(member?.currentBalance || 0)}
+            amount={formatCurrency(member?.currentBalance || 0)}
             icon={<Wallet size={20} />}
             color={
               member?.currentBalance < 0
@@ -184,7 +184,7 @@ const MemberInvestment = () => {
 
           <StatsCard
             title="Total Invested"
-            amount={formatPKR(member?.totalInvested || 0)}
+            amount={formatCurrency(member?.totalInvested || 0)}
             icon={<TrendingUp size={20} />}
             color="bg-primary shadow-primary/20"
             subtitle="Total capital committed"
@@ -192,7 +192,7 @@ const MemberInvestment = () => {
 
           <StatsCard
             title="Total Profit"
-            amount={formatPKR(member?.totalProfit || 0)}
+            amount={formatCurrency(member?.totalProfit || 0)}
             icon={<PieChart size={20} />}
             color="bg-indigo-500 shadow-indigo-500/20"
             subtitle="Accumulated earnings"
@@ -314,11 +314,11 @@ const MemberInvestment = () => {
                                 className={`text-xl font-black tracking-tighter ${isCredit ? 'text-emerald-600' : 'text-rose-600'}`}
                               >
                                 {isCredit ? '+' : '-'}
-                                {formatPKR(item.amount)}
+                                {formatCurrency(item.amount)}
                               </p>
                               {item.balanceAfter && (
                                 <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                                  Portfolio: {formatPKR(item.balanceAfter)}
+                                  Portfolio: {formatCurrency(item.balanceAfter)}
                                 </p>
                               )}
                             </div>

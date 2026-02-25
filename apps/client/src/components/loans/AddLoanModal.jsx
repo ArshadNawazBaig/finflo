@@ -384,7 +384,6 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <DollarSign className="w-3 h-3 text-emerald-500" /> Principal
-                  (Rs.)
                 </label>
                 <input
                   name="principal"

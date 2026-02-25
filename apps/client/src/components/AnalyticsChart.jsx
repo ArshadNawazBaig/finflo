@@ -15,7 +15,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Download, TrendingUp } from 'lucide-react';
-import { formatPKR, formatCompactValue } from '@/lib/utils';
+import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 
@@ -25,6 +25,7 @@ const AnalyticsChart = ({
   setDateRange,
   onDownload,
   loading,
+  className,
 }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -73,7 +74,7 @@ const AnalyticsChart = ({
                   <span
                     className={`text-xs font-black tabular-nums ${colors[entry.dataKey] || 'text-foreground'}`}
                   >
-                    {formatPKR(entry.value)}
+                    {formatCurrency(entry.value)}
                   </span>
                 </div>
               );
@@ -88,7 +89,12 @@ const AnalyticsChart = ({
   const chartData = data;
 
   return (
-    <Card className="col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+    <Card
+      className={cn(
+        'col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]',
+        className,
+      )}
+    >
       <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

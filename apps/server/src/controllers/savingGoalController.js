@@ -1,5 +1,6 @@
 const SavingGoal = require('../models/SavingGoal');
 const Member = require('../models/Member');
+const mongoose = require('mongoose');
 const { logActivity } = require('./activityLogController');
 const {
   createTransactionNotification,
@@ -142,103 +143,138 @@ const contributeToGoal = async (req, res) => {
       return res.status(400).json({ message: 'Invalid contribution amount' });
     }
 
-    // Check if member has enough balance
-    const member = await Member.findById(req.member._id);
-    if (member.currentBalance < contributionAmount) {
-      return res.status(400).json({ message: 'Insufficient balance' });
-    }
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    // Deduct from member balance
-    member.currentBalance -= contributionAmount;
-    member.totalWithdrawn = (member.totalWithdrawn || 0) + contributionAmount;
-    await member.save();
-
-    // Record withdrawal in Investment ledger
-    const Investment = require('../models/Investment');
-    await Investment.create({
-      user: req.member.user,
-      member: req.member._id,
-      branchId: member.branchId,
-      type: 'withdrawal',
-      amount: contributionAmount,
-      balanceAfter: member.currentBalance,
-      description: `Goal contribution: ${goal.title}`,
-      date: new Date(),
-    });
-
-    // Update goal amount
-    goal.currentAmount += contributionAmount;
-    if (goal.currentAmount >= goal.targetAmount) {
-      goal.status = 'completed';
-    }
-    await goal.save();
-
-    // Log activity
-    await logActivity({
-      userId: req.member._id,
-      action: 'goal_contribution',
-      category: 'member',
-      details: `Contributed ${contributionAmount} to goal: ${goal.title}`,
-      metadata: {
-        goalId: goal._id,
-        amount: contributionAmount,
-        title: goal.title,
-        isMemberAction: true,
-      },
-      req,
-    });
-
-    // ── Notifications ──────────────────────────────────────────────────────
     try {
-      await createTransactionNotification({
-        recipientId: req.member._id,
-        title: 'Goal Contribution',
-        message: `You contributed Rs. ${contributionAmount.toLocaleString()} to your goal: ${goal.title}.`,
-        type: 'info',
-        branchId: member.branchId,
-        action: 'goal_contribution_notification',
-        metadata: {
-          goalId: goal._id,
-          amount: contributionAmount,
-          link: '/member/dashboard',
+      // 1. Deduct from member balance atomically
+      const updatedMember = await Member.findOneAndUpdate(
+        { _id: req.member._id, currentBalance: { $gte: contributionAmount } },
+        {
+          $inc: {
+            currentBalance: -contributionAmount,
+            totalWithdrawn: contributionAmount,
+          },
         },
-      });
+        { session, new: true },
+      );
 
-      if (goal.status === 'completed') {
-        await createTransactionNotification({
-          recipientId: req.member._id,
-          title: 'Goal Achieved!',
-          message: `Congratulations! You've successfully reached your target for "${goal.title}".`,
-          type: 'success',
-          branchId: member.branchId,
-          action: 'goal_completed_notification',
-          metadata: { goalId: goal._id, link: '/member/dashboard' },
-        });
+      if (!updatedMember) {
+        throw new Error('Insufficient balance or member not found');
       }
 
-      // Notify Admins
-      await notifyAdminsOfMemberAction({
-        title: 'Saving Goal Contribution',
-        message: `${member.name} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${goal.title}.`,
-        type: 'success',
-        branchId: member.branchId,
-        metadata: {
-          memberId: member._id,
-          goalId: goal._id,
-          amount: contributionAmount,
-          link: `/admin/members/${member._id}`,
-        },
-      });
-    } catch (notifError) {
-      console.error('Goal Notification Error:', notifError);
-    }
+      // 2. Update goal amount atomically
+      const updatedGoal = await SavingGoal.findOneAndUpdate(
+        { _id: req.params.id, member: req.member._id },
+        { $inc: { currentAmount: contributionAmount } },
+        { session, new: true },
+      );
 
-    res.json({
-      success: true,
-      goal,
-      member: { currentBalance: member.currentBalance },
-      message: `Successfully contributed ${contributionAmount} to your goal!`,
-    });
+      if (!updatedGoal) {
+        throw new Error('Goal not found');
+      }
+
+      // 3. Mark as completed if target met
+      if (
+        updatedGoal.currentAmount >= updatedGoal.targetAmount &&
+        updatedGoal.status !== 'completed'
+      ) {
+        updatedGoal.status = 'completed';
+        await updatedGoal.save({ session });
+      }
+
+      // 4. Record withdrawal in Investment ledger
+      const Investment = require('../models/Investment');
+      await Investment.create(
+        [
+          {
+            user: req.member.user,
+            member: req.member._id,
+            branchId: updatedMember.branchId,
+            type: 'withdrawal',
+            amount: contributionAmount,
+            balanceAfter: updatedMember.currentBalance,
+            description: `Goal contribution: ${updatedGoal.title}`,
+            date: new Date(),
+          },
+        ],
+        { session },
+      );
+
+      await session.commitTransaction();
+
+      // Log activity (outside transaction)
+      await logActivity({
+        userId: req.member._id,
+        action: 'goal_contribution',
+        category: 'member',
+        details: `Contributed ${contributionAmount} to goal: ${updatedGoal.title}`,
+        metadata: {
+          goalId: updatedGoal._id,
+          amount: contributionAmount,
+          title: updatedGoal.title,
+          isMemberAction: true,
+        },
+        req,
+      });
+
+      // ── Notifications ──────────────────────────────────────────────────────
+      try {
+        await createTransactionNotification({
+          recipientId: req.member._id,
+          title: 'Goal Contribution',
+          message: `You contributed Rs. ${contributionAmount.toLocaleString()} to your goal: ${updatedGoal.title}.`,
+          type: 'info',
+          branchId: updatedMember.branchId,
+          action: 'goal_contribution_notification',
+          metadata: {
+            goalId: updatedGoal._id,
+            amount: contributionAmount,
+            link: '/member/dashboard',
+          },
+        });
+
+        if (updatedGoal.status === 'completed') {
+          await createTransactionNotification({
+            recipientId: req.member._id,
+            title: 'Goal Achieved!',
+            message: `Congratulations! You've successfully reached your target for "${updatedGoal.title}".`,
+            type: 'success',
+            branchId: updatedMember.branchId,
+            action: 'goal_completed_notification',
+            metadata: { goalId: updatedGoal._id, link: '/member/dashboard' },
+          });
+        }
+
+        // Notify Admins
+        await notifyAdminsOfMemberAction({
+          title: 'Saving Goal Contribution',
+          message: `${updatedMember.name} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${updatedGoal.title}.`,
+          type: 'success',
+          branchId: updatedMember.branchId,
+          metadata: {
+            memberId: updatedMember._id,
+            goalId: updatedGoal._id,
+            amount: contributionAmount,
+            link: `/admin/members/${updatedMember._id}`,
+          },
+        });
+      } catch (notifError) {
+        console.error('Goal Notification Error:', notifError);
+      }
+
+      res.json({
+        success: true,
+        goal: updatedGoal,
+        member: { currentBalance: updatedMember.currentBalance },
+        message: `Successfully contributed ${contributionAmount} to your goal!`,
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

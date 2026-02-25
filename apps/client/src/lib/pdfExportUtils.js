@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatPKR } from './utils';
+import { formatCurrency } from './utils';
 
 /**
  * Generates a standardized PDF statement for a loan.
@@ -65,14 +65,14 @@ export const exportLoanStatement = async (
     startY: currentY + 5,
     head: [['Description', 'Detail']],
     body: [
-      ['Principal Amount', formatPKR(loan.principal)],
+      ['Principal Amount', formatCurrency(loan.principal)],
       ['Interest Rate', `${loan.rate}% APR`],
       ['Duration', `${loan.duration} Months`],
-      ['Total Repayable', formatPKR(loan.totalAmount)],
-      ['Amount Paid', formatPKR(loan.paidAmount || 0)],
+      ['Total Repayable', formatCurrency(loan.totalAmount)],
+      ['Amount Paid', formatCurrency(loan.paidAmount || 0)],
       [
         'Outstanding Balance',
-        formatPKR(
+        formatCurrency(
           loan.remainingAmount || loan.totalAmount - (loan.paidAmount || 0),
         ),
       ],
@@ -99,7 +99,7 @@ export const exportLoanStatement = async (
       body: repayments.map((rp) => [
         new Date(rp.date).toLocaleDateString(),
         rp.description || 'Loan Repayment',
-        formatPKR(rp.amount),
+        formatCurrency(rp.amount),
         'Confirmed',
       ]),
       theme: 'grid',
@@ -217,10 +217,10 @@ export const exportMemberStatement = async (
     startY: currentY + 5,
     head: [['Description', 'Amount']],
     body: [
-      ['Total Capital Invested', formatPKR(totalDeposits)],
-      ['Total Capital Withdrawn', formatPKR(totalWithdrawals)],
-      ['Total Profits Earned', formatPKR(totalProfits)],
-      ['Net Current Balance', formatPKR(member.currentBalance || 0)],
+      ['Total Capital Invested', formatCurrency(totalDeposits)],
+      ['Total Capital Withdrawn', formatCurrency(totalWithdrawals)],
+      ['Total Profits Earned', formatCurrency(totalProfits)],
+      ['Net Current Balance', formatCurrency(member.currentBalance || 0)],
     ],
     theme: 'striped',
     headStyles: { fillColor: [79, 70, 229] }, // Indigo header
@@ -259,7 +259,7 @@ export const exportMemberStatement = async (
         t.date.toLocaleDateString(),
         t.type,
         t.description,
-        formatPKR(Math.abs(t.amount)),
+        formatCurrency(Math.abs(t.amount)),
       ]),
       theme: 'grid',
       headStyles: { fillColor: [16, 185, 129] }, // Emerald header

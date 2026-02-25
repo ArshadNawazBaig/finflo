@@ -28,7 +28,7 @@ import StatsCard from '@/components/StatsCard';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import AddLoanModal from '@/components/loans/AddLoanModal';
 import api from '@/lib/axios';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -186,21 +186,21 @@ const CustomerProfile = () => {
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Total Borrowed"
-          amount={formatPKR(totalBorrowed)}
+          amount={formatCurrency(totalBorrowed)}
           icon={<DollarSign size={18} />}
           color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Outstanding Balance"
-          amount={formatPKR(totalOutstanding)}
+          amount={formatCurrency(totalOutstanding)}
           icon={<Briefcase size={18} />}
           color="bg-orange-500 text-orange-600 border-orange-500/20"
           isGlass
         />
         <StatsCard
           title="Total Repaid"
-          amount={formatPKR(totalPaid)}
+          amount={formatCurrency(totalPaid)}
           icon={<Layers size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
@@ -279,7 +279,7 @@ const CustomerProfile = () => {
                           </div>
                           <div>
                             <div className="text-sm font-black tracking-tight">
-                              {formatPKR(loan.principal)}
+                              {formatCurrency(loan.principal)}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
@@ -296,7 +296,7 @@ const CustomerProfile = () => {
                               Remaining
                             </div>
                             <div className="text-base font-black text-orange-500">
-                              {formatPKR(loan.remainingAmount)}
+                              {formatCurrency(loan.remainingAmount)}
                             </div>
                           </div>
                           <div className="text-right">
@@ -450,7 +450,7 @@ const CustomerProfile = () => {
                       </span>
                       <span className="text-xs font-black text-emerald-600">
                         {customer.monthlyIncome
-                          ? formatPKR(customer.monthlyIncome)
+                          ? formatCurrency(customer.monthlyIncome)
                           : 'N/A'}
                       </span>
                     </div>

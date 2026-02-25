@@ -1,4 +1,11 @@
 const path = require('path');
+// Pre-load iconv-lite encodings to prevent "CANNOT FIND MODULE '../ENCODINGS'" error in certain environments
+try {
+  const iconv = require('iconv-lite');
+  iconv.getCodec('utf8');
+} catch (e) {
+  console.error('Warning: Failed to pre-load iconv-lite encodings:', e.message);
+}
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 // Force restart
 const express = require('express');
@@ -8,6 +15,7 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const { initACE } = require('./services/reminderService');
+const { initScheduledTasks } = require('./services/scheduledTasksService');
 
 const app = express();
 
@@ -166,6 +174,7 @@ if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     initACE();
+    initScheduledTasks();
   });
 }
 

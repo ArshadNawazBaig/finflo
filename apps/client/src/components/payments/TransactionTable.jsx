@@ -1,4 +1,4 @@
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -132,7 +132,7 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                     )}
                   >
                     {transaction.type === 'income' ? '+' : '-'}
-                    {formatPKR(transaction.amount)}
+                    {formatCurrency(transaction.amount)}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">

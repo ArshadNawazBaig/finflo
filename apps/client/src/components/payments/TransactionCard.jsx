@@ -1,4 +1,4 @@
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   Receipt,
@@ -53,7 +53,7 @@ const TransactionCard = ({ transaction }) => {
             )}
           >
             {isIncome ? '+' : '-'}
-            {formatPKR(transaction.amount)}
+            {formatCurrency(transaction.amount)}
           </div>
           <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
             {transaction.type}

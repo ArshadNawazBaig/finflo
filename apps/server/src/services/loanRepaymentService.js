@@ -17,6 +17,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     notes = 'Automatic deduction from deposit',
     isAutoValue = true,
     allowEarlySettlement = true,
+    session = null,
   } = options;
 
   let repaymentAmount = Number(amount);
@@ -29,22 +30,50 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
   if (
     allowEarlySettlement &&
-    (loan.status === 'active' || loan.status === 'pending')
+    (loan.status === 'active' ||
+      loan.status === 'overdue' ||
+      loan.status === 'pending')
   ) {
     const startDate = new Date(loan.startDate);
     const now = new Date(date);
 
-    // Calculate months passed (minimum 1 month interest)
-    let monthsPassed =
-      (now.getFullYear() - startDate.getFullYear()) * 12 +
-      (now.getMonth() - startDate.getMonth());
-    if (now.getDate() > startDate.getDate()) monthsPassed += 1; // Count partial month
-    monthsPassed = Math.max(1, monthsPassed);
+    // Calculate months and days passed
+    const diffYears = now.getFullYear() - startDate.getFullYear();
+    const diffMonths = now.getMonth() - startDate.getMonth();
+    let fullMonths = diffYears * 12 + diffMonths;
+
+    if (now.getDate() < startDate.getDate()) {
+      fullMonths -= 1;
+    }
+    fullMonths = Math.max(0, fullMonths);
+
+    // Calculate extra days into the current partial month
+    let daysIntoMonth = 0;
+    if (now.getDate() >= startDate.getDate()) {
+      daysIntoMonth = now.getDate() - startDate.getDate();
+    } else {
+      // Find previous anniversary date
+      const prevMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        startDate.getDate(),
+      );
+      const diffTime = Math.abs(now - prevMonth);
+      daysIntoMonth = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
 
     if (loan.interestType === 'simple') {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+
+      // Charge for full months + daily pro-rate for partial month
+      // Minimum 1 month interest for business protection
+      const calculatedInterest =
+        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
       const proRatedInterest = Math.round(
-        (loan.principal * loan.rate * monthsPassed) / 1200,
+        Math.max(monthlyInterest, calculatedInterest),
       );
+
       actualSettlementAmount = loan.principal + proRatedInterest;
 
       // If this payment + previous payments >= settlement amount
@@ -60,6 +89,37 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     }
   }
 
+  // 1. Calculate Interest/Principal Split for the Repayment
+  let interestAmount = 0;
+  let principalAmount = 0;
+
+  if (isEarlySettlement) {
+    // For early settlement, interest is waived/adjusted
+    // Profit is (Final Settled Total - Original Principal)
+    interestAmount = Math.max(0, actualSettlementAmount - loan.principal);
+    principalAmount = Math.min(repaymentAmount, loan.principal);
+  } else {
+    // Normal repayment split calculation
+    if (loan.interestType === 'simple') {
+      const months = loan.duration || 1;
+      const totalInterest = loan.totalAmount - loan.principal;
+      interestAmount = Math.round(totalInterest / months);
+      principalAmount = repaymentAmount - interestAmount;
+    } else {
+      // EMI (Reducing Balance)
+      // Interest portion = (Current Remaining Principal) * (Monthly Interest Rate)
+      const monthlyRate = loan.rate / 12 / 100;
+      interestAmount = Math.round(loan.remainingAmount * monthlyRate);
+      principalAmount = repaymentAmount - interestAmount;
+    }
+
+    // Safeguard: Ensure values make sense (at loan end or for overpayments)
+    if (principalAmount > loan.remainingAmount) {
+      principalAmount = loan.remainingAmount;
+      interestAmount = Math.max(0, repaymentAmount - principalAmount);
+    }
+  }
+
   // Create Repayment record
   const repayment = new Repayment({
     user: req.user?.effectiveOwnerId || loan.user,
@@ -67,33 +127,46 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     customer: loan.customer._id || loan.customer,
     branchId: loan.branchId,
     amount: repaymentAmount,
+    interestAmount,
+    principalAmount,
     date,
     notes: isEarlySettlement ? `${notes} (Early Settlement Adjustment)` : notes,
   });
 
-  await repayment.save();
+  await repayment.save({ session });
 
-  // Deduct repayment from linked Member's balance (if member exists)
+  // Deduct repayment from linked Member's balance (if member exists) atomically
   try {
     const customer = await Customer.findById(loan.customer);
     if (customer?.memberId) {
-      const member = await Member.findById(customer.memberId);
-      if (member) {
-        member.currentBalance -= repaymentAmount;
-        member.totalWithdrawn = (member.totalWithdrawn || 0) + repaymentAmount;
-        await member.save();
+      const updatedMember = await Member.findByIdAndUpdate(
+        customer.memberId,
+        {
+          $inc: {
+            currentBalance: -repaymentAmount,
+            totalWithdrawn: repaymentAmount,
+          },
+        },
+        { new: true, session },
+      );
 
+      if (updatedMember) {
         // Record in Investment ledger
-        await Investment.create({
-          user: member.user,
-          member: member._id,
-          branchId: loan.branchId || member.branchId,
-          type: 'withdrawal',
-          amount: repaymentAmount,
-          balanceAfter: member.currentBalance,
-          description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}${isAutoValue ? ' (Auto)' : ''}${isEarlySettlement ? ' (Settlement)' : ''}`,
-          date: new Date(date),
-        });
+        await Investment.create(
+          [
+            {
+              user: updatedMember.user,
+              member: updatedMember._id,
+              branchId: loan.branchId || updatedMember.branchId,
+              type: 'withdrawal',
+              amount: repaymentAmount,
+              balanceAfter: updatedMember.currentBalance,
+              description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}${isAutoValue ? ' (Auto)' : ''}${isEarlySettlement ? ' (Settlement)' : ''}`,
+              date: new Date(date),
+            },
+          ],
+          { session },
+        );
       }
     }
   } catch (balanceError) {
@@ -103,12 +176,22 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     );
   }
 
-  // Update loan stats
+  // Update loan stats atomically
   if (isEarlySettlement) {
-    loan.totalAmount = actualSettlementAmount;
-    loan.paidAmount = actualSettlementAmount;
-    loan.remainingAmount = 0;
-    loan.status = 'completed';
+    // For early settlement, we set absolute values as it's a structural change to the loan
+    const updatedLoan = await Loan.findByIdAndUpdate(
+      loan._id,
+      {
+        totalAmount: actualSettlementAmount,
+        paidAmount: actualSettlementAmount,
+        remainingAmount: 0,
+        status: 'completed',
+      },
+      { new: true, session },
+    );
+
+    // Sync the passed loan object for the return value and subsequent logic
+    Object.assign(loan, updatedLoan.toObject());
 
     await logActivity({
       userId: req.user?._id || loan.user,
@@ -117,19 +200,32 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} settled early with adjusted interest. Total Amount cap: ${actualSettlementAmount}`,
       metadata: {
         loanId: loan._id,
-        originalTotal: loan.totalAmount, // This is already updated but we log nonetheless
+        originalTotal: loan.totalAmount,
         finalTotal: actualSettlementAmount,
       },
       req,
     });
   } else {
-    loan.paidAmount += repaymentAmount;
-    loan.remainingAmount = Math.round(
-      Math.max(0, loan.totalAmount - loan.paidAmount),
+    // Normal repayment: Atomic increment/decrement
+    const updatedLoan = await Loan.findByIdAndUpdate(
+      loan._id,
+      {
+        $inc: {
+          paidAmount: repaymentAmount,
+          remainingAmount: -repaymentAmount,
+        },
+        // If the loan was overdue, a payment brings it back to active
+        ...(loan.status === 'overdue' ? { status: 'active' } : {}),
+      },
+      { new: true, session },
     );
 
-    if (loan.remainingAmount <= 0) {
-      loan.status = 'completed';
+    // Safeguard remainingAmount (rounding or floating point issues)
+    if (updatedLoan.remainingAmount < 0.01) {
+      updatedLoan.remainingAmount = 0;
+      updatedLoan.status = 'completed';
+      await updatedLoan.save({ session });
+
       // Log activity for auto-completion
       await logActivity({
         userId: req.user?._id || loan.user,
@@ -140,9 +236,10 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         req,
       });
     }
-  }
 
-  await loan.save();
+    // Sync the passed loan object
+    Object.assign(loan, updatedLoan.toObject());
+  }
 
   // Create Financial Transaction
   const financialTx = new FinancialTransaction({
@@ -158,7 +255,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     referenceId: repayment._id,
     referenceModel: 'Repayment',
   });
-  await financialTx.save();
+  await financialTx.save({ session });
 
   // Update Customer Trust Rating
   try {
@@ -171,13 +268,20 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
       let totalRatingAdjustment = 0;
       const paymentDate = new Date(date);
+      const GRACE_PERIOD_DAYS = 3;
 
       for (let i = 0; i < installmentsCovered; i++) {
         const installmentNumber = previouslyPaidInstallments + i + 1;
         const dueDate = new Date(loan.startDate);
         dueDate.setMonth(dueDate.getMonth() + installmentNumber);
 
-        const isOnTime = paymentDate <= dueDate;
+        // Add grace period to due date
+        const gracePeriodDueDate = new Date(dueDate);
+        gracePeriodDueDate.setDate(
+          gracePeriodDueDate.getDate() + GRACE_PERIOD_DAYS,
+        );
+
+        const isOnTime = paymentDate <= gracePeriodDueDate;
         totalRatingAdjustment += isOnTime ? 0.2 : -0.5;
       }
 

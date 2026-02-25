@@ -22,7 +22,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
@@ -180,7 +180,7 @@ const MemberTransactions = () => {
         new Date(item.date).toLocaleDateString(),
         item.description,
         item.category.toUpperCase(),
-        formatPKR(item.amount),
+        formatCurrency(item.amount),
         item.type.toUpperCase(),
       ];
       tableRows.push(rowData);
@@ -280,7 +280,7 @@ const MemberTransactions = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
             title="Total Inflow"
-            amount={formatPKR(summary.totalDeposits)}
+            amount={formatCurrency(summary.totalDeposits)}
             icon={<ArrowUpRight size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
             subtitle="Investments, profits & received transfers"
@@ -288,7 +288,7 @@ const MemberTransactions = () => {
 
           <StatsCard
             title="Total Outflow"
-            amount={formatPKR(summary.totalWithdrawals)}
+            amount={formatCurrency(summary.totalWithdrawals)}
             icon={<ArrowDownLeft size={20} />}
             color="bg-rose-500 shadow-rose-500/20"
             subtitle="Withdrawals, transfers & repayments"
@@ -296,7 +296,7 @@ const MemberTransactions = () => {
 
           <StatsCard
             title="Portfolio Balance"
-            amount={formatPKR(member?.currentBalance ?? 0)}
+            amount={formatCurrency(member?.currentBalance ?? 0)}
             icon={<TrendingUp size={20} />}
             color={
               member?.currentBalance < 0
@@ -428,11 +428,11 @@ const MemberTransactions = () => {
                       className={`text-xl font-black tracking-tighter ${getItemStyle(item.category, item.type).color}`}
                     >
                       {getItemStyle(item.category, item.type).sign}
-                      {formatPKR(item.amount)}
+                      {formatCurrency(item.amount)}
                     </p>
                     {item.metadata?.balanceAfter && (
                       <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                        Bal: {formatPKR(item.metadata.balanceAfter)}
+                        Bal: {formatCurrency(item.metadata.balanceAfter)}
                       </p>
                     )}
                   </div>

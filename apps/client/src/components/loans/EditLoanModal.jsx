@@ -101,7 +101,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
               >
                 <DollarSign className="w-3 h-3 text-emerald-500" /> Capital
-                Amount (Rs.)
+                Amount
               </Label>
               <Input
                 id="principal"

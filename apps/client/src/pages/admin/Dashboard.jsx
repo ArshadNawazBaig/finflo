@@ -14,14 +14,21 @@ import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
 import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Unused
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import api from '@/lib/axios';
-import { formatPKR, capitalize, cn } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/loans/RepaymentCalendar';
 import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import usePermissions from '@/hooks/usePermissions';
+import ActivityFeed from '@/components/ActivityFeed';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -243,7 +250,7 @@ const Dashboard = () => {
           {hasPermission('view_reports') && (
             <StatsCard
               title="Net Liquidity"
-              amount={formatPKR(stats?.banking?.liquidity || 0)}
+              amount={formatCurrency(stats?.banking?.liquidity || 0)}
               subtitle="Available Cash"
               icon={<Coins size={20} />}
               color="bg-emerald-500 shadow-emerald-500/20"
@@ -252,7 +259,7 @@ const Dashboard = () => {
           {hasPermission('view_reports') && (
             <StatsCard
               title="Total Deposits"
-              amount={formatPKR(stats?.banking?.deposits || 0)}
+              amount={formatCurrency(stats?.banking?.deposits || 0)}
               subtitle="Member Capital"
               icon={<Download size={20} />}
               color="bg-blue-500 shadow-blue-500/20"
@@ -261,7 +268,7 @@ const Dashboard = () => {
           {hasPermission('view_reports') && (
             <StatsCard
               title="Net Profit"
-              amount={formatPKR(stats?.profit?.amount || 0)}
+              amount={formatCurrency(stats?.profit?.amount || 0)}
               percentage={stats?.profit?.percentage}
               subtitle="Interest Earnings"
               icon={<TrendingUp size={20} />}
@@ -271,7 +278,7 @@ const Dashboard = () => {
           {hasAnyPermission(['view_reports', 'manage_loans']) && (
             <StatsCard
               title="Total Disbursed"
-              amount={formatPKR(stats?.banking?.disbursed?.amount || 0)}
+              amount={formatCurrency(stats?.banking?.disbursed?.amount || 0)}
               percentage={stats?.banking?.disbursed?.percentage}
               subtitle="Portfolio Value"
               icon={<ExternalLink size={20} />}
@@ -280,7 +287,7 @@ const Dashboard = () => {
           )}
           {/* <StatsCard
             title="Forecast (6M)"
-            amount={formatPKR(stats?.forecast?.total6Months || 0)}
+            amount={formatCurrency(stats?.forecast?.total6Months || 0)}
             percentage={stats?.forecast?.percentage}
             icon={<TrendingUp size={20} />}
             color="bg-primary shadow-primary/20"
@@ -288,109 +295,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Calendar Section */}
-      <div className="w-full">
-        {loading ? (
-          <CalendarSkeleton />
-        ) : (
-          <RepaymentCalendar upcomingPayments={upcomingPayments} />
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10 items-start">
-        {hasAnyPermission([
-          'view_reports',
-          'manage_loans',
-          'manage_members',
-        ]) && (
-          <div className="xl:col-span-1">
-            {/* Transactions Section */}
-            <div className="col-span-3 rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col">
-              <div className="p-4 sm:p-6 pb-4 border-b border-border/50 bg-gradient-to-br from-card to-background/50">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-black tracking-tight">
-                      Recent Activity
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-medium mt-1">
-                      Real-time settlements
-                    </p>
-                  </div>
-                  {!loading && (
-                    <button
-                      className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-                      onClick={() => navigate('/transactions')}
-                    >
-                      View All
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="flex-1 overflow-auto">
-                <div className="divide-y divide-border/50">
-                  {loading ? (
-                    [1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="p-5 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 rounded-2xl bg-muted/30 animate-pulse" />
-                          <div className="space-y-2">
-                            <div className="h-4 w-32 bg-muted/30 animate-pulse rounded" />
-                            <div className="h-3 w-20 bg-muted/30 animate-pulse rounded" />
-                          </div>
-                        </div>
-                        <div className="h-5 w-16 bg-muted/30 animate-pulse rounded" />
-                      </div>
-                    ))
-                  ) : transactions.length === 0 ? (
-                    <div className="p-6 sm:p-10 text-center text-muted-foreground text-sm font-medium">
-                      No recent settlements detected
-                    </div>
-                  ) : (
-                    transactions.slice(0, 3).map((t) => (
-                      <div
-                        key={t._id}
-                        className="group flex items-center justify-between p-4 sm:p-5 hover:bg-primary/5 transition-colors duration-300"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <div
-                              className={`w-11 h-11 rounded-2xl ${t.type === 'repayment' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'} flex items-center justify-center border border-border/50 shadow-sm group-hover:scale-110 transition-transform`}
-                            >
-                              <span className="font-black text-xs capitalize">
-                                {t.customer?.name?.charAt(0) || '?'}
-                              </span>
-                            </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-sm font-bold leading-none tracking-tight capitalize">
-                              {t.customer?.name}
-                            </p>
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                              {format(new Date(t.date), 'MMM d, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-sm font-black tracking-tight tabular-nums">
-                            {formatPKR(t.amount)}
-                          </p>
-                          <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/80 dark:text-muted-foreground">
-                            SUCCESS
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
         <div
           className={cn(
             'xl:col-span-2',
@@ -411,22 +316,71 @@ const Dashboard = () => {
                 setDateRange={setDateRange}
                 onDownload={handleDownload}
                 loading={chartLoading}
+                className="h-full"
               />
             )
           ) : (
             <div className="h-[400px] flex items-center justify-center bg-card/50 rounded-[2rem] border border-border/50 text-muted-foreground p-8 text-center">
               <div>
                 <TrendingUp size={48} className="mx-auto mb-4 opacity-20" />
-                <h4 className="text-lg font-black tracking-tight mb-2">
-                  Analytics Restricted
-                </h4>
-                <p className="text-sm">
-                  You do not have permission to view detailed analytics reports.
+                <h3 className="text-lg font-black tracking-tight">
+                  Premium Insights
+                </h3>
+                <p className="text-sm font-medium mt-1">
+                  Access advanced analytics with the Pro plan
                 </p>
               </div>
             </div>
           )}
         </div>
+
+        {hasAnyPermission([
+          'view_reports',
+          'manage_loans',
+          'manage_members',
+        ]) && (
+          <div className="xl:col-span-1">
+            {/* Recent Activity Section */}
+            <Card className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col h-full">
+              <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-black tracking-tight">
+                      Recent Activity
+                    </CardTitle>
+                    <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                      Real-time settlements
+                    </CardDescription>
+                  </div>
+                  {!loading && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 h-auto rounded-full bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                      onClick={() => navigate('/transactions')}
+                    >
+                      View All
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-hidden">
+                <div className="h-[324px] overflow-y-auto custom-scrollbar">
+                  <ActivityFeed />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Calendar Section */}
+      <div className="w-full">
+        {loading ? (
+          <CalendarSkeleton />
+        ) : (
+          <RepaymentCalendar upcomingPayments={upcomingPayments} />
+        )}
       </div>
     </div>
   );

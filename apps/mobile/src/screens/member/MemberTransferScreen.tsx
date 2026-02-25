@@ -11,8 +11,11 @@ import {
 } from 'react-native';
 import { colors, typography, spacing } from '../../theme/theme';
 import { Send, User, ChevronRight } from 'lucide-react-native';
+import { MemberAuthContext } from '../../context/MemberAuthContext';
 
 export default function MemberTransferScreen() {
+  const { member } = React.useContext(MemberAuthContext);
+  const currencySymbol = (member as any)?.currency || 'Rs.';
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -58,7 +61,7 @@ export default function MemberTransferScreen() {
       </View>
 
       <View style={styles.inputSection}>
-        <Text style={styles.label}>Amount ($)</Text>
+        <Text style={styles.label}>Amount ({currencySymbol})</Text>
         <TextInput
           style={styles.input}
           placeholder="0.00"

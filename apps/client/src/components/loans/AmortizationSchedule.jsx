@@ -7,7 +7,7 @@ import {
   TrendingUp,
   FileText,
 } from 'lucide-react';
-import { formatPKR, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -94,13 +94,13 @@ const AmortizationSchedule = ({
                           </div>
                         </td>
                         <td className="py-4 text-xs font-medium">
-                          {formatPKR(item.principal)}
+                          {formatCurrency(item.principal)}
                         </td>
                         <td className="py-4 text-xs font-medium text-muted-foreground">
-                          {formatPKR(item.interest)}
+                          {formatCurrency(item.interest)}
                         </td>
                         <td className="py-4 text-xs font-black text-foreground">
-                          {formatPKR(item.amount)}
+                          {formatCurrency(item.amount)}
                         </td>
                         <td className="py-4 text-right">
                           <span
@@ -166,7 +166,7 @@ const AmortizationSchedule = ({
                           Principal
                         </p>
                         <p className="text-xs font-bold">
-                          {formatPKR(item.principal)}
+                          {formatCurrency(item.principal)}
                         </p>
                       </div>
                       <div>
@@ -174,7 +174,7 @@ const AmortizationSchedule = ({
                           Interest
                         </p>
                         <p className="text-xs font-bold text-muted-foreground">
-                          {formatPKR(item.interest)}
+                          {formatCurrency(item.interest)}
                         </p>
                       </div>
                     </div>
@@ -184,7 +184,7 @@ const AmortizationSchedule = ({
                         Total Installment
                       </p>
                       <p className="text-lg font-black">
-                        {formatPKR(item.amount)}
+                        {formatCurrency(item.amount)}
                       </p>
                     </div>
                   </div>

@@ -28,7 +28,7 @@ import MemberTable from '@/components/member/MemberTable';
 import MemberCard from '@/components/member/MemberCard';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
@@ -264,13 +264,13 @@ const Members = () => {
           />
           <StatsCard
             title="Total Invested"
-            amount={formatPKR(statsDisplay.totalInvested)}
+            amount={formatCurrency(statsDisplay.totalInvested)}
             icon={<Wallet size={20} />}
             color="bg-blue-500 shadow-blue-500/20"
           />
           <StatsCard
             title="Total Profit Distributed"
-            amount={formatPKR(statsDisplay.totalProfit)}
+            amount={formatCurrency(statsDisplay.totalProfit)}
             icon={<DollarSign size={20} />}
             color="bg-purple-500 shadow-purple-500/20"
           />

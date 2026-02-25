@@ -14,7 +14,7 @@ import {
 import { Link } from 'react-router-dom';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { toast } from 'sonner';
 
@@ -120,7 +120,7 @@ const MemberTable = ({
                   </div>
                 </td>
                 <td className="py-4 px-4 text-right font-medium">
-                  {formatPKR(member.currentBalance || 0)}
+                  {formatCurrency(member.currentBalance || 0)}
                 </td>
                 <td className="py-4 px-4 text-center">
                   <div className="flex items-center justify-center gap-2">

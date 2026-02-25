@@ -5,7 +5,7 @@ import {
   CreditCard,
   Landmark,
 } from 'lucide-react';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 const WealthInsights = ({ member, loans = [], goals = [] }) => {
   const currentBalance = member?.currentBalance || 0;
@@ -54,13 +54,13 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
   const stats = [
     {
       label: 'Total Assets',
-      value: formatPKR(currentBalance),
+      value: formatCurrency(currentBalance),
       icon: <Landmark className="text-emerald-500" size={20} />,
       description: 'Investment Balance + Profits',
     },
     {
       label: 'Current Liabilities',
-      value: formatPKR(totalLiabilities),
+      value: formatCurrency(totalLiabilities),
       icon: <CreditCard className="text-red-500" size={20} />,
       description: 'Active Loan Balances',
     },
@@ -97,7 +97,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
               <p
                 className={`text-2xl font-black tracking-tighter ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
               >
-                {formatPKR(netWorth)}
+                {formatCurrency(netWorth)}
               </p>
             </div>
           </div>

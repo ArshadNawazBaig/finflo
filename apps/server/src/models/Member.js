@@ -87,7 +87,11 @@ const memberSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Prevent duplicate CNICs per user (business)
+// Indexes for performance
+memberSchema.index({ user: 1 });
+memberSchema.index({ branchId: 1 });
+memberSchema.index({ email: 1 });
+memberSchema.index({ approvalStatus: 1 });
 memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
 
 // Hash password before saving

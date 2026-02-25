@@ -17,7 +17,7 @@ import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import AmortizationSchedule from '@/components/loans/AmortizationSchedule';
 import api from '@/lib/axios';
-import { formatPKR, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
@@ -157,13 +157,13 @@ const MemberLoanDetail = () => {
               <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-2xl border border-emerald-500/20">
                 <CheckCircle2 size={16} />
                 <span className="text-xs font-black uppercase tracking-widest">
-                  Paid: {formatPKR(paidAmount)}
+                  Paid: {formatCurrency(paidAmount)}
                 </span>
               </div>
               <div className="flex items-center gap-2 bg-blue-500/10 text-blue-600 px-4 py-2 rounded-2xl border border-blue-500/20">
                 <Clock size={16} />
                 <span className="text-xs font-black uppercase tracking-widest">
-                  Due: {formatPKR(loan.remainingAmount)}
+                  Due: {formatCurrency(loan.remainingAmount)}
                 </span>
               </div>
               {loan.status === 'active' && (
@@ -192,7 +192,7 @@ const MemberLoanDetail = () => {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                 Monthly EMI
               </p>
-              <p className="text-lg font-bold">{formatPKR(loan.emi)}</p>
+              <p className="text-lg font-bold">{formatCurrency(loan.emi)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
@@ -214,19 +214,19 @@ const MemberLoanDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Principal"
-          amount={formatPKR(loan.principal)}
+          amount={formatCurrency(loan.principal)}
           icon={<DollarSign size={20} />}
           color="bg-primary"
         />
         <StatsCard
           title="Total Payload"
-          amount={formatPKR(loan.totalAmount)}
+          amount={formatCurrency(loan.totalAmount)}
           icon={<TrendingUp size={20} />}
           color="bg-purple-500"
         />
         <StatsCard
           title="Amount Paid"
-          amount={formatPKR(paidAmount)}
+          amount={formatCurrency(paidAmount)}
           icon={<CheckCircle2 size={20} />}
           color="bg-emerald-500"
         />

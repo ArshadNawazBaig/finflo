@@ -20,7 +20,7 @@ import {
   ArrowDownCircle,
   Calendar,
 } from 'lucide-react';
-import { formatPKR, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 
 const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -186,7 +186,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 {fetchingBalance ? (
                   <Loader2 className="w-3 h-3 animate-spin inline" />
                 ) : (
-                  formatPKR(memberBalance)
+                  formatCurrency(memberBalance)
                 )}
               </p>
             </div>
@@ -197,7 +197,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <p
                 className={`text-sm font-black truncate ${isSettlement ? 'text-blue-600' : 'text-rose-600'}`}
               >
-                {formatPKR(
+                {formatCurrency(
                   isSettlement ? settlementAmount : loan.remainingAmount,
                 )}
               </p>
@@ -234,7 +234,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       Monthly Installment
                     </p>
                     <p className="text-sm font-black text-foreground">
-                      {formatPKR(loan.emi)}
+                      {formatCurrency(loan.emi)}
                     </p>
                   </div>
                 </div>
@@ -277,7 +277,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   </div>
                   <div className="pt-2 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                     <span>Adjusted Interest</span>
-                    <span>+ {formatPKR(details.interest)}</span>
+                    <span>+ {formatCurrency(details.interest)}</span>
                   </div>
                 </div>
               )}

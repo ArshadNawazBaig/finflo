@@ -197,6 +197,7 @@ const loginUser = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
+        currency: user.currency,
         permissions: user.getPermissions(),
         token: token,
       });
@@ -236,6 +237,7 @@ const getMe = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
+        currency: user.currency,
         permissions: user.getPermissions(),
       });
     } else {
@@ -258,6 +260,7 @@ const updateDetails = async (req, res) => {
   const fieldsToUpdate = {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
+    currency: req.body.currency,
   };
 
   try {

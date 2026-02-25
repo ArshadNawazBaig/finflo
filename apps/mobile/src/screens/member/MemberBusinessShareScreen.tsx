@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { colors, typography, spacing } from '../../theme/theme';
 import { Share2, TrendingUp, DollarSign } from 'lucide-react-native';
+import { MemberAuthContext } from '../../context/MemberAuthContext';
 
 export default function MemberBusinessShareScreen() {
+  const { member } = useContext(MemberAuthContext);
+  const currencySymbol = (member as any)?.currency || 'Rs.';
   const shares = [
     { id: '1', date: '2024-02-15', amount: 50, type: 'Credit', total: 550 },
     { id: '2', date: '2024-01-15', amount: 50, type: 'Credit', total: 500 },
@@ -22,7 +25,7 @@ export default function MemberBusinessShareScreen() {
         <View style={styles.statCard}>
           <DollarSign size={20} color={colors.success} />
           <Text style={styles.statLabel}>Total Value</Text>
-          <Text style={styles.statValue}>$5,500</Text>
+          <Text style={styles.statValue}>{currencySymbol}5,500</Text>
         </View>
       </View>
 

@@ -197,7 +197,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   onChange={handleChange}
                   min="0"
                   step="0.01"
-                  placeholder="Rs. 0.00"
+                  placeholder="0.00"
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
                 />
               </div>

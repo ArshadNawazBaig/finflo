@@ -60,7 +60,7 @@ import AnalyticsChart from '@/components/AnalyticsChart';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { subMonths } from 'date-fns';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -615,28 +615,28 @@ const BranchDetail = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           <StatsCard
             title="Net Liquidity"
-            amount={formatPKR(summary.liquidity || 0)}
+            amount={formatCurrency(summary.liquidity || 0)}
             subtitle="Available Cash"
             icon={<Coins size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
             title="Total Deposits"
-            amount={formatPKR(summary.totalDeposits || 0)}
+            amount={formatCurrency(summary.totalDeposits || 0)}
             subtitle="Member Capital"
             icon={<Download size={20} />}
             color="bg-blue-500 shadow-blue-500/20"
           />
           <StatsCard
             title="Net Profit"
-            amount={formatPKR(summary.netProfit || 0)}
+            amount={formatCurrency(summary.netProfit || 0)}
             subtitle="Interest Earnings"
             icon={<TrendingUp size={20} />}
             color="bg-primary shadow-primary/20"
           />
           <StatsCard
             title="Total Disbursed"
-            amount={formatPKR(summary.totalDisbursed || 0)}
+            amount={formatCurrency(summary.totalDisbursed || 0)}
             subtitle="Portfolio Value"
             icon={<ExternalLink size={20} />}
             color="bg-orange-500 shadow-orange-500/20"

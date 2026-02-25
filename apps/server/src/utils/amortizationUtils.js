@@ -14,12 +14,14 @@ const generateAmortizationSchedule = (loan) => {
   } = loan;
   const schedule = [];
   const start = new Date(startDate);
+  const monthlyRate = rate / 12 / 100;
+  let currentPrincipal = principal;
 
   for (let i = 1; i <= duration; i++) {
     const dueDate = new Date(start);
     dueDate.setMonth(dueDate.getMonth() + i);
 
-    let interest, principalPortion, balance;
+    let interest, principalPortion;
 
     if (interestType === 'simple') {
       // Simple Interest: Interest is fixed per installment
@@ -28,20 +30,19 @@ const generateAmortizationSchedule = (loan) => {
       principalPortion = principal / duration;
     } else {
       // EMI (Reducing Balance): Standard amortization
-      // This is a simplified version for projection
-      // In a real system, interest for the period = remainingPrincipal * monthlyRate
-      // For projection purposes, we use the pre-calculated EMI
-      interest = (totalAmount - principal) / duration; // Simplified projection
-      principalPortion = principal / duration;
+      // interest = currentPrincipal * monthlyRate
+      interest = currentPrincipal * monthlyRate;
+      principalPortion = emi - interest;
+      currentPrincipal -= principalPortion;
     }
 
     schedule.push({
       installment: i,
       dueDate,
       amount: emi,
-      interest: Number(interest.toFixed(2)),
-      principal: Number(principalPortion.toFixed(2)),
-      status: 'pending', // Default status, overridden by comparison with actual repayments
+      interest: Math.round(interest),
+      principal: Math.round(principalPortion),
+      status: 'pending',
     });
   }
 

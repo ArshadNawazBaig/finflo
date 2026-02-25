@@ -48,7 +48,7 @@ import {
   Pie,
 } from 'recharts';
 import api from '@/lib/axios';
-import { formatPKR, formatCompactValue, cn } from '@/lib/utils';
+import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -198,16 +198,16 @@ const Reports = () => {
           ],
           [
             'Loans Receivable',
-            formatPKR(trialBalance.assets?.loansReceivable || 0),
+            formatCurrency(trialBalance.assets?.loansReceivable || 0),
           ],
           [
             'Cash at Hand / Bank',
-            formatPKR(trialBalance.assets?.cashAtHand || 0),
+            formatCurrency(trialBalance.assets?.cashAtHand || 0),
           ],
           [
             { content: 'Total Assets', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(trialBalance.assets?.totalAssets || 0),
+              content: formatCurrency(trialBalance.assets?.totalAssets || 0),
               styles: { fontStyle: 'bold' },
             },
           ],
@@ -225,12 +225,12 @@ const Reports = () => {
           ],
           [
             'Member Capital',
-            formatPKR(trialBalance.liabilities?.memberCapital || 0),
+            formatCurrency(trialBalance.liabilities?.memberCapital || 0),
           ],
           [
             { content: 'Total Liabilities', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(
+              content: formatCurrency(
                 trialBalance.liabilities?.totalLiabilities || 0,
               ),
               styles: { fontStyle: 'bold' },
@@ -250,12 +250,12 @@ const Reports = () => {
           ],
           [
             'Retained Earnings',
-            formatPKR(trialBalance.equity?.retainedEarnings || 0),
+            formatCurrency(trialBalance.equity?.retainedEarnings || 0),
           ],
           [
             { content: 'Total Equity', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(trialBalance.equity?.totalEquity || 0),
+              content: formatCurrency(trialBalance.equity?.totalEquity || 0),
               styles: { fontStyle: 'bold' },
             },
           ],
@@ -282,7 +282,7 @@ const Reports = () => {
         const expensesList = Object.entries(pnl.expenses?.breakdown || {}).map(
           ([key, val]) => [
             `   - ${key.charAt(0).toUpperCase() + key.slice(1)}`,
-            formatPKR(val),
+            formatCurrency(val),
           ],
         );
 
@@ -290,7 +290,7 @@ const Reports = () => {
           pnl.distributions?.breakdown || {},
         ).map(([key, val]) => [
           `   - ${key.charAt(0).toUpperCase() + key.slice(1)}`,
-          formatPKR(val),
+          formatCurrency(val),
         ]);
 
         const tableData = [
@@ -305,14 +305,14 @@ const Reports = () => {
               },
             },
           ],
-          ['Interest Earned', formatPKR(pnl.revenue?.interestEarned || 0)],
+          ['Interest Earned', formatCurrency(pnl.revenue?.interestEarned || 0)],
           [
             {
               content: 'Total Gross Revenue',
               styles: { fontStyle: 'bold', textColor: [16, 185, 129] },
             },
             {
-              content: formatPKR(pnl.revenue?.totalRevenue || 0),
+              content: formatCurrency(pnl.revenue?.totalRevenue || 0),
               styles: { fontStyle: 'bold', textColor: [16, 185, 129] },
             },
           ],
@@ -335,7 +335,7 @@ const Reports = () => {
               styles: { fontStyle: 'bold', textColor: [239, 68, 68] },
             },
             {
-              content: formatPKR(pnl.expenses?.totalExpenses || 0),
+              content: formatCurrency(pnl.expenses?.totalExpenses || 0),
               styles: { fontStyle: 'bold', textColor: [239, 68, 68] },
             },
           ],
@@ -358,7 +358,7 @@ const Reports = () => {
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
             {
-              content: formatPKR(pnl.distributions?.totalDistributions || 0),
+              content: formatCurrency(pnl.distributions?.totalDistributions || 0),
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
           ],
@@ -374,7 +374,7 @@ const Reports = () => {
               },
             },
             {
-              content: formatPKR(pnl.netIncome || 0),
+              content: formatCurrency(pnl.netIncome || 0),
               styles: {
                 fontStyle: 'bold',
                 fontSize: 12,
@@ -515,7 +515,7 @@ const Reports = () => {
             {label}
           </p>
           <p className="text-xs font-bold text-primary">
-            {formatPKR(payload[0].value)}
+            {formatCurrency(payload[0].value)}
           </p>
         </div>
       );
@@ -658,7 +658,7 @@ const Reports = () => {
                             {branch.stats.totalMembers}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-blue-500">
-                            {formatPKR(branch.stats.totalInvested)}
+                            {formatCurrency(branch.stats.totalInvested)}
                           </td>
                           <td className="px-6 py-4 text-center font-medium">
                             {branch.stats.activeLoans}{' '}
@@ -667,16 +667,16 @@ const Reports = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-emerald-500">
-                            {formatPKR(branch.stats.totalVolume)}
+                            {formatCurrency(branch.stats.totalVolume)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-amber-500">
-                            {formatPKR(branch.stats.totalOutstanding)}
+                            {formatCurrency(branch.stats.totalOutstanding)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-indigo-500">
-                            {formatPKR(branch.stats.totalProfit)}
+                            {formatCurrency(branch.stats.totalProfit)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-red-500">
-                            {formatPKR(branch.stats.totalExpenses)}
+                            {formatCurrency(branch.stats.totalExpenses)}
                           </td>
                         </tr>
                       ))}
@@ -700,7 +700,7 @@ const Reports = () => {
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <StatsCard
                 title="Total Volume"
-                amount={formatPKR(summary.totalVolume)}
+                amount={formatCurrency(summary.totalVolume)}
                 percentage={parseFloat(summary.totalVolumeChange)}
                 icon={<DollarSign size={20} />}
                 color="bg-primary shadow-primary/20"
@@ -957,7 +957,7 @@ const Reports = () => {
                           Total Exposure
                         </div>
                         <div className="text-lg font-black text-indigo-700 dark:text-indigo-400">
-                          {formatPKR(ifrs9Data.meta.totalExposure)}
+                          {formatCurrency(ifrs9Data.meta.totalExposure)}
                         </div>
                       </div>
                       <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10">
@@ -965,7 +965,7 @@ const Reports = () => {
                           Expected Credit Loss
                         </div>
                         <div className="text-lg font-black text-rose-600">
-                          {formatPKR(ifrs9Data.meta.totalECL)}
+                          {formatCurrency(ifrs9Data.meta.totalECL)}
                         </div>
                       </div>
                     </div>
@@ -1283,7 +1283,7 @@ const Reports = () => {
                         <DollarSign size={14} /> Loans Receivable
                       </span>
                       <span className="font-mono font-medium">
-                        {formatPKR(trialBalance.assets?.loansReceivable || 0)}
+                        {formatCurrency(trialBalance.assets?.loansReceivable || 0)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
@@ -1291,7 +1291,7 @@ const Reports = () => {
                         <Landmark size={14} /> Cash at Hand / Bank
                       </span>
                       <span className="font-mono font-medium">
-                        {formatPKR(trialBalance.assets?.cashAtHand || 0)}
+                        {formatCurrency(trialBalance.assets?.cashAtHand || 0)}
                       </span>
                     </div>
                   </div>
@@ -1299,7 +1299,7 @@ const Reports = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-black text-sm">Total Assets</span>
                       <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
-                        {formatPKR(trialBalance.assets?.totalAssets || 0)}
+                        {formatCurrency(trialBalance.assets?.totalAssets || 0)}
                       </span>
                     </div>
                   </div>
@@ -1326,7 +1326,7 @@ const Reports = () => {
                             <ArrowRightLeft size={14} /> Member Capital
                           </span>
                           <span className="font-mono font-medium">
-                            {formatPKR(
+                            {formatCurrency(
                               trialBalance.liabilities?.memberCapital || 0,
                             )}
                           </span>
@@ -1341,7 +1341,7 @@ const Reports = () => {
                             <TrendingUp size={14} /> Retained Earnings
                           </span>
                           <span className="font-mono font-medium">
-                            {formatPKR(
+                            {formatCurrency(
                               trialBalance.equity?.retainedEarnings || 0,
                             )}
                           </span>
@@ -1353,7 +1353,7 @@ const Reports = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-black text-sm">Total L & E</span>
                       <span className="font-black font-mono text-indigo-600 dark:text-indigo-400">
-                        {formatPKR(
+                        {formatCurrency(
                           (trialBalance.liabilities?.totalLiabilities || 0) +
                             (trialBalance.equity?.totalEquity || 0),
                         )}
@@ -1436,7 +1436,7 @@ const Reports = () => {
                       Interest Earned
                     </td>
                     <td className="p-4 border-b border-border/50 text-right font-mono">
-                      {formatPKR(pnl.revenue.interestEarned || 0)}
+                      {formatCurrency(pnl.revenue.interestEarned || 0)}
                     </td>
                   </tr>
                   <tr className="bg-emerald-500/5">
@@ -1444,7 +1444,7 @@ const Reports = () => {
                       Total Revenue
                     </td>
                     <td className="p-4 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                      {formatPKR(pnl.revenue.totalRevenue || 0)}
+                      {formatCurrency(pnl.revenue.totalRevenue || 0)}
                     </td>
                   </tr>
 
@@ -1466,7 +1466,7 @@ const Reports = () => {
                             {category}
                           </td>
                           <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatPKR(amount)}
+                            {formatCurrency(amount)}
                           </td>
                         </tr>
                       ),
@@ -1477,7 +1477,7 @@ const Reports = () => {
                         No expenses recorded in this period.
                       </td>
                       <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatPKR(0)}
+                        {formatCurrency(0)}
                       </td>
                     </tr>
                   )}
@@ -1486,7 +1486,7 @@ const Reports = () => {
                       Total Expenses
                     </td>
                     <td className="p-4 text-right font-mono font-black text-red-600 dark:text-red-400">
-                      {formatPKR(pnl.expenses.totalExpenses || 0)}
+                      {formatCurrency(pnl.expenses.totalExpenses || 0)}
                     </td>
                   </tr>
 
@@ -1512,7 +1512,7 @@ const Reports = () => {
                             {type} Profit
                           </td>
                           <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatPKR(amount)}
+                            {formatCurrency(amount)}
                           </td>
                         </tr>
                       ),
@@ -1523,7 +1523,7 @@ const Reports = () => {
                         No distributions recorded in this period.
                       </td>
                       <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatPKR(0)}
+                        {formatCurrency(0)}
                       </td>
                     </tr>
                   )}
@@ -1532,7 +1532,7 @@ const Reports = () => {
                       Total Distributions
                     </td>
                     <td className="p-4 text-right font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatPKR(pnl.distributions.totalDistributions || 0)}
+                      {formatCurrency(pnl.distributions.totalDistributions || 0)}
                     </td>
                   </tr>
 
@@ -1549,7 +1549,7 @@ const Reports = () => {
                       NET INCOME
                     </td>
                     <td className="p-5 text-right font-mono font-black text-lg border-none tracking-tight">
-                      {formatPKR(pnl.netIncome || 0)}
+                      {formatCurrency(pnl.netIncome || 0)}
                     </td>
                   </tr>
                 </tbody>

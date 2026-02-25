@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import TableSearch from '@/components/ui/TableSearch';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import LoanProductModal from '@/components/loans/LoanProductModal';
 import {

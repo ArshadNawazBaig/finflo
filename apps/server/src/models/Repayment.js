@@ -10,6 +10,9 @@ const repaymentSchema = new mongoose.Schema(
       ref: 'Customer',
     },
     amount: { type: Number, required: true },
+    interestAmount: { type: Number, default: 0 },
+    principalAmount: { type: Number, default: 0 },
+    installmentNumber: { type: Number },
     date: { type: Date, default: Date.now },
     branchId: {
       type: mongoose.Schema.Types.ObjectId,

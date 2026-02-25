@@ -103,7 +103,7 @@ const LoanCalculator = () => {
               max={1000000}
               step={5000}
               onChange={setAmount}
-              suffix="Rs."
+              suffix=""
             />
             <ModernSlider
               label="Repayment Term"
@@ -133,7 +133,7 @@ const LoanCalculator = () => {
                   Est. Monthly
                 </p>
                 <div className="flex items-center justify-center gap-0.5">
-                  <span className="text-xs font-black text-primary">Rs.</span>
+                  <span className="text-xs font-black text-primary"></span>
                   <span className="text-3xl font-black text-white tracking-tighter">
                     {Math.round(monthlyPayment).toLocaleString()}
                   </span>
@@ -146,7 +146,7 @@ const LoanCalculator = () => {
                     Total Payback
                   </p>
                   <p className="text-xs font-black text-white tracking-tight">
-                    Rs. {Math.round(totalPayment).toLocaleString()}
+                    {Math.round(totalPayment).toLocaleString()}
                   </p>
                 </div>
                 <div className="text-right">
@@ -154,7 +154,7 @@ const LoanCalculator = () => {
                     Cost of Credit
                   </p>
                   <p className="text-xs font-black text-emerald-500 tracking-tight">
-                    Rs. {Math.round(totalInterest).toLocaleString()}
+                    {Math.round(totalInterest).toLocaleString()}
                   </p>
                 </div>
               </div>

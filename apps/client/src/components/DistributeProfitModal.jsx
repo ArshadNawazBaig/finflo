@@ -119,7 +119,7 @@ const DistributeProfitModal = ({
                 required
                 min="1"
                 step="0.01"
-                placeholder="Rs. 0.00"
+                placeholder="0.00"
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>

@@ -966,6 +966,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     name: user.name || '',
     email: user.email || '',
     businessName: user.businessName || '',
+    currency: user.currency || 'Rs.',
   });
   const [loading, setLoading] = useState(false);
 
@@ -975,6 +976,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         name: user.name || '',
         email: user.email || '',
         businessName: user.businessName || '',
+        currency: user.currency || 'Rs.',
       });
     }
   }, [user]);
@@ -995,8 +997,6 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         setUser(updatedUser);
         toast.success('Profile updated successfully');
         onClose();
-        // Force reload to update context if needed, or simple enough for now
-        window.location.reload();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');
@@ -1035,6 +1035,38 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
               required
             />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Preferred Currency</label>
+            <select
+              value={formData.currency}
+              onChange={(e) =>
+                setFormData({ ...formData, currency: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-md text-foreground flex h-9 bg-transparent"
+            >
+              <option value="$">US Dollar ($)</option>
+              <option value="€">Euro (€)</option>
+              <option value="£">British Pound (£)</option>
+              <option value="¥">Japanese Yen (¥)</option>
+              <option value="Rs.">Pakistani Rupee </option>
+              <option value="₹">Indian Rupee (₹)</option>
+              <option value="৳">Bangladeshi Taka (৳)</option>
+              <option value="₦">Nigerian Naira (₦)</option>
+              <option value="KSh">Kenyan Shilling (KSh)</option>
+              <option value="₱">Philippine Peso (₱)</option>
+              <option value="R$">Brazilian Real (R$)</option>
+              <option value="฿">Thai Baht (฿)</option>
+              <option value="₫">Vietnamese Dong (₫)</option>
+              <option value="₩">South Korean Won (₩)</option>
+              <option value="Rp">Indonesian Rupiah (Rp)</option>
+              <option value="RM">Malaysian Ringgit (RM)</option>
+              <option value="A$">Australian Dollar (A$)</option>
+              <option value="C$">Canadian Dollar (C$)</option>
+              <option value="Fr">Swiss Franc (Fr)</option>
+              <option value="AED">UAE Dirham (AED)</option>
+              <option value="SAR">Saudi Riyal (SAR)</option>
+            </select>
           </div>
           <div className="flex justify-end gap-2">
             <button

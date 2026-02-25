@@ -43,13 +43,21 @@ async function recalculateTrustRatings() {
 
           const paymentDate = new Date(repayment.date);
 
+          const GRACE_PERIOD_DAYS = 3;
+
           // Check each installment covered by this payment
           for (let i = 0; i < installmentsCovered; i++) {
             const installmentNumber = previouslyPaidInstallments + i + 1;
             const dueDate = new Date(loan.startDate);
             dueDate.setMonth(dueDate.getMonth() + installmentNumber);
 
-            const isOnTime = paymentDate <= dueDate;
+            // Add grace period to due date
+            const gracePeriodDueDate = new Date(dueDate);
+            gracePeriodDueDate.setDate(
+              gracePeriodDueDate.getDate() + GRACE_PERIOD_DAYS,
+            );
+
+            const isOnTime = paymentDate <= gracePeriodDueDate;
             const adjustment = isOnTime ? 0.2 : -0.5;
             newRating = Math.min(10, Math.max(0, newRating + adjustment));
 

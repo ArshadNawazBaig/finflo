@@ -38,7 +38,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import CountUp from 'react-countup';
 import StatsCard from '@/components/StatsCard';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -225,7 +225,7 @@ const Loans = () => {
           />
           <StatsCard
             title="Outstanding"
-            amount={formatPKR(stats.outstanding?.amount || 0)}
+            amount={formatCurrency(stats.outstanding?.amount || 0)}
             percentage={stats.outstanding?.percentage}
             subtitle="Total Receivable"
             icon={<Download size={20} />}
@@ -233,7 +233,7 @@ const Loans = () => {
           />
           <StatsCard
             title="Total Repaid"
-            amount={formatPKR(stats.totalRepaid?.amount || 0)}
+            amount={formatCurrency(stats.totalRepaid?.amount || 0)}
             percentage={stats.totalRepaid?.percentage}
             subtitle="Successfully Recovered"
             icon={<Coins size={20} />}

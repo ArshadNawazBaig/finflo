@@ -21,7 +21,7 @@ import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
@@ -267,19 +267,19 @@ const Transactions = () => {
           />
           <StatsCard
             title="Total Income"
-            amount={formatPKR(summary.totalIncome)}
+            amount={formatCurrency(summary.totalIncome)}
             icon={<TrendingUp size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
             title="Total Expense"
-            amount={formatPKR(summary.totalExpense)}
+            amount={formatCurrency(summary.totalExpense)}
             icon={<ArrowDown size={20} />}
             color="bg-rose-500 shadow-rose-500/20"
           />
           <StatsCard
             title="Net Cash Flow"
-            amount={formatPKR(netCashFlow)}
+            amount={formatCurrency(netCashFlow)}
             icon={<DollarSign size={20} />}
             color={
               netCashFlow >= 0

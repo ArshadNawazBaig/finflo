@@ -96,10 +96,55 @@ const savingGoalContributionValidation = [
   validate,
 ];
 
+// Member Validations
+const memberValidation = [
+  body('name').optional().trim(),
+
+  body('email')
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
+  body('phone').notEmpty().withMessage('Phone number is required'),
+  body('cnic')
+    .notEmpty()
+    .withMessage('CNIC is required')
+    .matches(/^\d{5}-\d{7}-\d{1}$/)
+    .withMessage('Invalid CNIC format. Expected: XXXXX-XXXXXXX-X'),
+  validate,
+];
+
+// Customer Validations
+const customerValidation = [
+  body('name').trim().notEmpty().withMessage('Full name is required'),
+  body('email')
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
+  body('phone').notEmpty().withMessage('Phone number is required'),
+  body('cnic')
+    .notEmpty()
+    .withMessage('CNIC is required')
+    .matches(/^\d{5}-\d{7}-\d{1}$/)
+    .withMessage('Invalid CNIC format. Expected: XXXXX-XXXXXXX-X'),
+  body('branchId').notEmpty().withMessage('Branch selection is required'),
+  validate,
+];
+
+// Branch Validations
+const branchValidation = [
+  body('name').trim().notEmpty().withMessage('Branch name is required'),
+  body('address').trim().notEmpty().withMessage('Address is required'),
+  body('contactNumber').notEmpty().withMessage('Contact number is required'),
+  validate,
+];
+
 module.exports = {
   registerValidation,
   loginValidation,
   loanValidation,
   savingGoalValidation,
   savingGoalContributionValidation,
+  memberValidation,
+  customerValidation,
+  branchValidation,
 };

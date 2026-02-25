@@ -29,9 +29,10 @@ const {
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { memberValidation } = require('../middleware/validationMiddleware');
 
 // Public routes
-router.post('/self-register', selfRegister);
+router.post('/self-register', memberValidation, selfRegister);
 
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
@@ -48,7 +49,7 @@ router.get('/', getMembers);
 router.put('/:id/approval', updateApprovalStatus);
 router.get('/distributions', getAllDistributions); // Move above :id
 router.get('/:id', getMemberById);
-router.post('/', createMember);
+router.post('/', memberValidation, createMember);
 router.post('/convert', convertCustomerToMember);
 router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);

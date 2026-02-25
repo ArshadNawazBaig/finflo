@@ -10,7 +10,7 @@ import {
   Mail,
   Download,
 } from 'lucide-react';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
@@ -63,7 +63,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
             Principal
           </span>
-          <div className="font-black text-sm">{formatPKR(loan.principal)}</div>
+          <div className="font-black text-sm">{formatCurrency(loan.principal)}</div>
         </div>
         <div className="space-y-1 text-right">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">

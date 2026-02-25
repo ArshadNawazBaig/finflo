@@ -14,13 +14,17 @@ import {
   LogOut,
   Wallet,
   TrendingUp,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Activity,
+  Users,
   DollarSign,
-  CreditCard,
 } from 'lucide-react-native';
 import StatsCard from '../../components/StatsCard';
 
-export default function MemberDashboardScreen() {
+export default function MemberDashboardScreen({ navigation }: any) {
   const { member, memberLogout } = useContext(MemberAuthContext);
+  const currencySymbol = (member as any)?.currency || 'Rs.';
   const [stats, setStats] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -71,7 +75,8 @@ export default function MemberDashboardScreen() {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Total Balance</Text>
           <Text style={styles.balanceAmount}>
-            ${stats?.totalBalance?.toLocaleString() || '0.00'}
+            {currencySymbol}
+            {stats?.totalBalance?.toLocaleString() || '0.00'}
           </Text>
           <View style={styles.balanceActions}>
             <TouchableOpacity style={styles.actionBtn}>
@@ -90,16 +95,17 @@ export default function MemberDashboardScreen() {
         <Text style={styles.sectionTitle}>My Wealth</Text>
         <View style={styles.wealthGrid}>
           <StatsCard
-            label="Savings"
-            value={`$${stats?.savings?.toLocaleString() || 0}`}
-            icon={Wallet}
+            label="Total Savings"
+            value={`${currencySymbol}${stats?.savings?.toLocaleString() || 0}`}
+            icon={ArrowDownLeft}
+            trend="+2.5% this month"
             style={{ width: '48%' }}
           />
           <StatsCard
             label="Active Loans"
-            value={`$${stats?.loans?.toLocaleString() || 0}`}
-            icon={CreditCard}
-            iconColor={colors.warning}
+            value={`${currencySymbol}${stats?.loans?.toLocaleString() || 0}`}
+            icon={ArrowUpRight}
+            trend="1 active"
             style={{ width: '48%' }}
           />
         </View>

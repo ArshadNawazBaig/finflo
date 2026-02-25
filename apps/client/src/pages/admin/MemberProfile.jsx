@@ -34,7 +34,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import api from '@/lib/axios';
-import { formatPKR, capitalize, formatCNIC } from '@/lib/utils';
+import { formatCurrency, capitalize, formatCNIC } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -562,7 +562,7 @@ const MemberProfile = () => {
       const result = res.data.results?.[0];
       if (result) {
         toast.success(
-          `Balance synced: ${formatPKR(result.oldBalance)} → ${formatPKR(result.newBalance)}`,
+          `Balance synced: ${formatCurrency(result.oldBalance)} → ${formatCurrency(result.newBalance)}`,
         );
       } else {
         toast.success('Balance recalculated successfully');
@@ -730,21 +730,21 @@ const MemberProfile = () => {
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Current Balance"
-          amount={formatPKR(member.currentBalance || 0)}
+          amount={formatCurrency(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
           color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Total Yield Earned"
-          amount={formatPKR(member.totalProfit || 0)}
+          amount={formatCurrency(member.totalProfit || 0)}
           icon={<TrendingUp size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
         <StatsCard
           title="Principal Invested"
-          amount={formatPKR(member.totalInvested || 0)}
+          amount={formatCurrency(member.totalInvested || 0)}
           icon={<DollarSign size={18} />}
           color="bg-blue-500 text-blue-600 border-blue-500/20"
           isGlass
@@ -1294,10 +1294,10 @@ const MemberProfile = () => {
                         inv.type === 'transfer_receive'
                           ? '+'
                           : '-'}{' '}
-                        {formatPKR(inv.amount)}
+                        {formatCurrency(inv.amount)}
                       </div>
                       <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                        Balance: {formatPKR(inv.balanceAfter)}
+                        Balance: {formatCurrency(inv.balanceAfter)}
                       </div>
                     </div>
                   </div>
@@ -1361,7 +1361,7 @@ const MemberProfile = () => {
                       </div>
                       <div>
                         <div className="text-sm font-black tracking-tight">
-                          {formatPKR(loan.principal)}
+                          {formatCurrency(loan.principal)}
                         </div>
                         <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-0.5">
                           <Clock size={10} /> {loan.duration} Months •{' '}
@@ -1384,7 +1384,7 @@ const MemberProfile = () => {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-base font-black text-red-500">
-                          {formatPKR(loan.remainingAmount)}
+                          {formatCurrency(loan.remainingAmount)}
                         </div>
                         <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                           Remaining
@@ -1462,7 +1462,7 @@ const MemberProfile = () => {
                   Share Balance
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1 text-violet-600">
-                  {formatPKR(member.shareBalance || 0)}
+                  {formatCurrency(member.shareBalance || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10">
@@ -1470,7 +1470,7 @@ const MemberProfile = () => {
                   Total Share Invested
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1">
-                  {formatPKR(member.totalShareInvested || 0)}
+                  {formatCurrency(member.totalShareInvested || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10">
@@ -1478,7 +1478,7 @@ const MemberProfile = () => {
                   Share Profit Earned
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1 text-amber-600">
-                  {formatPKR(member.totalShareProfit || 0)}
+                  {formatCurrency(member.totalShareProfit || 0)}
                 </p>
               </div>
             </div>
@@ -1514,9 +1514,9 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         {shareFormType === 'profit'
                           ? useShareCustomRates
-                            ? 'Total Profit Reference (Rs.)'
-                            : 'Total Profit Pool (Rs.)'
-                          : 'Amount (Rs.)'}
+                            ? 'Total Profit Reference'
+                            : 'Total Profit Pool'
+                          : 'Amount'}
                       </label>
                       <input
                         type="number"
@@ -1692,7 +1692,7 @@ const MemberProfile = () => {
                         <div className="text-right">
                           <p className={`text-base font-black ${color}`}>
                             {isCredit ? '+' : '-'}
-                            {formatPKR(s.amount)}
+                            {formatCurrency(s.amount)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
                             {new Date(s.date).toLocaleDateString()}
@@ -1811,7 +1811,7 @@ const MemberProfile = () => {
                         </div>
                       </div>
                       <div className="text-sm font-black">
-                        +{formatPKR(profit.amount)}
+                        +{formatCurrency(profit.amount)}
                       </div>
                     </div>
                   ))
@@ -1873,7 +1873,7 @@ const MemberProfile = () => {
                   </span>
                   <span className="text-xs font-black text-emerald-600">
                     {member.monthlyIncome
-                      ? formatPKR(member.monthlyIncome)
+                      ? formatCurrency(member.monthlyIncome)
                       : 'N/A'}
                   </span>
                 </div>

@@ -45,14 +45,22 @@ const initiateExternalTransfer = async (req, res) => {
     if (!member) throw new Error('Member not found');
 
     const transferAmount = parseFloat(amount);
-    if (member.currentBalance < transferAmount) {
-      throw new Error('Insufficient balance');
-    }
 
-    // Debit balance
-    member.currentBalance -= transferAmount;
-    member.totalWithdrawn += transferAmount;
-    await member.save({ session });
+    // Debit balance atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: memberId, currentBalance: { $gte: transferAmount } },
+      {
+        $inc: {
+          currentBalance: -transferAmount,
+          totalWithdrawn: transferAmount,
+        },
+      },
+      { session, new: true },
+    );
+
+    if (!updatedMember) {
+      throw new Error('Insufficient balance or member not found');
+    }
 
     // Create ExternalTransfer record
     const [ext] = await ExternalTransfer.create(
@@ -69,7 +77,7 @@ const initiateExternalTransfer = async (req, res) => {
           amount: transferAmount,
           description: description || `Transfer to ${bankName}`,
           status: 'completed',
-          balanceAfter: member.currentBalance,
+          balanceAfter: updatedMember.currentBalance,
         },
       ],
       { session },
@@ -84,7 +92,7 @@ const initiateExternalTransfer = async (req, res) => {
           type: 'withdrawal',
           amount: transferAmount,
           description: `External Transfer to ${bankName} — Ref: ${ext.referenceId}`,
-          balanceAfter: member.currentBalance,
+          balanceAfter: updatedMember.currentBalance,
         },
       ],
       { session },
@@ -129,7 +137,7 @@ const initiateExternalTransfer = async (req, res) => {
     return res.status(201).json({
       message: 'Transfer initiated successfully',
       referenceId: ext.referenceId,
-      balanceAfter: member.currentBalance,
+      balanceAfter: updatedMember.currentBalance,
       transfer: ext,
     });
   } catch (error) {
@@ -174,10 +182,16 @@ const recordExternalReceive = async (req, res) => {
 
     const receiveAmount = parseFloat(amount);
 
-    // Credit balance
-    member.currentBalance += receiveAmount;
-    member.totalInvested += receiveAmount;
-    await member.save({ session });
+    // Credit balance atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: memberId },
+      { $inc: { currentBalance: receiveAmount, totalInvested: receiveAmount } },
+      { session, new: true },
+    );
+
+    if (!updatedMember) {
+      throw new Error('Member not found');
+    }
 
     // Create ExternalTransfer record
     const [ext] = await ExternalTransfer.create(
@@ -193,7 +207,7 @@ const recordExternalReceive = async (req, res) => {
           amount: receiveAmount,
           description: description || `Received from ${bankName}`,
           status: 'completed',
-          balanceAfter: member.currentBalance,
+          balanceAfter: updatedMember.currentBalance,
         },
       ],
       { session },
@@ -208,7 +222,7 @@ const recordExternalReceive = async (req, res) => {
           type: 'deposit',
           amount: receiveAmount,
           description: `External Receive from ${bankName} — Ref: ${ext.referenceId}`,
-          balanceAfter: member.currentBalance,
+          balanceAfter: updatedMember.currentBalance,
         },
       ],
       { session },
@@ -287,7 +301,7 @@ const recordExternalReceive = async (req, res) => {
     return res.status(201).json({
       message: 'Incoming transfer recorded',
       referenceId: ext.referenceId,
-      balanceAfter: member.currentBalance,
+      balanceAfter: updatedMember.currentBalance,
       transfer: ext,
     });
   } catch (error) {

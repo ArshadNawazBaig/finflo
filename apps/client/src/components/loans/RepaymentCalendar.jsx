@@ -20,7 +20,7 @@ import {
   MessageSquare,
   Mail,
 } from 'lucide-react';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 
@@ -189,7 +189,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                         : `Installment #${p.installment}`}
                     </p>
                     <p className="text-sm font-black tabular-nums">
-                      {formatPKR(p.amount)}
+                      {formatCurrency(p.amount)}
                     </p>
                   </div>
                   <h5 className="font-bold text-sm mb-1 capitalize">
@@ -244,7 +244,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                   Total Due Today
                 </p>
                 <p className="text-lg font-black text-primary">
-                  {formatPKR(
+                  {formatCurrency(
                     selectedPayments.reduce((sum, p) => sum + p.amount, 0),
                   )}
                 </p>

@@ -1,5 +1,5 @@
 import { Check, Loader2 } from 'lucide-react';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -32,7 +32,7 @@ const PricingCard = ({
         <CardDescription className="text-sm">{description}</CardDescription>
         <div className="mt-4">
           <span className="text-3xl sm:text-4xl font-bold">
-            {formatPKR(price)}
+            {formatCurrency(price)}
           </span>
           <span className="text-muted-foreground">/month</span>
         </div>

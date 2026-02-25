@@ -17,7 +17,7 @@ import {
   Eye,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { formatPKR, capitalize, cn } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import {

@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { formatPKR } from './utils';
+import { formatCurrency } from './utils';
 
 /**
  * Generates a WhatsApp link with a pre-filled reminder message.
@@ -29,7 +29,7 @@ export const generateWhatsAppLink = (
   }
 
   const formattedDate = format(new Date(dueDate), 'MMMM d, yyyy');
-  const formattedAmount = formatPKR(amount);
+  const formattedAmount = formatCurrency(amount);
 
   const message = isOverdue
     ? `Assalamu Alaikum ${customerName}, this is a reminder regarding your loan payment of ${formattedAmount} which was due on ${formattedDate}. It is currently *OVERDUE*. Please settle it as soon as possible. JazakAllah.`
@@ -55,7 +55,7 @@ export const generateEmailLink = (
   isOverdue = false,
 ) => {
   const formattedDate = format(new Date(dueDate), 'MMMM d, yyyy');
-  const formattedAmount = formatPKR(amount);
+  const formattedAmount = formatCurrency(amount);
 
   const subject = isOverdue
     ? `URGENT: Overdue Loan Repayment - ${customerName}`

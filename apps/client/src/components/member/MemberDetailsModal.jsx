@@ -20,7 +20,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -105,7 +105,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
       const result = res.data.results?.[0];
       if (result) {
         toast.success(
-          `Balance reconciled: ${formatPKR(result.oldBalance)} → ${formatPKR(result.newBalance)}`,
+          `Balance reconciled: ${formatCurrency(result.oldBalance)} → ${formatCurrency(result.newBalance)}`,
         );
       } else {
         toast.success('Balance recalculated successfully');
@@ -156,7 +156,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                   Current Balance
                 </p>
                 <p className="text-2xl font-black">
-                  {formatPKR(member.currentBalance || 0)}
+                  {formatCurrency(member.currentBalance || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 space-y-1 relative overflow-hidden group">
@@ -167,7 +167,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                   Total Earned
                 </p>
                 <p className="text-2xl font-black text-emerald-600">
-                  {formatPKR(member.totalProfit || 0)}
+                  {formatCurrency(member.totalProfit || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-[2rem] bg-indigo-500/10 border border-indigo-500/20 space-y-1 relative overflow-hidden group">
@@ -178,7 +178,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                   Total Invested
                 </p>
                 <p className="text-2xl font-black text-indigo-600">
-                  {formatPKR(member.totalInvested || 0)}
+                  {formatCurrency(member.totalInvested || 0)}
                 </p>
               </div>
             </div>
@@ -322,7 +322,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                       <div className="space-y-4">
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Amount (Rs.)
+                            Amount
                           </label>
                           <input
                             type="number"
@@ -421,7 +421,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                             className={`text-sm font-black ${inv.type === 'deposit' ? 'text-emerald-600' : 'text-indigo-600'}`}
                           >
                             {inv.type === 'deposit' ? '+' : '-'}
-                            {formatPKR(inv.amount)}
+                            {formatCurrency(inv.amount)}
                           </div>
                         </div>
                       ))
@@ -454,7 +454,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
                             </div>
                           </div>
                           <div className="text-sm font-black text-emerald-600">
-                            +{formatPKR(profit.amount)}
+                            +{formatCurrency(profit.amount)}
                           </div>
                         </div>
                       ))

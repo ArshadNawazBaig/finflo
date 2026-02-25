@@ -15,7 +15,7 @@ import StatsCard from '@/components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
-import { formatPKR, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
 import DistributeProfitModal from '@/components/DistributeProfitModal';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -113,13 +113,13 @@ const DistributionHub = () => {
           <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <StatsCard
               title="Total Regular Distributed"
-              amount={formatPKR(data.summary.totalRegular)}
+              amount={formatCurrency(data.summary.totalRegular)}
               icon={<TrendingUp size={20} />}
               color="bg-primary shadow-primary/20"
             />
             <StatsCard
               title="Total Share Distributed"
-              amount={formatPKR(data.summary.totalShare)}
+              amount={formatCurrency(data.summary.totalShare)}
               icon={<ArrowUpRight size={20} />}
               color="bg-indigo-500 shadow-indigo-500/20"
             />
@@ -219,7 +219,7 @@ const DistributionHub = () => {
                       </td>
                       <td className="px-8 py-5">
                         <div className="text-sm font-black text-foreground">
-                          {formatPKR(dist.amount)}
+                          {formatCurrency(dist.amount)}
                         </div>
                         {dist.profitRate && (
                           <div className="text-[10px] text-muted-foreground font-medium">

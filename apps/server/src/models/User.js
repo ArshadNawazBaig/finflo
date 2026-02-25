@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
     },
     businessName: { type: String, default: '' },
     profilePicture: { type: String, default: '' },
+    currency: { type: String, default: 'Rs.' },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
     stripeCustomerId: { type: String },
@@ -93,6 +94,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Indexes for performance
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ email: 1 });
+userSchema.index({ securityCode: 1 });
 
 // Generate unique security code
 const generateSecurityCode = () => {

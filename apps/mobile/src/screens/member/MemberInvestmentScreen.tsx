@@ -13,8 +13,11 @@ import {
   PlusCircle,
   ArrowRight,
 } from 'lucide-react-native';
+import { MemberAuthContext } from '../../context/MemberAuthContext';
 
 export default function MemberInvestmentScreen() {
+  const { member } = React.useContext(MemberAuthContext);
+  const currencySymbol = (member as any)?.currency || 'Rs.';
   const investments = [
     {
       name: 'Retirement Fund',
@@ -36,7 +39,7 @@ export default function MemberInvestmentScreen() {
 
       <View style={styles.totalCard}>
         <Text style={styles.totalLabel}>Portfolio Value</Text>
-        <Text style={styles.totalAmount}>$7,000.00</Text>
+        <Text style={styles.totalAmount}>{currencySymbol}7,000.00</Text>
         <View style={styles.growthBadge}>
           <TrendingUp size={16} color={colors.success} />
           <Text style={styles.growthText}>+5.2% Overall</Text>
@@ -60,7 +63,8 @@ export default function MemberInvestmentScreen() {
           <View style={styles.goalInfo}>
             <Text style={styles.goalName}>{inv.name}</Text>
             <Text style={styles.goalAmount}>
-              ${inv.amount.toLocaleString()}
+              {currencySymbol}
+              {inv.amount.toLocaleString()}
             </Text>
           </View>
           <View style={styles.goalMeta}>

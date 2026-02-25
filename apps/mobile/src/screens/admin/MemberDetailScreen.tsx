@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,11 @@ import {
   DollarSign,
 } from 'lucide-react-native';
 
+import { AuthContext } from '../../context/AuthContext';
+
 export default function MemberDetailScreen({ route }: any) {
+  const { user } = useContext(AuthContext);
+  const currencySymbol = (user as any)?.currency || 'Rs.';
   const { id } = route.params || {};
   const [member, setMember] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +103,7 @@ export default function MemberDetailScreen({ route }: any) {
           />
           <StatsCard
             label="Total Borrowed"
-            value={`$${member.totalBorrowed?.toLocaleString() || 0}`}
+            value={`${currencySymbol}${member.totalBorrowed?.toLocaleString() || 0}`}
             icon={DollarSign}
             iconColor={colors.success}
             style={{ width: '48%' }}
