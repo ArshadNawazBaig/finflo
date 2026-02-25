@@ -21,7 +21,15 @@ const {
   passwordResetEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
-const { authenticator } = require('otplib/authenticator');
+const otplib = require('otplib');
+// Configure otplib to use audited plugins and maintain interface compatibility
+const authenticator = {
+  ...otplib,
+  generateSecret: (length) => otplib.generateSecret({ length }),
+  generate: (secret) => otplib.generate({ secret }),
+  verify: (options) => otplib.verify(options),
+  toURI: (options) => otplib.generateURI(options),
+};
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
@@ -729,7 +737,8 @@ const verify2FA = async (req, res) => {
         .status(400)
         .json({ message: 'No 2FA secret found. Generate one first.' });
 
-    const isValid = await authenticator.verify(code, {
+    const isValid = await authenticator.verify({
+      token: code,
       secret: user.twoFactorSecret,
     });
     if (!isValid)
@@ -808,7 +817,8 @@ const verifyLogin2FA = async (req, res) => {
     const user = await User.findById(decoded.id).populate('roleRef');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const isValid = await authenticator.verify(code, {
+    const isValid = await authenticator.verify({
+      token: code,
       secret: user.twoFactorSecret,
     });
     if (!isValid)
