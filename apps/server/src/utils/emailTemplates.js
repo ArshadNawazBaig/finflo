@@ -14,7 +14,7 @@ const getBaseTemplate = (
   // Custom Cloudinary Logo
   const logoPath =
     logoUrl ||
-    'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130000/favicon_iue2fw.svg';
+    'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130786/favicon_m58hqu.png';
 
   return `
     <!DOCTYPE html>
