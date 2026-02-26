@@ -7,11 +7,11 @@ const { loanReminderEmail } = require('../utils/emailTemplates');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
 /**
- * FinFlow: Automated Communication Engine
+ * FinanceFlow: Automated Communication Engine
  * Scans active loans and sends reminders/alerts.
  */
 const runReminderService = async () => {
-  console.log('FinFlow: Starting daily automated reminder scan...');
+  console.log('FinanceFlow: Starting daily automated reminder scan...');
 
   try {
     const activeLoans = await Loan.find({ status: 'active' }).populate(
@@ -52,9 +52,9 @@ const runReminderService = async () => {
         }
       }
     }
-    console.log('FinFlow: Completed daily scan.');
+    console.log('FinanceFlow: Completed daily scan.');
   } catch (error) {
-    console.error('FinFlow Error during reminder scan:', error);
+    console.error('FinanceFlow Error during reminder scan:', error);
   }
 };
 
@@ -101,7 +101,7 @@ const sendReminder = async (loan, installment, type) => {
       await sendEmail({
         email: customer.email,
         subject: title,
-        message: message + '\n\nBest regards,\nFinFlow Team',
+        message: message + '\n\nBest regards,\nFinanceFlow Team',
         html: loanReminderEmail(customer.name, amount, dateStr, type),
       });
     }
@@ -115,14 +115,14 @@ const sendReminder = async (loan, installment, type) => {
     await loan.save();
   } catch (err) {
     console.error(
-      `FinFlow: Failed to send ${type} reminder for Loan ${loan._id}:`,
+      `FinanceFlow: Failed to send ${type} reminder for Loan ${loan._id}:`,
       err,
     );
   }
 };
 
-// Initialize FinFlow (Run daily at midnight)
-const initFinFlow = () => {
+// Initialize FinanceFlow (Run daily at midnight)
+const initFinanceFlow = () => {
   cron.schedule(
     '0 0 * * *',
     () => {
@@ -132,7 +132,7 @@ const initFinFlow = () => {
       timezone: 'UTC', // Or system default
     },
   );
-  console.log('FinFlow: Automated Communication Engine initialized.');
+  console.log('FinanceFlow: Automated Communication Engine initialized.');
 };
 
-module.exports = { initFinFlow, runReminderService };
+module.exports = { initFinanceFlow, runReminderService };

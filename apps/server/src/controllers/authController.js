@@ -706,7 +706,7 @@ const generate2FA = async (req, res) => {
     user.twoFactorSecret = secret;
     await user.save({ validateBeforeSave: false });
 
-    const appName = 'FinFlow';
+    const appName = 'FinanceFlow';
     const otpauthUrl = authenticator.keyuri(user.email, appName, secret);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 

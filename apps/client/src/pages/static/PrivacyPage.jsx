@@ -51,7 +51,7 @@ const PrivacyPage = () => {
       title: 'Your Rights',
       icon: <Shield className="w-5 h-5 text-rose-500" />,
       content:
-        'Depending on your jurisdiction, you may have the right to access, correct, delete, or restrict the processing of your personal information. You can manage your communication preferences and account settings directly through the FinFlow dashboard or by contacting our support team.',
+        'Depending on your jurisdiction, you may have the right to access, correct, delete, or restrict the processing of your personal information. You can manage your communication preferences and account settings directly through the FinanceFlow dashboard or by contacting our support team.',
     },
   ];
 
@@ -121,7 +121,7 @@ const PrivacyPage = () => {
           >
             Transparency is the foundation of trust. We believe you have a right
             to know exactly how your data is secured, processed, and protected
-            within the FinFlow infrastructure.
+            within the FinanceFlow infrastructure.
           </motion.p>
         </div>
       </header>
@@ -203,7 +203,7 @@ const PrivacyPage = () => {
       <footer className="py-12 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#020617]">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-slate-400 text-sm font-medium">
-            &copy; {new Date().getFullYear()} FinFlow Infrastructure. All rights
+            &copy; {new Date().getFullYear()} FinanceFlow Infrastructure. All rights
             reserved.
           </p>
         </div>

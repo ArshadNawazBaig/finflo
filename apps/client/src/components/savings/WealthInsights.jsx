@@ -72,7 +72,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
           <div>
             <h3 className="text-2xl font-black tracking-tighter mb-1">
-              FinFlow Insights
+              FinanceFlow Insights
             </h3>
             <p className="text-sm font-medium text-muted-foreground">
               Detailed breakdown of your financial health
@@ -149,7 +149,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
               "{generateInsight()}"
             </p>
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">
-              — AI FinFlow Advisor
+              — AI FinanceFlow Advisor
             </p>
           </div>
         </div>

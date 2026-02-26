@@ -411,7 +411,7 @@ const MemberTransfer = () => {
                   New Transfer
                 </h3>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Secure fund movement between FinFlow accounts.
+                  Secure fund movement between FinanceFlow accounts.
                 </p>
               </div>
 
@@ -651,7 +651,7 @@ const MemberTransfer = () => {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <CheckCircle2 size={12} className="text-primary" />
-                  Verified FinFlow Account
+                  Verified FinanceFlow Account
                 </div>
               </div>
             </div>

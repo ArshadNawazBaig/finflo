@@ -3,7 +3,7 @@
  */
 
 const getBaseTemplate = (content, title, logoUrl = null) => {
-  const brandName = process.env.FROM_NAME || 'FinFlow';
+  const brandName = process.env.FROM_NAME || 'FinanceFlow';
   const primaryColor = '#2563eb'; // Modern Blue
 
   // Custom Cloudinary Logo
@@ -108,7 +108,7 @@ const passwordResetEmail = (resetUrl) => {
 };
 
 /**
- * FinFlow Loan Reminder Template
+ * FinanceFlow Loan Reminder Template
  */
 const loanReminderEmail = (customerName, amount, dueDate, type) => {
   const isOverdue = type === 'overdue';
