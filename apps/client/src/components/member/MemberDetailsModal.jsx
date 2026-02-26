@@ -183,6 +183,73 @@ const MemberDetailsModal = ({ member, isOpen, onClose, onUpdate }) => {
               </div>
             </div>
 
+            {/* Professional & Identity */}
+            <div className="p-6 rounded-[2.5rem] bg-muted/20 border border-border/50 space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Professional & Identity
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-border/10 pb-6">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                    CNIC Number
+                  </p>
+                  <p className="text-base font-black font-mono">
+                    {member.cnic}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                    Monthly Income
+                  </p>
+                  <p className="text-base font-black text-emerald-600">
+                    {member.monthlyIncome
+                      ? formatCurrency(member.monthlyIncome)
+                      : 'N/A'}
+                  </p>
+                </div>
+                <div className="space-y-1.5 col-span-2 md:col-span-1">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                    Occupation
+                  </p>
+                  <p className="text-base font-black capitalize line-clamp-1">
+                    {member.job || 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                    Job Detail & Office Address
+                  </p>
+                  <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                    {member.jobDetail || 'No details provided'}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest px-1">
+                    Member Signature
+                  </p>
+                  <div className="relative h-48 w-full md:w-1/2 rounded-[2rem] border border-border/50 bg-background overflow-hidden group">
+                    {member.signature ? (
+                      <img
+                        src={member.signature}
+                        alt="Member Signature"
+                        className="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
+                        <span className="text-[10px] font-black uppercase tracking-widest">
+                          No Signature Found
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column: Actions & Configuration */}
               <div className="space-y-6">

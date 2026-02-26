@@ -458,6 +458,26 @@ const CustomerProfile = () => {
                       </span>
                     </div>
                   </div>
+
+                  {/* Signature added below Job/Role */}
+                  <div className="pt-4 border-t border-border/10 space-y-3">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Signature
+                    </span>
+                    <div className="relative h-32 w-full rounded-xl border border-border/50 bg-muted/10 overflow-hidden group">
+                      {customer.signature ? (
+                        <img
+                          src={customer.signature}
+                          alt="Signature"
+                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/40 text-[10px] uppercase font-black tracking-widest">
+                          No Signature
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* {customer.documents && customer.documents.length > 0 && (

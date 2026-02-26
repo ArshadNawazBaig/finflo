@@ -41,7 +41,9 @@ const customerSchema = new mongoose.Schema(
     },
     cnic: { type: String, required: true },
     job: { type: String },
+    jobDetail: { type: String },
     monthlyIncome: { type: Number },
+    signature: { type: String, required: true },
     savingAccountNumber: { type: String, sparse: true },
     currentAccountNumber: { type: String, sparse: true },
     documents: [

@@ -11,6 +11,8 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const canvasSizeRef = useRef({ width: 0, height: 0 });
+
   const initCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -21,6 +23,16 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
     // Only init if we have valid dimensions
     if (rect.width === 0 || rect.height === 0) return;
 
+    // Check if size actually changed to avoid clearing canvas content
+    if (
+      canvasSizeRef.current.width === rect.width &&
+      canvasSizeRef.current.height === rect.height
+    ) {
+      return;
+    }
+
+    canvasSizeRef.current = { width: rect.width, height: rect.height };
+
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
@@ -29,25 +41,23 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
     context.lineCap = 'round';
     context.lineJoin = 'round';
     context.strokeStyle = '#2563eb';
-
-    // Set display size
-    canvas.style.width = `${rect.width}px`;
-    canvas.style.height = `${rect.height}px`;
   };
 
   useEffect(() => {
-    initCanvas();
-    window.addEventListener('resize', initCanvas);
-    return () => window.removeEventListener('resize', initCanvas);
-  }, []);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  // Also try to init once more if it was initially zero (common in modals)
-  useEffect(() => {
-    if (isEmpty) {
-      const timer = setTimeout(initCanvas, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isEmpty]);
+    const resizeObserver = new ResizeObserver(() => {
+      initCanvas();
+    });
+
+    resizeObserver.observe(canvas);
+    initCanvas();
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const getCoordinates = (event) => {
     const canvas = canvasRef.current;
@@ -173,11 +183,11 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
-          className="w-full h-64 cursor-crosshair touch-none bg-white/50 backdrop-blur-sm transition-colors group-hover:bg-white/80"
+          className="w-full h-[150px] cursor-crosshair touch-none bg-background transition-colors group-hover:bg-white/80"
         />
         {isEmpty && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">
               Sign or Upload Here
             </p>
           </div>
@@ -207,7 +217,7 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl h-12 uppercase text-[10px] font-black tracking-widest gap-2"
+            className="flex-1 rounded-full py-3.5 uppercase text-[10px] font-black tracking-widest gap-2 hover:bg-muted/50 transition-all border-border/50"
             onClick={clear}
           >
             <Eraser size={14} />
@@ -216,7 +226,7 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
           <Button
             type="button"
             variant="outline"
-            className="flex-1 rounded-xl h-12 uppercase text-[10px] font-black tracking-widest gap-2"
+            className="flex-1 rounded-full py-3.5 uppercase text-[10px] font-black tracking-widest gap-2 hover:bg-muted/50 transition-all border-border/50"
             onClick={() => fileInputRef.current.click()}
           >
             <Upload size={14} />
@@ -226,7 +236,7 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
         <Button
           type="button"
           variant={isSaved ? 'success' : 'gradient'}
-          className={`sm:flex-1 rounded-xl h-12 uppercase text-[10px] font-black tracking-widest gap-2 shadow-lg transition-all duration-300 ${isSaved ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'shadow-primary/20'}`}
+          className={`sm:flex-1 rounded-full py-3.5 uppercase text-[10px] font-black tracking-widest gap-2 shadow-lg transition-all duration-300 ${isSaved ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'shadow-primary/20'}`}
           onClick={handleSave}
           disabled={isEmpty || isSaving}
         >
@@ -235,12 +245,12 @@ const SignaturePad = ({ onSave, onClear, minWidth = 2, maxWidth = 4 }) => {
           ) : isSaved ? (
             <>
               <Check size={14} />
-              Signature Captured
+              Captured
             </>
           ) : (
             <>
               <Check size={14} />
-              Finalize Signature
+              Finalize
             </>
           )}
         </Button>

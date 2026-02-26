@@ -10,8 +10,8 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
-const Loan = require('../models/Loan');
 const loanRepaymentService = require('../services/loanRepaymentService');
+const Loan = require('../models/Loan');
 const { canAddMember } = require('../utils/planLimits');
 const {
   createTransactionNotification,
@@ -83,6 +83,8 @@ const convertCustomerToMember = async (req, res) => {
       address: customer.address,
       password, // Will be hashed by pre-save middleware
       mustChangePassword: true,
+      jobDetail: customer.jobDetail,
+      signature: customer.signature,
     });
 
     // Update Customer
@@ -327,6 +329,8 @@ const createMember = async (req, res) => {
       initialInvestment,
       profitRate,
       customerId,
+      jobDetail,
+      signature,
     } = req.body;
 
     const { validateEmail } = require('../utils/emailValidator');
@@ -381,6 +385,8 @@ const createMember = async (req, res) => {
       profitRate: profitRate || 0,
       password: 'Welcome@123', // Default password for admin-created members
       mustChangePassword: true,
+      jobDetail,
+      signature,
     };
 
     // Link to customer if provided
@@ -476,7 +482,17 @@ const updateMember = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { name, email, phone, cnic, address, status, profitRate } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      cnic,
+      address,
+      status,
+      profitRate,
+      jobDetail,
+      signature,
+    } = req.body;
 
     if (email) {
       const { validateEmail } = require('../utils/emailValidator');
@@ -511,6 +527,8 @@ const updateMember = async (req, res) => {
         address,
         status,
         profitRate,
+        jobDetail,
+        signature,
       },
       { new: true, runValidators: true },
     );

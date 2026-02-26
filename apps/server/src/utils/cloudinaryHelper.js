@@ -77,10 +77,7 @@ const deleteCloudinaryFileByUrl = async (url, fileType = 'image') => {
  * @param {string} folder - Cloudinary folder path
  * @returns {Promise<object>} - Upload result
  */
-const uploadSignature = async (
-  signatureData,
-  folder = 'loan-app/signatures',
-) => {
+const uploadSignature = async (signatureData, folder = 'signatures') => {
   if (!signatureData) return null;
   return await cloudinary.uploader.upload(signatureData, {
     folder,

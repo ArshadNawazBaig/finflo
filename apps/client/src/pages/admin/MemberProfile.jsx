@@ -44,6 +44,10 @@ import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportMemberStatement } from '@/lib/pdfExportUtils';
+import SignaturePad from '@/components/ui/SignaturePad';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -102,6 +106,8 @@ const MemberProfile = () => {
     address: '',
     status: '',
     shareProfitRate: '',
+    jobDetail: '',
+    signature: '',
   });
   const [useShareCustomRates, setUseShareCustomRates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -166,6 +172,8 @@ const MemberProfile = () => {
         address: memberRes.data.address || '',
         status: memberRes.data.status || '',
         shareProfitRate: memberRes.data.shareProfitRate || 0,
+        jobDetail: memberRes.data.jobDetail || '',
+        signature: memberRes.data.signature || '',
       });
 
       const investmentData = investmentsRes.data || {};
@@ -907,6 +915,51 @@ const MemberProfile = () => {
                         }
                         className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 col-span-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                          Job Detail
+                        </label>
+                        <Textarea
+                          placeholder="Provide more details about your professional role..."
+                          value={editForm.jobDetail}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              jobDetail: e.target.value,
+                            })
+                          }
+                          className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-none"
+                        />
+                      </div>
+                      <div className="space-y-4 pt-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                          Member Signature{' '}
+                          <span className="text-destructive">*</span>
+                        </Label>
+                        {editForm.signature && (
+                          <div className="mb-2 p-2 border border-border/30 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
+                            <img
+                              src={editForm.signature}
+                              alt="Current Signature"
+                              className="h-16 mx-auto object-contain rounded-lg"
+                            />
+                          </div>
+                        )}
+                        <SignaturePad
+                          onSave={(dataUrl) =>
+                            setEditForm((prev) => ({
+                              ...prev,
+                              signature: dataUrl,
+                            }))
+                          }
+                          onClear={() =>
+                            setEditForm((prev) => ({ ...prev, signature: '' }))
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-3 justify-end">
@@ -1876,6 +1929,26 @@ const MemberProfile = () => {
                       ? formatCurrency(member.monthlyIncome)
                       : 'N/A'}
                   </span>
+                </div>
+              </div>
+
+              {/* Signature added below Occupation/Income */}
+              <div className="pt-4 border-t border-border/10 space-y-3">
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Signature
+                </span>
+                <div className="relative h-32 w-full rounded-xl border border-border/50 bg-muted/10 overflow-hidden group">
+                  {member.signature ? (
+                    <img
+                      src={member.signature}
+                      alt="Signature"
+                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/40 text-[10px] uppercase font-black tracking-widest">
+                      No Signature
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

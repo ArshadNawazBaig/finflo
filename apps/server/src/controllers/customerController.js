@@ -6,6 +6,7 @@ const { canAddCustomer } = require('../utils/planLimits');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const { logActivity } = require('./activityLogController');
+const { uploadSignature } = require('../utils/cloudinaryHelper');
 
 const getCustomers = async (req, res) => {
   try {
@@ -63,7 +64,9 @@ const createCustomer = async (req, res) => {
       currentAccountNumber,
       cnic,
       job,
+      jobDetail,
       monthlyIncome,
+      signature,
     } = req.body;
 
     const lowercaseEmail = email?.toLowerCase();
@@ -114,6 +117,10 @@ const createCustomer = async (req, res) => {
       return res.status(400).json({ message: 'CNIC is required' });
     }
 
+    if (!signature) {
+      return res.status(400).json({ message: 'Signature is required' });
+    }
+
     // CNIC Format Validation (Basic)
     const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
     if (!cnicRegex.test(cnic)) {
@@ -125,11 +132,16 @@ const createCustomer = async (req, res) => {
     // Mock Verification Logic: Name must be partially present in the CNIC check
     // (Simulating a verification service that checks ID record name against provided name)
     // For this mock: Name must not be "Unknown" or empty
-    if (lowercaseName.includes('test') && cnic.startsWith('00000')) {
-      return res.status(400).json({
-        message:
-          'Verification Failed: Name and CNIC do not match system records.',
-      });
+    // Upload signature to Cloudinary
+    let signatureUrl = signature;
+    if (signature && signature.startsWith('data:image')) {
+      try {
+        const uploadResult = await uploadSignature(signature);
+        signatureUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Signature Upload Error:', uploadError);
+        return res.status(500).json({ message: 'Failed to upload signature' });
+      }
     }
 
     const customer = new Customer({
@@ -143,7 +155,9 @@ const createCustomer = async (req, res) => {
       currentAccountNumber,
       cnic,
       job,
+      jobDetail,
       monthlyIncome,
+      signature: signatureUrl,
     });
 
     const createdCustomer = await customer.save();
@@ -225,12 +239,31 @@ const updateCustomer = async (req, res) => {
       }
     }
 
+    const { signature } = req.body;
+    let signatureUrl = signature;
+
+    // Upload new signature if provided as base64
+    if (signature && signature.startsWith('data:image')) {
+      try {
+        // Delete old signature if it exists and is a Cloudinary URL
+        if (customer.signature) {
+          await deleteCloudinaryFileByUrl(customer.signature);
+        }
+        const uploadResult = await uploadSignature(signature);
+        signatureUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Signature Update Error:', uploadError);
+        return res.status(500).json({ message: 'Failed to update signature' });
+      }
+    }
+
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
       {
         ...req.body,
         name: name?.toLowerCase(),
         email: email?.toLowerCase(),
+        signature: signatureUrl,
         // Ensure user/owner cannot be changed via update
         user: customer.user,
       },
@@ -259,7 +292,11 @@ const updateCustomer = async (req, res) => {
       });
 
       if (Object.keys(memberUpdate).length > 0) {
-        await Member.findByIdAndUpdate(updatedCustomer.memberId, memberUpdate);
+        await Member.findByIdAndUpdate(updatedCustomer.memberId, {
+          ...memberUpdate,
+          jobDetail: updatedCustomer.jobDetail,
+          signature: updatedCustomer.signature,
+        });
       }
     }
 

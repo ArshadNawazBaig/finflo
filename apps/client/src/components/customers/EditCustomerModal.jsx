@@ -10,19 +10,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Loader2,
-  FileBadge,
-  Upload,
-  X,
-  Plus,
-  Trash2,
-  Briefcase,
-  Wallet,
-  CheckCircle2,
-  ShieldCheck,
-  Building2,
-} from 'lucide-react';
+import { Loader2, Upload, X, Trash2, UserCircle } from 'lucide-react';
+import SignaturePad from '@/components/ui/SignaturePad';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCNIC, validateEmail } from '@/lib/utils';
@@ -38,10 +27,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
     address: '',
     cnic: '',
     job: '',
+    jobDetail: '',
     monthlyIncome: '',
     branchId: '',
     savingAccountNumber: '',
     currentAccountNumber: '',
+    signature: '',
   });
   const [branches, setBranches] = useState([]);
   const [fetchingBranches, setFetchingBranches] = useState(false);
@@ -77,10 +68,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         address: customer.address || '',
         cnic: customer.cnic || '',
         job: customer.job || '',
+        jobDetail: customer.jobDetail || '',
         monthlyIncome: customer.monthlyIncome || '',
         branchId: customer.branchId || '',
         savingAccountNumber: customer.savingAccountNumber || '',
         currentAccountNumber: customer.currentAccountNumber || '',
+        signature: customer.signature || '',
       });
       setFiles([]);
       setExistingDocs(customer.documents || []);
@@ -194,178 +187,124 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
-        <DialogHeader className="p-0 border-b border-border/10 pb-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary shrink-0 shadow-inner">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-black tracking-tight">
-                Update Profile
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium">
-                Comprehensive profile management for{' '}
-                <span className="text-primary font-bold">{customer?.name}</span>
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
-        >
-          <div className="grid grid-cols-1 gap-4 sm:gap-5">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="name"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-              >
-                Full Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-                >
-                  Email Address <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+      <DialogContent className="sm:max-w-[550px] max-h-[95vh] p-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <UserCircle className="w-6 h-6" />
               </div>
-
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="phone"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-                >
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Update Profile
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Modify details for{' '}
+                  <span className="font-bold text-primary">
+                    {customer?.name}
+                  </span>
+                </DialogDescription>
               </div>
             </div>
+          </DialogHeader>
+        </div>
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="branchId"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-              >
-                <Building2 className="w-3 h-3" /> Branch Selection
-              </Label>
-              <select
-                id="branchId"
-                name="branchId"
-                required
-                value={formData.branchId}
-                onChange={(e) =>
-                  setFormData({ ...formData, branchId: e.target.value })
-                }
-                disabled={fetchingBranches}
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
-              >
-                <option value="" disabled>
-                  Select a branch...
-                </option>
-                {branches.map((branch) => (
-                  <option key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="address"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-              >
-                Physical Address
-              </Label>
-              <Textarea
-                id="address"
-                placeholder="Street Address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
-              />
-            </div>
-
-            <div className="pt-4 border-t border-border/50">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4">
-                Professional & Financial Details
-              </h4>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-10 custom-scrollbar">
+          <form
+            id="edit-customer-form"
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center">
-                    CNIC / ID Number{' '}
-                    <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    name="cnic"
-                    placeholder="42101-XXXXXXX-X"
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     required
-                    value={formData.cnic}
-                    onChange={handleCNICChange}
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-mono"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Occupation</span>
-                    <Briefcase className="w-3 h-3 opacity-50" />
-                  </Label>
-                  <Input
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    CNIC Number
+                  </label>
+                  <input
+                    type="text"
+                    name="cnic"
+                    value={formData.cnic}
+                    onChange={handleCNICChange}
+                    required
+                    placeholder="00000-0000000-0"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Occupation
+                  </label>
+                  <input
+                    type="text"
                     name="job"
-                    placeholder="e.g. Software Engineer"
                     value={formData.job}
                     onChange={(e) =>
                       setFormData({ ...formData, job: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Monthly Income</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
-                  <Input
-                    name="monthlyIncome"
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Monthly Income
+                  </label>
+                  <input
                     type="number"
-                    placeholder="e.g. 75000"
+                    name="monthlyIncome"
                     value={formData.monthlyIncome}
                     onChange={(e) =>
                       setFormData({
@@ -373,25 +312,78 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         monthlyIncome: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Saving Account</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Job Detail & Office Address
+                </label>
+                <textarea
+                  name="jobDetail"
+                  value={formData.jobDetail}
+                  onChange={(e) =>
+                    setFormData({ ...formData, jobDetail: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Residential Address
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Branch Selection
+                </label>
+                {user.role === 'staff' ? (
+                  <div className="w-full px-4 py-3 rounded-2xl bg-muted/30 text-xs font-bold text-muted-foreground italic border border-border/50">
+                    Assigned to your branch
+                  </div>
+                ) : (
+                  <select
+                    name="branchId"
+                    value={formData.branchId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, branchId: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Saving Account
+                  </label>
                   <div className="flex gap-2">
-                    <Input
-                      name="savingAccountNumber"
+                    <input
                       readOnly
                       value={formData.savingAccountNumber}
-                      placeholder="Generate..."
-                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
-                        formData.savingAccountNumber
-                          ? 'bg-muted/30 text-muted-foreground w-full'
-                          : 'bg-muted/5'
-                      }`}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
                     {!formData.savingAccountNumber && (
                       <Button
@@ -399,30 +391,23 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('savingAccountNumber')
                         }
-                        variant="outline"
-                        className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
+                        className="rounded-2xl px-4 py-3"
                       >
                         Gen
                       </Button>
                     )}
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Current Account</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Current Account
+                  </label>
                   <div className="flex gap-2">
-                    <Input
-                      name="currentAccountNumber"
+                    <input
                       readOnly
                       value={formData.currentAccountNumber}
-                      placeholder="Generate..."
-                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
-                        formData.currentAccountNumber
-                          ? 'bg-muted/30 text-muted-foreground w-full'
-                          : 'bg-muted/5'
-                      }`}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
                     {!formData.currentAccountNumber && (
                       <Button
@@ -430,8 +415,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('currentAccountNumber')
                         }
-                        variant="outline"
-                        className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
+                        className="rounded-2xl px-4 py-3"
                       >
                         Gen
                       </Button>
@@ -439,114 +423,123 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-border/50">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Supporting Documents (Max 5, 1MB each)
-              </Label>
-              <div className="border-2 border-dashed border-border/40 rounded-[2rem] p-6 text-center bg-muted/5 hover:bg-muted/10 transition-all group relative">
-                <input
-                  type="file"
-                  multiple
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  onChange={handleFileChange}
-                  disabled={existingDocs.length + files.length >= 5}
-                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                />
-                <div className="flex flex-col items-center gap-2">
-                  <Upload
-                    size={20}
-                    className="text-primary group-hover:scale-110 transition-transform"
+              {existingDocs.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Existing Documents
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {existingDocs.map((doc) => (
+                      <div
+                        key={doc._id}
+                        className="flex items-center justify-between p-3 bg-muted/30 border border-border/50 rounded-2xl"
+                      >
+                        <span className="text-[10px] font-bold truncate pr-2">
+                          {doc.originalName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeExistingFile(doc._id)}
+                          className="text-destructive hover:scale-110 transition-transform"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  New Documents (Max 5 Total)
+                </label>
+                <div className="relative p-6 border-2 border-dashed border-border/60 rounded-3xl text-center hover:bg-muted/10 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <p className="text-[11px] font-bold">
-                    {existingDocs.length + files.length >= 5
-                      ? 'Max reached'
-                      : 'Click to upload files'}
+                  <Upload className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Click or drag files
                   </p>
                 </div>
+                {files.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {files.map((file, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-full"
+                      >
+                        <span className="text-[10px] font-bold truncate max-w-[100px]">
+                          {file.name}
+                        </span>
+                        <X
+                          className="w-3 h-3 cursor-pointer hover:text-destructive"
+                          onClick={() => removeFile(idx)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {(existingDocs.length > 0 || files.length > 0) && (
-                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none">
-                  {/* Existing Documents */}
-                  {existingDocs.map((doc) => (
-                    <div
-                      key={doc._id}
-                      className="flex items-center gap-2 px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl group shrink-0"
-                    >
-                      <div className="relative">
-                        <FileBadge
-                          size={20}
-                          className="text-indigo-600 shrink-0"
-                        />
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border border-white"></div>
-                      </div>
-                      <span className="text-xs font-medium truncate max-w-[100px]">
-                        {doc.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeExistingFile(doc._id)}
-                        className="p-1 hover:text-destructive transition-colors shrink-0"
-                        title="Delete Document"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-
-                  {/* New Files to Upload */}
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 px-3 py-2 bg-muted/20 border border-border/30 rounded-xl group shrink-0"
-                    >
-                      <FileBadge
-                        size={20}
-                        className="text-muted-foreground shrink-0"
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex justify-between">
+                  Signature <span>*</span>
+                </label>
+                {formData.signature &&
+                  formData.signature.startsWith('http') && (
+                    <div className="mb-2 p-2 bg-white rounded-2xl border border-border/20 flex flex-col items-center">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
+                        Current Signature
+                      </p>
+                      <img
+                        src={formData.signature}
+                        alt="Current Signature"
+                        className="max-h-24 object-contain"
                       />
-                      <span className="text-xs font-medium truncate max-w-[100px]">
-                        {file.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="p-1 hover:text-destructive transition-colors shrink-0"
-                        title="Remove Upload"
-                      >
-                        <X size={16} />
-                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
+                <SignaturePad
+                  onSave={(dataUrl) =>
+                    setFormData((prev) => ({ ...prev, signature: dataUrl }))
+                  }
+                  onClear={() =>
+                    setFormData((prev) => ({ ...prev, signature: '' }))
+                  }
+                />
+              </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              disabled={loading || uploading}
-              variant="gradient"
-              className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
-            >
-              {loading || uploading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                'Save Profile'
-              )}
-            </Button>
-          </div>
-        </form>
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="edit-customer-form"
+            type="submit"
+            disabled={loading || uploading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            {loading || uploading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

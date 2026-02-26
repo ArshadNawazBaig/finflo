@@ -1,27 +1,13 @@
 import { useState, useEffect } from 'react';
-import {
-  Loader2,
-  UserPlus,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-  X,
-  Plus,
-  Trash2,
-  Briefcase,
-  Wallet,
-  CheckCircle2,
-  ShieldCheck,
-  Upload,
-  FileBadge,
-} from 'lucide-react';
+import { Loader2, UserPlus, X, Upload } from 'lucide-react';
+import SignaturePad from '@/components/ui/SignaturePad';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -42,7 +28,9 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     currentAccountNumber: '',
     cnic: '',
     job: '',
+    jobDetail: '',
     monthlyIncome: '',
+    signature: '',
   });
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -143,8 +131,10 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
       currentAccountNumber: formData.currentAccountNumber || undefined,
       cnic: formData.cnic || undefined,
       job: formData.job || undefined,
+      jobDetail: formData.jobDetail || undefined,
       address: formData.address || undefined,
       branchId: formData.branchId || undefined,
+      signature: formData.signature || undefined,
     };
 
     try {
@@ -176,7 +166,9 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
         currentAccountNumber: '',
         cnic: '',
         job: '',
+        jobDetail: '',
         monthlyIncome: '',
+        signature: '',
       });
       setFiles([]);
     } catch (err) {
@@ -190,184 +182,194 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader className="p-0">
-          <div className="flex items-center gap-3 mb-2 p-0 sm:p-0">
-            <div className="p-2 sm:p-3 rounded-2xl bg-primary/10 text-primary shrink-0">
-              <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg sm:text-2xl font-black">
-                Add New Customer
-              </DialogTitle>
-              <DialogDescription className="text-[11px] sm:text-sm font-medium">
-                Create a new profile to start lending.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        {error && (
-          <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 animate-in fade-in zoom-in-95">
-            {error}
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
-        >
-          <div className="grid grid-cols-1 gap-4 sm:gap-5 max-h-[60vh] overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-primary/10">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                Full Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                name="name"
-                placeholder="e.g. Arshad Nawaz"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> Email Address{' '}
-                  <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="name@nexus.com"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-                />
+      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <UserPlus className="w-6 h-6" />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                  <Phone className="w-3 h-3" /> Phone Number
-                </Label>
-                <Input
-                  name="phone"
-                  placeholder="+92 300 1234567"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
-                />
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Add New Customer
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Register a new customer to the system.
+                </DialogDescription>
               </div>
             </div>
+          </DialogHeader>
+        </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                <Building2 className="w-3 h-3" /> Branch Selection
-              </Label>
-              {user.role === 'staff' ? (
-                <div className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground ">
-                  Automatically assigned to your branch
-                </div>
-              ) : (
-                <select
-                  name="branchId"
-                  required
-                  value={formData.branchId}
-                  onChange={handleChange}
-                  disabled={fetchingBranches}
-                  className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>
-                    Select a branch...
-                  </option>
-                  {branches.map((branch) => (
-                    <option key={branch._id} value={branch._id}>
-                      {branch.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-10 custom-scrollbar">
+          {error && (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 mb-6 animate-in fade-in zoom-in-95">
+              {error}
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                <MapPin className="w-3 h-3" /> Physical Address
-              </Label>
-              <Textarea
-                name="address"
-                placeholder="Enter complete street address..."
-                required
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none placeholder:text-muted-foreground/50"
-              />
-            </div>
-
-            <div className="pt-4 border-t border-border/50">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-4">
-                Professional & Financial Details
-              </h4>
+          <form
+            id="add-customer-form"
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center">
-                    CNIC / ID Number{' '}
-                    <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input
-                    name="cnic"
-                    placeholder="42101-XXXXXXX-X"
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     required
+                    placeholder="Enter name"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    CNIC Number *
+                  </label>
+                  <input
+                    type="text"
+                    name="cnic"
                     value={formData.cnic}
                     onChange={handleCNICChange}
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-mono"
+                    required
+                    placeholder="00000-0000000-0"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Occupation</span>
-                    <Briefcase className="w-3 h-3 opacity-50" />
-                  </Label>
-                  <Input
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="customer@example.com"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    placeholder="+92 300 1234567"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Occupation
+                  </label>
+                  <input
+                    type="text"
                     name="job"
-                    placeholder="e.g. Software Engineer"
                     value={formData.job}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm"
+                    placeholder="e.g. Business"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Monthly Income</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
-                  <Input
-                    name="monthlyIncome"
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Monthly Income
+                  </label>
+                  <input
                     type="number"
-                    placeholder="e.g. 75000"
+                    name="monthlyIncome"
                     value={formData.monthlyIncome}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black"
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Saving Account</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Job Detail & Office Address
+                </label>
+                <textarea
+                  name="jobDetail"
+                  value={formData.jobDetail}
+                  onChange={handleChange}
+                  placeholder="Details of job and office location..."
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Residential Address
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Enter complete address..."
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Branch Selection
+                </label>
+                {user.role === 'staff' ? (
+                  <div className="w-full px-4 py-3 rounded-2xl bg-muted/30 text-xs font-bold text-muted-foreground italic border border-border/50">
+                    Assigned to your branch
+                  </div>
+                ) : (
+                  <select
+                    name="branchId"
+                    value={formData.branchId}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Saving Account
+                  </label>
                   <div className="flex gap-2">
-                    <Input
-                      name="savingAccountNumber"
+                    <input
                       readOnly
                       value={formData.savingAccountNumber}
-                      placeholder="Generate..."
-                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
-                        formData.savingAccountNumber
-                          ? 'bg-muted/30 text-muted-foreground w-full'
-                          : 'bg-muted/5'
-                      }`}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
                     {!formData.savingAccountNumber && (
                       <Button
@@ -375,30 +377,23 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('savingAccountNumber')
                         }
-                        variant="outline"
-                        className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
+                        className="rounded-2xl px-4 py-3"
                       >
                         Gen
                       </Button>
                     )}
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 h-4 flex items-center justify-between">
-                    <span>Current Account</span>
-                    <Wallet className="w-3 h-3 opacity-50" />
-                  </Label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Current Account
+                  </label>
                   <div className="flex gap-2">
-                    <Input
-                      name="currentAccountNumber"
+                    <input
                       readOnly
                       value={formData.currentAccountNumber}
-                      placeholder="Generate..."
-                      className={`flex-1 px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 text-sm font-black font-mono transition-all ${
-                        formData.currentAccountNumber
-                          ? 'bg-muted/30 text-muted-foreground w-full'
-                          : 'bg-muted/5'
-                      }`}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
                     {!formData.currentAccountNumber && (
                       <Button
@@ -406,8 +401,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('currentAccountNumber')
                         }
-                        variant="outline"
-                        className="rounded-2xl py-2.5 sm:py-3 h-auto border-dashed border-primary/40 text-[10px] font-black uppercase px-6"
+                        className="rounded-2xl px-4 py-3"
                       >
                         Gen
                       </Button>
@@ -415,86 +409,46 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-border/50">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Supporting Documents (Max 5, 1MB each)
-              </Label>
-              <div className="border-2 border-dashed border-border/40 rounded-[2rem] p-6 text-center bg-muted/5 hover:bg-muted/10 transition-all group relative">
-                <input
-                  type="file"
-                  multiple
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  onChange={handleFileChange}
-                  disabled={files.length >= 5}
-                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Signature *
+                </label>
+                <SignaturePad
+                  onSave={(data) =>
+                    setFormData((p) => ({ ...p, signature: data }))
+                  }
+                  onClear={() => setFormData((p) => ({ ...p, signature: '' }))}
                 />
-                <div className="flex flex-col items-center gap-2">
-                  <Upload
-                    size={20}
-                    className="text-primary group-hover:scale-110 transition-transform"
-                  />
-                  <p className="text-[11px] font-bold">
-                    {files.length >= 5
-                      ? 'Max reached'
-                      : 'Click to upload files'}
-                  </p>
-                </div>
               </div>
-
-              {files.length > 0 && (
-                <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-none">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 px-3 py-2 bg-muted/20 border border-border/30 rounded-xl group shrink-0"
-                    >
-                      <FileBadge
-                        size={20}
-                        className="text-muted-foreground shrink-0"
-                      />
-                      <span className="text-xs font-medium truncate max-w-[100px]">
-                        {file.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="p-1 hover:text-destructive transition-colors shrink-0"
-                        title="Remove Upload"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              disabled={loading || uploading}
-              variant="gradient"
-              className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
-            >
-              {loading || uploading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <UserPlus size={14} />
-              )}
-              Register Customer
-            </Button>
-          </div>
-        </form>
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="add-customer-form"
+            type="submit"
+            disabled={loading || uploading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            {loading || uploading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <UserPlus size={16} />
+            )}
+            Register Customer
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
