@@ -732,8 +732,6 @@ const addRepayment = async (req, res) => {
       req,
       {
         date,
-        notes,
-        isAutoValue: false,
       },
     );
 
@@ -957,19 +955,22 @@ const updateLoan = async (req, res) => {
 
         // Email Notification to Customer/Member
         if (customer && customer.email) {
-          const { sendEmail } = require('../utils/email');
-          const emailSubject =
-            status === 'active' ? 'Loan Approved' : 'Loan Application Update';
-          const emailHtml = `
-            <h2>Hello ${customer.name},</h2>
-            <p>Your loan request for <strong>Rs. ${loan.principal.toLocaleString()}</strong> has been <strong>${status === 'active' ? 'APPROVED' : 'REJECTED'}</strong>.</p>
-            ${status === 'active' ? '<p>The funds will be disbursed shortly.</p>' : ''}
-            <p>Thank you for choosing us.</p>
-          `;
+          const branch = await Branch.findById(loan.branchId);
+          const branchName =
+            branch?.companyName || branch?.name || 'FinanceFlow';
+
           await sendEmail({
-            to: customer.email,
-            subject: emailSubject,
-            html: emailHtml,
+            email: customer.email,
+            subject: `${notificationTitle} - ${branchName}`,
+            html: transactionEmail({
+              memberName: customer.name,
+              transactionType: notificationTitle,
+              amount: loan.principal.toLocaleString(),
+              date: new Date().toLocaleDateString(),
+              referenceId: loan._id.toString().slice(-8).toUpperCase(),
+              currentBalance: loan.remainingAmount.toLocaleString(),
+              branchName: branchName,
+            }),
           });
         }
       } catch (notifError) {
@@ -1297,10 +1298,14 @@ const approveLoan = async (req, res) => {
 
     // Notify Member if applicable
     try {
-      const customer = await Customer.findById(loan.customer);
-      if (customer && customer.isMember && customer.memberId) {
+      const customerForNotification = await Customer.findById(loan.customer);
+      if (
+        customerForNotification &&
+        customerForNotification.isMember &&
+        customerForNotification.memberId
+      ) {
         const notification = new Notification({
-          recipient: customer.memberId,
+          recipient: customerForNotification.memberId,
           recipientModel: 'Member',
           title: 'Loan Approved',
           message: `Your loan request for ${loan.principal} has been approved.`,
@@ -1310,8 +1315,31 @@ const approveLoan = async (req, res) => {
         });
         await notification.save();
       }
+
+      // Email Notification to Member if applicable
+      if (customerForNotification && customerForNotification.email) {
+        const branch = await Branch.findById(loan.branchId);
+        const branchName = branch?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          email: customerForNotification.email,
+          subject: `Loan Approved - ${branchName}`,
+          html: transactionEmail({
+            memberName: customerForNotification.name,
+            transactionType: 'Loan Approved',
+            amount: loan.principal.toLocaleString(),
+            date: new Date().toLocaleDateString(),
+            referenceId: loan._id.toString().slice(-8).toUpperCase(),
+            currentBalance: loan.remainingAmount.toLocaleString(),
+            branchName: branchName,
+          }),
+        });
+      }
     } catch (notifError) {
-      console.error('Failed to send approval notification:', notifError);
+      console.error(
+        'Failed to send loan approval notification/email:',
+        notifError,
+      );
     }
 
     res.json(loan);
@@ -1375,6 +1403,31 @@ const rejectLoan = async (req, res) => {
       }
     } catch (notifError) {
       console.error('Failed to send rejection notification:', notifError);
+    }
+
+    // Email Notification to Member if applicable
+    try {
+      const customer = await Customer.findById(loan.customer);
+      if (customer && customer.email) {
+        const branch = await Branch.findById(loan.branchId);
+        const branchName = branch?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          email: customer.email,
+          subject: `Loan Application Update - ${branchName}`,
+          html: transactionEmail({
+            memberName: customer.name,
+            transactionType: 'Loan Rejected',
+            amount: loan.principal.toLocaleString(),
+            date: new Date().toLocaleDateString(),
+            referenceId: loan._id.toString().slice(-8).toUpperCase(),
+            currentBalance: '0',
+            branchName: branchName,
+          }),
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send rejection email:', emailError);
     }
 
     res.json(loan);
@@ -1547,32 +1600,6 @@ const memberRepayLoan = async (req, res) => {
           link: '/loans', // Admin loans list
         },
       });
-      // Email Notification
-      if (req.member.email) {
-        const branch = await Branch.findById(loan.branchId);
-        const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
-
-        await sendEmail({
-          to: req.member.email,
-          subject: 'Loan Repayment Confirmation',
-          html: transactionEmail({
-            memberName: req.member.name,
-            transactionType: 'Loan Repayment',
-            amount: paymentAmount.toLocaleString(),
-            date: new Date().toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            balance: loan.remainingAmount.toLocaleString(),
-            branchName: branchName,
-            reference: loan._id.toString().slice(-8).toUpperCase(), // Note: processRepayment doesn't easily return repaymentId here in this context unless we change it, but loanId is a good ref
-          }),
-        });
-      }
     } catch (notifError) {
       console.error('Member Repayment Notification Error:', notifError);
     }
@@ -1662,6 +1689,26 @@ const bulkApproveLoans = async (req, res) => {
             link: '/member/loans',
             action: 'loan_approved',
           }).catch(() => {});
+
+          if (customer.email) {
+            const branch = await Branch.findById(loan.branchId);
+            const branchName =
+              branch?.companyName || branch?.name || 'FinanceFlow';
+
+            await sendEmail({
+              email: customer.email,
+              subject: `Loan Approved - ${branchName}`,
+              html: transactionEmail({
+                memberName: customer.name,
+                transactionType: 'Loan Approved',
+                amount: loan.principal.toLocaleString(),
+                date: new Date().toLocaleDateString(),
+                referenceId: loan._id.toString().slice(-8).toUpperCase(),
+                currentBalance: loan.remainingAmount.toLocaleString(),
+                branchName: branchName,
+              }),
+            });
+          }
         }
 
         processed.push(id);
@@ -1736,6 +1783,26 @@ const bulkRejectLoans = async (req, res) => {
             link: '/member/loans',
             action: 'loan_rejected',
           }).catch(() => {});
+
+          if (customer.email) {
+            const branch = await Branch.findById(loan.branchId);
+            const branchName =
+              branch?.companyName || branch?.name || 'FinanceFlow';
+
+            await sendEmail({
+              email: customer.email,
+              subject: `Loan Application Update - ${branchName}`,
+              html: transactionEmail({
+                memberName: customer.name,
+                transactionType: 'Loan Rejected',
+                amount: loan.principal.toLocaleString(),
+                date: new Date().toLocaleDateString(),
+                referenceId: loan._id.toString().slice(-8).toUpperCase(),
+                currentBalance: '0',
+                branchName: branchName,
+              }),
+            });
+          }
         }
 
         processed.push(id);

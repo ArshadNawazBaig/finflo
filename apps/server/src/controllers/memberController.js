@@ -1236,6 +1236,22 @@ const distributeProfit = async (req, res) => {
                 link: '/member/investments',
               },
             });
+
+            // Send Email Notification
+            const branch = await Branch.findById(member.branchId);
+            await sendEmail({
+              email: member.email,
+              subject: `Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+              html: transactionEmail({
+                memberName: member.name,
+                transactionType: 'Profit Distribution',
+                amount: profitAmount,
+                date: new Date().toLocaleDateString(),
+                referenceId: distribution._id,
+                currentBalance: member.currentBalance + profitAmount,
+                branchName: branch?.companyName || 'Our Branch',
+              }),
+            });
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
           }
@@ -1335,6 +1351,22 @@ const distributeProfit = async (req, res) => {
                 distributionId: distribution._id,
                 link: '/member/investments',
               },
+            });
+
+            // Send Email Notification
+            const branch = await Branch.findById(member.branchId);
+            await sendEmail({
+              email: member.email,
+              subject: `Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+              html: transactionEmail({
+                memberName: member.name,
+                transactionType: 'Profit Distribution',
+                amount: profitAmount,
+                date: new Date().toLocaleDateString(),
+                referenceId: distribution._id,
+                currentBalance: member.currentBalance + profitAmount,
+                branchName: branch?.companyName || 'Our Branch',
+              }),
             });
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
@@ -2611,6 +2643,22 @@ const distributeShareProfit = async (req, res) => {
             shareId: shareRecord._id,
             link: '/member/shares',
           },
+        });
+
+        // Send Email Notification
+        const branch = await Branch.findById(member.branchId);
+        await sendEmail({
+          email: member.email,
+          subject: `Share Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: 'Share Profit Distribution',
+            amount: profitAmount,
+            date: new Date().toLocaleDateString(),
+            referenceId: shareRecord._id,
+            currentBalance: member.shareBalance + profitAmount,
+            branchName: branch?.companyName || 'Our Branch',
+          }),
         });
       } catch (notifError) {
         console.error('Share Profit Notification Error:', notifError);

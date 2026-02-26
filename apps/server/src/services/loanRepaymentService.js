@@ -5,7 +5,10 @@ const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
+const Branch = require('../models/Branch');
 const { logActivity } = require('../controllers/activityLogController');
+const { sendEmail } = require('../utils/email');
+const { transactionEmail } = require('../utils/emailTemplates');
 
 /**
  * Shared service to process a loan repayment.
@@ -349,6 +352,36 @@ const processRepayment = async (loan, amount, req, options = {}) => {
             loanId: loan._id,
             link: '/member/loans',
           },
+        });
+      }
+
+      // ── Email Notification ───────────────────────────────────────────────
+      const member = await Member.findById(customer.memberId);
+      if (member && member.email) {
+        const branch = await Branch.findById(loan.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          to: member.email,
+          subject: isAutoValue
+            ? 'Automatic Loan Payment Confirmation'
+            : 'Loan Repayment Confirmation',
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: isAutoValue
+              ? 'Automatic Installment'
+              : 'Loan Repayment',
+            amount: repaymentAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }),
+            balance: loan.remainingAmount.toLocaleString(),
+            branchName: branchName,
+            reference: repayment._id.toString().slice(-8).toUpperCase(),
+          }),
         });
       }
     }
