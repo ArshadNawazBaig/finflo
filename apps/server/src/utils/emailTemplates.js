@@ -2,8 +2,13 @@
  * Centralized Email Templates for Financial Intelligence Portal
  */
 
-const getBaseTemplate = (content, title, logoUrl = null) => {
-  const brandName = process.env.FROM_NAME || 'FinanceFlow';
+const getBaseTemplate = (
+  content,
+  title,
+  logoUrl = null,
+  customBrandName = null,
+) => {
+  const brandName = customBrandName || process.env.FROM_NAME || 'FinanceFlow';
   const primaryColor = '#2563eb'; // Modern Blue
 
   // Custom Cloudinary Logo
@@ -143,8 +148,81 @@ const loanReminderEmail = (customerName, amount, dueDate, type) => {
   return getBaseTemplate(content, title);
 };
 
+/**
+ * Transaction Notification Template
+ */
+const transactionEmail = (data) => {
+  const {
+    memberName,
+    transactionType,
+    amount,
+    date,
+    balance,
+    branchName,
+    reference,
+    currency = 'Rs.',
+  } = data;
+
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Transaction Confirmation</h2>
+    <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+      Dear ${memberName},
+    </p>
+    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+      This is to confirm that a **${transactionType}** transaction has been successfully processed for your account at **${branchName}**.
+    </p>
+    
+    <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Transaction Type</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 700;">${transactionType}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Amount</td>
+          <td align="right" style="padding: 8px 0; color: #2563eb; font-size: 14px; font-weight: 800;">${currency}${amount}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Date</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px;">${date}</td>
+        </tr>
+        ${
+          reference
+            ? `
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Reference ID</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px;">${reference}</td>
+        </tr>`
+            : ''
+        }
+        ${
+          balance !== undefined && balance !== null
+            ? `
+        <tr style="border-top: 1px solid #f1f5f9;">
+          <td style="padding: 16px 0 0 0; color: #0f172a; font-size: 16px; font-weight: 700;">Current Balance</td>
+          <td align="right" style="padding: 16px 0 0 0; color: #0f172a; font-size: 16px; font-weight: 800;">${currency}${balance}</td>
+        </tr>`
+            : ''
+        }
+      </table>
+    </div>
+
+    <p style="margin: 0; color: #94a3b8; font-size: 14px; text-align: center;">
+      Thank you for choosing **${branchName}** for your financial needs.
+    </p>
+  `;
+
+  return getBaseTemplate(
+    content,
+    `Transaction Notification - ${transactionType}`,
+    null,
+    branchName,
+  );
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
   loanReminderEmail,
+  transactionEmail,
 };
