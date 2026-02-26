@@ -20,6 +20,8 @@ const {
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { sendEmail } = require('../utils/email');
+const { transactionEmail } = require('../utils/emailTemplates');
+const Branch = require('../models/Branch');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -736,13 +738,28 @@ const addInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
+        const branch = await Branch.findById(member.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
         await sendEmail({
           to: member.email,
-          fromName: 'FinanceFlow',
           subject: 'Deposit Confirmation',
-          html: `<p>Hello <span style="font-size: 16px; font-weight: bold; text-transform: capitalize;">${member.name}</span>,</p>
-                 <p>Your deposit of <strong>Rs. ${amount.toLocaleString()}</strong> has been successfully processed.</p>
-                 <p>Current Balance: <strong>Rs. ${updatedMember.currentBalance.toLocaleString()}</strong></p>`,
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: 'Deposit',
+            amount: amount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedMember.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: investment._id.toString().slice(-8).toUpperCase(),
+          }),
         });
       }
     } catch (notifError) {
@@ -902,13 +919,28 @@ const withdrawInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
+        const branch = await Branch.findById(member.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
         await sendEmail({
           to: member.email,
-          fromName: 'FinanceFlow',
           subject: 'Withdrawal Confirmation',
-          html: `<p>Hello ${member.name},</p>
-                 <p>A withdrawal of <strong>Rs. ${amount.toLocaleString()}</strong> has been processed from your account.</p>
-                 <p>Remaining Balance: <strong>Rs. ${updatedMember.currentBalance.toLocaleString()}</strong></p>`,
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: 'Withdrawal',
+            amount: amount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedMember.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: investment._id.toString().slice(-8).toUpperCase(),
+          }),
         });
       }
     } catch (notifError) {
@@ -1693,6 +1725,66 @@ const transferFunds = async (req, res) => {
       console.error('P2P Transfer Notification Error:', notifError);
     }
 
+    // Email Notifications
+    try {
+      // Email to Sender
+      if (sender.email) {
+        const branch = await Branch.findById(sender.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+        await sendEmail({
+          to: sender.email,
+          subject: 'Transfer Sent Confirmation',
+          html: transactionEmail({
+            memberName: sender.name,
+            transactionType: 'Transfer Sent',
+            amount: transferAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedSender.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
+          }),
+        });
+      }
+
+      // Email to Recipient
+      if (recipient.email) {
+        const branch = await Branch.findById(recipient.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+        await sendEmail({
+          to: recipient.email,
+          subject: 'Transfer Received Confirmation',
+          html: transactionEmail({
+            memberName: recipient.name,
+            transactionType: 'Transfer Received',
+            amount: transferAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedRecipient.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: recipientTransaction._id
+              .toString()
+              .slice(-8)
+              .toUpperCase(),
+          }),
+        });
+      }
+    } catch (emailError) {
+      console.error('Transfer Email Notification Error:', emailError);
+    }
+
     res.status(200).json({
       message: 'Transfer successful',
       balance: sender.currentBalance,
@@ -1863,6 +1955,66 @@ const adminTransferFunds = async (req, res) => {
         'Auto Repayment Error in adminTransferFunds:',
         autoRepoError,
       );
+    }
+
+    // Email Notifications
+    try {
+      // Email to Sender
+      if (sender.email) {
+        const branch = await Branch.findById(sender.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+        await sendEmail({
+          to: sender.email,
+          subject: 'Transfer Sent Confirmation',
+          html: transactionEmail({
+            memberName: sender.name,
+            transactionType: 'Transfer Sent',
+            amount: transferAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedSender.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
+          }),
+        });
+      }
+
+      // Email to Recipient
+      if (recipient.email) {
+        const branch = await Branch.findById(recipient.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+        await sendEmail({
+          to: recipient.email,
+          subject: 'Transfer Received Confirmation',
+          html: transactionEmail({
+            memberName: recipient.name,
+            transactionType: 'Transfer Received',
+            amount: transferAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedRecipient.currentBalance.toLocaleString(),
+            branchName: branchName,
+            reference: recipientTransaction._id
+              .toString()
+              .slice(-8)
+              .toUpperCase(),
+          }),
+        });
+      }
+    } catch (emailError) {
+      console.error('Admin Transfer Email Notification Error:', emailError);
     }
 
     res.status(200).json({
@@ -2128,6 +2280,33 @@ const addShareInvestment = async (req, res) => {
         action: 'member_share_deposit_notification',
         metadata: { amount, shareId: shareRecord._id, link: '/member/shares' },
       });
+
+      // Email Notification
+      if (member.email) {
+        const branch = await Branch.findById(member.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          to: member.email,
+          subject: 'Share Investment Confirmation',
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: 'Share Investment',
+            amount: amount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedMember.shareBalance.toLocaleString(),
+            branchName: branchName,
+            reference: shareRecord._id.toString().slice(-8).toUpperCase(),
+          }),
+        });
+      }
     } catch (notifError) {
       console.error('Share Deposit Notification Error:', notifError);
     }
@@ -2215,6 +2394,33 @@ const withdrawShareInvestment = async (req, res) => {
         action: 'member_share_withdrawal_notification',
         metadata: { amount, shareId: shareRecord._id, link: '/member/shares' },
       });
+
+      // Email Notification
+      if (member.email) {
+        const branch = await Branch.findById(member.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          to: member.email,
+          subject: 'Share Withdrawal Confirmation',
+          html: transactionEmail({
+            memberName: member.name,
+            transactionType: 'Share Withdrawal',
+            amount: amount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: updatedMember.shareBalance.toLocaleString(),
+            branchName: branchName,
+            reference: shareRecord._id.toString().slice(-8).toUpperCase(),
+          }),
+        });
+      }
     } catch (notifError) {
       console.error('Share Withdrawal Notification Error:', notifError);
     }

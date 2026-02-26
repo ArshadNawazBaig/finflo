@@ -5,6 +5,8 @@ const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Member = require('../models/Member');
+const Branch = require('../models/Branch');
 const { canCreateLoan } = require('../utils/planLimits');
 const { calculateRiskScore } = require('../utils/riskService');
 const {
@@ -14,6 +16,8 @@ const {
 const { logActivity } = require('./activityLogController');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
+const { sendEmail } = require('../utils/email');
+const { transactionEmail } = require('../utils/emailTemplates');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -732,6 +736,41 @@ const addRepayment = async (req, res) => {
         isAutoValue: false,
       },
     );
+
+    // ── Email Notification ────────────────────────────────────────────────
+    try {
+      const customer = loan.customer;
+      if (customer && customer.isMember && customer.memberId) {
+        const member = await Member.findById(customer.memberId);
+        if (member && member.email) {
+          const branch = await Branch.findById(loan.branchId);
+          const branchName =
+            branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
+          await sendEmail({
+            to: member.email,
+            subject: 'Loan Repayment Confirmation',
+            html: transactionEmail({
+              memberName: member.name,
+              transactionType: 'Loan Repayment',
+              amount: amount.toLocaleString(),
+              date: new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              balance: loan.remainingAmount.toLocaleString(),
+              branchName: branchName,
+              reference: repayment._id.toString().slice(-8).toUpperCase(),
+            }),
+          });
+        }
+      }
+    } catch (emailError) {
+      console.error('Repayment Email Error:', emailError);
+    }
 
     res.status(201).json(repayment);
   } catch (error) {
@@ -1508,6 +1547,32 @@ const memberRepayLoan = async (req, res) => {
           link: '/loans', // Admin loans list
         },
       });
+      // Email Notification
+      if (req.member.email) {
+        const branch = await Branch.findById(loan.branchId);
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+
+        await sendEmail({
+          to: req.member.email,
+          subject: 'Loan Repayment Confirmation',
+          html: transactionEmail({
+            memberName: req.member.name,
+            transactionType: 'Loan Repayment',
+            amount: paymentAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            balance: loan.remainingAmount.toLocaleString(),
+            branchName: branchName,
+            reference: loan._id.toString().slice(-8).toUpperCase(), // Note: processRepayment doesn't easily return repaymentId here in this context unless we change it, but loanId is a good ref
+          }),
+        });
+      }
     } catch (notifError) {
       console.error('Member Repayment Notification Error:', notifError);
     }
