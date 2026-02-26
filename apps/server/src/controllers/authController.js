@@ -25,7 +25,7 @@ const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
 const registerUser = async (req, res) => {
@@ -390,12 +390,13 @@ const forgotPassword = async (req, res) => {
       if (origin) {
         try {
           const url = new URL(origin);
+          // Only allow localhost or the same host for security if CLIENT_URL is missing
           clientUrl = `${url.protocol}//${url.host}`;
         } catch (e) {
-          clientUrl = 'http://localhost:5174';
+          clientUrl = 'http://localhost:5173';
         }
       } else {
-        clientUrl = 'http://localhost:5174';
+        clientUrl = 'http://localhost:5173';
       }
     }
 

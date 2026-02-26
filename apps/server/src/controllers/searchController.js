@@ -7,6 +7,7 @@ const User = require('../models/User');
 const SupportTicket = require('../models/SupportTicket');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const mongoose = require('mongoose');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // @desc    Global search across entities based on role
 // @route   GET /api/search
@@ -18,7 +19,8 @@ const globalSearch = async (req, res) => {
   }
 
   try {
-    const searchRegex = new RegExp(q, 'i');
+    const escapedQ = escapeRegExp(q);
+    const searchRegex = new RegExp(escapedQ, 'i');
     const results = [];
 
     // Determine scope based on user/member auth

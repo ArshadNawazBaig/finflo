@@ -30,10 +30,9 @@ app.use(
 app.use(express.json());
 
 // Security Middleware
-// const rateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 
 // General API Rate Limiting
-/*
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // Increased limit to 1000 requests per 15 minutes
@@ -59,7 +58,7 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
-*/
+app.use('/api/member-auth/login', authLimiter);
 
 // Restrict CORS to CLIENT_URL
 const corsOptions = {

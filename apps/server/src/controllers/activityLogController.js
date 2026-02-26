@@ -1,5 +1,6 @@
 const ActivityLog = require('../models/ActivityLog');
 const User = require('../models/User');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // Helper function to log activity
 const logActivity = async ({
@@ -84,7 +85,8 @@ const getAllActivityLogs = async (req, res) => {
 
     // Search logic
     if (search) {
-      const searchRegex = new RegExp(search, 'i');
+      const escapedSearch = escapeRegExp(search);
+      const searchRegex = new RegExp(escapedSearch, 'i');
 
       // Get user IDs matching search
       const matchingUsers = await User.find({
