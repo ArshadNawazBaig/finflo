@@ -32,6 +32,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
+import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AreaChart,
@@ -50,6 +51,7 @@ import {
 import api from '@/lib/axios';
 import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
 
 const Reports = () => {
@@ -86,8 +88,10 @@ const Reports = () => {
   const [loadingPnL, setLoadingPnL] = useState(false);
   const [trialBalance, setTrialBalance] = useState(null);
   const [pnl, setPnL] = useState(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateRange, setDateRange] = useState({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+  });
   const [isExporting, setIsExporting] = useState(false);
 
   // Branch Analytics
@@ -107,12 +111,7 @@ const Reports = () => {
   };
 
   useEffect(() => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(lastDay.toISOString().split('T')[0]);
+    // Initial sync of dateRange to API parameters if needed
   }, []);
 
   const fetchTrialBalance = async () => {
@@ -128,11 +127,13 @@ const Reports = () => {
   };
 
   const fetchPnL = async () => {
-    if (!startDate || !endDate) return;
+    if (!dateRange?.from || !dateRange?.to) return;
     try {
       setLoadingPnL(true);
+      const sDate = format(dateRange.from, 'yyyy-MM-dd');
+      const eDate = format(dateRange.to, 'yyyy-MM-dd');
       const { data: pnlData } = await api.get(
-        `/reports/profit-loss?startDate=${startDate}&endDate=${endDate}`,
+        `/reports/profit-loss?startDate=${sDate}&endDate=${eDate}`,
       );
       setPnL(pnlData);
     } catch (error) {
@@ -149,10 +150,10 @@ const Reports = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === 'profit-loss' && startDate && endDate) {
+    if (activeTab === 'profit-loss' && dateRange?.from && dateRange?.to) {
       fetchPnL();
     }
-  }, [activeTab, startDate, endDate]);
+  }, [activeTab, dateRange]);
 
   useEffect(() => {
     if (activeTab === 'branch-analytics' && !branchSummaries) {
@@ -274,7 +275,7 @@ const Reports = () => {
         doc.text('Profit & Loss Statement', 14, 45);
         doc.setFontSize(10);
         doc.text(
-          `Period: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`,
+          `Period: ${format(dateRange.from, 'PPP')} - ${format(dateRange.to, 'PPP')}`,
           14,
           52,
         );
@@ -496,8 +497,8 @@ const Reports = () => {
         title,
         reportType: type,
         snapshotData: dataToSave,
-        periodStart: startDate || new Date().toISOString(),
-        periodEnd: endDate || new Date().toISOString(),
+        periodStart: dateRange?.from || new Date().toISOString(),
+        periodEnd: dateRange?.to || new Date().toISOString(),
       });
 
       toast.success('Snapshot saved successfully');
@@ -1394,21 +1395,11 @@ const Reports = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-xl border border-border/50">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent border-none text-sm outline-none px-2 rounded-lg"
-                />
-                <span className="text-muted-foreground/50">-</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent border-none text-sm outline-none px-2 rounded-lg"
-                />
-              </div>
+              <DateRangePicker
+                date={dateRange}
+                setDate={setDateRange}
+                className="w-full sm:w-auto"
+              />
               <Button
                 onClick={() => exportAdvancedPDF('pnl')}
                 isLoading={isExporting}
