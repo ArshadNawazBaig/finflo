@@ -103,8 +103,12 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     if (loan.interestType === 'simple') {
       const months = loan.duration || 1;
       const totalInterest = loan.totalAmount - loan.principal;
-      interestAmount = Math.round(totalInterest / months);
-      principalAmount = repaymentAmount - interestAmount;
+      // Interest per full installment; cap at actual payment to avoid overstating interest on partial payments
+      const interestPerInstallment = totalInterest / months;
+      interestAmount = Math.round(
+        Math.min(interestPerInstallment, repaymentAmount),
+      );
+      principalAmount = Math.max(0, repaymentAmount - interestAmount);
     } else {
       // EMI (Reducing Balance)
       // Interest portion = (Current Remaining Principal) * (Monthly Interest Rate)

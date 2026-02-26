@@ -321,6 +321,7 @@ const getDashboardStats = async (req, res) => {
           _id: null,
           totalDeposits: { $sum: '$currentBalance' },
           totalInvested: { $sum: '$totalInvested' },
+          totalWithdrawn: { $sum: '$totalWithdrawn' },
           totalMembers: { $sum: 1 },
         },
       },
@@ -329,8 +330,17 @@ const getDashboardStats = async (req, res) => {
     const {
       totalDeposits = 0,
       totalInvested = 0,
+      totalWithdrawnByMembers = 0,
       totalMembers = 0,
-    } = memberStatsAgg[0] || {};
+    } = (() => {
+      const s = memberStatsAgg[0] || {};
+      return {
+        totalDeposits: s.totalDeposits || 0,
+        totalInvested: s.totalInvested || 0,
+        totalWithdrawnByMembers: s.totalWithdrawn || 0,
+        totalMembers: s.totalMembers || 0,
+      };
+    })();
 
     // 4. Financial Transaction (Liquidity) Aggregation
     const ftBaseMatch = { user: req.user.effectiveOwnerId };
@@ -363,8 +373,9 @@ const getDashboardStats = async (req, res) => {
       totalExpenses = 0,
     } = transactionStats[0] || {};
 
+    // Liquidity = Total money in (deposits + repayments) minus money out (disbursements + withdrawals + expenses)
     const netLiquidity = Math.round(
-      totalIncome - totalExpense - totalLoanDisbursed,
+      totalIncome - totalExpense - totalLoanDisbursed - totalWithdrawnByMembers,
     );
     const netProfit = Math.round(totalProfit);
 

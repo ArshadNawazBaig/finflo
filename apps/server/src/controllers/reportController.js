@@ -375,6 +375,8 @@ const getTrialBalance = async (req, res) => {
     // 3. Equity / Retained Earnings
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
+        // Prefer the precise stored interestAmount; fall back to ratio for legacy records
+        if (r.interestAmount != null) return sum + r.interestAmount;
         if (
           !r.loan ||
           !r.loan.totalAmount ||
@@ -464,6 +466,8 @@ const getProfitAndLoss = async (req, res) => {
 
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
+        // Prefer the precise stored interestAmount; fall back to ratio for legacy records
+        if (r.interestAmount != null) return sum + r.interestAmount;
         if (
           !r.loan ||
           !r.loan.totalAmount ||
@@ -555,7 +559,7 @@ const getBranchSummary = async (req, res) => {
         $group: {
           _id: '$branchId',
           totalMembers: { $sum: 1 },
-          totalInvested: { $sum: '$currentBalance' },
+          totalInvested: { $sum: '$totalInvested' }, // cumulative deposits, not net balance
           totalProfit: { $sum: '$totalProfit' },
         },
       },

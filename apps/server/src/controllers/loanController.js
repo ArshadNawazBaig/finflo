@@ -968,9 +968,12 @@ const getUpcomingRepayments = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     for (const loan of loans) {
-      // Calculate how many installments are covered by the total amount paid
-      // This allows a single payment to cover multiple installments correctly
-      const installmentsPaid = Math.floor((loan.paidAmount || 0) / loan.emi);
+      // Calculate how many installments are covered by the total amount paid.
+      // Add a small tolerance (0.5) before flooring to avoid floating-point off-by-one:
+      // e.g. 3000 / 1000.0001 ≈ 2.9999 which would incorrectly floor to 2.
+      const installmentsPaid = Math.floor(
+        ((loan.paidAmount || 0) + 0.5) / loan.emi,
+      );
 
       const unpaidInstallments = [];
       for (let i = 1; i <= loan.duration; i++) {
