@@ -247,6 +247,15 @@ const getDashboardStats = async (req, res) => {
           activeLoans: {
             $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
           },
+          overdueLoans: {
+            $sum: { $cond: [{ $eq: ['$status', 'overdue'] }, 1, 0] },
+          },
+          overdueAmount: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'overdue'] }, '$remainingAmount', 0],
+            },
+          },
+          totalDue: { $sum: '$totalAmount' },
           outstandingAmount: { $sum: '$remainingAmount' },
           totalDisbursed: { $sum: '$principal' },
           currentMonthActive: {
@@ -293,12 +302,30 @@ const getDashboardStats = async (req, res) => {
 
     const {
       activeLoans = 0,
+      overdueLoans = 0,
+      overdueAmount = 0,
+      totalDue = 0,
       outstandingAmount = 0,
       totalDisbursed = 0,
       prevMonthActive = 0,
       prevMonthOutstanding = 0,
       prevMonthDisbursed = 0,
     } = loanStatsAgg[0] || {};
+
+    // Collection Rate: how much of total due has been collected
+    const collectionRate =
+      totalDue > 0 ? Math.round((totalRepaid / totalDue) * 100) : 0;
+
+    // Risk Grade Distribution
+    const riskDistAgg = await Loan.aggregate([
+      { $match: { ...loanMatch, status: 'active' } },
+      { $group: { _id: '$riskDetails.grade', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+    const riskDistribution = riskDistAgg.map((r) => ({
+      grade: r._id || 'N/A',
+      count: r.count,
+    }));
 
     const loansChange = calculatePercentageChange(activeLoans, prevMonthActive);
     const outstandingChange = calculatePercentageChange(
@@ -584,6 +611,16 @@ const getDashboardStats = async (req, res) => {
           amount: outstandingAmount,
           percentage: outstandingChange,
         },
+        overdue: {
+          count: overdueLoans,
+          amount: overdueAmount,
+        },
+        members: {
+          total: totalMembers,
+          deposits: totalDeposits,
+        },
+        collectionRate,
+        riskDistribution,
         forecast: {
           total6Months: totalProjected,
           percentage: forecastPercentage,
