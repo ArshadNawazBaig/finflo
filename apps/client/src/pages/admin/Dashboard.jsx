@@ -59,39 +59,47 @@ const RISK_COLORS = {
 const QUICK_ACTIONS = [
   {
     label: 'New Loan',
-    icon: <CreditCard size={18} />,
+    description: 'Disburse a new loan',
+    icon: <CreditCard size={22} />,
     route: '/loans',
     permission: 'manage_loans',
     altPermission: 'create_loan',
-    color:
-      'from-primary/20 to-primary/5 border-primary/20 text-primary hover:shadow-primary/10',
+    iconBg: 'bg-primary',
+    glow: 'hover:shadow-primary/20',
+    accent: 'text-primary',
   },
   {
     label: 'Add Member',
-    icon: <UserPlus size={18} />,
+    description: 'Register a new member',
+    icon: <UserPlus size={22} />,
     route: '/members',
     permission: 'manage_members',
     altPermission: 'create_member',
-    color:
-      'from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500 hover:shadow-blue-500/10',
+    iconBg: 'bg-blue-500',
+    glow: 'hover:shadow-blue-500/20',
+    accent: 'text-blue-500',
   },
   {
     label: 'Record Payment',
-    icon: <DollarSign size={18} />,
+    description: 'Log a loan repayment',
+    icon: <DollarSign size={22} />,
     route: '/transactions',
     permission: 'manage_loans',
     altPermission: 'create_loan',
-    color:
-      'from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500 hover:shadow-emerald-500/10',
+    iconBg: 'bg-emerald-500',
+    glow: 'hover:shadow-emerald-500/20',
+    accent: 'text-emerald-500',
   },
   {
     label: 'View Reports',
-    icon: <BarChart3 size={18} />,
+    description: 'Analytics & statements',
+    icon: <BarChart3 size={22} />,
     route: '/reports',
     permission: 'view_reports',
     altPermission: null,
-    color:
-      'from-amber-500/20 to-amber-500/5 border-amber-500/20 text-amber-500 hover:shadow-amber-500/10',
+    iconBg: 'bg-amber-500',
+    glow: 'hover:shadow-amber-500/20',
+    accent: 'text-amber-500',
   },
 ];
 
@@ -108,6 +116,8 @@ const Dashboard = () => {
   const [branchCount, setBranchCount] = useState(0);
   const [planLimits, setPlanLimits] = useState(null);
   const [userName, setUserName] = useState('admin');
+  const [isManager, setIsManager] = useState(false);
+  const [branchName, setBranchName] = useState('');
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 6),
     to: new Date(),
@@ -178,6 +188,21 @@ const Dashboard = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user?.name) setUserName(user.name);
     if (user?.role) setUserRole(user.role);
+
+    // Detect branch manager and resolve branch name
+    const managerFlag = user?.isManager === true;
+    setIsManager(managerFlag);
+    if (managerFlag) {
+      api
+        .get('/auth/me')
+        .then((res) => {
+          const branchObj = res.data?.branch;
+          if (branchObj?.name) setBranchName(capitalize(branchObj.name));
+          else if (typeof branchObj === 'string') setBranchName(branchObj);
+        })
+        .catch(() => {});
+    }
+
     fetchDashboardData(true);
   }, []);
 
@@ -228,7 +253,36 @@ const Dashboard = () => {
         }
       />
 
-      {/* ── Plan Usage Banner (admin only) ───────────────────── */}
+      {/* ── Branch Scope Banner (branch managers only) ────────── */}
+      {isManager && (
+        <div className="flex items-center gap-4 rounded-[1.75rem] border border-teal-500/25 bg-teal-500/8 px-5 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-teal-500/15 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-teal-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-500/80">
+                Branch View
+              </p>
+              {branchName && (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+                  {branchName}
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-foreground/80 mt-0.5">
+              You're viewing data for your assigned branch only.{' '}
+              {branchName && (
+                <span className="font-black text-teal-600 dark:text-teal-400">
+                  {branchName}
+                </span>
+              )}{' '}
+              metrics are displayed across all sections below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {!loading &&
         userRole === 'admin' &&
         userPlan !== 'Pro' &&
@@ -327,39 +381,70 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ── Quick Actions ─────────────────────────────────────── */}
+      {/* ── Quick Actions (Sleek Horizontal Strips) ───────────── */}
       {visibleActions.length > 0 &&
         (loading ? (
           <QuickActionsSkeleton count={visibleActions.length || 4} />
         ) : (
-          <div
-            className={cn(
-              'grid gap-3 sm:gap-4',
-              visibleActions.length === 1 && 'grid-cols-1 sm:grid-cols-2',
-              visibleActions.length === 2 && 'grid-cols-2',
-              visibleActions.length === 3 && 'grid-cols-2 sm:grid-cols-3',
-              visibleActions.length >= 4 && 'grid-cols-2 sm:grid-cols-4',
-            )}
-          >
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             {visibleActions.map((action) => (
               <button
                 key={action.label}
                 onClick={() => navigate(action.route)}
                 className={cn(
-                  'group relative flex items-center gap-3 rounded-2xl border bg-gradient-to-br p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg text-left',
-                  action.color,
+                  'group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 backdrop-blur-md p-2 pr-5 transition-all duration-300 hover:border-border/80 hover:-translate-y-0.5 hover:shadow-lg',
+                  action.glow,
                 )}
               >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-current/10 transition-transform duration-300 group-hover:scale-110">
+                {/* Ambient hover glow inside the button */}
+                <div
+                  className={cn(
+                    'absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500',
+                    action.iconBg,
+                  )}
+                />
+
+                {/* Left Icon Pill */}
+                <div
+                  className={cn(
+                    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3',
+                    action.iconBg,
+                  )}
+                >
+                  {/* Subtle shine */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
                   {action.icon}
                 </div>
-                <span className="text-sm font-black tracking-tight">
-                  {action.label}
-                </span>
-                <ArrowUpRight
-                  size={14}
-                  className="ml-auto opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                />
+
+                {/* Center Text */}
+                <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                  <p
+                    className={cn(
+                      'text-sm font-black tracking-tight truncate leading-tight',
+                      action.accent,
+                    )}
+                  >
+                    {action.label}
+                  </p>
+                  {action.description && (
+                    <p className="text-[10px] font-semibold text-muted-foreground/60 truncate uppercase tracking-widest mt-0.5 leading-tight">
+                      {action.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Right Arrow */}
+                <div
+                  className={cn(
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/30 transition-all duration-300 group-hover:bg-current/10',
+                    action.accent,
+                  )}
+                >
+                  <ArrowUpRight
+                    size={14}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </div>
               </button>
             ))}
           </div>
