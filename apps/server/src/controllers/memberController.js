@@ -738,8 +738,9 @@ const addInvestment = async (req, res) => {
       if (member.email) {
         await sendEmail({
           to: member.email,
+          fromName: 'FinFlow',
           subject: 'Deposit Confirmation',
-          html: `<p>Hello ${member.name},</p>
+          html: `<p>Hello <span style="font-size: 16px; font-weight: bold; text-transform: capitalize;">${member.name}</span>,</p>
                  <p>Your deposit of <strong>Rs. ${amount.toLocaleString()}</strong> has been successfully processed.</p>
                  <p>Current Balance: <strong>Rs. ${updatedMember.currentBalance.toLocaleString()}</strong></p>`,
         });
@@ -903,6 +904,7 @@ const withdrawInvestment = async (req, res) => {
       if (member.email) {
         await sendEmail({
           to: member.email,
+          fromName: 'FinFlow',
           subject: 'Withdrawal Confirmation',
           html: `<p>Hello ${member.name},</p>
                  <p>A withdrawal of <strong>Rs. ${amount.toLocaleString()}</strong> has been processed from your account.</p>
@@ -1434,7 +1436,7 @@ const getMemberActivity = async (req, res) => {
         // Fallback checks for notes if something didn't match exactly
         const isWalletRepayment =
           r.notes &&
-          (r.notes.includes('Wealth Portal') ||
+          (r.notes.includes('FinFlow') ||
             r.notes.includes('Self-repayment') ||
             r.notes.includes('Automatic deduction'));
         return !isWalletRepayment;

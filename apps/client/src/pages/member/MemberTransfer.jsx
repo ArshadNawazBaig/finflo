@@ -246,7 +246,7 @@ const MemberTransfer = () => {
 
   // ── QR scan ───────────────────────────────────────────────────────────────
   const handleScanSuccess = (decodedText) => {
-    setRecipient(decodedText.replace('wealthportal:', ''));
+    setRecipient(decodedText.replace('finflow:', ''));
     setShowScanner(false);
     toast.success('Member detected!');
   };
@@ -411,7 +411,7 @@ const MemberTransfer = () => {
                   New Transfer
                 </h3>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Secure fund movement between wealth accounts.
+                  Secure fund movement between FinFlow accounts.
                 </p>
               </div>
 
@@ -616,7 +616,7 @@ const MemberTransfer = () => {
               </div>
               <div className="p-8 bg-white rounded-[2.5rem] shadow-inner border-[12px] border-primary/5">
                 <QRCodeSVG
-                  value={`wealthportal:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
+                  value={`finflow:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
                   size={200}
                   level="H"
                   includeMargin={false}
@@ -651,7 +651,7 @@ const MemberTransfer = () => {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <CheckCircle2 size={12} className="text-primary" />
-                  Verified Wealth Account
+                  Verified FinFlow Account
                 </div>
               </div>
             </div>

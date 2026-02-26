@@ -758,7 +758,7 @@ const Settings = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              disabled={twoFALoading}
+                              isLoading={twoFALoading}
                               onClick={async () => {
                                 try {
                                   setTwoFALoading(true);
@@ -775,12 +775,8 @@ const Settings = () => {
                                 }
                               }}
                             >
-                              {twoFALoading ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                <QrCode size={14} />
-                              )}
-                              <span className="ml-2">Set Up 2FA</span>
+                              <QrCode size={14} className="mr-2" />
+                              <span>Set Up 2FA</span>
                             </Button>
                           ) : (
                             <div className="space-y-3 animate-in fade-in">
@@ -816,9 +812,8 @@ const Settings = () => {
                                 </div>
                                 <Button
                                   size="sm"
-                                  disabled={
-                                    twoFACode.length < 6 || twoFALoading
-                                  }
+                                  isLoading={twoFALoading}
+                                  disabled={twoFACode.length < 6}
                                   onClick={async () => {
                                     try {
                                       setTwoFALoading(true);
@@ -841,15 +836,8 @@ const Settings = () => {
                                     }
                                   }}
                                 >
-                                  {twoFALoading ? (
-                                    <Loader2
-                                      size={14}
-                                      className="animate-spin"
-                                    />
-                                  ) : (
-                                    <Check size={14} />
-                                  )}
-                                  <span className="ml-1">Verify</span>
+                                  <Check size={14} className="mr-1" />
+                                  <span>Verify</span>
                                 </Button>
                               </div>
                             </div>
@@ -875,7 +863,8 @@ const Settings = () => {
                             <Button
                               variant="destructive"
                               size="sm"
-                              disabled={!disable2FAPassword || twoFALoading}
+                              isLoading={twoFALoading}
+                              disabled={!disable2FAPassword}
                               onClick={async () => {
                                 try {
                                   setTwoFALoading(true);
@@ -895,11 +884,7 @@ const Settings = () => {
                                 }
                               }}
                             >
-                              {twoFALoading ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                'Disable'
-                              )}
+                              Disable
                             </Button>
                           </div>
                         </div>
@@ -1078,11 +1063,10 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               variant="gradient"
               className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Save Changes
             </Button>
           </div>
@@ -1184,11 +1168,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               variant="gradient"
               className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Update Password
             </Button>
           </div>
@@ -1279,7 +1262,9 @@ const ConfigurationSection = ({ user }) => {
     setTriggeringACE(true);
     try {
       const { data } = await api.post('/communication/trigger-scan');
-      toast.success(data.message || 'ACE scan triggered successfully');
+      toast.success(
+        data.message || 'Automated Communication scan triggered successfully',
+      );
     } catch (error) {
       console.error('Failed to trigger ACE:', error);
       toast.error('Failed to trigger automated communication scan');
@@ -1651,21 +1636,12 @@ const ConfigurationSection = ({ user }) => {
         <div className="flex justify-end pt-2">
           <Button
             type="submit"
-            disabled={saving}
+            isLoading={saving}
             variant="gradient"
             className="h-11 px-8 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Updating Rules...
-              </>
-            ) : (
-              <>
-                <Save size={14} className="mr-2" />
-                Apply Global Changes
-              </>
-            )}
+            <Save size={14} className="mr-2" />
+            Apply Global Changes
           </Button>
         </div>
       </form>
@@ -1700,17 +1676,10 @@ const ConfigurationSection = ({ user }) => {
             variant="outline"
             size="sm"
             onClick={handleTriggerACE}
-            disabled={triggeringACE}
+            isLoading={triggeringACE}
             className="w-full sm:w-auto h-11 px-6 rounded-xl border-primary/20 hover:bg-primary text-primary hover:text-white font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
-            {triggeringACE ? (
-              <>
-                <Loader2 className="w-3 h-3 animate-spin mr-2" />
-                Scanning...
-              </>
-            ) : (
-              'Execute Scan'
-            )}
+            Execute Scan
           </Button>
         </div>
       </div>
@@ -1813,14 +1782,11 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={confirmText !== 'DELETE' || loading}
+              isLoading={loading}
+              disabled={confirmText !== 'DELETE'}
               className="flex-[2] h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest disabled:opacity-50 transition-all"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                'Permanently Delete Everything'
-              )}
+              Permanently Delete Everything
             </Button>
           </div>
         </div>

@@ -7,11 +7,11 @@ const { loanReminderEmail } = require('../utils/emailTemplates');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
 /**
- * ACE: Automated Communication Engine
+ * FinFlow: Automated Communication Engine
  * Scans active loans and sends reminders/alerts.
  */
 const runReminderService = async () => {
-  console.log('ACE: Starting daily automated reminder scan...');
+  console.log('FinFlow: Starting daily automated reminder scan...');
 
   try {
     const activeLoans = await Loan.find({ status: 'active' }).populate(
@@ -52,9 +52,9 @@ const runReminderService = async () => {
         }
       }
     }
-    console.log('ACE: Completed daily scan.');
+    console.log('FinFlow: Completed daily scan.');
   } catch (error) {
-    console.error('ACE Error during reminder scan:', error);
+    console.error('FinFlow Error during reminder scan:', error);
   }
 };
 
@@ -101,7 +101,7 @@ const sendReminder = async (loan, installment, type) => {
       await sendEmail({
         email: customer.email,
         subject: title,
-        message: message + '\n\nBest regards,\nLoan Management Team',
+        message: message + '\n\nBest regards,\nFinFlow Team',
         html: loanReminderEmail(customer.name, amount, dateStr, type),
       });
     }
@@ -115,14 +115,14 @@ const sendReminder = async (loan, installment, type) => {
     await loan.save();
   } catch (err) {
     console.error(
-      `ACE: Failed to send ${type} reminder for Loan ${loan._id}:`,
+      `FinFlow: Failed to send ${type} reminder for Loan ${loan._id}:`,
       err,
     );
   }
 };
 
-// Initialize Cron Job (Run daily at midnight)
-const initACE = () => {
+// Initialize FinFlow (Run daily at midnight)
+const initFinFlow = () => {
   cron.schedule(
     '0 0 * * *',
     () => {
@@ -132,7 +132,7 @@ const initACE = () => {
       timezone: 'UTC', // Or system default
     },
   );
-  console.log('ACE: Automated Communication Engine initialized.');
+  console.log('FinFlow: Automated Communication Engine initialized.');
 };
 
-module.exports = { initACE, runReminderService };
+module.exports = { initFinFlow, runReminderService };

@@ -75,11 +75,13 @@ const BranchDetail = () => {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [expenseData, setExpenseData] = useState({
-    amount: '',
-    category: 'rent',
-    description: '',
     staffId: '',
   });
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadingLedger, setIsDownloadingLedger] = useState(false);
+  const [isDownloadingExpenses, setIsDownloadingExpenses] = useState(false);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
 
   // Financials Pagination States
   const [expenses, setExpenses] = useState([]);
@@ -314,7 +316,7 @@ const BranchDetail = () => {
         toast.error('Please select a date range first');
         return;
       }
-
+      setIsDownloading(true);
       const response = await api.get('/dashboard/download-statement', {
         params: {
           startDate: dateRange.from.toISOString(),
@@ -334,6 +336,8 @@ const BranchDetail = () => {
     } catch (error) {
       console.error('Failed to download statement', error);
       toast.error('Failed to download statement');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -343,7 +347,7 @@ const BranchDetail = () => {
         toast.error('Please select a date range first');
         return;
       }
-
+      setIsDownloadingLedger(true);
       const response = await api.get('/dashboard/download-statement', {
         params: {
           startDate: ledgerDateRange.from.toISOString(),
@@ -363,6 +367,8 @@ const BranchDetail = () => {
     } catch (error) {
       console.error('Failed to download ledger', error);
       toast.error('Failed to download ledger');
+    } finally {
+      setIsDownloadingLedger(false);
     }
   };
 
@@ -372,7 +378,7 @@ const BranchDetail = () => {
         toast.error('Please select a date range first');
         return;
       }
-
+      setIsDownloadingExpenses(true);
       // Expenses are part of the statement, but we might want to filter specifically by type if the API supported it
       // For now, use the same statement API which includes expenses
       const response = await api.get('/dashboard/download-statement', {
@@ -394,6 +400,8 @@ const BranchDetail = () => {
     } catch (error) {
       console.error('Failed to download expenses', error);
       toast.error('Failed to download expenses');
+    } finally {
+      setIsDownloadingExpenses(false);
     }
   };
 
@@ -509,6 +517,7 @@ const BranchDetail = () => {
 
   const toggleStatus = async () => {
     try {
+      setIsTogglingStatus(true);
       const newStatus = !branch.isActive;
       await api.put(`/branches/${id}`, {
         isActive: newStatus,
@@ -519,6 +528,8 @@ const BranchDetail = () => {
       );
     } catch (error) {
       toast.error('Failed to update status');
+    } finally {
+      setIsTogglingStatus(false);
     }
   };
 
@@ -528,6 +539,7 @@ const BranchDetail = () => {
         toast.error('Please select a staff member for salary expenses');
         return;
       }
+      setIsAddingExpense(true);
       await api.post(`/branches/${id}/expenses`, expenseData);
       toast.success('Expense recorded successfully');
       setIsExpenseModalOpen(false);
@@ -552,6 +564,8 @@ const BranchDetail = () => {
       ]);
     } catch (error) {
       toast.error('Failed to record expense');
+    } finally {
+      setIsAddingExpense(false);
     }
   };
 
@@ -704,6 +718,7 @@ const BranchDetail = () => {
                       setDateRange={setDateRange}
                       onDownload={handleDownload}
                       loading={chartLoading}
+                      isDownloading={isDownloading}
                     />
                   )}
                 </div>
@@ -836,6 +851,7 @@ const BranchDetail = () => {
                     <Button
                       variant="outline"
                       size="icon"
+                      isLoading={isDownloadingExpenses}
                       className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                       onClick={handleExpenseDownload}
                       title="Download Expense Statement (PDF)"
@@ -959,6 +975,7 @@ const BranchDetail = () => {
                     <Button
                       variant="outline"
                       size="icon"
+                      isLoading={isDownloadingLedger}
                       className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                       onClick={handleLedgerDownload}
                       title="Download Ledger Statement (PDF)"
@@ -1065,6 +1082,7 @@ const BranchDetail = () => {
                     <Button
                       variant={branch.isActive ? 'destructive' : 'default'}
                       onClick={toggleStatus}
+                      isLoading={isTogglingStatus}
                       className="rounded-full px-10 h-14 font-black uppercase tracking-widest text-[11px] shadow-xl transition-all active:scale-95"
                     >
                       {branch.isActive ? (
@@ -1289,6 +1307,7 @@ const BranchDetail = () => {
               </Button>
               <Button
                 onClick={handleAddExpense}
+                isLoading={isAddingExpense}
                 className="flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/20 transform transition-all active:scale-95 order-1 sm:order-2"
               >
                 Authorize

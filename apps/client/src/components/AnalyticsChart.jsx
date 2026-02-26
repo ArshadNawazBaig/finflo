@@ -24,7 +24,7 @@ const AnalyticsChart = ({
   dateRange,
   setDateRange,
   onDownload,
-  loading,
+  isDownloading,
   className,
 }) => {
   const CustomTooltip = ({ active, payload, label }) => {
@@ -117,7 +117,7 @@ const AnalyticsChart = ({
               size="icon"
               className="relative rounded-2xl border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group overflow-hidden"
               onClick={onDownload}
-              isLoading={loading}
+              isLoading={isDownloading}
               title="Download Statement (PDF)"
             >
               <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />

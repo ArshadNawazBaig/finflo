@@ -230,18 +230,11 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               variant="gradient"
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
             >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" />
-                  Updating...
-                </div>
-              ) : (
-                'Confirm Changes'
-              )}
+              Confirm Changes
             </Button>
           </div>
         </form>

@@ -41,6 +41,7 @@ const LoanProducts = () => {
   const [deleteProduct, setDeleteProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -65,6 +66,7 @@ const LoanProducts = () => {
 
   const handleDelete = async () => {
     if (!deleteProduct) return;
+    setIsDeleting(true);
     try {
       await api.delete(`/loan-products/${deleteProduct._id}`);
       toast.success('Loan product deleted successfully');
@@ -72,6 +74,8 @@ const LoanProducts = () => {
       setDeleteProduct(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete product');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -294,12 +298,14 @@ const LoanProducts = () => {
             <AlertDialogCancel className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={handleDelete}
+              isLoading={isDeleting}
+              variant="destructive"
               className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold uppercase tracking-widest text-[10px]"
             >
               Delete Product
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

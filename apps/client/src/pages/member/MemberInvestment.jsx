@@ -162,7 +162,7 @@ const MemberInvestment = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
         title="Asset Management"
-        description="Monitor your investments, track growth, and manage your wealth portfolio."
+        description="Monitor your investments, track growth, and manage your FinFlow portfolio."
       />
 
       {/* Stats Grid */}

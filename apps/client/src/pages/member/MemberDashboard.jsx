@@ -239,8 +239,8 @@ const MemberDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title="Wealth Portal"
-        description={`Welcome back, ${capitalize(member?.name)}. Manage your wealth and financial targets.`}
+        title="FinFlow"
+        description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
       />
 
       {loading && loans.length === 0 ? (

@@ -110,6 +110,7 @@ const Dashboard = () => {
   const [analyticsData, setAnalyticsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [userRole, setUserRole] = useState('');
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
@@ -213,6 +214,7 @@ const Dashboard = () => {
 
   const handleDownload = async () => {
     try {
+      setIsDownloading(true);
       if (!dateRange?.from || !dateRange?.to) {
         toast.error('Please select a date range first');
         return;
@@ -229,6 +231,8 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Failed to download statement', error);
       toast.error('Failed to download statement');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -804,6 +808,7 @@ const Dashboard = () => {
                 setDateRange={setDateRange}
                 onDownload={handleDownload}
                 loading={chartLoading}
+                isDownloading={isDownloading}
                 className="h-full"
               />
             )

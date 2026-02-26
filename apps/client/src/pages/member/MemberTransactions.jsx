@@ -189,7 +189,7 @@ const MemberTransactions = () => {
     // Header styling
     doc.setFontSize(22);
     doc.setTextColor(16, 185, 129); // Primary Emerald color
-    doc.text('ACE WEALTH PORTAL', 14, 22);
+    doc.text('FINFLOW PORTAL', 14, 22);
 
     doc.setFontSize(12);
     doc.setTextColor(100);

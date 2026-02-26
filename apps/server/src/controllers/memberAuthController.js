@@ -523,7 +523,7 @@ const generate2FA = async (req, res) => {
     member.twoFactorSecret = secret;
     await member.save({ validateBeforeSave: false });
 
-    const appName = 'ACE Wealth Portal';
+    const appName = 'FinFlow';
     const otpauthUrl = authenticator.keyuri(member.email, appName, secret);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 

@@ -29,7 +29,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    notes: 'Self-repayment via Wealth Portal',
+    notes: 'Self-repayment via FinFlow',
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       setIsSettlement(false);
       setFormData({
         amount: '',
-        notes: 'Self-repayment via Wealth Portal',
+        notes: 'Self-repayment via FinFlow',
       });
     }
   }, [isOpen]);
@@ -170,7 +170,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <DialogDescription className="text-sm font-medium">
                   {isSettlement
                     ? 'Pay off your loan today with adjusted interest.'
-                    : 'Select an amount to pay from your Wealth Balance.'}
+                    : 'Select an amount to pay from your FinFlow Balance.'}
                 </DialogDescription>
               </div>
             </div>
@@ -350,7 +350,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </form>
 
           <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
-            TRANSACTION SECURED BY FINANCEFLOW 3D-PROTOCOL
+            TRANSACTION SECURED BY FINFLOW 3D-PROTOCOL
           </p>
         </div>
       </DialogContent>

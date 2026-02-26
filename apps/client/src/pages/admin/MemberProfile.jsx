@@ -130,6 +130,9 @@ const MemberProfile = () => {
   const [shareTotalPages, setShareTotalPages] = useState(1);
   const [shareTotal, setShareTotal] = useState(0);
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
+  const [isSubmittingInvestment, setIsSubmittingInvestment] = useState(false);
+  const [isSubmittingProfitRate, setIsSubmittingProfitRate] = useState(false);
+  const [isUpdatingMember, setIsUpdatingMember] = useState(false);
   const [shareProfitRate, setShareProfitRate] = useState('');
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
@@ -441,6 +444,7 @@ const MemberProfile = () => {
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsSubmittingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
@@ -457,22 +461,26 @@ const MemberProfile = () => {
       fetchMemberData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
+    } finally {
+      setIsSubmittingInvestment(false);
     }
   };
 
   const handleProfitRateUpdate = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/members/${id}`, {
-        profitRate: parseFloat(newProfitRate) || 0,
+      setIsSubmittingProfitRate(true);
+      await api.put(`/members/${id}/profit-rate`, {
+        profitRate: parseFloat(newProfitRate),
       });
-      toast.success('Profit rate updated successfully');
+      toast.success('Profit rate updated');
       setShowProfitRateForm(false);
+      setNewProfitRate('');
       fetchMemberData();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || 'Failed to update profit rate',
-      );
+      toast.error('Failed to update profit rate');
+    } finally {
+      setIsSubmittingProfitRate(false);
     }
   };
 
@@ -580,12 +588,15 @@ const MemberProfile = () => {
   const handleMemberUpdate = async (e) => {
     e.preventDefault();
     try {
+      setIsUpdatingMember(true);
       await api.put(`/members/${id}`, editForm);
-      toast.success('Member details updated successfully');
+      toast.success('Member profile updated');
       setShowMemberForm(false);
       fetchMemberData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update member');
+    } finally {
+      setIsUpdatingMember(false);
     }
   };
 
@@ -901,6 +912,7 @@ const MemberProfile = () => {
                   <div className="flex gap-3 justify-end">
                     <Button
                       type="submit"
+                      isLoading={isUpdatingMember}
                       variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
@@ -938,6 +950,7 @@ const MemberProfile = () => {
                     </button>
                     <Button
                       type="submit"
+                      isLoading={isSubmittingProfitRate}
                       variant="gradient"
                       className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
@@ -1065,15 +1078,11 @@ const MemberProfile = () => {
                   <div className="flex gap-3 justify-end">
                     <Button
                       type="submit"
-                      disabled={isTransferring}
+                      isLoading={isTransferring}
                       variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
-                      {isTransferring ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Send size={16} className="mr-2" />
-                      )}
+                      {!isTransferring && <Send size={16} className="mr-2" />}
                       Initiate Transfer
                     </Button>
                   </div>
@@ -1196,16 +1205,17 @@ const MemberProfile = () => {
                     )}
 
                   <div className="flex gap-3 justify-end">
-                    <button
+                    <Button
                       type="submit"
+                      isLoading={isSubmittingInvestment}
                       className={`w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 text-white ${
                         investmentType === 'deposit'
-                          ? 'bg-emerald-600 shadow-xl shadow-emerald-500/20'
-                          : 'bg-indigo-600 shadow-xl shadow-indigo-500/20'
+                          ? 'bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:bg-emerald-700'
+                          : 'bg-indigo-600 shadow-xl shadow-indigo-500/20 hover:bg-indigo-700'
                       }`}
                     >
                       Execute Funds Movement
-                    </button>
+                    </Button>
                   </div>
                 </form>
               )}
@@ -1598,10 +1608,10 @@ const MemberProfile = () => {
                     >
                       Cancel
                     </button>
-                    <button
+                    <Button
                       type="submit"
-                      disabled={isSubmittingShare}
-                      className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all disabled:opacity-50 flex items-center gap-2 ${
+                      isLoading={isSubmittingShare}
+                      className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all flex items-center gap-2 ${
                         shareFormType === 'deposit'
                           ? 'bg-violet-600 hover:bg-violet-700'
                           : shareFormType === 'withdrawal'
@@ -1609,11 +1619,8 @@ const MemberProfile = () => {
                             : 'bg-amber-600 hover:bg-amber-700'
                       }`}
                     >
-                      {isSubmittingShare && (
-                        <Loader2 size={12} className="animate-spin" />
-                      )}
                       Confirm
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>

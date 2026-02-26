@@ -14,7 +14,14 @@ import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 
-const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
+const StaffTable = ({
+  data,
+  onToggleStatus,
+  onEdit,
+  onDelete,
+  pagination,
+  togglingId,
+}) => {
   return (
     <div className="relative overflow-x-auto">
       <table className="w-full text-sm text-left border-collapse">
@@ -118,6 +125,7 @@ const StaffTable = ({ data, onToggleStatus, onEdit, onDelete, pagination }) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => onToggleStatus(item._id)}
+                        isLoading={togglingId === item._id}
                         className={cn(
                           'h-8 w-8 p-0 rounded-full transition-colors',
                           item.isActive

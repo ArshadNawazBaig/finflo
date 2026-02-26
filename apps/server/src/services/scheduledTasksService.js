@@ -159,7 +159,7 @@ const runLateFeeAccrual = async () => {
 /**
  * Runs daily at 09:00.
  * Sends in-app notifications for upcoming EMIs: 7 days before AND 1 day before.
- * This complements the existing ACE email reminder (which covers 3-day reminders).
+ * This complements the existing FinFlow email reminder (which covers 3-day reminders).
  */
 const runRepaymentReminders = async () => {
   console.log('[CRON] runRepaymentReminders: starting...');

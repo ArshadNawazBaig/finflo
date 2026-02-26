@@ -58,6 +58,7 @@ const Loans = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [stats, setStats] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -181,6 +182,7 @@ const Loans = () => {
     if (!deleteLoan) return;
 
     try {
+      setIsDeleting(true);
       await api.delete(`/loans/${deleteLoan._id}`);
       toast.success('Loan deleted successfully');
       fetchLoans();
@@ -188,6 +190,8 @@ const Loans = () => {
       setDeleteLoan(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete loan');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -392,9 +396,10 @@ const Loans = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
+              disabled={isDeleting}
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
             >
-              Delete
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

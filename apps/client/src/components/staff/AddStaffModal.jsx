@@ -193,12 +193,9 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
             <Button
               type="submit"
               variant="gradient"
-              disabled={loading}
+              isLoading={loading}
               className="rounded-full px-8 text-xs font-black uppercase tracking-wider"
             >
-              {loading ? (
-                <Loader2 size={16} className="animate-spin mr-2" />
-              ) : null}
               Create Staff
             </Button>
           </DialogFooter>

@@ -49,11 +49,13 @@ const Members = () => {
   const [activeTab, setActiveTab] = useState('approved'); // 'approved' or 'pending'
   const [summary, setSummary] = useState({
     totalInvested: 0,
-    totalProfit: 0,
     activeMembers: 0,
   });
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [approvingId, setApprovingId] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const observerTarget = useRef(null);
 
@@ -183,6 +185,7 @@ const Members = () => {
   const handleDeleteMember = async () => {
     if (!deleteMemberId) return;
     try {
+      setIsDeleting(true);
       await api.delete(`/members/${deleteMemberId}`);
       toast.success('Member deleted successfully');
       setDeleteMemberId(null);
@@ -190,17 +193,22 @@ const Members = () => {
       fetchSummary();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete member');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleApproveMember = async (id) => {
     try {
+      setApprovingId(id);
       await api.put(`/members/${id}/approval`, { status: 'approved' });
       toast.success('Member approved successfully');
       fetchMembers(false);
       fetchSummary();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to approve member');
+    } finally {
+      setApprovingId(null);
     }
   };
 
@@ -212,11 +220,14 @@ const Members = () => {
     )
       return;
     try {
+      setRejectingId(id);
       await api.put(`/members/${id}/approval`, { status: 'rejected' });
       toast.success('Member rejected');
       fetchMembers(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject member');
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -353,6 +364,8 @@ const Members = () => {
               onDelete={setDeleteMemberId}
               onApprove={handleApproveMember}
               onReject={handleRejectMember}
+              approvingId={approvingId}
+              rejectingId={rejectingId}
               pagination={{
                 currentPage,
                 totalPages,
@@ -392,9 +405,10 @@ const Members = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteMember}
+              disabled={isDeleting}
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
             >
-              Delete Member
+              {isDeleting ? 'Deleting...' : 'Delete Member'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

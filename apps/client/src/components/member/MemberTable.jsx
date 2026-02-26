@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Pagination from '../ui/Pagination';
+import { Button } from '../ui/button';
 import EmptyState from '@/components/ui/EmptyState';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
@@ -24,6 +25,8 @@ const MemberTable = ({
   onDelete,
   onApprove,
   onReject,
+  approvingId,
+  rejectingId,
   sortBy,
   sortOrder,
   onSort,
@@ -196,20 +199,26 @@ const MemberTable = ({
                     {member.approvalStatus === 'pending' ? (
                       <>
                         <Tooltip content="Reject" position="top">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            isLoading={rejectingId === member._id}
                             onClick={() => onReject(member._id)}
-                            className="p-1.5 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                            className="h-8 w-8 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
                           >
                             <X size={16} />
-                          </button>
+                          </Button>
                         </Tooltip>
                         <Tooltip content="Approve" position="top">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            isLoading={approvingId === member._id}
                             onClick={() => onApprove(member._id)}
-                            className="p-1.5 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-500 transition-colors"
+                            className="h-8 w-8 rounded-md hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-500 transition-colors"
                           >
                             <Check size={16} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       </>
                     ) : (

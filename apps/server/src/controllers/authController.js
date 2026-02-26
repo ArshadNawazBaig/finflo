@@ -706,7 +706,7 @@ const generate2FA = async (req, res) => {
     user.twoFactorSecret = secret;
     await user.save({ validateBeforeSave: false });
 
-    const appName = 'ACE Wealth Portal';
+    const appName = 'FinFlow';
     const otpauthUrl = authenticator.keyuri(user.email, appName, secret);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 

@@ -97,6 +97,8 @@ const Branches = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
 
   const fetchBranches = async () => {
     try {
@@ -201,6 +203,7 @@ const Branches = () => {
 
   const toggleStatus = async (branch) => {
     try {
+      setTogglingId(branch._id);
       await api.put(`/branches/${branch._id}`, {
         isActive: !branch.isActive,
       });
@@ -210,18 +213,23 @@ const Branches = () => {
       fetchBranches();
     } catch (error) {
       toast.error('Failed to update status');
+    } finally {
+      setTogglingId(null);
     }
   };
 
   const handleDeleteBranch = async () => {
     if (!deleteBranchId) return;
     try {
+      setIsDeleting(true);
       await api.delete(`/branches/${deleteBranchId}`);
       toast.success('Branch deleted successfully');
       setDeleteBranchId(null);
       fetchBranches();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete branch');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -344,25 +352,30 @@ const Branches = () => {
                                 e.stopPropagation();
                                 toggleStatus(branch);
                               }}
+                              disabled={togglingId === branch._id}
                               className="rounded-xl py-2.5 font-bold focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
                             >
-                              {branch.isActive ? (
-                                <>
-                                  <PowerOff
-                                    size={14}
-                                    className="mr-3 text-red-500"
-                                  />{' '}
-                                  Deactivate
-                                </>
+                              {togglingId === branch._id ? (
+                                <Loader2
+                                  size={14}
+                                  className="mr-3 animate-spin"
+                                />
+                              ) : branch.isActive ? (
+                                <PowerOff
+                                  size={14}
+                                  className="mr-3 text-red-500"
+                                />
                               ) : (
-                                <>
-                                  <Power
-                                    size={14}
-                                    className="mr-3 text-emerald-500"
-                                  />{' '}
-                                  Activate
-                                </>
+                                <Power
+                                  size={14}
+                                  className="mr-3 text-emerald-500"
+                                />
                               )}
+                              {togglingId === branch._id
+                                ? 'Updating...'
+                                : branch.isActive
+                                  ? 'Deactivate'
+                                  : 'Activate'}
                             </DropdownMenuItem>
                             <div className="h-px bg-border/40 my-1 mx-2" />
                             <DropdownMenuItem
@@ -753,12 +766,13 @@ const Branches = () => {
             <AlertDialogCancel className="rounded-full font-bold border-border/40 px-6">
               Hold On
             </AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={handleDeleteBranch}
+              isLoading={isDeleting}
               className="bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-xl shadow-red-500/20 hover:scale-[1.02] transform transition-all duration-300 rounded-full font-black uppercase tracking-widest text-[11px] px-8"
             >
               Confirm Deletion
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

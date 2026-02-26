@@ -404,22 +404,21 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </button>
             <Button
               type="submit"
+              isLoading={loading}
               disabled={
-                loading ||
-                (memberBalance !== null &&
-                  Number(formData.amount) > memberBalance &&
-                  !isFetchingBalance)
+                memberBalance !== null &&
+                Number(formData.amount) > memberBalance &&
+                !isFetchingBalance
               }
               variant={isSettlement ? 'gradient' : 'success'}
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >
-              {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : isSettlement ? (
-                <ArrowDownCircle size={14} />
-              ) : (
-                <Banknote size={14} />
-              )}
+              {!loading &&
+                (isSettlement ? (
+                  <ArrowDownCircle size={14} />
+                ) : (
+                  <Banknote size={14} />
+                ))}
               {isSettlement ? 'Confirm Settlement' : 'Confirm Payment'}
             </Button>
           </div>

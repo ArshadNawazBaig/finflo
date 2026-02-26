@@ -43,6 +43,8 @@ const Team = () => {
     active: 0,
     admins: 0,
   });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -177,7 +179,7 @@ const Team = () => {
 
   const handleDeleteStaff = async () => {
     if (!deleteStaffId) return;
-
+    setIsDeleting(true);
     try {
       await api.delete(`/staff/${deleteStaffId}`);
       toast.success('Staff member removed');
@@ -185,16 +187,21 @@ const Team = () => {
       fetchStaff();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete staff');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleToggleStatus = async (staffId) => {
+    setTogglingId(staffId);
     try {
       await api.patch(`/staff/${staffId}/toggle`);
       toast.success('Status updated successfully');
       fetchStaff();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -281,6 +288,7 @@ const Team = () => {
                       onToggleStatus={handleToggleStatus}
                       onEdit={handleEditStaff}
                       onDelete={setDeleteStaffId}
+                      togglingId={togglingId}
                     />
                   ))}
                 </div>
@@ -312,6 +320,7 @@ const Team = () => {
                   onToggleStatus={handleToggleStatus}
                   onEdit={handleEditStaff}
                   onDelete={setDeleteStaffId}
+                  togglingId={togglingId}
                   pagination={{
                     currentPage,
                     totalPages,
@@ -356,12 +365,14 @@ const Team = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={handleDeleteStaff}
+              isLoading={isDeleting}
+              variant="destructive"
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
             >
               Remove Member
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

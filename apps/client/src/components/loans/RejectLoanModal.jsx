@@ -137,14 +137,10 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               className="flex-1 rounded-lg font-bold bg-red-500 hover:bg-red-600 text-white"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                'Reject Loan'
-              )}
+              Reject Loan
             </Button>
           </div>
         </form>

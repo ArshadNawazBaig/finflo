@@ -59,6 +59,7 @@ const Roles = () => {
     permissions: [],
   });
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchRoles();
@@ -128,13 +129,15 @@ const Roles = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this role?')) return;
-
+    setDeletingId(id);
     try {
       await api.delete(`/roles/${id}`);
       toast.success('Role deleted successfully');
       fetchRoles();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete role');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -224,18 +227,23 @@ const Roles = () => {
                     </div>
                     {!role.isSystem && (
                       <div className="flex gap-2">
-                        <button
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => handleOpenModal(role)}
                           className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center hover:scale-110 transition-transform"
                         >
                           <Edit size={14} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => handleDelete(role._id)}
+                          isLoading={deletingId === role._id}
                           className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center hover:scale-110 transition-transform"
                         >
                           <Trash2 size={14} />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>

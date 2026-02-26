@@ -35,7 +35,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
     }
 
     if (profitPercentage > 0) {
-      let msg = `Your wealth has increased by ${profitPercentage}% through profits.`;
+      let msg = `Your assets have increased by ${profitPercentage}% through profits.`;
       if (priorityGoal) {
         msg += ` Consider allocating more to your '${priorityGoal.title}' goal.`;
       } else {
@@ -48,7 +48,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
       return `Consistency is key! You are ${priorityGoal.progress}% of the way to your '${priorityGoal.title}' goal. Keep going!`;
     }
 
-    return 'Stay focused on your financial journey. Regularly investing and managing loans will build long-term wealth.';
+    return 'Stay focused on your financial journey. Regularly investing and managing loans will build a secure financial future.';
   };
 
   const stats = [
@@ -72,7 +72,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
           <div>
             <h3 className="text-2xl font-black tracking-tighter mb-1">
-              Wealth Insights
+              FinFlow Insights
             </h3>
             <p className="text-sm font-medium text-muted-foreground">
               Detailed breakdown of your financial health
@@ -149,7 +149,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
               "{generateInsight()}"
             </p>
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">
-              — AI Wealth Advisor
+              — AI FinFlow Advisor
             </p>
           </div>
         </div>

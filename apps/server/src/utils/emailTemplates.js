@@ -108,7 +108,7 @@ const passwordResetEmail = (resetUrl) => {
 };
 
 /**
- * ACE Loan Reminder Template
+ * FinFlow Loan Reminder Template
  */
 const loanReminderEmail = (customerName, amount, dueDate, type) => {
   const isOverdue = type === 'overdue';

@@ -10,11 +10,12 @@ import {
   Mail,
   Download,
 } from 'lucide-react';
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
+import { Button } from '@/components/ui/button';
 
 const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
   const progress = Math.min(
@@ -63,7 +64,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
             Principal
           </span>
-          <div className="font-black text-sm">{formatCurrency(loan.principal)}</div>
+          <div className="font-black text-sm">
+            {formatCurrency(loan.principal)}
+          </div>
         </div>
         <div className="space-y-1 text-right">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
@@ -96,7 +99,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
           {loan.status === 'pending' && (
             <div className="mr-2 pr-2 border-r border-border/30">
               <ApprovalActions
-                loanId={loan._id}
+                loan={loan}
                 onSuccess={() => onRefresh && onRefresh()}
               />
             </div>
@@ -132,28 +135,34 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
             </a>
           </Tooltip>
           <Tooltip content="Download Statement" position="top">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => exportLoanStatement(loan, loan.repayments || [])}
-              className="p-2 rounded-xl hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-all active:scale-90"
+              className="h-9 w-9 rounded-xl border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
             >
               <Download size={18} />
-            </button>
+            </Button>
           </Tooltip>
           <Tooltip content="Edit" position="top">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => onEdit(loan)}
-              className="p-2 rounded-xl hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-all active:scale-90"
+              className="h-9 w-9 rounded-xl border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
             >
               <Edit size={18} />
-            </button>
+            </Button>
           </Tooltip>
           <Tooltip content="Delete" position="top">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => onDelete(loan)}
-              className="p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-90"
+              className="h-9 w-9 rounded-xl border-destructive/20 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
             >
               <Trash2 size={18} />
-            </button>
+            </Button>
           </Tooltip>
         </div>
         <Link

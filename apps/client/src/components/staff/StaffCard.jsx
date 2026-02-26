@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/button'; // Assuming Button component is imported from here
 
-const StaffCard = ({ item, onToggleStatus, onEdit, onDelete }) => {
+const StaffCard = ({ item, onToggleStatus, onEdit, onDelete, togglingId }) => {
   const initials = item.name
     .split(' ')
     .map((n) => n[0])
@@ -73,38 +74,45 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete }) => {
       <div className="flex items-center justify-between pt-4 border-t border-border/30">
         <div className="flex items-center gap-1.5">
           <Tooltip content="Edit Staff" position="top">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onEdit(item)}
-              className="p-2 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              className="p-2 h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
             >
               <Edit size={18} />
-            </button>
+            </Button>
           </Tooltip>
 
           <Tooltip
             content={item.isActive ? 'Deactivate' : 'Activate'}
             position="top"
           >
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onToggleStatus(item._id)}
+              isLoading={togglingId === item._id}
               className={cn(
-                'p-2 rounded-xl transition-all active:scale-90',
+                'p-2 h-9 w-9 rounded-xl transition-all active:scale-90',
                 item.isActive
                   ? 'hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600'
                   : 'hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600',
               )}
             >
               {item.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
-            </button>
+            </Button>
           </Tooltip>
 
           <Tooltip content="Delete" position="top">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => onDelete(item._id)}
-              className="p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-90"
+              className="p-2 h-9 w-9 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-90"
             >
               <Trash2 size={18} />
-            </button>
+            </Button>
           </Tooltip>
         </div>
       </div>

@@ -16,7 +16,7 @@ export const exportCashFlowStatement = async (
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(79, 70, 229); // Primary Indigo color
-  doc.text('ACE WEALTH', 14, 22);
+  doc.text('FINFLOW', 14, 22);
 
   doc.setFontSize(10);
   doc.setTextColor(100);
@@ -109,7 +109,7 @@ export const exportCashFlowStatement = async (
 
     // Legal disclaimer
     doc.text(
-      'ACE WEALTH - Secure Financial Management Ecosystem. This is a computer-generated document.',
+      'FINFLOW - Secure Financial Management Ecosystem. This is a computer-generated document.',
       pageWidth / 2,
       doc.internal.pageSize.height - 10,
       { align: 'center' },
@@ -123,6 +123,6 @@ export const exportCashFlowStatement = async (
     );
   }
 
-  const fileName = `AceWealth_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
+  const fileName = `FinFlow_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
   doc.save(fileName);
 };

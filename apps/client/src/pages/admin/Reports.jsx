@@ -169,7 +169,7 @@ const Reports = () => {
       doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(16, 185, 129);
-      doc.text('ACE WEALTH PORTAL', 14, 22);
+      doc.text('FINFLOW PORTAL', 14, 22);
 
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -913,7 +913,7 @@ const Reports = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={generateIFRS9}
-                      disabled={regulatoryLoading}
+                      isLoading={regulatoryLoading}
                       title="Generate Report"
                       className="rounded-full h-12 w-12 p-0 bg-indigo-500 hover:bg-indigo-600 shadow-xl shadow-indigo-500/20"
                     >
@@ -922,16 +922,12 @@ const Reports = () => {
                     {ifrs9Data && (
                       <Button
                         onClick={() => handleSaveSnapshot('ifrs9')}
-                        disabled={savingSnapshot}
+                        isLoading={savingSnapshot}
                         variant="outline"
                         title="Save Snapshot"
                         className="rounded-full h-12 w-12 p-0 border-indigo-500/30 text-indigo-500 hover:bg-indigo-500/10"
                       >
-                        {savingSnapshot ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Save className="w-5 h-5" />
-                        )}
+                        <Save className="w-5 h-5" />
                       </Button>
                     )}
                   </div>
@@ -1041,7 +1037,7 @@ const Reports = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={generateBasel3}
-                      disabled={regulatoryLoading}
+                      isLoading={regulatoryLoading}
                       title="Generate Report"
                       className="rounded-full h-12 w-12 p-0 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20"
                     >
@@ -1050,16 +1046,12 @@ const Reports = () => {
                     {basel3Data && (
                       <Button
                         onClick={() => handleSaveSnapshot('basel3')}
-                        disabled={savingSnapshot}
+                        isLoading={savingSnapshot}
                         variant="outline"
                         title="Save Snapshot"
                         className="rounded-full h-12 w-12 p-0 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
                       >
-                        {savingSnapshot ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Save className="w-5 h-5" />
-                        )}
+                        <Save className="w-5 h-5" />
                       </Button>
                     )}
                   </div>
@@ -1248,15 +1240,16 @@ const Reports = () => {
                 Snapshot of assets, liabilities, and equity.
               </p>
             </div>
-            <button
+            <Button
               onClick={() => exportAdvancedPDF('trial')}
               isLoading={isExporting}
               disabled={loadingTrial || !trialBalance}
+              variant="outline"
               className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm"
             >
               <Download size={16} />
               <span className="hidden sm:inline">Export PDF</span>
-            </button>
+            </Button>
           </div>
 
           {loadingTrial ? (
@@ -1416,15 +1409,16 @@ const Reports = () => {
                   className="bg-transparent border-none text-sm outline-none px-2 rounded-lg"
                 />
               </div>
-              <button
+              <Button
                 onClick={() => exportAdvancedPDF('pnl')}
                 isLoading={isExporting}
                 disabled={loadingPnL || !pnl}
+                variant="outline"
                 className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm ml-auto"
               >
                 <Download size={16} />
                 <span className="hidden sm:inline">Export PDF</span>
-              </button>
+              </Button>
             </div>
           </div>
 
