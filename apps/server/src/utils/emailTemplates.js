@@ -166,7 +166,7 @@ const transactionEmail = (data) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Transaction Confirmation</h2>
     <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
-      Dear ${memberName},
+      Dear <span style="font-weight: 700; text-transform: capitalize;">${memberName}</span>,
     </p>
     <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
       This is to confirm that a **${transactionType}** transaction has been successfully processed for your account at **${branchName}**.
