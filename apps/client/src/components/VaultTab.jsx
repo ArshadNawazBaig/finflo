@@ -343,17 +343,11 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
 
             <Button
               onClick={handleUpload}
-              disabled={!file || uploading}
+              isLoading={uploading}
+              disabled={!file}
               className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest"
             >
-              {uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Encrypting...
-                </>
-              ) : (
-                'Secure & Upload'
-              )}
+              Secure & Upload
             </Button>
           </div>
         </DialogContent>

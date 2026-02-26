@@ -45,6 +45,8 @@ const availablePermissions = [
   { id: 'system_settings', label: 'System Settings', group: 'System' },
 ];
 
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+
 const Roles = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -169,6 +171,7 @@ const Roles = () => {
           onClick={() => handleOpenModal()}
           variant="gradient"
           className="rounded-2xl px-6 py-6 h-auto group"
+          isLoading={loading && roles.length === 0}
         >
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
@@ -186,10 +189,8 @@ const Roles = () => {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="flex flex-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary opacity-20" />
-        </div>
+      {loading && roles.length === 0 ? (
+        <CardsSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRoles.map((role, idx) => (
@@ -388,12 +389,11 @@ const Roles = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={saving}
+                isLoading={saving}
                 variant="gradient"
                 className="rounded-xl text-[10px] font-black uppercase tracking-widest px-8"
               >
-                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editingRole ? 'Confim Changes' : 'Finalize Creation'}
+                {editingRole ? 'Confirm Changes' : 'Finalize Creation'}
               </Button>
             </div>
           </form>

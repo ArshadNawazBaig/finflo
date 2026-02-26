@@ -542,18 +542,12 @@ const MemberTransfer = () => {
 
                 <Button
                   type="submit"
-                  disabled={loading}
+                  isLoading={loading}
                   variant="gradient"
                   className="w-full h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl"
                 >
-                  {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      Execute Transfer
-                    </>
-                  )}
+                  <Send size={18} />
+                  Execute Transfer
                 </Button>
               </form>
             </div>
@@ -931,16 +925,14 @@ const MemberTransfer = () => {
 
                   <Button
                     type="submit"
-                    disabled={extLoading}
+                    isLoading={extLoading}
                     className={`w-full h-12 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all ${
                       extMode === 'send'
                         ? 'bg-destructive hover:bg-destructive/90 text-white'
                         : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                     }`}
                   >
-                    {extLoading ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : extMode === 'send' ? (
+                    {extMode === 'send' ? (
                       <>
                         <ArrowUpRight size={16} />
                         Send{' '}

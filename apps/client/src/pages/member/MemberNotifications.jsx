@@ -271,15 +271,16 @@ const MemberNotifications = () => {
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
+                  className="p-5 rounded-2xl border border-border/10 bg-card/30 flex items-start gap-4"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
+                  <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
                   <div className="flex-1 space-y-3">
                     <div className="flex justify-between items-center">
-                      <div className="h-4 w-1/4 rounded bg-muted/30" />
-                      <div className="h-3 w-16 rounded bg-muted/30" />
+                      <Skeleton className="h-5 w-1/3 rounded-lg" />
+                      <Skeleton className="h-4 w-20 rounded-lg" />
                     </div>
-                    <div className="h-4 w-3/4 rounded bg-muted/30" />
+                    <Skeleton className="h-4 w-full rounded-lg" />
+                    <Skeleton className="h-4 w-2/3 rounded-lg" />
                   </div>
                 </div>
               ))}

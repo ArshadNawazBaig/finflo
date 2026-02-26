@@ -358,7 +358,9 @@ const Reports = () => {
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
             {
-              content: formatCurrency(pnl.distributions?.totalDistributions || 0),
+              content: formatCurrency(
+                pnl.distributions?.totalDistributions || 0,
+              ),
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
           ],
@@ -622,8 +624,8 @@ const Reports = () => {
             </CardHeader>
             <CardContent className="p-0">
               {loadingBranch ? (
-                <div className="p-12 flex justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="p-6">
+                  <TableSkeleton rows={5} columns={8} />
                 </div>
               ) : branchSummaries && branchSummaries.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -1248,21 +1250,35 @@ const Reports = () => {
             </div>
             <button
               onClick={() => exportAdvancedPDF('trial')}
-              disabled={isExporting || loadingTrial || !trialBalance}
+              isLoading={isExporting}
+              disabled={loadingTrial || !trialBalance}
               className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm"
             >
-              {isExporting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Download size={16} />
-              )}
+              <Download size={16} />
               <span className="hidden sm:inline">Export PDF</span>
             </button>
           </div>
 
           {loadingTrial ? (
-            <div className="flex justify-center items-center h-64 bg-card rounded-3xl border border-border/50">
-              <Loader2 size={32} className="animate-spin text-emerald-500" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card/40 p-8 rounded-3xl border border-border/10 animate-pulse">
+              <div className="space-y-4">
+                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
+                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
+                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : trialBalance ? (
             <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden">
@@ -1283,7 +1299,9 @@ const Reports = () => {
                         <DollarSign size={14} /> Loans Receivable
                       </span>
                       <span className="font-mono font-medium">
-                        {formatCurrency(trialBalance.assets?.loansReceivable || 0)}
+                        {formatCurrency(
+                          trialBalance.assets?.loansReceivable || 0,
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
@@ -1400,22 +1418,19 @@ const Reports = () => {
               </div>
               <button
                 onClick={() => exportAdvancedPDF('pnl')}
-                disabled={isExporting || loadingPnL || !pnl}
+                isLoading={isExporting}
+                disabled={loadingPnL || !pnl}
                 className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm ml-auto"
               >
-                {isExporting ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Download size={16} />
-                )}
+                <Download size={16} />
                 <span className="hidden sm:inline">Export PDF</span>
               </button>
             </div>
           </div>
 
           {loadingPnL ? (
-            <div className="flex justify-center items-center h-64 bg-card rounded-3xl border border-border/50">
-              <Loader2 size={32} className="animate-spin text-indigo-500" />
+            <div className="p-8 bg-card/40 rounded-3xl border border-border/10">
+              <TableSkeleton rows={8} columns={2} />
             </div>
           ) : pnl ? (
             <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden p-1">
@@ -1532,7 +1547,9 @@ const Reports = () => {
                       Total Distributions
                     </td>
                     <td className="p-4 text-right font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatCurrency(pnl.distributions.totalDistributions || 0)}
+                      {formatCurrency(
+                        pnl.distributions.totalDistributions || 0,
+                      )}
                     </td>
                   </tr>
 

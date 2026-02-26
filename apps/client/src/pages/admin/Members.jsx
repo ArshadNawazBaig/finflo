@@ -286,7 +286,7 @@ const Members = () => {
               onClick={() => setActiveTab('approved')}
               className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeTab === 'approved'
-                  ? 'bg-white shadow-sm text-foreground'
+                  ? 'bg-white shadow-sm text-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
               }`}
             >

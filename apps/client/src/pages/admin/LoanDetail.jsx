@@ -41,15 +41,18 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
-    <div className="h-40 bg-card/30 rounded-[2.5rem] border border-border/50" />
-    <div className="grid gap-6 md:grid-cols-3">
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
+    <div className="h-40 bg-card/40 backdrop-blur-xl rounded-[2.5rem] border border-border/10" />
+    <div className="grid gap-6 sm:gap-6 md:grid-cols-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="h-32 rounded-[2rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm"
+        />
+      ))}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <Skeleton className="lg:col-span-8 h-[600px] rounded-[2.5rem]" />
-      <Skeleton className="lg:col-span-4 h-[400px] rounded-[2.5rem]" />
+      <div className="lg:col-span-8 h-[600px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      <div className="lg:col-span-4 h-[400px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
     </div>
   </div>
 );
@@ -774,7 +777,9 @@ const LoanDetail = () => {
                     Principal
                   </span>
                 </div>
-                <span className="font-black">{formatCurrency(loan.principal)}</span>
+                <span className="font-black">
+                  {formatCurrency(loan.principal)}
+                </span>
               </div>
               <div className="flex justify-between items-center p-4 rounded-2xl bg-muted/20 border border-border/10">
                 <div className="flex items-center gap-3">
@@ -914,7 +919,8 @@ const LoanDetail = () => {
                 />
               </div>
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
-                {formatCurrency(loan.paidAmount)} of {formatCurrency(loan.totalAmount)}
+                {formatCurrency(loan.paidAmount)} of{' '}
+                {formatCurrency(loan.totalAmount)}
               </p>
             </div>
           </div>

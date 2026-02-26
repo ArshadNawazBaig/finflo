@@ -464,27 +464,17 @@ const LoanLookup = () => {
 
         <Button
           type="submit"
-          disabled={loading}
+          isLoading={loading}
           variant="gradient"
           className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-lg shadow-primary/10 mt-4"
         >
-          <span
-            className={cn(
-              'flex items-center justify-center gap-2 transition-all duration-300',
-              loading ? 'opacity-0' : 'opacity-100',
-            )}
-          >
+          <span className="flex items-center justify-center gap-2">
             Execute Search
             <Search
               size={14}
               className="group-hover:scale-110 transition-transform"
             />
           </span>
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 animate-spin" />
-            </div>
-          )}
         </Button>
       </form>
 

@@ -23,6 +23,8 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import MemberRepayModal from '@/components/member/MemberRepayModal';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 const MemberLoanDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -76,18 +78,33 @@ const MemberLoanDetail = () => {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="space-y-10 animate-pulse">
-        <div className="h-20 bg-muted rounded-3xl" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="space-y-10 animate-in fade-in duration-500 pb-20">
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-10 h-10 rounded-2xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-8 w-48 rounded-xl" />
+            <Skeleton className="h-4 w-64 rounded-lg" />
+          </div>
+          <Skeleton className="h-12 w-32 rounded-2xl hidden sm:block" />
+        </div>
+
+        {/* Progress Skeleton */}
+        <Skeleton className="h-[280px] w-full rounded-[3rem]" />
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-muted rounded-3xl" />
+            <Skeleton key={i} className="h-32 rounded-3xl" />
           ))}
         </div>
-        <div className="h-96 bg-muted rounded-[3rem]" />
+
+        {/* Schedule Skeleton */}
+        <Skeleton className="h-[500px] w-full rounded-[3rem]" />
       </div>
     );
+  }
 
   if (!loan) return null;
 

@@ -332,22 +332,19 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
               </button>
               <Button
                 type="submit"
-                disabled={loading || isInvalid || isInsufficient}
+                isLoading={loading}
+                disabled={isInvalid || isInsufficient}
                 variant={isSettlement ? 'gradient' : 'gradient'}
                 className={`flex-[2] h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 group overflow-hidden ${isSettlement ? 'shadow-blue-500/20' : 'shadow-primary/20'}`}
               >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {isSettlement ? (
-                      <ArrowDownCircle size={18} strokeWidth={3} />
-                    ) : (
-                      <CheckCircle2 size={18} strokeWidth={3} />
-                    )}
-                    {isSettlement ? 'Settle Now' : 'Pay Back'}
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {isSettlement ? (
+                    <ArrowDownCircle size={18} strokeWidth={3} />
+                  ) : (
+                    <CheckCircle2 size={18} strokeWidth={3} />
+                  )}
+                  {isSettlement ? 'Settle Now' : 'Pay Back'}
+                </div>
               </Button>
             </div>
           </form>
