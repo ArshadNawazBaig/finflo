@@ -14,7 +14,7 @@ const getBaseTemplate = (
   // Custom Cloudinary Logo
   const logoPath =
     logoUrl ||
-    'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1770996569/favicon_1_ciy1sn.png';
+    'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130000/favicon_iue2fw.svg';
 
   return `
     <!DOCTYPE html>
@@ -125,7 +125,7 @@ const loanReminderEmail = (customerName, amount, dueDate, type) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: ${accentColor}; font-size: 18px; font-weight: 700;">${title}</h2>
     <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
-      Dear ${customerName},
+      Dear <span style="font-weight: 700; text-transform: capitalize;">${customerName}</span>,
     </p>
     <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
       ${
