@@ -30,6 +30,7 @@ import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
 import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
 import StatsRiskRowSkeleton from '@/components/skeletons/StatsRiskRowSkeleton';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Card,
   CardContent,
@@ -841,6 +842,7 @@ const Dashboard = () => {
                       size="sm"
                       className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 h-auto rounded-full bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
                       onClick={() => navigate('/transactions')}
+                      isLoading={loading}
                     >
                       View All
                     </Button>
@@ -849,18 +851,15 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-hidden">
                 {loading ? (
-                  <div className="p-4 sm:p-6 space-y-3">
+                  <div className="p-4 sm:p-6 space-y-5 animate-pulse">
                     {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-xl bg-muted/40 animate-pulse flex-shrink-0" />
-                        <div className="flex-1 space-y-1.5">
-                          <div
-                            className="h-3 rounded bg-muted/40 animate-pulse"
-                            style={{ width: `${60 + i * 7}%` }}
-                          />
-                          <div className="h-2.5 w-20 rounded bg-muted/30 animate-pulse" />
+                      <div key={i} className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-muted/40 shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-3 w-1/2 rounded-lg bg-muted/30" />
+                          <Skeleton className="h-2 w-1/3 rounded-lg bg-muted/20" />
                         </div>
-                        <div className="h-3 w-16 rounded bg-muted/30 animate-pulse" />
+                        <Skeleton className="h-4 w-16 rounded-lg bg-muted/30" />
                       </div>
                     ))}
                   </div>

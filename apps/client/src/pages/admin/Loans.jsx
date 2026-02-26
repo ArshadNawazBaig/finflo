@@ -201,6 +201,7 @@ const Loans = () => {
           onClick={() => setIsModalOpen(true)}
           variant="gradient"
           className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+          isLoading={loading && loans.length === 0}
         >
           <Plus size={16} strokeWidth={3} />
           New Loan
@@ -262,11 +263,11 @@ const Loans = () => {
 
       <div className="mt-4">
         {loading && !isFetchingMore ? (
-          <div className="py-20 flex justify-center items-center">
+          <div className="py-6">
             {isMobile ? (
               <InfiniteLoader isFetchingMore={true} />
             ) : (
-              <TableSkeleton />
+              <TableSkeleton rows={limit} columns={6} />
             )}
           </div>
         ) : isMobile ? (

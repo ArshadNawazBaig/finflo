@@ -117,10 +117,9 @@ const AnalyticsChart = ({
               size="icon"
               className="relative rounded-2xl border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group overflow-hidden"
               onClick={onDownload}
-              disabled={loading}
+              isLoading={loading}
               title="Download Statement (PDF)"
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/5 to-primary/0 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-1000" />
               <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
             </Button>
           </div>

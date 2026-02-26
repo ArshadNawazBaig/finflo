@@ -666,13 +666,10 @@ const MemberProfile = () => {
               variant="ghost"
               size="icon"
               onClick={handleRecalcBalance}
-              disabled={recalcLoading}
+              isLoading={recalcLoading}
               className="w-12 h-12 rounded-2xl bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"
             >
-              <RefreshCw
-                size={18}
-                className={recalcLoading ? 'animate-spin' : ''}
-              />
+              <RefreshCw size={18} />
             </Button>
           </Tooltip>
 
@@ -712,15 +709,11 @@ const MemberProfile = () => {
 
           <Button
             variant="gradient"
-            disabled={isExporting}
+            isLoading={isExporting}
             onClick={handleDownloadReport}
             className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
           >
-            {isExporting ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Download size={16} />
-            )}
+            <Download size={16} />
             Report
           </Button>
         </div>
