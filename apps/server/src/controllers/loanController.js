@@ -1458,7 +1458,7 @@ const memberRepayLoan = async (req, res) => {
       paymentAmount,
       req, // Will use req.user.effectiveOwnerId for ownership
       {
-        notes: req.body.notes || 'Self-repayment via FinFlow',
+        notes: req.body.notes || 'Self-repayment via FinanceFlow',
         isAutoValue: false, // This is a manual member action
         allowEarlySettlement: isSettlementRequest,
         session, // Stay in current transaction

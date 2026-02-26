@@ -29,7 +29,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    notes: 'Self-repayment via FinFlow',
+    notes: 'Self-repayment via FinanceFlow',
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       setIsSettlement(false);
       setFormData({
         amount: '',
-        notes: 'Self-repayment via FinFlow',
+        notes: 'Self-repayment via FinanceFlow',
       });
     }
   }, [isOpen]);
@@ -170,7 +170,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <DialogDescription className="text-sm font-medium">
                   {isSettlement
                     ? 'Pay off your loan today with adjusted interest.'
-                    : 'Select an amount to pay from your FinFlow Balance.'}
+                    : 'Select an amount to pay from your FinanceFlow Balance.'}
                 </DialogDescription>
               </div>
             </div>

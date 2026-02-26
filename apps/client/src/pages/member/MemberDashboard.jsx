@@ -239,7 +239,7 @@ const MemberDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title="FinFlow"
+        title="FinanceFlow"
         description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
       />
 

@@ -123,6 +123,6 @@ export const exportCashFlowStatement = async (
     );
   }
 
-  const fileName = `FinFlow_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
+  const fileName = `FinanceFlow_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
   doc.save(fileName);
 };

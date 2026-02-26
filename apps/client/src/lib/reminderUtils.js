@@ -71,7 +71,7 @@ Our records indicate that this payment is currently OVERDUE. Please arrange for 
 If you have already made the payment, please disregard this email or send us a copy of the receipt.
 
 Best regards,
-FinFlow Team`
+FinanceFlow Team`
     : `Dear ${customerName},
 
 This is a friendly reminder regarding your upcoming loan repayment of ${formattedAmount} which is due on ${formattedDate}.
@@ -81,7 +81,7 @@ To ensure smooth processing, please ensure the funds are available by the due da
 Thank you for your continued partnership.
 
 Best regards,
-FinFlow Team`;
+FinanceFlow Team`;
 
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };

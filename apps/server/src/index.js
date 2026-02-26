@@ -14,7 +14,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
-const { initFinFlow } = require('./services/reminderService');
+const { initFinanceFlow } = require('./services/reminderService');
 const { initScheduledTasks } = require('./services/scheduledTasksService');
 
 const app = express();
@@ -165,7 +165,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ message: 'FinFlow API is running' });
+  res.json({ message: 'FinanceFlow API is running' });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -173,7 +173,7 @@ const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    initFinFlow();
+    initFinanceFlow();
     initScheduledTasks();
   });
 }
