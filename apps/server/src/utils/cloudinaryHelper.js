@@ -71,8 +71,26 @@ const deleteCloudinaryFileByUrl = async (url, fileType = 'image') => {
   await deleteCloudinaryFile(publicId, resourceType);
 };
 
+/**
+ * Upload a signature (Base64) to Cloudinary
+ * @param {string} signatureData - Base64 encoded signature image
+ * @param {string} folder - Cloudinary folder path
+ * @returns {Promise<object>} - Upload result
+ */
+const uploadSignature = async (
+  signatureData,
+  folder = 'loan-app/signatures',
+) => {
+  if (!signatureData) return null;
+  return await cloudinary.uploader.upload(signatureData, {
+    folder,
+    resource_type: 'image',
+  });
+};
+
 module.exports = {
   extractPublicId,
   deleteCloudinaryFile,
   deleteCloudinaryFileByUrl,
+  uploadSignature,
 };
