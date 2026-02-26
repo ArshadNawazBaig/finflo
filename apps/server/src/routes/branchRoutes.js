@@ -12,10 +12,11 @@ const {
 } = require('../controllers/branchController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const upload = require('../middleware/branchUploadMiddleware');
+const { branchValidation } = require('../middleware/validationMiddleware');
 
 router
   .route('/')
-  .post(protect, admin, upload.single('logo'), createBranch)
+  .post(protect, admin, upload.single('logo'), branchValidation, createBranch)
   .get(protect, getBranches);
 
 router

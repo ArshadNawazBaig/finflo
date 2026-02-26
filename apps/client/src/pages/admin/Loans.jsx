@@ -38,7 +38,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import CountUp from 'react-countup';
 import StatsCard from '@/components/StatsCard';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -58,6 +58,7 @@ const Loans = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [stats, setStats] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -181,6 +182,7 @@ const Loans = () => {
     if (!deleteLoan) return;
 
     try {
+      setIsDeleting(true);
       await api.delete(`/loans/${deleteLoan._id}`);
       toast.success('Loan deleted successfully');
       fetchLoans();
@@ -188,6 +190,8 @@ const Loans = () => {
       setDeleteLoan(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete loan');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -201,6 +205,7 @@ const Loans = () => {
           onClick={() => setIsModalOpen(true)}
           variant="gradient"
           className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+          isLoading={loading && loans.length === 0}
         >
           <Plus size={16} strokeWidth={3} />
           New Loan
@@ -225,7 +230,7 @@ const Loans = () => {
           />
           <StatsCard
             title="Outstanding"
-            amount={formatPKR(stats.outstanding?.amount || 0)}
+            amount={formatCurrency(stats.outstanding?.amount || 0)}
             percentage={stats.outstanding?.percentage}
             subtitle="Total Receivable"
             icon={<Download size={20} />}
@@ -233,7 +238,7 @@ const Loans = () => {
           />
           <StatsCard
             title="Total Repaid"
-            amount={formatPKR(stats.totalRepaid?.amount || 0)}
+            amount={formatCurrency(stats.totalRepaid?.amount || 0)}
             percentage={stats.totalRepaid?.percentage}
             subtitle="Successfully Recovered"
             icon={<Coins size={20} />}
@@ -262,11 +267,11 @@ const Loans = () => {
 
       <div className="mt-4">
         {loading && !isFetchingMore ? (
-          <div className="py-20 flex justify-center items-center">
+          <div className="py-6">
             {isMobile ? (
               <InfiniteLoader isFetchingMore={true} />
             ) : (
-              <TableSkeleton />
+              <TableSkeleton rows={limit} columns={6} />
             )}
           </div>
         ) : isMobile ? (
@@ -391,9 +396,10 @@ const Loans = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
+              disabled={isDeleting}
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
             >
-              Delete
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

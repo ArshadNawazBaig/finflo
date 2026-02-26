@@ -10,7 +10,7 @@ const AuthLayout = ({
   title,
   description,
   badge = 'Secure Access',
-  brandingTitle = 'ACE Wealth',
+  brandingTitle = 'FinFlow',
   showLogo = true,
   backToLanding = true,
 }) => {
@@ -74,7 +74,7 @@ const AuthLayout = ({
           >
             Submit your onboarding details to link into the private business
             ledger. Wait for your administrator to approve your portal access
-            and start managing your wealth with precision.
+            and start managing your finances with precision.
           </motion.p>
 
           <motion.div

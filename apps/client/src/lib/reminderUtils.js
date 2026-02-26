@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { formatPKR } from './utils';
+import { formatCurrency } from './utils';
 
 /**
  * Generates a WhatsApp link with a pre-filled reminder message.
@@ -29,7 +29,7 @@ export const generateWhatsAppLink = (
   }
 
   const formattedDate = format(new Date(dueDate), 'MMMM d, yyyy');
-  const formattedAmount = formatPKR(amount);
+  const formattedAmount = formatCurrency(amount);
 
   const message = isOverdue
     ? `Assalamu Alaikum ${customerName}, this is a reminder regarding your loan payment of ${formattedAmount} which was due on ${formattedDate}. It is currently *OVERDUE*. Please settle it as soon as possible. JazakAllah.`
@@ -55,7 +55,7 @@ export const generateEmailLink = (
   isOverdue = false,
 ) => {
   const formattedDate = format(new Date(dueDate), 'MMMM d, yyyy');
-  const formattedAmount = formatPKR(amount);
+  const formattedAmount = formatCurrency(amount);
 
   const subject = isOverdue
     ? `URGENT: Overdue Loan Repayment - ${customerName}`
@@ -71,7 +71,7 @@ Our records indicate that this payment is currently OVERDUE. Please arrange for 
 If you have already made the payment, please disregard this email or send us a copy of the receipt.
 
 Best regards,
-Loan Management Team`
+FinFlow Team`
     : `Dear ${customerName},
 
 This is a friendly reminder regarding your upcoming loan repayment of ${formattedAmount} which is due on ${formattedDate}.
@@ -81,7 +81,7 @@ To ensure smooth processing, please ensure the funds are available by the due da
 Thank you for your continued partnership.
 
 Best regards,
-Loan Management Team`;
+FinFlow Team`;
 
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };

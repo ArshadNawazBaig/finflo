@@ -94,27 +94,15 @@ const MemberResetPassword = () => {
 
         <Button
           type="submit"
-          disabled={loading}
+          isLoading={loading}
           variant="gradient"
           className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10"
         >
-          <span
-            className={cn(
-              'flex items-center justify-center gap-2 transition-all duration-300',
-              loading ? 'opacity-0' : 'opacity-100',
-            )}
-          >
-            Update Password
-            <ArrowRight
-              size={14}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </span>
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 animate-spin" />
-            </div>
-          )}
+          Update Password
+          <ArrowRight
+            size={14}
+            className="group-hover:translate-x-1 transition-transform ml-2"
+          />
         </Button>
       </form>
     </AuthLayout>

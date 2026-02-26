@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { PiggyBank, ArrowRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 const ContributeGoalModal = ({
   isOpen,
@@ -44,7 +44,7 @@ const ContributeGoalModal = ({
           headers: { Authorization: `Bearer ${memberToken}` },
         },
       );
-      toast.success(`Allocated ${formatPKR(amount)} to ${goal.title}`);
+      toast.success(`Allocated ${formatCurrency(amount)} to ${goal.title}`);
       onSuccess();
       onClose();
       setAmount('');
@@ -78,7 +78,7 @@ const ContributeGoalModal = ({
                   Available Balance
                 </p>
                 <p className="font-black tracking-tight">
-                  {formatPKR(memberBalance)}
+                  {formatCurrency(memberBalance)}
                 </p>
               </div>
             </div>

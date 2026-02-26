@@ -384,7 +384,6 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                   <DollarSign className="w-3 h-3 text-emerald-500" /> Principal
-                  (Rs.)
                 </label>
                 <input
                   name="principal"
@@ -567,28 +566,24 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             </button>
             <Button
               type="submit"
+              isLoading={loading}
               disabled={
-                loading ||
-                (formData.customerId &&
-                  (() => {
-                    const customer = customers.find(
-                      (c) => c._id === formData.customerId,
-                    );
-                    return (
-                      customer &&
-                      !customer.savingAccountNumber &&
-                      !customer.currentAccountNumber
-                    );
-                  })())
+                formData.customerId &&
+                (() => {
+                  const customer = customers.find(
+                    (c) => c._id === formData.customerId,
+                  );
+                  return (
+                    customer &&
+                    !customer.savingAccountNumber &&
+                    !customer.currentAccountNumber
+                  );
+                })()
               }
               variant="gradient"
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >
-              {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <PlusCircle size={14} />
-              )}
+              {!loading && <PlusCircle size={14} />}
               Create Loan
             </Button>
           </div>

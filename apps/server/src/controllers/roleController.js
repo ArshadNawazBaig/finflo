@@ -54,6 +54,11 @@ const createRole = async (req, res) => {
 
     res.status(201).json(role);
   } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: 'A role with this name already exists' });
+    }
     console.error('Create Role Error:', error);
     res.status(500).json({ message: 'Failed to create role' });
   }
@@ -92,6 +97,11 @@ const updateRole = async (req, res) => {
     await role.save();
     res.json(role);
   } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: 'A role with this name already exists' });
+    }
     console.error('Update Role Error:', error);
     res.status(500).json({ message: 'Failed to update role' });
   }

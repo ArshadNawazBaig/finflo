@@ -121,7 +121,7 @@ const Pricing = () => {
       <PageHeader
         title={
           <>
-            Wealth <span className="text-primary ">Plans</span>
+            FinFlow <span className="text-primary ">Plans</span>
           </>
         }
         description="Choose the perfect plan to scale your lending operations."

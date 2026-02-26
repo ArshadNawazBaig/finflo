@@ -1,4 +1,4 @@
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   ArrowUpRight,
@@ -106,7 +106,7 @@ const MemberActivityCard = ({ activity }) => {
             )}
           >
             {style.sign}
-            {formatPKR(activity.amount)}
+            {formatCurrency(activity.amount)}
           </div>
           <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-black opacity-40">
             Amount
@@ -132,7 +132,7 @@ const MemberActivityCard = ({ activity }) => {
               Portfolio
             </div>
             <div className="font-bold text-[11px] text-primary tabular-nums">
-              {formatPKR(balanceAfter)}
+              {formatCurrency(balanceAfter)}
             </div>
           </div>
         )}

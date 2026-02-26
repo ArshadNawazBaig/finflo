@@ -41,150 +41,370 @@ const getDashboardStats = async (req, res) => {
     const { start: currentStart, end: currentEnd } = getMonthDates(0);
     const { start: prevStart, end: prevEnd } = getMonthDates(1);
 
-    // 1. Total Profit (Interest portion of repayments)
-    // Profit = Repayment Amount * (Total Interest / Total Amount)
-    const repayments = await Repayment.find(query).populate(
-      'loan',
-      'principal totalAmount',
-    );
+    // Self-healing: Link orphan loans/repayments to branch if missing
+    // This resolves discrepancies where global admin sees more profit than branch view
+    try {
+      const orphans = await Loan.find({
+        user: req.user.effectiveOwnerId,
+        branchId: { $exists: false },
+      }).populate('customer', 'branchId');
 
-    // Fetch Deposits (Investments)
-    const depositQuery = { ...query, category: 'investment' };
-    const deposits = await FinancialTransaction.find(depositQuery);
+      if (orphans.length > 0) {
+        for (const loan of orphans) {
+          if (loan.customer?.branchId) {
+            await Loan.findByIdAndUpdate(loan._id, {
+              branchId: loan.customer.branchId,
+            });
+            await Repayment.updateMany(
+              { loan: loan._id, branchId: { $exists: false } },
+              { branchId: loan.customer.branchId },
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Self-healing failed:', e);
+    }
 
-    const calculateProfit = (repaymentsList) => {
-      return repaymentsList.reduce((sum, r) => {
-        if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
-          return sum;
-        const totalInterest = r.loan.totalAmount - r.loan.principal;
-        const profitRatio = totalInterest / r.loan.totalAmount;
-        return sum + r.amount * profitRatio;
-      }, 0);
-    };
+    // 1. Repayment & Profit Aggregation
+    const repaymentStats = await Repayment.aggregate([
+      { $match: query },
+      {
+        $lookup: {
+          from: 'loans',
+          localField: 'loan',
+          foreignField: '_id',
+          as: 'loanDetails',
+        },
+      },
+      { $unwind: '$loanDetails' },
+      {
+        $project: {
+          amount: 1,
+          date: 1,
+          interestAmount: 1,
+          loanPrincipal: '$loanDetails.principal',
+          loanTotal: '$loanDetails.totalAmount',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRepaid: { $sum: '$amount' },
+          totalProfit: {
+            $sum: {
+              $cond: [
+                { $ifNull: ['$interestAmount', false] },
+                '$interestAmount',
+                {
+                  $multiply: [
+                    '$amount',
+                    {
+                      $divide: [
+                        { $subtract: ['$loanTotal', '$loanPrincipal'] },
+                        {
+                          $cond: [{ $eq: ['$loanTotal', 0] }, 1, '$loanTotal'],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          currentMonthRepaid: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', currentStart] },
+                    { $lte: ['$date', currentEnd] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          prevMonthRepaid: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', prevStart] },
+                    { $lte: ['$date', prevEnd] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          currentMonthProfit: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', currentStart] },
+                    { $lte: ['$date', currentEnd] },
+                  ],
+                },
+                {
+                  $cond: [
+                    { $ifNull: ['$interestAmount', false] },
+                    '$interestAmount',
+                    {
+                      $multiply: [
+                        '$amount',
+                        {
+                          $divide: [
+                            { $subtract: ['$loanTotal', '$loanPrincipal'] },
+                            {
+                              $cond: [
+                                { $eq: ['$loanTotal', 0] },
+                                1,
+                                '$loanTotal',
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                0,
+              ],
+            },
+          },
+          prevMonthProfit: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ['$date', prevStart] },
+                    { $lte: ['$date', prevEnd] },
+                  ],
+                },
+                {
+                  $cond: [
+                    { $ifNull: ['$interestAmount', false] },
+                    '$interestAmount',
+                    {
+                      $multiply: [
+                        '$amount',
+                        {
+                          $divide: [
+                            { $subtract: ['$loanTotal', '$loanPrincipal'] },
+                            {
+                              $cond: [
+                                { $eq: ['$loanTotal', 0] },
+                                1,
+                                '$loanTotal',
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
 
-    const totalProfit = Math.round(calculateProfit(repayments));
-
-    const prevRepayments = await Repayment.find({
-      ...query,
-      date: { $gte: prevStart, $lte: prevEnd },
-    }).populate('loan', 'principal totalAmount');
-
-    const currMonthRepayments = repayments.filter(
-      (r) => r.date >= currentStart && r.date <= currentEnd,
-    );
-    const currMonthProfit = calculateProfit(currMonthRepayments);
-    const prevMonthProfit = calculateProfit(prevRepayments);
+    const {
+      totalRepaid = 0,
+      totalProfit = 0,
+      currentMonthRepaid = 0,
+      prevMonthRepaid = 0,
+      currentMonthProfit = 0,
+      prevMonthProfit = 0,
+    } = repaymentStats[0] || {};
 
     const profitChange = calculatePercentageChange(
-      currMonthProfit,
+      currentMonthProfit,
       prevMonthProfit,
     );
-
-    // 2. Active Loans Count & Outstanding Amount
-    const loans = await Loan.find(query);
-    const activeLoans = loans.filter((loan) => loan.status === 'active').length;
-
-    const prevActiveLoans = loans.filter((loan) => {
-      const createdDate = new Date(loan.createdAt);
-      return createdDate <= prevEnd && loan.status === 'active';
-    }).length;
-    const loansChange = calculatePercentageChange(activeLoans, prevActiveLoans);
-
-    // 3. Total Repaid
-    const totalRepaid = Math.round(
-      loans.reduce((sum, loan) => sum + (loan.paidAmount || 0), 0),
-    );
-
-    const currMonthRepaid = repayments
-      .filter((r) => r.date >= currentStart && r.date <= currentEnd)
-      .reduce((sum, r) => sum + r.amount, 0);
-    const prevMonthRepaid = prevRepayments.reduce(
-      (sum, r) => sum + r.amount,
-      0,
-    );
     const repaidChange = calculatePercentageChange(
-      currMonthRepaid,
+      currentMonthRepaid,
       prevMonthRepaid,
     );
 
-    // 4. Outstanding Amount
-    const outstandingAmount = Math.round(
-      loans.reduce((sum, loan) => sum + (loan.remainingAmount || 0), 0),
-    );
+    // 2. Loan Stats Aggregation
+    const loanMatch = { user: query.user, status: { $ne: 'rejected' } };
+    if (query.branchId !== undefined) loanMatch.branchId = query.branchId;
+    const loanStatsAgg = await Loan.aggregate([
+      {
+        $match: loanMatch,
+      },
+      {
+        $group: {
+          _id: null,
+          activeLoans: {
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
+          },
+          overdueLoans: {
+            $sum: { $cond: [{ $eq: ['$status', 'overdue'] }, 1, 0] },
+          },
+          overdueAmount: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'overdue'] }, '$remainingAmount', 0],
+            },
+          },
+          totalDue: { $sum: '$totalAmount' },
+          outstandingAmount: { $sum: '$remainingAmount' },
+          totalDisbursed: { $sum: '$principal' },
+          currentMonthActive: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$status', 'active'] },
+                    { $lte: ['$createdAt', currentEnd] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+          prevMonthActive: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$status', 'active'] },
+                    { $lte: ['$createdAt', prevEnd] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+          prevMonthOutstanding: {
+            $sum: {
+              $cond: [{ $lte: ['$createdAt', prevEnd] }, '$remainingAmount', 0],
+            },
+          },
+          prevMonthDisbursed: {
+            $sum: {
+              $cond: [{ $lte: ['$createdAt', prevEnd] }, '$principal', 0],
+            },
+          },
+        },
+      },
+    ]);
 
-    const prevOutstanding = loans.reduce((sum, loan) => {
-      const createdDate = new Date(loan.createdAt);
-      if (createdDate > prevEnd) return sum;
-      // This is a simplified calculation for history
-      return sum + (loan.remainingAmount || 0);
-    }, 0);
+    const {
+      activeLoans = 0,
+      overdueLoans = 0,
+      overdueAmount = 0,
+      totalDue = 0,
+      outstandingAmount = 0,
+      totalDisbursed = 0,
+      prevMonthActive = 0,
+      prevMonthOutstanding = 0,
+      prevMonthDisbursed = 0,
+    } = loanStatsAgg[0] || {};
+
+    // Collection Rate: how much of total due has been collected
+    const collectionRate =
+      totalDue > 0 ? Math.round((totalRepaid / totalDue) * 100) : 0;
+
+    // Risk Grade Distribution
+    const riskDistAgg = await Loan.aggregate([
+      { $match: { ...loanMatch, status: 'active' } },
+      { $group: { _id: '$riskDetails.grade', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+    const riskDistribution = riskDistAgg.map((r) => ({
+      grade: r._id || 'N/A',
+      count: r.count,
+    }));
+
+    const loansChange = calculatePercentageChange(activeLoans, prevMonthActive);
     const outstandingChange = calculatePercentageChange(
       outstandingAmount,
-      prevOutstanding,
+      prevMonthOutstanding,
     );
-
-    // 5. Banking Metrics (New for Banking Expert View)
-    // 5a. Total Deposits (Liability): currentBalance = what we owe members
-    const Member = require('../models/Member');
-    const members = await Member.find(query);
-    const totalDeposits = Math.round(
-      members.reduce((sum, m) => sum + (m.currentBalance || 0), 0),
-    );
-
-    // 5a-2. Total Invested (Lifetime capital inflow from members)
-    const totalInvested = Math.round(
-      members.reduce((sum, m) => sum + (m.totalInvested || 0), 0),
-    );
-
-    // 5b. Total Disbursed (Asset Deployment): Sum of all loan principals
-    const totalDisbursed = Math.round(
-      loans.reduce((sum, l) => sum + (l.principal || 0), 0),
-    );
-    // Previous month disbursed for trend
-    const prevDisbursed = loans
-      .filter((l) => new Date(l.createdAt) <= prevEnd)
-      .reduce((sum, l) => sum + (l.principal || 0), 0);
     const disbursedChange = calculatePercentageChange(
       totalDisbursed,
-      prevDisbursed,
+      prevMonthDisbursed,
     );
 
-    // 5c. Net Cash Flow / Liquidity Position
-    // Available Cash = (Invested + Repaid) - (Disbursed + Withdrawn + Expenses)
-    const totalWithdrawn = Math.round(
-      members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0),
-    );
-
-    // Fetch Operating Expenses only (exclude capital movements like disbursements/withdrawals
-    // which are already accounted for via totalDisbursed and totalWithdrawn)
-    const expenseQuery = {
-      ...query,
-      type: 'expense',
-      category: {
-        $in: [
-          'rent',
-          'salary',
-          'utilities',
-          'marketing',
-          'maintenance',
-          'fee',
-          'other',
-        ],
+    // 3. Member Stats Aggregation
+    const Member = require('../models/Member');
+    const memberMatch = { user: query.user };
+    if (query.branchId !== undefined) memberMatch.branchId = query.branchId;
+    const memberStatsAgg = await Member.aggregate([
+      { $match: memberMatch },
+      {
+        $group: {
+          _id: null,
+          totalDeposits: { $sum: '$currentBalance' },
+          totalInvested: { $sum: '$totalInvested' },
+          totalWithdrawn: { $sum: '$totalWithdrawn' },
+          totalMembers: { $sum: 1 },
+        },
       },
-    };
-    const expenses = await FinancialTransaction.find(expenseQuery);
-    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    ]);
 
+    const {
+      totalDeposits = 0,
+      totalInvested = 0,
+      totalWithdrawnByMembers = 0,
+      totalMembers = 0,
+    } = (() => {
+      const s = memberStatsAgg[0] || {};
+      return {
+        totalDeposits: s.totalDeposits || 0,
+        totalInvested: s.totalInvested || 0,
+        totalWithdrawnByMembers: s.totalWithdrawn || 0,
+        totalMembers: s.totalMembers || 0,
+      };
+    })();
+
+    // 4. Financial Transaction (Liquidity) Aggregation
+    const ftBaseMatch = { user: req.user.effectiveOwnerId };
+    if (query.branchId !== undefined) ftBaseMatch.branchId = query.branchId;
+    const transactionStats = await FinancialTransaction.aggregate([
+      { $match: ftBaseMatch },
+      {
+        $group: {
+          _id: null,
+          totalIncome: {
+            $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] },
+          },
+          totalExpense: {
+            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+          },
+          totalLoanDisbursed: {
+            $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },
+          },
+          totalExpenses: {
+            $sum: { $cond: [{ $eq: ['$category', 'expense'] }, '$amount', 0] },
+          }, // for operating expenses
+        },
+      },
+    ]);
+
+    const {
+      totalIncome = 0,
+      totalExpense = 0,
+      totalLoanDisbursed = 0,
+      totalExpenses = 0,
+    } = transactionStats[0] || {};
+
+    // Liquidity = Total money in (deposits + repayments) minus money out (disbursements + withdrawals + expenses)
     const netLiquidity = Math.round(
-      totalInvested +
-        totalRepaid -
-        totalDisbursed -
-        totalWithdrawn -
-        totalExpenses,
+      totalIncome - totalExpense - totalLoanDisbursed - totalWithdrawnByMembers,
     );
-
-    // Net Profit = Interest Earnings (As per user request, excluding operating expenses)
-    const netProfit = totalProfit;
+    const netProfit = Math.round(totalProfit);
 
     // 5. Recent Transactions
     const recentTransactions = await Repayment.find(query)
@@ -192,8 +412,100 @@ const getDashboardStats = async (req, res) => {
       .limit(5)
       .populate('customer', 'name');
 
-    // 6. Monthly History Chart Data
-    const monthlyHistory = [];
+    // 6. Monthly History Chart Data (Aggregated)
+    const historyRangeStart = startDate
+      ? new Date(startDate)
+      : getMonthDates(5).start;
+    const historyRangeEnd = endDate ? new Date(endDate) : currentEnd;
+
+    const txMatch = { user: req.user.effectiveOwnerId };
+    if (query.branchId !== undefined) txMatch.branchId = query.branchId;
+    const historicalMetrics = await FinancialTransaction.aggregate([
+      {
+        $match: {
+          ...txMatch,
+          date: { $gte: historyRangeStart, $lte: historyRangeEnd },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+          inflow: {
+            $sum: {
+              $cond: [{ $eq: ['$category', 'repayment'] }, '$amount', 0],
+            },
+          },
+          deposits: {
+            $sum: {
+              $cond: [{ $eq: ['$category', 'investment'] }, '$amount', 0],
+            },
+          },
+          expenses: {
+            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+          },
+          outflow: {
+            $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Fetch Profit separately from Repayments (contains interestAmount)
+    const profitMetrics = await Repayment.aggregate([
+      {
+        $match: {
+          ...txMatch,
+          date: { $gte: historyRangeStart, $lte: historyRangeEnd },
+        },
+      },
+      {
+        $lookup: {
+          from: 'loans',
+          localField: 'loan',
+          foreignField: '_id',
+          as: 'loanDetails',
+        },
+      },
+      { $unwind: '$loanDetails' },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+          profit: {
+            $sum: {
+              $cond: [
+                { $ifNull: ['$interestAmount', false] },
+                '$interestAmount',
+                {
+                  $multiply: [
+                    '$amount',
+                    {
+                      $divide: [
+                        {
+                          $subtract: [
+                            '$loanDetails.totalAmount',
+                            '$loanDetails.principal',
+                          ],
+                        },
+                        {
+                          $cond: [
+                            { $eq: ['$loanDetails.totalAmount', 0] },
+                            1,
+                            '$loanDetails.totalAmount',
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    // Map to the required format
     const monthNames = [
       'Jan',
       'Feb',
@@ -208,128 +520,38 @@ const getDashboardStats = async (req, res) => {
       'Nov',
       'Dec',
     ];
+    const monthlyHistory = historicalMetrics.map((m) => {
+      const profitData = profitMetrics.find((p) => p._id === m._id);
+      const [year, month] = m._id.split('-');
+      return {
+        name: monthNames[parseInt(month) - 1],
+        inflow: m.inflow || 0,
+        outflow: m.outflow || 0,
+        deposits: m.deposits || 0,
+        expenses: m.expenses || 0,
+        profit: (profitData ? profitData.profit : 0) || 0,
+      };
+    });
 
-    if (startDate && endDate) {
-      // If date range provided, group by month within that range
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      let current = new Date(start.getFullYear(), start.getMonth(), 1);
-
-      while (current <= end) {
-        const mStart = new Date(current.getFullYear(), current.getMonth(), 1);
-        const mEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
-
-        const monthRepayments = repayments.filter(
-          (r) => r.date >= mStart && r.date <= mEnd,
-        );
-        const inflow = monthRepayments.reduce((sum, r) => sum + r.amount, 0);
-        const profit = calculateProfit(monthRepayments);
-
-        // Deposits
-        const monthDeposits = deposits.filter(
-          (d) => d.date >= mStart && d.date <= mEnd,
-        );
-        const depositAmount = monthDeposits.reduce(
-          (sum, d) => sum + d.amount,
-          0,
-        );
-
-        // Expenses
-        const monthExpenses = expenses.filter(
-          (e) => e.date >= mStart && e.date <= mEnd,
-        );
-        const expenseAmount = monthExpenses.reduce(
-          (sum, e) => sum + e.amount,
-          0,
-        );
-
-        // Outflow: Principal of loans disbursed in this month
-        const monthLoans = loans.filter(
-          (l) => l.startDate >= mStart && l.startDate <= mEnd,
-        );
-        const outflow = monthLoans.reduce(
-          (sum, l) => sum + (l.principal || 0),
-          0,
-        );
-
-        monthlyHistory.push({
-          name: monthNames[current.getMonth()],
-          inflow,
-          outflow,
-          profit,
-          deposits: depositAmount,
-          expenses: expenseAmount,
-          actual: inflow, // Fallback for backward compatibility
-        });
-
-        current.setMonth(current.getMonth() + 1);
-      }
-    } else {
-      // Default: Last 6 months
-      for (let i = 5; i >= 0; i--) {
-        const { start, end } = getMonthDates(i);
-        const monthRepayments = repayments.filter(
-          (r) => r.date >= start && r.date <= end,
-        );
-        const inflow = monthRepayments.reduce((sum, r) => sum + r.amount, 0);
-        const profit = calculateProfit(monthRepayments);
-
-        // Deposits
-        const monthDeposits = deposits.filter(
-          (d) => d.date >= start && d.date <= end,
-        );
-        const depositAmount = monthDeposits.reduce(
-          (sum, d) => sum + d.amount,
-          0,
-        );
-
-        // Expenses
-        const monthExpenses = expenses.filter(
-          (e) => e.date >= start && e.date <= end,
-        );
-        const expenseAmount = monthExpenses.reduce(
-          (sum, e) => sum + e.amount,
-          0,
-        );
-
-        // Outflow
-        const monthLoans = loans.filter(
-          (l) => l.startDate >= start && l.startDate <= end,
-        );
-        const outflow = monthLoans.reduce(
-          (sum, l) => sum + (l.principal || 0),
-          0,
-        );
-
-        const monthIndex = start.getMonth();
-        monthlyHistory.push({
-          name: monthNames[monthIndex],
-          inflow,
-          outflow,
-          profit,
-          deposits: depositAmount,
-          expenses: expenseAmount,
-          actual: inflow,
-        });
-      }
-    }
-
-    // 7. Predictive Forecast (Next 6 months - only if not custom range or if explicitly requested)
+    // 7. Predictive Forecast (Aggregated)
     const forecastHistory = [];
     if (!startDate) {
-      const activeLoansList = loans.filter((l) => l.status === 'active');
+      const forecastStart = new Date(currentEnd);
+      forecastStart.setDate(1);
+      forecastStart.setMonth(forecastStart.getMonth() + 1);
 
-      // Get current repayments count for each loan to know where we are
-      const loanRepaymentsCount = JSON.parse(
-        JSON.stringify(
-          await Promise.all(
-            activeLoansList.map(async (loan) => {
-              const count = await Repayment.countDocuments({ loan: loan._id });
-              return { id: loan._id.toString(), count };
-            }),
-          ),
-        ),
-      );
+      const forecastEnd = new Date(forecastStart);
+      forecastEnd.setMonth(forecastEnd.getMonth() + 6);
+
+      // This is a more complex projection, but we can approximate or use a separate logic
+      // For now, let's keep the simplified projection but optimize it to avoid nested loops if possible.
+      // However, since active loans are usually a manageable number, the current logic is OK if loans is already fetched.
+      // But we can avoid the count query per loan.
+
+      const loanForecastMatch = { user: query.user, status: 'active' };
+      if (query.branchId !== undefined)
+        loanForecastMatch.branchId = query.branchId;
+      const activeLoansList = await Loan.find(loanForecastMatch);
 
       const today = new Date();
       for (let i = 1; i <= 6; i++) {
@@ -338,7 +560,6 @@ const getDashboardStats = async (req, res) => {
           today.getMonth() + i,
           1,
         );
-        const forecastMonthName = monthNames[forecastMonthDate.getMonth()];
         const monthStart = new Date(
           today.getFullYear(),
           today.getMonth() + i,
@@ -351,37 +572,27 @@ const getDashboardStats = async (req, res) => {
         );
 
         let monthProjected = 0;
-
         for (const loan of activeLoansList) {
-          const rCount =
-            loanRepaymentsCount.find((rc) => rc.id === loan._id.toString())
-              ?.count || 0;
-
-          // Project future installments
-          for (let inst = rCount + 1; inst <= loan.duration; inst++) {
-            const dueDate = new Date(loan.startDate);
-            dueDate.setMonth(dueDate.getMonth() + inst);
-
-            if (dueDate >= monthStart && dueDate <= monthEnd) {
-              monthProjected += loan.emi;
-            }
+          // Approximate: if loan duration hasn't passed
+          const monthsSinceStart =
+            (monthStart.getFullYear() - loan.startDate.getFullYear()) * 12 +
+            (monthStart.getMonth() - loan.startDate.getMonth());
+          if (monthsSinceStart > 0 && monthsSinceStart <= loan.duration) {
+            monthProjected += loan.emi;
           }
         }
 
         forecastHistory.push({
-          name: forecastMonthName,
-          projected: monthProjected,
+          name: monthNames[forecastMonthDate.getMonth()],
+          projected: Math.round(monthProjected),
         });
       }
     }
 
-    // Total Projected for next 6 months
     const totalProjected = forecastHistory.reduce(
       (sum, m) => sum + m.projected,
       0,
     );
-
-    // Calculate percentage change based on previous 6 months actuals vs next 6 months projection
     const totalLast6MonthsActual = monthlyHistory.reduce(
       (sum, m) => sum + (m.actual || 0),
       0,
@@ -400,6 +611,16 @@ const getDashboardStats = async (req, res) => {
           amount: outstandingAmount,
           percentage: outstandingChange,
         },
+        overdue: {
+          count: overdueLoans,
+          amount: overdueAmount,
+        },
+        members: {
+          total: totalMembers,
+          deposits: totalDeposits,
+        },
+        collectionRate,
+        riskDistribution,
         forecast: {
           total6Months: totalProjected,
           percentage: forecastPercentage,
@@ -476,9 +697,15 @@ const downloadStatement = async (req, res) => {
     // Calculate Summary Metrics for the period
     const inflow = repayments.reduce((sum, r) => sum + r.amount, 0);
 
-    // Profit Calculation (Interest portion)
+    // Profit Calculation (Actual Interest Earned)
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
+        // If we have tracked interestAmount, use it (100% accurate)
+        if (r.interestAmount !== undefined && r.interestAmount !== null) {
+          return sum + r.interestAmount;
+        }
+
+        // Fallback for legacy repayments (pre-refactor)
         if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
           return sum;
         const totalInterest = r.loan.totalAmount - r.loan.principal;
@@ -508,21 +735,10 @@ const downloadStatement = async (req, res) => {
     const loans = await Loan.find(loanQuery);
     const outflow = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
-    // Fetch Operating Expenses for the period
+    // Fetch Operating Expenses + Withdrawals for the period
     const expenseQuery = {
       ...query,
       type: 'expense',
-      category: {
-        $in: [
-          'rent',
-          'salary',
-          'utilities',
-          'marketing',
-          'maintenance',
-          'fee',
-          'other',
-        ],
-      },
     };
     const expenses = await FinancialTransaction.find(expenseQuery);
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);

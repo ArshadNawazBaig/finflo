@@ -15,7 +15,7 @@ import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -163,21 +163,21 @@ const MemberBusinessShare = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
             title="Share Balance"
-            amount={formatPKR(member?.shareBalance || 0)}
+            amount={formatCurrency(member?.shareBalance || 0)}
             icon={<Building2 size={20} />}
             color="bg-violet-500 shadow-violet-500/20"
             subtitle="Current business share value"
           />
           <StatsCard
             title="Total Share Invested"
-            amount={formatPKR(member?.totalShareInvested || 0)}
+            amount={formatCurrency(member?.totalShareInvested || 0)}
             icon={<TrendingUp size={20} />}
             color="bg-primary shadow-primary/20"
             subtitle="Total capital committed to shares"
           />
           <StatsCard
             title="Share Profit Earned"
-            amount={formatPKR(member?.totalShareProfit || 0)}
+            amount={formatCurrency(member?.totalShareProfit || 0)}
             icon={<BadgeDollarSign size={20} />}
             color="bg-amber-500 shadow-amber-500/20"
             subtitle="Cumulative profit from share"
@@ -338,11 +338,11 @@ const MemberBusinessShare = () => {
                                 className={`text-xl font-black tracking-tighter ${accentColor}`}
                               >
                                 {isCredit ? '+' : '-'}
-                                {formatPKR(item.amount)}
+                                {formatCurrency(item.amount)}
                               </p>
                               {item.shareBalanceAfter != null && (
                                 <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                                  Share: {formatPKR(item.shareBalanceAfter)}
+                                  Share: {formatCurrency(item.shareBalanceAfter)}
                                 </p>
                               )}
                             </div>

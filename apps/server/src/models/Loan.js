@@ -20,9 +20,19 @@ const loanSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['pending', 'active', 'completed', 'defaulted', 'rejected'],
+      enum: [
+        'pending',
+        'active',
+        'overdue',
+        'completed',
+        'defaulted',
+        'rejected',
+      ],
       default: 'active',
     },
+    lateFeeAmount: { type: Number, default: 0 },
+    lateFeeAppliedAt: { type: Date },
+    overdueAt: { type: Date },
     paidAmount: { type: Number, default: 0 },
     remainingAmount: { type: Number, required: true },
     interestType: {
@@ -72,5 +82,12 @@ const loanSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Indexes for performance
+loanSchema.index({ user: 1 });
+loanSchema.index({ customer: 1 });
+loanSchema.index({ branchId: 1 });
+loanSchema.index({ status: 1 });
+loanSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Loan', loanSchema);

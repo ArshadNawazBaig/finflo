@@ -224,15 +224,10 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               variant="gradient"
               className="rounded-xl px-8 w-full sm:w-auto flex items-center gap-2"
             >
-              {loading ? (
-                <Loader2 className="animate-spin" size={16} />
-              ) : (
-                <Save size={16} />
-              )}
               {product ? 'Update Product' : 'Create Product'}
             </Button>
           </DialogFooter>

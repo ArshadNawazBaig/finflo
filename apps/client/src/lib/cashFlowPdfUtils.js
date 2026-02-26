@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatPKR } from './utils';
+import { formatCurrency } from './utils';
 import { format } from 'date-fns';
 
 export const exportCashFlowStatement = async (
@@ -16,7 +16,7 @@ export const exportCashFlowStatement = async (
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(79, 70, 229); // Primary Indigo color
-  doc.text('ACE WEALTH', 14, 22);
+  doc.text('FINFLOW', 14, 22);
 
   doc.setFontSize(10);
   doc.setTextColor(100);
@@ -43,11 +43,11 @@ export const exportCashFlowStatement = async (
   autoTable(doc, {
     startY: 60,
     body: [
-      ['Total Cash Inflow', formatPKR(summary.inflow || 0)],
-      ['Total Deposits', formatPKR(summary.deposits || 0)],
-      ['Total Disbursements', formatPKR(summary.outflow || 0)],
-      ['Interest Profit', formatPKR(summary.profit || 0)],
-      ['Operating Expenses', formatPKR(summary.expenses || 0)],
+      ['Total Cash Inflow', formatCurrency(summary.inflow || 0)],
+      ['Total Deposits', formatCurrency(summary.deposits || 0)],
+      ['Total Disbursements', formatCurrency(summary.outflow || 0)],
+      ['Interest Profit', formatCurrency(summary.profit || 0)],
+      ['Operating Expenses', formatCurrency(summary.expenses || 0)],
       ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'plain',
@@ -73,7 +73,7 @@ export const exportCashFlowStatement = async (
         t.type === 'repayment' ? 'Loan Repayment' : 'Member Deposit',
         t.entityName || t.customer?.name || t.member?.name || 'N/A', // Handle both new and old structure if needed
         t.reference || t.loan?.loanId || 'Deposit',
-        formatPKR(t.amount),
+        formatCurrency(t.amount),
       ]),
       theme: 'grid',
       headStyles: {
@@ -109,7 +109,7 @@ export const exportCashFlowStatement = async (
 
     // Legal disclaimer
     doc.text(
-      'ACE WEALTH - Secure Financial Management Ecosystem. This is a computer-generated document.',
+      'FINFLOW - Secure Financial Management Ecosystem. This is a computer-generated document.',
       pageWidth / 2,
       doc.internal.pageSize.height - 10,
       { align: 'center' },
@@ -123,6 +123,6 @@ export const exportCashFlowStatement = async (
     );
   }
 
-  const fileName = `AceWealth_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
+  const fileName = `FinFlow_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
   doc.save(fileName);
 };

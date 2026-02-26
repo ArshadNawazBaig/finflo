@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import {
   Mail,
   Phone,
@@ -162,7 +162,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                     Borrowed
                   </p>
                   <p className="text-sm font-black">
-                    {formatPKR(totalBorrowed)}
+                    {formatCurrency(totalBorrowed)}
                   </p>
                 </div>
                 <div className="space-y-0.5">
@@ -170,7 +170,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                     Outstanding
                   </p>
                   <p className="text-sm font-black text-orange-500">
-                    {formatPKR(totalOutstanding)}
+                    {formatCurrency(totalOutstanding)}
                   </p>
                 </div>
               </div>
@@ -203,7 +203,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                       </div>
                       <div>
                         <p className="text-sm font-black">
-                          {formatPKR(loan.principal)}
+                          {formatCurrency(loan.principal)}
                         </p>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
                           {loan.rate}% • {loan.duration} months
@@ -215,7 +215,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                         Remaining
                       </p>
                       <p className="text-sm font-black text-orange-500">
-                        {formatPKR(loan.remainingAmount)}
+                        {formatCurrency(loan.remainingAmount)}
                       </p>
                     </div>
                   </div>
@@ -260,7 +260,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
                     }
                     min="0"
                     step="0.01"
-                    placeholder="Rs. 0.00"
+                    placeholder="0.00"
                     className="w-full px-4 py-2.5 border border-border/50 rounded-xl bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
                   />
                 </div>

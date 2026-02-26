@@ -968,9 +968,12 @@ const getUpcomingRepayments = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     for (const loan of loans) {
-      // Calculate how many installments are covered by the total amount paid
-      // This allows a single payment to cover multiple installments correctly
-      const installmentsPaid = Math.floor((loan.paidAmount || 0) / loan.emi);
+      // Calculate how many installments are covered by the total amount paid.
+      // Add a small tolerance (0.5) before flooring to avoid floating-point off-by-one:
+      // e.g. 3000 / 1000.0001 ≈ 2.9999 which would incorrectly floor to 2.
+      const installmentsPaid = Math.floor(
+        ((loan.paidAmount || 0) + 0.5) / loan.emi,
+      );
 
       const unpaidInstallments = [];
       for (let i = 1; i <= loan.duration; i++) {
@@ -1429,8 +1432,6 @@ const memberRepayLoan = async (req, res) => {
     const loan = await Loan.findById(id).populate('customer').session(session);
     if (!loan) throw new Error('Loan not found');
 
-    const { isSettlement } = req.body;
-
     if (
       !loan.customer?.memberId ||
       loan.customer.memberId.toString() !== memberTokenId.toString()
@@ -1438,131 +1439,31 @@ const memberRepayLoan = async (req, res) => {
       throw new Error('Unauthorized: This loan does not belong to you');
     }
 
-    if (loan.status !== 'active') {
+    const isSettlementRequest = req.body.isSettlement === true;
+    const paymentAmount = Math.round(Number(amount));
+
+    if (loan.status !== 'active' && loan.status !== 'pending') {
       throw new Error('This loan is not active or already completed');
     }
 
-    // Handle Early Settlement Interest Adjustment (Same as admin logic)
-    if (isSettlement) {
-      const start = new Date(loan.startDate);
-      const now = new Date();
-
-      let monthsElapsed =
-        (now.getFullYear() - start.getFullYear()) * 12 +
-        (now.getMonth() - start.getMonth());
-
-      if (now.getDate() > start.getDate()) {
-        monthsElapsed++;
-      }
-
-      monthsElapsed = Math.max(1, monthsElapsed);
-
-      if (monthsElapsed < loan.duration) {
-        let newTotalInterest;
-        if (loan.interestType === 'simple') {
-          newTotalInterest =
-            (loan.principal * loan.rate * monthsElapsed) / 1200;
-        } else {
-          newTotalInterest =
-            (loan.principal * loan.rate * monthsElapsed) / 1200;
-        }
-
-        const newTotalAmount = Math.round(loan.principal + newTotalInterest);
-
-        await logActivity({
-          userId: memberTokenId,
-          action: 'loan_interest_adjusted_member',
-          category: 'loan',
-          details: `Loan interest adjusted for member early settlement from ${loan.totalAmount} to ${newTotalAmount}`,
-          metadata: {
-            loanId: loan._id,
-            oldTotalAmount: loan.totalAmount,
-            newTotalAmount,
-            monthsElapsed,
-          },
-          req,
-        });
-
-        loan.totalAmount = newTotalAmount;
-      }
-    }
-
-    const Member = require('../models/Member');
-    const Investment = require('../models/Investment');
-    const member = await Member.findById(memberTokenId).session(session);
-
-    if (!member) throw new Error('Member data not found');
-
-    const paymentAmount = Math.round(Number(amount));
-    if (member.currentBalance < paymentAmount) {
-      throw new Error('Insufficient balance in your account');
-    }
-
-    // 1. Deduct from member balance
-    member.currentBalance -= paymentAmount;
-    member.totalWithdrawn = (member.totalWithdrawn || 0) + paymentAmount;
-    await member.save({ session });
-
-    // 2. Record in Investment ledger (Withdrawal)
-    const investment = await Investment.create(
-      [
-        {
-          user: member.user,
-          member: member._id,
-          branchId: loan.branchId || member.branchId,
-          type: 'withdrawal',
-          amount: paymentAmount,
-          balanceAfter: member.currentBalance,
-          description: `Loan repayment – #${loan._id.toString().slice(-6).toUpperCase()}`,
-          date: new Date(),
-          metadata: { isRepayment: true },
-        },
-      ],
-      { session },
+    // Use the central repayment service for all logic
+    // This handles:
+    // 1. Pro-rated early settlement interest
+    // 2. Atomic member balance deduction
+    // 3. Investment & Repayment ledger recording
+    // 4. Financial Transaction ledger recording
+    // 5. Loan status & balance updates
+    await loanRepaymentService.processRepayment(
+      loan,
+      paymentAmount,
+      req, // Will use req.user.effectiveOwnerId for ownership
+      {
+        notes: req.body.notes || 'Self-repayment via FinFlow',
+        isAutoValue: false, // This is a manual member action
+        allowEarlySettlement: isSettlementRequest,
+        session, // Stay in current transaction
+      },
     );
-
-    // 3. Create Repayment record
-    const [repayment] = await Repayment.create(
-      [
-        {
-          user: member.user,
-          loan: loan._id,
-          customer: loan.customer._id,
-          branchId: loan.branchId,
-          amount: paymentAmount,
-          date: new Date(),
-          notes: req.body.notes || 'Self-repayment via Wealth Portal',
-        },
-      ],
-      { session },
-    );
-
-    // 4. Update loan stats
-    loan.paidAmount += paymentAmount;
-    loan.remainingAmount = Math.round(
-      Math.max(0, loan.totalAmount - loan.paidAmount),
-    );
-
-    if (loan.remainingAmount <= 0) {
-      loan.status = 'completed';
-    }
-    await loan.save({ session });
-
-    // 5. Create Financial Transaction
-    const financialTx = new FinancialTransaction({
-      user: member.user,
-      branchId: loan.branchId,
-      type: 'income',
-      category: 'repayment',
-      amount: paymentAmount,
-      date: new Date(),
-      description: `Loan self-repayment for ${loan.customer.name}`,
-      customer: loan.customer._id,
-      loan: loan._id,
-      referenceId: repayment._id,
-      referenceModel: 'Repayment',
-    });
-    await financialTx.save({ session });
 
     await session.commitTransaction();
 

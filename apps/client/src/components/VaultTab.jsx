@@ -39,6 +39,9 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
   const [viewDoc, setViewDoc] = useState(null);
 
   // Upload Form State
+  // State for actions
+  const [verifyingId, setVerifyingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [file, setFile] = useState(null);
   const [docType, setDocType] = useState('Other');
   const [expiryDate, setExpiryDate] = useState('');
@@ -90,16 +93,20 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
 
   const handleDelete = async (docId) => {
     try {
+      setDeletingId(docId);
       await api.delete(`/customers/${customerId}/documents/${docId}`);
       toast.success('Document removed from Vault');
       onUpdate();
     } catch (error) {
       toast.error('Failed to remove document');
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleVerify = async (docId) => {
     try {
+      setVerifyingId(docId);
       await api.patch(`/customers/${customerId}/documents/${docId}`, {
         status: 'Verified',
       });
@@ -107,6 +114,8 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
       onUpdate();
     } catch (error) {
       toast.error('Failed to verify document');
+    } finally {
+      setVerifyingId(null);
     }
   };
 
@@ -236,22 +245,28 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
                   </a>
 
                   {doc.status !== 'Verified' && (
-                    <button
+                    <Button
                       onClick={() => handleVerify(doc._id)}
-                      className="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
+                      isLoading={verifyingId === doc._id}
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
                       title="Mark as Verified"
                     >
                       <CheckCircle2 size={14} />
-                    </button>
+                    </Button>
                   )}
 
-                  <button
+                  <Button
                     onClick={() => handleDelete(doc._id)}
-                    className="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
+                    isLoading={deletingId === doc._id}
+                    variant="ghost"
+                    size="icon"
+                    className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
                     title="Delete Document"
                   >
                     <Trash2 size={14} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             );
@@ -343,17 +358,11 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
 
             <Button
               onClick={handleUpload}
-              disabled={!file || uploading}
+              isLoading={uploading}
+              disabled={!file}
               className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest"
             >
-              {uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Encrypting...
-                </>
-              ) : (
-                'Secure & Upload'
-              )}
+              Secure & Upload
             </Button>
           </div>
         </DialogContent>

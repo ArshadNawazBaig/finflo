@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import {
   Calendar,
   DollarSign,
@@ -94,7 +94,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                   Monthly EMI
                 </p>
                 <p className="text-xl sm:text-2xl font-black">
-                  {formatPKR(loan.emi)}
+                  {formatCurrency(loan.emi)}
                 </p>
               </div>
               <div className="space-y-0.5 sm:space-y-1 relative z-10">
@@ -102,7 +102,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                   Total Repayable
                 </p>
                 <p className="text-xl sm:text-2xl font-black">
-                  {formatPKR(loan.totalAmount)}
+                  {formatCurrency(loan.totalAmount)}
                 </p>
               </div>
               <div className="space-y-0.5 sm:space-y-1 relative z-10">
@@ -167,7 +167,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                         Principal
                       </p>
                       <p className="text-sm sm:text-md font-black truncate underline decoration-emerald-500/30 decoration-2 underline-offset-4">
-                        {formatPKR(loan.principal)}
+                        {formatCurrency(loan.principal)}
                       </p>
                     </div>
                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
@@ -213,7 +213,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                         Total Amount
                       </p>
                       <p className="text-base sm:text-lg font-medium opacity-60">
-                        {formatPKR(loan.totalAmount)}
+                        {formatCurrency(loan.totalAmount)}
                       </p>
                     </div>
                     <div className="w-8 sm:w-12 h-[1px] bg-border/50 mb-2 sm:mb-3" />
@@ -225,7 +225,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                         Recovered
                       </p>
                       <p className="text-lg sm:text-xl font-black text-emerald-600">
-                        +{formatPKR(loan.paidAmount || 0)}
+                        +{formatCurrency(loan.paidAmount || 0)}
                       </p>
                     </div>
                     <div className="w-8 sm:w-12 h-[1px] bg-emerald-500/20 mb-2 sm:mb-3" />
@@ -237,7 +237,7 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
                         Outstanding
                       </p>
                       <p className="text-2xl sm:text-3xl font-black text-primary tracking-tighter truncate">
-                        {formatPKR(loan.remainingAmount)}
+                        {formatCurrency(loan.remainingAmount)}
                       </p>
                     </div>
                     <div className="flex gap-2">

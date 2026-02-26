@@ -197,6 +197,7 @@ const loginUser = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
+        currency: user.currency,
         permissions: user.getPermissions(),
         token: token,
       });
@@ -236,6 +237,7 @@ const getMe = async (req, res) => {
         businessName: user.businessName,
         securityCode: user.securityCode,
         profilePicture: user.profilePicture,
+        currency: user.currency,
         permissions: user.getPermissions(),
       });
     } else {
@@ -258,6 +260,7 @@ const updateDetails = async (req, res) => {
   const fieldsToUpdate = {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
+    currency: req.body.currency,
   };
 
   try {
@@ -703,7 +706,7 @@ const generate2FA = async (req, res) => {
     user.twoFactorSecret = secret;
     await user.save({ validateBeforeSave: false });
 
-    const appName = 'ACE Wealth Portal';
+    const appName = 'FinFlow';
     const otpauthUrl = authenticator.keyuri(user.email, appName, secret);
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 

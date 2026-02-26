@@ -20,7 +20,7 @@ import {
   ArrowDownCircle,
   Calendar,
 } from 'lucide-react';
-import { formatPKR, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 
 const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    notes: 'Self-repayment via Wealth Portal',
+    notes: 'Self-repayment via FinFlow',
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       setIsSettlement(false);
       setFormData({
         amount: '',
-        notes: 'Self-repayment via Wealth Portal',
+        notes: 'Self-repayment via FinFlow',
       });
     }
   }, [isOpen]);
@@ -170,7 +170,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <DialogDescription className="text-sm font-medium">
                   {isSettlement
                     ? 'Pay off your loan today with adjusted interest.'
-                    : 'Select an amount to pay from your Wealth Balance.'}
+                    : 'Select an amount to pay from your FinFlow Balance.'}
                 </DialogDescription>
               </div>
             </div>
@@ -186,7 +186,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 {fetchingBalance ? (
                   <Loader2 className="w-3 h-3 animate-spin inline" />
                 ) : (
-                  formatPKR(memberBalance)
+                  formatCurrency(memberBalance)
                 )}
               </p>
             </div>
@@ -197,7 +197,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <p
                 className={`text-sm font-black truncate ${isSettlement ? 'text-blue-600' : 'text-rose-600'}`}
               >
-                {formatPKR(
+                {formatCurrency(
                   isSettlement ? settlementAmount : loan.remainingAmount,
                 )}
               </p>
@@ -234,7 +234,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       Monthly Installment
                     </p>
                     <p className="text-sm font-black text-foreground">
-                      {formatPKR(loan.emi)}
+                      {formatCurrency(loan.emi)}
                     </p>
                   </div>
                 </div>
@@ -277,7 +277,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   </div>
                   <div className="pt-2 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                     <span>Adjusted Interest</span>
-                    <span>+ {formatPKR(details.interest)}</span>
+                    <span>+ {formatCurrency(details.interest)}</span>
                   </div>
                 </div>
               )}
@@ -332,28 +332,25 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
               </button>
               <Button
                 type="submit"
-                disabled={loading || isInvalid || isInsufficient}
+                isLoading={loading}
+                disabled={isInvalid || isInsufficient}
                 variant={isSettlement ? 'gradient' : 'gradient'}
                 className={`flex-[2] h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 group overflow-hidden ${isSettlement ? 'shadow-blue-500/20' : 'shadow-primary/20'}`}
               >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {isSettlement ? (
-                      <ArrowDownCircle size={18} strokeWidth={3} />
-                    ) : (
-                      <CheckCircle2 size={18} strokeWidth={3} />
-                    )}
-                    {isSettlement ? 'Settle Now' : 'Pay Back'}
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {isSettlement ? (
+                    <ArrowDownCircle size={18} strokeWidth={3} />
+                  ) : (
+                    <CheckCircle2 size={18} strokeWidth={3} />
+                  )}
+                  {isSettlement ? 'Settle Now' : 'Pay Back'}
+                </div>
               </Button>
             </div>
           </form>
 
           <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
-            TRANSACTION SECURED BY FINANCEFLOW 3D-PROTOCOL
+            TRANSACTION SECURED BY FINFLOW 3D-PROTOCOL
           </p>
         </div>
       </DialogContent>

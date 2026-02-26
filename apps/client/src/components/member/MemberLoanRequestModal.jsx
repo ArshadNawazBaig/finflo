@@ -438,18 +438,11 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     </button>
                     <Button
                       type="submit"
-                      disabled={loading}
+                      isLoading={loading}
                       variant="gradient"
                       className="flex-1 rounded-full py-4 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
                     >
-                      {loading ? (
-                        <>
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                          Submitting
-                        </>
-                      ) : (
-                        'Submit Request'
-                      )}
+                      Submit Request
                     </Button>
                   </div>
                 </form>

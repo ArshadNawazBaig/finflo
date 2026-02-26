@@ -659,10 +659,16 @@ const addInvestment = async (req, res) => {
     const balanceBefore = member.currentBalance;
     const investedBefore = member.totalInvested;
 
-    // Update member balances
-    member.totalInvested += amount;
-    member.currentBalance += amount;
-    await member.save();
+    // Update member balances atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: id, user: userId },
+      { $inc: { totalInvested: amount, currentBalance: amount } },
+      { new: true },
+    );
+
+    if (!updatedMember) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
 
     // Create investment record
     const investment = await Investment.create({
@@ -672,7 +678,7 @@ const addInvestment = async (req, res) => {
       type: 'deposit',
       amount,
       description: description || 'Investment deposit',
-      balanceAfter: member.currentBalance,
+      balanceAfter: updatedMember.currentBalance,
     });
 
     // Create Financial Transaction
@@ -705,8 +711,8 @@ const addInvestment = async (req, res) => {
           totalInvested: investedBefore,
         },
         after: {
-          currentBalance: member.currentBalance,
-          totalInvested: member.totalInvested,
+          currentBalance: updatedMember.currentBalance,
+          totalInvested: updatedMember.totalInvested,
         },
       },
       req,
@@ -732,10 +738,11 @@ const addInvestment = async (req, res) => {
       if (member.email) {
         await sendEmail({
           to: member.email,
+          fromName: 'FinFlow',
           subject: 'Deposit Confirmation',
-          html: `<p>Hello ${member.name},</p>
+          html: `<p>Hello <span style="font-size: 16px; font-weight: bold; text-transform: capitalize;">${member.name}</span>,</p>
                  <p>Your deposit of <strong>Rs. ${amount.toLocaleString()}</strong> has been successfully processed.</p>
-                 <p>Current Balance: <strong>Rs. ${member.currentBalance.toLocaleString()}</strong></p>`,
+                 <p>Current Balance: <strong>Rs. ${updatedMember.currentBalance.toLocaleString()}</strong></p>`,
         });
       }
     } catch (notifError) {
@@ -818,10 +825,16 @@ const withdrawInvestment = async (req, res) => {
     const balanceBefore = member.currentBalance;
     const withdrawnBefore = member.totalWithdrawn;
 
-    // Update member balances
-    member.currentBalance -= amount;
-    member.totalWithdrawn += amount;
-    await member.save();
+    // Update member balances atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: id, user: userId },
+      { $inc: { currentBalance: -amount, totalWithdrawn: amount } },
+      { new: true },
+    );
+
+    if (!updatedMember) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
 
     // Create investment record
     const investment = await Investment.create({
@@ -831,7 +844,7 @@ const withdrawInvestment = async (req, res) => {
       type: 'withdrawal',
       amount,
       description: description || 'Investment withdrawal',
-      balanceAfter: member.currentBalance,
+      balanceAfter: updatedMember.currentBalance,
     });
 
     // Create Financial Transaction
@@ -891,10 +904,11 @@ const withdrawInvestment = async (req, res) => {
       if (member.email) {
         await sendEmail({
           to: member.email,
+          fromName: 'FinFlow',
           subject: 'Withdrawal Confirmation',
           html: `<p>Hello ${member.name},</p>
                  <p>A withdrawal of <strong>Rs. ${amount.toLocaleString()}</strong> has been processed from your account.</p>
-                 <p>Remaining Balance: <strong>Rs. ${member.currentBalance.toLocaleString()}</strong></p>`,
+                 <p>Remaining Balance: <strong>Rs. ${updatedMember.currentBalance.toLocaleString()}</strong></p>`,
         });
       }
     } catch (notifError) {
@@ -931,15 +945,182 @@ const getMemberProfits = async (req, res) => {
   }
 };
 
+/**
+ * Helper to calculate the Daily Weighted Average Balance for a member
+ * during a specific period.
+ */
+const calculateWeightedAverageBalance = async (
+  memberId,
+  startDate,
+  endDate,
+  type = 'regular',
+) => {
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+
+  // Calculate days in period
+  const diffTime = Math.abs(end - start);
+  const daysInPeriod = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+
+  let currentBalance = 0;
+  let events = [];
+
+  if (type === 'regular' || type === 'investment') {
+    // 1. Calculate balance at the start of the period
+    const [invSum, profitSum] = await Promise.all([
+      Investment.aggregate([
+        { $match: { member: memberId, date: { $lt: start } } },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: {
+                $cond: [
+                  {
+                    $in: [
+                      '$type',
+                      [
+                        'deposit',
+                        'transfer_receive',
+                        'external_receive',
+                        'p2p_receive',
+                      ],
+                    ],
+                  },
+                  '$amount',
+                  { $multiply: ['$amount', -1] },
+                ],
+              },
+            },
+          },
+        },
+      ]),
+      ProfitDistribution.aggregate([
+        {
+          $match: {
+            member: memberId,
+            type: { $in: ['regular', null] },
+            date: { $lt: start },
+          },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+
+    currentBalance = (invSum[0]?.total || 0) + (profitSum[0]?.total || 0);
+
+    // 2. Get all events within the period
+    const [investments, profits] = await Promise.all([
+      Investment.find({
+        member: memberId,
+        date: { $gte: start, $lte: end },
+      }).sort({ date: 1 }),
+      ProfitDistribution.find({
+        member: memberId,
+        type: { $in: ['regular', null] },
+        date: { $gte: start, $lte: end },
+      }).sort({ date: 1 }),
+    ]);
+
+    events = [
+      ...investments.map((i) => ({
+        date: i.date,
+        amount: [
+          'deposit',
+          'transfer_receive',
+          'external_receive',
+          'p2p_receive',
+        ].includes(i.type)
+          ? i.amount
+          : -i.amount,
+      })),
+      ...profits.map((p) => ({ date: p.date, amount: p.amount })),
+    ].sort((a, b) => a.date - b.date);
+  } else {
+    // Share calculation
+    const shareSum = await BusinessShare.aggregate([
+      { $match: { member: memberId, date: { $lt: start } } },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['share_deposit', 'share_profit']] },
+                '$amount',
+                { $multiply: ['$amount', -1] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    currentBalance = shareSum[0]?.total || 0;
+
+    const shareEvents = await BusinessShare.find({
+      member: memberId,
+      date: { $gte: start, $lte: end },
+    }).sort({ date: 1 });
+
+    events = shareEvents.map((s) => ({
+      date: s.date,
+      amount: ['share_deposit', 'share_profit'].includes(s.type)
+        ? s.amount
+        : -s.amount,
+    }));
+  }
+
+  // 3. Calculate daily sum
+  let totalWeightedBalance = 0;
+  let tempDate = new Date(start);
+  let eventIndex = 0;
+
+  for (let d = 0; d < daysInPeriod; d++) {
+    const dayEnd = new Date(tempDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    // Apply all events that happened up to today's end
+    while (eventIndex < events.length && events[eventIndex].date <= dayEnd) {
+      currentBalance += events[eventIndex].amount;
+      eventIndex++;
+    }
+
+    // Balance shouldn't realistically be negative for profit calc, but we floor it at 0
+    totalWeightedBalance += Math.max(0, currentBalance);
+    tempDate.setDate(tempDate.getDate() + 1);
+  }
+
+  return totalWeightedBalance / daysInPeriod;
+};
+
 // Distribute profit to all members
 const distributeProfit = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { totalProfit, period, description, useCustomRates } = req.body;
+    const {
+      totalProfit,
+      period,
+      description,
+      useCustomRates,
+      startDate,
+      endDate,
+    } = req.body;
 
     if (!totalProfit || totalProfit <= 0) {
       return res.status(400).json({ message: 'Invalid profit amount' });
     }
+
+    // Default dates to current month if not provided
+    const now = new Date();
+    const periodStart = startDate
+      ? new Date(startDate)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = endDate
+      ? new Date(endDate)
+      : new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     // Get all active members
     const members = await Member.find({ user: userId, status: 'Active' });
@@ -952,31 +1133,44 @@ const distributeProfit = async (req, res) => {
     // Option 1: Use custom profit rates (if specified)
     if (useCustomRates) {
       for (const member of members) {
-        if (member.currentBalance > 0 && member.profitRate > 0) {
-          // Calculate profit based on custom rate: (balance * rate / 100)
+        // Use Weighted Average Balance for calculation
+        const weightedBalance = await calculateWeightedAverageBalance(
+          member._id,
+          periodStart,
+          periodEnd,
+          'regular',
+        );
+
+        if (weightedBalance > 0 && member.profitRate > 0) {
           const profitAmount = Math.round(
-            (member.currentBalance * member.profitRate) / 100,
+            (weightedBalance * member.profitRate) / 100,
           );
 
-          // Update member profit
-          member.totalProfit += profitAmount;
-          member.currentBalance += profitAmount; // Add profit to balance
-          await member.save();
+          if (profitAmount <= 0) continue;
+
+          // Update member profit atomically
+          const updatedMember = await Member.findByIdAndUpdate(
+            member._id,
+            {
+              $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
+            },
+            { new: true },
+          );
 
           // Create profit distribution record
           const distribution = await ProfitDistribution.create({
             user: userId,
             member: member._id,
-            branchId: member.branchId, // Tag with member's branch
+            branchId: member.branchId,
             amount: profitAmount,
             type: 'regular',
             period:
               period ||
-              new Date().toLocaleDateString('en-US', {
+              periodStart.toLocaleDateString('en-US', {
                 month: 'short',
                 year: 'numeric',
               }),
-            calculationMethod: `Custom rate: ${member.profitRate}% of balance`,
+            calculationMethod: `Weighted Avg Balance (Rs. ${Math.round(weightedBalance).toLocaleString()}) × ${member.profitRate}% Rate`,
             investmentShare: member.profitRate,
           });
 
@@ -988,7 +1182,7 @@ const distributeProfit = async (req, res) => {
             category: 'profit_distribution',
             amount: profitAmount,
             date: new Date(),
-            description: `Profit distribution for ${period || 'current period'}`,
+            description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
             member: member._id,
             referenceId: distribution._id,
             referenceModel: 'ProfitDistribution',
@@ -1000,7 +1194,7 @@ const distributeProfit = async (req, res) => {
             await createTransactionNotification({
               recipientId: member._id,
               title: 'Profit Credited',
-              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added to your account for ${period || 'current period'} (${member.profitRate}% rate).`,
+              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added. Calculated on Weighted Avg Balance of Rs. ${Math.round(weightedBalance).toLocaleString()} at ${member.profitRate}% rate.`,
               type: 'success',
               branchId: member.branchId,
               action: 'member_profit_notification',
@@ -1010,16 +1204,6 @@ const distributeProfit = async (req, res) => {
                 link: '/member/investments',
               },
             });
-
-            // Email Notification
-            if (member.email) {
-              await sendEmail({
-                to: member.email,
-                subject: 'Profit Distribution',
-                html: `<p>Hello ${member.name},</p>
-                       <p>Profit of <strong>Rs. ${profitAmount.toLocaleString()}</strong> has been added to your account for ${period || 'the current period'} (${member.profitRate}% rate).</p>`,
-              });
-            }
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
           }
@@ -1028,43 +1212,65 @@ const distributeProfit = async (req, res) => {
         }
       }
     } else {
-      // Option 2: Proportional distribution based on investment share
-      const totalInvested = members.reduce(
-        (sum, m) => sum + m.currentBalance,
+      // Option 2: Proportional distribution based on Weighted Average Investment share
+      const memberBalances = await Promise.all(
+        members.map(async (m) => ({
+          member: m,
+          weightedBalance: await calculateWeightedAverageBalance(
+            m._id,
+            periodStart,
+            periodEnd,
+            'regular',
+          ),
+        })),
+      );
+
+      const totalWeightedPool = memberBalances.reduce(
+        (sum, item) => sum + item.weightedBalance,
         0,
       );
-      if (totalInvested === 0) {
-        return res.status(400).json({ message: 'No active investments found' });
+
+      if (totalWeightedPool === 0) {
+        return res
+          .status(400)
+          .json({ message: 'No weighted average balance found in period' });
       }
 
-      for (const member of members) {
-        if (member.currentBalance > 0) {
-          const share = (member.currentBalance / totalInvested) * 100;
+      for (const item of memberBalances) {
+        const { member, weightedBalance } = item;
+        if (weightedBalance > 0) {
+          const share = (weightedBalance / totalWeightedPool) * 100;
           const profitAmount = Math.round(
-            (member.currentBalance / totalInvested) * totalProfit,
+            (weightedBalance / totalWeightedPool) * totalProfit,
           );
 
-          // Update member profit
-          member.totalProfit += profitAmount;
-          member.currentBalance += profitAmount; // Add profit to balance
-          await member.save();
+          if (profitAmount <= 0) continue;
+
+          // Update member profit atomically
+          const updatedMember = await Member.findByIdAndUpdate(
+            member._id,
+            {
+              $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
+            },
+            { new: true },
+          );
 
           // Create profit distribution record
           const distribution = await ProfitDistribution.create({
             user: userId,
             member: member._id,
-            branchId: member.branchId, // Tag with member's branch
+            branchId: member.branchId,
             amount: profitAmount,
             type: 'regular',
             period:
               period ||
-              new Date().toLocaleDateString('en-US', {
+              periodStart.toLocaleDateString('en-US', {
                 month: 'short',
                 year: 'numeric',
               }),
             calculationMethod:
               description ||
-              `Proportional distribution based on ${share.toFixed(2)}% share`,
+              `Weighted Avg Balance: Rs. ${Math.round(weightedBalance).toLocaleString()} (${share.toFixed(2)}% share of pool)`,
             investmentShare: share,
           });
 
@@ -1076,7 +1282,7 @@ const distributeProfit = async (req, res) => {
             category: 'profit_distribution',
             amount: profitAmount,
             date: new Date(),
-            description: `Profit distribution for ${period || 'current period'}`,
+            description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
             member: member._id,
             referenceId: distribution._id,
             referenceModel: 'ProfitDistribution',
@@ -1088,7 +1294,7 @@ const distributeProfit = async (req, res) => {
             await createTransactionNotification({
               recipientId: member._id,
               title: 'Profit Credited',
-              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added to your account for ${period || 'current period'} (${share.toFixed(2)}% share).`,
+              message: `Profit of Rs. ${profitAmount.toLocaleString()} has been added (Share: ${share.toFixed(2)}%). Calculated on Weighted Avg Balance of Rs. ${Math.round(weightedBalance).toLocaleString()}.`,
               type: 'success',
               branchId: member.branchId,
               action: 'member_profit_notification',
@@ -1098,16 +1304,6 @@ const distributeProfit = async (req, res) => {
                 link: '/member/investments',
               },
             });
-
-            // Email Notification
-            if (member.email) {
-              await sendEmail({
-                to: member.email,
-                subject: 'Profit Distribution',
-                html: `<p>Hello ${member.name},</p>
-                       <p>Profit of <strong>Rs. ${profitAmount.toLocaleString()}</strong> has been added to your account for ${period || 'the current period'} (${share.toFixed(2)}% share).</p>`,
-              });
-            }
           } catch (notifError) {
             console.error('Profit Notification Error:', notifError);
           }
@@ -1240,7 +1436,7 @@ const getMemberActivity = async (req, res) => {
         // Fallback checks for notes if something didn't match exactly
         const isWalletRepayment =
           r.notes &&
-          (r.notes.includes('Wealth Portal') ||
+          (r.notes.includes('FinFlow') ||
             r.notes.includes('Self-repayment') ||
             r.notes.includes('Automatic deduction'));
         return !isWalletRepayment;
@@ -1379,14 +1575,30 @@ const transferFunds = async (req, res) => {
 
     const transferAmount = Math.round(parseFloat(amount));
 
-    // Update balances
-    sender.currentBalance -= transferAmount;
-    sender.totalWithdrawn += transferAmount;
-    recipient.currentBalance += transferAmount;
-    recipient.totalInvested += transferAmount;
+    // Update balances atomically inside session
+    await Member.updateOne(
+      { _id: sender._id },
+      {
+        $inc: {
+          currentBalance: -transferAmount,
+          totalWithdrawn: transferAmount,
+        },
+      },
+      { session },
+    );
+    await Member.updateOne(
+      { _id: recipient._id },
+      {
+        $inc: { currentBalance: transferAmount, totalInvested: transferAmount },
+      },
+      { session },
+    );
 
-    await sender.save({ session });
-    await recipient.save({ session });
+    // Refresh objects for subsequent logic if needed (e.g., balanceAfter)
+    const updatedSender = await Member.findById(senderId).session(session);
+    const updatedRecipient = await Member.findById(recipient._id).session(
+      session,
+    );
 
     // Create investment records for both
     const senderTransaction = new Investment({
@@ -1395,7 +1607,7 @@ const transferFunds = async (req, res) => {
       branchId: sender.branchId,
       type: 'transfer_send',
       amount: transferAmount,
-      balanceAfter: sender.currentBalance,
+      balanceAfter: updatedSender.currentBalance,
       description: description || `Transfer to ${recipient.name}`,
       date: new Date(),
     });
@@ -1406,7 +1618,7 @@ const transferFunds = async (req, res) => {
       branchId: recipient.branchId,
       type: 'transfer_receive',
       amount: transferAmount,
-      balanceAfter: recipient.currentBalance,
+      balanceAfter: updatedRecipient.currentBalance,
       description: description || `Transfer from ${sender.name}`,
       date: new Date(),
     });
@@ -1548,14 +1760,30 @@ const adminTransferFunds = async (req, res) => {
 
     const transferAmount = Math.round(parseFloat(amount));
 
-    // Update balances
-    sender.currentBalance -= transferAmount;
-    sender.totalWithdrawn += transferAmount;
-    recipient.currentBalance += transferAmount;
-    recipient.totalInvested += transferAmount;
+    // Update balances atomically inside session
+    await Member.updateOne(
+      { _id: sender._id },
+      {
+        $inc: {
+          currentBalance: -transferAmount,
+          totalWithdrawn: transferAmount,
+        },
+      },
+      { session },
+    );
+    await Member.updateOne(
+      { _id: recipient._id },
+      {
+        $inc: { currentBalance: transferAmount, totalInvested: transferAmount },
+      },
+      { session },
+    );
 
-    await sender.save({ session });
-    await recipient.save({ session });
+    // Refresh objects for logs/response
+    const updatedSender = await Member.findById(senderId).session(session);
+    const updatedRecipient = await Member.findById(recipient._id).session(
+      session,
+    );
 
     // Create investment records for both
     const senderTransaction = new Investment({
@@ -1853,10 +2081,16 @@ const addShareInvestment = async (req, res) => {
     const member = await Member.findOne({ _id: id, user: userId });
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
-    // Update member share fields only — currentBalance is untouched
-    member.shareBalance += amount;
-    member.totalShareInvested += amount;
-    await member.save();
+    // Update member share fields atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: id, user: userId },
+      { $inc: { shareBalance: amount, totalShareInvested: amount } },
+      { new: true },
+    );
+
+    if (!updatedMember) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
 
     // Create business share record
     const shareRecord = await BusinessShare.create({
@@ -1866,7 +2100,7 @@ const addShareInvestment = async (req, res) => {
       type: 'share_deposit',
       amount,
       description: description || 'Business share investment',
-      shareBalanceAfter: member.shareBalance,
+      shareBalanceAfter: updatedMember.shareBalance,
     });
 
     // Financial transaction (income — share investment inflow)
@@ -1937,8 +2171,16 @@ const withdrawShareInvestment = async (req, res) => {
         .json({ message: 'Insufficient share balance for withdrawal' });
     }
 
-    member.shareBalance -= amount;
-    await member.save();
+    // Update member share balance atomically
+    const updatedMember = await Member.findOneAndUpdate(
+      { _id: id, user: userId },
+      { $inc: { shareBalance: -amount } },
+      { new: true },
+    );
+
+    if (!updatedMember) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
 
     const shareRecord = await BusinessShare.create({
       user: userId,
@@ -1947,7 +2189,7 @@ const withdrawShareInvestment = async (req, res) => {
       type: 'share_withdrawal',
       amount,
       description: description || 'Business share withdrawal',
-      shareBalanceAfter: member.shareBalance,
+      shareBalanceAfter: updatedMember.shareBalance,
     });
 
     await FinancialTransaction.create({
@@ -2006,11 +2248,21 @@ const distributeShareProfit = async (req, res) => {
       period,
       description,
       useCustomRates,
+      startDate,
+      endDate,
     } = req.body;
 
     if (!useCustomRates && (!profitPool || profitPool <= 0)) {
       return res.status(400).json({ message: 'Invalid profit amount' });
     }
+
+    const now = new Date();
+    const periodStart = startDate
+      ? new Date(startDate)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = endDate
+      ? new Date(endDate)
+      : new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
     const members = await Member.find({
       user: userId,
@@ -2023,10 +2275,34 @@ const distributeShareProfit = async (req, res) => {
         .json({ message: 'No active members with share investments found' });
     }
 
-    const totalSharePool = members.reduce((sum, m) => sum + m.shareBalance, 0);
     const distributions = [];
 
-    for (const member of members) {
+    // Calculate all weighted balances first
+    const memberShares = await Promise.all(
+      members.map(async (m) => ({
+        member: m,
+        weightedShareBalance: await calculateWeightedAverageBalance(
+          m._id,
+          periodStart,
+          periodEnd,
+          'share',
+        ),
+      })),
+    );
+
+    const totalWeightedSharePool = memberShares.reduce(
+      (sum, item) => sum + item.weightedShareBalance,
+      0,
+    );
+
+    if (totalWeightedSharePool === 0 && !useCustomRates) {
+      return res
+        .status(400)
+        .json({ message: 'No weighted average share balance found in period' });
+    }
+
+    for (const item of memberShares) {
+      const { member, weightedShareBalance } = item;
       let profitAmount = 0;
       let calculationInfo = '';
       let sharePercent = 0;
@@ -2034,28 +2310,37 @@ const distributeShareProfit = async (req, res) => {
       if (useCustomRates) {
         if (member.shareProfitRate > 0) {
           profitAmount = Math.round(
-            (member.shareBalance * member.shareProfitRate) / 100,
+            (weightedShareBalance * member.shareProfitRate) / 100,
           );
-          calculationInfo = `Custom rate: ${member.shareProfitRate}% of share balance`;
+          calculationInfo = `Custom rate: ${member.shareProfitRate}% on Weighted Avg Share Balance (Rs. ${Math.round(weightedShareBalance).toLocaleString()})`;
           sharePercent = member.shareProfitRate;
         } else {
-          continue; // Skip if no rate set and using custom rates
+          continue;
         }
       } else {
-        sharePercent = (member.shareBalance / totalSharePool) * 100;
-        profitAmount = Math.round(
-          (member.shareBalance / totalSharePool) * profitPool,
-        );
-        calculationInfo = `Proportional share: ${sharePercent.toFixed(2)}% of Rs. ${profitPool.toLocaleString()}`;
+        if (weightedShareBalance > 0) {
+          sharePercent = (weightedShareBalance / totalWeightedSharePool) * 100;
+          profitAmount = Math.round(
+            (weightedShareBalance / totalWeightedSharePool) * profitPool,
+          );
+          calculationInfo = `Proportional: ${sharePercent.toFixed(2)}% of pool based on Weighted Avg Share Balance (Rs. ${Math.round(weightedShareBalance).toLocaleString()})`;
+        }
       }
 
       if (profitAmount <= 0) continue;
 
-      // Credit profit to share balance (re-invest) AND to totalProfit (net profit)
-      member.shareBalance += profitAmount;
-      member.totalShareProfit += profitAmount;
-      member.totalProfit += profitAmount; // Reflected in net profits
-      await member.save();
+      // Credit profit to share balance atomically
+      const updatedMember = await Member.findByIdAndUpdate(
+        member._id,
+        {
+          $inc: {
+            shareBalance: profitAmount,
+            totalShareProfit: profitAmount,
+            totalProfit: profitAmount,
+          },
+        },
+        { new: true },
+      );
 
       const shareRecord = await BusinessShare.create({
         user: userId,
@@ -2065,11 +2350,11 @@ const distributeShareProfit = async (req, res) => {
         amount: profitAmount,
         description:
           description ||
-          `Share profit distribution for ${period || 'current period'}${useCustomRates ? ' (Custom Rates)' : ''}`,
+          `Share profit (Weighted Avg) for ${period || periodStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`,
         shareBalanceAfter: member.shareBalance,
         period:
           period ||
-          new Date().toLocaleDateString('en-US', {
+          periodStart.toLocaleDateString('en-US', {
             month: 'short',
             year: 'numeric',
           }),
@@ -2084,7 +2369,7 @@ const distributeShareProfit = async (req, res) => {
         type: 'share',
         period:
           period ||
-          new Date().toLocaleDateString('en-US', {
+          periodStart.toLocaleDateString('en-US', {
             month: 'short',
             year: 'numeric',
           }),
@@ -2092,7 +2377,7 @@ const distributeShareProfit = async (req, res) => {
         investmentShare: sharePercent,
       });
 
-      // FinancialTransaction — expense so it appears in net profit outflow
+      // FinancialTransaction
       await FinancialTransaction.create({
         user: userId,
         branchId: member.branchId,
@@ -2111,7 +2396,7 @@ const distributeShareProfit = async (req, res) => {
         await createTransactionNotification({
           recipientId: member._id,
           title: 'Share Profit Credited',
-          message: `Rs. ${profitAmount.toLocaleString()} share profit has been added to your portfolio (${calculationInfo}).`,
+          message: `Rs. ${profitAmount.toLocaleString()} share profit added. Calculated on Weighted Avg Share Balance of Rs. ${Math.round(weightedShareBalance).toLocaleString()}.`,
           type: 'success',
           branchId: member.branchId,
           action: 'member_share_profit_notification',
@@ -2165,8 +2450,12 @@ const getAllDistributions = async (req, res) => {
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
 
-    let query = { branchId: req.user.branchId || { $exists: true } };
-    if (req.user.role === 'admin') {
+    let query = {
+      user: req.user.effectiveOwnerId,
+      branchId: req.user.branchId || { $exists: true },
+    };
+
+    if (req.user.role === 'admin' || req.user.role === 'super_admin') {
       delete query.branchId;
     }
 

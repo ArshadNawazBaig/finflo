@@ -81,22 +81,22 @@ const generateLoanPDF = (loan, customerName, businessName) => {
 
   const details = [
     ['Status:', loan.status.toUpperCase()],
-    ['Principal Amount:', `Rs. ${loan.principal.toLocaleString()}`],
+    ['Principal Amount:', `loan.principal.toLocaleString()`],
     ['Interest Rate:', `${loan.rate}%`],
     ['Duration:', `${loan.duration} Months`],
-    ['Monthly EMI:', `Rs. ${loan.emi.toLocaleString()}`],
-    ['Total Amount:', `Rs. ${loan.totalAmount.toLocaleString()}`],
+    ['Monthly EMI:', `loan.emi.toLocaleString()`],
+    ['Total Amount:', `loan.totalAmount.toLocaleString()`],
     ['Start Date:', format(new Date(loan.startDate), 'MMMM dd, yyyy')],
   ];
 
   if (loan.status === 'active') {
     details.push([
       'Remaining Amount:',
-      `Rs. ${loan.remainingAmount?.toLocaleString() || 'N/A'}`,
+      `loan.remainingAmount?.toLocaleString() || 'N/A'`,
     ]);
     details.push([
       'Paid Amount:',
-      `Rs. ${loan.paidAmount?.toLocaleString() || 'N/A'}`,
+      `loan.paidAmount?.toLocaleString() || 'N/A'`,
     ]);
   }
 
@@ -264,9 +264,7 @@ const LoanLookup = () => {
                           Principal
                         </p>
                         <div className="text-3xl font-black text-primary flex items-baseline gap-1">
-                          <span className="text-sm font-medium text-muted-foreground">
-                            Rs.
-                          </span>
+                          <span className="text-sm font-medium text-muted-foreground"></span>
                           {formatAmount(loan.principal)}
                         </div>
                       </div>
@@ -305,7 +303,7 @@ const LoanLookup = () => {
                           Monthly EMI
                         </p>
                         <p className="font-bold text-base">
-                          Rs. {formatAmount(loan.emi)}
+                          {formatAmount(loan.emi)}
                         </p>
                       </div>
                       <div>
@@ -313,7 +311,7 @@ const LoanLookup = () => {
                           Total Value
                         </p>
                         <p className="font-bold text-base">
-                          Rs. {formatAmount(loan.totalAmount)}
+                          {formatAmount(loan.totalAmount)}
                         </p>
                       </div>
                     </div>
@@ -347,7 +345,7 @@ const LoanLookup = () => {
                               Settled
                             </p>
                             <p className="font-black text-emerald-600">
-                              Rs. {formatAmount(loan.paidAmount)}
+                              {formatAmount(loan.paidAmount)}
                             </p>
                           </div>
                           <div className="p-3 rounded-2xl bg-orange-500/5 border border-orange-500/10">
@@ -355,7 +353,7 @@ const LoanLookup = () => {
                               Outstanding
                             </p>
                             <p className="font-black text-orange-600">
-                              Rs. {formatAmount(loan.remainingAmount)}
+                              {formatAmount(loan.remainingAmount)}
                             </p>
                           </div>
                         </div>
@@ -466,27 +464,17 @@ const LoanLookup = () => {
 
         <Button
           type="submit"
-          disabled={loading}
+          isLoading={loading}
           variant="gradient"
           className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-lg shadow-primary/10 mt-4"
         >
-          <span
-            className={cn(
-              'flex items-center justify-center gap-2 transition-all duration-300',
-              loading ? 'opacity-0' : 'opacity-100',
-            )}
-          >
+          <span className="flex items-center justify-center gap-2">
             Execute Search
             <Search
               size={14}
               className="group-hover:scale-110 transition-transform"
             />
           </span>
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 animate-spin" />
-            </div>
-          )}
         </Button>
       </form>
 

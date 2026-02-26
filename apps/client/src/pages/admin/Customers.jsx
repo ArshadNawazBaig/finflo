@@ -43,6 +43,7 @@ const Customers = () => {
   // Mobile & Infinite Scroll State
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const observerTarget = useRef(null);
 
   useEffect(() => {
@@ -182,6 +183,7 @@ const Customers = () => {
 
   const handleDeleteConfirm = async () => {
     if (!deleteCustomer) return;
+    setIsDeleting(true);
     try {
       await api.delete(`/customers/${deleteCustomer._id}`);
       toast.success('Customer deleted successfully');
@@ -189,6 +191,8 @@ const Customers = () => {
       setDeleteCustomer(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete customer');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -223,13 +227,13 @@ const Customers = () => {
 
       <div className="mt-4">
         {loading ? (
-          <div className="py-20 flex justify-center items-center">
-            {isMobile ? (
+          isMobile ? (
+            <div className="py-12 flex justify-center">
               <InfiniteLoader isFetchingMore={true} />
-            ) : (
-              <TableSkeleton />
-            )}
-          </div>
+            </div>
+          ) : (
+            <TableSkeleton rows={8} columns={6} />
+          )
         ) : (
           <>
             {isMobile ? (
@@ -329,12 +333,14 @@ const Customers = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={handleDeleteConfirm}
+              isLoading={isDeleting}
+              variant="destructive"
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
             >
               Delete
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

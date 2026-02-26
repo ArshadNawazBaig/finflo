@@ -9,8 +9,9 @@ const sendEmail = async (options) => {
     },
   });
 
+  const fromName = options.fromName || process.env.FROM_NAME || 'FinFlow';
   const message = {
-    from: `"${process.env.FROM_NAME}" <${process.env.SMTP_EMAIL}>`,
+    from: `"${fromName}" <${process.env.SMTP_EMAIL}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,

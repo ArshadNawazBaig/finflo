@@ -33,7 +33,7 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
-import { formatCompactValue, formatPKR } from '@/lib/utils';
+import { formatCompactValue, formatCurrency } from '@/lib/utils';
 
 const SystemAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -113,7 +113,7 @@ const SystemAnalytics = () => {
                             : ''}
                   </span>
                   {entry.name === 'amount' || entry.name === 'totalAmount'
-                    ? formatPKR(entry.value)
+                    ? formatCurrency(entry.value)
                     : entry.value}
                 </p>
               </div>

@@ -26,7 +26,7 @@ import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import StatsCard from '@/components/StatsCard';
 import QRScanner from '@/components/QRScanner';
 import MemberTransferSkeleton from '@/components/member/MemberTransferSkeleton';
@@ -89,7 +89,7 @@ const HistoryRow = ({ tx }) => {
           className={`text-sm font-black ${isSend ? 'text-destructive' : 'text-emerald-500'}`}
         >
           {isSend ? '−' : '+'}
-          {formatPKR(tx.amount)}
+          {formatCurrency(tx.amount)}
         </p>
         <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1 justify-end">
           {tx.referenceId}
@@ -246,7 +246,7 @@ const MemberTransfer = () => {
 
   // ── QR scan ───────────────────────────────────────────────────────────────
   const handleScanSuccess = (decodedText) => {
-    setRecipient(decodedText.replace('wealthportal:', ''));
+    setRecipient(decodedText.replace('finflow:', ''));
     setShowScanner(false);
     toast.success('Member detected!');
   };
@@ -349,7 +349,7 @@ const MemberTransfer = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Current Balance"
-          amount={formatPKR(member.currentBalance)}
+          amount={formatCurrency(member.currentBalance)}
           icon={<Wallet size={20} />}
           color={
             member.currentBalance < 0
@@ -360,14 +360,14 @@ const MemberTransfer = () => {
         />
         <StatsCard
           title="Total Sent"
-          amount={formatPKR(member.totalWithdrawn || 0)}
+          amount={formatCurrency(member.totalWithdrawn || 0)}
           icon={<Send size={20} />}
           color="bg-indigo-500 shadow-indigo-500/20"
           isGlass
         />
         <StatsCard
           title="Total Received"
-          amount={formatPKR(member.totalInvested || 0)}
+          amount={formatCurrency(member.totalInvested || 0)}
           icon={<TrendingUp size={20} />}
           color="bg-emerald-500 shadow-emerald-500/20"
           isGlass
@@ -411,7 +411,7 @@ const MemberTransfer = () => {
                   New Transfer
                 </h3>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Secure fund movement between wealth accounts.
+                  Secure fund movement between FinFlow accounts.
                 </p>
               </div>
 
@@ -542,18 +542,12 @@ const MemberTransfer = () => {
 
                 <Button
                   type="submit"
-                  disabled={loading}
+                  isLoading={loading}
                   variant="gradient"
                   className="w-full h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl"
                 >
-                  {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      Execute Transfer
-                    </>
-                  )}
+                  <Send size={18} />
+                  Execute Transfer
                 </Button>
               </form>
             </div>
@@ -622,7 +616,7 @@ const MemberTransfer = () => {
               </div>
               <div className="p-8 bg-white rounded-[2.5rem] shadow-inner border-[12px] border-primary/5">
                 <QRCodeSVG
-                  value={`wealthportal:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
+                  value={`finflow:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
                   size={200}
                   level="H"
                   includeMargin={false}
@@ -657,7 +651,7 @@ const MemberTransfer = () => {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <CheckCircle2 size={12} className="text-primary" />
-                  Verified Wealth Account
+                  Verified FinFlow Account
                 </div>
               </div>
             </div>
@@ -931,21 +925,19 @@ const MemberTransfer = () => {
 
                   <Button
                     type="submit"
-                    disabled={extLoading}
+                    isLoading={extLoading}
                     className={`w-full h-12 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all ${
                       extMode === 'send'
                         ? 'bg-destructive hover:bg-destructive/90 text-white'
                         : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                     }`}
                   >
-                    {extLoading ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : extMode === 'send' ? (
+                    {extMode === 'send' ? (
                       <>
                         <ArrowUpRight size={16} />
                         Send{' '}
                         {extAmount
-                          ? formatPKR(parseFloat(extAmount) || 0)
+                          ? formatCurrency(parseFloat(extAmount) || 0)
                           : 'PKR'}
                       </>
                     ) : (
@@ -1017,7 +1009,7 @@ const MemberTransfer = () => {
                       Sent
                     </span>
                     <span className="text-sm font-black text-amber-500">
-                      {formatPKR(
+                      {formatCurrency(
                         extHistory
                           .filter((t) => t.direction === 'send')
                           .reduce((s, t) => s + t.amount, 0),
@@ -1030,7 +1022,7 @@ const MemberTransfer = () => {
                       Received
                     </span>
                     <span className="text-sm font-black text-emerald-500">
-                      {formatPKR(
+                      {formatCurrency(
                         extHistory
                           .filter((t) => t.direction === 'receive')
                           .reduce((s, t) => s + t.amount, 0),

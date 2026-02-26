@@ -20,7 +20,7 @@ import {
   ArrowDownCircle,
   Banknote,
 } from 'lucide-react';
-import { formatPKR, cn } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import {
   Calendar as CalendarIcon,
   CheckCircle2,
@@ -188,7 +188,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 isSettlement ? 'text-blue-600' : 'text-emerald-600'
               }`}
             >
-              {formatPKR(
+              {formatCurrency(
                 isSettlement ? settlementAmount : loan.remainingAmount,
               )}
             </span>
@@ -210,7 +210,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               </div>
               <div className="pt-1 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                 <span>Adjusted Interest</span>
-                <span>{formatPKR(details.interest)}</span>
+                <span>{formatCurrency(details.interest)}</span>
               </div>
             </div>
           )}
@@ -234,7 +234,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   {isFetchingBalance ? (
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
-                    formatPKR(memberBalance)
+                    formatCurrency(memberBalance)
                   )}
                 </p>
                 {Number(formData.amount) > memberBalance &&
@@ -282,7 +282,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       Monthly Installment
                     </p>
                     <p className="text-sm font-black text-foreground">
-                      {formatPKR(loan.emi)}
+                      {formatCurrency(loan.emi)}
                     </p>
                   </div>
                 </div>
@@ -321,7 +321,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
               >
                 <DollarSign className="w-3 h-3 text-emerald-500" /> Payment
-                Amount (Rs.)
+                Amount
               </Label>
               <Input
                 id="amount"
@@ -404,22 +404,21 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </button>
             <Button
               type="submit"
+              isLoading={loading}
               disabled={
-                loading ||
-                (memberBalance !== null &&
-                  Number(formData.amount) > memberBalance &&
-                  !isFetchingBalance)
+                memberBalance !== null &&
+                Number(formData.amount) > memberBalance &&
+                !isFetchingBalance
               }
               variant={isSettlement ? 'gradient' : 'success'}
               className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
             >
-              {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : isSettlement ? (
-                <ArrowDownCircle size={14} />
-              ) : (
-                <Banknote size={14} />
-              )}
+              {!loading &&
+                (isSettlement ? (
+                  <ArrowDownCircle size={14} />
+                ) : (
+                  <Banknote size={14} />
+                ))}
               {isSettlement ? 'Confirm Settlement' : 'Confirm Payment'}
             </Button>
           </div>

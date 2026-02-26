@@ -28,7 +28,7 @@ import StatsCard from '@/components/StatsCard';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import AddLoanModal from '@/components/loans/AddLoanModal';
 import api from '@/lib/axios';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -40,21 +40,24 @@ import { cn } from '@/lib/utils'; // Make sure to import cn
 
 const CustomerProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
-    <div className="flex justify-between items-center bg-card/30 p-8 rounded-[2.5rem] border border-border/50">
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-64 rounded-xl" />
-        <Skeleton className="h-4 w-48 rounded-lg" />
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border/10">
+      <div className="space-y-4 w-full md:w-auto">
+        <div className="h-10 w-64 bg-muted/40 rounded-2xl" />
+        <div className="h-4 w-48 bg-muted/20 rounded-lg" />
       </div>
-      <Skeleton className="h-12 w-32 rounded-full" />
+      <div className="h-12 w-32 bg-muted/30 rounded-2xl mt-4 md:mt-0" />
     </div>
     <div className="grid gap-6 md:grid-cols-3">
-      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
-      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
-      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="h-32 rounded-[2rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm"
+        />
+      ))}
     </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
-      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="lg:col-span-8 h-[500px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      <div className="lg:col-span-4 h-[500px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
     </div>
   </div>
 );
@@ -186,21 +189,21 @@ const CustomerProfile = () => {
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Total Borrowed"
-          amount={formatPKR(totalBorrowed)}
+          amount={formatCurrency(totalBorrowed)}
           icon={<DollarSign size={18} />}
           color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Outstanding Balance"
-          amount={formatPKR(totalOutstanding)}
+          amount={formatCurrency(totalOutstanding)}
           icon={<Briefcase size={18} />}
           color="bg-orange-500 text-orange-600 border-orange-500/20"
           isGlass
         />
         <StatsCard
           title="Total Repaid"
-          amount={formatPKR(totalPaid)}
+          amount={formatCurrency(totalPaid)}
           icon={<Layers size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
@@ -279,7 +282,7 @@ const CustomerProfile = () => {
                           </div>
                           <div>
                             <div className="text-sm font-black tracking-tight">
-                              {formatPKR(loan.principal)}
+                              {formatCurrency(loan.principal)}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
@@ -296,7 +299,7 @@ const CustomerProfile = () => {
                               Remaining
                             </div>
                             <div className="text-base font-black text-orange-500">
-                              {formatPKR(loan.remainingAmount)}
+                              {formatCurrency(loan.remainingAmount)}
                             </div>
                           </div>
                           <div className="text-right">
@@ -450,7 +453,7 @@ const CustomerProfile = () => {
                       </span>
                       <span className="text-xs font-black text-emerald-600">
                         {customer.monthlyIncome
-                          ? formatPKR(customer.monthlyIncome)
+                          ? formatCurrency(customer.monthlyIncome)
                           : 'N/A'}
                       </span>
                     </div>

@@ -203,14 +203,10 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               className="flex-1 rounded-lg font-bold bg-emerald-500 hover:bg-emerald-600 text-white"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                'Confirm Approval'
-              )}
+              Confirm Approval
             </Button>
           </div>
         </form>

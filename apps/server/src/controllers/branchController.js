@@ -365,6 +365,25 @@ const getBranchFinancials = async (req, res) => {
     const customerIds = branchCustomers.map((c) => c._id);
     const memberIds = branchMembers.map((m) => m._id);
 
+    // Self-healing for this specific branch scope
+    try {
+      const orphans = await Loan.find({
+        customer: { $in: customerIds },
+        branchId: { $exists: false },
+      });
+      if (orphans.length > 0) {
+        for (const loan of orphans) {
+          await Loan.findByIdAndUpdate(loan._id, { branchId: branchOid });
+          await Repayment.updateMany(
+            { loan: loan._id, branchId: { $exists: false } },
+            { branchId: branchOid },
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Branch self-healing failed:', e);
+    }
+
     // Broad query for transactions
     const query = {
       $or: [
@@ -488,8 +507,15 @@ const getBranchFinancials = async (req, res) => {
 
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
-        if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
-          return sum;
+        if (!r.loan) return sum;
+
+        // Prioritize explicit interestAmount
+        if (r.interestAmount !== undefined && r.interestAmount !== null) {
+          return sum + r.interestAmount;
+        }
+
+        // Fallback to ratio only if interestAmount is missing (legacy records)
+        if (!r.loan.totalAmount || r.loan.totalAmount === 0) return sum;
         const totalInterest = r.loan.totalAmount - r.loan.principal;
         const profitRatio = totalInterest / r.loan.totalAmount;
         return sum + r.amount * profitRatio;
@@ -617,6 +643,25 @@ const getBranchAnalytics = async (req, res) => {
     const customerIds = branchCustomers.map((c) => c._id);
     const memberIds = branchMembers.map((m) => m._id);
 
+    // Self-healing for this specific branch scope
+    try {
+      const orphans = await Loan.find({
+        customer: { $in: customerIds },
+        branchId: { $exists: false },
+      });
+      if (orphans.length > 0) {
+        for (const loan of orphans) {
+          await Loan.findByIdAndUpdate(loan._id, { branchId: branchOid });
+          await Repayment.updateMany(
+            { loan: loan._id, branchId: { $exists: false } },
+            { branchId: branchOid },
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Branch analytics self-healing failed:', e);
+    }
+
     const query = {
       $or: [
         { branchId: branchOid },
@@ -648,8 +693,15 @@ const getBranchAnalytics = async (req, res) => {
 
     const calculateProfitAtDateRange = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {
-        if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0)
-          return sum;
+        if (!r.loan) return sum;
+
+        // Prioritize explicit interestAmount
+        if (r.interestAmount !== undefined && r.interestAmount !== null) {
+          return sum + r.interestAmount;
+        }
+
+        // Fallback to ratio only if interestAmount is missing (legacy records)
+        if (!r.loan.totalAmount || r.loan.totalAmount === 0) return sum;
         const totalInterest = r.loan.totalAmount - r.loan.principal;
         const profitRatio = totalInterest / r.loan.totalAmount;
         return sum + r.amount * profitRatio;

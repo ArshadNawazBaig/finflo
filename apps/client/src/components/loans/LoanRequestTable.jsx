@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 import Pagination from '../ui/Pagination';
@@ -155,7 +155,7 @@ const LoanRequestTable = ({
                 </td>
                 <td className="py-4 px-4">
                   <div className="font-bold text-sm text-primary">
-                    {formatPKR(request.principal)}
+                    {formatCurrency(request.principal)}
                   </div>
                 </td>
                 <td className="py-4 px-4">

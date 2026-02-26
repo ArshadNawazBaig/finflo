@@ -184,15 +184,11 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               variant="gradient"
               className="rounded-full text-[10px] font-black uppercase tracking-widest px-8"
             >
-              {loading ? (
-                <Loader2 className="animate-spin w-4 h-4" />
-              ) : (
-                'Save Changes'
-              )}
+              Save Changes
             </Button>
           </DialogFooter>
         </form>

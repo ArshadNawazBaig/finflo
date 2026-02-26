@@ -82,7 +82,11 @@ const financialTransactionSchema = new mongoose.Schema(
 financialTransactionSchema.index({ user: 1, date: -1 });
 financialTransactionSchema.index({ user: 1, category: 1 });
 financialTransactionSchema.index({ user: 1, type: 1 });
+financialTransactionSchema.index({ user: 1, type: 1, category: 1 });
 financialTransactionSchema.index({ branchId: 1 });
+financialTransactionSchema.index({ member: 1 });
+financialTransactionSchema.index({ loan: 1 });
+financialTransactionSchema.index({ referenceId: 1 });
 
 module.exports = mongoose.model(
   'FinancialTransaction',

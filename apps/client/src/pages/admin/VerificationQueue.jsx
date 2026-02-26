@@ -77,8 +77,26 @@ const VerificationQueue = () => {
 
       <div className="flex-1 p-6 space-y-4 overflow-auto">
         {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Loader2 size={32} className="animate-spin text-primary" />
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-card/40 border border-border/10 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-6 animate-pulse"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-12 h-12 rounded-2xl bg-muted/40 shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-1/3 bg-muted/30 rounded-lg" />
+                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
+                  </div>
+                </div>
+                <div className="h-4 w-24 bg-muted/20 rounded-full" />
+                <div className="flex gap-2">
+                  <div className="h-9 w-24 bg-muted/30 rounded-xl" />
+                  <div className="h-9 w-24 bg-muted/30 rounded-xl" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : queue.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground bg-card rounded-3xl border border-border/50">
@@ -167,7 +185,7 @@ const VerificationQueue = () => {
                     )}
                     <Button
                       size="sm"
-                      disabled={isActing}
+                      isLoading={isActing}
                       className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-8 px-3"
                       onClick={() =>
                         handleAction(
@@ -177,17 +195,13 @@ const VerificationQueue = () => {
                         )
                       }
                     >
-                      {isActing ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <ShieldCheck size={13} />
-                      )}
+                      <ShieldCheck size={13} />
                       <span className="ml-1 text-xs">Verify</span>
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      disabled={isActing}
+                      isLoading={isActing}
                       className="rounded-xl h-8 px-3"
                       onClick={() =>
                         handleAction(
@@ -197,11 +211,7 @@ const VerificationQueue = () => {
                         )
                       }
                     >
-                      {isActing ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <XCircle size={13} />
-                      )}
+                      <XCircle size={13} />
                       <span className="ml-1 text-xs">Reject</span>
                     </Button>
                     <Link

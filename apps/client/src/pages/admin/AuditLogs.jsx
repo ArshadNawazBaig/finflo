@@ -23,6 +23,7 @@ import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
+import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'sonner';
@@ -327,13 +328,11 @@ const AuditLogs = () => {
             </thead>
             <tbody className="divide-y divide-border/30">
               {loading ? (
-                [...Array(8)].map((_, i) => (
-                  <tr key={i}>
-                    <td colSpan={5} className="px-8 py-4">
-                      <Skeleton className="h-10 w-full rounded-xl" />
-                    </td>
-                  </tr>
-                ))
+                <tr>
+                  <td colSpan={5} className="px-8 py-8">
+                    <TableSkeleton rows={8} columns={5} />
+                  </td>
+                </tr>
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-8 py-20">

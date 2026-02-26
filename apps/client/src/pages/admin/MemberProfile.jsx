@@ -34,7 +34,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import api from '@/lib/axios';
-import { formatPKR, capitalize, formatCNIC } from '@/lib/utils';
+import { formatCurrency, capitalize, formatCNIC } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -130,6 +130,9 @@ const MemberProfile = () => {
   const [shareTotalPages, setShareTotalPages] = useState(1);
   const [shareTotal, setShareTotal] = useState(0);
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
+  const [isSubmittingInvestment, setIsSubmittingInvestment] = useState(false);
+  const [isSubmittingProfitRate, setIsSubmittingProfitRate] = useState(false);
+  const [isUpdatingMember, setIsUpdatingMember] = useState(false);
   const [shareProfitRate, setShareProfitRate] = useState('');
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
@@ -441,6 +444,7 @@ const MemberProfile = () => {
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsSubmittingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
@@ -457,22 +461,26 @@ const MemberProfile = () => {
       fetchMemberData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
+    } finally {
+      setIsSubmittingInvestment(false);
     }
   };
 
   const handleProfitRateUpdate = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/members/${id}`, {
-        profitRate: parseFloat(newProfitRate) || 0,
+      setIsSubmittingProfitRate(true);
+      await api.put(`/members/${id}/profit-rate`, {
+        profitRate: parseFloat(newProfitRate),
       });
-      toast.success('Profit rate updated successfully');
+      toast.success('Profit rate updated');
       setShowProfitRateForm(false);
+      setNewProfitRate('');
       fetchMemberData();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || 'Failed to update profit rate',
-      );
+      toast.error('Failed to update profit rate');
+    } finally {
+      setIsSubmittingProfitRate(false);
     }
   };
 
@@ -562,7 +570,7 @@ const MemberProfile = () => {
       const result = res.data.results?.[0];
       if (result) {
         toast.success(
-          `Balance synced: ${formatPKR(result.oldBalance)} → ${formatPKR(result.newBalance)}`,
+          `Balance synced: ${formatCurrency(result.oldBalance)} → ${formatCurrency(result.newBalance)}`,
         );
       } else {
         toast.success('Balance recalculated successfully');
@@ -580,12 +588,15 @@ const MemberProfile = () => {
   const handleMemberUpdate = async (e) => {
     e.preventDefault();
     try {
+      setIsUpdatingMember(true);
       await api.put(`/members/${id}`, editForm);
-      toast.success('Member details updated successfully');
+      toast.success('Member profile updated');
       setShowMemberForm(false);
       fetchMemberData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update member');
+    } finally {
+      setIsUpdatingMember(false);
     }
   };
 
@@ -666,13 +677,10 @@ const MemberProfile = () => {
               variant="ghost"
               size="icon"
               onClick={handleRecalcBalance}
-              disabled={recalcLoading}
+              isLoading={recalcLoading}
               className="w-12 h-12 rounded-2xl bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"
             >
-              <RefreshCw
-                size={18}
-                className={recalcLoading ? 'animate-spin' : ''}
-              />
+              <RefreshCw size={18} />
             </Button>
           </Tooltip>
 
@@ -712,15 +720,11 @@ const MemberProfile = () => {
 
           <Button
             variant="gradient"
-            disabled={isExporting}
+            isLoading={isExporting}
             onClick={handleDownloadReport}
             className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
           >
-            {isExporting ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Download size={16} />
-            )}
+            <Download size={16} />
             Report
           </Button>
         </div>
@@ -730,21 +734,21 @@ const MemberProfile = () => {
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         <StatsCard
           title="Current Balance"
-          amount={formatPKR(member.currentBalance || 0)}
+          amount={formatCurrency(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
           color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Total Yield Earned"
-          amount={formatPKR(member.totalProfit || 0)}
+          amount={formatCurrency(member.totalProfit || 0)}
           icon={<TrendingUp size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
         <StatsCard
           title="Principal Invested"
-          amount={formatPKR(member.totalInvested || 0)}
+          amount={formatCurrency(member.totalInvested || 0)}
           icon={<DollarSign size={18} />}
           color="bg-blue-500 text-blue-600 border-blue-500/20"
           isGlass
@@ -908,6 +912,7 @@ const MemberProfile = () => {
                   <div className="flex gap-3 justify-end">
                     <Button
                       type="submit"
+                      isLoading={isUpdatingMember}
                       variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
@@ -945,6 +950,7 @@ const MemberProfile = () => {
                     </button>
                     <Button
                       type="submit"
+                      isLoading={isSubmittingProfitRate}
                       variant="gradient"
                       className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
@@ -1072,15 +1078,11 @@ const MemberProfile = () => {
                   <div className="flex gap-3 justify-end">
                     <Button
                       type="submit"
-                      disabled={isTransferring}
+                      isLoading={isTransferring}
                       variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
-                      {isTransferring ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Send size={16} className="mr-2" />
-                      )}
+                      {!isTransferring && <Send size={16} className="mr-2" />}
                       Initiate Transfer
                     </Button>
                   </div>
@@ -1203,16 +1205,17 @@ const MemberProfile = () => {
                     )}
 
                   <div className="flex gap-3 justify-end">
-                    <button
+                    <Button
                       type="submit"
+                      isLoading={isSubmittingInvestment}
                       className={`w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 text-white ${
                         investmentType === 'deposit'
-                          ? 'bg-emerald-600 shadow-xl shadow-emerald-500/20'
-                          : 'bg-indigo-600 shadow-xl shadow-indigo-500/20'
+                          ? 'bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:bg-emerald-700'
+                          : 'bg-indigo-600 shadow-xl shadow-indigo-500/20 hover:bg-indigo-700'
                       }`}
                     >
                       Execute Funds Movement
-                    </button>
+                    </Button>
                   </div>
                 </form>
               )}
@@ -1294,10 +1297,10 @@ const MemberProfile = () => {
                         inv.type === 'transfer_receive'
                           ? '+'
                           : '-'}{' '}
-                        {formatPKR(inv.amount)}
+                        {formatCurrency(inv.amount)}
                       </div>
                       <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                        Balance: {formatPKR(inv.balanceAfter)}
+                        Balance: {formatCurrency(inv.balanceAfter)}
                       </div>
                     </div>
                   </div>
@@ -1361,7 +1364,7 @@ const MemberProfile = () => {
                       </div>
                       <div>
                         <div className="text-sm font-black tracking-tight">
-                          {formatPKR(loan.principal)}
+                          {formatCurrency(loan.principal)}
                         </div>
                         <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1 mt-0.5">
                           <Clock size={10} /> {loan.duration} Months •{' '}
@@ -1384,7 +1387,7 @@ const MemberProfile = () => {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-base font-black text-red-500">
-                          {formatPKR(loan.remainingAmount)}
+                          {formatCurrency(loan.remainingAmount)}
                         </div>
                         <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                           Remaining
@@ -1462,7 +1465,7 @@ const MemberProfile = () => {
                   Share Balance
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1 text-violet-600">
-                  {formatPKR(member.shareBalance || 0)}
+                  {formatCurrency(member.shareBalance || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10">
@@ -1470,7 +1473,7 @@ const MemberProfile = () => {
                   Total Share Invested
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1">
-                  {formatPKR(member.totalShareInvested || 0)}
+                  {formatCurrency(member.totalShareInvested || 0)}
                 </p>
               </div>
               <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/10">
@@ -1478,7 +1481,7 @@ const MemberProfile = () => {
                   Share Profit Earned
                 </p>
                 <p className="text-2xl font-black tracking-tight mt-1 text-amber-600">
-                  {formatPKR(member.totalShareProfit || 0)}
+                  {formatCurrency(member.totalShareProfit || 0)}
                 </p>
               </div>
             </div>
@@ -1514,9 +1517,9 @@ const MemberProfile = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         {shareFormType === 'profit'
                           ? useShareCustomRates
-                            ? 'Total Profit Reference (Rs.)'
-                            : 'Total Profit Pool (Rs.)'
-                          : 'Amount (Rs.)'}
+                            ? 'Total Profit Reference'
+                            : 'Total Profit Pool'
+                          : 'Amount'}
                       </label>
                       <input
                         type="number"
@@ -1605,10 +1608,10 @@ const MemberProfile = () => {
                     >
                       Cancel
                     </button>
-                    <button
+                    <Button
                       type="submit"
-                      disabled={isSubmittingShare}
-                      className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all disabled:opacity-50 flex items-center gap-2 ${
+                      isLoading={isSubmittingShare}
+                      className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all flex items-center gap-2 ${
                         shareFormType === 'deposit'
                           ? 'bg-violet-600 hover:bg-violet-700'
                           : shareFormType === 'withdrawal'
@@ -1616,11 +1619,8 @@ const MemberProfile = () => {
                             : 'bg-amber-600 hover:bg-amber-700'
                       }`}
                     >
-                      {isSubmittingShare && (
-                        <Loader2 size={12} className="animate-spin" />
-                      )}
                       Confirm
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>
@@ -1692,7 +1692,7 @@ const MemberProfile = () => {
                         <div className="text-right">
                           <p className={`text-base font-black ${color}`}>
                             {isCredit ? '+' : '-'}
-                            {formatPKR(s.amount)}
+                            {formatCurrency(s.amount)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
                             {new Date(s.date).toLocaleDateString()}
@@ -1811,7 +1811,7 @@ const MemberProfile = () => {
                         </div>
                       </div>
                       <div className="text-sm font-black">
-                        +{formatPKR(profit.amount)}
+                        +{formatCurrency(profit.amount)}
                       </div>
                     </div>
                   ))
@@ -1873,7 +1873,7 @@ const MemberProfile = () => {
                   </span>
                   <span className="text-xs font-black text-emerald-600">
                     {member.monthlyIncome
-                      ? formatPKR(member.monthlyIncome)
+                      ? formatCurrency(member.monthlyIncome)
                       : 'N/A'}
                   </span>
                 </div>

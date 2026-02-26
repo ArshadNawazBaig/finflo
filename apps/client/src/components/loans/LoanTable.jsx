@@ -1,4 +1,4 @@
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import {
   Edit,
   Trash2,
@@ -124,9 +124,9 @@ const LoanTable = ({
                     </div>
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <div className="font-bold">{formatPKR(loan.principal)}</div>
+                    <div className="font-bold">{formatCurrency(loan.principal)}</div>
                     <div className="text-xs text-muted-foreground">
-                      +{formatPKR(loan.totalAmount - loan.principal)} Interest
+                      +{formatCurrency(loan.totalAmount - loan.principal)} Interest
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center">

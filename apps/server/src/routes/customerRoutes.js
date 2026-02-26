@@ -13,8 +13,12 @@ const {
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/customerUploadMiddleware');
+const { customerValidation } = require('../middleware/validationMiddleware');
 
-router.route('/').get(protect, getCustomers).post(protect, createCustomer);
+router
+  .route('/')
+  .get(protect, getCustomers)
+  .post(protect, customerValidation, createCustomer);
 router.get('/documents/pending', protect, getPendingDocuments);
 
 router

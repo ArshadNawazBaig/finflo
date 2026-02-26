@@ -1,7 +1,7 @@
 import { Check, X, Loader2, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
@@ -60,7 +60,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Amount</span>
           <span className="font-bold text-primary">
-            {formatPKR(request.principal)}
+            {formatCurrency(request.principal)}
           </span>
         </div>
         <div className="flex justify-between text-sm">

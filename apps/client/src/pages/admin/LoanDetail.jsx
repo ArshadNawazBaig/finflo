@@ -23,7 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,15 +41,18 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse">
-    <div className="h-40 bg-card/30 rounded-[2.5rem] border border-border/50" />
-    <div className="grid gap-6 md:grid-cols-3">
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
-      <Skeleton className="h-32 rounded-[2rem]" />
+    <div className="h-40 bg-card/40 backdrop-blur-xl rounded-[2.5rem] border border-border/10" />
+    <div className="grid gap-6 sm:gap-6 md:grid-cols-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="h-32 rounded-[2rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm"
+        />
+      ))}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <Skeleton className="lg:col-span-8 h-[600px] rounded-[2.5rem]" />
-      <Skeleton className="lg:col-span-4 h-[400px] rounded-[2.5rem]" />
+      <div className="lg:col-span-8 h-[600px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      <div className="lg:col-span-4 h-[400px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
     </div>
   </div>
 );
@@ -452,14 +455,14 @@ const LoanDetail = () => {
       <div className="grid gap-4 sm:gap-6 md:grid-cols-4">
         <StatsCard
           title="Total Repayable"
-          amount={formatPKR(loan.totalAmount)}
+          amount={formatCurrency(loan.totalAmount)}
           icon={<DollarSign size={18} />}
           color="bg-primary text-primary border-primary/20"
           isGlass
         />
         <StatsCard
           title="Monthly Installment"
-          amount={formatPKR(
+          amount={formatCurrency(
             loan.remainingAmount <= 0 || loan.status === 'completed'
               ? 0
               : paidInstallmentsCount < loan.duration
@@ -474,14 +477,14 @@ const LoanDetail = () => {
         />
         <StatsCard
           title="Paid Amount"
-          amount={formatPKR(loan.paidAmount || 0)}
+          amount={formatCurrency(loan.paidAmount || 0)}
           icon={<CheckCircle2 size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
         />
         <StatsCard
           title="Outstanding Balance"
-          amount={formatPKR(loan.remainingAmount)}
+          amount={formatCurrency(loan.remainingAmount)}
           icon={<AlertCircle size={18} />}
           color="bg-red-500 text-red-600 border-red-500/20"
           isGlass
@@ -540,7 +543,7 @@ const LoanDetail = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-black text-emerald-600">
-                        +{formatPKR(rp.amount)}
+                        +{formatCurrency(rp.amount)}
                       </div>
                       <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                         Status: Confirmed
@@ -645,7 +648,7 @@ const LoanDetail = () => {
                           className={`text-lg font-black ${inv.type === 'deposit' ? 'text-blue-600' : 'text-orange-600'}`}
                         >
                           {inv.type === 'deposit' ? '+' : '-'}
-                          {formatPKR(inv.amount)}
+                          {formatCurrency(inv.amount)}
                         </div>
                         <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                           {inv.description || 'System Entry'}
@@ -774,7 +777,9 @@ const LoanDetail = () => {
                     Principal
                   </span>
                 </div>
-                <span className="font-black">{formatPKR(loan.principal)}</span>
+                <span className="font-black">
+                  {formatCurrency(loan.principal)}
+                </span>
               </div>
               <div className="flex justify-between items-center p-4 rounded-2xl bg-muted/20 border border-border/10">
                 <div className="flex items-center gap-3">
@@ -829,7 +834,7 @@ const LoanDetail = () => {
                     Total Member Balance
                   </span>
                   <span className="font-black text-foreground">
-                    {formatPKR(member.currentBalance)}
+                    {formatCurrency(member.currentBalance)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
@@ -837,7 +842,7 @@ const LoanDetail = () => {
                     Outstanding Loan
                   </span>
                   <span className="font-black text-red-500">
-                    ({formatPKR(loan.remainingAmount)})
+                    ({formatCurrency(loan.remainingAmount)})
                   </span>
                 </div>
 
@@ -850,7 +855,7 @@ const LoanDetail = () => {
                       <p
                         className={`text-4xl font-black tracking-tighter ${netBalance >= loan.remainingAmount ? 'text-emerald-500' : 'text-orange-500'}`}
                       >
-                        {formatPKR(netBalance - loan.remainingAmount)}
+                        {formatCurrency(netBalance - loan.remainingAmount)}
                       </p>
                     </div>
                   </div>
@@ -914,7 +919,8 @@ const LoanDetail = () => {
                 />
               </div>
               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">
-                {formatPKR(loan.paidAmount)} of {formatPKR(loan.totalAmount)}
+                {formatCurrency(loan.paidAmount)} of{' '}
+                {formatCurrency(loan.totalAmount)}
               </p>
             </div>
           </div>

@@ -14,7 +14,7 @@ import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberLoansSkeleton from '@/components/member/MemberLoansSkeleton';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
@@ -231,7 +231,7 @@ const MemberLoans = () => {
                         Principal
                       </p>
                       <p className="text-xl font-black tracking-tighter">
-                        {formatPKR(loan.principal)}
+                        {formatCurrency(loan.principal)}
                       </p>
                     </div>
                     <div className="space-y-1 text-right">

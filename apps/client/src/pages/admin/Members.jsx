@@ -28,7 +28,7 @@ import MemberTable from '@/components/member/MemberTable';
 import MemberCard from '@/components/member/MemberCard';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
@@ -49,11 +49,13 @@ const Members = () => {
   const [activeTab, setActiveTab] = useState('approved'); // 'approved' or 'pending'
   const [summary, setSummary] = useState({
     totalInvested: 0,
-    totalProfit: 0,
     activeMembers: 0,
   });
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [approvingId, setApprovingId] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const observerTarget = useRef(null);
 
@@ -183,6 +185,7 @@ const Members = () => {
   const handleDeleteMember = async () => {
     if (!deleteMemberId) return;
     try {
+      setIsDeleting(true);
       await api.delete(`/members/${deleteMemberId}`);
       toast.success('Member deleted successfully');
       setDeleteMemberId(null);
@@ -190,17 +193,22 @@ const Members = () => {
       fetchSummary();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete member');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleApproveMember = async (id) => {
     try {
+      setApprovingId(id);
       await api.put(`/members/${id}/approval`, { status: 'approved' });
       toast.success('Member approved successfully');
       fetchMembers(false);
       fetchSummary();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to approve member');
+    } finally {
+      setApprovingId(null);
     }
   };
 
@@ -212,11 +220,14 @@ const Members = () => {
     )
       return;
     try {
+      setRejectingId(id);
       await api.put(`/members/${id}/approval`, { status: 'rejected' });
       toast.success('Member rejected');
       fetchMembers(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject member');
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -238,6 +249,7 @@ const Members = () => {
             onClick={handleAddMember}
             variant="gradient"
             className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider w-full sm:w-auto"
+            isLoading={loading && members.length === 0}
           >
             <Plus size={16} />
             Add Member
@@ -264,13 +276,13 @@ const Members = () => {
           />
           <StatsCard
             title="Total Invested"
-            amount={formatPKR(statsDisplay.totalInvested)}
+            amount={formatCurrency(statsDisplay.totalInvested)}
             icon={<Wallet size={20} />}
             color="bg-blue-500 shadow-blue-500/20"
           />
           <StatsCard
             title="Total Profit Distributed"
-            amount={formatPKR(statsDisplay.totalProfit)}
+            amount={formatCurrency(statsDisplay.totalProfit)}
             icon={<DollarSign size={20} />}
             color="bg-purple-500 shadow-purple-500/20"
           />
@@ -285,7 +297,7 @@ const Members = () => {
               onClick={() => setActiveTab('approved')}
               className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeTab === 'approved'
-                  ? 'bg-white shadow-sm text-foreground'
+                  ? 'bg-white shadow-sm text-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
               }`}
             >
@@ -310,11 +322,11 @@ const Members = () => {
         </div>
 
         {loading && !isFetchingMore ? (
-          <div className="py-20 flex justify-center items-center">
+          <div className="py-6">
             {isMobile ? (
               <InfiniteLoader isFetchingMore={true} />
             ) : (
-              <TableSkeleton />
+              <TableSkeleton rows={limit} columns={5} />
             )}
           </div>
         ) : isMobile ? (
@@ -352,6 +364,8 @@ const Members = () => {
               onDelete={setDeleteMemberId}
               onApprove={handleApproveMember}
               onReject={handleRejectMember}
+              approvingId={approvingId}
+              rejectingId={rejectingId}
               pagination={{
                 currentPage,
                 totalPages,
@@ -391,9 +405,10 @@ const Members = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteMember}
+              disabled={isDeleting}
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
             >
-              Delete Member
+              {isDeleting ? 'Deleting...' : 'Delete Member'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

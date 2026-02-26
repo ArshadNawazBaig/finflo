@@ -31,32 +31,24 @@ const ApprovalActions = ({ loan, onSuccess }) => {
             e.stopPropagation();
             handleAction('approve');
           }}
-          disabled={loading}
+          isLoading={loading}
           size="sm"
           variant="outline"
           className="h-8 w-8 p-0 rounded-full border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
         >
-          {loading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
+          <Check size={14} />
         </Button>
         <Button
           onClick={(e) => {
             e.stopPropagation();
             handleAction('reject');
           }}
-          disabled={loading}
+          isLoading={loading}
           size="sm"
           variant="outline"
           className="h-8 w-8 p-0 rounded-full border-red-500/50 text-red-600 hover:bg-red-500/10 hover:text-red-700"
         >
-          {loading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <X size={14} />
-          )}
+          <X size={14} />
         </Button>
       </div>
 

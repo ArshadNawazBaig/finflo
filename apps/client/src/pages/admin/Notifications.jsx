@@ -266,23 +266,29 @@ const Notifications = () => {
         {/* Notifications View */}
         <div className="space-y-4">
           {loading ? (
-            <div className="grid gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
-                  <div className="flex-1 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <div className="h-4 w-1/4 rounded bg-muted/30" />
-                      <div className="h-3 w-16 rounded bg-muted/30" />
+            isMobile ? (
+              <div className="grid gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <div className="h-4 w-1/4 rounded bg-muted/30" />
+                        <div className="h-3 w-16 rounded bg-muted/30" />
+                      </div>
+                      <div className="h-4 w-3/4 rounded bg-muted/30" />
                     </div>
-                    <div className="h-4 w-3/4 rounded bg-muted/30" />
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border/50 bg-card overflow-hidden">
+                <TableSkeleton rows={8} columns={5} />
+              </div>
+            )
           ) : notifications.length === 0 ? (
             <EmptyState
               icon={Bell}

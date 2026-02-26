@@ -40,8 +40,22 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export const formatPKR = (num) => {
-  if (num === undefined || num === null) return 'Rs. 0';
+export const getCurrencySymbol = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user?.currency || 'Rs.';
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+  return '$';
+};
+
+export const formatCurrency = (num) => {
+  const symbol = getCurrencySymbol();
+  if (num === undefined || num === null) return `${symbol}0`;
   num = Math.round(num);
   const isNegative = num < 0;
   const absNum = Math.abs(num);
@@ -51,7 +65,7 @@ export const formatPKR = (num) => {
   } else {
     formatted = absNum.toLocaleString();
   }
-  return `${isNegative ? '-' : ''}Rs. ${formatted}`;
+  return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
 export const formatCompactValue = (num) => {
   if (num === undefined || num === null) return '0';

@@ -1,35 +1,116 @@
 import { useState, useEffect } from 'react';
 import {
-  DollarSign,
   ExternalLink,
   Coins,
   Download,
   TrendingUp,
+  Users,
+  AlertTriangle,
+  ShieldCheck,
+  DollarSign,
+  CreditCard,
+  UserPlus,
+  ArrowUpRight,
+  BarChart3,
 } from 'lucide-react';
-import { subMonths, format } from 'date-fns';
+import { subMonths } from 'date-fns';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip as ReTooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import StatsCard from '@/components/StatsCard';
 import AnalyticsChart from '@/components/AnalyticsChart';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
+import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
+import StatsRiskRowSkeleton from '@/components/skeletons/StatsRiskRowSkeleton';
 import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Unused
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import api from '@/lib/axios';
-import { formatPKR, capitalize, cn } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import RepaymentCalendar from '@/components/loans/RepaymentCalendar';
 import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import usePermissions from '@/hooks/usePermissions';
+import ActivityFeed from '@/components/ActivityFeed';
+
+const RISK_COLORS = {
+  'A+': '#10b981',
+  A: '#34d399',
+  B: '#3b82f6',
+  C: '#f59e0b',
+  D: '#f97316',
+  F: '#ef4444',
+  'N/A': '#6b7280',
+};
+
+const QUICK_ACTIONS = [
+  {
+    label: 'New Loan',
+    description: 'Disburse a new loan',
+    icon: <CreditCard size={22} />,
+    route: '/loans',
+    permission: 'manage_loans',
+    altPermission: 'create_loan',
+    iconBg: 'bg-primary',
+    glow: 'hover:shadow-primary/20',
+    accent: 'text-primary',
+  },
+  {
+    label: 'Add Member',
+    description: 'Register a new member',
+    icon: <UserPlus size={22} />,
+    route: '/members',
+    permission: 'manage_members',
+    altPermission: 'create_member',
+    iconBg: 'bg-blue-500',
+    glow: 'hover:shadow-blue-500/20',
+    accent: 'text-blue-500',
+  },
+  {
+    label: 'Record Payment',
+    description: 'Log a loan repayment',
+    icon: <DollarSign size={22} />,
+    route: '/transactions',
+    permission: 'manage_loans',
+    altPermission: 'create_loan',
+    iconBg: 'bg-emerald-500',
+    glow: 'hover:shadow-emerald-500/20',
+    accent: 'text-emerald-500',
+  },
+  {
+    label: 'View Reports',
+    description: 'Analytics & statements',
+    icon: <BarChart3 size={22} />,
+    route: '/reports',
+    permission: 'view_reports',
+    altPermission: null,
+    iconBg: 'bg-amber-500',
+    glow: 'hover:shadow-amber-500/20',
+    accent: 'text-amber-500',
+  },
+];
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
-  const [transactions, setTransactions] = useState([]);
   const [upcomingPayments, setUpcomingPayments] = useState([]);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [userRole, setUserRole] = useState('');
   const [userPlan, setUserPlan] = useState('Free');
   const [loanCount, setLoanCount] = useState(0);
@@ -37,12 +118,33 @@ const Dashboard = () => {
   const [branchCount, setBranchCount] = useState(0);
   const [planLimits, setPlanLimits] = useState(null);
   const [userName, setUserName] = useState('admin');
+  const [isManager, setIsManager] = useState(false);
+  const [branchName, setBranchName] = useState('');
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 6),
     to: new Date(),
   });
   const navigate = useNavigate();
   const { hasPermission, hasAnyPermission } = usePermissions();
+
+  const canViewReports = hasPermission('view_reports');
+  const canManageLoans = hasAnyPermission(['manage_loans', 'create_loan']);
+  const canManageMembers = hasAnyPermission([
+    'manage_members',
+    'create_member',
+  ]);
+  const canViewDashboard = hasAnyPermission([
+    'view_reports',
+    'manage_loans',
+    'manage_members',
+    'view_assigned',
+    '*',
+  ]);
+  const visibleActions = QUICK_ACTIONS.filter(
+    (a) =>
+      hasPermission(a.permission) ||
+      (a.altPermission && hasPermission(a.altPermission)),
+  );
 
   const fetchDashboardData = async (isInitial = false) => {
     try {
@@ -62,7 +164,6 @@ const Dashboard = () => {
       ]);
 
       setStats(statsRes.data.stats);
-      setTransactions(statsRes.data.recentTransactions);
       setAnalyticsData(statsRes.data.analyticsData || []);
       setUpcomingPayments(upcomingRes.data);
 
@@ -86,30 +187,38 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Get user name from localStorage
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user?.name) {
-      setUserName(user.name);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user?.name) setUserName(user.name);
+    if (user?.role) setUserRole(user.role);
+
+    // Detect branch manager and resolve branch name
+    const managerFlag = user?.isManager === true;
+    setIsManager(managerFlag);
+    if (managerFlag) {
+      api
+        .get('/auth/me')
+        .then((res) => {
+          const branchObj = res.data?.branch;
+          if (branchObj?.name) setBranchName(capitalize(branchObj.name));
+          else if (typeof branchObj === 'string') setBranchName(branchObj);
+        })
+        .catch(() => {});
     }
-    if (user?.role) {
-      setUserRole(user.role);
-    }
+
     fetchDashboardData(true);
   }, []);
 
   useEffect(() => {
-    if (dateRange?.from && dateRange?.to) {
-      fetchDashboardData();
-    }
+    if (dateRange?.from && dateRange?.to) fetchDashboardData();
   }, [dateRange]);
 
   const handleDownload = async () => {
     try {
+      setIsDownloading(true);
       if (!dateRange?.from || !dateRange?.to) {
         toast.error('Please select a date range first');
         return;
       }
-
       const response = await api.get('/dashboard/download-statement', {
         params: {
           startDate: dateRange.from.toISOString(),
@@ -117,18 +226,25 @@ const Dashboard = () => {
           format: 'json',
         },
       });
-
       await exportCashFlowStatement(response.data, dateRange, userName);
       toast.success('Statement generated and downloaded as PDF');
     } catch (error) {
       console.error('Failed to download statement', error);
       toast.error('Failed to download statement');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
+  const overdueCount = stats?.overdue?.count || 0;
+  const overdueAmount = stats?.overdue?.amount || 0;
+  const collectionRate = stats?.collectionRate ?? 0;
+  const riskDist = stats?.riskDistribution || [];
+  const totalRiskLoans = riskDist.reduce((s, r) => s + r.count, 0);
+
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      {/* Top Header */}
+      {/* ── Page Header ──────────────────────────────────────── */}
       <PageHeader
         title="Financial Intelligence"
         description={
@@ -142,266 +258,547 @@ const Dashboard = () => {
         }
       />
 
-      {/* Plan Usage Banner */}
+      {/* ── Branch Scope Banner (branch managers only) ────────── */}
+      {isManager && (
+        <div className="flex items-center gap-4 rounded-[1.75rem] border border-teal-500/25 bg-teal-500/8 px-5 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-teal-500/15 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-teal-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-500/80">
+                Branch View
+              </p>
+              {branchName && (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+                  {branchName}
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-foreground/80 mt-0.5">
+              You're viewing data for your assigned branch only.{' '}
+              {branchName && (
+                <span className="font-black text-teal-600 dark:text-teal-400">
+                  {branchName}
+                </span>
+              )}{' '}
+              metrics are displayed across all sections below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {!loading &&
-        userRole !== 'super_admin' &&
+        userRole === 'admin' &&
         userPlan !== 'Pro' &&
         (() => {
-          // Use dynamic limits from API with per-field fallback to defaults
           const limits = {
             loans: planLimits?.loans ?? (userPlan === 'Basic' ? 50 : 5),
             members: planLimits?.members ?? (userPlan === 'Basic' ? 3 : 1),
             branches: planLimits?.branches ?? (userPlan === 'Basic' ? 3 : 1),
           };
-
-          const loanUsagePercent = Math.min(
-            100,
-            (loanCount / limits.loans) * 100,
-          );
-          const memberUsagePercent = Math.min(
-            100,
-            (memberCount / limits.members) * 100,
-          );
-          const branchUsagePercent = Math.min(
+          const lu = Math.min(100, (loanCount / limits.loans) * 100);
+          const mu = Math.min(100, (memberCount / limits.members) * 100);
+          const bu = Math.min(
             100,
             (branchCount / (limits.branches || 1)) * 100,
           );
-
-          const isNearLoanLimit = loanUsagePercent >= 80;
-          const isNearMemberLimit = memberUsagePercent >= 80;
-          const isNearBranchLimit = branchUsagePercent >= 80;
-
-          if (isNearLoanLimit || isNearMemberLimit || isNearBranchLimit) {
-            const isAtLimit =
-              loanUsagePercent >= 100 ||
-              memberUsagePercent >= 100 ||
-              branchUsagePercent >= 100;
-            const primaryMetric = isNearBranchLimit
-              ? 'branches'
-              : isNearMemberLimit
-                ? 'members'
-                : 'loans';
-            const current = isNearBranchLimit
-              ? branchCount
-              : isNearMemberLimit
-                ? memberCount
-                : loanCount;
-            const limit = isNearBranchLimit
+          if (lu < 80 && mu < 80 && bu < 80) return null;
+          const isAtLimit = lu >= 100 || mu >= 100 || bu >= 100;
+          const primaryMetric =
+            bu >= 80 ? 'branches' : mu >= 80 ? 'members' : 'loans';
+          const current =
+            bu >= 80 ? branchCount : mu >= 80 ? memberCount : loanCount;
+          const limit =
+            bu >= 80
               ? limits.branches
-              : isNearMemberLimit
+              : mu >= 80
                 ? limits.members
                 : limits.loans;
-            const usagePercent = isNearBranchLimit
-              ? branchUsagePercent
-              : isNearMemberLimit
-                ? memberUsagePercent
-                : loanUsagePercent;
-
-            return (
-              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="flex-1">
-                  <h3 className="text-lg font-black text-foreground mb-1">
-                    {isAtLimit
-                      ? 'Plan Limit Reached'
-                      : 'Approaching Plan Limit'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground font-medium mb-3">
-                    You're using{' '}
-                    <strong className="text-foreground">
-                      {current} of {limit}
-                    </strong>{' '}
-                    {primaryMetric} on your {userPlan} plan.
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 max-w-md">
-                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${usagePercent}%` }}
-                        />
-                      </div>
+          const usagePct = bu >= 80 ? bu : mu >= 80 ? mu : lu;
+          return (
+            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="flex-1">
+                <h3 className="text-lg font-black text-foreground mb-1">
+                  {isAtLimit ? 'Plan Limit Reached' : 'Approaching Plan Limit'}
+                </h3>
+                <p className="text-sm text-muted-foreground font-medium mb-3">
+                  You're using{' '}
+                  <strong className="text-foreground">
+                    {current} of {limit}
+                  </strong>{' '}
+                  {primaryMetric} on your {userPlan} plan.
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 max-w-md">
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-1000"
+                        style={{ width: `${usagePct}%` }}
+                      />
                     </div>
-                    <Button
-                      onClick={() => navigate('/billing')}
-                      variant="gradient"
-                      className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
-                    >
-                      Upgrade Now
-                    </Button>
                   </div>
+                  <Button
+                    onClick={() => navigate('/billing')}
+                    variant="gradient"
+                    className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
+                  >
+                    Upgrade Now
+                  </Button>
                 </div>
               </div>
-            );
-          }
-          return null;
+            </div>
+          );
         })()}
 
+      {/* ── Overdue Alert ─────────────────────────────────────── */}
+      {!loading && overdueCount > 0 && canViewReports && (
+        <div className="bg-gradient-to-r from-rose-500/10 to-orange-500/10 border border-rose-500/25 rounded-[2rem] p-5 sm:p-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 h-12 w-12 rounded-2xl bg-rose-500/15 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500/80 mb-0.5">
+                  Attention Required
+                </p>
+                <h3 className="text-lg font-black text-foreground tracking-tight">
+                  {overdueCount} Overdue Loan{overdueCount > 1 ? 's' : ''}
+                </h3>
+                <p className="text-sm text-muted-foreground font-medium mt-0.5">
+                  Total overdue:{' '}
+                  <span className="font-black text-rose-500">
+                    {formatCurrency(overdueAmount)}
+                  </span>
+                </p>
+              </div>
+            </div>
+            {canManageLoans && (
+              <Button
+                onClick={() => navigate('/loans?status=overdue')}
+                className="rounded-2xl px-6 py-2.5 h-auto bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-rose-500/20"
+              >
+                View Overdue
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Quick Actions (Sleek Horizontal Strips) ───────────── */}
+      {visibleActions.length > 0 &&
+        (loading ? (
+          <QuickActionsSkeleton count={visibleActions.length || 4} />
+        ) : (
+          <div className="flex flex-wrap gap-3 sm:gap-4">
+            {visibleActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => navigate(action.route)}
+                className={cn(
+                  'group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 backdrop-blur-md p-2 pr-5 transition-all duration-300 hover:border-border/80 hover:-translate-y-0.5 hover:shadow-lg',
+                  action.glow,
+                )}
+              >
+                {/* Ambient hover glow inside the button */}
+                <div
+                  className={cn(
+                    'absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500',
+                    action.iconBg,
+                  )}
+                />
+
+                {/* Left Icon Pill */}
+                <div
+                  className={cn(
+                    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3',
+                    action.iconBg,
+                  )}
+                >
+                  {/* Subtle shine */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                  {action.icon}
+                </div>
+
+                {/* Center Text */}
+                <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                  <p
+                    className={cn(
+                      'text-sm font-black tracking-tight truncate leading-tight',
+                      action.accent,
+                    )}
+                  >
+                    {action.label}
+                  </p>
+                  {action.description && (
+                    <p className="text-[10px] font-semibold text-muted-foreground/60 truncate uppercase tracking-widest mt-0.5 leading-tight">
+                      {action.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Right Arrow */}
+                <div
+                  className={cn(
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/30 transition-all duration-300 group-hover:bg-current/10',
+                    action.accent,
+                  )}
+                >
+                  <ArrowUpRight
+                    size={14}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        ))}
+
+      {/* ── Primary Stats Row ─────────────────────────────────── */}
       {loading ? (
         <CardsSkeleton />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {hasPermission('view_reports') && (
+          {canViewReports && (
             <StatsCard
               title="Net Liquidity"
-              amount={formatPKR(stats?.banking?.liquidity || 0)}
+              amount={formatCurrency(stats?.banking?.liquidity || 0)}
               subtitle="Available Cash"
               icon={<Coins size={20} />}
               color="bg-emerald-500 shadow-emerald-500/20"
             />
           )}
-          {hasPermission('view_reports') && (
+          {canViewReports && (
             <StatsCard
               title="Total Deposits"
-              amount={formatPKR(stats?.banking?.deposits || 0)}
+              amount={formatCurrency(stats?.banking?.deposits || 0)}
               subtitle="Member Capital"
               icon={<Download size={20} />}
               color="bg-blue-500 shadow-blue-500/20"
             />
           )}
-          {hasPermission('view_reports') && (
+          {canViewReports && (
             <StatsCard
               title="Net Profit"
-              amount={formatPKR(stats?.profit?.amount || 0)}
+              amount={formatCurrency(stats?.profit?.amount || 0)}
               percentage={stats?.profit?.percentage}
               subtitle="Interest Earnings"
               icon={<TrendingUp size={20} />}
               color="bg-primary shadow-primary/20"
             />
           )}
-          {hasAnyPermission(['view_reports', 'manage_loans']) && (
+          {hasAnyPermission([
+            'view_reports',
+            'manage_loans',
+            'create_loan',
+          ]) && (
             <StatsCard
               title="Total Disbursed"
-              amount={formatPKR(stats?.banking?.disbursed?.amount || 0)}
+              amount={formatCurrency(stats?.banking?.disbursed?.amount || 0)}
               percentage={stats?.banking?.disbursed?.percentage}
               subtitle="Portfolio Value"
               icon={<ExternalLink size={20} />}
               color="bg-orange-500 shadow-orange-500/20"
             />
           )}
-          {/* <StatsCard
-            title="Forecast (6M)"
-            amount={formatPKR(stats?.forecast?.total6Months || 0)}
-            percentage={stats?.forecast?.percentage}
-            icon={<TrendingUp size={20} />}
-            color="bg-primary shadow-primary/20"
-          /> */}
         </div>
       )}
 
-      {/* Calendar Section */}
-      <div className="w-full">
-        {loading ? (
-          <CalendarSkeleton />
+      {/* ══════════════════════════════════════════════════════════
+          ROW 1 — 4 Stat Cards (left 2/3, 2×2) + Portfolio Risk (right 1/3)
+          ══════════════════════════════════════════════════════════ */}
+      {canViewDashboard &&
+        (loading ? (
+          <StatsRiskRowSkeleton />
         ) : (
-          <RepaymentCalendar upcomingPayments={upcomingPayments} />
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10 items-start">
-        {hasAnyPermission([
-          'view_reports',
-          'manage_loans',
-          'manage_members',
-        ]) && (
-          <div className="xl:col-span-1">
-            {/* Transactions Section */}
-            <div className="col-span-3 rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col">
-              <div className="p-4 sm:p-6 pb-4 border-b border-border/50 bg-gradient-to-br from-card to-background/50">
-                <div className="flex items-center justify-between mb-4">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
+            {/* Left: 2×2 grid */}
+            <div className="xl:col-span-2 grid grid-cols-2 gap-4 sm:gap-6">
+              {/* Active Loans */}
+              {hasAnyPermission([
+                'view_reports',
+                'manage_loans',
+                'create_loan',
+                'view_assigned',
+              ]) && (
+                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <CreditCard size={18} className="text-primary" />
+                    </div>
+                    {stats?.activeLoans?.percentage !== undefined && (
+                      <span
+                        className={cn(
+                          'text-[10px] font-black px-2.5 py-1 rounded-full',
+                          stats.activeLoans.percentage >= 0
+                            ? 'bg-emerald-500/10 text-emerald-600'
+                            : 'bg-rose-500/10 text-rose-600',
+                        )}
+                      >
+                        {stats.activeLoans.percentage >= 0 ? '+' : ''}
+                        {stats.activeLoans.percentage}%
+                      </span>
+                    )}
+                  </div>
                   <div>
-                    <h3 className="text-lg font-black tracking-tight">
-                      Recent Activity
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-medium mt-1">
-                      Real-time settlements
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
+                      Active Loans
+                    </p>
+                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
+                      {stats?.activeLoans?.count ?? 0}
+                    </p>
+                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
+                      Outstanding:{' '}
+                      {formatCurrency(stats?.outstanding?.amount || 0)}
                     </p>
                   </div>
-                  {!loading && (
-                    <button
-                      className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-                      onClick={() => navigate('/transactions')}
-                    >
-                      View All
-                    </button>
-                  )}
                 </div>
-              </div>
-              <div className="flex-1 overflow-auto">
-                <div className="divide-y divide-border/50">
-                  {loading ? (
-                    [1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className="p-5 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 rounded-2xl bg-muted/30 animate-pulse" />
-                          <div className="space-y-2">
-                            <div className="h-4 w-32 bg-muted/30 animate-pulse rounded" />
-                            <div className="h-3 w-20 bg-muted/30 animate-pulse rounded" />
-                          </div>
-                        </div>
-                        <div className="h-5 w-16 bg-muted/30 animate-pulse rounded" />
-                      </div>
-                    ))
-                  ) : transactions.length === 0 ? (
-                    <div className="p-6 sm:p-10 text-center text-muted-foreground text-sm font-medium">
-                      No recent settlements detected
-                    </div>
-                  ) : (
-                    transactions.slice(0, 3).map((t) => (
-                      <div
-                        key={t._id}
-                        className="group flex items-center justify-between p-4 sm:p-5 hover:bg-primary/5 transition-colors duration-300"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <div
-                              className={`w-11 h-11 rounded-2xl ${t.type === 'repayment' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'} flex items-center justify-center border border-border/50 shadow-sm group-hover:scale-110 transition-transform`}
-                            >
-                              <span className="font-black text-xs capitalize">
-                                {t.customer?.name?.charAt(0) || '?'}
-                              </span>
-                            </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-sm font-bold leading-none tracking-tight capitalize">
-                              {t.customer?.name}
-                            </p>
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                              {format(new Date(t.date), 'MMM d, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <p className="text-sm font-black tracking-tight tabular-nums">
-                            {formatPKR(t.amount)}
-                          </p>
-                          <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/80 dark:text-muted-foreground">
-                            SUCCESS
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+              )}
 
+              {/* Total Members */}
+              {hasAnyPermission([
+                'view_reports',
+                'manage_members',
+                'create_member',
+              ]) && (
+                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                      <Users size={18} className="text-blue-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
+                      Total Members
+                    </p>
+                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
+                      {stats?.members?.total ?? 0}
+                    </p>
+                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
+                      Balance: {formatCurrency(stats?.members?.deposits || 0)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Collection Rate */}
+              {canViewReports && (
+                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <ShieldCheck size={18} className="text-emerald-500" />
+                    </div>
+                    <span
+                      className={cn(
+                        'text-[10px] font-black px-2.5 py-1 rounded-full',
+                        collectionRate >= 80
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : collectionRate >= 50
+                            ? 'bg-amber-500/10 text-amber-600'
+                            : 'bg-rose-500/10 text-rose-600',
+                      )}
+                    >
+                      {collectionRate >= 80
+                        ? 'Healthy'
+                        : collectionRate >= 50
+                          ? 'Fair'
+                          : 'At Risk'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
+                      Collection Rate
+                    </p>
+                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
+                      {collectionRate}%
+                    </p>
+                    <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-all duration-1000',
+                          collectionRate >= 80
+                            ? 'bg-emerald-500'
+                            : collectionRate >= 50
+                              ? 'bg-amber-500'
+                              : 'bg-rose-500',
+                        )}
+                        style={{ width: `${Math.min(100, collectionRate)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Overdue Loans */}
+              {hasAnyPermission([
+                'view_reports',
+                'manage_loans',
+                'create_loan',
+                'view_assigned',
+              ]) && (
+                <div
+                  className={cn(
+                    'group relative rounded-[1.5rem] bg-card border p-5 flex flex-col gap-3 hover:-translate-y-0.5 transition-all duration-300',
+                    overdueCount > 0
+                      ? 'border-rose-500/30 hover:shadow-xl hover:shadow-rose-500/10'
+                      : 'border-border/50 hover:shadow-xl',
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={cn(
+                        'h-10 w-10 rounded-xl flex items-center justify-center',
+                        overdueCount > 0 ? 'bg-rose-500/10' : 'bg-muted',
+                      )}
+                    >
+                      <AlertTriangle
+                        size={18}
+                        className={
+                          overdueCount > 0
+                            ? 'text-rose-500'
+                            : 'text-muted-foreground'
+                        }
+                      />
+                    </div>
+                    {overdueCount > 0 && (
+                      <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600">
+                        Action Needed
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
+                      Overdue Loans
+                    </p>
+                    <p
+                      className={cn(
+                        'text-3xl font-black tabular-nums tracking-tight mt-0.5',
+                        overdueCount > 0 ? 'text-rose-500' : 'text-foreground',
+                      )}
+                    >
+                      {overdueCount}
+                    </p>
+                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
+                      {overdueCount > 0
+                        ? formatCurrency(overdueAmount) + ' at risk'
+                        : 'All loans on track'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Portfolio Risk Donut */}
+            {canViewReports && (
+              <div className="xl:col-span-1">
+                {riskDist.length > 0 ? (
+                  <Card className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm h-full">
+                    <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <CardTitle className="text-lg font-black tracking-tight">
+                          Portfolio Risk
+                        </CardTitle>
+                      </div>
+                      <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                        Active loans by risk grade
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6 pt-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <ResponsiveContainer width="50%" height={150}>
+                          <PieChart>
+                            <Pie
+                              data={riskDist}
+                              dataKey="count"
+                              nameKey="grade"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={40}
+                              outerRadius={65}
+                              strokeWidth={2}
+                              stroke="hsl(var(--card))"
+                            >
+                              {riskDist.map((entry) => (
+                                <Cell
+                                  key={entry.grade}
+                                  fill={RISK_COLORS[entry.grade] || '#6b7280'}
+                                />
+                              ))}
+                            </Pie>
+                            <ReTooltip
+                              contentStyle={{
+                                background: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '1rem',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                              }}
+                              formatter={(v, n) => [v + ' loans', n]}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="flex-1 space-y-2">
+                          {riskDist.map((r) => (
+                            <div
+                              key={r.grade}
+                              className="flex items-center justify-between gap-2"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <div
+                                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                                  style={{
+                                    backgroundColor:
+                                      RISK_COLORS[r.grade] || '#6b7280',
+                                  }}
+                                />
+                                <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                                  Grade {r.grade}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-black tabular-nums">
+                                  {r.count}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground font-bold">
+                                  (
+                                  {totalRiskLoans > 0
+                                    ? Math.round(
+                                        (r.count / totalRiskLoans) * 100,
+                                      )
+                                    : 0}
+                                  %)
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="h-full min-h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-border/40 bg-card/30 text-muted-foreground/50 gap-2">
+                    <ShieldCheck size={32} className="opacity-30" />
+                    <p className="text-xs font-black uppercase tracking-widest">
+                      No risk data yet
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+      {/* ══════════════════════════════════════════════════════════
+          ROW 2 — Cash Flow Analysis (left 2/3) + Recent Activity (right 1/3)
+          ══════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
+        {/* Cash Flow Analysis */}
         <div
-          className={cn(
-            'xl:col-span-2',
-            !hasAnyPermission([
-              'view_reports',
-              'manage_loans',
-              'manage_members',
-            ]) && 'xl:col-span-3',
-          )}
+          className={cn('xl:col-span-2', !canViewDashboard && 'xl:col-span-3')}
         >
-          {hasPermission('view_reports') ? (
+          {canViewReports ? (
             loading ? (
               <ChartSkeleton />
             ) : (
@@ -411,23 +808,92 @@ const Dashboard = () => {
                 setDateRange={setDateRange}
                 onDownload={handleDownload}
                 loading={chartLoading}
+                isDownloading={isDownloading}
+                className="h-full"
               />
             )
-          ) : (
+          ) : hasAnyPermission(['manage_loans', 'create_loan']) ? (
             <div className="h-[400px] flex items-center justify-center bg-card/50 rounded-[2rem] border border-border/50 text-muted-foreground p-8 text-center">
               <div>
                 <TrendingUp size={48} className="mx-auto mb-4 opacity-20" />
-                <h4 className="text-lg font-black tracking-tight mb-2">
-                  Analytics Restricted
-                </h4>
-                <p className="text-sm">
-                  You do not have permission to view detailed analytics reports.
+                <h3 className="text-lg font-black tracking-tight">
+                  Reports Restricted
+                </h3>
+                <p className="text-sm font-medium mt-1">
+                  Contact your admin to enable report access.
                 </p>
               </div>
             </div>
+          ) : null}
+        </div>
+
+        {/* Recent Activity */}
+        {canViewDashboard && (
+          <div className="xl:col-span-1">
+            <Card className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col h-full">
+              <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-black tracking-tight">
+                      Recent Activity
+                    </CardTitle>
+                    <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                      Real-time settlements
+                    </CardDescription>
+                  </div>
+                  {!loading && canViewReports && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 h-auto rounded-full bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                      onClick={() => navigate('/transactions')}
+                      isLoading={loading}
+                    >
+                      View All
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-hidden">
+                {loading ? (
+                  <div className="p-4 sm:p-6 space-y-5 animate-pulse">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-muted/40 shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-3 w-1/2 rounded-lg bg-muted/30" />
+                          <Skeleton className="h-2 w-1/3 rounded-lg bg-muted/20" />
+                        </div>
+                        <Skeleton className="h-4 w-16 rounded-lg bg-muted/30" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-[324px] overflow-y-auto custom-scrollbar">
+                    <ActivityFeed />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* ── Repayment Calendar ────────────────────────────────── */}
+      {hasAnyPermission([
+        'view_reports',
+        'manage_loans',
+        'create_loan',
+        'view_assigned',
+      ]) && (
+        <div className="w-full">
+          {loading ? (
+            <CalendarSkeleton />
+          ) : (
+            <RepaymentCalendar upcomingPayments={upcomingPayments} />
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

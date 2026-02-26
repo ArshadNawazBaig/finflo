@@ -17,6 +17,7 @@
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
+    "iconv-lite": "^0.7.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.6",
     "morgan": "^1.10.1",
@@ -29,6 +30,7 @@
     "stripe": "^20.3.1"
   },
   "devDependencies": {
+    "brace-expansion": "5.0.3",
     "nodemon": "^3.1.11"
   }
 }

@@ -33,7 +33,7 @@ import ContributeGoalModal from '@/components/savings/ContributeGoalModal';
 
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatPKR, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
@@ -239,8 +239,8 @@ const MemberDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title="Wealth Portal"
-        description={`Welcome back, ${capitalize(member?.name)}. Manage your wealth and financial targets.`}
+        title="FinFlow"
+        description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
       />
 
       {loading && loans.length === 0 ? (
@@ -250,7 +250,7 @@ const MemberDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             <StatsCard
               title="Main Balance"
-              amount={formatPKR(member?.currentBalance || 0)}
+              amount={formatCurrency(member?.currentBalance || 0)}
               icon={<Wallet size={20} />}
               color={
                 member?.currentBalance < 0
@@ -260,13 +260,13 @@ const MemberDashboard = () => {
             />
             <StatsCard
               title="Total Invested"
-              amount={formatPKR(member?.totalInvested || 0)}
+              amount={formatCurrency(member?.totalInvested || 0)}
               icon={<TrendingUp size={20} />}
               color="bg-emerald-500 shadow-emerald-500/20"
             />
             <StatsCard
               title="Total Profit"
-              amount={formatPKR(member?.totalProfit || 0)}
+              amount={formatCurrency(member?.totalProfit || 0)}
               icon={<PieChart size={20} />}
               color="bg-blue-500 shadow-blue-500/20"
             />
@@ -359,7 +359,7 @@ const MemberDashboard = () => {
                           boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                         }}
                         itemStyle={{ fontSize: '10px', fontWeight: 'bold' }}
-                        formatter={(value) => formatPKR(value)}
+                        formatter={(value) => formatCurrency(value)}
                       />
                       <Bar
                         dataKey="inflow"
@@ -400,7 +400,7 @@ const MemberDashboard = () => {
                               <div className="flex items-center gap-3 mb-2">
                                 <h4 className="font-bold text-lg capitalize">
                                   {loan.customer?.name} -{' '}
-                                  {formatPKR(loan.principal)}
+                                  {formatCurrency(loan.principal)}
                                 </h4>
                                 <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600">
                                   Your Approval Required
@@ -408,7 +408,7 @@ const MemberDashboard = () => {
                               </div>
                               <p className="text-sm text-muted-foreground font-medium">
                                 Duration: {loan.duration} months | Amount:{' '}
-                                {formatPKR(loan.principal)}
+                                {formatCurrency(loan.principal)}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ const MemberDashboard = () => {
                               <div className="flex items-center gap-3 mb-1">
                                 <h4 className="font-bold text-base capitalize">
                                   {loan.customer?.name} -{' '}
-                                  {formatPKR(loan.principal)}
+                                  {formatCurrency(loan.principal)}
                                 </h4>
                                 <span
                                   className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -532,7 +532,7 @@ const MemberDashboard = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <h4 className="font-bold text-lg">
-                                {formatPKR(loan.principal)} Loan
+                                {formatCurrency(loan.principal)} Loan
                               </h4>
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
@@ -584,7 +584,7 @@ const MemberDashboard = () => {
                                     Remaining
                                   </span>
                                   <span>
-                                    {formatPKR(
+                                    {formatCurrency(
                                       loan.remainingAmount || loan.totalAmount,
                                     )}
                                   </span>

@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,

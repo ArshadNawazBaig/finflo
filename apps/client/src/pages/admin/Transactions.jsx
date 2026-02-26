@@ -21,7 +21,7 @@ import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
@@ -267,19 +267,19 @@ const Transactions = () => {
           />
           <StatsCard
             title="Total Income"
-            amount={formatPKR(summary.totalIncome)}
+            amount={formatCurrency(summary.totalIncome)}
             icon={<TrendingUp size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
           />
           <StatsCard
             title="Total Expense"
-            amount={formatPKR(summary.totalExpense)}
+            amount={formatCurrency(summary.totalExpense)}
             icon={<ArrowDown size={20} />}
             color="bg-rose-500 shadow-rose-500/20"
           />
           <StatsCard
             title="Net Cash Flow"
-            amount={formatPKR(netCashFlow)}
+            amount={formatCurrency(netCashFlow)}
             icon={<DollarSign size={20} />}
             color={
               netCashFlow >= 0
@@ -315,6 +315,7 @@ const Transactions = () => {
                 size="icon"
                 className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                 onClick={handleDownload}
+                isLoading={loading}
                 title="Download Statement (PDF)"
               >
                 <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
@@ -324,25 +325,21 @@ const Transactions = () => {
                 size="icon"
                 className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                 onClick={handleExportExcel}
-                disabled={isExportingExcel}
+                isLoading={isExportingExcel}
                 title="Export to Excel"
               >
-                {isExportingExcel ? (
-                  <Loader2 className="relative w-4 h-4 text-emerald-500 animate-spin" />
-                ) : (
-                  <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
-                )}
+                <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
               </Button>
             </div>
           </div>
         </div>
 
         {loading && !isFetchingMore ? (
-          <div className="py-20 flex justify-center items-center">
+          <div className="py-6">
             {isMobile ? (
               <InfiniteLoader isFetchingMore={true} />
             ) : (
-              <TableSkeleton />
+              <TableSkeleton rows={limit} columns={6} />
             )}
           </div>
         ) : isMobile ? (

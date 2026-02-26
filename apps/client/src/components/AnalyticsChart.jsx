@@ -15,7 +15,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Download, TrendingUp } from 'lucide-react';
-import { formatPKR, formatCompactValue } from '@/lib/utils';
+import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 
@@ -24,7 +24,8 @@ const AnalyticsChart = ({
   dateRange,
   setDateRange,
   onDownload,
-  loading,
+  isDownloading,
+  className,
 }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -73,7 +74,7 @@ const AnalyticsChart = ({
                   <span
                     className={`text-xs font-black tabular-nums ${colors[entry.dataKey] || 'text-foreground'}`}
                   >
-                    {formatPKR(entry.value)}
+                    {formatCurrency(entry.value)}
                   </span>
                 </div>
               );
@@ -88,7 +89,12 @@ const AnalyticsChart = ({
   const chartData = data;
 
   return (
-    <Card className="col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+    <Card
+      className={cn(
+        'col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]',
+        className,
+      )}
+    >
       <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -111,10 +117,9 @@ const AnalyticsChart = ({
               size="icon"
               className="relative rounded-2xl border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 transition-all duration-500 hover:bg-white/10 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)] group overflow-hidden"
               onClick={onDownload}
-              disabled={loading}
+              isLoading={isDownloading}
               title="Download Statement (PDF)"
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/5 to-primary/0 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-1000" />
               <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
             </Button>
           </div>

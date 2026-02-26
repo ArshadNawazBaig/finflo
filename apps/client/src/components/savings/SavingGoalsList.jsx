@@ -7,7 +7,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatPKR } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
 const SavingGoalsList = ({
@@ -89,14 +89,14 @@ const SavingGoalsList = ({
                       Current Balance
                     </p>
                     <p className="text-xl font-black tracking-tighter">
-                      {formatPKR(goal.currentAmount)}
+                      {formatCurrency(goal.currentAmount)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">
                       Target
                     </p>
-                    <p className="font-bold">{formatPKR(goal.targetAmount)}</p>
+                    <p className="font-bold">{formatCurrency(goal.targetAmount)}</p>
                   </div>
                 </div>
 

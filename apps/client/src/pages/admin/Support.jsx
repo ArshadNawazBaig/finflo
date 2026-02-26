@@ -218,7 +218,10 @@ const Support = () => {
             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
               {loading ? (
                 [...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-28 rounded-2xl w-full" />
+                  <div
+                    key={i}
+                    className="h-28 rounded-2xl w-full bg-card/40 backdrop-blur-md border border-border/10 animate-pulse"
+                  />
                 ))
               ) : tickets.length === 0 ? (
                 <EmptyState

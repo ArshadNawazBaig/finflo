@@ -48,7 +48,7 @@ import {
   Pie,
 } from 'recharts';
 import api from '@/lib/axios';
-import { formatPKR, formatCompactValue, cn } from '@/lib/utils';
+import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -169,7 +169,7 @@ const Reports = () => {
       doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(16, 185, 129);
-      doc.text('ACE WEALTH PORTAL', 14, 22);
+      doc.text('FINFLOW PORTAL', 14, 22);
 
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -198,16 +198,16 @@ const Reports = () => {
           ],
           [
             'Loans Receivable',
-            formatPKR(trialBalance.assets?.loansReceivable || 0),
+            formatCurrency(trialBalance.assets?.loansReceivable || 0),
           ],
           [
             'Cash at Hand / Bank',
-            formatPKR(trialBalance.assets?.cashAtHand || 0),
+            formatCurrency(trialBalance.assets?.cashAtHand || 0),
           ],
           [
             { content: 'Total Assets', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(trialBalance.assets?.totalAssets || 0),
+              content: formatCurrency(trialBalance.assets?.totalAssets || 0),
               styles: { fontStyle: 'bold' },
             },
           ],
@@ -225,12 +225,12 @@ const Reports = () => {
           ],
           [
             'Member Capital',
-            formatPKR(trialBalance.liabilities?.memberCapital || 0),
+            formatCurrency(trialBalance.liabilities?.memberCapital || 0),
           ],
           [
             { content: 'Total Liabilities', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(
+              content: formatCurrency(
                 trialBalance.liabilities?.totalLiabilities || 0,
               ),
               styles: { fontStyle: 'bold' },
@@ -250,12 +250,12 @@ const Reports = () => {
           ],
           [
             'Retained Earnings',
-            formatPKR(trialBalance.equity?.retainedEarnings || 0),
+            formatCurrency(trialBalance.equity?.retainedEarnings || 0),
           ],
           [
             { content: 'Total Equity', styles: { fontStyle: 'bold' } },
             {
-              content: formatPKR(trialBalance.equity?.totalEquity || 0),
+              content: formatCurrency(trialBalance.equity?.totalEquity || 0),
               styles: { fontStyle: 'bold' },
             },
           ],
@@ -282,7 +282,7 @@ const Reports = () => {
         const expensesList = Object.entries(pnl.expenses?.breakdown || {}).map(
           ([key, val]) => [
             `   - ${key.charAt(0).toUpperCase() + key.slice(1)}`,
-            formatPKR(val),
+            formatCurrency(val),
           ],
         );
 
@@ -290,7 +290,7 @@ const Reports = () => {
           pnl.distributions?.breakdown || {},
         ).map(([key, val]) => [
           `   - ${key.charAt(0).toUpperCase() + key.slice(1)}`,
-          formatPKR(val),
+          formatCurrency(val),
         ]);
 
         const tableData = [
@@ -305,14 +305,14 @@ const Reports = () => {
               },
             },
           ],
-          ['Interest Earned', formatPKR(pnl.revenue?.interestEarned || 0)],
+          ['Interest Earned', formatCurrency(pnl.revenue?.interestEarned || 0)],
           [
             {
               content: 'Total Gross Revenue',
               styles: { fontStyle: 'bold', textColor: [16, 185, 129] },
             },
             {
-              content: formatPKR(pnl.revenue?.totalRevenue || 0),
+              content: formatCurrency(pnl.revenue?.totalRevenue || 0),
               styles: { fontStyle: 'bold', textColor: [16, 185, 129] },
             },
           ],
@@ -335,7 +335,7 @@ const Reports = () => {
               styles: { fontStyle: 'bold', textColor: [239, 68, 68] },
             },
             {
-              content: formatPKR(pnl.expenses?.totalExpenses || 0),
+              content: formatCurrency(pnl.expenses?.totalExpenses || 0),
               styles: { fontStyle: 'bold', textColor: [239, 68, 68] },
             },
           ],
@@ -358,7 +358,9 @@ const Reports = () => {
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
             {
-              content: formatPKR(pnl.distributions?.totalDistributions || 0),
+              content: formatCurrency(
+                pnl.distributions?.totalDistributions || 0,
+              ),
               styles: { fontStyle: 'bold', textColor: [245, 158, 11] },
             },
           ],
@@ -374,7 +376,7 @@ const Reports = () => {
               },
             },
             {
-              content: formatPKR(pnl.netIncome || 0),
+              content: formatCurrency(pnl.netIncome || 0),
               styles: {
                 fontStyle: 'bold',
                 fontSize: 12,
@@ -515,7 +517,7 @@ const Reports = () => {
             {label}
           </p>
           <p className="text-xs font-bold text-primary">
-            {formatPKR(payload[0].value)}
+            {formatCurrency(payload[0].value)}
           </p>
         </div>
       );
@@ -622,8 +624,8 @@ const Reports = () => {
             </CardHeader>
             <CardContent className="p-0">
               {loadingBranch ? (
-                <div className="p-12 flex justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="p-6">
+                  <TableSkeleton rows={5} columns={8} />
                 </div>
               ) : branchSummaries && branchSummaries.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -658,7 +660,7 @@ const Reports = () => {
                             {branch.stats.totalMembers}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-blue-500">
-                            {formatPKR(branch.stats.totalInvested)}
+                            {formatCurrency(branch.stats.totalInvested)}
                           </td>
                           <td className="px-6 py-4 text-center font-medium">
                             {branch.stats.activeLoans}{' '}
@@ -667,16 +669,16 @@ const Reports = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-emerald-500">
-                            {formatPKR(branch.stats.totalVolume)}
+                            {formatCurrency(branch.stats.totalVolume)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-amber-500">
-                            {formatPKR(branch.stats.totalOutstanding)}
+                            {formatCurrency(branch.stats.totalOutstanding)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-indigo-500">
-                            {formatPKR(branch.stats.totalProfit)}
+                            {formatCurrency(branch.stats.totalProfit)}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-red-500">
-                            {formatPKR(branch.stats.totalExpenses)}
+                            {formatCurrency(branch.stats.totalExpenses)}
                           </td>
                         </tr>
                       ))}
@@ -700,7 +702,7 @@ const Reports = () => {
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <StatsCard
                 title="Total Volume"
-                amount={formatPKR(summary.totalVolume)}
+                amount={formatCurrency(summary.totalVolume)}
                 percentage={parseFloat(summary.totalVolumeChange)}
                 icon={<DollarSign size={20} />}
                 color="bg-primary shadow-primary/20"
@@ -911,7 +913,7 @@ const Reports = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={generateIFRS9}
-                      disabled={regulatoryLoading}
+                      isLoading={regulatoryLoading}
                       title="Generate Report"
                       className="rounded-full h-12 w-12 p-0 bg-indigo-500 hover:bg-indigo-600 shadow-xl shadow-indigo-500/20"
                     >
@@ -920,16 +922,12 @@ const Reports = () => {
                     {ifrs9Data && (
                       <Button
                         onClick={() => handleSaveSnapshot('ifrs9')}
-                        disabled={savingSnapshot}
+                        isLoading={savingSnapshot}
                         variant="outline"
                         title="Save Snapshot"
                         className="rounded-full h-12 w-12 p-0 border-indigo-500/30 text-indigo-500 hover:bg-indigo-500/10"
                       >
-                        {savingSnapshot ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Save className="w-5 h-5" />
-                        )}
+                        <Save className="w-5 h-5" />
                       </Button>
                     )}
                   </div>
@@ -957,7 +955,7 @@ const Reports = () => {
                           Total Exposure
                         </div>
                         <div className="text-lg font-black text-indigo-700 dark:text-indigo-400">
-                          {formatPKR(ifrs9Data.meta.totalExposure)}
+                          {formatCurrency(ifrs9Data.meta.totalExposure)}
                         </div>
                       </div>
                       <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10">
@@ -965,7 +963,7 @@ const Reports = () => {
                           Expected Credit Loss
                         </div>
                         <div className="text-lg font-black text-rose-600">
-                          {formatPKR(ifrs9Data.meta.totalECL)}
+                          {formatCurrency(ifrs9Data.meta.totalECL)}
                         </div>
                       </div>
                     </div>
@@ -1039,7 +1037,7 @@ const Reports = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={generateBasel3}
-                      disabled={regulatoryLoading}
+                      isLoading={regulatoryLoading}
                       title="Generate Report"
                       className="rounded-full h-12 w-12 p-0 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20"
                     >
@@ -1048,16 +1046,12 @@ const Reports = () => {
                     {basel3Data && (
                       <Button
                         onClick={() => handleSaveSnapshot('basel3')}
-                        disabled={savingSnapshot}
+                        isLoading={savingSnapshot}
                         variant="outline"
                         title="Save Snapshot"
                         className="rounded-full h-12 w-12 p-0 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
                       >
-                        {savingSnapshot ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Save className="w-5 h-5" />
-                        )}
+                        <Save className="w-5 h-5" />
                       </Button>
                     )}
                   </div>
@@ -1246,23 +1240,38 @@ const Reports = () => {
                 Snapshot of assets, liabilities, and equity.
               </p>
             </div>
-            <button
+            <Button
               onClick={() => exportAdvancedPDF('trial')}
-              disabled={isExporting || loadingTrial || !trialBalance}
+              isLoading={isExporting}
+              disabled={loadingTrial || !trialBalance}
+              variant="outline"
               className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm"
             >
-              {isExporting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Download size={16} />
-              )}
+              <Download size={16} />
               <span className="hidden sm:inline">Export PDF</span>
-            </button>
+            </Button>
           </div>
 
           {loadingTrial ? (
-            <div className="flex justify-center items-center h-64 bg-card rounded-3xl border border-border/50">
-              <Loader2 size={32} className="animate-spin text-emerald-500" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card/40 p-8 rounded-3xl border border-border/10 animate-pulse">
+              <div className="space-y-4">
+                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
+                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-4">
+                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
+                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : trialBalance ? (
             <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden">
@@ -1283,7 +1292,9 @@ const Reports = () => {
                         <DollarSign size={14} /> Loans Receivable
                       </span>
                       <span className="font-mono font-medium">
-                        {formatPKR(trialBalance.assets?.loansReceivable || 0)}
+                        {formatCurrency(
+                          trialBalance.assets?.loansReceivable || 0,
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
@@ -1291,7 +1302,7 @@ const Reports = () => {
                         <Landmark size={14} /> Cash at Hand / Bank
                       </span>
                       <span className="font-mono font-medium">
-                        {formatPKR(trialBalance.assets?.cashAtHand || 0)}
+                        {formatCurrency(trialBalance.assets?.cashAtHand || 0)}
                       </span>
                     </div>
                   </div>
@@ -1299,7 +1310,7 @@ const Reports = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-black text-sm">Total Assets</span>
                       <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
-                        {formatPKR(trialBalance.assets?.totalAssets || 0)}
+                        {formatCurrency(trialBalance.assets?.totalAssets || 0)}
                       </span>
                     </div>
                   </div>
@@ -1326,7 +1337,7 @@ const Reports = () => {
                             <ArrowRightLeft size={14} /> Member Capital
                           </span>
                           <span className="font-mono font-medium">
-                            {formatPKR(
+                            {formatCurrency(
                               trialBalance.liabilities?.memberCapital || 0,
                             )}
                           </span>
@@ -1341,7 +1352,7 @@ const Reports = () => {
                             <TrendingUp size={14} /> Retained Earnings
                           </span>
                           <span className="font-mono font-medium">
-                            {formatPKR(
+                            {formatCurrency(
                               trialBalance.equity?.retainedEarnings || 0,
                             )}
                           </span>
@@ -1353,7 +1364,7 @@ const Reports = () => {
                     <div className="flex justify-between items-center">
                       <span className="font-black text-sm">Total L & E</span>
                       <span className="font-black font-mono text-indigo-600 dark:text-indigo-400">
-                        {formatPKR(
+                        {formatCurrency(
                           (trialBalance.liabilities?.totalLiabilities || 0) +
                             (trialBalance.equity?.totalEquity || 0),
                         )}
@@ -1398,24 +1409,22 @@ const Reports = () => {
                   className="bg-transparent border-none text-sm outline-none px-2 rounded-lg"
                 />
               </div>
-              <button
+              <Button
                 onClick={() => exportAdvancedPDF('pnl')}
-                disabled={isExporting || loadingPnL || !pnl}
+                isLoading={isExporting}
+                disabled={loadingPnL || !pnl}
+                variant="outline"
                 className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm ml-auto"
               >
-                {isExporting ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Download size={16} />
-                )}
+                <Download size={16} />
                 <span className="hidden sm:inline">Export PDF</span>
-              </button>
+              </Button>
             </div>
           </div>
 
           {loadingPnL ? (
-            <div className="flex justify-center items-center h-64 bg-card rounded-3xl border border-border/50">
-              <Loader2 size={32} className="animate-spin text-indigo-500" />
+            <div className="p-8 bg-card/40 rounded-3xl border border-border/10">
+              <TableSkeleton rows={8} columns={2} />
             </div>
           ) : pnl ? (
             <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden p-1">
@@ -1436,7 +1445,7 @@ const Reports = () => {
                       Interest Earned
                     </td>
                     <td className="p-4 border-b border-border/50 text-right font-mono">
-                      {formatPKR(pnl.revenue.interestEarned || 0)}
+                      {formatCurrency(pnl.revenue.interestEarned || 0)}
                     </td>
                   </tr>
                   <tr className="bg-emerald-500/5">
@@ -1444,7 +1453,7 @@ const Reports = () => {
                       Total Revenue
                     </td>
                     <td className="p-4 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                      {formatPKR(pnl.revenue.totalRevenue || 0)}
+                      {formatCurrency(pnl.revenue.totalRevenue || 0)}
                     </td>
                   </tr>
 
@@ -1466,7 +1475,7 @@ const Reports = () => {
                             {category}
                           </td>
                           <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatPKR(amount)}
+                            {formatCurrency(amount)}
                           </td>
                         </tr>
                       ),
@@ -1477,7 +1486,7 @@ const Reports = () => {
                         No expenses recorded in this period.
                       </td>
                       <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatPKR(0)}
+                        {formatCurrency(0)}
                       </td>
                     </tr>
                   )}
@@ -1486,7 +1495,7 @@ const Reports = () => {
                       Total Expenses
                     </td>
                     <td className="p-4 text-right font-mono font-black text-red-600 dark:text-red-400">
-                      {formatPKR(pnl.expenses.totalExpenses || 0)}
+                      {formatCurrency(pnl.expenses.totalExpenses || 0)}
                     </td>
                   </tr>
 
@@ -1512,7 +1521,7 @@ const Reports = () => {
                             {type} Profit
                           </td>
                           <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatPKR(amount)}
+                            {formatCurrency(amount)}
                           </td>
                         </tr>
                       ),
@@ -1523,7 +1532,7 @@ const Reports = () => {
                         No distributions recorded in this period.
                       </td>
                       <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatPKR(0)}
+                        {formatCurrency(0)}
                       </td>
                     </tr>
                   )}
@@ -1532,7 +1541,9 @@ const Reports = () => {
                       Total Distributions
                     </td>
                     <td className="p-4 text-right font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatPKR(pnl.distributions.totalDistributions || 0)}
+                      {formatCurrency(
+                        pnl.distributions.totalDistributions || 0,
+                      )}
                     </td>
                   </tr>
 
@@ -1549,7 +1560,7 @@ const Reports = () => {
                       NET INCOME
                     </td>
                     <td className="p-5 text-right font-mono font-black text-lg border-none tracking-tight">
-                      {formatPKR(pnl.netIncome || 0)}
+                      {formatCurrency(pnl.netIncome || 0)}
                     </td>
                   </tr>
                 </tbody>

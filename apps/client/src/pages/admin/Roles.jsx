@@ -45,6 +45,8 @@ const availablePermissions = [
   { id: 'system_settings', label: 'System Settings', group: 'System' },
 ];
 
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+
 const Roles = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,7 @@ const Roles = () => {
     permissions: [],
   });
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchRoles();
@@ -126,13 +129,15 @@ const Roles = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this role?')) return;
-
+    setDeletingId(id);
     try {
       await api.delete(`/roles/${id}`);
       toast.success('Role deleted successfully');
       fetchRoles();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete role');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -169,6 +174,7 @@ const Roles = () => {
           onClick={() => handleOpenModal()}
           variant="gradient"
           className="rounded-2xl px-6 py-6 h-auto group"
+          isLoading={loading && roles.length === 0}
         >
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
@@ -186,10 +192,8 @@ const Roles = () => {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="flex flex-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary opacity-20" />
-        </div>
+      {loading && roles.length === 0 ? (
+        <CardsSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRoles.map((role, idx) => (
@@ -223,18 +227,23 @@ const Roles = () => {
                     </div>
                     {!role.isSystem && (
                       <div className="flex gap-2">
-                        <button
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => handleOpenModal(role)}
                           className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center hover:scale-110 transition-transform"
                         >
                           <Edit size={14} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => handleDelete(role._id)}
+                          isLoading={deletingId === role._id}
                           className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center hover:scale-110 transition-transform"
                         >
                           <Trash2 size={14} />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -388,12 +397,11 @@ const Roles = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={saving}
+                isLoading={saving}
                 variant="gradient"
                 className="rounded-xl text-[10px] font-black uppercase tracking-widest px-8"
               >
-                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editingRole ? 'Confim Changes' : 'Finalize Creation'}
+                {editingRole ? 'Confirm Changes' : 'Finalize Creation'}
               </Button>
             </div>
           </form>

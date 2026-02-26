@@ -667,7 +667,8 @@ const SecuritySection = ({
                   </div>
                   <Button
                     size="sm"
-                    disabled={twoFALoading || twoFACode.length !== 6}
+                    isLoading={twoFALoading}
+                    disabled={twoFACode.length !== 6}
                     onClick={async () => {
                       try {
                         setTwoFALoading(true);
@@ -736,7 +737,8 @@ const SecuritySection = ({
               <Button
                 size="sm"
                 variant="destructive"
-                disabled={twoFALoading || !disable2FAPassword}
+                isLoading={twoFALoading}
+                disabled={!disable2FAPassword}
                 onClick={async () => {
                   if (
                     !window.confirm(
@@ -1020,10 +1022,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
             >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
           </div>
@@ -1169,10 +1170,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </button>
             <Button
               type="submit"
-              disabled={loading}
+              isLoading={loading}
               className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Update Password
             </Button>
           </div>
@@ -1244,14 +1244,11 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={confirmText !== 'DELETE' || loading}
+              isLoading={loading}
+              disabled={confirmText !== 'DELETE'}
               className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-lg shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                'Confirm Deletion'
-              )}
+              Confirm Deletion
             </Button>
           </div>
         </div>

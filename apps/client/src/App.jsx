@@ -234,6 +234,8 @@ function App() {
                     }
                   >
                     <Route path="/loan-products" element={<LoanProducts />} />
+                    <Route path="/billing" element={<Billing />} />
+                    <Route path="/pricing" element={<Pricing />} />
                   </Route>
 
                   <Route
