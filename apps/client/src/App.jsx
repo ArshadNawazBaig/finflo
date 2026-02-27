@@ -282,20 +282,22 @@ function App() {
 
               {/* Super Admin Routes */}
               <Route element={<RequireAuth />}>
-                <Route path="/super-admin" element={<SuperAdminLayout />}>
-                  <Route index element={<SuperAdminDashboard />} />
-                  <Route path="users" element={<ManageUsers />} />
-                  <Route path="users/:id" element={<UserDetail />} />
-                  <Route path="analytics" element={<SystemAnalytics />} />
-                  <Route
-                    path="notifications"
-                    element={<ManageNotifications />}
-                  />
-                  <Route path="activity-logs" element={<ActivityLogs />} />
-                  <Route path="revenue" element={<RevenueReports />} />
-                  <Route path="backup" element={<BackupExport />} />
-                  <Route path="settings" element={<SystemSettings />} />
-                  <Route path="tickets" element={<ManageTickets />} />
+                <Route element={<RequireAdmin />}>
+                  <Route path="/super-admin" element={<SuperAdminLayout />}>
+                    <Route index element={<SuperAdminDashboard />} />
+                    <Route path="users" element={<ManageUsers />} />
+                    <Route path="users/:id" element={<UserDetail />} />
+                    <Route path="analytics" element={<SystemAnalytics />} />
+                    <Route
+                      path="notifications"
+                      element={<ManageNotifications />}
+                    />
+                    <Route path="activity-logs" element={<ActivityLogs />} />
+                    <Route path="revenue" element={<RevenueReports />} />
+                    <Route path="backup" element={<BackupExport />} />
+                    <Route path="settings" element={<SystemSettings />} />
+                    <Route path="tickets" element={<ManageTickets />} />
+                  </Route>
                 </Route>
               </Route>
 

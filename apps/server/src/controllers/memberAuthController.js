@@ -99,6 +99,7 @@ const loginMember = async (req, res) => {
         name: member.name,
         email: member.email,
         role: member.role,
+        mustChangePassword: false,
         business: member.user, // The business this member belongs to
         token: token,
       });

@@ -18,7 +18,10 @@ const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
 const { sendEmail } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
-const { updateMemberCreditLimit } = require('../services/creditLimitService');
+const {
+  updateMemberCreditLimit,
+  calculateCreditLimit,
+} = require('../services/creditLimitService');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -145,11 +148,21 @@ const createLoan = async (req, res) => {
     }
 
     // Credit Limit Enforcement
+    // - If the customer is a member: limit is derived from shareBalance (business share investment).
+    // - If the customer is NOT a member: no credit limit is enforced (no investment balance exists).
     if (customer.memberId) {
       const member = await Member.findById(customer.memberId);
-      if (member && principal > member.creditLimit) {
-        return res.status(400).json({
-          message: `Loan amount (${principal.toLocaleString()}) exceeds the member's credit limit (${member.creditLimit.toLocaleString()}).`,
+      if (member) {
+        // Dynamically calculate from live shareBalance to avoid stale stored values
+        const effectiveCreditLimit = await calculateCreditLimit(member._id);
+        if (principal > effectiveCreditLimit) {
+          return res.status(400).json({
+            message: `Loan amount (${principal.toLocaleString()}) exceeds the member's credit limit of Rs. ${effectiveCreditLimit.toLocaleString()} (based on share balance).`,
+          });
+        }
+        // Keep the stored value in sync
+        await Member.findByIdAndUpdate(member._id, {
+          creditLimit: effectiveCreditLimit,
         });
       }
     }
@@ -407,9 +420,16 @@ const requestLoan = async (req, res) => {
     }
 
     // Credit Limit Enforcement
-    if (principal > (req.member.creditLimit || 0)) {
+    // Member credit limit is based on shareBalance (business share investment), not currentBalance.
+    // The limit is re-calculated live so it always reflects the latest share balance.
+    const effectiveCreditLimit = await calculateCreditLimit(req.member._id);
+    // Keep the stored value in sync
+    await Member.findByIdAndUpdate(req.member._id, {
+      creditLimit: effectiveCreditLimit,
+    });
+    if (principal > effectiveCreditLimit) {
       return res.status(400).json({
-        message: `Loan amount (${principal.toLocaleString()}) exceeds your credit limit (${(req.member.creditLimit || 0).toLocaleString()}).`,
+        message: `Loan amount (${principal.toLocaleString()}) exceeds your credit limit of Rs. ${effectiveCreditLimit.toLocaleString()} (based on share balance).`,
       });
     }
 
@@ -1679,78 +1699,79 @@ const memberRepayLoan = async (req, res) => {
     }
 
     // Use the central repayment service for all logic
-    // This handles:
-    // 1. Pro-rated early settlement interest
-    // 2. Atomic member balance deduction
-    // 3. Investment & Repayment ledger recording
-    // 4. Financial Transaction ledger recording
-    // 5. Loan status & balance updates
     await loanRepaymentService.processRepayment(
       loan,
       paymentAmount,
-      req, // Will use req.user.effectiveOwnerId for ownership
+      req, // Will use req.member for ownership
       {
         notes: req.body.notes || 'Self-repayment via FinanceFlow',
-        isAutoValue: false, // This is a manual member action
+        isAutoValue: false,
         allowEarlySettlement: isSettlementRequest,
-        session, // Stay in current transaction
+        session,
       },
     );
 
     await session.commitTransaction();
 
+    // Fetch refreshed member for response and notifications
+    const member = await Member.findById(memberTokenId);
+
     // ── Notifications (Async) ────────────────────────────────────────────────
     try {
-      await createTransactionNotification({
-        recipientId: member._id,
-        title: 'Loan Repayment Successful',
-        message: `Your payment of Rs. ${paymentAmount.toLocaleString()} has been processed for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
-        type: 'success',
-        branchId: loan.branchId,
-        action: 'loan_repayment_notification',
-        metadata: {
-          amount: paymentAmount,
-          loanId: loan._id,
-          link: '/member/loans',
-        },
-      });
-
-      if (loan.status === 'completed') {
+      if (member) {
         await createTransactionNotification({
           recipientId: member._id,
-          title: 'Loan Fully Paid',
-          message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully settled.`,
+          title: 'Loan Repayment Successful',
+          message: `Your payment of Rs. ${paymentAmount.toLocaleString()} has been processed for loan #${loan._id.toString().slice(-6).toUpperCase()}.`,
           type: 'success',
           branchId: loan.branchId,
-          action: 'loan_completed_notification',
-          metadata: { loanId: loan._id, link: '/member/loans' },
+          action: 'loan_repayment_notification',
+          metadata: {
+            amount: paymentAmount,
+            loanId: loan._id,
+            link: '/member/loans',
+          },
+        });
+
+        if (loan.status === 'completed') {
+          await createTransactionNotification({
+            recipientId: member._id,
+            title: 'Loan Fully Paid',
+            message: `Congratulations! Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been fully settled.`,
+            type: 'success',
+            branchId: loan.branchId,
+            action: 'loan_completed_notification',
+            metadata: { loanId: loan._id, link: '/member/loans' },
+          });
+        }
+
+        // Notify Admins
+        await notifyAdminsOfMemberAction({
+          title: 'Member Loan Repayment',
+          message: `${member.name} repaid Rs. ${paymentAmount.toLocaleString()} for loan #${loan._id.toString().slice(-6).toUpperCase()}${loan.status === 'completed' ? ' (Loan Completed)' : ''}.`,
+          type: 'success',
+          branchId: loan.branchId,
+          metadata: {
+            memberId: member._id,
+            loanId: loan._id,
+            amount: paymentAmount,
+            link: '/loans',
+          },
         });
       }
-
-      // Notify Admins
-      await notifyAdminsOfMemberAction({
-        title: 'Member Loan Repayment',
-        message: `${member.name} repaid Rs. ${paymentAmount.toLocaleString()} for loan #${loan._id.toString().slice(-6).toUpperCase()}${loan.status === 'completed' ? ' (Loan Completed)' : ''}.`,
-        type: 'success',
-        branchId: loan.branchId,
-        metadata: {
-          memberId: member._id,
-          loanId: loan._id,
-          amount: paymentAmount,
-          link: '/loans', // Admin loans list
-        },
-      });
     } catch (notifError) {
       console.error('Member Repayment Notification Error:', notifError);
     }
 
     res.json({
       message: 'Repayment successful',
-      balance: member.currentBalance,
+      balance: member?.currentBalance || 0,
       loan,
     });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     res.status(400).json({ message: error.message });
   } finally {
     session.endSession();

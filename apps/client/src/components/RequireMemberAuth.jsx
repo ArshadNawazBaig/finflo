@@ -9,7 +9,12 @@ const RequireMemberAuth = () => {
   }
 
   const member = JSON.parse(localStorage.getItem('member') || '{}');
-  if (member.mustChangePassword) {
+
+  // Only redirect to force-password-change if not already there (prevents infinite loop)
+  if (
+    member.mustChangePassword &&
+    location.pathname !== '/member/force-password-change'
+  ) {
     return <Navigate to="/member/force-password-change" replace />;
   }
 

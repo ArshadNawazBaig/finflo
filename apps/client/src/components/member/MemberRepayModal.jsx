@@ -66,31 +66,53 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
     const start = new Date(loan.startDate);
     const now = new Date();
 
-    let monthsElapsed =
-      (now.getFullYear() - start.getFullYear()) * 12 +
-      (now.getMonth() - start.getMonth());
+    // Calculate full months and extra days (same as server loanRepaymentService)
+    const diffYears = now.getFullYear() - start.getFullYear();
+    const diffMonths = now.getMonth() - start.getMonth();
+    let fullMonths = diffYears * 12 + diffMonths;
 
-    if (now.getDate() > start.getDate()) {
-      monthsElapsed++;
+    if (now.getDate() < start.getDate()) {
+      fullMonths -= 1;
+    }
+    fullMonths = Math.max(0, fullMonths);
+
+    let daysIntoMonth = 0;
+    if (now.getDate() >= start.getDate()) {
+      daysIntoMonth = now.getDate() - start.getDate();
+    } else {
+      const prevMonthAnniversary = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        start.getDate(),
+      );
+      const diffTime = Math.abs(now - prevMonthAnniversary);
+      daysIntoMonth = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
 
-    monthsElapsed = Math.max(1, monthsElapsed);
-
-    if (monthsElapsed >= loan.duration) {
+    if (fullMonths >= loan.duration) {
       return {
         amount: loan.remainingAmount,
-        monthsElapsed,
+        monthsElapsed: loan.duration,
         interest: loan.totalAmount - loan.principal,
         isEarly: false,
       };
     }
 
-    const interest = (loan.principal * loan.rate * monthsElapsed) / 1200;
-    const adjustedTotal = loan.principal + interest;
+    // Professional pro-rata interest calculation
+    const monthlyInterest = (loan.principal * loan.rate) / 1200;
+    const dailyInterest = monthlyInterest / 30;
+    const calculatedInterest =
+      monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
+    const adjustedInterest = Math.round(
+      Math.max(monthlyInterest, calculatedInterest),
+    );
+    const adjustedTotal = loan.principal + adjustedInterest;
+
     return {
       amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
-      monthsElapsed,
-      interest,
+      monthsElapsed: fullMonths,
+      daysIntoMonth,
+      interest: adjustedInterest,
       isEarly: true,
     };
   };

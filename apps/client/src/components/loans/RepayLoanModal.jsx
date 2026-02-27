@@ -356,8 +356,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     setFormData({ ...formData, date: newDate });
                     // If settlement is active, update amount based on new date
                     if (isSettlement) {
-                      const tempFormData = { ...formData, date: newDate };
-                      const sAmount = getSettlementAmount();
+                      const sAmount = getSettlementDetails().amount;
                       setFormData({
                         ...formData,
                         date: newDate,

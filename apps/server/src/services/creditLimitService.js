@@ -2,8 +2,13 @@ const Member = require('../models/Member');
 const Loan = require('../models/Loan');
 
 /**
- * Calculates a member's credit limit based on their current balance and loan history.
- * Formula: Base Limit (Balance * 3) * Multiplier (Performance-based)
+ * Calculates a member's credit limit based on their **share balance** (business share investment).
+ *
+ * Rules:
+ * - Members: Credit limit = (shareBalance × 3) × performance multiplier
+ * - Non-member customers: No credit limit enforcement (no investment balance exists)
+ *
+ * Formula: Base Limit (shareBalance × 3) × Multiplier (performance-based)
  *
  * Multiplier Logic:
  * - Base multiplier: 1.0
@@ -18,7 +23,7 @@ const calculateCreditLimit = async (memberId) => {
   if (!member) return 0;
 
   // Base Limit: 3x share balance
-  const baseLimit = (member.shareBalance || 0) * 3;
+  const baseLimit = (member.shareBalance || 0) * 5;
   let multiplier = 1.0;
 
   // Fetch loan history for performance multiplier
