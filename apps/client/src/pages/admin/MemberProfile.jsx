@@ -146,6 +146,79 @@ const MemberProfile = () => {
   const [applyDeduction, setApplyDeduction] = useState(true);
   const [repaymentType, setRepaymentType] = useState('installment');
 
+  const getSettlementDetails = (loan) => {
+    if (!loan)
+      return { amount: 0, monthsElapsed: 0, interest: 0, isEarly: false };
+    const start = new Date(loan.startDate);
+    const now = new Date();
+
+    // In-sync with backend precise date calculation
+    let fullMonths =
+      now.getFullYear() * 12 +
+      now.getMonth() -
+      (start.getFullYear() * 12 + start.getMonth());
+    if (now.getDate() < start.getDate()) {
+      fullMonths -= 1;
+    }
+    fullMonths = Math.max(0, fullMonths);
+
+    const lastAnniversary = new Date(start);
+    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
+    const diffTime = Math.abs(now - lastAnniversary);
+    const daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (fullMonths >= loan.duration) {
+      return {
+        amount: Math.round(loan.remainingAmount),
+        monthsElapsed: loan.duration,
+        interest: Math.round(loan.totalAmount - loan.principal),
+        isEarly: false,
+      };
+    }
+
+    let adjustedInterest = 0;
+    let adjustedPrincipal = loan.principal;
+
+    if (loan.interestType === 'simple' || !loan.interestType) {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      const calculatedInterest =
+        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
+      adjustedInterest = Math.round(
+        Math.max(monthlyInterest, calculatedInterest),
+      );
+    } else if (loan.interestType === 'emi') {
+      const monthlyRate = loan.rate / 12 / 100;
+      const r = monthlyRate;
+      const P = loan.principal;
+      const E = loan.emi;
+      const m = fullMonths;
+
+      // Principal balance after m months
+      adjustedPrincipal =
+        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
+      adjustedPrincipal = Math.max(0, Math.round(adjustedPrincipal));
+
+      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
+      adjustedInterest = Math.round(dailyInterest * daysIntoMonth);
+    }
+
+    const adjustedTotal = adjustedPrincipal + adjustedInterest;
+    return {
+      amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
+      adjustedPrincipal: Math.round(adjustedPrincipal),
+      adjustedInterest: Math.round(adjustedInterest),
+      monthsElapsed: fullMonths,
+      daysIntoMonth,
+      isEarly: true,
+    };
+  };
+
+  const activeLoan = loans.find((l) => l.status === 'active');
+  const settlementDetails = activeLoan
+    ? getSettlementDetails(activeLoan)
+    : null;
+
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
   const shareObserverTarget = useRef(null);
@@ -1234,32 +1307,114 @@ const MemberProfile = () => {
                           </button>
                         </div>
 
-                        {applyDeduction && (
-                          <div className="grid grid-cols-2 gap-3 pt-2">
-                            <button
-                              type="button"
-                              onClick={() => setRepaymentType('installment')}
-                              className={`p-3 rounded-xl border-2 transition-all text-center ${repaymentType === 'installment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
-                            >
-                              <p className="text-[10px] font-black uppercase tracking-widest">
-                                installment
-                              </p>
-                              <p className="text-[9px] font-medium opacity-60">
-                                Exact EMI only
-                              </p>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setRepaymentType('settlement')}
-                              className={`p-3 rounded-xl border-2 transition-all text-center ${repaymentType === 'settlement' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
-                            >
-                              <p className="text-[10px] font-black uppercase tracking-widest">
-                                full settlement
-                              </p>
-                              <p className="text-[9px] font-medium opacity-60">
-                                Pay as much as possible
-                              </p>
-                            </button>
+                        {applyDeduction && activeLoan && (
+                          <div className="space-y-4 pt-2">
+                            {/* Loan Quick Info */}
+                            <div className="grid grid-cols-2 gap-4 px-2">
+                              <div className="space-y-1">
+                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
+                                  Current Remaining
+                                </p>
+                                <p className="text-xs font-black text-indigo-700">
+                                  {formatCurrency(activeLoan.remainingAmount)}
+                                </p>
+                              </div>
+                              <div className="space-y-1 text-right">
+                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
+                                  Loan Type
+                                </p>
+                                <p className="text-[10px] font-black uppercase text-indigo-700">
+                                  {activeLoan.interestType || 'Simple'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setRepaymentType('installment')}
+                                className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${repaymentType === 'installment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
+                              >
+                                <div className="relative z-10">
+                                  <p className="text-[10px] font-black uppercase tracking-widest">
+                                    EMI
+                                  </p>
+                                  <p className="text-[11px] font-black mt-0.5">
+                                    {formatCurrency(activeLoan.emi)}
+                                  </p>
+                                </div>
+                                <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <Clock size={24} />
+                                </div>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setRepaymentType('settlement')}
+                                className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${repaymentType === 'settlement' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
+                              >
+                                <div className="relative z-10">
+                                  <p className="text-[10px] font-black uppercase tracking-widest">
+                                    SETTLE
+                                  </p>
+                                  <p className="text-[11px] font-black mt-0.5">
+                                    {settlementDetails
+                                      ? formatCurrency(settlementDetails.amount)
+                                      : 'Calculating...'}
+                                  </p>
+                                </div>
+                                <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <ShieldCheck size={24} />
+                                </div>
+                              </button>
+                            </div>
+
+                            {/* Impact Analysis */}
+                            {amount && (
+                              <div className="mx-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600">
+                                    Auto-Deduction Amount
+                                  </span>
+                                  <span className="text-xs font-black text-indigo-700">
+                                    {repaymentType === 'installment'
+                                      ? formatCurrency(
+                                          Math.min(
+                                            parseFloat(amount) || 0,
+                                            activeLoan.emi,
+                                          ),
+                                        )
+                                      : formatCurrency(
+                                          Math.min(
+                                            parseFloat(amount) || 0,
+                                            settlementDetails?.amount || 0,
+                                          ),
+                                        )}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between mt-1 pt-1 border-t border-indigo-500/10">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600/60">
+                                    Member Wallet Credit
+                                  </span>
+                                  <span className="text-xs font-black text-indigo-700/60">
+                                    {formatCurrency(
+                                      Math.max(
+                                        0,
+                                        (parseFloat(amount) || 0) -
+                                          (repaymentType === 'installment'
+                                            ? Math.min(
+                                                parseFloat(amount) || 0,
+                                                activeLoan.emi,
+                                              )
+                                            : Math.min(
+                                                parseFloat(amount) || 0,
+                                                settlementDetails?.amount || 0,
+                                              )),
+                                      ),
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

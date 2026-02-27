@@ -26,8 +26,6 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   let repaymentAmount = Number(amount);
 
   // ── Early Repayment Interest Adjustment ──────────────────────────────────
-  // If the payment is large enough to settle the loan with pro-rated interest,
-  // we waive the remaining interest.
   let isEarlySettlement = false;
   let actualSettlementAmount = loan.totalAmount;
 
@@ -40,30 +38,25 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     const startDate = new Date(loan.startDate);
     const now = new Date(date);
 
-    // Calculate months and days passed
-    const diffYears = now.getFullYear() - startDate.getFullYear();
-    const diffMonths = now.getMonth() - startDate.getMonth();
-    let fullMonths = diffYears * 12 + diffMonths;
+    // Precise date calculation to avoid variable month length pitfalls
+    let fullMonths =
+      now.getFullYear() * 12 +
+      now.getMonth() -
+      (startDate.getFullYear() * 12 + startDate.getMonth());
 
+    // Adjust if current day is before start day (anniversary has not passed)
     if (now.getDate() < startDate.getDate()) {
       fullMonths -= 1;
     }
     fullMonths = Math.max(0, fullMonths);
 
-    // Calculate extra days into the current partial month
+    // Calculate days into the current partial month accurately
     let daysIntoMonth = 0;
-    if (now.getDate() >= startDate.getDate()) {
-      daysIntoMonth = now.getDate() - startDate.getDate();
-    } else {
-      // Find previous anniversary date
-      const prevMonth = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        startDate.getDate(),
-      );
-      const diffTime = Math.abs(now - prevMonth);
-      daysIntoMonth = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    }
+    const lastAnniversary = new Date(startDate);
+    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
+
+    const diffTime = Math.abs(now - lastAnniversary);
+    daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (loan.interestType === 'simple') {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
@@ -78,17 +71,36 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       );
 
       actualSettlementAmount = loan.principal + proRatedInterest;
+    } else if (loan.interestType === 'emi') {
+      // EMI (Reducing Balance) Early Settlement
+      // We waive unearned interest. Settlement = Current Remaining Principal + Pro-rated interest for current period.
+      const monthlyRate = loan.rate / 12 / 100;
 
-      // If this payment + previous payments >= settlement amount
-      if (loan.paidAmount + repaymentAmount >= actualSettlementAmount) {
-        isEarlySettlement = true;
-        // Cap the repayment to only what's needed for the pro-rated settlement
-        const amountNeededToSettle = Math.max(
-          0,
-          actualSettlementAmount - loan.paidAmount,
-        );
-        repaymentAmount = Math.min(repaymentAmount, amountNeededToSettle);
-      }
+      // Calculate remaining principal if we were to settle "now"
+      const r = monthlyRate;
+      const P = loan.principal;
+      const E = loan.emi;
+      const m = fullMonths;
+
+      const principalBalanceAfterM =
+        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
+      const adjustedPrincipal = Math.max(0, Math.round(principalBalanceAfterM));
+
+      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
+      const currentPeriodInterest = Math.round(dailyInterest * daysIntoMonth);
+
+      actualSettlementAmount = adjustedPrincipal + currentPeriodInterest;
+    }
+
+    // If this payment + previous payments >= settlement amount
+    if (loan.paidAmount + repaymentAmount >= actualSettlementAmount) {
+      isEarlySettlement = true;
+      // Cap the repayment to only what's needed for the pro-rated settlement
+      const amountNeededToSettle = Math.max(
+        0,
+        actualSettlementAmount - loan.paidAmount,
+      );
+      repaymentAmount = Math.min(repaymentAmount, amountNeededToSettle);
     }
   }
 
@@ -97,8 +109,6 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   let principalAmount = 0;
 
   if (isEarlySettlement) {
-    // For early settlement, interest is waived/adjusted
-    // Profit is (Final Settled Total - Original Principal)
     interestAmount = Math.max(0, actualSettlementAmount - loan.principal);
     principalAmount = Math.min(repaymentAmount, loan.principal);
   } else {
@@ -106,7 +116,6 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     if (loan.interestType === 'simple') {
       const months = loan.duration || 1;
       const totalInterest = loan.totalAmount - loan.principal;
-      // Interest per full installment; cap at actual payment to avoid overstating interest on partial payments
       const interestPerInstallment = totalInterest / months;
       interestAmount = Math.round(
         Math.min(interestPerInstallment, repaymentAmount),
@@ -114,13 +123,12 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       principalAmount = Math.max(0, repaymentAmount - interestAmount);
     } else {
       // EMI (Reducing Balance)
-      // Interest portion = (Current Remaining Principal) * (Monthly Interest Rate)
       const monthlyRate = loan.rate / 12 / 100;
       interestAmount = Math.round(loan.remainingAmount * monthlyRate);
       principalAmount = repaymentAmount - interestAmount;
     }
 
-    // Safeguard: Ensure values make sense (at loan end or for overpayments)
+    // Safeguard: Ensure values make sense
     if (principalAmount > loan.remainingAmount) {
       principalAmount = loan.remainingAmount;
       interestAmount = Math.max(0, repaymentAmount - principalAmount);
@@ -128,6 +136,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   }
 
   // Create Repayment record
+  const currentInstallment = Math.floor(loan.paidAmount / (loan.emi || 1)) + 1;
   const repayment = new Repayment({
     user: req.user?.effectiveOwnerId || loan.user,
     loan: loan._id,
@@ -136,6 +145,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     amount: repaymentAmount,
     interestAmount,
     principalAmount,
+    installmentNumber: currentInstallment,
     date,
     notes: isEarlySettlement ? `${notes} (Early Settlement Adjustment)` : notes,
   });

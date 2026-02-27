@@ -66,47 +66,58 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
     const start = new Date(loan.startDate);
     const now = new Date();
 
-    // Calculate full months and extra days (same as server loanRepaymentService)
-    const diffYears = now.getFullYear() - start.getFullYear();
-    const diffMonths = now.getMonth() - start.getMonth();
-    let fullMonths = diffYears * 12 + diffMonths;
-
+    // In-sync with backend precise date calculation
+    let fullMonths =
+      now.getFullYear() * 12 +
+      now.getMonth() -
+      (start.getFullYear() * 12 + start.getMonth());
     if (now.getDate() < start.getDate()) {
       fullMonths -= 1;
     }
     fullMonths = Math.max(0, fullMonths);
 
-    let daysIntoMonth = 0;
-    if (now.getDate() >= start.getDate()) {
-      daysIntoMonth = now.getDate() - start.getDate();
-    } else {
-      const prevMonthAnniversary = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        start.getDate(),
-      );
-      const diffTime = Math.abs(now - prevMonthAnniversary);
-      daysIntoMonth = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    }
+    const lastAnniversary = new Date(start);
+    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
+    const diffTime = Math.abs(now - lastAnniversary);
+    const daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (fullMonths >= loan.duration) {
       return {
-        amount: loan.remainingAmount,
+        amount: Math.round(loan.remainingAmount),
         monthsElapsed: loan.duration,
-        interest: loan.totalAmount - loan.principal,
+        interest: Math.round(loan.totalAmount - loan.principal),
         isEarly: false,
       };
     }
 
-    // Professional pro-rata interest calculation
-    const monthlyInterest = (loan.principal * loan.rate) / 1200;
-    const dailyInterest = monthlyInterest / 30;
-    const calculatedInterest =
-      monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
-    const adjustedInterest = Math.round(
-      Math.max(monthlyInterest, calculatedInterest),
-    );
-    const adjustedTotal = loan.principal + adjustedInterest;
+    let adjustedInterest = 0;
+    let adjustedPrincipal = loan.principal;
+
+    if (loan.interestType === 'simple' || !loan.interestType) {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      const calculatedInterest =
+        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
+      adjustedInterest = Math.round(
+        Math.max(monthlyInterest, calculatedInterest),
+      );
+    } else if (loan.interestType === 'emi') {
+      const monthlyRate = loan.rate / 12 / 100;
+      const r = monthlyRate;
+      const P = loan.principal;
+      const E = loan.emi;
+      const m = fullMonths;
+
+      // Principal balance after m months
+      adjustedPrincipal =
+        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
+      adjustedPrincipal = Math.max(0, Math.round(adjustedPrincipal));
+
+      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
+      adjustedInterest = Math.round(dailyInterest * daysIntoMonth);
+    }
+
+    const adjustedTotal = adjustedPrincipal + adjustedInterest;
 
     return {
       amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
