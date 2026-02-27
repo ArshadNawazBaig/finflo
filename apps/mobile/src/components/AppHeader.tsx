@@ -1,52 +1,99 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { colors, typography, spacing } from '../theme/theme';
 import { ChevronLeft } from 'lucide-react-native';
+import { colors, typography, spacing, radii } from '../theme/theme';
+import Logo from './Logo';
 
 interface AppHeaderProps {
-  title: string;
+  title?: string;
   showBack?: boolean;
+  showLogo?: boolean;
+  rightElement?: React.ReactNode;
 }
 
-export default function AppHeader({ title, showBack = false }: AppHeaderProps) {
+export default function AppHeader({
+  title,
+  showBack = false,
+  showLogo = false,
+  rightElement,
+}: AppHeaderProps) {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
-      {showBack && (
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ChevronLeft color={colors.text.primary} size={24} />
-        </TouchableOpacity>
-      )}
-      <Text style={styles.title} numberOfLines={1}>
-        {title}
-      </Text>
-    </View>
+    <>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.background.screen}
+      />
+      <View style={styles.container}>
+        <View style={styles.left}>
+          {showBack && (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <View style={styles.backCircle}>
+                <ChevronLeft color={colors.text.primary} size={20} />
+              </View>
+            </TouchableOpacity>
+          )}
+          {showLogo && <Logo size={32} showText subtitle="" />}
+          {title && !showLogo && (
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          )}
+        </View>
+        {rightElement && <View style={styles.right}>{rightElement}</View>}
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
-    backgroundColor: colors.background.card,
+    height: 64,
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   backButton: {
-    marginRight: spacing.md,
-    padding: spacing.xs,
+    marginRight: 4,
+  },
+  backCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.full,
+    backgroundColor: colors.background.glass,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: typography.sizes.lg,
-    fontWeight: 'bold',
+    fontWeight: typography.weights.black,
     color: colors.text.primary,
-    flex: 1,
+    letterSpacing: -0.3,
   },
 });

@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { authApi } from '../../api/auth';
-import { colors, typography, spacing } from '../../theme/theme';
+import { colors, typography, spacing, radii, shadows } from '../../theme/theme';
 import FormInput from '../../components/FormInput';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -134,9 +134,10 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
     padding: spacing.md,
-    borderRadius: 8,
+    borderRadius: radii.xl,
     alignItems: 'center',
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
+    ...shadows.glow,
   },
   buttonText: {
     color: colors.text.primary,

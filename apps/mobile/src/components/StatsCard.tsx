@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, typography, spacing } from '../theme/theme';
+import { colors, typography, spacing, radii, shadows } from '../theme/theme';
 import { LucideIcon } from 'lucide-react-native';
 
 interface StatsCardProps {
@@ -54,44 +54,48 @@ export default function StatsCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.card,
-    borderRadius: 16,
-    padding: spacing.lg,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)', // Using glass color manually to ensure transparency
+    borderRadius: radii['2xl'],
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
     minWidth: 150,
+    ...shadows.glow,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   iconContainer: {
-    padding: spacing.sm,
-    borderRadius: 12,
+    padding: spacing.md,
+    borderRadius: radii.lg,
   },
   trendBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radii.full,
   },
   trendText: {
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: typography.sizes.xs,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   content: {
-    gap: 4,
+    gap: 6,
   },
   value: {
-    fontSize: typography.sizes.xl,
-    fontWeight: 'bold',
+    fontSize: typography.sizes['3xl'],
+    fontWeight: '900',
     color: colors.text.primary,
+    letterSpacing: -0.5,
   },
   label: {
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    fontWeight: '800',
   },
 });

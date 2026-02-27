@@ -83,7 +83,7 @@ export default function TransactionsScreen() {
             { color: isOutflow ? colors.danger : colors.success },
           ]}
         >
-          {isOutflow ? '-' : '+'}${item.amount.toLocaleString()}
+          {isOutflow ? '-' : '+'}${(item.amount ?? 0).toLocaleString()}
         </Text>
       </View>
     );

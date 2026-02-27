@@ -60,9 +60,28 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
 app.use('/api/member-auth/login', authLimiter);
 
-// Restrict CORS to CLIENT_URL
+// Restrict CORS to CLIENT_URL and mobile dev origins
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:8081', // Expo web
+  'http://localhost:8082', // Expo web (alternate port)
+  'http://localhost:3000',
+];
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (native mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any local network IP for development (mobile device on same Wi-Fi)
+    if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin))
+      return callback(null, true);
+    if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin))
+      return callback(null, true);
+    callback(new Error(`CORS: Origin ${origin} not allowed`));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

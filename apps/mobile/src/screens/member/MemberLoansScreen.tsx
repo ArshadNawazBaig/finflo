@@ -13,7 +13,7 @@ import { colors, typography, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
-import { Landmark, ChevronRight, Calendar } from 'lucide-react-native';
+import { Landmark, ChevronRight, Calendar, Plus } from 'lucide-react-native';
 
 export default function MemberLoansScreen({ navigation }: any) {
   const [loans, setLoans] = useState<any[]>([]);
@@ -69,7 +69,9 @@ export default function MemberLoansScreen({ navigation }: any) {
 
       <View style={styles.infoContainer}>
         <View style={styles.cardHeader}>
-          <Text style={styles.amount}>${item.amount.toLocaleString()}</Text>
+          <Text style={styles.amount}>
+            ${(item.amount ?? 0).toLocaleString()}
+          </Text>
           <Badge label={item.status} type={getStatusType(item.status)} />
         </View>
         <Text style={styles.loanType}>{item.loanType || 'Personal Loan'}</Text>
@@ -91,7 +93,16 @@ export default function MemberLoansScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>My Loans</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>My Loans</Text>
+        <TouchableOpacity
+          style={styles.applyBtn}
+          onPress={() => navigation.navigate('ApplyLoan')}
+        >
+          <Plus size={16} color="#fff" />
+          <Text style={styles.applyBtnText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={loans}
         renderItem={renderLoan}
@@ -126,8 +137,27 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes['2xl'],
     fontWeight: 'bold',
     color: colors.text.primary,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.md,
     marginTop: spacing.sm,
+  },
+  applyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 4,
+  },
+  applyBtnText: {
+    color: '#fff',
+    fontSize: typography.sizes.sm,
+    fontWeight: 'bold',
   },
   list: {
     paddingBottom: spacing.xl,

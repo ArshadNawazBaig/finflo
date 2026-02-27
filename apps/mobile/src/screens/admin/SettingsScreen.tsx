@@ -16,15 +16,32 @@ import {
   Shield,
   HelpCircle,
   Building,
+  BookOpen,
+  CreditCard,
 } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SettingsScreen() {
   const { user, logout } = useContext(AuthContext);
+  const navigation = useNavigation<any>();
 
   const settingsOptions = [
-    { title: 'App Settings', icon: Building, action: () => {} },
+    {
+      title: 'Global Transactions',
+      icon: CreditCard,
+      action: () => navigation.navigate('Transactions'),
+    },
+    {
+      title: 'Organizational Branches',
+      icon: Building,
+      action: () => navigation.navigate('Branches'),
+    },
+    {
+      title: 'Loan Product Templates',
+      icon: BookOpen,
+      action: () => navigation.navigate('LoanProducts'),
+    },
     { title: 'Admin Profile', icon: User, action: () => {} },
-    { title: 'System Notifications', icon: Bell, action: () => {} },
     { title: 'Security & Access', icon: Shield, action: () => {} },
   ];
 

@@ -94,7 +94,9 @@ export default function LoanRequestsScreen() {
       </View>
 
       <View style={styles.details}>
-        <Text style={styles.amount}>${item.amount.toLocaleString()}</Text>
+        <Text style={styles.amount}>
+          ${(item.amount ?? 0).toLocaleString()}
+        </Text>
         <Text style={styles.loanType}>{item.loanType || 'General Loan'}</Text>
       </View>
 

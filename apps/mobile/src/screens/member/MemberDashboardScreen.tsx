@@ -6,37 +6,35 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import { MemberAuthContext } from '../../context/MemberAuthContext';
 import { dashboardApi } from '../../api/dashboard';
-import { colors, typography, spacing } from '../../theme/theme';
+import { colors, typography, spacing, radii, shadows } from '../../theme/theme';
 import {
   LogOut,
-  Wallet,
   TrendingUp,
   ArrowUpRight,
   ArrowDownLeft,
-  Activity,
-  Users,
   DollarSign,
+  Landmark,
+  ChevronRight,
+  Plus,
 } from 'lucide-react-native';
-import StatsCard from '../../components/StatsCard';
+import Logo from '../../components/Logo';
 
 export default function MemberDashboardScreen({ navigation }: any) {
   const { member, memberLogout } = useContext(MemberAuthContext);
-  const currencySymbol = (member as any)?.currency || 'Rs.';
+  const currency = (member as any)?.currency || 'Rs.';
   const [stats, setStats] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchStats = async () => {
     try {
-      // Assuming member specific stats endpoint logic
       const data = await dashboardApi.getMemberStats();
-      if (data.success) {
-        setStats(data.data || data.stats);
-      }
-    } catch (error) {
-      console.error('Failed to fetch member stats', error);
+      if (data.success) setStats(data.data);
+    } catch (e) {
+      console.error('Failed to fetch member stats', e);
     }
   };
 
@@ -50,190 +48,280 @@ export default function MemberDashboardScreen({ navigation }: any) {
     setRefreshing(false);
   };
 
+  const wealthCards = [
+    {
+      label: 'Total Balance',
+      value: `${currency}${(stats?.currentBalance || stats?.totalBalance || 0).toLocaleString()}`,
+      icon: DollarSign,
+      color: colors.primary,
+      bg: 'rgba(99,102,241,0.12)',
+    },
+    {
+      label: 'Total Invested',
+      value: `${currency}${(stats?.totalInvested || stats?.savings || 0).toLocaleString()}`,
+      icon: TrendingUp,
+      color: colors.success,
+      bg: 'rgba(16,185,129,0.12)',
+    },
+    {
+      label: 'Active Loans',
+      value: `${currency}${(stats?.activeLoanAmount || stats?.loans || 0).toLocaleString()}`,
+      icon: Landmark,
+      color: colors.warning,
+      bg: 'rgba(245,158,11,0.12)',
+    },
+    {
+      label: 'Total Profit',
+      value: `${currency}${(stats?.totalProfit || 0).toLocaleString()}`,
+      icon: ArrowDownLeft,
+      color: colors.accent,
+      bg: 'rgba(236,72,153,0.12)',
+    },
+  ];
+
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.background.screen}
+      />
+
+      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Hello,</Text>
-          <Text style={styles.nameText}>{member?.name || 'Member'}</Text>
-        </View>
-        <TouchableOpacity onPress={memberLogout} style={styles.logoutButton}>
-          <LogOut color={colors.danger} size={24} />
+        <Logo size={36} showText subtitle="Member" />
+        <TouchableOpacity onPress={memberLogout} style={styles.logoutBtn}>
+          <LogOut size={18} color={colors.danger} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
+            tintColor={colors.secondary}
           />
         }
       >
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>
-            {currencySymbol}
-            {stats?.totalBalance?.toLocaleString() || '0.00'}
+        {/* Welcome */}
+        <View style={styles.welcomeRow}>
+          <View>
+            <Text style={styles.welcomeSmall}>Hello,</Text>
+            <Text style={styles.welcomeName}>
+              {member?.name || 'Member'} 👋
+            </Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Member</Text>
+          </View>
+        </View>
+
+        {/* Hero Balance Card */}
+        <View style={styles.heroCard}>
+          <Text style={styles.heroLabel}>Portfolio Value</Text>
+          <Text style={styles.heroAmount}>
+            {currency}
+            {(
+              stats?.currentBalance ||
+              stats?.totalBalance ||
+              0
+            ).toLocaleString()}
           </Text>
-          <View style={styles.balanceActions}>
-            <TouchableOpacity style={styles.actionBtn}>
-              <TrendingUp color={colors.text.primary} size={20} />
-              <Text style={styles.actionText}>Invest</Text>
+          <View style={styles.heroActions}>
+            <TouchableOpacity
+              style={styles.heroBtn}
+              onPress={() => navigation.navigate('Invest')}
+            >
+              <ArrowDownLeft size={16} color="#fff" />
+              <Text style={styles.heroBtnText}>Invest</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnSecondary]}
+              style={[styles.heroBtn, styles.heroBtnSecondary]}
+              onPress={() => navigation.navigate('Loans')}
             >
-              <DollarSign color={colors.text.primary} size={20} />
-              <Text style={styles.actionText}>Borrow</Text>
+              <ArrowUpRight size={16} color={colors.secondary} />
+              <Text style={[styles.heroBtnText, { color: colors.secondary }]}>
+                Loans
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.heroBtn, styles.heroBtnSecondary]}
+              onPress={() => navigation.navigate('ApplyLoan')}
+            >
+              <Plus size={16} color={colors.secondary} />
+              <Text style={[styles.heroBtnText, { color: colors.secondary }]}>
+                Apply
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>My Wealth</Text>
-        <View style={styles.wealthGrid}>
-          <StatsCard
-            label="Total Savings"
-            value={`${currencySymbol}${stats?.savings?.toLocaleString() || 0}`}
-            icon={ArrowDownLeft}
-            trend="+2.5% this month"
-            style={{ width: '48%' }}
-          />
-          <StatsCard
-            label="Active Loans"
-            value={`${currencySymbol}${stats?.loans?.toLocaleString() || 0}`}
-            icon={ArrowUpRight}
-            trend="1 active"
-            style={{ width: '48%' }}
-          />
+        {/* Wealth Grid */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>My Wealth</Text>
+          <ChevronRight size={14} color={colors.text.muted} />
         </View>
 
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        <View style={styles.activityCard}>
-          <Text style={styles.emptyText}>No recent transactions</Text>
+        <View style={styles.grid}>
+          {wealthCards.map((c) => (
+            <View key={c.label} style={styles.card}>
+              <View style={[styles.cardIcon, { backgroundColor: c.bg }]}>
+                <c.icon size={16} color={c.color} />
+              </View>
+              <Text style={styles.cardValue}>{c.value}</Text>
+              <Text style={styles.cardLabel}>{c.label}</Text>
+            </View>
+          ))}
         </View>
       </ScrollView>
     </View>
   );
 }
 
-// End of DashboardScreen
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.screen,
-  },
+  screen: { flex: 1, backgroundColor: colors.background.screen },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing['2xl'] * 1.5,
-    paddingBottom: spacing.lg,
-    backgroundColor: colors.background.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  welcomeText: {
-    color: colors.text.muted,
-    fontSize: typography.sizes.sm,
-  },
-  nameText: {
-    color: colors.text.primary,
-    fontSize: typography.sizes.xl,
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    padding: spacing.xs,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-  },
-  balanceCard: {
-    backgroundColor: colors.primary,
-    padding: spacing.xl,
-    borderRadius: 16,
-    marginBottom: spacing.xl,
-    alignItems: 'center',
-  },
-  balanceLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: typography.sizes.base,
-    marginBottom: spacing.xs,
-  },
-  balanceAmount: {
-    color: colors.text.primary,
-    fontSize: typography.sizes['4xl'],
-    fontWeight: 'bold',
-    marginBottom: spacing.lg,
-  },
-  balanceActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-    gap: spacing.md,
-  },
-  actionBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: 20,
-    gap: spacing.xs,
+    paddingTop: 56,
+    paddingBottom: spacing.sm,
+    backgroundColor: 'transparent',
   },
-  actionBtnSecondary: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
+  logoutBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionText: {
-    color: colors.text.primary,
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    color: colors.text.primary,
-    fontSize: typography.sizes.lg,
-    fontWeight: 'bold',
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
-  },
-  wealthGrid: {
+  scroll: { padding: spacing.lg, paddingBottom: spacing['2xl'] },
+  welcomeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.xl,
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
-  wealthCard: {
-    backgroundColor: colors.background.card,
-    width: '48%',
-    padding: spacing.lg,
-    paddingVertical: spacing.xl,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  wealthLabel: {
-    color: colors.text.muted,
+  welcomeSmall: {
     fontSize: typography.sizes.sm,
-    marginBottom: spacing.xs,
+    color: colors.text.muted,
+    marginBottom: 2,
   },
-  wealthValue: {
+  welcomeName: {
+    fontSize: typography.sizes['2xl'],
+    fontWeight: '900',
     color: colors.text.primary,
-    fontSize: typography.sizes.xl,
-    fontWeight: 'bold',
+    letterSpacing: -0.5,
   },
-  activityCard: {
-    backgroundColor: colors.background.card,
-    padding: spacing.xl,
-    borderRadius: 12,
+  badge: {
+    backgroundColor: 'rgba(139,92,246,0.12)',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(139,92,246,0.25)',
+    borderRadius: radii.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  badgeText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: '800',
+    color: colors.secondary,
+    letterSpacing: 1,
+  },
+  heroCard: {
+    backgroundColor: colors.primary,
+    borderRadius: radii['2xl'],
+    padding: spacing.xl,
+    marginBottom: spacing['2xl'],
+    alignItems: 'center',
+    ...shadows.glow,
+  },
+  heroLabel: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: typography.sizes.sm,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  heroAmount: {
+    color: '#fff',
+    fontSize: typography.sizes['4xl'],
+    fontWeight: '900',
+    letterSpacing: -1,
+    marginBottom: spacing.lg,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  heroBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: radii.full,
+  },
+  heroBtnSecondary: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  heroBtnText: {
+    color: '#fff',
+    fontSize: typography.sizes.sm,
+    fontWeight: '700',
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: '800',
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  card: {
+    width: '48%',
+    backgroundColor: colors.background.glass,
+    borderRadius: radii['2xl'],
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    padding: spacing.lg,
+    gap: 6,
+    ...shadows.card,
+  },
+  cardIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
+    marginBottom: 6,
   },
-  emptyText: {
+  cardValue: {
+    fontSize: typography.sizes.lg,
+    fontWeight: '900',
+    color: colors.text.primary,
+    letterSpacing: -0.3,
+  },
+  cardLabel: {
+    fontSize: typography.sizes.xs,
     color: colors.text.muted,
+    fontWeight: '600',
   },
 });

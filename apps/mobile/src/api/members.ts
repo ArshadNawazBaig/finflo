@@ -25,4 +25,11 @@ export const membersApi = {
     const response = await api.delete(`/members/${id}`);
     return response.data;
   },
+
+  lookup: async (identifier: string) => {
+    const response = await api.get(
+      `/members/portal/lookup?identifier=${identifier}`,
+    );
+    return response.data;
+  },
 };

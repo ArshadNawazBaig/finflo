@@ -69,7 +69,9 @@ export default function LoansScreen({ navigation }: any) {
 
       <View style={styles.infoContainer}>
         <View style={styles.cardHeader}>
-          <Text style={styles.amount}>${item.amount.toLocaleString()}</Text>
+          <Text style={styles.amount}>
+            ${(item.amount ?? 0).toLocaleString()}
+          </Text>
           <Badge label={item.status} type={getStatusType(item.status)} />
         </View>
         <Text style={styles.member}>

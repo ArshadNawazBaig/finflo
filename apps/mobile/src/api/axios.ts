@@ -1,14 +1,15 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// In development, this should point to your local machine's IP address, not localhost.
-// e.g., 'http://192.168.1.100:5000/api/v1'
-// Replace this with your actual local IP or production URL.
+// In development, this must point to your LOCAL machine's IP (not localhost).
+// Your current machine IP is 192.168.100.23 (seen in Metro QR code output).
+// To override, set EXPO_PUBLIC_API_URL in your .env file.
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.7:5001/api/v1';
+  process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.23:5001/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },

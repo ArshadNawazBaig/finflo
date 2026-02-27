@@ -6,20 +6,24 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import { AuthContext } from '../../context/AuthContext';
 import { dashboardApi } from '../../api/dashboard';
-import { colors, typography, spacing } from '../../theme/theme';
+import { colors, typography, spacing, radii, shadows } from '../../theme/theme';
 import {
   LogOut,
   Users,
   Landmark,
-  DollarSign,
+  TrendingUp,
   AlertCircle,
+  DollarSign,
+  Activity,
+  ChevronRight,
 } from 'lucide-react-native';
-import StatsCard from '../../components/StatsCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ActivityFeed from '../../components/ActivityFeed';
+import Logo from '../../components/Logo';
 
 export default function DashboardScreen() {
   const { user, logout } = useContext(AuthContext);
@@ -32,13 +36,9 @@ export default function DashboardScreen() {
     try {
       setError(null);
       const data = await dashboardApi.getStats();
-      if (data.success) {
-        setStats(data.stats);
-      } else {
-        setError('Failed to load dashboard data.');
-      }
-    } catch (error) {
-      console.error('Failed to fetch stats', error);
+      if (data.success) setStats(data.stats);
+      else setError('Failed to load dashboard data.');
+    } catch {
       setError('An error occurred while loading data.');
     } finally {
       setLoading(false);
@@ -55,26 +55,60 @@ export default function DashboardScreen() {
     setRefreshing(false);
   };
 
-  if (loading && !refreshing) {
+  if (loading && !refreshing)
     return <LoadingSpinner message="Loading Dashboard..." />;
-  }
 
-  const currencySymbol = (user as any)?.currency || 'Rs.';
+  const currency = (user as any)?.currency || 'Rs.';
+
+  const statCards = [
+    {
+      label: 'Total Members',
+      value: stats?.members?.total || stats?.totalMembers || 0,
+      icon: Users,
+      color: colors.primary,
+      bg: 'rgba(99,102,241,0.12)',
+    },
+    {
+      label: 'Active Loans',
+      value: stats?.activeLoans?.count || stats?.activeLoans || 0,
+      icon: Landmark,
+      color: colors.warning,
+      bg: 'rgba(245,158,11,0.12)',
+    },
+    {
+      label: 'Net Profit',
+      value: `${currency}${(stats?.profit?.amount || stats?.netProfit || 0).toLocaleString()}`,
+      icon: TrendingUp,
+      color: colors.success,
+      bg: 'rgba(16,185,129,0.12)',
+    },
+    {
+      label: 'Disbursed',
+      value: `${currency}${(stats?.banking?.disbursed?.amount || stats?.totalLoanAmount || 0).toLocaleString()}`,
+      icon: DollarSign,
+      color: colors.accent,
+      bg: 'rgba(236,72,153,0.12)',
+    },
+  ];
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.background.screen}
+      />
+
+      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.nameText}>{user?.name || 'Admin'}</Text>
-        </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-          <LogOut color={colors.danger} size={24} />
+        <Logo size={36} showText subtitle="Admin" />
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+          <LogOut size={18} color={colors.danger} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -83,43 +117,49 @@ export default function DashboardScreen() {
           />
         }
       >
-        {error ? (
-          <View style={styles.errorContainer}>
-            <AlertCircle
-              color={colors.danger}
-              size={24}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.errorText}>{error}</Text>
+        {/* Welcome */}
+        <View style={styles.welcomeRow}>
+          <View>
+            <Text style={styles.welcomeSmall}>Good day,</Text>
+            <Text style={styles.welcomeName}>{user?.name || 'Admin'} 👋</Text>
           </View>
-        ) : null}
-
-        <Text style={styles.sectionTitle}>Overview</Text>
-
-        <View style={styles.statsGrid}>
-          <StatsCard
-            label="Total Members"
-            value={stats?.totalMembers || 0}
-            icon={Users}
-            style={{ width: '48%' }}
-          />
-          <StatsCard
-            label="Active Loans"
-            value={stats?.activeLoans || 0}
-            icon={Landmark}
-            iconColor={colors.warning}
-            style={{ width: '48%' }}
-          />
-          <StatsCard
-            label="Total Loan Amount"
-            value={`${currencySymbol}${stats?.totalLoanAmount?.toLocaleString() || 0}`}
-            icon={DollarSign}
-            iconColor={colors.success}
-            style={{ width: '100%', marginTop: spacing.md }}
-          />
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>
+              {(user as any)?.role || 'Admin'}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
+        {error && (
+          <View style={styles.errorBox}>
+            <AlertCircle size={16} color={colors.danger} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        {/* Section: Stats */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>Overview</Text>
+          <Activity size={14} color={colors.text.muted} />
+        </View>
+
+        <View style={styles.statsGrid}>
+          {statCards.map((s) => (
+            <View key={s.label} style={styles.statCard}>
+              <View style={[styles.statIcon, { backgroundColor: s.bg }]}>
+                <s.icon size={18} color={s.color} />
+              </View>
+              <Text style={styles.statValue}>{s.value}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Recent Activity */}
+        <View style={[styles.sectionRow, { marginTop: spacing.md }]}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <ChevronRight size={16} color={colors.text.muted} />
+        </View>
         <ActivityFeed />
       </ScrollView>
     </View>
@@ -127,93 +167,117 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.screen,
-  },
+  screen: { flex: 1, backgroundColor: colors.background.screen },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing['2xl'] * 1.5,
-    paddingBottom: spacing.lg,
-    backgroundColor: colors.background.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 56,
+    paddingBottom: spacing.sm,
+    backgroundColor: 'transparent',
   },
-  welcomeText: {
-    color: colors.text.muted,
+  logoutBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scroll: { padding: spacing.lg, paddingBottom: spacing['2xl'] },
+  welcomeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  welcomeSmall: {
     fontSize: typography.sizes.sm,
+    color: colors.text.muted,
+    marginBottom: 2,
   },
-  nameText: {
+  welcomeName: {
+    fontSize: typography.sizes['2xl'],
+    fontWeight: '900',
     color: colors.text.primary,
-    fontSize: typography.sizes.xl,
-    fontWeight: 'bold',
+    letterSpacing: -0.5,
   },
-  logoutButton: {
-    padding: spacing.xs,
+  roleBadge: {
+    backgroundColor: 'rgba(99,102,241,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.25)',
+    borderRadius: radii.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
-  scrollContent: {
-    padding: spacing.lg,
+  roleText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: '800',
+    color: colors.primary,
+    textTransform: 'capitalize',
+    letterSpacing: 1,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  errorText: { color: colors.danger, fontSize: typography.sizes.sm, flex: 1 },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    color: colors.text.primary,
-    fontSize: typography.sizes.lg,
-    fontWeight: 'bold',
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
+    fontSize: typography.sizes.sm,
+    fontWeight: '800',
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   statCard: {
-    backgroundColor: colors.background.card,
     width: '48%',
+    backgroundColor: colors.background.glass,
+    borderRadius: radii['2xl'],
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
     padding: spacing.lg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    gap: 6,
+    ...shadows.card,
   },
-  statLabel: {
-    color: colors.text.muted,
-    fontSize: typography.sizes.sm,
-    marginBottom: spacing.xs,
-  },
-  statValue: {
-    color: colors.text.primary,
-    fontSize: typography.sizes['2xl'],
-    fontWeight: 'bold',
-  },
-  activityCard: {
-    backgroundColor: colors.background.card,
-    padding: spacing.xl,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+  statIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 150,
+    marginBottom: 6,
   },
-  emptyText: {
+  statValue: {
+    fontSize: typography.sizes.xl,
+    fontWeight: '900',
+    color: colors.text.primary,
+    letterSpacing: -0.5,
+  },
+  statLabel: {
+    fontSize: typography.sizes.xs,
     color: colors.text.muted,
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    padding: spacing.md,
-    borderRadius: 8,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-  },
-  errorText: {
-    color: colors.danger,
-    fontSize: typography.sizes.sm,
-    flex: 1,
+    fontWeight: '600',
   },
 });

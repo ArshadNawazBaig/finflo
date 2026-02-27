@@ -2,7 +2,7 @@ import api from './axios';
 
 export const authApi = {
   // Admin / General User Auth
-  login: async (credentials: any) => {
+  login: async (credentials: { email: string; password: string }) => {
     const response = await api.post('/auth/login', credentials);
     return response.data;
   },
@@ -27,10 +27,11 @@ export const authApi = {
     return response.data;
   },
 
-  // Member Auth
+  // Member Auth — backend expects { email, password, securityCode }
   memberLogin: async (credentials: {
-    memberId: string;
-    businessCode: string;
+    email: string;
+    password: string;
+    securityCode: string;
   }) => {
     const response = await api.post('/member-auth/login', credentials);
     return response.data;
