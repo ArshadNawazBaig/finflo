@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/tooltip-radix';
 
 const CategoryHeader = ({ label, isExpanded }) => {
-  if (!isExpanded) return <div className="h-4" />;
+  if (!isExpanded) return null;
   return (
     <div className="px-4 pt-4 pb-2">
       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
@@ -178,7 +178,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         <nav
           ref={navRef}
           className={cn(
-            'flex-1 flex flex-col gap-1 w-full py-2 transition-all duration-300 overflow-y-auto relative no-scrollbar scrollbar-none',
+            'flex-1 flex flex-col gap-2 w-full py-2 transition-all duration-300 overflow-y-auto relative no-scrollbar scrollbar-none',
             isLayoutExpanded ? 'px-4' : 'items-center px-0 overflow-x-hidden',
           )}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -492,7 +492,7 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => {
     <Link
       to={to}
       className={cn(
-        'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap mb-1',
+        'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap',
         isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-12 mx-auto',
         active
           ? 'bg-primary text-white shadow-[0_8px_20px_-6px_rgba(var(--primary),0.5)] ring-1 ring-white/20 hover:brightness-110'
