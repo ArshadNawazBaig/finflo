@@ -16,6 +16,7 @@ import {
   Shield,
   HelpCircle,
 } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberSettingsScreen() {
   const { member, memberLogout } = useContext(MemberAuthContext);
@@ -28,52 +29,56 @@ export default function MemberSettingsScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Settings</Text>
-
-      <View style={styles.profileCard}>
-        <View style={styles.profileImage}>
-          <User size={32} color={colors.text.primary} />
+    <View style={styles.screen}>
+      <AppHeader title="Settings" showBack={true} />
+      <ScrollView style={styles.content}>
+        <View style={styles.profileCard}>
+          <View style={styles.profileImage}>
+            <User size={32} color={colors.text.primary} />
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{member?.name}</Text>
+            <Text style={styles.profileId}>ID: {member?.memberId}</Text>
+          </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{member?.name}</Text>
-          <Text style={styles.profileId}>ID: {member?.memberId}</Text>
+
+        <View style={styles.section}>
+          {settingsOptions.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.option,
+                index === settingsOptions.length - 1 && styles.lastOption,
+              ]}
+              onPress={option.action}
+            >
+              <View style={styles.optionLeft}>
+                <option.icon size={20} color={colors.text.secondary} />
+                <Text style={styles.optionText}>{option.title}</Text>
+              </View>
+              <ChevronRight size={18} color={colors.text.muted} />
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
 
-      <View style={styles.section}>
-        {settingsOptions.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.option,
-              index === settingsOptions.length - 1 && styles.lastOption,
-            ]}
-            onPress={option.action}
-          >
-            <View style={styles.optionLeft}>
-              <option.icon size={20} color={colors.text.secondary} />
-              <Text style={styles.optionText}>{option.title}</Text>
-            </View>
-            <ChevronRight size={18} color={colors.text.muted} />
-          </TouchableOpacity>
-        ))}
-      </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={memberLogout}>
+          <LogOut size={20} color={colors.danger} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={memberLogout}>
-        <LogOut size={20} color={colors.danger} />
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.versionText}>Version 1.0.0</Text>
-    </ScrollView>
+        <Text style={styles.versionText}>Version 1.0.0</Text>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

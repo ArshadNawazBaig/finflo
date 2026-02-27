@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { colors, typography, spacing } from '../../theme/theme';
 import { Share2, TrendingUp, DollarSign } from 'lucide-react-native';
 import { MemberAuthContext } from '../../context/MemberAuthContext';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberBusinessShareScreen() {
   const { member } = useContext(MemberAuthContext);
@@ -13,57 +14,61 @@ export default function MemberBusinessShareScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Business Shares</Text>
-
-      <View style={styles.statRow}>
-        <View style={styles.statCard}>
-          <Share2 size={20} color={colors.primary} />
-          <Text style={styles.statLabel}>Total Shares</Text>
-          <Text style={styles.statValue}>550</Text>
-        </View>
-        <View style={styles.statCard}>
-          <DollarSign size={20} color={colors.success} />
-          <Text style={styles.statLabel}>Total Value</Text>
-          <Text style={styles.statValue}>{currencySymbol}5,500</Text>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Share History</Text>
-
-      {shares.map((item) => (
-        <View key={item.id} style={styles.shareItem}>
-          <View style={styles.shareLeft}>
-            <Text style={styles.shareDate}>
-              {new Date(item.date).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Text>
-            <Text style={styles.shareType}>{item.type}</Text>
+    <View style={styles.screen}>
+      <AppHeader title="Business Shares" showBack={true} />
+      <ScrollView style={styles.content}>
+        <View style={styles.statRow}>
+          <View style={styles.statCard}>
+            <Share2 size={20} color={colors.primary} />
+            <Text style={styles.statLabel}>Total Shares</Text>
+            <Text style={styles.statValue}>550</Text>
           </View>
-          <View style={styles.shareRight}>
-            <Text style={styles.shareAmount}>+{item.amount} Shares</Text>
-            <Text style={styles.shareTotal}>Bal: {item.total}</Text>
+          <View style={styles.statCard}>
+            <DollarSign size={20} color={colors.success} />
+            <Text style={styles.statLabel}>Total Value</Text>
+            <Text style={styles.statValue}>{currencySymbol}5,500</Text>
           </View>
         </View>
-      ))}
 
-      <View style={styles.infoBox}>
-        <Text style={styles.infoText}>
-          Business shares are allocated monthly based on your membership tier
-          and loan repayment history.
-        </Text>
-      </View>
-    </ScrollView>
+        <Text style={styles.sectionTitle}>Share History</Text>
+
+        {shares.map((item) => (
+          <View key={item.id} style={styles.shareItem}>
+            <View style={styles.shareLeft}>
+              <Text style={styles.shareDate}>
+                {new Date(item.date).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+              <Text style={styles.shareType}>{item.type}</Text>
+            </View>
+            <View style={styles.shareRight}>
+              <Text style={styles.shareAmount}>+{item.amount} Shares</Text>
+              <Text style={styles.shareTotal}>Bal: {item.total}</Text>
+            </View>
+          </View>
+        ))}
+
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            Business shares are allocated monthly based on your membership tier
+            and loan repayment history.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

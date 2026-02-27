@@ -14,6 +14,7 @@ import Badge from '../../components/Badge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { User, ChevronRight, Search, Plus } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function CustomersScreen({ navigation }: any) {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -71,56 +72,67 @@ export default function CustomersScreen({ navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Customers</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddCustomer')}
-        >
-          <Plus size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Search size={20} color={colors.text.muted} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search customers..."
-          placeholderTextColor={colors.text.muted}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-        />
-      </View>
-
-      <FlatList
-        data={customers}
-        renderItem={renderCustomer}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            message="No customers found"
-            icon={User}
-            description="Start onboarding new clients to see them here."
-          />
+    <View style={styles.screen}>
+      <AppHeader
+        title="Customers"
+        showBack={true}
+        rightElement={
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddCustomer')}
+          >
+            <Plus size={20} color="white" />
+          </TouchableOpacity>
         }
       />
+      <View style={styles.content}>
+        <View style={styles.searchContainer}>
+          <Search
+            size={20}
+            color={colors.text.muted}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search customers..."
+            placeholderTextColor={colors.text.muted}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+          />
+        </View>
+
+        <FlatList
+          data={customers}
+          renderItem={renderCustomer}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <EmptyState
+              message="No customers found"
+              icon={User}
+              description="Start onboarding new clients to see them here."
+            />
+          }
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   headerRow: {

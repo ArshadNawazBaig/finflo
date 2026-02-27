@@ -17,6 +17,7 @@ import {
   Filter,
   CreditCard,
 } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function TransactionsScreen() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -94,40 +95,41 @@ export default function TransactionsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Transactions</Text>
-        <Filter size={20} color={colors.text.secondary} />
+    <View style={styles.screen}>
+      <AppHeader title="Transactions" showBack={true} />
+      <View style={styles.content}>
+        <FlatList
+          data={transactions}
+          renderItem={renderTransaction}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <EmptyState
+              message="No transactions yet"
+              icon={CreditCard}
+              description="All financial movements will be logged here in detail."
+            />
+          }
+        />
       </View>
-
-      <FlatList
-        data={transactions}
-        renderItem={renderTransaction}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            message="No transactions yet"
-            icon={CreditCard}
-            description="All financial movements will be logged here in detail."
-          />
-        }
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   headerRow: {

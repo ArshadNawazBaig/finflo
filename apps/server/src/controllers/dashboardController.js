@@ -603,6 +603,7 @@ const getDashboardStats = async (req, res) => {
     );
 
     res.json({
+      success: true,
       stats: {
         profit: { amount: netProfit, percentage: profitChange },
         activeLoans: { count: activeLoans, percentage: loansChange },

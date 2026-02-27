@@ -14,6 +14,7 @@ import Badge from '../../components/Badge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { Landmark, ChevronRight, Calendar, Plus } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberLoansScreen({ navigation }: any) {
   const [loans, setLoans] = useState<any[]>([]);
@@ -93,36 +94,39 @@ export default function MemberLoansScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>My Loans</Text>
-        <TouchableOpacity
-          style={styles.applyBtn}
-          onPress={() => navigation.navigate('ApplyLoan')}
-        >
-          <Plus size={16} color="#fff" />
-          <Text style={styles.applyBtnText}>Apply</Text>
-        </TouchableOpacity>
+      <AppHeader title="My Loans" showBack={true} />
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>My Loans</Text>
+          <TouchableOpacity
+            style={styles.applyBtn}
+            onPress={() => navigation.navigate('ApplyLoan')}
+          >
+            <Plus size={16} color="#fff" />
+            <Text style={styles.applyBtnText}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={loans}
+          renderItem={renderLoan}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <EmptyState
+              message="No loans applied yet"
+              icon={Landmark}
+              description="Your loan applications and their status will be tracked here once you apply."
+            />
+          }
+        />
       </View>
-      <FlatList
-        data={loans}
-        renderItem={renderLoan}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            message="No loans applied yet"
-            icon={Landmark}
-            description="Your loan applications and their status will be tracked here once you apply."
-          />
-        }
-      />
     </View>
   );
 }
@@ -131,6 +135,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

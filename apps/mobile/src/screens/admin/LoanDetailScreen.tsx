@@ -11,13 +11,8 @@ import {
 import { loansApi } from '../../api/loans';
 import { colors, typography, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
-import {
-  Landmark,
-  Calendar,
-  User,
-  DollarSign,
-  Clock,
-} from 'lucide-react-native';
+import { Landmark, Calendar, User, Clock } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function LoanDetailScreen({ route, navigation }: any) {
   const { id } = route.params || {};
@@ -56,87 +51,77 @@ export default function LoanDetailScreen({ route, navigation }: any) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Landmark size={40} color={colors.primary} />
-        <Text style={styles.title}>Loan Details</Text>
-        <Badge
-          label={loan.status}
-          type={loan.status === 'Active' ? 'success' : 'warning'}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Financial Summary</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Principal Amount</Text>
-          <Text style={styles.value}>${loan.amount.toLocaleString()}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Interest Rate</Text>
-          <Text style={styles.value}>{loan.interestRate}%</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Total Interest</Text>
-          <Text style={styles.value}>
-            ${loan.totalInterest?.toLocaleString() || '0'}
-          </Text>
-        </View>
-        <View style={[styles.infoRow, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Total Payable</Text>
-          <Text style={styles.totalValue}>
-            $
-            {loan.totalPayable?.toLocaleString() ||
-              loan.amount.toLocaleString()}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Member Information</Text>
-        <View style={styles.memberInfo}>
-          <User size={20} color={colors.text.secondary} />
-          <View>
-            <Text style={styles.memberName}>{loan.member?.fullName}</Text>
-            <Text style={styles.memberId}>ID: {loan.member?.memberId}</Text>
+    <View style={styles.screen}>
+      <AppHeader title="Loan Details" showBack={true} />
+      <ScrollView style={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Financial Summary</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Principal Amount</Text>
+            <Text style={styles.value}>${loan.amount.toLocaleString()}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Interest Rate</Text>
+            <Text style={styles.value}>{loan.interestRate}%</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Total Interest</Text>
+            <Text style={styles.value}>
+              ${loan.totalInterest?.toLocaleString() || '0'}
+            </Text>
+          </View>
+          <View style={[styles.infoRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total Payable</Text>
+            <Text style={styles.totalValue}>
+              $
+              {loan.totalPayable?.toLocaleString() ||
+                loan.amount.toLocaleString()}
+            </Text>
           </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Timeline</Text>
-        <View style={styles.infoRow}>
-          <View style={styles.labelWithIcon}>
-            <Calendar size={16} color={colors.text.muted} />
-            <Text style={styles.label}>Applied Date</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Member Information</Text>
+          <View style={styles.memberInfo}>
+            <User size={20} color={colors.text.secondary} />
+            <View>
+              <Text style={styles.memberName}>{loan.member?.fullName}</Text>
+              <Text style={styles.memberId}>ID: {loan.member?.memberId}</Text>
+            </View>
           </View>
-          <Text style={styles.value}>
-            {new Date(loan.createdAt).toLocaleDateString()}
-          </Text>
         </View>
-        <View style={styles.infoRow}>
-          <View style={styles.labelWithIcon}>
-            <Clock size={16} color={colors.text.muted} />
-            <Text style={styles.label}>Duration</Text>
-          </View>
-          <Text style={styles.value}>{loan.duration} Months</Text>
-        </View>
-      </View>
 
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backButtonText}>Back to List</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Timeline</Text>
+          <View style={styles.infoRow}>
+            <View style={styles.labelWithIcon}>
+              <Calendar size={16} color={colors.text.muted} />
+              <Text style={styles.label}>Applied Date</Text>
+            </View>
+            <Text style={styles.value}>
+              {new Date(loan.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <View style={styles.labelWithIcon}>
+              <Clock size={16} color={colors.text.muted} />
+              <Text style={styles.label}>Duration</Text>
+            </View>
+            <Text style={styles.value}>{loan.duration} Months</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

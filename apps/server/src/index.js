@@ -26,6 +26,14 @@ app.use(
   require('./routes/webhookRoutes'),
 );
 
+// Global Request Logger for Debugging
+app.use((req, res, next) => {
+  console.log(
+    `[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`,
+  );
+  next();
+});
+
 // Middleware
 app.use(express.json());
 
@@ -72,41 +80,47 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (native mobile apps, Postman, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Allow any local network IP for development (mobile device on same Wi-Fi)
-    if (/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin))
-      return callback(null, true);
-    if (/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin))
-      return callback(null, true);
-    callback(new Error(`CORS: Origin ${origin} not allowed`));
+    // Debug log for EVERY request with an origin
+    if (origin) console.log(`CORS Preflight/Request from origin: ${origin}`);
+    callback(null, true); // Allow ALL origins
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+  ],
   credentials: true,
+  optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 app.use(cors(corsOptions));
 
 // Enhanced Helmet configuration
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
-        connectSrc: ["'self'", 'https://api.stripe.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://js.stripe.com'],
-      },
-    },
-  }),
-);
+// app.use(
+//   helmet({
+//     crossOriginResourcePolicy: { policy: 'cross-origin' },
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'"],
+//         scriptSrc: ["'self'", "'unsafe-inline'"],
+//         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+//         imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+//         connectSrc: [
+//           "'self'",
+//           'https://api.stripe.com',
+//           'http://localhost:*',
+//           'http://127.0.0.1:*',
+//           'http://192.168.*.*:*',
+//         ],
+//         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+//         objectSrc: ["'none'"],
+//         mediaSrc: ["'self'"],
+//         frameSrc: ["'self'", 'https://js.stripe.com'],
+//       },
+//     },
+//   }),
+// );
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
@@ -189,8 +203,8 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (on all interfaces)`);
     initFinanceFlow();
     initScheduledTasks();
   });

@@ -14,6 +14,7 @@ import {
   ArrowRight,
 } from 'lucide-react-native';
 import { MemberAuthContext } from '../../context/MemberAuthContext';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberInvestmentScreen() {
   const { member } = React.useContext(MemberAuthContext);
@@ -34,65 +35,66 @@ export default function MemberInvestmentScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Investments</Text>
-
-      <View style={styles.totalCard}>
-        <Text style={styles.totalLabel}>Portfolio Value</Text>
-        <Text style={styles.totalAmount}>{currencySymbol}7,000.00</Text>
-        <View style={styles.growthBadge}>
-          <TrendingUp size={16} color={colors.success} />
-          <Text style={styles.growthText}>+5.2% Overall</Text>
+    <View style={styles.screen}>
+      <AppHeader title="Investments" showBack={true} />
+      <ScrollView style={styles.container}>
+        <View style={styles.totalCard}>
+          <Text style={styles.totalLabel}>Portfolio Value</Text>
+          <Text style={styles.totalAmount}>{currencySymbol}7,000.00</Text>
+          <View style={styles.growthBadge}>
+            <TrendingUp size={16} color={colors.success} />
+            <Text style={styles.growthText}>+5.2% Overall</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>My Goals</Text>
-        <TouchableOpacity>
-          <PlusCircle size={20} color={colors.primary} />
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>My Goals</Text>
+          <TouchableOpacity>
+            <PlusCircle size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {investments.map((inv, index) => (
+          <View key={index} style={styles.goalCard}>
+            <View
+              style={[styles.goalIcon, { backgroundColor: inv.color + '20' }]}
+            >
+              <Target size={24} color={inv.color} />
+            </View>
+            <View style={styles.goalInfo}>
+              <Text style={styles.goalName}>{inv.name}</Text>
+              <Text style={styles.goalAmount}>
+                {currencySymbol}
+                {inv.amount.toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.goalMeta}>
+              <Text style={[styles.goalReturns, { color: colors.success }]}>
+                {inv.returns}
+              </Text>
+              <ArrowRight size={16} color={colors.text.muted} />
+            </View>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.exploreButton}>
+          <Text style={styles.exploreButtonText}>Explore Investment Plans</Text>
         </TouchableOpacity>
-      </View>
-
-      {investments.map((inv, index) => (
-        <View key={index} style={styles.goalCard}>
-          <View
-            style={[styles.goalIcon, { backgroundColor: inv.color + '20' }]}
-          >
-            <Target size={24} color={inv.color} />
-          </View>
-          <View style={styles.goalInfo}>
-            <Text style={styles.goalName}>{inv.name}</Text>
-            <Text style={styles.goalAmount}>
-              {currencySymbol}
-              {inv.amount.toLocaleString()}
-            </Text>
-          </View>
-          <View style={styles.goalMeta}>
-            <Text style={[styles.goalReturns, { color: colors.success }]}>
-              {inv.returns}
-            </Text>
-            <ArrowRight size={16} color={colors.text.muted} />
-          </View>
-        </View>
-      ))}
-
-      <TouchableOpacity style={styles.exploreButton}>
-        <Text style={styles.exploreButtonText}>Explore Investment Plans</Text>
-      </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  container: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {
-    fontSize: typography.sizes['2xl'],
-    fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: spacing.xl,
     marginTop: spacing.sm,
   },

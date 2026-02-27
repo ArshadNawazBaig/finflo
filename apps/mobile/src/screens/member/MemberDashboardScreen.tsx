@@ -22,6 +22,7 @@ import {
   Plus,
 } from 'lucide-react-native';
 import Logo from '../../components/Logo';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberDashboardScreen({ navigation }: any) {
   const { member, memberLogout } = useContext(MemberAuthContext);
@@ -86,13 +87,7 @@ export default function MemberDashboardScreen({ navigation }: any) {
         backgroundColor={colors.background.screen}
       />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Logo size={36} showText subtitle="Member" />
-        <TouchableOpacity onPress={memberLogout} style={styles.logoutBtn}>
-          <LogOut size={18} color={colors.danger} />
-        </TouchableOpacity>
-      </View>
+      <AppHeader showLogo={true} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -182,25 +177,6 @@ export default function MemberDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background.screen },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: spacing.sm,
-    backgroundColor: 'transparent',
-  },
-  logoutBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radii.full,
-    backgroundColor: 'rgba(239,68,68,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scroll: { padding: spacing.lg, paddingBottom: spacing['2xl'] },
   welcomeRow: {
     flexDirection: 'row',

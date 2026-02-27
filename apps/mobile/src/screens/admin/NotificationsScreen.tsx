@@ -10,6 +10,7 @@ import {
 import api from '../../api/axios';
 import { colors, typography, spacing } from '../../theme/theme';
 import { Bell, Info, AlertTriangle } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -75,34 +76,39 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Notifications</Text>
-      <FlatList
-        data={notifications}
-        renderItem={renderNotification}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No notifications</Text>
-          </View>
-        }
-      />
+    <View style={styles.screen}>
+      <AppHeader title="Notifications" showBack={true} />
+      <View style={styles.content}>
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No notifications</Text>
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

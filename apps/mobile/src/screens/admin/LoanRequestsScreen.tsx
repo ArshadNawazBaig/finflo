@@ -15,6 +15,7 @@ import Badge from '../../components/Badge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { Landmark, Check, X, User, Bell } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function LoanRequestsScreen() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -133,36 +134,41 @@ export default function LoanRequestsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Pending Requests</Text>
-      <FlatList
-        data={requests}
-        renderItem={renderRequest}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            message="No pending requests"
-            icon={Bell}
-            description="You are all caught up! New loan applications will appear here."
-          />
-        }
-      />
+    <View style={styles.screen}>
+      <AppHeader title="Loan Requests" showBack={true} />
+      <View style={styles.content}>
+        <FlatList
+          data={requests}
+          renderItem={renderRequest}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <EmptyState
+              message="No pending requests"
+              icon={Bell}
+              description="You are all caught up! New loan applications will appear here."
+            />
+          }
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {

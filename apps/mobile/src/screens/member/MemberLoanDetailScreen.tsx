@@ -11,13 +11,8 @@ import {
 import { loansApi } from '../../api/loans';
 import { colors, typography, spacing } from '../../theme/theme';
 import Badge from '../../components/Badge';
-import {
-  Landmark,
-  Calendar,
-  DollarSign,
-  Clock,
-  ArrowLeft,
-} from 'lucide-react-native';
+import { Landmark, Calendar, Clock } from 'lucide-react-native';
+import AppHeader from '../../components/AppHeader';
 
 export default function MemberLoanDetailScreen({ route, navigation }: any) {
   const { id } = route.params || {};
@@ -66,72 +61,69 @@ export default function MemberLoanDetailScreen({ route, navigation }: any) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <ArrowLeft size={24} color={colors.text.primary} />
-      </TouchableOpacity>
+    <View style={styles.screen}>
+      <AppHeader title="Loan Details" showBack={true} />
+      <ScrollView style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.iconCircle}>
+            <Landmark size={32} color={colors.primary} />
+          </View>
+          <Text style={styles.title}>{loan.loanType || 'Personal Loan'}</Text>
+          <Badge
+            label={loan.status}
+            type={loan.status === 'Active' ? 'success' : 'warning'}
+          />
+        </View>
 
-      <View style={styles.header}>
-        <View style={styles.iconCircle}>
-          <Landmark size={32} color={colors.primary} />
-        </View>
-        <Text style={styles.title}>{loan.loanType || 'Personal Loan'}</Text>
-        <Badge
-          label={loan.status}
-          type={loan.status === 'Active' ? 'success' : 'warning'}
-        />
-      </View>
-
-      <View style={styles.amountCard}>
-        <Text style={styles.cardLabel}>Amount Owed</Text>
-        <Text style={styles.cardAmount}>
-          ${loan.totalPayable?.toLocaleString() || loan.amount.toLocaleString()}
-        </Text>
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '40%' }]} />
-        </View>
-        <Text style={styles.progressText}>40% Repaid</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Loan Info</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Principal</Text>
-          <Text style={styles.value}>${loan.amount.toLocaleString()}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Interest Rate</Text>
-          <Text style={styles.value}>{loan.interestRate}%</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Applied Date</Text>
-          <Text style={styles.value}>
-            {new Date(loan.createdAt).toLocaleDateString()}
+        <View style={styles.amountCard}>
+          <Text style={styles.cardLabel}>Amount Owed</Text>
+          <Text style={styles.cardAmount}>
+            $
+            {loan.totalPayable?.toLocaleString() ||
+              loan.amount.toLocaleString()}
           </Text>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: '40%' }]} />
+          </View>
+          <Text style={styles.progressText}>40% Repaid</Text>
         </View>
-      </View>
 
-      {loan.status === 'Active' && (
-        <TouchableOpacity style={styles.repayButton} onPress={handleRepay}>
-          <Text style={styles.repayButtonText}>Make a Repayment</Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Loan Info</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Principal</Text>
+            <Text style={styles.value}>${loan.amount.toLocaleString()}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Interest Rate</Text>
+            <Text style={styles.value}>{loan.interestRate}%</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Applied Date</Text>
+            <Text style={styles.value}>
+              {new Date(loan.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+
+        {loan.status === 'Active' && (
+          <TouchableOpacity style={styles.repayButton} onPress={handleRepay}>
+            <Text style={styles.repayButtonText}>Make a Repayment</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
-    padding: spacing.md,
   },
-  backButton: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
+  content: {
+    flex: 1,
+    padding: spacing.md,
   },
   header: {
     alignItems: 'center',

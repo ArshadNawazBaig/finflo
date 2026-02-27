@@ -20,6 +20,7 @@ import {
   CreditCard,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import AppHeader from '../../components/AppHeader';
 
 export default function SettingsScreen() {
   const { user, logout } = useContext(AuthContext);
@@ -46,54 +47,58 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Admin Settings</Text>
-
-      <View style={styles.profileCard}>
-        <View style={styles.profileImage}>
-          <User size={32} color={colors.text.primary} />
+    <View style={styles.screen}>
+      <AppHeader title="Settings" showBack={true} />
+      <ScrollView style={styles.content}>
+        <View style={styles.profileCard}>
+          <View style={styles.profileImage}>
+            <User size={32} color={colors.text.primary} />
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>
+              {user?.name || 'Administrator'}
+            </Text>
+            <Text style={styles.profileEmail}>{user?.email}</Text>
+          </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>
-            {user?.name || 'Administrator'}
-          </Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
+
+        <View style={styles.section}>
+          {settingsOptions.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.option,
+                index === settingsOptions.length - 1 && styles.lastOption,
+              ]}
+              onPress={option.action}
+            >
+              <View style={styles.optionLeft}>
+                <option.icon size={20} color={colors.text.secondary} />
+                <Text style={styles.optionText}>{option.title}</Text>
+              </View>
+              <ChevronRight size={18} color={colors.text.muted} />
+            </TouchableOpacity>
+          ))}
         </View>
-      </View>
 
-      <View style={styles.section}>
-        {settingsOptions.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.option,
-              index === settingsOptions.length - 1 && styles.lastOption,
-            ]}
-            onPress={option.action}
-          >
-            <View style={styles.optionLeft}>
-              <option.icon size={20} color={colors.text.secondary} />
-              <Text style={styles.optionText}>{option.title}</Text>
-            </View>
-            <ChevronRight size={18} color={colors.text.muted} />
-          </TouchableOpacity>
-        ))}
-      </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <LogOut size={20} color={colors.danger} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <LogOut size={20} color={colors.danger} />
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.versionText}>Mobile Portal v1.0.0</Text>
-    </ScrollView>
+        <Text style={styles.versionText}>Mobile Portal v1.0.0</Text>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background.screen,
+  },
+  content: {
+    flex: 1,
     padding: spacing.md,
   },
   header: {
