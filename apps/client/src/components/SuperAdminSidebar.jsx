@@ -18,6 +18,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
 
+const CategoryHeader = ({ label, isExpanded }) => {
+  if (!isExpanded) return <div className="h-4" />;
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
+        {label}
+      </span>
+    </div>
+  );
+};
+
 const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
   const isActive = (path) =>
@@ -96,18 +107,12 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
             : 'items-center px-0 overflow-visible',
         )}
       >
+        <CategoryHeader label="Overview" isExpanded={isLayoutExpanded} />
         <NavItem
           to="/super-admin"
           icon={<LayoutGrid size={18} />}
           active={isActive('/super-admin')}
           label="Dashboard"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/super-admin/users"
-          icon={<Users size={18} />}
-          active={isActive('/super-admin/users')}
-          label="Manage Users"
           isExpanded={isLayoutExpanded}
         />
         <NavItem
@@ -117,6 +122,31 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
           label="Analytics"
           isExpanded={isLayoutExpanded}
         />
+        <NavItem
+          to="/super-admin/revenue"
+          icon={<DollarSign size={18} />}
+          active={isActive('/super-admin/revenue')}
+          label="Revenue"
+          isExpanded={isLayoutExpanded}
+        />
+
+        <CategoryHeader label="Management" isExpanded={isLayoutExpanded} />
+        <NavItem
+          to="/super-admin/users"
+          icon={<Users size={18} />}
+          active={isActive('/super-admin/users')}
+          label="Manage Users"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/super-admin/tickets"
+          icon={<LifeBuoy size={18} />}
+          active={isActive('/super-admin/tickets')}
+          label="Support Tickets"
+          isExpanded={isLayoutExpanded}
+        />
+
+        <CategoryHeader label="System" isExpanded={isLayoutExpanded} />
         <NavItem
           to="/super-admin/notifications"
           icon={<Bell size={18} />}
@@ -132,24 +162,10 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
           isExpanded={isLayoutExpanded}
         />
         <NavItem
-          to="/super-admin/revenue"
-          icon={<DollarSign size={18} />}
-          active={isActive('/super-admin/revenue')}
-          label="Revenue"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
           to="/super-admin/backup"
           icon={<Database size={18} />}
           active={isActive('/super-admin/backup')}
           label="Backup"
-          isExpanded={isLayoutExpanded}
-        />
-        <NavItem
-          to="/super-admin/tickets"
-          icon={<LifeBuoy size={18} />}
-          active={isActive('/super-admin/tickets')}
-          label="Support Tickets"
           isExpanded={isLayoutExpanded}
         />
       </nav>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Filter,
   Bell,
-  Menu,
+  AlignLeft,
   Sun,
   Moon,
   Check,
@@ -136,7 +136,7 @@ const Navbar = ({ onMenuClick }) => {
               onClick={onMenuClick}
               className="p-2.5 hover:bg-accent/50 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation shrink-0"
             >
-              <Menu className="w-5 h-5" />
+              <AlignLeft className="w-5 h-5" />
             </button>
           </Tooltip>
 

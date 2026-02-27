@@ -36,6 +36,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip-radix';
 
+const CategoryHeader = ({ label, isExpanded }) => {
+  if (!isExpanded) return <div className="h-4" />;
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
+        {label}
+      </span>
+    </div>
+  );
+};
+
 const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
   const isActive = (path) =>
@@ -172,6 +183,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           )}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
+          <CategoryHeader label="Overview" isExpanded={isLayoutExpanded} />
           <NavItem
             to="/dashboard"
             icon={<LayoutGrid size={18} />}
@@ -179,6 +191,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Dashboard"
             isExpanded={isLayoutExpanded}
           />
+
+          <CategoryHeader label="Users" isExpanded={isLayoutExpanded} />
           {hasAnyPermission(['view_all', 'manage_members']) && (
             <NavItem
               to="/customers"
@@ -197,6 +211,26 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
+          {hasPermission('approve_members') && (
+            <NavItem
+              to="/verification-queue"
+              icon={<FileCheck2 size={18} />}
+              active={isActive('/verification-queue')}
+              label="Verify Docs"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+          {hasPermission('manage_roles') && (
+            <NavItem
+              to="/team"
+              icon={<Users size={18} />}
+              active={isActive('/team')}
+              label="Team"
+              isExpanded={isLayoutExpanded}
+            />
+          )}
+
+          <CategoryHeader label="Lending" isExpanded={isLayoutExpanded} />
           {hasPermission('manage_loans') && (
             <NavItem
               to="/loan-requests"
@@ -224,6 +258,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
+
+          <CategoryHeader label="Finance" isExpanded={isLayoutExpanded} />
           {hasAnyPermission(['view_all', 'view_reports', 'manage_loans']) && (
             <NavItem
               to="/transactions"
@@ -242,30 +278,14 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
-          {hasPermission('approve_members') && (
-            <NavItem
-              to="/verification-queue"
-              icon={<FileCheck2 size={18} />}
-              active={isActive('/verification-queue')}
-              label="Verify Docs"
-              isExpanded={isLayoutExpanded}
-            />
-          )}
+
+          <CategoryHeader label="Admin" isExpanded={isLayoutExpanded} />
           {hasPermission('view_reports') && (
             <NavItem
               to="/reports"
               icon={<FileChartColumn size={18} />}
               active={isActive('/reports')}
               label="Reports"
-              isExpanded={isLayoutExpanded}
-            />
-          )}
-          {hasPermission('manage_roles') && (
-            <NavItem
-              to="/team"
-              icon={<Users size={18} />}
-              active={isActive('/team')}
-              label="Team"
               isExpanded={isLayoutExpanded}
             />
           )}
@@ -300,6 +320,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               isExpanded={isLayoutExpanded}
             />
           )}
+
+          <CategoryHeader label="System" isExpanded={isLayoutExpanded} />
           <NavItem
             to="/notifications"
             icon={<Bell size={18} />}
@@ -325,14 +347,18 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               />
             </>
           )}
+
           {user.plan && user.plan !== 'Free' && (
-            <NavItem
-              to="/support"
-              icon={<LifeBuoy size={18} />}
-              active={isActive('/support')}
-              label="Support"
-              isExpanded={isLayoutExpanded}
-            />
+            <>
+              <CategoryHeader label="Help" isExpanded={isLayoutExpanded} />
+              <NavItem
+                to="/support"
+                icon={<LifeBuoy size={18} />}
+                active={isActive('/support')}
+                label="Support"
+                isExpanded={isLayoutExpanded}
+              />
+            </>
           )}
         </nav>
 

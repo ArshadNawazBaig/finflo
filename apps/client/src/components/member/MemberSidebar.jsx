@@ -16,6 +16,17 @@ import { cn, capitalize } from '@/lib/utils';
 import { Bell } from 'lucide-react';
 import Logo from '@/components/Logo';
 
+const CategoryHeader = ({ label, isExpanded }) => {
+  if (!isExpanded) return <div className="h-4" />;
+  return (
+    <div className="px-4 pt-4 pb-2">
+      <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
+        {label}
+      </span>
+    </div>
+  );
+};
+
 const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const location = useLocation();
   const isActive = (path) =>
@@ -110,6 +121,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             : 'items-center px-0 overflow-visible',
         )}
       >
+        <CategoryHeader label="Overview" isExpanded={isLayoutExpanded} />
         <NavItem
           to="/member/dashboard"
           icon={<LayoutGrid size={18} />}
@@ -124,6 +136,8 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           label="Transactions"
           isExpanded={isLayoutExpanded}
         />
+
+        <CategoryHeader label="Finance" isExpanded={isLayoutExpanded} />
         <NavItem
           to="/member/investments"
           icon={<TrendingUp size={18} />}
@@ -145,13 +159,8 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           label="My Loans"
           isExpanded={isLayoutExpanded}
         />
-        {/* <NavItem
-          to="/member/transfer"
-          icon={<Send size={18} />}
-          active={isActive('/member/transfer')}
-          label="Transfer"
-          isExpanded={isLayoutExpanded}
-        /> */}
+
+        <CategoryHeader label="System" isExpanded={isLayoutExpanded} />
         <NavItem
           to="/member/notifications"
           icon={<Bell size={18} />}
