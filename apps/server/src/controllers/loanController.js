@@ -45,7 +45,8 @@ const createLoan = async (req, res) => {
     duration: durationInput,
     startDate,
     interestType = 'simple',
-    grantorIdentifier, // New: Optional Grantor CNIC or Phone
+    grantor1Identifier,
+    grantor2Identifier,
     product, // New: Optional LoanProduct ID
   } = req.body;
 
@@ -54,21 +55,49 @@ const createLoan = async (req, res) => {
   const duration = Number(durationInput);
 
   try {
-    let grantorId = null;
-    if (grantorIdentifier) {
+    let grantor1Id = null;
+    let grantor2Id = null;
+
+    if (grantor1Identifier) {
       const Member = require('../models/Member');
-      const grantor = await Member.findOne({
+      const grantor1 = await Member.findOne({
         user: req.user.effectiveOwnerId,
-        $or: [{ cnic: grantorIdentifier }, { phone: grantorIdentifier }],
+        $or: [{ cnic: grantor1Identifier }, { phone: grantor1Identifier }],
       });
 
-      if (!grantor) {
+      if (!grantor1) {
         return res.status(404).json({
           message:
-            'Grantor not found. Please provide a valid Member CNIC or Phone number or leave blank.',
+            'Grantor 1 not found. Please provide a valid Member CNIC or Phone number.',
         });
       }
-      grantorId = grantor._id;
+      grantor1Id = grantor1._id;
+    }
+
+    if (grantor2Identifier) {
+      const Member = require('../models/Member');
+      const grantor2 = await Member.findOne({
+        user: req.user.effectiveOwnerId,
+        $or: [{ cnic: grantor2Identifier }, { phone: grantor2Identifier }],
+      });
+
+      if (!grantor2) {
+        return res.status(404).json({
+          message:
+            'Grantor 2 not found. Please provide a valid Member CNIC or Phone number.',
+        });
+      }
+      grantor2Id = grantor2._id;
+    }
+
+    if (
+      grantor1Id &&
+      grantor2Id &&
+      grantor1Id.toString() === grantor2Id.toString()
+    ) {
+      return res.status(400).json({
+        message: 'Grantor 1 and Grantor 2 must be different members.',
+      });
     }
 
     const customer = await Customer.findById(customerId);
@@ -81,9 +110,9 @@ const createLoan = async (req, res) => {
 
     // Validation: Grantor cannot be the borrower
     if (
-      grantorId &&
       customer.memberId &&
-      grantorId.toString() === customer.memberId.toString()
+      ((grantor1Id && grantor1Id.toString() === customer.memberId.toString()) ||
+        (grantor2Id && grantor2Id.toString() === customer.memberId.toString()))
     ) {
       return res.status(400).json({
         message: 'A borrower cannot be their own grantor.',
@@ -163,28 +192,47 @@ const createLoan = async (req, res) => {
       remainingAmount: totalAmount,
       interestType,
       status: 'pending',
-      grantor: grantorId,
-      grantorStatus: 'pending',
+      grantor1: grantor1Id,
+      grantor1Status: 'pending',
+      grantor2: grantor2Id,
+      grantor2Status: 'pending',
       riskDetails,
       product: product || undefined,
     });
 
     const createdLoan = await loan.save();
 
-    // Notify Grantor if assigned
-    if (grantorId) {
+    // Notify Grantors if assigned
+    if (grantor1Id || grantor2Id) {
       try {
         const Notification = require('../models/Notification');
-        const notification = new Notification({
-          recipient: grantorId,
-          recipientModel: 'Member',
-          title: 'New Grantor Assignment',
-          message: `Admin has assigned you as a grantor for a new loan of ${principal} for customer ${customer.name}.`,
-          type: 'info',
-        });
-        await notification.save();
+        const notifications = [];
+
+        if (grantor1Id) {
+          notifications.push({
+            recipient: grantor1Id,
+            recipientModel: 'Member',
+            title: 'New Grantor Assignment',
+            message: `Admin has assigned you as Grantor 1 for a new loan of ${principal} for customer ${customer.name}.`,
+            type: 'info',
+          });
+        }
+
+        if (grantor2Id) {
+          notifications.push({
+            recipient: grantor2Id,
+            recipientModel: 'Member',
+            title: 'New Grantor Assignment',
+            message: `Admin has assigned you as Grantor 2 for a new loan of ${principal} for customer ${customer.name}.`,
+            type: 'info',
+          });
+        }
+
+        if (notifications.length > 0) {
+          await Notification.insertMany(notifications);
+        }
       } catch (notifError) {
-        console.error('Failed to notify grantor:', notifError);
+        console.error('Failed to notify grantors:', notifError);
       }
     }
 
@@ -235,7 +283,8 @@ const requestLoan = async (req, res) => {
     principal: principalInput,
     rate: rateInput,
     duration: durationInput,
-    grantorIdentifier, // New: Grantor CNIC or Phone
+    grantor1Identifier,
+    grantor2Identifier,
     notes,
   } = req.body;
 
@@ -250,10 +299,10 @@ const requestLoan = async (req, res) => {
         .json({ message: 'Principal and duration are required.' });
     }
 
-    if (!grantorIdentifier) {
-      return res
-        .status(400)
-        .json({ message: 'Grantor information is required' });
+    if (!grantor1Identifier || !grantor2Identifier) {
+      return res.status(400).json({
+        message: 'Both Grantor 1 and Grantor 2 information is required',
+      });
     }
 
     // Defensive check: Ensure member has a linked customer profile
@@ -287,24 +336,51 @@ const requestLoan = async (req, res) => {
 
     // Explicit check for own identifier to give better error message
     if (
-      req.member.cnic === grantorIdentifier ||
-      req.member.phone === grantorIdentifier
+      req.member.cnic === grantor1Identifier ||
+      req.member.phone === grantor1Identifier ||
+      req.member.cnic === grantor2Identifier ||
+      req.member.phone === grantor2Identifier
     ) {
       return res.status(400).json({
         message: 'You cannot be your own grantor.',
       });
     }
 
-    const grantor = await Member.findOne({
+    if (grantor1Identifier === grantor2Identifier) {
+      return res.status(400).json({
+        message: 'Grantor 1 and Grantor 2 must be different members.',
+      });
+    }
+
+    const grantor1 = await Member.findOne({
       user: req.member.user,
-      $or: [{ cnic: grantorIdentifier }, { phone: grantorIdentifier }],
+      $or: [{ cnic: grantor1Identifier }, { phone: grantor1Identifier }],
       _id: { $ne: req.member._id }, // Cannot be own grantor
     });
 
-    if (!grantor) {
+    if (!grantor1) {
       return res.status(404).json({
         message:
-          'Grantor not found. Please provide a valid Member CNIC or Phone number of another member.',
+          'Grantor 1 not found. Please provide a valid Member CNIC or Phone number of another member.',
+      });
+    }
+
+    const grantor2 = await Member.findOne({
+      user: req.member.user,
+      $or: [{ cnic: grantor2Identifier }, { phone: grantor2Identifier }],
+      _id: { $ne: req.member._id }, // Cannot be own grantor
+    });
+
+    if (!grantor2) {
+      return res.status(404).json({
+        message:
+          'Grantor 2 not found. Please provide a valid Member CNIC or Phone number of another member.',
+      });
+    }
+
+    if (grantor1._id.toString() === grantor2._id.toString()) {
+      return res.status(400).json({
+        message: 'Grantor 1 and Grantor 2 must be different members.',
       });
     }
 
@@ -374,8 +450,10 @@ const requestLoan = async (req, res) => {
       remainingAmount: totalAmount,
       interestType: 'simple',
       status: 'pending',
-      grantor: grantor._id,
-      grantorStatus: 'pending',
+      grantor1: grantor1._id,
+      grantor1Status: 'pending',
+      grantor2: grantor2._id,
+      grantor2Status: 'pending',
       riskDetails,
       documents: notes
         ? [{ name: 'Request Notes', url: 'N/A', type: 'text' }]
@@ -384,22 +462,34 @@ const requestLoan = async (req, res) => {
 
     const createdLoan = await loan.save();
 
-    // Notify Grantor
+    // Notify Grantors
     try {
       const Notification = require('../models/Notification');
-      const notification = new Notification({
-        recipient: grantor._id,
-        recipientModel: 'Member',
-        title: 'New Grantor Request',
-        message: `${req.member.name} has requested you to be a grantor for a loan of Rs. ${principal.toLocaleString()}.`,
-        type: 'info',
-        branchId: req.member.branchId || customer.branchId,
-        link: '/member/loans', // Grantors can see requests in their loans list
-        action: 'grantor_request',
-      });
-      await notification.save();
+      const notifications = [
+        {
+          recipient: grantor1._id,
+          recipientModel: 'Member',
+          title: 'New Grantor Request',
+          message: `${req.member.name} has requested you to be Grantor 1 for a loan of Rs. ${principal.toLocaleString()}.`,
+          type: 'info',
+          branchId: req.member.branchId || customer.branchId,
+          link: '/member/loans', // Grantors can see requests in their loans list
+          action: 'grantor_request',
+        },
+        {
+          recipient: grantor2._id,
+          recipientModel: 'Member',
+          title: 'New Grantor Request',
+          message: `${req.member.name} has requested you to be Grantor 2 for a loan of Rs. ${principal.toLocaleString()}.`,
+          type: 'info',
+          branchId: req.member.branchId || customer.branchId,
+          link: '/member/loans', // Grantors can see requests in their loans list
+          action: 'grantor_request',
+        },
+      ];
+      await Notification.insertMany(notifications);
     } catch (notifError) {
-      console.error('Failed to notify grantor:', notifError);
+      console.error('Failed to notify grantors:', notifError);
     }
 
     // Log activity
@@ -434,7 +524,7 @@ const requestLoan = async (req, res) => {
 const getGrantorLoans = async (req, res) => {
   try {
     const loans = await Loan.find({
-      grantor: req.member._id,
+      $or: [{ grantor1: req.member._id }, { grantor2: req.member._id }],
     }).populate('customer', 'name phone cnic');
 
     res.json(loans);
@@ -453,7 +543,7 @@ const updateGrantorStatus = async (req, res) => {
   try {
     const loan = await Loan.findOne({
       _id: req.params.id,
-      grantor: req.member._id,
+      $or: [{ grantor1: req.member._id }, { grantor2: req.member._id }],
     });
 
     if (!loan) {
@@ -462,13 +552,30 @@ const updateGrantorStatus = async (req, res) => {
         .json({ message: 'Loan request not found or you are not the grantor' });
     }
 
-    if (loan.status !== 'pending') {
-      return res.status(400).json({ message: 'Loan is no longer pending' });
-    }
+    let isGrantor1 =
+      loan.grantor1 && loan.grantor1.toString() === req.member._id.toString();
 
-    loan.grantorStatus = status;
-    if (status === 'approved') {
-      loan.grantorApprovedAt = new Date();
+    // Check if member the specific grantor's status is still pending
+    if (isGrantor1) {
+      if (loan.grantor1Status !== 'pending') {
+        return res
+          .status(400)
+          .json({ message: 'Your grantor request is no longer pending' });
+      }
+      loan.grantor1Status = status;
+      if (status === 'approved') {
+        loan.grantor1ApprovedAt = new Date();
+      }
+    } else {
+      if (loan.grantor2Status !== 'pending') {
+        return res
+          .status(400)
+          .json({ message: 'Your grantor request is no longer pending' });
+      }
+      loan.grantor2Status = status;
+      if (status === 'approved') {
+        loan.grantor2ApprovedAt = new Date();
+      }
     }
 
     await loan.save();
@@ -561,7 +668,8 @@ const getLoans = async (req, res) => {
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
       .populate('customer', 'name email isMember memberId')
-      .populate('grantor', 'name')
+      .populate('grantor1', 'name')
+      .populate('grantor2', 'name')
       .populate('product', 'name')
       .skip(skip)
       .limit(limit)
@@ -616,7 +724,8 @@ const getMyLoans = async (req, res) => {
 
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
-      .populate('grantor', 'name')
+      .populate('grantor1', 'name')
+      .populate('grantor2', 'name')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -636,7 +745,8 @@ const getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id)
       .populate('customer', 'name email phone trustRating')
-      .populate('grantor', 'name')
+      .populate('grantor1', 'name')
+      .populate('grantor2', 'name')
       .populate('product', 'name');
     if (
       loan &&

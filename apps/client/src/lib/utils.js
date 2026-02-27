@@ -42,15 +42,22 @@ export function cn(...inputs) {
 
 export const getCurrencySymbol = () => {
   try {
+    // Check admin/staff user object first
     const userStr = localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
-      return user?.currency || 'Rs.';
+      if (user?.currency) return user.currency;
+    }
+    // Check member object
+    const memberStr = localStorage.getItem('memberData');
+    if (memberStr) {
+      const member = JSON.parse(memberStr);
+      if (member?.currency) return member.currency;
     }
   } catch (e) {
     // Ignore parse errors
   }
-  return '$';
+  return 'Rs.';
 };
 
 export const formatCurrency = (num) => {

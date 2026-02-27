@@ -376,7 +376,13 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
-              {grantorLoans.some((l) => l.grantorStatus === 'pending') && (
+              {grantorLoans.some(
+                (l) =>
+                  (l.grantor1?._id === member?._id &&
+                    l.grantor1Status === 'pending') ||
+                  (l.grantor2?._id === member?._id &&
+                    l.grantor2Status === 'pending'),
+              ) && (
                 <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/10 transition-all duration-500">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter text-primary">
@@ -389,7 +395,13 @@ const MemberDashboard = () => {
 
                   <div className="space-y-3">
                     {grantorLoans
-                      .filter((loan) => loan.grantorStatus === 'pending')
+                      .filter(
+                        (loan) =>
+                          (loan.grantor1?._id === member?._id &&
+                            loan.grantor1Status === 'pending') ||
+                          (loan.grantor2?._id === member?._id &&
+                            loan.grantor2Status === 'pending'),
+                      )
                       .map((loan) => (
                         <div
                           key={loan._id}
@@ -438,7 +450,13 @@ const MemberDashboard = () => {
                 </div>
               )}
 
-              {grantorLoans.some((l) => l.grantorStatus !== 'pending') && (
+              {grantorLoans.some(
+                (l) =>
+                  (l.grantor1?._id === member?._id &&
+                    l.grantor1Status !== 'pending') ||
+                  (l.grantor2?._id === member?._id &&
+                    l.grantor2Status !== 'pending'),
+              ) && (
                 <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-muted/20">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter">
@@ -451,37 +469,49 @@ const MemberDashboard = () => {
 
                   <div className="space-y-3">
                     {grantorLoans
-                      .filter((loan) => loan.grantorStatus !== 'pending')
-                      .map((loan) => (
-                        <div
-                          key={loan._id}
-                          className="p-6 rounded-[2rem] border border-border/50 bg-card/60 backdrop-blur-sm transition-all"
-                        >
-                          <div className="flex items-center justify-between flex-wrap gap-4 opacity-75">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-1">
-                                <h4 className="font-bold text-base capitalize">
-                                  {loan.customer?.name} -{' '}
-                                  {formatCurrency(loan.principal)}
-                                </h4>
-                                <span
-                                  className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                    loan.grantorStatus === 'approved'
-                                      ? 'bg-emerald-500/10 text-emerald-600'
-                                      : 'bg-rose-500/10 text-rose-600'
-                                  }`}
-                                >
-                                  {loan.grantorStatus}
-                                </span>
+                      .filter(
+                        (loan) =>
+                          (loan.grantor1?._id === member?._id &&
+                            loan.grantor1Status !== 'pending') ||
+                          (loan.grantor2?._id === member?._id &&
+                            loan.grantor2Status !== 'pending'),
+                      )
+                      .map((loan) => {
+                        const myStatus =
+                          loan.grantor1?._id === member?._id
+                            ? loan.grantor1Status
+                            : loan.grantor2Status;
+                        return (
+                          <div
+                            key={loan._id}
+                            className="p-6 rounded-[2rem] border border-border/50 bg-card/60 backdrop-blur-sm transition-all"
+                          >
+                            <div className="flex items-center justify-between flex-wrap gap-4 opacity-75">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <h4 className="font-bold text-base capitalize">
+                                    {loan.customer?.name} -{' '}
+                                    {formatCurrency(loan.principal)}
+                                  </h4>
+                                  <span
+                                    className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                      myStatus === 'approved'
+                                        ? 'bg-emerald-500/10 text-emerald-600'
+                                        : 'bg-rose-500/10 text-rose-600'
+                                    }`}
+                                  >
+                                    {myStatus}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground font-medium">
+                                  Duration: {loan.duration} months | Loan
+                                  Status: {capitalize(loan.status)}
+                                </p>
                               </div>
-                              <p className="text-xs text-muted-foreground font-medium">
-                                Duration: {loan.duration} months | Loan Status:{' '}
-                                {capitalize(loan.status)}
-                              </p>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -539,7 +569,8 @@ const MemberDashboard = () => {
                                   loan.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-600'
                                     : loan.status === 'pending'
-                                      ? loan.grantorStatus === 'pending'
+                                      ? loan.grantor1Status === 'pending' ||
+                                        loan.grantor2Status === 'pending'
                                         ? 'bg-blue-500/10 text-blue-600'
                                         : 'bg-amber-500/10 text-amber-600'
                                       : loan.status === 'completed'
@@ -548,7 +579,8 @@ const MemberDashboard = () => {
                                 }`}
                               >
                                 {loan.status === 'pending' &&
-                                loan.grantorStatus === 'pending'
+                                (loan.grantor1Status === 'pending' ||
+                                  loan.grantor2Status === 'pending')
                                   ? 'Pending Grantor'
                                   : loan.status}
                               </span>
@@ -556,24 +588,45 @@ const MemberDashboard = () => {
                             <p className="text-sm text-muted-foreground font-medium">
                               {loan.duration} months @ {loan.rate}% interest
                             </p>
-                            {loan.grantor && (
-                              <div className="flex items-center gap-2 mt-1">
+                            {loan.grantor1 && (
+                              <div className="flex items-center gap-2 mt-2">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                  Grantor:
+                                  Grantor 1:
                                 </span>
                                 <span className="text-xs font-bold capitalize">
-                                  {loan.grantor.name}
+                                  {loan.grantor1.name}
                                 </span>
                                 <span
                                   className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${
-                                    loan.grantorStatus === 'approved'
+                                    loan.grantor1Status === 'approved'
                                       ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                      : loan.grantorStatus === 'rejected'
+                                      : loan.grantor1Status === 'rejected'
                                         ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
                                         : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                                   }`}
                                 >
-                                  {loan.grantorStatus || 'Pending'}
+                                  {loan.grantor1Status || 'Pending'}
+                                </span>
+                              </div>
+                            )}
+                            {loan.grantor2 && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                  Grantor 2:
+                                </span>
+                                <span className="text-xs font-bold capitalize">
+                                  {loan.grantor2.name}
+                                </span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${
+                                    loan.grantor2Status === 'approved'
+                                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                      : loan.grantor2Status === 'rejected'
+                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                                  }`}
+                                >
+                                  {loan.grantor2Status || 'Pending'}
                                 </span>
                               </div>
                             )}

@@ -111,33 +111,66 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </div>
         )}
 
-        {/* Grantor Status Section */}
-        {loan.grantor && (
+        {/* Grantor 1 Status Section */}
+        {loan.grantor1 && (
           <div className="mt-4 p-4 rounded-xl border border-border/50 bg-muted/30">
             <div className="flex items-center justify-between mb-1">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Grantor Verification
+                Grantor 1 Verification
               </h4>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${
-                  loan.grantorStatus === 'approved'
+                  loan.grantor1Status === 'approved'
                     ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                    : loan.grantorStatus === 'rejected'
+                    : loan.grantor1Status === 'rejected'
                       ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
                       : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                 }`}
               >
-                {loan.grantorStatus || 'Pending'}
+                {loan.grantor1Status || 'Pending'}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <p className="text-sm font-bold capitalize">
-                {loan.grantor?.name || 'Assigned Grantor'}
+                {loan.grantor1?.name || 'Assigned Grantor 1'}
               </p>
-              {loan.grantorApprovedAt && (
+              {loan.grantor1ApprovedAt && (
                 <p className="text-[10px] text-muted-foreground font-medium">
                   Approved on{' '}
-                  {new Date(loan.grantorApprovedAt).toLocaleDateString()}
+                  {new Date(loan.grantor1ApprovedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Grantor 2 Status Section */}
+        {loan.grantor2 && (
+          <div className="mt-4 p-4 rounded-xl border border-border/50 bg-muted/30">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Grantor 2 Verification
+              </h4>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                  loan.grantor2Status === 'approved'
+                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                    : loan.grantor2Status === 'rejected'
+                      ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                      : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                }`}
+              >
+                {loan.grantor2Status || 'Pending'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold capitalize">
+                {loan.grantor2?.name || 'Assigned Grantor 2'}
+              </p>
+              {loan.grantor2ApprovedAt && (
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Approved on{' '}
+                  {new Date(loan.grantor2ApprovedAt).toLocaleDateString()}
                 </p>
               )}
             </div>

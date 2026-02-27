@@ -23,6 +23,7 @@ const updateSystemSettings = async (req, res) => {
       'subscriptionPlans',
       'defaultInterestRate',
       'defaultLoanTerm',
+      'currency',
       'maxLoanLimits',
       'platformName',
       'platformDescription',
@@ -113,6 +114,10 @@ const updateLoanConfiguration = async (req, res) => {
 
     if (req.body.defaultLoanTerm !== undefined) {
       settings.defaultLoanTerm = req.body.defaultLoanTerm;
+    }
+
+    if (req.body.currency !== undefined) {
+      settings.currency = req.body.currency;
     }
 
     settings.updatedBy = req.user._id;

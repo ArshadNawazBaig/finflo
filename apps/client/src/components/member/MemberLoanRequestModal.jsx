@@ -37,14 +37,22 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       principal: '',
       duration: '',
       notes: '',
-      grantorIdentifier: '',
+      grantor1Identifier: '',
+      grantor2Identifier: '',
     },
   });
 
   const [defaultInterestRate, setDefaultInterestRate] = useState(0);
-  const [grantorName, setGrantorName] = useState('');
-  const [isLookingUp, setIsLookingUp] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+
+  const [grantor1Name, setGrantor1Name] = useState('');
+  const [isLookingUp1, setIsLookingUp1] = useState(false);
+  const [isFocused1, setIsFocused1] = useState(false);
+  const [searchResults1, setSearchResults1] = useState([]);
+
+  const [grantor2Name, setGrantor2Name] = useState('');
+  const [isLookingUp2, setIsLookingUp2] = useState(false);
+  const [isFocused2, setIsFocused2] = useState(false);
+  const [searchResults2, setSearchResults2] = useState([]);
   const [currentMember, setCurrentMember] = useState(null);
 
   useEffect(() => {
@@ -74,30 +82,46 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
   const principal = watch('principal');
   const duration = watch('duration');
-  const grantorIdentifier = watch('grantorIdentifier');
+  const grantor1Identifier = watch('grantor1Identifier');
+  const grantor2Identifier = watch('grantor2Identifier');
+  const grantor1Backend = watch('grantor1IdentifierForBackend');
+  const grantor2Backend = watch('grantor2IdentifierForBackend');
 
-  // Auto-lookup grantor
+  // Auto-lookup grantor 1
   useEffect(() => {
-    const lookup = async () => {
-      if (grantorIdentifier && grantorIdentifier.length >= 3) {
-        setIsLookingUp(true);
+    const lookup1 = async () => {
+      // Only lookup if the input doesn't match the already selected name
+      if (
+        grantor1Identifier &&
+        grantor1Identifier.length >= 3 &&
+        !grantor1Backend &&
+        grantor1Identifier !== grantor1Name
+      ) {
+        setIsLookingUp1(true);
         try {
           const memberToken = localStorage.getItem('memberToken');
           const { data } = await api.get(
-            `/members/portal/lookup?identifier=${grantorIdentifier}`,
+            `/members/portal/lookup?identifier=${grantor1Identifier}`,
             { headers: { Authorization: `Bearer ${memberToken}` } },
           );
 
-          // Filter out current member from results
-          const filteredResults = currentMember
+          // Filter out current member
+          let filteredResults = currentMember
             ? data.filter((m) => m._id !== currentMember._id)
             : data;
 
-          setSearchResults(filteredResults);
+          // Filter out Grantor 2 if already typed/selected
+          const g2Val = watch('grantor2Identifier');
+          if (g2Val) {
+            filteredResults = filteredResults.filter(
+              (m) => m.cnic !== g2Val && m.phone !== g2Val && m.name !== g2Val,
+            );
+          }
 
-          // Use digit-only comparison for more robust exact match detection
+          setSearchResults1(filteredResults);
+
           const normalize = (val) => val?.replace(/\D/g, '') || '';
-          const targetDigits = normalize(grantorIdentifier);
+          const targetDigits = normalize(grantor1Identifier);
 
           const exactMatch = filteredResults.find(
             (m) =>
@@ -106,25 +130,108 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           );
 
           if (exactMatch && targetDigits.length >= 11) {
-            setGrantorName(exactMatch.name);
+            setGrantor1Name(exactMatch.name);
           } else {
-            setGrantorName('');
+            setGrantor1Name('');
           }
         } catch (error) {
-          setSearchResults([]);
-          setGrantorName('');
+          setSearchResults1([]);
+          setGrantor1Name('');
         } finally {
-          setIsLookingUp(false);
+          setIsLookingUp1(false);
         }
+      } else if (!grantor1Backend) {
+        setSearchResults1([]);
+        setGrantor1Name('');
       } else {
-        setSearchResults([]);
-        setGrantorName('');
+        setSearchResults1([]);
       }
     };
 
-    const timeoutId = setTimeout(lookup, 400);
-    return () => clearTimeout(timeoutId);
-  }, [grantorIdentifier]);
+    const debounce = setTimeout(() => {
+      lookup1();
+    }, 500);
+    return () => clearTimeout(debounce);
+  }, [
+    grantor1Identifier,
+    grantor1Backend,
+    currentMember,
+    watch('grantor2Identifier'),
+    grantor2Backend,
+  ]);
+
+  // Auto-lookup grantor 2
+  useEffect(() => {
+    const lookup2 = async () => {
+      // Only lookup if the input doesn't match the already selected name
+      if (
+        grantor2Identifier &&
+        grantor2Identifier.length >= 3 &&
+        !grantor2Backend &&
+        grantor2Identifier !== grantor2Name
+      ) {
+        setIsLookingUp2(true);
+        try {
+          const memberToken = localStorage.getItem('memberToken');
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${grantor2Identifier}`,
+            { headers: { Authorization: `Bearer ${memberToken}` } },
+          );
+
+          // Filter out current member
+          let filteredResults = currentMember
+            ? data.filter((m) => m._id !== currentMember._id)
+            : data;
+
+          // Filter out Grantor 1 if already typed/selected
+          const g1Val = watch('grantor1Identifier');
+          if (g1Val) {
+            filteredResults = filteredResults.filter(
+              (m) => m.cnic !== g1Val && m.phone !== g1Val && m.name !== g1Val,
+            );
+          }
+
+          setSearchResults2(filteredResults);
+
+          const normalize = (val) => val?.replace(/\D/g, '') || '';
+          const targetDigits = normalize(grantor2Identifier);
+
+          const exactMatch = filteredResults.find(
+            (m) =>
+              normalize(m.cnic) === targetDigits ||
+              normalize(m.phone) === targetDigits,
+          );
+
+          if (exactMatch && targetDigits.length >= 11) {
+            setGrantor2Name(exactMatch.name);
+          } else {
+            setGrantor2Name('');
+          }
+        } catch (error) {
+          setSearchResults2([]);
+          setGrantor2Name('');
+        } finally {
+          setIsLookingUp2(false);
+        }
+      } else if (!grantor2Backend) {
+        setSearchResults2([]);
+        setGrantor2Name('');
+      } else {
+        setSearchResults2([]);
+      }
+    };
+
+    const debounce = setTimeout(() => {
+      lookup2();
+    }, 500);
+    return () => clearTimeout(debounce);
+  }, [
+    grantor2Identifier,
+    grantor2Backend,
+    currentMember,
+    watch('grantor1Identifier'),
+    grantor1Backend,
+  ]);
 
   // Flat Interest Calculation
   const estimatedMonthlyPayment =
@@ -144,10 +251,27 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       : 0;
 
   const onSubmit = async (data) => {
+    const g1Backend = watch('grantor1IdentifierForBackend');
+    const g2Backend = watch('grantor2IdentifierForBackend');
+
+    const payload = {
+      ...data,
+      grantor1Identifier: g1Backend || data.grantor1Identifier,
+      grantor2Identifier: g2Backend || data.grantor2Identifier,
+    };
+
+    if (payload.grantor1Identifier === payload.grantor2Identifier) {
+      setError('grantor2Identifier', {
+        type: 'manual',
+        message: 'Grantor 1 and Grantor 2 cannot be the same member.',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const memberToken = localStorage.getItem('memberToken');
-      await api.post('/loans/request', data, {
+      await api.post('/loans/request', payload, {
         headers: { Authorization: `Bearer ${memberToken}` },
       });
       toast.success('Loan request submitted successfully!');
@@ -166,7 +290,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-50"
+        className="relative z-[200]"
         onClose={onClose}
         aria-describedby="loan-request-description"
       >
@@ -283,43 +407,58 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-1.5">
-                      <FileText className="w-2.5 h-2.5 text-blue-500" /> Grantor
-                      (Member Phone or CNIC)
+                  <div className="space-y-1.5 relative">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                      <User className="w-3 h-3 text-blue-500" /> Grantor 1
+                      (Member Name, CNIC or Phone)
                     </label>
                     <div className="relative">
                       <input
                         type="text"
-                        {...register('grantorIdentifier', {
-                          required: 'Grantor information is required',
+                        {...register('grantor1Identifier', {
+                          required: 'Grantor 1 information is required',
+                          onChange: () => {
+                            setValue('grantor1IdentifierForBackend', '');
+                            setGrantor1Name('');
+                          },
                         })}
+                        onFocus={() => {
+                          setIsFocused1(true);
+                          setSearchResults2([]);
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setIsFocused1(false);
+                            setSearchResults1([]);
+                          }, 200);
+                        }}
                         autoComplete="off"
-                        className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize"
                         placeholder="Search by Name, CNIC, or Phone"
                       />
-                      {isLookingUp && searchResults.length === 0 && (
+                      {isLookingUp1 && searchResults1.length === 0 && (
                         <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
                           <Loader2 size={10} className="animate-spin" />{' '}
                           Searching...
                         </p>
                       )}
 
-                      {searchResults.length > 0 && !grantorName && (
+                      {searchResults1.length > 0 && !grantor1Name && (
                         <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                          {searchResults.map((member) => (
+                          {searchResults1.map((member) => (
                             <button
                               key={member._id}
                               type="button"
                               onClick={() => {
                                 // Add a small delay to selection to show the click
+                                setValue('grantor1Identifier', member.name);
                                 setValue(
-                                  'grantorIdentifier',
+                                  'grantor1IdentifierForBackend',
                                   member.cnic || member.phone,
                                 );
-                                setGrantorName(member.name);
-                                setTimeout(() => setSearchResults([]), 100);
-                                clearErrors('grantorIdentifier');
+                                setGrantor1Name(member.name);
+                                setTimeout(() => setSearchResults1([]), 100);
+                                clearErrors('grantor1Identifier');
                               }}
                               className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group ${
                                 (() => {
@@ -327,9 +466,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                     v?.replace(/\D/g, '') || '';
                                   return (
                                     norm(member.cnic) ===
-                                      norm(grantorIdentifier) ||
+                                      norm(grantor1Identifier) ||
                                     norm(member.phone) ===
-                                      norm(grantorIdentifier)
+                                      norm(grantor1Identifier)
                                   );
                                 })()
                                   ? 'bg-primary/5 border border-primary/20'
@@ -341,7 +480,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                   <User size={14} />
                                 </div>
                                 <div>
-                                  <p className="text-xs font-black uppercase tracking-tight">
+                                  <p className="text-xs font-black tracking-tight capitalize">
                                     {member.name}
                                   </p>
                                   <p className="text-[10px] text-muted-foreground font-medium">
@@ -354,11 +493,12 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                         </div>
                       )}
 
-                      {!isLookingUp &&
-                        grantorIdentifier &&
-                        grantorIdentifier.length >= 3 &&
-                        searchResults.length === 0 &&
-                        !grantorName && (
+                      {!isLookingUp1 &&
+                        isFocused1 &&
+                        grantor1Identifier &&
+                        grantor1Identifier.length >= 3 &&
+                        searchResults1.length === 0 &&
+                        !grantor1Name && (
                           <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
                             <div className="flex flex-col items-center justify-center gap-2 py-2">
                               <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
@@ -368,24 +508,149 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 No Member Found
                               </p>
                               <p className="text-[9px] text-muted-foreground font-medium text-center px-4">
-                                No member matches "{grantorIdentifier}"
+                                No member matches "{grantor1Identifier}"
                               </p>
                             </div>
                           </div>
                         )}
 
-                      {grantorName && (
+                      {grantor1Name && (
                         <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
                           <User size={10} className="shrink-0" />
                           <span className="text-[10px] font-black uppercase tracking-tighter">
-                            Verified: {grantorName}
+                            Verified: {grantor1Name}
                           </span>
                         </div>
                       )}
                     </div>
-                    {errors.grantorIdentifier && (
+                    {errors.grantor1Identifier && (
                       <p className="text-[10px] text-destructive font-bold ml-1">
-                        {errors.grantorIdentifier.message}
+                        {errors.grantor1Identifier.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 relative">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                      <User className="w-3 h-3 text-blue-500" /> Grantor 2
+                      (Member Name, CNIC or Phone)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        {...register('grantor2Identifier', {
+                          required: 'Grantor 2 information is required',
+                          validate: (value) =>
+                            value !== grantor1Identifier ||
+                            'Grantor 1 and Grantor 2 cannot be the same member.',
+                          onChange: () => {
+                            setValue('grantor2IdentifierForBackend', '');
+                            setGrantor2Name('');
+                          },
+                        })}
+                        onFocus={() => {
+                          setIsFocused2(true);
+                          setSearchResults1([]);
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setIsFocused2(false);
+                            setSearchResults2([]);
+                          }, 200);
+                        }}
+                        autoComplete="off"
+                        className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize"
+                        placeholder="Search by Name, CNIC, or Phone"
+                      />
+                      {isLookingUp2 && searchResults2.length === 0 && (
+                        <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
+                          <Loader2 size={10} className="animate-spin" />{' '}
+                          Searching...
+                        </p>
+                      )}
+
+                      {searchResults2.length > 0 && !grantor2Name && (
+                        <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                          {searchResults2.map((member) => (
+                            <button
+                              key={member._id}
+                              type="button"
+                              onClick={() => {
+                                setValue('grantor2Identifier', member.name);
+                                setValue(
+                                  'grantor2IdentifierForBackend',
+                                  member.cnic || member.phone,
+                                );
+                                setGrantor2Name(member.name);
+                                setTimeout(() => setSearchResults2([]), 100);
+                                clearErrors('grantor2Identifier');
+                              }}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group ${
+                                (() => {
+                                  const norm = (v) =>
+                                    v?.replace(/\D/g, '') || '';
+                                  return (
+                                    norm(member.cnic) ===
+                                      norm(grantor2Identifier) ||
+                                    norm(member.phone) ===
+                                      norm(grantor2Identifier)
+                                  );
+                                })()
+                                  ? 'bg-primary/5 border border-primary/20'
+                                  : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                  <User size={14} />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-black capitalize tracking-tight">
+                                    {member.name}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground font-medium">
+                                    {member.cnic || member.phone}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {!isLookingUp2 &&
+                        isFocused2 &&
+                        grantor2Identifier &&
+                        grantor2Identifier.length >= 3 &&
+                        searchResults2.length === 0 &&
+                        !grantor2Name && (
+                          <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="flex flex-col items-center justify-center gap-2 py-2">
+                              <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
+                                <X size={16} />
+                              </div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                No Member Found
+                              </p>
+                              <p className="text-[9px] text-muted-foreground font-medium text-center px-4">
+                                No member matches "{grantor2Identifier}"
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                      {grantor2Name && (
+                        <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
+                          <User size={10} className="shrink-0" />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">
+                            Verified: {grantor2Name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {errors.grantor2Identifier && (
+                      <p className="text-[10px] text-destructive font-bold ml-1">
+                        {errors.grantor2Identifier.message}
                       </p>
                     )}
                   </div>

@@ -102,7 +102,10 @@ const LoanRequestTable = ({
                 Notes
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Grantor Status
+                Grantor 1
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Grantor 2
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 AI Risk
@@ -192,14 +195,27 @@ const LoanRequestTable = ({
                 <td className="py-4 px-4">
                   <span
                     className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      request.grantorStatus === 'approved'
+                      request.grantor1Status === 'approved'
                         ? 'bg-emerald-500/10 text-emerald-600'
-                        : request.grantorStatus === 'rejected'
+                        : request.grantor1Status === 'rejected'
                           ? 'bg-red-500/10 text-red-600'
                           : 'bg-amber-500/10 text-amber-600'
                     }`}
                   >
-                    {request.grantorStatus || 'pending'}
+                    {request.grantor1Status || 'pending'}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      request.grantor2Status === 'approved'
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : request.grantor2Status === 'rejected'
+                          ? 'bg-red-500/10 text-red-600'
+                          : 'bg-amber-500/10 text-amber-600'
+                    }`}
+                  >
+                    {request.grantor2Status || 'pending'}
                   </span>
                 </td>
                 <td className="py-4 px-4">

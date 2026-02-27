@@ -67,7 +67,9 @@ const Settings = () => {
   );
 
   const isManager = user.isManager && user.role === 'staff';
-  const isAdmin = ['admin', 'Admin'].includes(user.role);
+  const isAdmin = ['admin', 'Admin', 'super_admin', 'staff'].includes(
+    user.role,
+  );
 
   // Modal States
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -146,7 +148,7 @@ const Settings = () => {
     },
   ];
 
-  if (isAdmin) {
+  if (isAdmin || user.role === 'super_admin' || isManager) {
     tabs.push({
       id: 'configuration',
       label: 'Configuration',
@@ -1186,6 +1188,7 @@ const ConfigurationSection = ({ user }) => {
   const [settings, setSettings] = useState({
     defaultInterestRate: 5,
     defaultLoanTerm: 12,
+    currency: 'Rs.',
     platformName: '',
     platformDescription: '',
     supportEmail: '',
@@ -1216,6 +1219,7 @@ const ConfigurationSection = ({ user }) => {
         setSettings({
           defaultInterestRate: data.defaultInterestRate || 5,
           defaultLoanTerm: data.defaultLoanTerm || 12,
+          currency: data.currency || 'Rs.',
           platformName: data.platformName || '',
           platformDescription: data.platformDescription || '',
           supportEmail: data.supportEmail || '',
@@ -1249,6 +1253,15 @@ const ConfigurationSection = ({ user }) => {
           ? '/system-settings'
           : '/system-settings/loan-configuration';
       await api.put(endpoint, settings);
+      // Also update the local user object currency for immediate effect
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          u.currency = settings.currency;
+          localStorage.setItem('user', JSON.stringify(u));
+        }
+      } catch (_) {}
       toast.success('System configuration updated successfully');
     } catch (error) {
       console.error('Failed to update settings:', error);
@@ -1329,6 +1342,42 @@ const ConfigurationSection = ({ user }) => {
             * These defaults are used to calculate estimated EMIs for all new
             loan requests system-wide.
           </p>
+        </div>
+
+        {/* Currency Setting */}
+        <div className="space-y-3 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5">
+          <div>
+            <h4 className="text-sm font-black uppercase tracking-[0.15em] text-foreground">
+              Default Currency
+            </h4>
+            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+              Used across all dashboards, reports, and loan summaries
+              system-wide.
+            </p>
+          </div>
+          <select
+            value={settings.currency}
+            onChange={(e) =>
+              setSettings({ ...settings, currency: e.target.value })
+            }
+            className="w-full max-w-xs px-4 py-2.5 rounded-xl bg-background border border-border/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          >
+            <option value="Rs.">Pakistani Rupee (Rs.)</option>
+            <option value="$">US Dollar ($)</option>
+            <option value="€">Euro (€)</option>
+            <option value="£">British Pound (£)</option>
+            <option value="¥">Japanese Yen (¥)</option>
+            <option value="₹">Indian Rupee (₹)</option>
+            <option value="৳">Bangladeshi Taka (৳)</option>
+            <option value="₦">Nigerian Naira (₦)</option>
+            <option value="KSh">Kenyan Shilling (KSh)</option>
+            <option value="₱">Philippine Peso (₱)</option>
+            <option value="R$">Brazilian Real (R$)</option>
+            <option value="฿">Thai Baht (฿)</option>
+            <option value="₩">South Korean Won (₩)</option>
+            <option value="AED">UAE Dirham (AED)</option>
+            <option value="SAR">Saudi Riyal (SAR)</option>
+          </select>
         </div>
 
         {/* Super Admin Branding Section */}

@@ -115,6 +115,10 @@ const systemSettingsSchema = new mongoose.Schema(
       default: 12,
       min: 1,
     },
+    currency: {
+      type: String,
+      default: 'Rs.',
+    },
     maxLoanLimits: {
       Free: {
         type: Number,
