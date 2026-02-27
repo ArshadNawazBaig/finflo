@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Download,
   Send,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   BarChart,
@@ -247,7 +248,7 @@ const MemberDashboard = () => {
         <MemberDashboardSkeleton />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
             <StatsCard
               title="Main Balance"
               amount={formatCurrency(member?.currentBalance || 0)}
@@ -257,6 +258,12 @@ const MemberDashboard = () => {
                   ? 'bg-rose-500 shadow-rose-500/20'
                   : 'bg-primary shadow-primary/20'
               }
+            />
+            <StatsCard
+              title="Credit Limit"
+              amount={formatCurrency(member?.creditLimit || 0)}
+              icon={<ShieldCheck size={20} />}
+              color="bg-amber-500 shadow-amber-500/20"
             />
             <StatsCard
               title="Total Invested"
@@ -274,7 +281,7 @@ const MemberDashboard = () => {
               title="Active Loans"
               amount={activeLoansCount}
               icon={<FileText size={20} />}
-              color="bg-amber-500 shadow-amber-500/20"
+              color="bg-slate-500 shadow-slate-500/20"
             />
           </div>
 

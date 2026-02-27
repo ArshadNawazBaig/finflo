@@ -22,6 +22,7 @@ const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { sendEmail } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
 const Branch = require('../models/Branch');
+const { updateMemberCreditLimit } = require('../services/creditLimitService');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -828,6 +829,9 @@ const addInvestment = async (req, res) => {
       // Non-fatal, return the deposit success
     }
 
+    // Update member's credit limit
+    await updateMemberCreditLimit(id);
+
     res.status(201).json({ investment, member });
   } catch (error) {
     console.error('Add Investment Error:', error);
@@ -918,6 +922,9 @@ const withdrawInvestment = async (req, res) => {
       },
       req,
     });
+
+    // Update member's credit limit
+    await updateMemberCreditLimit(id);
 
     // ── Notifications ──────────────────────────────────────────────────────
     try {
@@ -2371,6 +2378,9 @@ const addShareInvestment = async (req, res) => {
       req,
     });
 
+    // Update member's credit limit
+    await updateMemberCreditLimit(id);
+
     res.status(201).json({ shareRecord, member });
   } catch (error) {
     console.error('Add Share Investment Error:', error);
@@ -2483,6 +2493,9 @@ const withdrawShareInvestment = async (req, res) => {
       metadata: { memberId: id, amount },
       req,
     });
+
+    // Update member's credit limit
+    await updateMemberCreditLimit(id);
 
     res.status(201).json({ shareRecord, member });
   } catch (error) {
@@ -2681,6 +2694,9 @@ const distributeShareProfit = async (req, res) => {
       } catch (notifError) {
         console.error('Share Profit Notification Error:', notifError);
       }
+
+      // Update credit limit after profit distribution
+      await updateMemberCreditLimit(member._id);
 
       distributions.push(shareRecord);
     }

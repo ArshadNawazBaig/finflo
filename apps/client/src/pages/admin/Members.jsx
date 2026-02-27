@@ -326,7 +326,7 @@ const Members = () => {
             {isMobile ? (
               <InfiniteLoader isFetchingMore={true} />
             ) : (
-              <TableSkeleton rows={limit} columns={5} />
+              <TableSkeleton rows={limit} columns={6} />
             )}
           </div>
         ) : isMobile ? (

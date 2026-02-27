@@ -58,7 +58,8 @@ const MemberProfileSkeleton = () => (
       </div>
       <Skeleton className="h-12 w-32 rounded-full" />
     </div>
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
       <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
       <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
       <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
@@ -739,12 +740,19 @@ const MemberProfile = () => {
       </PageHeader>
 
       {/* Stats Row */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Current Balance"
           amount={formatCurrency(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
           color="bg-primary text-primary border-primary/20"
+          isGlass
+        />
+        <StatsCard
+          title="Loan Eligibility"
+          amount={formatCurrency(member.creditLimit || 0)}
+          icon={<ShieldCheck size={18} />}
+          color="bg-amber-500 text-amber-600 border-amber-500/20"
           isGlass
         />
         <StatsCard

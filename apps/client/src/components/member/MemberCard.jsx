@@ -59,6 +59,20 @@ const MemberCard = ({ member }) => {
           <Calendar size={12} />
           <span>Joined: {new Date(member.createdAt).toLocaleDateString()}</span>
         </div>
+
+        <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
+              Loan Eligibility
+            </span>
+            <span className="text-sm font-black text-amber-600">
+              {formatCurrency(member.creditLimit || 0)}
+            </span>
+          </div>
+          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+            <Shield size={16} />
+          </div>
+        </div>
       </div>
 
       <Link

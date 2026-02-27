@@ -3,9 +3,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 const MemberDashboardSkeleton = () => {
   return (
     <div className="space-y-10 animate-pulse pb-20">
-      {/* ── Stat Cards: 1-col mobile / 2-col sm / 4-col lg ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-        {[1, 2, 3, 4].map((i) => (
+      {/* ── Stat Cards: 1-col mobile / 2-col sm / 5-col lg ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+        {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
             className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm"

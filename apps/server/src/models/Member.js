@@ -48,6 +48,7 @@ const memberSchema = new mongoose.Schema(
     totalProfit: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
     profitRate: { type: Number, default: 0 }, // Custom profit rate if needed
+    creditLimit: { type: Number, default: 0 },
     mustChangePassword: { type: Boolean, default: false },
     passwordChangeCode: { type: String },
     passwordChangeCodeExpire: { type: Date },

@@ -67,6 +67,15 @@ const MemberTable = ({
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
                 Accounts
               </th>
+              <th
+                className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onSort('creditLimit')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  Credit Limit
+                  {renderSortIcon('creditLimit')}
+                </div>
+              </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
                 Active Loans
               </th>
@@ -166,6 +175,9 @@ const MemberTable = ({
                         </span>
                       )}
                   </div>
+                </td>
+                <td className="py-4 px-4 text-right font-bold text-amber-600">
+                  {formatCurrency(member.creditLimit || 0)}
                 </td>
                 <td className="py-4 px-4 text-center">
                   <span className="inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full bg-muted text-xs font-bold text-muted-foreground">

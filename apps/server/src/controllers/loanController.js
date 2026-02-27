@@ -18,6 +18,7 @@ const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
 const { sendEmail } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
+const { updateMemberCreditLimit } = require('../services/creditLimitService');
 
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
@@ -141,6 +142,16 @@ const createLoan = async (req, res) => {
       return res.status(400).json({
         message: 'Customer already has an active loan. Please close it first.',
       });
+    }
+
+    // Credit Limit Enforcement
+    if (customer.memberId) {
+      const member = await Member.findById(customer.memberId);
+      if (member && principal > member.creditLimit) {
+        return res.status(400).json({
+          message: `Loan amount (${principal.toLocaleString()}) exceeds the member's credit limit (${member.creditLimit.toLocaleString()}).`,
+        });
+      }
     }
 
     // Check plan limits
@@ -392,6 +403,13 @@ const requestLoan = async (req, res) => {
     if (existingLoan) {
       return res.status(400).json({
         message: 'You already have an active or pending loan request.',
+      });
+    }
+
+    // Credit Limit Enforcement
+    if (principal > (req.member.creditLimit || 0)) {
+      return res.status(400).json({
+        message: `Loan amount (${principal.toLocaleString()}) exceeds your credit limit (${(req.member.creditLimit || 0).toLocaleString()}).`,
       });
     }
 
@@ -878,6 +896,18 @@ const addRepayment = async (req, res) => {
       }
     } catch (emailError) {
       console.error('Repayment Email Error:', emailError);
+    }
+
+    // If loan is completed and customer is a member, update their credit limit
+    if (loan.status === 'completed' && loan.customer.memberId) {
+      try {
+        await updateMemberCreditLimit(loan.customer.memberId);
+      } catch (limitError) {
+        console.error(
+          'Failed to update credit limit on loan completion:',
+          limitError,
+        );
+      }
     }
 
     res.status(201).json(repayment);

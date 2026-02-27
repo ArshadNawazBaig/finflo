@@ -9,6 +9,7 @@ import {
   DollarSign,
   Clock,
   User,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/lib/utils';
 
 const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -343,6 +345,22 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     <X size={20} />
                   </button>
                 </div>
+
+                {currentMember && (
+                  <div className="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">
+                        Current Loan Eligibility
+                      </p>
+                      <p className="text-lg font-black text-amber-600">
+                        {formatCurrency(currentMember.creditLimit || 0)}
+                      </p>
+                    </div>
+                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                      <ShieldCheck size={20} />
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div className="space-y-1">
