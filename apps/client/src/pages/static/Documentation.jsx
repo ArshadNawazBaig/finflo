@@ -69,7 +69,12 @@ const Documentation = () => {
               and automated reporting, providing everything you need to run a
               successful lending business. Features include a powerful
               <strong className="text-foreground">Member Portal</strong> for
-              comprehensive self-service and account management.
+              comprehensive self-service, account management, and
+              <strong className="text-foreground">
+                {' '}
+                Automated Credit Limits
+              </strong>
+              .
             </p>
           </div>
 
@@ -165,13 +170,15 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-bold flex items-center gap-2 text-indigo-500">
                 <Zap className="w-5 h-5" />
-                Intelligent Risk Engine (ECL)
+                Intelligent Risk & Credit Engine
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                The risk engine calculates Expected Credit Loss (ECL) and AI
-                credit scores in real-time. It analyzes income-to-debt ratios,
-                historical payment velocity, and employment stability to provide
-                dynamic lending suggestions and risk-adjusted interest rates.
+                The risk engine calculates Expected Credit Loss (ECL) and
+                Automated Credit Limits in real-time. It analyzes
+                investment-to-loan ratios, historical payment velocity, and
+                portfolio heath to provide dynamic lending suggestions. Credit
+                limits are automatically recalculated every 24 hours based on
+                active investment balances and repayment scoring.
               </p>
             </div>
 
@@ -192,14 +199,15 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-bold flex items-center gap-2 text-amber-500">
                 <Lock className="w-5 h-5" />
-                Zero-Friction Access Control
+                3-Tier Security Architecture
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Built-in data normalization ensures seamless entry. All
-                sensitive identifiers (Names, Emails) are processed through
-                high-performance lowercase normalization pipelines, eliminating
-                authentication friction while maintaining cryptographic
-                integrity.
+                Security is implemented at three distinct layers: 1. **Business
+                Security Code**: A secondary authorization layer for
+                administrative mutations. 2. **Multi-Factor Authentication
+                (2FA)**: Time-based OTP via authenticator apps for all accounts.
+                3. **Email Verification**: Mandatory verification for all new
+                member and staff registrations.
               </p>
             </div>
           </div>
@@ -309,8 +317,10 @@ const Documentation = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 A dedicated self-service environment for borrowers and
                 investors. Features include real-time portfolio tracking, P2P
-                fund transfers, investment growth analytics, and direct support
-                tickets.
+                fund transfers, investment growth analytics, and Smart Fund
+                Movement. The system automatically intercepts deposits to deduct
+                pending loan installments, ensuring maintaining 0% delinquency
+                for investors.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">

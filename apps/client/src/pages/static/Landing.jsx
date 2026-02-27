@@ -1,6 +1,14 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Users, Layers, Database, Globe, Bell, Shield } from 'lucide-react';
+import {
+  Users,
+  Layers,
+  Database,
+  Globe,
+  Bell,
+  Shield,
+  ShieldCheck,
+} from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 // Navigation is kept non-lazy for immediate interaction
@@ -46,6 +54,13 @@ const Landing = () => {
         description:
           'Advanced portal for borrowers and investors to manage portfolios, track ROI, and execute P2P transfers.',
         color: 'rose',
+      },
+      {
+        icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
+        title: 'Automated Credit Limits',
+        description:
+          'Real-time credit ceiling calculations based on investment balance and repayment history for safer lending.',
+        color: 'emerald',
       },
       {
         icon: <Bell className="w-6 h-6 text-amber-500" />,

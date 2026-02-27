@@ -1,4 +1,4 @@
-# Finance Management SaaS
+# FinFlow - Finance Management SaaS
 
 A comprehensive Finance Management System designed to streamline the lending process for financial institutions. This SaaS application manages the entire loan lifecycle, from customer onboarding and loan issuance to repayment tracking and status management.
 
@@ -6,15 +6,16 @@ A comprehensive Finance Management System designed to streamline the lending pro
 
 - **Dashboard & Analytics**: Real-time overview of active loans, revenue, and customer statistics with modern, interactive charts.
 - **Multi-Branch Infrastructure**: Centralized management with branch-specific staff access and localized branding.
-- **Intelligent Risk Engine**: AI-driven credit scoring based on income, debt, and historical behavior.
+- **Intelligent Risk & Credit Engine**: Automated credit limits and ECL calculations based on investment balance and historical behavior.
 - **Finance Management**:
   - **Issue Loans**: Flexible configuration for loan amount, interest rate, tenure, and repayment frequency.
   - **Repayments**: Track manual payments and update loan balances automatically.
+  - **Smart Fund Movement**: Automatic loan auto-deduction from member deposits to ensure timely repayments.
   - **Status Tracking**: Monitor loans through various stages (Active, Paid, Defaulted, etc.).
 - **Customer & Member Management**:
+  - **Automated Credit Limits**: Real-time ceiling updates based on investment portfolio and repayment history.
   - **Account Types**: Support for multiple account types including **Saving** and **Current** accounts.
   - **KYC & AML Document Vault**: Securely store and manage identification and collateral documents.
-  - **History**: View loan history and repayment behavior for each customer.
 - **Compliance & Security**:
   - **Immutable Audit Trails**: Comprehensive logging of critical actions for regulatory compliance.
   - **Role-Based Access**: Granular permissions for Super Admins, Branch Admins, and Staff.
@@ -22,7 +23,7 @@ A comprehensive Finance Management System designed to streamline the lending pro
 - **Integration**:
   - **File Storage**: Secure document storage integrated with **Cloudinary**.
   - **Payments**: **Stripe** integration for subscription management.
-  - **Notifications**: Automated alerts for approvals and due dates.
+  - **Notifications**: Comprehensive automated alerts for all transaction types and due dates.
 
 ## 🛠 Tech Stack
 

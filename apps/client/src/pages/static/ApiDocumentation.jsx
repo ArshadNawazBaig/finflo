@@ -20,6 +20,7 @@ import {
   Shield,
   ArrowLeft,
   Book,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -135,14 +136,16 @@ const ApiDocumentation = () => {
     { id: 'loans', label: 'Loans', icon: Database },
     { id: 'repayments', label: 'Repayments', icon: CreditCard },
     { id: 'members', label: 'Members', icon: Layout },
-    { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard },
+    { id: 'shares', label: 'Business Shares', icon: Database },
+    { id: 'branches', label: 'Branch Management', icon: Globe },
+    { id: 'staff', label: 'Staff Management', icon: Users },
+    { id: 'goals', label: 'Saving Goals', icon: Target },
+    { id: 'reports', label: 'Regulatory Reports', icon: Book },
+    { id: 'search', label: 'Global Search', icon: Globe },
     { id: 'activity', label: 'Activity Logs', icon: Terminal },
     { id: 'settings', label: 'System Settings', icon: Shield },
-    { id: 'reports', label: 'Reports', icon: Book },
-    { id: 'support', label: 'Support', icon: MessageSquare },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'contact', label: 'Contact', icon: Globe },
-    { id: 'public', label: 'Public API', icon: Globe },
+    { id: 'support', label: 'Support Center', icon: MessageSquare },
   ];
 
   const [user, setUser] = useState(() =>
@@ -420,6 +423,49 @@ const ApiDocumentation = () => {
                       response: { success: true, data: 'Email sent' },
                     }}
                   />
+                  <Endpoint
+                    method="POST"
+                    path="/api/auth/2fa/generate"
+                    description={{
+                      text: 'Generate 2FA secret and QR code (Requires auth).',
+                      response: {
+                        qrCode: 'data:image/png;base64...',
+                        secret: 'ABC...',
+                      },
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/auth/login/verify-2fa"
+                    description={{
+                      text: 'Verify 2FA code during login flow.',
+                      response: { token: 'eyJ...', user: { name: 'John' } },
+                    }}
+                    params={[
+                      {
+                        name: 'code',
+                        type: 'string',
+                        required: true,
+                        desc: '6-digit TOTP code',
+                      },
+                    ]}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/auth/verify-email"
+                    description={{
+                      text: 'Verify email address with code.',
+                      response: { success: true, message: 'Email verified' },
+                    }}
+                    params={[
+                      {
+                        name: 'code',
+                        type: 'string',
+                        required: true,
+                        desc: 'Verification code',
+                      },
+                    ]}
+                  />
                 </>
               )}
 
@@ -429,46 +475,76 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/customers"
                     description={{
-                      text: 'Get all customers with pagination.',
+                      text: 'List all customers with trust ratings and membership status.',
                       response: {
-                        data: [
+                        customers: [
                           {
-                            _id: 'cust_1',
-                            name: 'Alice',
-                            email: 'alice@ex.com',
-                            phone: '+1234567890',
+                            _id: '65c2...',
+                            name: 'Alice Smith',
+                            phone: '+123456789',
+                            trustRating: 8.5,
+                            isMember: true,
+                            memberId: '65c1...',
+                            cnic: '12345-6789012-3',
+                            status: 'Active',
                           },
                         ],
-                        totalEntries: 45,
-                        totalPages: 5,
-                        currentPage: 1,
+                        pagination: { page: 1, total: 100 },
                       },
                     }}
-                    params={[
-                      { name: 'page', type: 'int', desc: 'Page number' },
-                      { name: 'limit', type: 'int', desc: 'Items per page' },
-                      {
-                        name: 'search',
-                        type: 'string',
-                        desc: 'Search by name/email',
-                      },
-                    ]}
                   />
                   <Endpoint
                     method="POST"
                     path="/api/customers"
                     description={{
-                      text: 'Create a new customer.',
+                      text: 'Create a new customer with full KYC details.',
                       response: {
                         _id: 'cust_2',
-                        user: 'user_1',
                         name: 'Bob Smith',
                         email: 'bob@ex.com',
-                        phone: '+0987654321',
-                        address: '123 Main St',
-                        createdAt: '2026-02-11T10:00:00Z',
+                        cnic: '12345-6789012-3',
+                        status: 'Active',
+                        savingAccountNumber: 'SAV-8827361524',
                       },
                     }}
+                    params={[
+                      {
+                        name: 'name',
+                        type: 'string',
+                        required: true,
+                        desc: 'Full Name',
+                      },
+                      {
+                        name: 'email',
+                        type: 'string',
+                        required: true,
+                        desc: 'Contact Email',
+                      },
+                      {
+                        name: 'phone',
+                        type: 'string',
+                        required: true,
+                        desc: 'Phone Number',
+                      },
+                      {
+                        name: 'cnic',
+                        type: 'string',
+                        required: true,
+                        desc: 'National ID (CNIC)',
+                      },
+                      { name: 'job', type: 'string', desc: 'Job/Occupation' },
+                      {
+                        name: 'monthlyIncome',
+                        type: 'number',
+                        desc: 'Monthly income amount',
+                      },
+                      {
+                        name: 'signature',
+                        type: 'string',
+                        required: true,
+                        desc: 'Base64 or URL of signature',
+                      },
+                    ]}
                   />
                   <Endpoint
                     method="GET"
@@ -513,18 +589,24 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/loans"
                     description={{
-                      text: 'Get all loans.',
+                      text: 'List loans with risk assessments and delinquency status.',
                       response: {
-                        data: [
+                        loans: [
                           {
-                            _id: 'loan_1',
-                            customer: { name: 'Alice' },
-                            amount: 5000,
-                            status: 'Active',
+                            _id: '65c4...',
+                            principal: 5000,
+                            rate: 12,
+                            interestType: 'emi',
+                            status: 'active',
+                            riskDetails: {
+                              grade: 'A',
+                              score: 85,
+                              suggestion: 'Approve',
+                            },
+                            lateFeeAmount: 0,
+                            remainingAmount: 4200,
                           },
                         ],
-                        total: 10,
-                        pages: 1,
                       },
                     }}
                   />
@@ -532,15 +614,17 @@ const ApiDocumentation = () => {
                     method="POST"
                     path="/api/loans"
                     description={{
-                      text: 'Create a new loan.',
+                      text: 'Create a new loan application. Now supports interest types and grantor requirements.',
                       response: {
                         _id: 'loan_2',
                         customer: 'cust_1',
-                        amount: 1000,
+                        principal: 1000,
                         term: 12,
                         rate: 5,
-                        status: 'Active',
-                        startDate: '2026-02-11T00:00:00Z',
+                        interestType: 'emi',
+                        status: 'active',
+                        grantor1: 'mem_1',
+                        grantor1Status: 'pending',
                       },
                     }}
                     params={[
@@ -554,7 +638,7 @@ const ApiDocumentation = () => {
                         name: 'amount',
                         type: 'number',
                         required: true,
-                        desc: 'Loan amount',
+                        desc: 'Loan principal amount',
                       },
                       {
                         name: 'term',
@@ -567,6 +651,21 @@ const ApiDocumentation = () => {
                         type: 'number',
                         required: true,
                         desc: 'Interest rate %',
+                      },
+                      {
+                        name: 'interestType',
+                        type: 'string',
+                        desc: 'simple or emi (default: simple)',
+                      },
+                      {
+                        name: 'grantor1',
+                        type: 'string',
+                        desc: 'Member ID of first grantor',
+                      },
+                      {
+                        name: 'grantor2',
+                        type: 'string',
+                        desc: 'Member ID of second grantor',
                       },
                     ]}
                   />
@@ -630,6 +729,30 @@ const ApiDocumentation = () => {
                       },
                     }}
                   />
+                  <Endpoint
+                    method="POST"
+                    path="/api/loans/bulk-approve"
+                    description={{
+                      text: 'Bulk approve selected loans (Admin only).',
+                      response: { success: true, count: 5 },
+                    }}
+                    params={[
+                      {
+                        name: 'ids',
+                        type: 'array',
+                        required: true,
+                        desc: 'Array of loan IDs',
+                      },
+                    ]}
+                  />
+                  <Endpoint
+                    method="PATCH"
+                    path="/api/loans/:id/grantor-status"
+                    description={{
+                      text: 'Update grantor approval for a loan request.',
+                      response: { _id: 'loan_1', grantorStatus: 'Approved' },
+                    }}
+                  />
                 </>
               )}
 
@@ -639,22 +762,26 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/repayments"
                     description={{
-                      text: 'Get repayment history.',
-                      response: [
-                        {
-                          _id: 'pay_1',
-                          loan: { _id: 'loan_1', loanId: 'L-1001' },
-                          amount: 500,
-                          date: '2026-02-01',
-                        },
-                      ],
+                      text: 'List repayments with principal/interest breakdown.',
+                      response: {
+                        repayments: [
+                          {
+                            _id: '65c5...',
+                            amount: 500,
+                            principalAmount: 420,
+                            interestAmount: 80,
+                            installmentNumber: 3,
+                            date: '2026-02-14',
+                          },
+                        ],
+                      },
                     }}
                   />
                   <Endpoint
                     method="POST"
                     path="/api/repayments"
                     description={{
-                      text: 'Record a new repayment.',
+                      text: 'Record a new repayment. If triggered via fund movement deposit, it may auto-deduct from the deposited amount to settle active loan installments.',
                       response: {
                         _id: 'pay_2',
                         loan: 'loan_1',
@@ -692,13 +819,14 @@ const ApiDocumentation = () => {
                     method="GET"
                     path="/api/members"
                     description={{
-                      text: 'Get all members.',
+                      text: 'Get all members including their current credit limits and total invested amounts.',
                       response: [
                         {
                           _id: 'mem_1',
                           user: { name: 'John' },
                           status: 'Active',
                           totalInvested: 10000,
+                          creditLimit: 5000,
                         },
                       ],
                     }}
@@ -806,39 +934,210 @@ const ApiDocumentation = () => {
                       },
                     }}
                   />
+                  <Endpoint
+                    method="GET"
+                    path="/api/members/portal/activity"
+                    description={{
+                      text: 'Get personal activity log for the logged-in member.',
+                      response: { data: [{ action: 'DEPOSIT', amount: 500 }] },
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/members/self-register"
+                    description={{
+                      text: 'Public endpoint for members to register themselves. Requires full KYC data and signature.',
+                      response: {
+                        success: true,
+                        message:
+                          'Registration received, pending admin approval',
+                      },
+                    }}
+                    params={[
+                      {
+                        name: 'name',
+                        type: 'string',
+                        required: true,
+                        desc: 'Full Name',
+                      },
+                      {
+                        name: 'email',
+                        type: 'string',
+                        required: true,
+                        desc: 'Login Email',
+                      },
+                      {
+                        name: 'password',
+                        type: 'string',
+                        required: true,
+                        desc: 'Min 8 characters',
+                      },
+                      {
+                        name: 'cnic',
+                        type: 'string',
+                        required: true,
+                        desc: 'National ID (CNIC)',
+                      },
+                      {
+                        name: 'phone',
+                        type: 'string',
+                        required: true,
+                        desc: 'Phone Number',
+                      },
+                      {
+                        name: 'signature',
+                        type: 'string',
+                        required: true,
+                        desc: 'Signature data',
+                      },
+                    ]}
+                  />
                 </>
               )}
 
-              {activeTab === 'subscriptions' && (
+              {activeTab === 'shares' && (
                 <>
                   <Endpoint
                     method="GET"
-                    path="/api/subscription"
+                    path="/api/members/:id/shares"
                     description={{
-                      text: 'Get current billing info.',
+                      text: 'Get business share investment details for a member. These investments are handled separately from main balances.',
+                      response: [
+                        {
+                          _id: 'sh_1',
+                          amount: 5000,
+                          type: 'Investment',
+                          status: 'Active',
+                        },
+                      ],
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/members/:id/share-invest"
+                    description={{
+                      text: 'Add a new share investment. Does not trigger auto-loan deduction.',
+                      response: { success: true, amount: 1000 },
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/members/distribute-share-profit"
+                    description={{
+                      text: 'Distribute business profits to share holders (Admin only). Profits are added to shareBalance.',
+                      response: { success: true, totalDistributed: 25000 },
+                    }}
+                    params={[
+                      {
+                        name: 'totalAmount',
+                        type: 'number',
+                        required: true,
+                        desc: 'Total amount to distribute',
+                      },
+                      {
+                        name: 'description',
+                        type: 'string',
+                        desc: 'Note for the distribution record',
+                      },
+                    ]}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/members/portal/transfer"
+                    description={{
+                      text: 'P2P Fund Transfer between members. Deducts from sender main balance and adds to recipient main balance.',
+                      response: { success: true, transactionId: 'trx_987' },
+                    }}
+                    params={[
+                      {
+                        name: 'recipientId',
+                        type: 'string',
+                        required: true,
+                        desc: 'Recipient Member ID',
+                      },
+                      {
+                        name: 'amount',
+                        type: 'number',
+                        required: true,
+                        desc: 'Transfer amount',
+                      },
+                      {
+                        name: 'note',
+                        type: 'string',
+                        desc: 'Optional transaction note',
+                      },
+                    ]}
+                  />
+                </>
+              )}
+
+              {activeTab === 'reports' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/reports/ifrs9"
+                    description={{
+                      text: 'Generate IFRS 9 ECL (Expected Credit Loss) report.',
                       response: {
-                        plan: 'Pro',
-                        subscriptionStatus: 'active',
-                        nextBillingDate: '2026-03-01',
-                        invoices: [],
+                        totalECL: 15400,
+                        stages: { 1: 12000, 2: 2000, 3: 1400 },
+                      },
+                    }}
+                  />
+                  <Endpoint
+                    method="GET"
+                    path="/api/reports/basel3"
+                    description={{
+                      text: 'Generate Basel III capital adequacy and risk-weighted assets report.',
+                      response: { car: 12.5, rwa: 5000000 },
+                    }}
+                  />
+                  <Endpoint
+                    method="GET"
+                    path="/api/reports/trial-balance"
+                    description={{
+                      text: 'Generate comprehensive financial trial balance.',
+                      response: {
+                        debits: 1000000,
+                        credits: 1000000,
+                        accounts: [],
                       },
                     }}
                   />
                   <Endpoint
                     method="POST"
-                    path="/api/subscription/create-checkout-session"
+                    path="/api/reports/snapshots"
                     description={{
-                      text: 'Start Stripe checkout.',
-                      response: { url: 'https://checkout.stripe.com/...' },
+                      text: 'Save a regulatory snapshot for audit compliance.',
+                      response: { success: true, snapshotId: 'snap_123' },
                     }}
                   />
+                </>
+              )}
+
+              {activeTab === 'search' && (
+                <>
                   <Endpoint
-                    method="POST"
-                    path="/api/subscription/create-portal-session"
+                    method="GET"
+                    path="/api/search"
                     description={{
-                      text: 'Open Stripe customer portal.',
-                      response: { url: 'https://billing.stripe.com/...' },
+                      text: 'Global search across Customers, Members, and Loans. Accessible by Staff and Members (restricted views).',
+                      response: {
+                        results: {
+                          customers: [],
+                          members: [],
+                          loans: [],
+                        },
+                      },
                     }}
+                    params={[
+                      {
+                        name: 'q',
+                        type: 'string',
+                        required: true,
+                        desc: 'Search query',
+                      },
+                    ]}
                   />
                 </>
               )}
