@@ -13,6 +13,7 @@ import {
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,8 +32,7 @@ import {
 
 const BackupExport = () => {
   const [format, setFormat] = useState('csv');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [exporting, setExporting] = useState({});
 
   const handleExport = async (type, label) => {
@@ -40,8 +40,14 @@ const BackupExport = () => {
       setExporting((prev) => ({ ...prev, [type]: true }));
 
       let url = `/backup/export/${type}?format=${format}`;
-      if (startDate) url += `&startDate=${startDate}`;
-      if (endDate) url += `&endDate=${endDate}`;
+      if (dateRange?.from) {
+        const startStr = new Date(dateRange.from).toISOString().split('T')[0];
+        url += `&startDate=${startStr}`;
+      }
+      if (dateRange?.to) {
+        const endStr = new Date(dateRange.to).toISOString().split('T')[0];
+        url += `&endDate=${endStr}`;
+      }
 
       const response = await api.get(url, {
         responseType: 'blob',
@@ -125,42 +131,27 @@ const BackupExport = () => {
         title="Backup & Data Export"
         description="Accounting-ready financial reports and system backups"
       >
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex items-center gap-3 bg-muted/50 p-2 px-4 rounded-xl border border-border/50">
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1 mb-1">
-                From
-              </span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent border-none text-sm font-semibold focus:outline-none"
-              />
-            </div>
-            <div className="w-px h-8 bg-border/50 mx-2" />
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1 mb-1">
-                To
-              </span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent border-none text-sm font-semibold focus:outline-none"
-              />
-            </div>
-          </div>
+        <div className="flex flex-col sm:flex-row items-end gap-4">
+          <DateRangePicker
+            date={dateRange}
+            setDate={setDateRange}
+            className="border rounded-[20px] overflow-hidden"
+          />
 
-          <Select value={format} onValueChange={setFormat}>
-            <SelectTrigger className="w-[140px] rounded-xl font-bold">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="csv">CSV Format</SelectItem>
-              <SelectItem value="json">JSON Format</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1 mb-2">
+              Export Format
+            </span>
+            <Select value={format} onValueChange={setFormat}>
+              <SelectTrigger className="w-[200px] h-[50px] rounded-full font-medium bg-card border-border/50 shadow-sm hover:shadow-md transition-all">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-border/50 bg-card/95 backdrop-blur-md">
+                <SelectItem value="csv">CSV (Excel Ready)</SelectItem>
+                <SelectItem value="json">JSON (Data Migration)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </PageHeader>
 
