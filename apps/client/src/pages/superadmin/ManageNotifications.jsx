@@ -430,7 +430,7 @@ const ManageNotifications = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
-              <AlertDialogCancel className="w-full rounded-2xl border-none bg-muted h-12 font-black uppercase tracking-widest text-[10px] hover:bg-muted/80">
+              <AlertDialogCancel className="w-full rounded-2xl border-none bg-muted h-12 font-black uppercase tracking-widest text-[10px] hover:bg-muted/80 hover:text-primary">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction

@@ -162,21 +162,26 @@ const getRevenueHistory = async (req, res) => {
     const history = [];
     let now = new Date();
 
-    // Check if we have newer payments (in case server time is behind or data is future-dated)
+    // Fetch plan prices from settings for MRR projection
+    const settings = await SystemSettings.getSettings();
+    const planPrices = {};
+    settings.subscriptionPlans.forEach((plan) => {
+      planPrices[plan.name] = plan.price;
+    });
+
+    // Check if we have newer payments
     const latestPayment = await Payment.findOne().sort({ date: -1 });
     if (latestPayment && latestPayment.date > now) {
       now = latestPayment.date;
     }
 
-    // Fetch real payment data grouped by month
-
-    // Fetch real payment data grouped by month
     const startOfPeriod = new Date(
       now.getFullYear(),
       now.getMonth() - parseInt(months) + 1,
       1,
     );
 
+    // Fetch real payment data grouped by month
     const revenueByMonth = await Payment.aggregate([
       {
         $match: {
@@ -188,24 +193,17 @@ const getRevenueHistory = async (req, res) => {
         $group: {
           _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
           revenue: { $sum: '$amount' },
-          count: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
 
-    // Create a map for easy lookup
     const revenueMap = {};
     revenueByMonth.forEach((item) => {
       revenueMap[item._id] = item.revenue;
     });
 
-    // We still want user counts for history, so keep the User aggregation or estimate it
-    // For simplicity and performance, we'll iterate months as before but pull revenue from Map
-    // and recalculate users (or keep the user logic as is for user count history)
-
     for (let i = parseInt(months) - 1; i >= 0; i--) {
-      // Use UTC construction to avoid timezone shifts (e.g. Feb 1 00:00 Local -> Jan 31 UTC)
       const monthDate = new Date(
         Date.UTC(now.getFullYear(), now.getMonth() - i, 1),
       );
@@ -214,16 +212,24 @@ const getRevenueHistory = async (req, res) => {
       );
       const monthKey = monthDate.toISOString().slice(0, 7);
 
-      const usersInMonth = await User.countDocuments({
-        role: { $ne: 'super_admin' },
+      // Get users who existed during/before this month and are active or recently updated
+      // This is an estimation for historical MRR
+      const usersInMonth = await User.find({
+        role: 'admin',
         createdAt: { $lt: nextMonth },
-        $or: [{ isActive: true }, { updatedAt: { $gte: monthDate } }],
+        isActive: true,
+      });
+
+      let estimatedMrr = 0;
+      usersInMonth.forEach((u) => {
+        estimatedMrr += planPrices[u.plan] || 0;
       });
 
       history.push({
         month: monthKey,
         revenue: revenueMap[monthKey] || 0,
-        users: usersInMonth,
+        estimatedMrr: estimatedMrr,
+        users: usersInMonth.length,
       });
     }
 

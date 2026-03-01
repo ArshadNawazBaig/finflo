@@ -176,7 +176,12 @@ const RevenueReports = () => {
                 />
                 <p className="text-xs font-bold">
                   <span className="text-muted-foreground font-medium mr-1">
-                    {entry.name === 'revenue' ? 'Revenue:' : entry.name}:
+                    {entry.name === 'revenue'
+                      ? 'Revenue:'
+                      : entry.name === 'estimatedMrr'
+                        ? 'Projected:'
+                        : entry.name}
+                    :
                   </span>
                   ${entry.value?.toLocaleString()}
                 </p>
@@ -328,12 +333,23 @@ const RevenueReports = () => {
                       />
                       <Area
                         type="monotone"
+                        dataKey="estimatedMrr"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        fill="transparent"
+                        animationDuration={2000}
+                        name="estimatedMrr"
+                      />
+                      <Area
+                        type="monotone"
                         dataKey="revenue"
                         stroke="#3b82f6"
                         strokeWidth={4}
                         fillOpacity={1}
                         fill="url(#colorRevenue)"
                         animationDuration={2000}
+                        name="revenue"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
