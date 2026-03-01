@@ -10,3 +10,14 @@ export const statsAtom = atom({
   customers: 0,
   activeLoans: 0,
 });
+
+export const subscriptionAtom = atom({
+  plan: 'Free',
+  usage: {
+    loans: 0,
+    members: 0,
+    branches: 0,
+  },
+  limits: null,
+  loading: true,
+});

@@ -10,11 +10,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { cn, validateEmail } from '@/lib/utils';
+import { Copy, CheckCircle2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { validateEmail } from '@/lib/utils';
 
 const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -25,6 +25,8 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     branchId: '',
     roleRef: '',
   });
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [successData, setSuccessData] = useState(null);
   const [branches, setBranches] = useState([]);
   const [roles, setRoles] = useState([]);
 
@@ -63,7 +65,15 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     };
     try {
       await api.post('/staff', payload);
-      setFormData({ name: '', email: '', password: '', branchId: '' });
+      setSuccessData({ email: payload.email, password: payload.password });
+      setIsSuccess(true);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        branchId: '',
+        roleRef: '',
+      });
       onSuccess();
     } catch (error) {
       const message =
@@ -88,118 +98,193 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label
-              htmlFor="name"
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
-            >
-              Full Name
-            </Label>
-            <Input
-              id="name"
-              placeholder="Enter name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="rounded-xl border-border/50"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
-            >
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="rounded-xl border-border/50"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label
-              htmlFor="password"
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
-            >
-              Password
-            </Label>
-            <PasswordInput
-              id="password"
-              placeholder="Create password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={8}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label
-              htmlFor="branchId"
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
-            >
-              Assign Branch
-            </Label>
-            <select
-              id="branchId"
-              value={formData.branchId}
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">No Branch (Global Access)</option>
-              {branches.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label
-              htmlFor="roleRef"
-              className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
-            >
-              Assign Role (Optional)
-            </Label>
-            <select
-              id="roleRef"
-              value={formData.roleRef}
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">Standard Staff</option>
-              {roles.map((r) => (
-                <option key={r._id} value={r._id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {isSuccess ? (
+          <div className="py-6 space-y-6 flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-in zoom-in-50 duration-500">
+              <CheckCircle2 className="w-8 h-8 text-primary" />
+            </div>
 
-          <DialogFooter className="pt-4 gap-2 sm:gap-0">
+            <div className="text-center space-y-1">
+              <h3 className="font-black text-lg">Staff Member Created!</h3>
+              <p className="text-xs text-muted-foreground px-4">
+                Please share these credentials with them. They will be forced to
+                change their password on first login.
+              </p>
+            </div>
+
+            <div className="w-full space-y-3 px-2">
+              <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
+                    Email Address
+                  </Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs font-bold break-all">
+                      {successData?.email}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 hover:bg-background"
+                      onClick={() => {
+                        navigator.clipboard.writeText(successData?.email);
+                        toast.success('Email copied');
+                      }}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
+                    Temporary Password
+                  </Label>
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs font-bold break-all">
+                      {successData?.password}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 hover:bg-background"
+                      onClick={() => {
+                        navigator.clipboard.writeText(successData?.password);
+                        toast.success('Password copied');
+                      }}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="rounded-full px-6 text-xs font-bold"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
+              onClick={() => {
+                setIsSuccess(false);
+                onClose();
+              }}
               variant="gradient"
-              isLoading={loading}
-              className="rounded-full px-8 text-xs font-black uppercase tracking-wider"
+              className="w-full rounded-full h-12 font-black text-[11px] uppercase tracking-widest"
             >
-              Create Staff
+              Done & Close
             </Button>
-          </DialogFooter>
-        </form>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="name"
+                className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+              >
+                Full Name
+              </Label>
+              <Input
+                id="name"
+                placeholder="Enter name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="rounded-xl border-border/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+              >
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="rounded-xl border-border/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="password"
+                className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+              >
+                Password
+              </Label>
+              <PasswordInput
+                id="password"
+                placeholder="Create password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={8}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="branchId"
+                className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+              >
+                Assign Branch
+              </Label>
+              <select
+                id="branchId"
+                value={formData.branchId}
+                onChange={handleChange}
+                className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">No Branch (Global Access)</option>
+                {branches.map((b) => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="roleRef"
+                className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+              >
+                Assign Role (Optional)
+              </Label>
+              <select
+                id="roleRef"
+                value={formData.roleRef}
+                onChange={handleChange}
+                className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Standard Staff</option>
+                {roles.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <DialogFooter className="pt-4 gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="rounded-full px-6 text-xs font-bold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="gradient"
+                isLoading={loading}
+                className="rounded-full px-8 text-xs font-black uppercase tracking-wider"
+              >
+                Create Staff
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

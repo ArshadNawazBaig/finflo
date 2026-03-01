@@ -558,7 +558,7 @@ const Branches = () => {
                           className="rounded-lg"
                         >
                           <div className="flex flex-col py-0.5">
-                            <span className="font-bold text-sm">
+                            <span className="font-bold text-sm capitalize">
                               {member.name}
                             </span>
                             <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">

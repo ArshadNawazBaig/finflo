@@ -29,6 +29,7 @@ import {
 import api from '@/lib/axios';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
   const [formData, setFormData] = useState({

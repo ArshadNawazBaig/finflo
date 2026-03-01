@@ -308,7 +308,7 @@ const ProfileSection = ({
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            /* Auth header handled by browser cookies */,
+            /* Auth header handled by browser cookies */
           },
         },
       );
@@ -394,7 +394,7 @@ const ProfileSection = ({
                         '/member-auth/deleteprofilepicture',
                         {
                           headers: {
-                            /* Auth header handled by browser cookies */,
+                            /* Auth header handled by browser cookies */
                           },
                         },
                       );

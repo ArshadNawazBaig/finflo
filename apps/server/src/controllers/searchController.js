@@ -30,13 +30,10 @@ const globalSearch = async (req, res) => {
     if (user) {
       const isSuperAdmin = user.role === 'super_admin';
       const isAdmin = user.role === 'admin' || isSuperAdmin;
-      const isManager = user.role === 'staff' && user.isManager;
-      const effectiveOwnerId = user.effectiveOwnerId;
-      const branchId = user.branchId;
-
+      const branchScope = user.managedBranchId || user.branchId;
       const scope = { user: effectiveOwnerId };
-      if (isManager && branchId) {
-        scope.branchId = branchId;
+      if (user.role === 'staff') {
+        if (branchScope) scope.branchId = branchScope;
       }
 
       // 1. Search Customers
@@ -88,12 +85,17 @@ const globalSearch = async (req, res) => {
       // 3. Search Loans
       const loans = await Loan.find({
         user: effectiveOwnerId,
-        ...(isManager && branchId ? { branchId } : {}), // Loan might not have branchId directly, checking Customer instead if needed
+        ...(user.role === 'staff' && branchScope
+          ? { branchId: branchScope }
+          : {}),
         // Most loans index by customer. Let's find customers first if we want branch scoping accurately for loans
       })
         .populate({
           path: 'customer',
-          match: isManager && branchId ? { branchId } : {},
+          match:
+            user.role === 'staff' && branchScope
+              ? { branchId: branchScope }
+              : {},
         })
         .limit(20); // Fetch more to filter populated
 

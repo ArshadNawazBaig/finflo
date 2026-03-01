@@ -23,10 +23,7 @@ const registerValidation = [
     .withMessage('Name is required')
     .isLength({ min: 2 })
     .withMessage('Name must be at least 2 characters'),
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email address')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Please provide a valid email address'),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long'),
@@ -34,10 +31,7 @@ const registerValidation = [
 ];
 
 const loginValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email address')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Please provide a valid email address'),
   body('password').notEmpty().withMessage('Password is required'),
   validate,
 ];
@@ -100,10 +94,7 @@ const savingGoalContributionValidation = [
 const memberValidation = [
   body('name').optional().trim(),
 
-  body('email')
-    .isEmail()
-    .withMessage('Valid email is required')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Valid email is required'),
   body('phone').notEmpty().withMessage('Phone number is required'),
   body('cnic')
     .notEmpty()
@@ -116,10 +107,7 @@ const memberValidation = [
 // Customer Validations
 const customerValidation = [
   body('name').trim().notEmpty().withMessage('Full name is required'),
-  body('email')
-    .isEmail()
-    .withMessage('Valid email is required')
-    .normalizeEmail(),
+  body('email').isEmail().withMessage('Valid email is required'),
   body('phone').notEmpty().withMessage('Phone number is required'),
   body('cnic')
     .notEmpty()

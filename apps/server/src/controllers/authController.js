@@ -15,7 +15,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('./activityLogController');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/email');
 const {
   verificationEmail,
   passwordResetEmail,
@@ -77,9 +77,8 @@ const registerUser = async (req, res) => {
       if (!isSuperAdmin) {
         try {
           await sendEmail({
-            email: user.email,
+            to: user.email,
             subject: 'Action Required: Verify Your Email',
-            message: `Your verification code is: ${verificationCode}`,
             html: verificationEmail(verificationCode),
           });
         } catch (err) {
@@ -411,9 +410,8 @@ const forgotPassword = async (req, res) => {
 
     try {
       await sendEmail({
-        email: user.email,
+        to: user.email,
         subject: 'Action Required: Reset Your Security Credentials',
-        message: `Reset your password here: ${resetUrl}`,
         html: passwordResetEmail(resetUrl),
       });
 
@@ -561,9 +559,8 @@ const resendVerificationCode = async (req, res) => {
     await user.save();
 
     await sendEmail({
-      email: user.email,
+      to: user.email,
       subject: 'Action Required: New Verification Code',
-      message: `Your new verification code is: ${verificationCode}`,
       html: verificationEmail(verificationCode),
     });
 
@@ -875,8 +872,6 @@ const requestPasswordChangeCode = async (req, res) => {
 
     // Send Email
     try {
-      const { verificationEmail } = require('../utils/emailTemplates');
-      const { sendEmail } = require('../utils/email');
       const emailSent = await sendEmail({
         to: user.email,
         subject: 'Security Code for Password Change',

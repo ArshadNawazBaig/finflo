@@ -81,7 +81,19 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Debug log for EVERY request with an origin
     if (origin) console.log(`CORS Preflight/Request from origin: ${origin}`);
-    if (!origin || allowedOrigins.includes(origin)) {
+
+    // Check if origin is allowed
+    const isAllowed =
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      (process.env.NODE_ENV !== 'production' &&
+        (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+          /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
+          /^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(
+            origin,
+          )));
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

@@ -15,9 +15,17 @@ const logActivity = async ({
     const ipAddress = req?.ip || req?.connection?.remoteAddress || 'unknown';
     const userAgent = req?.get('user-agent') || 'unknown';
 
+    // Robust branchId extraction
+    const branchId =
+      req?.user?.branchId ||
+      req?.member?.branchId ||
+      metadata?.branchId ||
+      req?.user?.managedBranchId || // Added as a fallback for managers
+      null;
+
     await ActivityLog.create({
       user: userId || null,
-      branchId: req?.user?.branchId || null,
+      branchId,
       action,
       category,
       details,
@@ -46,26 +54,33 @@ const getAllActivityLogs = async (req, res) => {
     // Build query
     let query = {};
 
-    // Branch Segregation: Staff/Managers only see their own branch logs
+    // Branch Segregation & Role-based Filtering
     if (req.user.role === 'staff') {
-      if (req.user.isManager && req.user.managedBranchId) {
-        // Managers see all logs from their managed branch
-        query.branchId = req.user.managedBranchId;
-      } else if (req.user.branchId) {
-        // Regular staff see their own branch logs
-        query.branchId = req.user.branchId;
+      // Staff/Managers only see their branch's activity
+      const effectiveBranchId = req.user.managedBranchId || req.user.branchId;
+      if (effectiveBranchId) {
+        query.branchId = effectiveBranchId;
       }
-    }
+    } else if (req.user.role === 'admin') {
+      // Admins (Owners) see all activity for their business branches
+      const Branch = require('../models/Branch');
+      const myBranches = await Branch.find({ owner: req.user._id }).select(
+        '_id',
+      );
+      const branchIds = myBranches.map((b) => b._id);
 
-    // Filter by effectiveOwnerId for regular admins
-    if (req.user.role === 'admin') {
-      // Find all user IDs belonging to this admin (self + staff)
+      // Also include actions done by them/their staff that might not have a branchId
       const team = await User.find({
         $or: [{ _id: req.user._id }, { ownerId: req.user._id }],
       }).select('_id');
       const teamIds = team.map((t) => t._id);
-      query.user = { $in: teamIds };
+
+      query.$or = [
+        { branchId: { $in: branchIds } },
+        { user: { $in: teamIds } },
+      ];
     }
+    // super_admin sees everything (query stays empty)
 
     // Category filter
     if (category) {

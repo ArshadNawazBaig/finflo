@@ -387,14 +387,11 @@ const forgotPassword = async (req, res) => {
 
     const resetUrl = `${clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl}/member/reset-password/${resetToken}`;
 
-    const sendEmail = require('../utils/sendEmail');
-    const { passwordResetEmail } = require('../utils/emailTemplates');
-
     try {
+      const { sendEmail } = require('../utils/email');
       await sendEmail({
-        email: member.email,
+        to: member.email,
         subject: 'Reset Your Member Portal Password',
-        message: `Reset your password here: ${resetUrl}`,
         html: passwordResetEmail(resetUrl),
       });
 
@@ -680,8 +677,6 @@ const requestMemberPasswordChangeCode = async (req, res) => {
 
     // Send Email
     try {
-      const { verificationEmail } = require('../utils/emailTemplates');
-      const { sendEmail } = require('../utils/email');
       const emailSent = await sendEmail({
         to: member.email,
         subject: 'Security Code for Password Change',

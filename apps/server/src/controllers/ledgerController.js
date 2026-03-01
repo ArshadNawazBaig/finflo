@@ -31,9 +31,10 @@ const getLedger = async (req, res) => {
       };
     }
 
-    // Branch Segregation
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation: Staff/Managers only see their branch data
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     if (type) query.type = type;
@@ -119,8 +120,9 @@ const exportLedgerExcel = async (req, res) => {
       };
     }
 
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     if (type) query.type = type;

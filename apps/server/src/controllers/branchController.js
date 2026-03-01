@@ -203,20 +203,28 @@ const updateBranch = async (req, res) => {
     }
 
     // If manager changed (admin only), update users
-    const currentManagerId =
-      branch.manager?._id?.toString() || branch.manager?.toString();
-    if (isOwner && managerId !== undefined && currentManagerId !== managerId) {
+    const currentManagerId = branch.manager?.toString();
+    const newManagerId =
+      managerId === 'none' || managerId === '' ? null : managerId || null;
+
+    if (
+      isOwner &&
+      managerId !== undefined &&
+      currentManagerId !== (newManagerId?.toString() || null)
+    ) {
+      // Remove branchId from old manager if they existed
       if (currentManagerId) {
         await User.findByIdAndUpdate(currentManagerId, {
           $unset: { branchId: 1 },
         });
       }
-      if (managerId) {
-        await User.findByIdAndUpdate(managerId, { branchId: branch._id });
+      // Add branchId to new manager if they exist
+      if (newManagerId) {
+        await User.findByIdAndUpdate(newManagerId, { branchId: branch._id });
         try {
           const Notification = require('../models/Notification');
           await new Notification({
-            recipient: managerId,
+            recipient: newManagerId,
             recipientModel: 'User',
             title: 'Branch Assignment',
             message: `You have been assigned as the manager for branch: ${branch.name}`,
@@ -234,7 +242,7 @@ const updateBranch = async (req, res) => {
     branch.address = address || branch.address;
     branch.contactNumber = contactNumber || branch.contactNumber;
     if (isOwner) {
-      branch.manager = managerId !== undefined ? managerId : branch.manager;
+      branch.manager = managerId !== undefined ? newManagerId : branch.manager;
       branch.isActive = isActive !== undefined ? isActive : branch.isActive;
     }
 

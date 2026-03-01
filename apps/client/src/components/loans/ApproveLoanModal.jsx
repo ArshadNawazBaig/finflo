@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Loader2, Percent, Calendar } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -17,6 +17,7 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -26,6 +27,22 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
       startDate: new Date().toISOString().split('T')[0],
     },
   });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (loan?.rate === 0) {
+        try {
+          const { data } = await api.get('/system-settings');
+          if (data?.defaultInterestRate) {
+            setValue('rate', data.defaultInterestRate);
+          }
+        } catch (error) {
+          console.error('Failed to fetch settings', error);
+        }
+      }
+    };
+    fetchSettings();
+  }, [loan, setValue]);
 
   const onSubmit = async (data) => {
     setLoading(true);

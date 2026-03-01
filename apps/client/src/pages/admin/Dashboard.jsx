@@ -111,12 +111,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [chartLoading, setChartLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [userRole, setUserRole] = useState('');
-  const [userPlan, setUserPlan] = useState('Free');
-  const [loanCount, setLoanCount] = useState(0);
-  const [memberCount, setMemberCount] = useState(0);
-  const [branchCount, setBranchCount] = useState(0);
-  const [planLimits, setPlanLimits] = useState(null);
   const [userName, setUserName] = useState('admin');
   const [isManager, setIsManager] = useState(false);
   const [branchName, setBranchName] = useState('');
@@ -129,10 +123,6 @@ const Dashboard = () => {
 
   const canViewReports = hasPermission('view_reports');
   const canManageLoans = hasAnyPermission(['manage_loans', 'create_loan']);
-  const canManageMembers = hasAnyPermission([
-    'manage_members',
-    'create_member',
-  ]);
   const canViewDashboard = hasAnyPermission([
     'view_reports',
     'manage_loans',
@@ -157,26 +147,14 @@ const Dashboard = () => {
         params.endDate = dateRange.to.toISOString();
       }
 
-      const [statsRes, upcomingRes, billingRes] = await Promise.all([
+      const [statsRes, upcomingRes] = await Promise.all([
         api.get('/dashboard/stats', { params }),
         api.get('/loans/upcoming'),
-        api.get('/subscription'),
       ]);
 
       setStats(statsRes.data.stats);
       setAnalyticsData(statsRes.data.analyticsData || []);
       setUpcomingPayments(upcomingRes.data);
-
-      const billingData = billingRes.data;
-      setUserPlan(billingData.plan || 'Free');
-      setLoanCount(
-        billingData.usage?.loans ||
-          statsRes.data.stats?.activeLoans?.count ||
-          0,
-      );
-      setMemberCount(billingData.usage?.members || 0);
-      setBranchCount(billingData.usage?.branches || 0);
-      setPlanLimits(billingData.limits || null);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
       toast.error('Failed to update dashboard data');
@@ -189,7 +167,6 @@ const Dashboard = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user?.name) setUserName(user.name);
-    if (user?.role) setUserRole(user.role);
 
     // Detect branch manager and resolve branch name
     const managerFlag = user?.isManager === true;
@@ -253,7 +230,7 @@ const Dashboard = () => {
             <strong className="text-foreground capitalize font-black">
               {capitalize(userName)}
             </strong>
-            . Here's your portfolio performance.
+            . Here&apos;s your portfolio performance.
           </>
         }
       />
@@ -276,7 +253,7 @@ const Dashboard = () => {
               )}
             </div>
             <p className="text-sm font-semibold text-foreground/80 mt-0.5">
-              You're viewing data for your assigned branch only.{' '}
+              You&apos;re viewing data for your assigned branch only.{' '}
               {branchName && (
                 <span className="font-black text-teal-600 dark:text-teal-400">
                   {branchName}
@@ -287,69 +264,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {!loading &&
-        userRole === 'admin' &&
-        userPlan !== 'Pro' &&
-        (() => {
-          const limits = {
-            loans: planLimits?.loans ?? (userPlan === 'Basic' ? 50 : 5),
-            members: planLimits?.members ?? (userPlan === 'Basic' ? 3 : 1),
-            branches: planLimits?.branches ?? (userPlan === 'Basic' ? 3 : 1),
-          };
-          const lu = Math.min(100, (loanCount / limits.loans) * 100);
-          const mu = Math.min(100, (memberCount / limits.members) * 100);
-          const bu = Math.min(
-            100,
-            (branchCount / (limits.branches || 1)) * 100,
-          );
-          if (lu < 80 && mu < 80 && bu < 80) return null;
-          const isAtLimit = lu >= 100 || mu >= 100 || bu >= 100;
-          const primaryMetric =
-            bu >= 80 ? 'branches' : mu >= 80 ? 'members' : 'loans';
-          const current =
-            bu >= 80 ? branchCount : mu >= 80 ? memberCount : loanCount;
-          const limit =
-            bu >= 80
-              ? limits.branches
-              : mu >= 80
-                ? limits.members
-                : limits.loans;
-          const usagePct = bu >= 80 ? bu : mu >= 80 ? mu : lu;
-          return (
-            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-4 sm:p-6 flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
-              <div className="flex-1">
-                <h3 className="text-lg font-black text-foreground mb-1">
-                  {isAtLimit ? 'Plan Limit Reached' : 'Approaching Plan Limit'}
-                </h3>
-                <p className="text-sm text-muted-foreground font-medium mb-3">
-                  You're using{' '}
-                  <strong className="text-foreground">
-                    {current} of {limit}
-                  </strong>{' '}
-                  {primaryMetric} on your {userPlan} plan.
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 max-w-md">
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-1000"
-                        style={{ width: `${usagePct}%` }}
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => navigate('/billing')}
-                    variant="gradient"
-                    className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
-                  >
-                    Upgrade Now
-                  </Button>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
 
       {/* ── Overdue Alert ─────────────────────────────────────── */}
       {!loading && overdueCount > 0 && canViewReports && (

@@ -123,6 +123,7 @@ const initiateExternalTransfer = async (req, res) => {
         message: `${member.name} sent Rs. ${transferAmount.toLocaleString()} to ${bankName} (${accountIdentifier}).`,
         type: 'warning',
         branchId,
+        ownerId: userId,
         metadata: {
           memberId,
           bankName,
@@ -287,6 +288,7 @@ const recordExternalReceive = async (req, res) => {
         message: `${member.name} recorded an incoming transfer of Rs. ${receiveAmount.toLocaleString()} from ${bankName}.`,
         type: 'success',
         branchId,
+        ownerId: userId,
         metadata: {
           memberId,
           bankName,
