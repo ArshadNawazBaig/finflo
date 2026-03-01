@@ -331,20 +331,24 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
           />
           {hasPermission('system_settings') && (
             <>
-              <NavItem
-                to="/pricing"
-                icon={<Gem size={18} />}
-                active={isActive('/pricing')}
-                label="Pricing"
-                isExpanded={isLayoutExpanded}
-              />
-              <NavItem
-                to="/billing"
-                icon={<CreditCard size={18} />}
-                active={isActive('/billing')}
-                label="Billing"
-                isExpanded={isLayoutExpanded}
-              />
+              {user.role === 'admin' && (
+                <>
+                  <NavItem
+                    to="/pricing"
+                    icon={<Gem size={18} />}
+                    active={isActive('/pricing')}
+                    label="Pricing"
+                    isExpanded={isLayoutExpanded}
+                  />
+                  <NavItem
+                    to="/billing"
+                    icon={<CreditCard size={18} />}
+                    active={isActive('/billing')}
+                    label="Billing"
+                    isExpanded={isLayoutExpanded}
+                  />
+                </>
+              )}
             </>
           )}
 

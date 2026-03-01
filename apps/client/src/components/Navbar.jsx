@@ -286,7 +286,11 @@ const Navbar = ({ onMenuClick }) => {
                   )}
                 </div>
                 <Link
-                  to="/notifications"
+                  to={
+                    user.role === 'super_admin'
+                      ? '/super-admin/notifications'
+                      : '/notifications'
+                  }
                   className="p-5 bg-muted/10 border-t border-border/10 text-center text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:bg-primary/5 transition-all block"
                   onClick={() => setShowNotifications(false)}
                 >

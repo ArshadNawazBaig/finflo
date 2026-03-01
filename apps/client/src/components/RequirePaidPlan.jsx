@@ -9,16 +9,29 @@ const RequirePaidPlan = () => {
   const plan = user.plan || 'Free';
 
   if (plan === 'Free') {
-    return (
-      <Navigate
-        to="/billing"
-        replace
-        state={{
-          upgradePrompt:
-            'Support is available on Basic and Pro plans. Upgrade to access priority support.',
-        }}
-      />
-    );
+    if (user.role === 'admin') {
+      return (
+        <Navigate
+          to="/billing"
+          replace
+          state={{
+            upgradePrompt:
+              'Support is available on Basic and Pro plans. Upgrade to access priority support.',
+          }}
+        />
+      );
+    } else {
+      return (
+        <Navigate
+          to="/dashboard"
+          replace
+          state={{
+            error:
+              'This feature requires a paid plan. Please contact your administrator to upgrade.',
+          }}
+        />
+      );
+    }
   }
 
   return <Outlet />;

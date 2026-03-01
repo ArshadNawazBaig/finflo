@@ -102,10 +102,40 @@ const getMyNotifications = async (req, res) => {
 
     const query = { recipient: recipientId };
 
-    // Search logic
+    // Super Admin Filter: Only show business and support related notifications
+    if (req.user && req.user.role === 'super_admin') {
+      const superAdminActions = [
+        'branch_created',
+        'branch_deleted',
+        'ticket_created',
+        'ticket_reply_received',
+        'ticket_status_changed',
+        'admin_broadcast_notification',
+      ];
+      const superAdminKeywords = ['Support', 'Ticket', 'Branch', 'Business'];
+      const keywordRegex = new RegExp(superAdminKeywords.join('|'), 'i');
+
+      query.$or = [
+        { action: { $in: superAdminActions } },
+        { title: keywordRegex },
+        { message: keywordRegex },
+      ];
+    }
+
+    // Search logic (appends to query if present)
     if (search) {
       const searchRegex = new RegExp(search, 'i');
-      query.$or = [{ title: searchRegex }, { message: searchRegex }];
+      const searchConditions = [
+        { title: searchRegex },
+        { message: searchRegex },
+      ];
+      if (query.$or) {
+        // If we already have a filter (Super Admin), we must ensure search is within that filter
+        query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+        delete query.$or;
+      } else {
+        query.$or = searchConditions;
+      }
     }
 
     // Sort logic

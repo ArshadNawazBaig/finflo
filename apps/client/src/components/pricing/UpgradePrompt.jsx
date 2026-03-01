@@ -8,8 +8,12 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { capitalize } from '@/lib/utils';
 
 const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'admin';
+
   const getUpgradeMessage = () => {
     if (feature === 'loans') {
       return `You've reached your ${plan} plan limit of ${limit} loans.`;
@@ -78,28 +82,31 @@ const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
 
           {/* Upgrade CTA */}
           <div className="space-y-3 p-0 pb-0 sm:pb-0">
-            <p className="text-[11px] sm:text-sm text-muted-foreground font-medium text-left">
-              Upgrade to{' '}
-              <strong className="text-foreground">
-                {getRecommendedPlan()}
-              </strong>{' '}
-              to continue adding more {feature || 'resources'}.
-            </p>
-            <Button
-              variant="gradient"
-              asChild
-              className="w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
-            >
-              <Link to="/pricing" onClick={onClose}>
-                View Pricing Plans
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </Link>
-            </Button>
+            {isAdmin ? (
+              <Button
+                variant="gradient"
+                asChild
+                className="w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
+              >
+                <Link to="/pricing" onClick={onClose}>
+                  View Pricing Plans
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                disabled
+                variant="outline"
+                className="w-full px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest opacity-70 cursor-not-allowed border-amber-500/50 text-amber-600 dark:text-amber-400"
+              >
+                Contact Admin to Upgrade
+              </Button>
+            )}
             <button
               onClick={onClose}
               className="w-full border border-border bg-background hover:bg-muted px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300"
             >
-              Maybe Later
+              Close
             </button>
           </div>
         </div>

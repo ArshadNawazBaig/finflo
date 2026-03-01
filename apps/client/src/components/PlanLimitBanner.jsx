@@ -8,7 +8,10 @@ const PlanLimitBanner = () => {
   const user = useAtomValue(userAtom);
   const navigate = useNavigate();
 
-  if (sub.loading || !user || user.role !== 'admin' || sub.plan === 'Pro') {
+  const isAdmin = user?.role === 'admin';
+  const isStaff = user?.role === 'staff';
+
+  if (sub.loading || !user || (!isAdmin && !isStaff) || sub.plan === 'Pro') {
     return null;
   }
 
@@ -57,13 +60,23 @@ const PlanLimitBanner = () => {
               />
             </div>
           </div>
-          <Button
-            onClick={() => navigate('/billing')}
-            variant="gradient"
-            className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
-          >
-            Upgrade Now
-          </Button>
+          {isAdmin ? (
+            <Button
+              onClick={() => navigate('/billing')}
+              variant="gradient"
+              className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
+            >
+              Upgrade Now
+            </Button>
+          ) : (
+            <Button
+              // disabled
+              variant="gradient"
+              className="px-6 h-auto py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
+            >
+              Contact Admin to Upgrade
+            </Button>
+          )}
         </div>
       </div>
     </div>
