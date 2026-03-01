@@ -4,12 +4,18 @@ const Member = require('../models/Member');
 const protectMember = async (req, res, next) => {
   let token;
 
-  if (
+  // Check cookies first
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.member = await Member.findById(decoded.id).select('-password');
 

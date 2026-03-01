@@ -36,6 +36,7 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(express.json());
+app.use(require('cookie-parser')());
 
 // Security Middleware
 const rateLimit = require('express-rate-limit');
@@ -73,8 +74,6 @@ const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:5174',
-  'http://localhost:8081', // Expo web
-  'http://localhost:8082', // Expo web (alternate port)
   'http://localhost:3000',
 ];
 
@@ -82,7 +81,11 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Debug log for EVERY request with an origin
     if (origin) console.log(`CORS Preflight/Request from origin: ${origin}`);
-    callback(null, true); // Allow ALL origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
@@ -97,30 +100,30 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Enhanced Helmet configuration
-// app.use(
-//   helmet({
-//     crossOriginResourcePolicy: { policy: 'cross-origin' },
-//     contentSecurityPolicy: {
-//       directives: {
-//         defaultSrc: ["'self'"],
-//         scriptSrc: ["'self'", "'unsafe-inline'"],
-//         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-//         imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
-//         connectSrc: [
-//           "'self'",
-//           'https://api.stripe.com',
-//           'http://localhost:*',
-//           'http://127.0.0.1:*',
-//           'http://192.168.*.*:*',
-//         ],
-//         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-//         objectSrc: ["'none'"],
-//         mediaSrc: ["'self'"],
-//         frameSrc: ["'self'", 'https://js.stripe.com'],
-//       },
-//     },
-//   }),
-// );
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+        connectSrc: [
+          "'self'",
+          'https://api.stripe.com',
+          'http://localhost:*',
+          'http://127.0.0.1:*',
+          'http://192.168.*.*:*',
+        ],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'", 'https://js.stripe.com'],
+      },
+    },
+  }),
+);
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

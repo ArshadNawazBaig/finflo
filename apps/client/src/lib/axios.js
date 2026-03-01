@@ -3,18 +3,12 @@ import { toast } from 'sonner';
 
 const api = axios.create({
   baseURL: '/api', // Vite proxy handles this
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
   (config) => {
-    const isMemberRoute = window.location.pathname.startsWith('/member/');
-    const token = isMemberRoute
-      ? localStorage.getItem('memberToken')
-      : localStorage.getItem('token');
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Cookies are automatically sent due to withCredentials
     return config;
   },
   (error) => Promise.reject(error),
@@ -27,14 +21,14 @@ api.interceptors.response.use(
       const isMemberRoute = window.location.pathname.startsWith('/member/');
 
       if (isMemberRoute) {
-        localStorage.removeItem('memberToken');
+        localStorage.removeItem('member');
         localStorage.removeItem('member');
         // Avoid redirect loop if already on login page
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/member/login';
         }
       } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         localStorage.removeItem('user');
         // Avoid redirect loop if already on login page
         if (!window.location.pathname.includes('/login')) {

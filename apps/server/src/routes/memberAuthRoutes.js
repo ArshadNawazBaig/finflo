@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  logoutMember,
   loginMember,
   getMe,
   updateDetails,
@@ -21,6 +22,7 @@ const { protectMember } = require('../middleware/memberAuthMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 
 router.post('/login', loginMember);
+router.post('/logout', logoutMember);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 router.get('/me', protectMember, getMe);

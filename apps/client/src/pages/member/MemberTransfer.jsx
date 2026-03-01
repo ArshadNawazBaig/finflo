@@ -136,9 +136,9 @@ const MemberTransfer = () => {
   // ── Fetch member ─────────────────────────────────────────────────────────
   const fetchMemberData = useCallback(async () => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const { data } = await api.get('/member-auth/me', {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setMember(data);
     } catch {
@@ -156,9 +156,9 @@ const MemberTransfer = () => {
   const fetchExtHistory = useCallback(async () => {
     setHistLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const { data } = await api.get('/external-transfers?limit=8', {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setExtHistory(data.data || []);
     } catch {
@@ -178,10 +178,10 @@ const MemberTransfer = () => {
       if (recipient && recipient.trim().length >= 3) {
         setIsLookingUp(true);
         try {
-          const memberToken = localStorage.getItem('memberToken');
+          const memberToken = localStorage.getItem('member');
           const { data } = await api.get(
             `/members/portal/lookup?identifier=${recipient.trim()}`,
-            { headers: { Authorization: `Bearer ${memberToken}` } },
+            { headers: { /* Auth header handled by browser cookies */ } },
           );
           const filtered = data.filter(
             (m) => m._id !== member?._id && m.email !== member?.email,
@@ -222,7 +222,7 @@ const MemberTransfer = () => {
     }
     try {
       setLoading(true);
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.post(
         '/members/portal/transfer',
         {
@@ -230,7 +230,7 @@ const MemberTransfer = () => {
           amount: parseFloat(amount),
           description,
         },
-        { headers: { Authorization: `Bearer ${memberToken}` } },
+        { headers: { /* Auth header handled by browser cookies */ } },
       );
       toast.success('Transfer successful!');
       setRecipient('');
@@ -266,7 +266,7 @@ const MemberTransfer = () => {
     try {
       setExtLoading(true);
       setSuccessRef(null);
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const endpoint =
         extMode === 'send'
           ? '/external-transfers'
@@ -280,7 +280,7 @@ const MemberTransfer = () => {
         description: extNote || undefined,
       };
       const { data } = await api.post(endpoint, payload, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setSuccessRef(data.referenceId);
       toast.success(

@@ -49,7 +49,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
     localStorage.removeItem('member');
     window.location.href = '/member/login';
   };

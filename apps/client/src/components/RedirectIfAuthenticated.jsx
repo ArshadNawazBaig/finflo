@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
 const RedirectIfAuthenticated = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('user');
 
   // Ensure isolation: if hitting admin login, clear any stale member token
-  if (!token && localStorage.getItem('memberToken')) {
-    localStorage.removeItem('memberToken');
+  if (!token && localStorage.getItem('member')) {
+    localStorage.removeItem('member');
   }
 
   if (token) {

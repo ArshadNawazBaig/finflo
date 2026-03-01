@@ -33,9 +33,9 @@ const MemberNavbar = ({ onMenuClick }) => {
 
   const fetchNotifications = async () => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const { data } = await api.get('/member-notifications', {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setNotifications(data.notifications);
       setUnreadCount(data.unreadCount);
@@ -71,12 +71,12 @@ const MemberNavbar = ({ onMenuClick }) => {
 
   const markAsRead = async (id) => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.put(
         `/member-notifications/${id}/read`,
         {},
         {
-          headers: { Authorization: `Bearer ${memberToken}` },
+          headers: { /* Auth header handled by browser cookies */ },
         },
       );
       setNotifications((prev) =>
@@ -91,12 +91,12 @@ const MemberNavbar = ({ onMenuClick }) => {
   const markAllAsRead = async () => {
     try {
       setLoading(true);
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.put(
         '/member-notifications/all/read',
         {},
         {
-          headers: { Authorization: `Bearer ${memberToken}` },
+          headers: { /* Auth header handled by browser cookies */ },
         },
       );
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -110,7 +110,7 @@ const MemberNavbar = ({ onMenuClick }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
     localStorage.removeItem('member');
     toast.success('Logged out successfully');
     navigate('/member/login');

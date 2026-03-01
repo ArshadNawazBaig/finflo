@@ -8,6 +8,13 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 24 * 60 * 60 * 1000,
+};
+
 // @desc    Auth member & get token
 // @route   POST /api/auth/member/login
 // @access  Public
@@ -74,9 +81,8 @@ const loginMember = async (req, res) => {
       const token = generateToken(member._id);
 
       if (member.mustChangePassword) {
-        return res.json({
+        return res.cookie('token', token, cookieOptions).json({
           mustChangePassword: true,
-          token,
           _id: member._id,
           name: member.name,
           email: member.email,
@@ -94,14 +100,13 @@ const loginMember = async (req, res) => {
         req,
       });
 
-      res.json({
+      res.cookie('token', token, cookieOptions).json({
         _id: member._id,
         name: member.name,
         email: member.email,
         role: member.role,
         mustChangePassword: false,
         business: member.user, // The business this member belongs to
-        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
@@ -648,13 +653,12 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    res.json({
+    res.cookie('token', generateToken(member._id), cookieOptions).json({
       _id: member._id,
       name: member.name,
       email: member.email,
       role: member.role,
       business: member.user,
-      token: generateToken(member._id),
       isTwoFactorEnabled: member.isTwoFactorEnabled,
     });
   } catch (error) {
@@ -730,7 +734,14 @@ const forceMemberChangePassword = async (req, res) => {
   }
 };
 
+const logoutMember = (req, res) => {
+  res
+    .cookie('token', '', { ...cookieOptions, maxAge: 0 })
+    .json({ message: 'Logged out successfully' });
+};
+
 module.exports = {
+  logoutMember,
   loginMember,
   getMe,
   updateDetails,

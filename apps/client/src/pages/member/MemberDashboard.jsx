@@ -74,23 +74,23 @@ const MemberDashboard = () => {
           setIsFetchingMore(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
         const pageToFetch = isAppend ? currentPage + 1 : 1;
 
         if (!isAppend) {
           const [memberRes, goalsRes, activityRes, grantorLoansRes] =
             await Promise.all([
               api.get('/member-auth/me', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: { /* Auth header handled by browser cookies */ },
               }),
               api.get('/saving-goals', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: { /* Auth header handled by browser cookies */ },
               }),
               api.get('/members/portal/activity?limit=100', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: { /* Auth header handled by browser cookies */ },
               }),
               api.get('/loans/grantor-loans', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: { /* Auth header handled by browser cookies */ },
               }),
             ]);
           setMember(memberRes.data);
@@ -102,7 +102,7 @@ const MemberDashboard = () => {
         const { data: response } = await api.get(
           `/loans/my-loans?page=${pageToFetch}&limit=${limit}`,
           {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           },
         );
 
@@ -135,11 +135,11 @@ const MemberDashboard = () => {
 
   const handleGrantorStatus = async (loanId, status) => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.patch(
         `/loans/${loanId}/grantor-status`,
         { status },
-        { headers: { Authorization: `Bearer ${memberToken}` } },
+        { headers: { /* Auth header handled by browser cookies */ } },
       );
       toast.success(`Loan request ${status} successfully`);
       fetchDashboardData(false);
@@ -177,9 +177,9 @@ const MemberDashboard = () => {
   const handleDeleteGoal = async (id) => {
     if (!window.confirm('Are you sure you want to remove this goal?')) return;
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.delete(`/saving-goals/${id}`, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setGoals(goals.filter((g) => g._id !== id));
       toast.success('Goal removed successfully');
@@ -716,11 +716,11 @@ const MemberDashboard = () => {
                           setCurrentPage(p);
                           // For desktop pagination, we want to scroll to top of section or just fetch
                           const memberToken =
-                            localStorage.getItem('memberToken');
+                            localStorage.getItem('member');
                           api
                             .get(`/loans/my-loans?page=${p}&limit=${limit}`, {
                               headers: {
-                                Authorization: `Bearer ${memberToken}`,
+                                /* Auth header handled by browser cookies */,
                               },
                             })
                             .then(({ data: response }) => {

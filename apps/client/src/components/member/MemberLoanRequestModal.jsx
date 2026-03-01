@@ -64,7 +64,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           api.get('/system-settings'),
           api.get('/member-auth/me', {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('memberToken')}`,
+              /* Auth header handled by browser cookies */,
             },
           }),
         ]);
@@ -101,10 +101,10 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       ) {
         setIsLookingUp1(true);
         try {
-          const memberToken = localStorage.getItem('memberToken');
+          const memberToken = localStorage.getItem('member');
           const { data } = await api.get(
             `/members/portal/lookup?identifier=${grantor1Identifier}`,
-            { headers: { Authorization: `Bearer ${memberToken}` } },
+            { headers: { /* Auth header handled by browser cookies */ } },
           );
 
           // Filter out current member
@@ -174,10 +174,10 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       ) {
         setIsLookingUp2(true);
         try {
-          const memberToken = localStorage.getItem('memberToken');
+          const memberToken = localStorage.getItem('member');
           const { data } = await api.get(
             `/members/portal/lookup?identifier=${grantor2Identifier}`,
-            { headers: { Authorization: `Bearer ${memberToken}` } },
+            { headers: { /* Auth header handled by browser cookies */ } },
           );
 
           // Filter out current member
@@ -272,9 +272,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.post('/loans/request', payload, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       toast.success('Loan request submitted successfully!');
       reset();

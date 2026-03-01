@@ -56,7 +56,7 @@ const MemberBusinessShare = () => {
           setLoading(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
         if (!memberToken) throw new Error('Not authenticated');
 
         const memberData = JSON.parse(localStorage.getItem('member') || '{}');
@@ -74,11 +74,11 @@ const MemberBusinessShare = () => {
           api.get(
             `/members/portal/shares?page=${pageToFetch}&limit=${limit}&search=${search}`,
             {
-              headers: { Authorization: `Bearer ${memberToken}` },
+              headers: { /* Auth header handled by browser cookies */ },
             },
           ),
           api.get('/member-auth/me', {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           }),
         ]);
 

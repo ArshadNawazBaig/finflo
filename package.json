@@ -23,5 +23,11 @@
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.3.1"
+  },
+  "resolutions": {
+    "cloudinary": "^2.9.0"
+  },
+  "overrides": {
+    "cloudinary": "^2.9.0"
   }
 }

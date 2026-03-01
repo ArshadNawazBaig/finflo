@@ -110,7 +110,7 @@ const Settings = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('user');
     window.location.href = '/login';
   };
@@ -1772,7 +1772,7 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
 
       // Cleanup and redirect
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.dispatchEvent(new Event('userUpdated')); // Force sidebar refresh
 
       onClose();

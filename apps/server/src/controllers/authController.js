@@ -28,6 +28,13 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+};
+
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
   const { validateEmail } = require('../utils/emailValidator');
@@ -173,9 +180,8 @@ const loginUser = async (req, res) => {
       const token = generateToken(user._id);
 
       if (user.mustChangePassword) {
-        return res.json({
+        return res.cookie('token', token, cookieOptions).json({
           mustChangePassword: true,
-          token,
           _id: user._id,
           name: user.name,
           email: user.email,
@@ -187,7 +193,7 @@ const loginUser = async (req, res) => {
         });
       }
 
-      res.json({
+      res.cookie('token', token, cookieOptions).json({
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -199,7 +205,6 @@ const loginUser = async (req, res) => {
         profilePicture: user.profilePicture,
         currency: user.currency,
         permissions: user.getPermissions(),
-        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -516,16 +521,18 @@ const verifyEmail = async (req, res) => {
       req,
     });
 
-    res.status(200).json({
-      success: true,
-      message: 'Email verified successfully. You can now log in.',
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      permissions: user.getPermissions(),
-      token: generateToken(user._id),
-    });
+    res
+      .cookie('token', generateToken(user._id), cookieOptions)
+      .status(200)
+      .json({
+        success: true,
+        message: 'Email verified successfully. You can now log in.',
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.getPermissions(),
+      });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -836,7 +843,7 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    res.json({
+    res.cookie('token', generateToken(user._id), cookieOptions).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -848,7 +855,6 @@ const verifyLogin2FA = async (req, res) => {
       profilePicture: user.profilePicture,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
       permissions: user.getPermissions(),
-      token: generateToken(user._id),
     });
   } catch (error) {
     console.error('Verify Login 2FA Error:', error);
@@ -923,7 +929,14 @@ const forceChangePassword = async (req, res) => {
   }
 };
 
+const logoutUser = (req, res) => {
+  res
+    .cookie('token', '', { ...cookieOptions, maxAge: 0 })
+    .json({ message: 'Logged out successfully' });
+};
+
 module.exports = {
+  logoutUser,
   registerUser,
   loginUser,
   getMe,

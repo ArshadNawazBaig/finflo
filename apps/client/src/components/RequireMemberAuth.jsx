@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 const RequireMemberAuth = () => {
-  const memberToken = localStorage.getItem('memberToken');
+  const memberToken = localStorage.getItem('member');
   const location = useLocation();
 
   if (!memberToken) {

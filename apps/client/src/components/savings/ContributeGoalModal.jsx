@@ -36,12 +36,12 @@ const ContributeGoalModal = ({
     setLoading(true);
 
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.post(
         `/saving-goals/${goal._id}/contribute`,
         { amount },
         {
-          headers: { Authorization: `Bearer ${memberToken}` },
+          headers: { /* Auth header handled by browser cookies */ },
         },
       );
       toast.success(`Allocated ${formatCurrency(amount)} to ${goal.title}`);

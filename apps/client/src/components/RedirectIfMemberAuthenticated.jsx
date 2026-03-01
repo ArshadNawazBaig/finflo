@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 const RedirectIfMemberAuthenticated = () => {
-  const memberToken = localStorage.getItem('memberToken');
+  const memberToken = localStorage.getItem('member');
   const location = useLocation();
 
   // Allow logged-in members through to the force-password-change page —

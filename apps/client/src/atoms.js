@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 
 export const userAtom = atom(JSON.parse(localStorage.getItem('user')) || null);
-export const tokenAtom = atom(localStorage.getItem('token') || null);
+export const tokenAtom = atom(localStorage.getItem('user') || null);
 export const isAuthenticatedAtom = atom((get) => !!get(tokenAtom));
 
 export const statsAtom = atom({

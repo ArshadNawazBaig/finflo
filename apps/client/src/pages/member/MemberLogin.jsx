@@ -50,13 +50,13 @@ const MemberLogin = () => {
       }
 
       if (data.mustChangePassword) {
-        localStorage.setItem('memberToken', data.token);
+        
         localStorage.setItem('member', JSON.stringify(data));
         navigate('/member/force-password-change');
         return;
       }
 
-      localStorage.setItem('memberToken', data.token);
+      
       localStorage.setItem('member', JSON.stringify(data));
       navigate('/member/dashboard');
     } catch (err) {
@@ -77,7 +77,7 @@ const MemberLogin = () => {
         code: otpCode,
       });
 
-      localStorage.setItem('memberToken', data.token);
+      
       localStorage.setItem('member', JSON.stringify(data));
       navigate('/member/dashboard');
     } catch (err) {
