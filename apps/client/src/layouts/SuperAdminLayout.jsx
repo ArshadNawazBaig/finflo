@@ -66,7 +66,7 @@ const SuperAdminLayout = () => {
         <div
           className={cn(
             'flex-1 overflow-y-auto w-full transition-all duration-500',
-            isMobile ? 'pb-40 pt-28 px-4' : 'p-4 md:p-8',
+            isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
           )}
         >
           <div className="max-w-7xl mx-auto">

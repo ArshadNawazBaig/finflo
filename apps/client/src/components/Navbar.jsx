@@ -123,25 +123,21 @@ const Navbar = ({ onMenuClick }) => {
   const userStatus = user.status || 'Active';
 
   return (
-    <header className="sticky top-0 sm:top-0 z-40 w-full lg:border-b lg:border-border/50 lg:bg-card/50 lg:backdrop-blur-sm lg:h-16 flex items-center">
-      <div className="w-full lg:px-8 py-3 lg:py-0">
+    <header className="sticky top-0 z-40 w-full lg:border-b lg:border-border/50 lg:bg-card/50 lg:backdrop-blur-sm">
+      <div className="w-full lg:px-8 lg:h-16 flex items-center">
         <div
           className={cn(
-            'flex items-center justify-between transition-all duration-500 px-3',
-            'lg:contents', // Revert to standard flex-row on desktop
-            'fixed top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.15)] z-[100] sm:relative sm:top-0 sm:left-0 sm:translate-x-0 sm:w-full sm:max-w-none sm:bg-transparent sm:border-0 sm:shadow-none sm:px-0 sm:py-0', // Floating pill on mobile
+            'flex items-center justify-between transition-all duration-500 w-full',
+            // Mobile: Floating Pill
+            'fixed top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)] z-[100] lg:relative lg:top-0 lg:left-0 lg:translate-x-0 lg:w-full lg:max-w-none lg:bg-transparent lg:border-0 lg:shadow-none lg:px-0 lg:py-0',
           )}
         >
           {/* Left Side - Menu & Search (Desktop) */}
           <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-2xl">
-            <Tooltip
-              content="Toggle Sidebar"
-              position="bottom"
-              className="hidden lg:hidden"
-            >
+            <Tooltip content="Toggle Sidebar" position="bottom">
               <button
                 onClick={onMenuClick}
-                className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation shrink-0 lg:hidden"
+                className="p-2 hover:bg-accent/40 rounded-full transition-colors text-muted-foreground hover:text-foreground active:scale-95 touch-manipulation shrink-0"
               >
                 <AlignLeft className="w-5 h-5" />
               </button>
