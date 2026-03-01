@@ -13,6 +13,7 @@ import {
   CreditCard,
   Send,
   ArrowRight,
+  BarChart3,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +22,9 @@ import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
+import QuickActionsSkeleton from '@/components/skeletons/QuickActionsSkeleton';
+import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
   Area,
@@ -49,6 +53,7 @@ const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -92,6 +97,45 @@ const SuperAdminDashboard = () => {
       icon: <DollarSign size={20} />,
       color: 'bg-amber-500 shadow-amber-500/20',
       subtitle: 'Estimated recurring revenue',
+    },
+  ];
+
+  const QUICK_ACTIONS = [
+    {
+      label: 'Platforms',
+      description: 'Manage businesses',
+      icon: <Building2 size={22} />,
+      route: '/super-admin/users',
+      iconBg: 'bg-primary',
+      glow: 'hover:shadow-primary/20',
+      accent: 'text-primary',
+    },
+    {
+      label: 'Global Alert',
+      description: 'Broadcast to all',
+      icon: <Send size={22} />,
+      action: () => setIsNotificationModalOpen(true),
+      iconBg: 'bg-emerald-500',
+      glow: 'hover:shadow-emerald-500/20',
+      accent: 'text-emerald-500',
+    },
+    {
+      label: 'System Analytics',
+      description: 'Deep performance',
+      icon: <BarChart3 size={22} />,
+      route: '/super-admin/analytics',
+      iconBg: 'bg-amber-500',
+      glow: 'hover:shadow-amber-500/20',
+      accent: 'text-amber-500',
+    },
+    {
+      label: 'Support Tickets',
+      description: 'Review requests',
+      icon: <Activity size={22} />,
+      route: '/super-admin/tickets',
+      iconBg: 'bg-indigo-500',
+      glow: 'hover:shadow-indigo-500/20',
+      accent: 'text-indigo-500',
     },
   ];
 
@@ -145,14 +189,69 @@ const SuperAdminDashboard = () => {
           title="Platform Overview"
           description="Welcome back, Super Admin. Here's a real-time summary of the platform."
         />
-        <Button
-          onClick={() => setIsNotificationModalOpen(true)}
-          variant="gradient"
-          className="px-8 py-4 rounded-full flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest w-full md:w-auto"
-        >
-          <Send className="w-4 h-4" />
-          Global Notification
-        </Button>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-10">
+        {loading ? (
+          <QuickActionsSkeleton count={4} />
+        ) : (
+          <div className="flex flex-wrap gap-3 sm:gap-4">
+            {QUICK_ACTIONS.map((action) => (
+              <button
+                key={action.label}
+                onClick={action.action || (() => navigate(action.route))}
+                className={cn(
+                  'group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 backdrop-blur-md p-2 pr-5 transition-all duration-300 hover:border-border/80 hover:-translate-y-0.5 hover:shadow-lg',
+                  action.glow,
+                )}
+              >
+                <div
+                  className={cn(
+                    'absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500',
+                    action.iconBg,
+                  )}
+                />
+
+                <div
+                  className={cn(
+                    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3',
+                    action.iconBg,
+                  )}
+                >
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                  {action.icon}
+                </div>
+
+                <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                  <p
+                    className={cn(
+                      'text-sm font-black tracking-tight truncate leading-tight',
+                      action.accent,
+                    )}
+                  >
+                    {action.label}
+                  </p>
+                  <p className="text-[10px] font-semibold text-muted-foreground/60 truncate uppercase tracking-widest mt-0.5 leading-tight">
+                    {action.description}
+                  </p>
+                </div>
+
+                <div
+                  className={cn(
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/30 transition-all duration-300 group-hover:bg-current/10',
+                    action.accent,
+                  )}
+                >
+                  <ArrowUpRight
+                    size={14}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}
