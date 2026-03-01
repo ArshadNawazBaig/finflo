@@ -19,6 +19,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import {
   AreaChart,
   Area,
@@ -154,15 +156,12 @@ const SuperAdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {loading
-          ? [...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-32 rounded-[2rem] border border-border/50 bg-card/50 animate-pulse"
-              />
-            ))
-          : statCards.map((stat, i) => (
+      <div className="mb-10">
+        {loading ? (
+          <CardsSkeleton count={4} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {statCards.map((stat, i) => (
               <StatsCard
                 key={i}
                 title={stat.title}
@@ -172,157 +171,174 @@ const SuperAdminDashboard = () => {
                 subtitle={stat.subtitle}
               />
             ))}
+          </div>
+        )}
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Signup Trend Chart */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Business Growth
-                </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  New Signups (Last 30 Days)
-                </CardDescription>
+        {loading ? (
+          <ChartSkeleton />
+        ) : (
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+            <CardHeader className="pb-2 border-b border-border/40">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-black tracking-tight">
+                    Business Growth
+                  </CardTitle>
+                  <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                    New Signups (Last 30 Days)
+                  </CardDescription>
+                </div>
+                <div className="bg-primary/5 p-2 rounded-xl">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                </div>
               </div>
-              <div className="bg-primary/5 p-2 rounded-xl">
-                <TrendingUp className="w-4 h-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full pt-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={stats?.signupTrend || []}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="colorSignups"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="_id"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="hsl(var(--muted-foreground))"
+                      tick={{
+                        fill: 'hsl(var(--muted-foreground))',
+                        fontWeight: 600,
+                      }}
+                      tickFormatter={(val) => val.split('-').slice(1).join('/')}
+                    />
+                    <YAxis
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="hsl(var(--muted-foreground))"
+                      tick={{
+                        fill: 'hsl(var(--muted-foreground))',
+                        fontWeight: 600,
+                      }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorSignups)"
+                      animationDuration={2000}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full pt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={stats?.signupTrend || []}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorSignups"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="_id"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    stroke="hsl(var(--muted-foreground))"
-                    tick={{
-                      fill: 'hsl(var(--muted-foreground))',
-                      fontWeight: 600,
-                    }}
-                    tickFormatter={(val) => val.split('-').slice(1).join('/')}
-                  />
-                  <YAxis
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    stroke="hsl(var(--muted-foreground))"
-                    tick={{
-                      fill: 'hsl(var(--muted-foreground))',
-                      fontWeight: 600,
-                    }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorSignups)"
-                    animationDuration={2000}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Plan Distribution (Donut Chart) */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Premium Distribution
-                </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  Users by Plan
-                </CardDescription>
+        {loading ? (
+          <ChartSkeleton />
+        ) : (
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
+            <CardHeader className="pb-2 border-b border-border/40">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-black tracking-tight">
+                    Premium Distribution
+                  </CardTitle>
+                  <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                    Users by Plan
+                  </CardDescription>
+                </div>
+                <div className="bg-purple-500/5 p-2 rounded-xl">
+                  <CreditCard className="w-4 h-4 text-purple-600" />
+                </div>
               </div>
-              <div className="bg-purple-500/5 p-2 rounded-xl">
-                <CreditCard className="w-4 h-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full pt-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={stats?.usersByPlan || []}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="count"
+                    >
+                      {(stats?.usersByPlan || []).map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                          stroke="hsl(var(--background))"
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-background/90 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-xl">
+                              <p className="text-xs font-bold mb-1">
+                                {payload[0].payload._id} Plan
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {payload[0].value} Users
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full pt-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stats?.usersByPlan || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="count"
-                  >
-                    {(stats?.usersByPlan || []).map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background/90 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-xl">
-                            <p className="text-xs font-bold mb-1">
-                              {payload[0].payload._id} Plan
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {payload[0].value} Users
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Signups */}
-        <Card className="lg:col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
+        <Card className="lg:col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
           <CardHeader className="pb-4 border-b border-border/40">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-black tracking-tight">
                   Recent Platforms
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
+                <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
                   Latest businesses to join the network
                 </CardDescription>
               </div>
@@ -334,23 +350,34 @@ const SuperAdminDashboard = () => {
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
+          <CardContent className="p-0">
+            <div className="divide-y divide-border/50">
               {loading ? (
                 [...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl w-full" />
+                  <div
+                    key={i}
+                    className="p-5 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4 w-full">
+                      <div className="w-12 h-12 rounded-2xl bg-muted/30 animate-pulse" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-1/3 rounded-lg bg-muted/30" />
+                        <Skeleton className="h-3 w-1/4 rounded-lg bg-muted/20" />
+                      </div>
+                    </div>
+                  </div>
                 ))
               ) : stats?.recentUsers?.length > 0 ? (
                 stats.recentUsers.map((user) => (
                   <div
                     key={user._id}
-                    className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 hover:bg-muted/40 transition-all border border-border/50"
+                    className="group flex items-center justify-between p-4 sm:p-5 hover:bg-primary/5 transition-colors duration-300"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-transform">
                         {user.name?.charAt(0)?.toUpperCase()}
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="font-bold text-sm tracking-tight">
                           {user.name}
                         </p>
@@ -375,8 +402,9 @@ const SuperAdminDashboard = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 text-muted-foreground">
-                  No new platforms yet.
+                <div className="text-center py-10 text-muted-foreground flex flex-col items-center gap-3">
+                  <Activity className="w-8 h-8 text-muted-foreground/30" />
+                  <p className="text-sm font-medium">No new platforms yet.</p>
                 </div>
               )}
             </div>
@@ -385,21 +413,21 @@ const SuperAdminDashboard = () => {
 
         {/* Quick Stats Panel */}
         <div className="space-y-8">
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl overflow-hidden">
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden h-full flex flex-col">
             <CardHeader className="pb-4 border-b border-border/40 bg-gradient-to-br from-indigo-500/5 to-primary/5">
               <CardTitle className="text-lg font-black tracking-tight">
                 Quick Stats
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <CardContent className="pt-6 space-y-6 flex-1">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <span>Signups this week</span>
-                  <span className="text-emerald-500 flex items-center gap-1">
+                  <span className="text-emerald-500 flex items-center gap-1 font-black">
                     <ArrowUpRight size={14} /> {stats?.recentSignups || 0}
                   </span>
                 </div>
-                <div className="h-2 bg-muted rounded-full">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                     style={{
@@ -410,39 +438,44 @@ const SuperAdminDashboard = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
+                <div className="p-5 rounded-2xl bg-muted/20 border border-border/50 hover:bg-muted/30 transition-colors">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                     Members
                   </p>
-                  <p className="text-xl font-black">
+                  <p className="text-2xl font-black tabular-nums">
                     {stats?.totalMembers || 0}
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
+                <div className="p-5 rounded-2xl bg-muted/20 border border-border/50 hover:bg-muted/30 transition-colors">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                     Active Loans
                   </p>
-                  <p className="text-xl font-black">
+                  <p className="text-2xl font-black tabular-nums">
                     {stats?.activeLoans || 0}
                   </p>
                 </div>
               </div>
             </CardContent>
+
+            {/* System Health Section moved inside or kept as a separate card below? 
+                User said "exactly same", I'll keep the health element as its own premium card below. */}
           </Card>
 
           {/* System Health Card */}
-          <Card className="border border-border/50 bg-gradient-to-br from-card to-emerald-500/5 shadow-sm rounded-3xl">
+          <Card className="border border-border/50 bg-gradient-to-br from-card to-emerald-500/5 shadow-sm rounded-[2rem]">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 animate-pulse">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 animate-pulse border border-emerald-500/20">
                   <Activity size={24} />
                 </div>
                 <div>
-                  <h4 className="font-black tracking-tight">System Status</h4>
+                  <h4 className="text-sm font-black tracking-tight uppercase">
+                    System Status
+                  </h4>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">
-                      All systems operational
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                      Operational
                     </span>
                   </div>
                 </div>
