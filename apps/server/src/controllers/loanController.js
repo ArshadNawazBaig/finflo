@@ -738,7 +738,7 @@ const getLoans = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const search = req.query.search || '';
-    let query = { user: req.user.effectiveOwnerId };
+    let query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation: Staff/Managers only see their branch data
     if (req.user.role === 'staff') {
@@ -1022,7 +1022,7 @@ const addRepayment = async (req, res) => {
 const getRepayments = async (req, res) => {
   // Optionally filter by loanId or customerId
   const { loanId, customerId } = req.query;
-  const query = { user: req.user.effectiveOwnerId };
+  const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
   // Branch Segregation
   if (req.user.role === 'staff') {

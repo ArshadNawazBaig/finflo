@@ -22,7 +22,7 @@ const getLedger = async (req, res) => {
     } = req.query;
     const sortOrder = sortOrderQuery === 'asc' ? 1 : -1;
 
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     if (startDate && endDate) {
       query.date = {
@@ -111,7 +111,7 @@ const exportLedgerExcel = async (req, res) => {
     } = req.query;
     const sortOrder = sortOrderQuery === 'asc' ? 1 : -1;
 
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     if (startDate && endDate) {
       query.date = {

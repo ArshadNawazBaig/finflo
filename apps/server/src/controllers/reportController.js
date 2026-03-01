@@ -8,7 +8,7 @@ const {
 
 const getReportStats = async (req, res) => {
   try {
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation
     if (req.user.role === 'staff') {
@@ -322,7 +322,7 @@ const Member = require('../models/Member');
 
 const getTrialBalance = async (req, res) => {
   try {
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
@@ -434,7 +434,7 @@ const getTrialBalance = async (req, res) => {
 const getProfitAndLoss = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
@@ -548,7 +548,7 @@ const getBranchSummary = async (req, res) => {
     const Member = require('../models/Member');
     const Branch = require('../models/Branch');
 
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     // Aggregate Member data (total members, total invested grouped by branch)
     const memberStats = await Member.aggregate([
@@ -668,7 +668,7 @@ const saveRegulatorySnapshot = async (req, res) => {
 const getRegulatorySavedSnapshots = async (req, res) => {
   try {
     const { reportType } = req.query;
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
     if (reportType) query.reportType = reportType;
 
     const snapshots = await RegulatorySnapshot.find(query)

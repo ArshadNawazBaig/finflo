@@ -14,7 +14,7 @@ const getCustomers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
-    let query = { user: req.user.effectiveOwnerId };
+    let query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation: Staff/Managers only see their branch data
     if (req.user.role === 'staff') {

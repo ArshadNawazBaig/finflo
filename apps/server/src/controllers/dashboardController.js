@@ -15,7 +15,9 @@ const getDashboardStats = async (req, res) => {
     }
 
     const { startDate, endDate } = req.query;
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation
     if (req.user.role === 'staff') {
@@ -43,7 +45,7 @@ const getDashboardStats = async (req, res) => {
     // This resolves discrepancies where global admin sees more profit than branch view
     try {
       const orphans = await Loan.find({
-        user: req.user.effectiveOwnerId,
+        ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
         branchId: { $exists: false },
       }).populate('customer', 'branchId');
 
@@ -643,7 +645,9 @@ const getDashboardStats = async (req, res) => {
 const downloadStatement = async (req, res) => {
   try {
     const { startDate, endDate, format, branchId } = req.query;
-    const query = { user: req.user.effectiveOwnerId };
+    const query = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
 
     if (startDate && endDate) {
       query.date = {

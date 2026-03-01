@@ -31,8 +31,8 @@ const globalSearch = async (req, res) => {
       const isSuperAdmin = user.role === 'super_admin';
       const isAdmin = user.role === 'admin' || isSuperAdmin;
       const branchScope = user.managedBranchId || user.branchId;
-      const scope = { user: effectiveOwnerId };
-      if (user.role === 'staff') {
+      const scope = isSuperAdmin ? {} : { user: user.effectiveOwnerId };
+      if (!isSuperAdmin && user.role === 'staff') {
         if (branchScope) scope.branchId = branchScope;
       }
 
@@ -83,17 +83,16 @@ const globalSearch = async (req, res) => {
       );
 
       // 3. Search Loans
-      const loans = await Loan.find({
-        user: effectiveOwnerId,
-        ...(user.role === 'staff' && branchScope
-          ? { branchId: branchScope }
-          : {}),
-        // Most loans index by customer. Let's find customers first if we want branch scoping accurately for loans
-      })
+      const loanScope = isSuperAdmin ? {} : { user: user.effectiveOwnerId };
+      if (!isSuperAdmin && user.role === 'staff' && branchScope) {
+        loanScope.branchId = branchScope;
+      }
+
+      const loans = await Loan.find(loanScope)
         .populate({
           path: 'customer',
           match:
-            user.role === 'staff' && branchScope
+            !isSuperAdmin && user.role === 'staff' && branchScope
               ? { branchId: branchScope }
               : {},
         })
@@ -121,7 +120,7 @@ const globalSearch = async (req, res) => {
       // 4. Search Branches (Admin/Super Admin only)
       if (isAdmin) {
         const branches = await Branch.find({
-          owner: isSuperAdmin ? user._id : effectiveOwnerId,
+          ...(isSuperAdmin ? {} : { owner: user.effectiveOwnerId }),
           name: searchRegex,
         }).limit(3);
 
@@ -136,11 +135,12 @@ const globalSearch = async (req, res) => {
         );
 
         // 5. Search Staff/Managers (Users) - Admin/Super Admin only
-        const allStaff = await User.find({
-          ownerId: isSuperAdmin ? user._id : effectiveOwnerId,
+        const staffQuery = {
+          ...(isSuperAdmin ? {} : { ownerId: user.effectiveOwnerId }),
           $or: [{ name: searchRegex }, { email: searchRegex }],
           role: { $in: ['admin', 'staff'] },
-        }).limit(10);
+        };
+        const allStaff = await User.find(staffQuery).limit(10);
 
         for (const s of allStaff) {
           const managedBranch = await Branch.findOne({ manager: s._id });
@@ -189,7 +189,7 @@ const globalSearch = async (req, res) => {
 
         // 8. Search Financial Transactions - Admin only
         const transactions = await FinancialTransaction.find({
-          user: user._id,
+          ...(isSuperAdmin ? {} : { user: user.effectiveOwnerId }),
           description: searchRegex,
         }).limit(5);
 
