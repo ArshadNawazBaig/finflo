@@ -41,7 +41,7 @@ const VerifyEmail = () => {
       });
 
       toast.success(data.message);
-      localStorage.setItem('token', data.token);
+      
       localStorage.setItem('user', JSON.stringify(data));
       localStorage.removeItem('temp_user_email');
       navigate('/dashboard');

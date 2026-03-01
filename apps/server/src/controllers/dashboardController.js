@@ -19,9 +19,7 @@ const getDashboardStats = async (req, res) => {
 
     // Branch Segregation
     if (req.user.role === 'staff') {
-      const branchScope = req.user.isManager
-        ? req.user.managedBranchId
-        : req.user.branchId;
+      const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) query.branchId = branchScope;
     }
 
@@ -657,9 +655,7 @@ const downloadStatement = async (req, res) => {
     // Determine branch scope
     let branchScope = branchId;
     if (req.user.role === 'staff') {
-      branchScope = req.user.isManager
-        ? req.user.managedBranchId?.toString()
-        : req.user.branchId?.toString();
+      branchScope = req.user.managedBranchId || req.user.branchId;
     }
 
     if (branchScope) {
@@ -728,9 +724,7 @@ const downloadStatement = async (req, res) => {
       };
     }
     if (req.user.role === 'staff') {
-      const branchScope = req.user.isManager
-        ? req.user.managedBranchId
-        : req.user.branchId;
+      const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) loanQuery.branchId = branchScope;
     }
     const loans = await Loan.find(loanQuery);

@@ -167,9 +167,10 @@ const getMembers = async (req, res) => {
       query.approvalStatus = { $in: ['approved', null, undefined] };
     }
 
-    // Branch Segregation: Staff only see their own branch data
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation: Staff/Managers only see their branch data
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     const sortBy = req.query.sortBy || 'createdAt';

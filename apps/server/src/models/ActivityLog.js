@@ -32,6 +32,8 @@ const activityLogSchema = new mongoose.Schema(
         'profit_distribution',
         'profit',
         'goal',
+        'transaction',
+        'system',
         'other',
       ],
       index: true,

@@ -50,7 +50,7 @@ const MemberInvestment = () => {
           setLoading(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
 
         if (!memberToken) {
           throw new Error('Not authenticated');
@@ -60,11 +60,11 @@ const MemberInvestment = () => {
           api.get(
             `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=investment&search=${search}`,
             {
-              headers: { Authorization: `Bearer ${memberToken}` },
+              headers: { /* Auth header handled by browser cookies */ },
             },
           ),
           api.get('/member-auth/me', {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           }),
         ]);
 

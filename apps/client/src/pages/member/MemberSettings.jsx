@@ -69,10 +69,10 @@ const MemberSettings = () => {
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
         if (!memberToken) return;
         const { data } = await api.get('/member-auth/me', {
-          headers: { Authorization: `Bearer ${memberToken}` },
+          headers: { /* Auth header handled by browser cookies */ },
         });
         setMember(data);
         localStorage.setItem('member', JSON.stringify(data));
@@ -84,7 +84,7 @@ const MemberSettings = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
     localStorage.removeItem('member');
     window.location.href = '/member/login';
   };
@@ -301,14 +301,14 @@ const ProfileSection = ({
     formData.append('profilePicture', file);
 
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const { data } = await api.put(
         '/member-auth/updateprofilepicture',
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${memberToken}`,
+            /* Auth header handled by browser cookies */
           },
         },
       );
@@ -389,12 +389,12 @@ const ProfileSection = ({
                     if (uploading) return;
                     setUploading(true);
                     try {
-                      const memberToken = localStorage.getItem('memberToken');
+                      const memberToken = localStorage.getItem('member');
                       const { data } = await api.delete(
                         '/member-auth/deleteprofilepicture',
                         {
                           headers: {
-                            Authorization: `Bearer ${memberToken}`,
+                            /* Auth header handled by browser cookies */
                           },
                         },
                       );
@@ -613,12 +613,12 @@ const SecuritySection = ({
                 onClick={async () => {
                   try {
                     setTwoFALoading(true);
-                    const memberToken = localStorage.getItem('memberToken');
+                    const memberToken = localStorage.getItem('member');
                     const { data } = await api.post(
                       '/member-auth/2fa/generate',
                       {},
                       {
-                        headers: { Authorization: `Bearer ${memberToken}` },
+                        headers: { /* Auth header handled by browser cookies */ },
                       },
                     );
                     setQrCodeData(data.qrCode);
@@ -672,12 +672,12 @@ const SecuritySection = ({
                     onClick={async () => {
                       try {
                         setTwoFALoading(true);
-                        const memberToken = localStorage.getItem('memberToken');
+                        const memberToken = localStorage.getItem('member');
                         const { data } = await api.post(
                           '/member-auth/2fa/verify',
                           { code: twoFACode },
                           {
-                            headers: { Authorization: `Bearer ${memberToken}` },
+                            headers: { /* Auth header handled by browser cookies */ },
                           },
                         );
                         if (data.success) {
@@ -748,12 +748,12 @@ const SecuritySection = ({
                     return;
                   try {
                     setTwoFALoading(true);
-                    const memberToken = localStorage.getItem('memberToken');
+                    const memberToken = localStorage.getItem('member');
                     const { data } = await api.post(
                       '/member-auth/2fa/disable',
                       { password: disable2FAPassword },
                       {
-                        headers: { Authorization: `Bearer ${memberToken}` },
+                        headers: { /* Auth header handled by browser cookies */ },
                       },
                     );
                     if (data.success) {
@@ -937,9 +937,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
     }
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       const { data } = await api.put('/member-auth/updatedetails', formData, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       if (data.success) {
         const updatedMember = { ...member, ...data.data };
@@ -1056,7 +1056,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     }
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.put(
         '/member-auth/updatepassword',
         {
@@ -1064,7 +1064,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           newPassword: formData.newPassword,
         },
         {
-          headers: { Authorization: `Bearer ${memberToken}` },
+          headers: { /* Auth header handled by browser cookies */ },
         },
       );
       toast.success('Password updated successfully');
@@ -1190,12 +1190,12 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
     if (confirmText !== 'DELETE') return;
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.delete('/member-auth/deleteaccount', {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       toast.success('Account deleted successfully');
-      localStorage.removeItem('memberToken');
+      localStorage.removeItem('member');
       localStorage.removeItem('member');
       window.location.href = '/member/login';
     } catch (error) {

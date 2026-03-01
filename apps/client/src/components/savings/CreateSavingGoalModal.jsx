@@ -34,9 +34,9 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
 
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.post('/saving-goals', formData, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       toast.success('Goal created successfully!');
       onSuccess();

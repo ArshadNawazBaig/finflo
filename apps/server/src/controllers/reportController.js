@@ -11,8 +11,9 @@ const getReportStats = async (req, res) => {
     const query = { user: req.user.effectiveOwnerId };
 
     // Branch Segregation
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = req.user.branchId;
     }
 
     // Exclude rejected loans from financial metrics
@@ -189,9 +190,10 @@ const generateIFRS9Report = async (req, res) => {
   try {
     const query = { user: req.user.effectiveOwnerId, status: 'active' };
 
-    // Branch Segregation (Optional for regulatory, but usually businesses want it)
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     const loans = await Loan.find(query);
@@ -256,8 +258,9 @@ const generateBasel3Report = async (req, res) => {
     const query = { user: req.user.effectiveOwnerId, status: 'active' };
 
     // Branch Segregation
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = req.user.branchId;
     }
 
     const loans = await Loan.find(query);
@@ -321,11 +324,8 @@ const getTrialBalance = async (req, res) => {
   try {
     const query = { user: req.user.effectiveOwnerId };
 
-    // Branch Segregation (if needed)
     if (req.user.role === 'staff') {
-      const branchScope = req.user.isManager
-        ? req.user.managedBranchId
-        : req.user.branchId;
+      const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) query.branchId = branchScope;
     }
 
@@ -437,9 +437,7 @@ const getProfitAndLoss = async (req, res) => {
     const query = { user: req.user.effectiveOwnerId };
 
     if (req.user.role === 'staff') {
-      const branchScope = req.user.isManager
-        ? req.user.managedBranchId
-        : req.user.branchId;
+      const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) query.branchId = branchScope;
     }
 

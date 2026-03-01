@@ -51,7 +51,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('user');
     window.location.href = '/login';
   };

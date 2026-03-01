@@ -49,7 +49,7 @@ const GlobalSearch = ({ isMember = false }) => {
       const token = localStorage.getItem(isMember ? 'memberToken' : 'token');
       const { data } = await api.get('/search', {
         params: { q: query },
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: token ? { /* Auth header handled by browser cookies */ } : {},
       });
       setResults(data.results);
       setIsOpen(true);

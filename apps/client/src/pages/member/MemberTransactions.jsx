@@ -62,11 +62,11 @@ const MemberTransactions = () => {
   // Fetch all-time summary once on mount (not affected by filters)
   const fetchSummary = useCallback(async () => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       if (!memberToken) return;
       const res = await api.get('/members/portal/activity', {
         params: { page: 1, limit: 1 }, // summary comes from backend regardless of limit
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       if (res.data.summary) setSummary(res.data.summary);
     } catch (e) {
@@ -83,7 +83,7 @@ const MemberTransactions = () => {
           setLoading(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
 
         if (!memberToken) {
           throw new Error('Not authenticated');
@@ -99,10 +99,10 @@ const MemberTransactions = () => {
               startDate: dateRange?.from?.toISOString(),
               endDate: dateRange?.to?.toISOString(),
             },
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           }),
           api.get('/member-auth/me', {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           }),
         ]);
 

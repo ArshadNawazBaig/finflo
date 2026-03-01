@@ -49,13 +49,13 @@ const MemberLoans = () => {
           setIsFetchingMore(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
         if (!memberToken) throw new Error('Not authenticated');
 
         const { data: response } = await api.get(
           `/loans/my-loans?page=${pageToFetch}&limit=${limit}&status=${filter === 'all' ? '' : filter}&search=${search}`,
           {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: { /* Auth header handled by browser cookies */ },
           },
         );
 

@@ -10,6 +10,7 @@ import {
   Settings,
   TrendingUp,
   Building2,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
@@ -49,7 +50,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('memberToken');
+    localStorage.removeItem('member');
     localStorage.removeItem('member');
     window.location.href = '/member/login';
   };
@@ -157,6 +158,13 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           icon={<FileText size={18} />}
           active={isActive('/member/loans')}
           label="My Loans"
+          isExpanded={isLayoutExpanded}
+        />
+        <NavItem
+          to="/member/grantor-requests"
+          icon={<ShieldCheck size={18} />}
+          active={isActive('/member/grantor-requests')}
+          label="Grantor Requests"
           isExpanded={isLayoutExpanded}
         />
 

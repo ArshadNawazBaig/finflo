@@ -252,6 +252,7 @@ const contributeToGoal = async (req, res) => {
           message: `${updatedMember.name} contributed Rs. ${contributionAmount.toLocaleString()} to goal: ${updatedGoal.title}.`,
           type: 'success',
           branchId: updatedMember.branchId,
+          ownerId: req.member.user,
           metadata: {
             memberId: updatedMember._id,
             goalId: updatedGoal._id,

@@ -77,9 +77,12 @@ const getStaff = async (req, res) => {
 
     let query = { ownerId: req.user._id };
 
-    // Branch Restricted Admin logic
-    if (req.user.isManager && req.user.role === 'staff') {
-      query = { ownerId: req.user.ownerId, branchId: req.user.branchId };
+    // Branch Restricted Admin logic (Managers)
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) {
+        query = { ownerId: req.user.ownerId, branchId: branchScope };
+      }
     }
     if (search) {
       query.$or = [
@@ -99,34 +102,26 @@ const getStaff = async (req, res) => {
     const Branch = require('../models/Branch');
     const managedBranchIds = await Branch.find({
       owner: req.user.effectiveOwnerId,
-      manager: { $exists: true, $ne: null },
+      manager: { $ne: null, $type: 'objectId' },
     }).distinct('manager');
 
     const staffWithManagerFlag = staffMembers.map((member) => ({
       ...member.toObject(),
       isManager: managedBranchIds.some(
-        (id) => id.toString() === member._id.toString(),
+        (id) => id && member._id && id.toString() === member._id.toString(),
       ),
     }));
 
     // Calculate Summary (Ignoring pagination but respecting filters)
-    const [summaryResult] = await User.aggregate([
-      { $match: query },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          active: { $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] } },
-          admins: {
-            $sum: {
-              $cond: [{ $in: ['$role', ['admin', 'super_admin']] }, 1, 0],
-            },
-          },
-        },
-      },
-    ]);
-
-    const summary = summaryResult || { total: 0, active: 0, admins: 0 };
+    // Using countDocuments instead of aggregate for better compatibility and stability
+    const summary = {
+      total: totalEntries,
+      active: await User.countDocuments({ ...query, isActive: true }),
+      admins: await User.countDocuments({
+        ...query,
+        role: { $in: ['admin', 'super_admin'] },
+      }),
+    };
 
     res.json({
       data: staffWithManagerFlag,
@@ -136,6 +131,7 @@ const getStaff = async (req, res) => {
       summary,
     });
   } catch (error) {
+    console.error('Error fetching staff:', error);
     res.status(500).json({ message: error.message });
   }
 };

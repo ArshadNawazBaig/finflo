@@ -74,23 +74,31 @@ const MemberDashboard = () => {
           setIsFetchingMore(true);
         }
 
-        const memberToken = localStorage.getItem('memberToken');
+        const memberToken = localStorage.getItem('member');
         const pageToFetch = isAppend ? currentPage + 1 : 1;
 
         if (!isAppend) {
           const [memberRes, goalsRes, activityRes, grantorLoansRes] =
             await Promise.all([
               api.get('/member-auth/me', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: {
+                  /* Auth header handled by browser cookies */
+                },
               }),
               api.get('/saving-goals', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: {
+                  /* Auth header handled by browser cookies */
+                },
               }),
               api.get('/members/portal/activity?limit=100', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: {
+                  /* Auth header handled by browser cookies */
+                },
               }),
               api.get('/loans/grantor-loans', {
-                headers: { Authorization: `Bearer ${memberToken}` },
+                headers: {
+                  /* Auth header handled by browser cookies */
+                },
               }),
             ]);
           setMember(memberRes.data);
@@ -102,7 +110,9 @@ const MemberDashboard = () => {
         const { data: response } = await api.get(
           `/loans/my-loans?page=${pageToFetch}&limit=${limit}`,
           {
-            headers: { Authorization: `Bearer ${memberToken}` },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           },
         );
 
@@ -135,11 +145,15 @@ const MemberDashboard = () => {
 
   const handleGrantorStatus = async (loanId, status) => {
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.patch(
         `/loans/${loanId}/grantor-status`,
         { status },
-        { headers: { Authorization: `Bearer ${memberToken}` } },
+        {
+          headers: {
+            /* Auth header handled by browser cookies */
+          },
+        },
       );
       toast.success(`Loan request ${status} successfully`);
       fetchDashboardData(false);
@@ -177,9 +191,11 @@ const MemberDashboard = () => {
   const handleDeleteGoal = async (id) => {
     if (!window.confirm('Are you sure you want to remove this goal?')) return;
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.delete(`/saving-goals/${id}`, {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       setGoals(goals.filter((g) => g._id !== id));
       toast.success('Goal removed successfully');
@@ -383,13 +399,17 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
-              {grantorLoans.some(
-                (l) =>
-                  (l.grantor1?._id === member?._id &&
+              {grantorLoans.some((l) => {
+                const g1Id = l.grantor1?._id || l.grantor1;
+                const g2Id = l.grantor2?._id || l.grantor2;
+                return (
+                  l.status === 'pending' &&
+                  ((g1Id?.toString() === member?._id?.toString() &&
                     l.grantor1Status === 'pending') ||
-                  (l.grantor2?._id === member?._id &&
-                    l.grantor2Status === 'pending'),
-              ) && (
+                    (g2Id?.toString() === member?._id?.toString() &&
+                      l.grantor2Status === 'pending'))
+                );
+              }) && (
                 <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/10 transition-all duration-500">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter text-primary">
@@ -402,13 +422,17 @@ const MemberDashboard = () => {
 
                   <div className="space-y-3">
                     {grantorLoans
-                      .filter(
-                        (loan) =>
-                          (loan.grantor1?._id === member?._id &&
+                      .filter((loan) => {
+                        const g1Id = loan.grantor1?._id || loan.grantor1;
+                        const g2Id = loan.grantor2?._id || loan.grantor2;
+                        return (
+                          loan.status === 'pending' &&
+                          ((g1Id?.toString() === member?._id?.toString() &&
                             loan.grantor1Status === 'pending') ||
-                          (loan.grantor2?._id === member?._id &&
-                            loan.grantor2Status === 'pending'),
-                      )
+                            (g2Id?.toString() === member?._id?.toString() &&
+                              loan.grantor2Status === 'pending'))
+                        );
+                      })
                       .map((loan) => (
                         <div
                           key={loan._id}
@@ -476,16 +500,20 @@ const MemberDashboard = () => {
 
                   <div className="space-y-3">
                     {grantorLoans
-                      .filter(
-                        (loan) =>
-                          (loan.grantor1?._id === member?._id &&
+                      .filter((loan) => {
+                        const g1Id = loan.grantor1?._id || loan.grantor1;
+                        const g2Id = loan.grantor2?._id || loan.grantor2;
+                        return (
+                          (g1Id?.toString() === member?._id?.toString() &&
                             loan.grantor1Status !== 'pending') ||
-                          (loan.grantor2?._id === member?._id &&
-                            loan.grantor2Status !== 'pending'),
-                      )
+                          (g2Id?.toString() === member?._id?.toString() &&
+                            loan.grantor2Status !== 'pending')
+                        );
+                      })
                       .map((loan) => {
+                        const g1Id = loan.grantor1?._id || loan.grantor1;
                         const myStatus =
-                          loan.grantor1?._id === member?._id
+                          g1Id?.toString() === member?._id?.toString()
                             ? loan.grantor1Status
                             : loan.grantor2Status;
                         return (
@@ -715,12 +743,11 @@ const MemberDashboard = () => {
                         onPageChange={(p) => {
                           setCurrentPage(p);
                           // For desktop pagination, we want to scroll to top of section or just fetch
-                          const memberToken =
-                            localStorage.getItem('memberToken');
+                          const memberToken = localStorage.getItem('member');
                           api
                             .get(`/loans/my-loans?page=${p}&limit=${limit}`, {
                               headers: {
-                                Authorization: `Bearer ${memberToken}`,
+                                /* Auth header handled by browser cookies */
                               },
                             })
                             .then(({ data: response }) => {

@@ -15,7 +15,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { logActivity } = require('./activityLogController');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail } = require('../utils/email');
 const {
   verificationEmail,
   passwordResetEmail,
@@ -26,6 +26,13 @@ const QRCode = require('qrcode');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+};
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
 };
 
 const registerUser = async (req, res) => {
@@ -70,9 +77,8 @@ const registerUser = async (req, res) => {
       if (!isSuperAdmin) {
         try {
           await sendEmail({
-            email: user.email,
+            to: user.email,
             subject: 'Action Required: Verify Your Email',
-            message: `Your verification code is: ${verificationCode}`,
             html: verificationEmail(verificationCode),
           });
         } catch (err) {
@@ -173,9 +179,8 @@ const loginUser = async (req, res) => {
       const token = generateToken(user._id);
 
       if (user.mustChangePassword) {
-        return res.json({
+        return res.cookie('token', token, cookieOptions).json({
           mustChangePassword: true,
-          token,
           _id: user._id,
           name: user.name,
           email: user.email,
@@ -187,7 +192,7 @@ const loginUser = async (req, res) => {
         });
       }
 
-      res.json({
+      res.cookie('token', token, cookieOptions).json({
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -199,7 +204,6 @@ const loginUser = async (req, res) => {
         profilePicture: user.profilePicture,
         currency: user.currency,
         permissions: user.getPermissions(),
-        token: token,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -406,9 +410,8 @@ const forgotPassword = async (req, res) => {
 
     try {
       await sendEmail({
-        email: user.email,
+        to: user.email,
         subject: 'Action Required: Reset Your Security Credentials',
-        message: `Reset your password here: ${resetUrl}`,
         html: passwordResetEmail(resetUrl),
       });
 
@@ -516,16 +519,18 @@ const verifyEmail = async (req, res) => {
       req,
     });
 
-    res.status(200).json({
-      success: true,
-      message: 'Email verified successfully. You can now log in.',
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      permissions: user.getPermissions(),
-      token: generateToken(user._id),
-    });
+    res
+      .cookie('token', generateToken(user._id), cookieOptions)
+      .status(200)
+      .json({
+        success: true,
+        message: 'Email verified successfully. You can now log in.',
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.getPermissions(),
+      });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -554,9 +559,8 @@ const resendVerificationCode = async (req, res) => {
     await user.save();
 
     await sendEmail({
-      email: user.email,
+      to: user.email,
       subject: 'Action Required: New Verification Code',
-      message: `Your new verification code is: ${verificationCode}`,
       html: verificationEmail(verificationCode),
     });
 
@@ -836,7 +840,7 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    res.json({
+    res.cookie('token', generateToken(user._id), cookieOptions).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -848,7 +852,6 @@ const verifyLogin2FA = async (req, res) => {
       profilePicture: user.profilePicture,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
       permissions: user.getPermissions(),
-      token: generateToken(user._id),
     });
   } catch (error) {
     console.error('Verify Login 2FA Error:', error);
@@ -869,8 +872,6 @@ const requestPasswordChangeCode = async (req, res) => {
 
     // Send Email
     try {
-      const { verificationEmail } = require('../utils/emailTemplates');
-      const { sendEmail } = require('../utils/email');
       const emailSent = await sendEmail({
         to: user.email,
         subject: 'Security Code for Password Change',
@@ -923,7 +924,14 @@ const forceChangePassword = async (req, res) => {
   }
 };
 
+const logoutUser = (req, res) => {
+  res
+    .cookie('token', '', { ...cookieOptions, maxAge: 0 })
+    .json({ message: 'Logged out successfully' });
+};
+
 module.exports = {
+  logoutUser,
   registerUser,
   loginUser,
   getMe,

@@ -93,7 +93,7 @@ const Navbar = ({ onMenuClick }) => {
     }
   };
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('user');
     toast.success('Logged out successfully');
     navigate('/login');

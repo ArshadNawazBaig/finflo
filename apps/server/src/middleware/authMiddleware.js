@@ -5,12 +5,19 @@ const Branch = require('../models/Branch');
 const protect = async (req, res, next) => {
   let token;
 
-  if (
+  // Check cookies first
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
+    // Fallback to Bearer token for mobile or legacy clients
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id)
         .select('-password')

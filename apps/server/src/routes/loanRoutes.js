@@ -40,11 +40,11 @@ router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
 
 // Bulk actions
-router.post('/bulk-approve', protect, admin, bulkApproveLoans);
-router.post('/bulk-reject', protect, admin, bulkRejectLoans);
+router.post('/bulk-approve', protect, staffOrAdmin, bulkApproveLoans);
+router.post('/bulk-reject', protect, staffOrAdmin, bulkRejectLoans);
 
-router.patch('/:id/approve', protect, admin, approveLoan);
-router.patch('/:id/reject', protect, admin, rejectLoan);
+router.patch('/:id/approve', protect, staffOrAdmin, approveLoan);
+router.patch('/:id/reject', protect, staffOrAdmin, rejectLoan);
 router.get('/:id/schedule', protect, getLoanSchedule);
 router
   .route('/:id/documents')

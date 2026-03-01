@@ -7,6 +7,8 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Member = require('../models/Member');
 const Branch = require('../models/Branch');
+const LoanProduct = require('../models/LoanProduct');
+const SystemSettings = require('../models/SystemSettings');
 const { canCreateLoan } = require('../utils/planLimits');
 const { calculateRiskScore } = require('../utils/riskService');
 const {
@@ -48,17 +50,28 @@ const createLoan = async (req, res) => {
     rate: rateInput,
     duration: durationInput,
     startDate,
-    interestType = 'simple',
+    interestType: interestTypeInput,
     grantor1Identifier,
     grantor2Identifier,
-    product, // New: Optional LoanProduct ID
+    product, // Optional LoanProduct ID
   } = req.body;
 
-  const principal = Number(principalInput);
-  const rate = Number(rateInput);
-  const duration = Number(durationInput);
+  let principal = Number(principalInput);
+  let rate = Number(rateInput);
+  let duration = Number(durationInput);
+  let interestType = interestTypeInput || 'simple';
 
   try {
+    // Fetch product details if provided to fill in defaults
+    if (product) {
+      const loanProduct = await LoanProduct.findById(product);
+      if (loanProduct) {
+        if (!rateInput && rateInput !== 0) rate = loanProduct.interestRate;
+        if (!durationInput) duration = loanProduct.duration;
+        if (!interestTypeInput) interestType = loanProduct.interestType;
+      }
+    }
+
     let grantor1Id = null;
     let grantor2Id = null;
 
@@ -239,6 +252,8 @@ const createLoan = async (req, res) => {
             title: 'New Grantor Assignment',
             message: `Admin has assigned you as Grantor 1 for a new loan of ${principal} for customer ${customer.name}.`,
             type: 'info',
+            link: '/member/grantor-requests',
+            action: 'grantor_request',
           });
         }
 
@@ -249,6 +264,8 @@ const createLoan = async (req, res) => {
             title: 'New Grantor Assignment',
             message: `Admin has assigned you as Grantor 2 for a new loan of ${principal} for customer ${customer.name}.`,
             type: 'info',
+            link: '/member/grantor-requests',
+            action: 'grantor_request',
           });
         }
 
@@ -313,10 +330,16 @@ const requestLoan = async (req, res) => {
   } = req.body;
 
   const principal = Number(principalInput);
-  const rate = Number(rateInput || 0);
+  let rate = Number(rateInput || 0);
   const duration = Number(durationInput);
 
   try {
+    // If rate is 0 or not provided, get system default
+    if (!rate || rate === 0) {
+      const settings = await SystemSettings.getSettings();
+      rate = settings.defaultInterestRate || 0;
+    }
+
     if (!principal || !duration) {
       return res
         .status(400)
@@ -511,7 +534,7 @@ const requestLoan = async (req, res) => {
           message: `${req.member.name} has requested you to be Grantor 1 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
           branchId: req.member.branchId || customer.branchId,
-          link: '/member/loans', // Grantors can see requests in their loans list
+          link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
           action: 'grantor_request',
         },
         {
@@ -521,13 +544,35 @@ const requestLoan = async (req, res) => {
           message: `${req.member.name} has requested you to be Grantor 2 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
           branchId: req.member.branchId || customer.branchId,
-          link: '/member/loans', // Grantors can see requests in their loans list
+          link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
           action: 'grantor_request',
         },
       ];
       await Notification.insertMany(notifications);
     } catch (notifError) {
       console.error('Failed to notify grantors:', notifError);
+    }
+
+    // Notify Admins and Managers
+    try {
+      await notifyAdminsOfMemberAction({
+        title: 'New Loan Request',
+        message: `Member ${req.member.name} has requested a loan of Rs. ${principal.toLocaleString()}.`,
+        type: 'info',
+        branchId: req.member.branchId || customer.branchId,
+        ownerId: req.member.user,
+        link: '/loan-requests',
+        metadata: {
+          loanId: createdLoan._id,
+          memberId: req.member._id,
+          principal,
+        },
+      });
+    } catch (adminNotifError) {
+      console.error(
+        'Failed to notify admins of loan request:',
+        adminNotifError,
+      );
     }
 
     // Log activity
@@ -563,7 +608,10 @@ const getGrantorLoans = async (req, res) => {
   try {
     const loans = await Loan.find({
       $or: [{ grantor1: req.member._id }, { grantor2: req.member._id }],
-    }).populate('customer', 'name phone cnic');
+    })
+      .populate('customer', 'name phone cnic')
+      .populate('grantor1', 'name')
+      .populate('grantor2', 'name');
 
     res.json(loans);
   } catch (error) {
@@ -618,19 +666,50 @@ const updateGrantorStatus = async (req, res) => {
 
     await loan.save();
 
-    // Notify Admin if approved
-    if (status === 'approved') {
-      const Notification = require('../models/Notification');
-      const notification = new Notification({
-        recipient: loan.user,
-        recipientModel: 'User',
-        title: 'Grantor Approved Loan',
-        message: `Grantor ${req.member.name} has approved the loan request for ${loan._id}.`,
-        type: 'info',
-        link: `/loan-requests`, // Admins can check the request
-        action: 'grantor_approved',
-      });
-      await notification.save();
+    // ── Notifications (Borrower & Admin) ───────────────────────────────────
+    try {
+      const borrowerCustomer = await Customer.findById(loan.customer);
+
+      // Notify Borrower (Member)
+      if (
+        borrowerCustomer &&
+        borrowerCustomer.isMember &&
+        borrowerCustomer.memberId
+      ) {
+        const notifTitle =
+          status === 'approved' ? 'Grantor Approved' : 'Grantor Rejected';
+        const notifMessage = `Grantor ${req.member.name} has ${status} your loan request for ${loan.principal.toLocaleString()}.`;
+
+        await createTransactionNotification({
+          recipientId: borrowerCustomer.memberId,
+          recipientModel: 'Member',
+          title: notifTitle,
+          message: notifMessage,
+          type: status === 'approved' ? 'success' : 'error',
+          branchId: loan.branchId,
+          action: 'grantor_action_notification',
+          metadata: {
+            loanId: loan._id,
+            link: '/member/loans',
+          },
+        });
+      }
+
+      // Notify Admin
+      if (status === 'approved') {
+        const notification = new Notification({
+          recipient: loan.user,
+          recipientModel: 'User',
+          title: 'Grantor Approved Loan',
+          message: `Grantor ${req.member.name} has approved the loan request for ${borrowerCustomer?.name || loan._id}.`,
+          type: 'info',
+          link: `/loan-requests`,
+          action: 'grantor_approved',
+        });
+        await notification.save();
+      }
+    } catch (notifError) {
+      console.error('Grantor status update notification error:', notifError);
     }
 
     // Log activity
@@ -661,9 +740,10 @@ const getLoans = async (req, res) => {
     const search = req.query.search || '';
     let query = { user: req.user.effectiveOwnerId };
 
-    // Branch Segregation: Staff only see their own branch data
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation: Staff/Managers only see their branch data
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     if (req.query.customerId) {
@@ -945,8 +1025,9 @@ const getRepayments = async (req, res) => {
   const query = { user: req.user.effectiveOwnerId };
 
   // Branch Segregation
-  if (req.user.role === 'staff' && req.user.branchId) {
-    query.branchId = req.user.branchId;
+  if (req.user.role === 'staff') {
+    const branchScope = req.user.managedBranchId || req.user.branchId;
+    if (branchScope) query.branchId = branchScope;
   }
 
   if (loanId) query.loan = loanId;
@@ -1153,8 +1234,9 @@ const getUpcomingRepayments = async (req, res) => {
     };
 
     // Branch Segregation
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     if (loanId) {
@@ -1375,12 +1457,18 @@ const approveLoan = async (req, res) => {
       return res.status(400).json({ message: 'Loan is not in pending status' });
     }
 
-    // Apply term overrides if provided
-    if (principal || rate || duration || interestType) {
+    // Apply term overrides if provided or if current terms are missing/zero
+    if (principal || rate || duration || interestType || loan.rate === 0) {
       const newPrincipal = principal ? Number(principal) : loan.principal;
-      const newRate = rate ? Number(rate) : loan.rate;
+      let newRate = rate !== undefined ? Number(rate) : loan.rate;
       const newDuration = duration ? Number(duration) : loan.duration;
-      const newInterestType = interestType || loan.interestType || 'emi';
+      const newInterestType = interestType || loan.interestType || 'simple';
+
+      // Robust rate fallback
+      if (!newRate || newRate === 0) {
+        const settings = await SystemSettings.getSettings();
+        newRate = settings.defaultInterestRate || 0;
+      }
 
       let emi, totalAmount;
       if (newInterestType === 'simple') {

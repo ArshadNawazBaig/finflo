@@ -32,9 +32,9 @@ const ForcePasswordChange = ({ isMember = false }) => {
   );
 
   useEffect(() => {
-    // If no token, redirect to login
-    const token = localStorage.getItem(isMember ? 'memberToken' : 'token');
-    if (!token) {
+    // If no data in localStorage, redirect to login
+    const userData = localStorage.getItem(isMember ? 'member' : 'user');
+    if (!userData) {
       navigate(isMember ? '/member/login' : '/login');
     }
   }, [navigate, isMember]);

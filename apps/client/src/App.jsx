@@ -101,6 +101,9 @@ const MemberResetPassword = lazy(
 const MemberNotifications = lazy(
   () => import('@/pages/member/MemberNotifications'),
 );
+const MemberGrantorRequests = lazy(
+  () => import('@/pages/member/MemberGrantorRequests'),
+);
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -338,6 +341,10 @@ function App() {
                   <Route
                     path="/member/dashboard"
                     element={<MemberDashboard />}
+                  />
+                  <Route
+                    path="/member/grantor-requests"
+                    element={<MemberGrantorRequests />}
                   />
                   <Route
                     path="/member/loans/:id"

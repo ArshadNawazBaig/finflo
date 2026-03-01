@@ -7,25 +7,42 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
 import api from '@/lib/axios';
+import { useSetAtom } from 'jotai';
+import { subscriptionAtom, userAtom } from '@/atoms';
+import PlanLimitBanner from '@/components/PlanLimitBanner';
 
 const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+  const setSubscription = useSetAtom(subscriptionAtom);
+  const setUser = useSetAtom(userAtom);
 
-  // Fetch latest user data on mount to ensure persistence
+  // Fetch latest user data and subscription on mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await api.get('/auth/me');
-        localStorage.setItem('user', JSON.stringify(data));
+        const [{ data: userData }, { data: subData }] = await Promise.all([
+          api.get('/auth/me'),
+          api.get('/subscription'),
+        ]);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
         window.dispatchEvent(new Event('userUpdated'));
+
+        setSubscription({
+          plan: subData.plan || 'Free',
+          usage: subData.usage || { loans: 0, members: 0, branches: 0 },
+          limits: subData.limits || null,
+          loading: false,
+        });
       } catch (error) {
-        console.error('Failed to sync user data:', error);
+        console.error('Failed to sync layout data:', error);
+        setSubscription((prev) => ({ ...prev, loading: false }));
       }
     };
-    fetchUserData();
-  }, []);
+    fetchData();
+  }, [setSubscription, setUser]);
 
   // Handle resize and initial check
   useEffect(() => {
@@ -84,6 +101,7 @@ const DashboardLayout = () => {
           )}
         >
           <div className="max-w-7xl mx-auto">
+            <PlanLimitBanner />
             <Outlet />
           </div>
         </div>

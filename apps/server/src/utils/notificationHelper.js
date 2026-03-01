@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { logActivity } = require('../controllers/activityLogController');
@@ -64,6 +65,7 @@ const notifyAdminsOfMemberAction = async ({
   message,
   type = 'info',
   branchId,
+  ownerId, // Added ownerId to ensure business owner is notified
   metadata = {},
   link, // Added link support
 }) => {
@@ -74,20 +76,41 @@ const notifyAdminsOfMemberAction = async ({
       isActive: true,
     });
 
-    // Find branch-specific admins if branchId is provided
-    let branchAdmins = [];
+    // Find branch-specific admins and managers if branchId is provided
+    let branchStaff = [];
     if (branchId) {
-      branchAdmins = await User.find({
+      // 1. Find all admins in this branch
+      const branchAdmins = await User.find({
         role: 'admin',
         branchId,
         isActive: true,
       });
+
+      // 2. Find the designated branch manager (who might be 'staff' role)
+      const branch = await mongoose.model('Branch').findById(branchId);
+      let branchManager = [];
+      if (branch && branch.manager) {
+        const managerUser = await User.findOne({
+          _id: branch.manager,
+          isActive: true,
+        });
+        if (managerUser) branchManager = [managerUser];
+      }
+
+      branchStaff = [...branchAdmins, ...branchManager];
+    }
+
+    // 3. Find the business owner (who owns the member/loan)
+    let businessOwner = [];
+    if (ownerId) {
+      const ownerUser = await User.findById(ownerId);
+      if (ownerUser && ownerUser.isActive) businessOwner = [ownerUser];
     }
 
     // Combine recipients (unique list)
-    const adminRecipients = [...superAdmins, ...branchAdmins];
+    const allRecipients = [...superAdmins, ...branchStaff, ...businessOwner];
     const uniqueAdminIds = [
-      ...new Set(adminRecipients.map((u) => u._id.toString())),
+      ...new Set(allRecipients.map((u) => u._id.toString())),
     ];
 
     // Create notifications for all identified admins

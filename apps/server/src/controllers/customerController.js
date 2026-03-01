@@ -16,9 +16,10 @@ const getCustomers = async (req, res) => {
     const search = req.query.search || '';
     let query = { user: req.user.effectiveOwnerId };
 
-    // Branch Segregation: Staff only see their own branch data
-    if (req.user.role === 'staff' && req.user.branchId) {
-      query.branchId = req.user.branchId;
+    // Branch Segregation: Staff/Managers only see their branch data
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     if (search) {
@@ -558,10 +559,20 @@ const updateDocumentStatus = async (req, res) => {
 /** Get all customers that have at least one Pending document */
 const getPendingDocuments = async (req, res) => {
   try {
-    const customers = await Customer.find({
+    const query = {
       user: req.user.effectiveOwnerId,
       'documents.status': 'Pending',
-    }).select('name email phone documents');
+    };
+
+    // Branch Segregation
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
+    }
+
+    const customers = await Customer.find(query).select(
+      'name email phone documents',
+    );
 
     // Flatten into a list of pending-doc entries for easy rendering
     const queue = [];

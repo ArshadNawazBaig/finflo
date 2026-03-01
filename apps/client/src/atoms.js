@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
 
 export const userAtom = atom(JSON.parse(localStorage.getItem('user')) || null);
-export const tokenAtom = atom(localStorage.getItem('token') || null);
+export const tokenAtom = atom(localStorage.getItem('user') || null);
 export const isAuthenticatedAtom = atom((get) => !!get(tokenAtom));
 
 export const statsAtom = atom({
@@ -9,4 +9,15 @@ export const statsAtom = atom({
   growth: 0,
   customers: 0,
   activeLoans: 0,
+});
+
+export const subscriptionAtom = atom({
+  plan: 'Free',
+  usage: {
+    loans: 0,
+    members: 0,
+    branches: 0,
+  },
+  limits: null,
+  loading: true,
 });

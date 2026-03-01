@@ -37,8 +37,8 @@ const MemberLoanDetail = () => {
     const fetchLoanData = async () => {
       try {
         setLoading(true);
-        const memberToken = localStorage.getItem('memberToken');
-        const headers = { Authorization: `Bearer ${memberToken}` };
+        const memberToken = localStorage.getItem('member');
+        const headers = { /* Auth header handled by browser cookies */ };
 
         const [loanRes, scheduleRes] = await Promise.all([
           api.get(`/loans/my-loans/${id}`, { headers }),
@@ -61,8 +61,8 @@ const MemberLoanDetail = () => {
   const handleRepaySuccess = async () => {
     try {
       setLoading(true);
-      const memberToken = localStorage.getItem('memberToken');
-      const headers = { Authorization: `Bearer ${memberToken}` };
+      const memberToken = localStorage.getItem('member');
+      const headers = { /* Auth header handled by browser cookies */ };
 
       const [loanRes, scheduleRes] = await Promise.all([
         api.get(`/loans/my-loans/${id}`, { headers }),

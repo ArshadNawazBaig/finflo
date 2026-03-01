@@ -47,10 +47,10 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const fetchMemberBalance = async () => {
     try {
       setFetchingBalance(true);
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       // Fix: Use correct member profile endpoint
       const { data } = await api.get('/member-auth/me', {
-        headers: { Authorization: `Bearer ${memberToken}` },
+        headers: { /* Auth header handled by browser cookies */ },
       });
       setMemberBalance(data.currentBalance || 0);
     } catch (error) {
@@ -153,7 +153,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('memberToken');
+      const memberToken = localStorage.getItem('member');
       await api.post(
         `/repayments/member/${loan._id}/repay`,
         {
@@ -161,7 +161,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           isSettlement,
           notes: formData.notes,
         },
-        { headers: { Authorization: `Bearer ${memberToken}` } },
+        { headers: { /* Auth header handled by browser cookies */ } },
       );
 
       toast.success(

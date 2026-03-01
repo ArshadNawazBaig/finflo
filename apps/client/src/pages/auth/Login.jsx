@@ -46,13 +46,13 @@ const Login = () => {
       }
 
       if (data.mustChangePassword) {
-        localStorage.setItem('token', data.token);
+        
         localStorage.setItem('user', JSON.stringify(data));
         navigate('/force-password-change');
         return;
       }
 
-      localStorage.setItem('token', data.token);
+      
       localStorage.setItem('user', JSON.stringify(data));
 
       const searchParams = new URLSearchParams(window.location.search);
@@ -90,7 +90,7 @@ const Login = () => {
         pendingToken,
         code: otpCode.trim(),
       });
-      localStorage.setItem('token', data.token);
+      
       localStorage.setItem('user', JSON.stringify(data));
       if (data.role === 'super_admin') {
         navigate('/super-admin');
