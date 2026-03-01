@@ -4,14 +4,15 @@ const Member = require('../models/Member');
 const protectMember = async (req, res, next) => {
   let token;
 
-  // Check cookies first
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  } else if (
+  // Check Authorization header first
+  if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.token) {
+    // Fallback to cookies
+    token = req.cookies.token;
   }
 
   if (token) {

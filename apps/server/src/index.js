@@ -71,10 +71,12 @@ app.use('/api/member-auth/login', authLimiter);
 
 // Restrict CORS to CLIENT_URL and mobile dev origins
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
+  'capacitor://localhost',
+  'http://localhost',
 ];
 
 const corsOptions = {

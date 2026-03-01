@@ -87,6 +87,7 @@ const loginMember = async (req, res) => {
 
       if (member.mustChangePassword) {
         return res.cookie('token', token, cookieOptions).json({
+          token,
           mustChangePassword: true,
           _id: member._id,
           name: member.name,
@@ -106,6 +107,7 @@ const loginMember = async (req, res) => {
       });
 
       res.cookie('token', token, cookieOptions).json({
+        token,
         _id: member._id,
         name: member.name,
         email: member.email,

@@ -100,14 +100,18 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
       {isMobile && (
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl bg-accent/50 hover:bg-accent text-foreground transition-colors z-50 shadow-sm"
+          className="absolute top-10 right-4 p-2 rounded-xl bg-accent/50 hover:bg-accent text-foreground transition-colors z-50 shadow-sm"
         >
           <X size={20} />
         </button>
       )}
 
       <div
-        className={cn('mb-8 transition-all', isLayoutExpanded ? 'px-2' : '')}
+        className={cn(
+          'mb-8 transition-all',
+          isLayoutExpanded ? 'px-2' : '',
+          isMobile ? 'pt-8' : '',
+        )}
       >
         <Link to="/member/dashboard">
           <Logo showText={isLayoutExpanded} custom />

@@ -33,30 +33,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script type="module">
-      // Only register service worker in production
-      if ('serviceWorker' in navigator && import.meta.env.PROD) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/sw.js')
-            .then((reg) =>
-              console.log('✅ PWA: Service Worker Active', reg.scope),
-            )
-            .catch((err) =>
-              console.error('❌ PWA: Service Worker Failed', err),
-            );
-        });
-      } else if ('serviceWorker' in navigator && !import.meta.env.PROD) {
-        // Unregister any existing service workers in development
-        if (navigator.serviceWorker) {
-          navigator.serviceWorker.getRegistrations().then((registrations) => {
-            registrations.forEach((registration) => {
-              registration.unregister();
-              console.log('🔧 DEV: Service Worker unregistered');
-            });
-          });
-        }
-      }
-    </script>
   </body>
 </html>

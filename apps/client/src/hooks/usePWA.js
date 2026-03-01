@@ -10,6 +10,16 @@ export const usePWA = () => {
   const [isReadyForPrompt, setIsReadyForPrompt] = useState(false);
 
   useEffect(() => {
+    // Check if running natively via Capacitor
+    const isNative =
+      window.Capacitor?.getPlatform() !== 'web' &&
+      window.Capacitor?.getPlatform() !== undefined;
+
+    if (isNative) {
+      console.log('📱 PWA: Native platform detected, disabling PWA hooks');
+      return;
+    }
+
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
