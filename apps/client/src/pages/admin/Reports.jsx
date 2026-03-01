@@ -936,16 +936,18 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="p-8 pt-4 relative space-y-6">
                 {regulatoryLoading ? (
-                  <div className="space-y-6 animate-pulse">
+                  <div className="space-y-10">
                     <div className="grid grid-cols-2 gap-4">
-                      <Skeleton className="h-20 rounded-2xl" />
-                      <Skeleton className="h-20 rounded-2xl" />
+                      <Skeleton className="h-24 rounded-[1.5rem]" />
+                      <Skeleton className="h-24 rounded-[1.5rem]" />
                     </div>
-                    <div className="space-y-3">
-                      <Skeleton className="h-4 w-24 rounded" />
-                      {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-14 rounded-xl" />
-                      ))}
+                    <div className="space-y-4">
+                      <Skeleton className="h-4 w-32 rounded-full" />
+                      <div className="space-y-3">
+                        {[...Array(4)].map((_, i) => (
+                          <Skeleton key={i} className="h-16 rounded-2xl" />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ) : ifrs9Data ? (
@@ -1060,16 +1062,16 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="p-8 pt-4 relative space-y-6">
                 {regulatoryLoading ? (
-                  <div className="space-y-6 animate-pulse">
-                    <Skeleton className="h-32 rounded-[1.5rem]" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Skeleton className="h-3 w-20 rounded" />
-                        <Skeleton className="h-5 w-24 rounded" />
+                  <div className="space-y-8">
+                    <Skeleton className="h-40 rounded-[2rem]" />
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Skeleton className="h-3 w-24 rounded-full" />
+                        <Skeleton className="h-8 w-32 rounded-xl" />
                       </div>
-                      <div className="space-y-2">
-                        <Skeleton className="h-3 w-20 rounded" />
-                        <Skeleton className="h-5 w-24 rounded" />
+                      <div className="space-y-3">
+                        <Skeleton className="h-3 w-24 rounded-full" />
+                        <Skeleton className="h-8 w-32 rounded-xl" />
                       </div>
                     </div>
                   </div>
@@ -1254,24 +1256,47 @@ const Reports = () => {
           </div>
 
           {loadingTrial ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card/40 p-8 rounded-3xl border border-border/10 animate-pulse">
-              <div className="space-y-4">
-                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex justify-between">
-                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
-                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-card/40 p-10 rounded-[2.5rem] border border-border/40 shadow-sm backdrop-blur-md">
+              <div className="space-y-8">
+                <div className="flex justify-between items-center pb-4 border-b border-border/20">
+                  <Skeleton className="h-4 w-32 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-lg" />
+                </div>
+                <div className="space-y-5">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-1/2 rounded-full" />
+                      <Skeleton className="h-4 w-1/4 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-6 border-t border-border/20">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-5 w-1/4 rounded-full" />
+                    <Skeleton className="h-6 w-1/3 rounded-full" />
                   </div>
-                ))}
+                </div>
               </div>
-              <div className="space-y-4">
-                <div className="h-4 w-1/4 bg-muted/40 rounded-lg" />
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex justify-between">
-                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
-                    <div className="h-3 w-1/4 bg-muted/20 rounded-lg" />
+              <div className="space-y-8">
+                <div className="flex justify-between items-center pb-4 border-b border-border/20">
+                  <Skeleton className="h-4 w-32 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-lg" />
+                </div>
+                <div className="space-y-5">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-1/12 rounded-full" />
+                      <Skeleton className="h-4 w-1/2 rounded-full" />
+                      <Skeleton className="h-4 w-1/4 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-6 border-t border-border/20">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-5 w-1/4 rounded-full" />
+                    <Skeleton className="h-6 w-1/3 rounded-full" />
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           ) : trialBalance ? (

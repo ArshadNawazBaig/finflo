@@ -14,6 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import StatsCard from '@/components/StatsCard';
 import PaymentCard from '@/components/payments/PaymentCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import {
   Card,
   CardContent,
@@ -196,20 +198,17 @@ const RevenueReports = () => {
       />
 
       {loading ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-32 rounded-[2rem] border border-border/50 bg-card/50 animate-pulse"
-              />
-            ))}
-          </div>
+        <div className="space-y-10">
+          <CardsSkeleton count={4} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Skeleton className="h-[450px] rounded-3xl" />
-            <Skeleton className="h-[450px] rounded-3xl" />
+            <ChartSkeleton />
+            <ChartSkeleton />
           </div>
-          <Skeleton className="h-64 rounded-2xl" />
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+            <div className="p-12 flex justify-center">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+            </div>
+          </Card>
         </div>
       ) : (
         <>
