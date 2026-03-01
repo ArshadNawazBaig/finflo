@@ -6,6 +6,7 @@ const {
   markAsRead,
   getAllNotifications,
   deleteNotification,
+  deleteMyNotification,
 } = require('../controllers/notificationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -17,5 +18,6 @@ router.delete('/:id', protect, admin, deleteNotification);
 // Authenticated Users (Business Owners)
 router.get('/', protect, getMyNotifications);
 router.put('/:id/read', protect, markAsRead);
+router.delete('/delete/:id', protect, deleteMyNotification);
 
 module.exports = router;

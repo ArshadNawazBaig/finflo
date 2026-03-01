@@ -208,6 +208,13 @@ const deleteMyNotification = async (req, res) => {
     const { id } = req.params;
     const recipientId = req.user ? req.user._id : req.member._id;
 
+    if (id === 'all') {
+      const result = await Notification.deleteMany({ recipient: recipientId });
+      return res.json({
+        message: `${result.deletedCount} notifications deleted successfully`,
+      });
+    }
+
     const notification = await Notification.findOne({
       _id: id,
       recipient: recipientId,
@@ -287,6 +294,23 @@ const getAllNotifications = async (req, res) => {
 const deleteNotification = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (id === 'all') {
+      const result = await Notification.deleteMany({});
+      // Log activity
+      await logActivity({
+        userId: req.user._id,
+        action: 'notification_history_cleared',
+        category: 'notification',
+        details: `Admin cleared entire notification history`,
+        metadata: { deletedCount: result.deletedCount },
+        req,
+      });
+      return res.json({
+        message: `Entire history (${result.deletedCount} notifications) cleared successfully`,
+      });
+    }
+
     const notification = await Notification.findById(id).populate(
       'recipient',
       'email',

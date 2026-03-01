@@ -51,6 +51,7 @@ const ManageNotifications = () => {
   const [limit, setLimit] = useState(10);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const navigate = useNavigate();
@@ -139,14 +140,28 @@ const ManageNotifications = () => {
   }, [isMobile, isFetchingMore, pagination, fetchNotifications]);
 
   const handleDelete = (id) => {
+    setIsBulkDelete(false);
     setDeleteConfirmation(id);
+  };
+
+  const handleDeleteAll = () => {
+    setIsBulkDelete(true);
+    setDeleteConfirmation('all');
   };
 
   const confirmDelete = async () => {
     try {
-      await api.delete(`/notifications/${deleteConfirmation}`);
-      toast.success('Notification deleted successfully');
+      const endpoint = isBulkDelete
+        ? '/notifications/all'
+        : `/notifications/${deleteConfirmation}`;
+      await api.delete(endpoint);
+      toast.success(
+        isBulkDelete
+          ? 'All notifications deleted successfully'
+          : 'Notification deleted successfully',
+      );
       setDeleteConfirmation(null);
+      setIsBulkDelete(false);
       fetchNotifications(1);
     } catch (error) {
       console.error('Failed to delete notification:', error);
@@ -195,6 +210,15 @@ const ManageNotifications = () => {
             <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase min-w-[120px] justify-center flex">
               {pagination.total} TOTAL SENT
             </span>
+            <Button
+              onClick={handleDeleteAll}
+              variant="outline"
+              className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto border-destructive/20 text-destructive hover:bg-destructive/10"
+              disabled={notifications.length === 0}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete All
+            </Button>
             <Button
               onClick={() => setIsNotificationModalOpen(true)}
               variant="gradient"
@@ -422,11 +446,12 @@ const ManageNotifications = () => {
           <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
-                Delete Alert?
+                {isBulkDelete ? 'Delete All History?' : 'Delete Alert?'}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
-                This will permanently delete the notification from the history.
-                This action cannot be undone.
+                {isBulkDelete
+                  ? 'Are you sure you want to clear your entire notification history? This action will remove all recorded broadcast alerts.'
+                  : 'This will permanently delete the notification from the history. This action cannot be undone.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">

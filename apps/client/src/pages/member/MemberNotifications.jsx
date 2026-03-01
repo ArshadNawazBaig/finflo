@@ -160,22 +160,42 @@ const MemberNotifications = () => {
     }
   };
 
+  const handleDeleteAll = () => {
+    setDeleteConfirmation('all');
+  };
+
   const handleDelete = (id) => {
     setDeleteConfirmation(id);
   };
 
   const confirmDelete = async () => {
     try {
-      await api.delete(`/member-notifications/${deleteConfirmation}`);
-      toast.success('Notification deleted successfully');
-      setDeleteConfirmation(null);
-      setNotifications((prev) =>
-        prev.filter((n) => n._id !== deleteConfirmation),
+      const isBulk = deleteConfirmation === 'all';
+      const endpoint = isBulk
+        ? '/member-notifications/all'
+        : `/member-notifications/${deleteConfirmation}`;
+
+      await api.delete(endpoint);
+      toast.success(
+        isBulk
+          ? 'All notifications deleted successfully'
+          : 'Notification deleted successfully',
       );
-      setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
-      // Refetch if page is now empty
-      if (notifications.length === 1 && pagination.page > 1) {
-        setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+      setDeleteConfirmation(null);
+
+      if (isBulk) {
+        setNotifications([]);
+        setPagination((prev) => ({ ...prev, total: 0, page: 1, pages: 1 }));
+        setUnreadCount(0);
+      } else {
+        setNotifications((prev) =>
+          prev.filter((n) => n._id !== deleteConfirmation),
+        );
+        setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
+        // Refetch if page is now empty
+        if (notifications.length === 1 && pagination.page > 1) {
+          setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+        }
       }
     } catch (error) {
       console.error('Failed to delete notification:', error);
@@ -233,6 +253,16 @@ const MemberNotifications = () => {
                 Mark all as read
               </Button>
             )}
+            <Button
+              onClick={handleDeleteAll}
+              variant="outline"
+              size="sm"
+              className="rounded-lg font-bold border-destructive/20 text-destructive hover:bg-destructive/10 transition-all duration-300"
+              disabled={notifications.length === 0}
+            >
+              <Trash2 size={16} className="mr-2" />
+              Delete All
+            </Button>
             <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 uppercase">
               {unreadCount} UNREAD
             </div>
@@ -561,11 +591,14 @@ const MemberNotifications = () => {
         <AlertDialogContent className="rounded-[2.5rem] border-border/50 bg-card/95 backdrop-blur-2xl shadow-2xl p-8 max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
-              Delete Alert?
+              {deleteConfirmation === 'all'
+                ? 'Clear Notifications?'
+                : 'Delete Alert?'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
-              This message will be permanently removed. This action cannot be
-              undone.
+              {deleteConfirmation === 'all'
+                ? 'Are you sure you want to delete all notifications? This action cannot be undone.'
+                : 'This message will be permanently removed. This action cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
