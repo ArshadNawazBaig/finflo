@@ -10,17 +10,31 @@ const Branch = require('../models/Branch');
 const protectAny = async (req, res, next) => {
   let token;
 
+  // Check Authorization header first (reliable for mobile/Capacitor)
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  // Then check cookies (standard for web)
+  else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Try User first
-      let user = await User.findById(decoded.id).select('-password');
-      if (user) {
+      let userDoc = await User.findById(decoded.id)
+        .select('-password')
+        .populate('roleRef');
+      if (userDoc) {
+        // Convert to plain object so we can add non-schema properties safely
+        const user = userDoc.toObject();
+        user.permissions = userDoc.getPermissions();
+
         // Staff manager logic (replicated from authMiddleware)
         if (user.role === 'staff') {
           const managedBranch = await Branch.findOne({ manager: user._id });
@@ -36,9 +50,9 @@ const protectAny = async (req, res, next) => {
       }
 
       // Try Member
-      let member = await Member.findById(decoded.id).select('-password');
-      if (member) {
-        req.member = member;
+      let memberDoc = await Member.findById(decoded.id).select('-password');
+      if (memberDoc) {
+        req.member = memberDoc.toObject();
         return next();
       }
 
@@ -46,14 +60,12 @@ const protectAny = async (req, res, next) => {
         .status(401)
         .json({ message: 'Not authorized, account not found' });
     } catch (error) {
-      console.error(error);
+      console.error('Search Auth Error:', error);
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  return res.status(401).json({ message: 'Not authorized, no token' });
 };
 
 router.get('/', protectAny, globalSearch);

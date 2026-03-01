@@ -5,15 +5,15 @@ const Branch = require('../models/Branch');
 const protect = async (req, res, next) => {
   let token;
 
-  // Check cookies first
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  } else if (
+  // Check Authorization header first (reliable for mobile/Capacitor)
+  if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    // Fallback to Bearer token for mobile or legacy clients
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.token) {
+    // Fallback to cookies for web/legacy
+    token = req.cookies.token;
   }
 
   if (token) {

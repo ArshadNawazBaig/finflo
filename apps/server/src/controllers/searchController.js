@@ -214,7 +214,8 @@ const globalSearch = async (req, res) => {
 
       const filteredLoans = loans.filter(
         (l) =>
-          l._id.toString().includes(q) || l.customer.name.match(searchRegex),
+          l.customer &&
+          (l._id.toString().includes(q) || l.customer.name.match(searchRegex)),
       );
 
       filteredLoans.forEach((l) =>

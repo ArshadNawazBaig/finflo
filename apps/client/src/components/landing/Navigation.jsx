@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sun, Moon, ChevronRight, X, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Logo from '@/components/Logo';
 
 const Navigation = ({
@@ -10,18 +12,31 @@ const Navigation = ({
   theme,
   setTheme,
 }) => {
+  const isMobile = useMediaQuery('(max-width: 1024px)');
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-          scrollY > 30
-            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
-            : 'py-8'
-        }`}
+        className={cn(
+          'fixed left-0 right-0 z-[100] transition-all duration-500 flex justify-center',
+          scrollY > 30 || isMobile ? 'top-12 px-4' : 'top-0 py-8 px-6',
+        )}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-4 xl:px-2 2xl:px-0 flex items-center justify-between">
-          <Link to="/" className="hover:scale-105 transition-transform">
-            <Logo showText={true} />
+        <div
+          className={cn(
+            'transition-all duration-500 flex items-center justify-between',
+            scrollY > 30 || isMobile
+              ? 'w-[92%] max-w-sm sm:max-w-7xl mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]'
+              : 'w-full max-w-7xl mx-auto',
+          )}
+        >
+          <Link
+            to="/"
+            className="hover:scale-105 transition-transform flex items-center"
+          >
+            <Logo
+              showText={!isMobile || scrollY <= 30}
+              className="h-8 w-auto"
+            />
           </Link>
 
           <div className="hidden lg:flex items-center gap-10">
@@ -29,7 +44,7 @@ const Navigation = ({
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-primary transition-all relative group"
+                className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-primary transition-all relative group"
               >
                 {item}
                 <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
@@ -37,33 +52,33 @@ const Navigation = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-200/50 dark:bg-white/5 hover:bg-primary/10 transition-colors text-slate-600 dark:text-slate-400"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-200/50 dark:bg-white/5 hover:bg-primary/10 transition-colors text-slate-600 dark:text-slate-400"
             >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <div className="hidden sm:flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-xs font-black uppercase tracking-widest px-6 py-2.5 hover:text-primary transition-colors"
+                className="text-[10px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
               >
-                Access Portal
+                Login
               </Link>
               <Link
                 to="/register"
-                className="bg-primary text-primary-foreground px-8 py-3.5 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
+                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
               >
-                Get Started
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Join
+                <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden w-11 h-11 bg-slate-200/50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-foreground transition-all active:scale-95"
+              className="lg:hidden w-9 h-9 bg-slate-200/50 dark:bg-white/5 rounded-full flex items-center justify-center text-foreground transition-all active:scale-95"
             >
-              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>

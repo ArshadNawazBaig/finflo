@@ -1,14 +1,37 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
+// Determine the API base URL based on the environment
+const isCapacitor =
+  !!window.Capacitor ||
+  (window.webkit &&
+    window.webkit.messageHandlers &&
+    window.webkit.messageHandlers.bridge);
+
+// Production URL where the server is hosted (Update if necessary)
+const PROD_API_URL = 'https://loan-master-client.vercel.app/api';
+
 const api = axios.create({
-  baseURL: '/api', // Vite proxy handles this
+  baseURL: isCapacitor ? PROD_API_URL : '/api',
   withCredentials: true,
 });
 
 api.interceptors.request.use(
   (config) => {
-    // Cookies are automatically sent due to withCredentials
+    // Attempt to get token from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const member = JSON.parse(localStorage.getItem('member') || '{}');
+
+    // Intelligently pick token based on the current route
+    const isMemberRoute = window.location.pathname.startsWith('/member/');
+    const token = isMemberRoute
+      ? member.token || user.token
+      : user.token || member.token;
+
+    if (token && typeof token === 'string') {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error) => Promise.reject(error),

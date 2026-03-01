@@ -36,6 +36,16 @@ const InstallPrompt = () => {
       return;
     }
 
+    // Disable on native Capacitor platforms (iOS/Android)
+    if (
+      window.Capacitor?.getPlatform() !== 'web' &&
+      window.Capacitor?.getPlatform() !== undefined
+    ) {
+      console.log('📱 App is running natively, hiding PWA prompt');
+      setIsVisible(false);
+      return;
+    }
+
     if (isReadyForPrompt && !isInstalled) {
       const isDismissed = sessionStorage.getItem('pwa-prompt-dismissed');
       if (!isDismissed) {

@@ -1,14 +1,15 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, cloneElement } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
   Users,
   WalletMinimal,
   Settings2,
   Bell,
-  FileQuestion,
   BarChart3,
-  LifeBuoy,
+  TrendingUp,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,18 +45,23 @@ const MobileBottomNav = () => {
         },
         {
           icon: <BarChart3 size={20} />,
-          label: 'Data',
+          label: 'Revenue',
+          path: '/super-admin/revenue',
+        },
+        {
+          icon: <History size={20} />,
+          label: 'Logs',
+          path: '/super-admin/activity-logs',
+        },
+        {
+          icon: <TrendingUp size={20} />,
+          label: 'Stats',
           path: '/super-admin/analytics',
         },
         {
-          icon: <LifeBuoy size={20} />,
-          label: 'Tickets',
-          path: '/super-admin/tickets',
-        },
-        {
-          icon: <Bell size={20} />,
-          label: 'Alerts',
-          path: '/super-admin/notifications',
+          icon: <WalletMinimal size={20} />,
+          label: 'Backup',
+          path: '/super-admin/backup',
         },
         {
           icon: <Settings2 size={20} />,
@@ -66,71 +72,63 @@ const MobileBottomNav = () => {
     : [
         { icon: <LayoutGrid size={20} />, label: 'Home', path: '/dashboard' },
         { icon: <WalletMinimal size={20} />, label: 'Loans', path: '/loans' },
-        {
-          icon: <FileQuestion size={20} />,
-          label: 'Requests',
-          path: '/loan-requests',
-        },
         { icon: <Users size={20} />, label: 'Users', path: '/customers' },
+        { icon: <History size={20} />, label: 'Ledger', path: '/transactions' },
+        {
+          icon: <TrendingUp size={20} />,
+          label: 'Payouts',
+          path: '/distributions',
+        },
         { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
-        ...(user.plan && user.plan !== 'Free'
-          ? [
-              {
-                icon: <LifeBuoy size={20} />,
-                label: 'Support',
-                path: '/support',
-              },
-            ]
-          : []),
         { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
       ];
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-safe-offset-4 pb-[env(safe-area-inset-bottom,24px)] pt-2 bg-gradient-to-t from-background via-background to-transparent pointer-events-none mb-0">
-      <nav className="max-w-md mx-auto bg-card/90 backdrop-blur-2xl border border-border/50 rounded-[2rem] shadow-2xl flex items-center justify-around p-2 pointer-events-auto ring-1 ring-white/5">
+    <div className="lg:hidden fixed bottom-6 left-0 right-0 z-[100] px-4 pointer-events-none mb-safe-area-inset-bottom">
+      <nav className="w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] flex items-center justify-around p-1.5 pointer-events-auto relative overflow-hidden group">
         {navItems.map((item) => {
           const isActive =
             activeTab === item.path ||
-            (item.path !== '/dashboard' && activeTab.startsWith(item.path));
+            (item.path !== '/dashboard' &&
+              item.path !== '/super-admin' &&
+              activeTab.startsWith(item.path));
 
           return (
             <NavLink
               key={item.path}
               to={item.path}
               className={cn(
-                'relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-500 group',
+                'relative flex items-center justify-center transition-all duration-500 rounded-full overflow-hidden',
                 isActive
-                  ? 'text-primary scale-110 hover:brightness-110'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30',
+                  ? 'bg-primary text-primary-foreground px-6 py-3 shadow-lg shadow-primary/30'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground p-3.5',
               )}
             >
-              <div
-                className={cn(
-                  'relative z-10 transition-transform duration-500',
-                  isActive ? 'translate-y-[-2px]' : '',
-                )}
+              <motion.div
+                layout
+                className="relative z-20 flex items-center gap-2"
               >
-                {item.icon}
-              </div>
-
-              <span
-                className={cn(
-                  'text-[8px] font-black uppercase tracking-widest mt-1 transition-all duration-500',
-                  isActive
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-1',
-                )}
-              >
-                {item.label}
-              </span>
-
-              {isActive && (
-                <div className="absolute inset-0 bg-primary/10 rounded-2xl animate-in fade-in zoom-in duration-300" />
-              )}
-
-              {isActive && (
-                <div className="absolute -top-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_10px_#6366f1]" />
-              )}
+                <div className="shrink-0">
+                  {item.icon &&
+                    cloneElement(item.icon, {
+                      size: 20,
+                      strokeWidth: isActive ? 2.5 : 2,
+                    })}
+                </div>
+                <AnimatePresence mode="popLayout">
+                  {isActive && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0, x: -10 }}
+                      animate={{ opacity: 1, width: 'auto', x: 0 }}
+                      exit={{ opacity: 0, width: 0, x: -10 }}
+                      transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+                      className="text-xs font-bold tracking-tight whitespace-nowrap overflow-hidden"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </NavLink>
           );
         })}

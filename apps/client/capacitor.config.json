@@ -1,0 +1,13 @@
+{
+  "appId": "com.loanapp.management",
+  "appName": "FinFlow",
+  "webDir": "dist",
+  "server": {
+    "allowNavigation": ["loan-master-client.vercel.app"]
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

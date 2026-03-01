@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { cn } from '@/lib/utils';
 
-const GlobalSearch = ({ isMember = false }) => {
+const GlobalSearch = ({ isMember = false, isCompact = false }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -46,10 +46,8 @@ const GlobalSearch = ({ isMember = false }) => {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem(isMember ? 'memberToken' : 'token');
       const { data } = await api.get('/search', {
         params: { q: query },
-        headers: token ? { /* Auth header handled by browser cookies */ } : {},
       });
       setResults(data.results);
       setIsOpen(true);
@@ -86,19 +84,30 @@ const GlobalSearch = ({ isMember = false }) => {
   };
 
   return (
-    <div className="relative w-full md:max-w-md" ref={searchRef}>
+    <div
+      className={cn('relative w-full', !isCompact && 'md:max-w-md')}
+      ref={searchRef}
+    >
       <div className="relative group">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <Search
+          className={cn(
+            'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors',
+            isCompact && 'left-3 w-3 h-3 text-muted-foreground/40',
+          )}
+        />
         <input
           type="text"
-          placeholder="Search anything..."
+          placeholder={isCompact ? 'Search...' : 'Search anything...'}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className="w-full pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all text-sm"
+          className={cn(
+            'w-full pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all text-sm',
+            isCompact && 'pl-8 pr-4 py-1.5 rounded-full text-xs',
+          )}
         />
         {query && (
           <button
@@ -111,8 +120,8 @@ const GlobalSearch = ({ isMember = false }) => {
       </div>
 
       {isOpen && (query.length >= 2 || results.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/50 rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-          <div className="max-h-[400px] overflow-y-auto">
+        <div className="fixed inset-x-4 top-[72px] sm:absolute sm:inset-x-0 sm:top-full sm:mt-2 bg-card border border-border/50 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+          <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto">
             {loading ? (
               <div className="p-2 space-y-2 animate-pulse">
                 {[...Array(3)].map((_, i) => (

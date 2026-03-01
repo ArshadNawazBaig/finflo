@@ -24,6 +24,38 @@ window.addEventListener(
   true,
 );
 
+// Service Worker Registration Handler
+const registerServiceWorker = () => {
+  if (!('serviceWorker' in navigator)) return;
+
+  const isCapacitor =
+    !!window.Capacitor ||
+    (window.webkit &&
+      window.webkit.messageHandlers &&
+      window.webkit.messageHandlers.bridge);
+
+  const isProd = import.meta.env.PROD;
+
+  if (isProd && !isCapacitor) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((reg) => console.log('✅ PWA: Service Worker Active', reg.scope))
+        .catch((err) => console.error('❌ PWA: Service Worker Failed', err));
+    });
+  } else {
+    // Unregister in Dev or Capacitor to prevent cache conflicts
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+        console.log('🔧 SW: Unregistered to avoid environment conflicts');
+      });
+    });
+  }
+};
+
+registerServiceWorker();
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
