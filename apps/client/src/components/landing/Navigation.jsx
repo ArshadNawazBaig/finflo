@@ -18,15 +18,18 @@ const Navigation = ({
       <nav
         className={cn(
           'fixed left-0 right-0 z-[100] transition-all duration-500 flex justify-center',
-          scrollY > 30 || isMobile ? 'top-12 px-4' : 'top-0 py-8 px-6',
+          isMobile
+            ? 'top-12 px-4'
+            : scrollY > 30
+              ? 'top-0 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 shadow-xl'
+              : 'top-0 py-8',
         )}
       >
         <div
           className={cn(
-            'transition-all duration-500 flex items-center justify-between',
-            scrollY > 30 || isMobile
-              ? 'w-[92%] max-w-sm sm:max-w-7xl mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]'
-              : 'w-full max-w-7xl mx-auto',
+            'transition-all duration-500 flex items-center justify-between w-full max-w-7xl mx-auto px-6 sm:px-4 xl:px-2 2xl:px-0',
+            isMobile &&
+              'w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]',
           )}
         >
           <Link
