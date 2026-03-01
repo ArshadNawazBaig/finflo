@@ -18,31 +18,40 @@ const DashboardLayout = () => {
   const setSubscription = useSetAtom(subscriptionAtom);
   const setUser = useSetAtom(userAtom);
 
-  // Fetch latest user data and subscription on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [{ data: userData }, { data: subData }] = await Promise.all([
-          api.get('/auth/me'),
-          api.get('/subscription'),
-        ]);
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
-        window.dispatchEvent(new Event('userUpdated'));
+  // Fetch latest user data and subscription
+  const fetchData = async () => {
+    try {
+      const [{ data: userData }, { data: subData }] = await Promise.all([
+        api.get('/auth/me'),
+        api.get('/subscription'),
+      ]);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
 
-        setSubscription({
-          plan: subData.plan || 'Free',
-          usage: subData.usage || { loans: 0, members: 0, branches: 0 },
-          limits: subData.limits || null,
-          loading: false,
-        });
-      } catch (error) {
-        console.error('Failed to sync layout data:', error);
-        setSubscription((prev) => ({ ...prev, loading: false }));
-      }
-    };
+      setSubscription({
+        plan: subData.plan || 'Free',
+        usage: subData.usage || { loans: 0, members: 0, branches: 0 },
+        limits: subData.limits || null,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Failed to sync layout data:', error);
+      setSubscription((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [setSubscription, setUser]);
+
+    // Listen for custom events to refresh data (e.g., after subscription upgrade)
+    window.addEventListener('userUpdated', fetchData);
+    window.addEventListener('subscriptionUpdated', fetchData);
+
+    return () => {
+      window.removeEventListener('userUpdated', fetchData);
+      window.removeEventListener('subscriptionUpdated', fetchData);
+    };
+  }, [setUser, setSubscription]);
 
   // Handle resize and initial check
   useEffect(() => {
