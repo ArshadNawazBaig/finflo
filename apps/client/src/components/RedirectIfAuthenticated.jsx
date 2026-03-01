@@ -17,7 +17,16 @@ const RedirectIfAuthenticated = () => {
   const isDashboard = normalizedPath === '/dashboard';
   const isForcePassword = normalizedPath === '/force-password-change';
 
-  if (token && !isDashboard && !isForcePassword) {
+  if (
+    token &&
+    !isDashboard &&
+    !isForcePassword &&
+    normalizedPath !== '/super-admin'
+  ) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role === 'super_admin') {
+      return <Navigate to="/super-admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 

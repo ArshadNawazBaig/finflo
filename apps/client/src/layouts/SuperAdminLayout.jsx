@@ -14,13 +14,6 @@ const SuperAdminLayout = () => {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // Redirect if not super admin
-  useEffect(() => {
-    if (!user.token || user.role !== 'super_admin') {
-      navigate('/login');
-    }
-  }, [user, navigate]);
-
   // Handle resize and initial check
   useEffect(() => {
     const checkIsMobile = () => {
