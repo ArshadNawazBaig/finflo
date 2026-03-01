@@ -3,6 +3,11 @@ const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
+const { sendEmail } = require('../utils/email');
+const {
+  verificationEmail,
+  passwordResetEmail,
+} = require('../utils/emailTemplates');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -388,7 +393,6 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl}/member/reset-password/${resetToken}`;
 
     try {
-      const { sendEmail } = require('../utils/email');
       await sendEmail({
         to: member.email,
         subject: 'Reset Your Member Portal Password',
