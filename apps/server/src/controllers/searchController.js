@@ -36,86 +36,92 @@ const globalSearch = async (req, res) => {
         if (branchScope) scope.branchId = branchScope;
       }
 
-      // 1. Search Customers
-      const customers = await Customer.find({
-        ...scope,
-        $or: [
-          { name: searchRegex },
-          { email: searchRegex },
-          { phone: searchRegex },
-          { cnic: searchRegex },
-        ],
-      })
-        .limit(5)
-        .select('name email phone _id');
+      // 1. Search Customers (Skip for Super Admin)
+      if (!isSuperAdmin) {
+        const customers = await Customer.find({
+          ...scope,
+          $or: [
+            { name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { cnic: searchRegex },
+          ],
+        })
+          .limit(5)
+          .select('name email phone _id');
 
-      customers.forEach((c) =>
-        results.push({
-          id: c._id,
-          title: c.name,
-          subtitle: c.email || c.phone,
-          type: 'Customer',
-          url: `/customers/${c._id}`,
-        }),
-      );
-
-      // 2. Search Members
-      const members = await Member.find({
-        ...scope,
-        $or: [
-          { name: searchRegex },
-          { email: searchRegex },
-          { phone: searchRegex },
-          { cnic: searchRegex },
-        ],
-      })
-        .limit(5)
-        .select('name email phone _id');
-
-      members.forEach((m) =>
-        results.push({
-          id: m._id,
-          title: m.name,
-          subtitle: m.email || m.phone,
-          type: 'Member',
-          url: `/members/${m._id}`,
-        }),
-      );
-
-      // 3. Search Loans
-      const loanScope = isSuperAdmin ? {} : { user: user.effectiveOwnerId };
-      if (!isSuperAdmin && user.role === 'staff' && branchScope) {
-        loanScope.branchId = branchScope;
+        customers.forEach((c) =>
+          results.push({
+            id: c._id,
+            title: c.name,
+            subtitle: c.email || c.phone,
+            type: 'Customer',
+            url: `/customers/${c._id}`,
+          }),
+        );
       }
 
-      const loans = await Loan.find(loanScope)
-        .populate({
-          path: 'customer',
-          match:
-            !isSuperAdmin && user.role === 'staff' && branchScope
-              ? { branchId: branchScope }
-              : {},
+      // 2. Search Members (Skip for Super Admin)
+      if (!isSuperAdmin) {
+        const members = await Member.find({
+          ...scope,
+          $or: [
+            { name: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+            { cnic: searchRegex },
+          ],
         })
-        .limit(20); // Fetch more to filter populated
+          .limit(5)
+          .select('name email phone _id');
 
-      const filteredLoans = loans
-        .filter(
-          (l) =>
-            l.customer &&
-            (l._id.toString().includes(q) ||
-              l.customer.name.match(searchRegex)),
-        )
-        .slice(0, 5);
+        members.forEach((m) =>
+          results.push({
+            id: m._id,
+            title: m.name,
+            subtitle: m.email || m.phone,
+            type: 'Member',
+            url: `/members/${m._id}`,
+          }),
+        );
+      }
 
-      filteredLoans.forEach((l) =>
-        results.push({
-          id: l._id,
-          title: `Loan #${l._id.toString().slice(-6).toUpperCase()}`,
-          subtitle: l.customer.name,
-          type: 'Loan',
-          url: `/loans/${l._id}`,
-        }),
-      );
+      // 3. Search Loans (Skip for Super Admin)
+      if (!isSuperAdmin) {
+        const loanScope = { user: user.effectiveOwnerId };
+        if (user.role === 'staff' && branchScope) {
+          loanScope.branchId = branchScope;
+        }
+
+        const loans = await Loan.find(loanScope)
+          .populate({
+            path: 'customer',
+            match:
+              user.role === 'staff' && branchScope
+                ? { branchId: branchScope }
+                : {},
+          })
+          .limit(20); // Fetch more to filter populated
+
+        const filteredLoans = loans
+          .filter(
+            (l) =>
+              l.customer &&
+              (l._id.toString().includes(q) ||
+                l.customer.name.match(searchRegex)),
+          )
+          .slice(0, 5);
+
+        filteredLoans.forEach((l) =>
+          results.push({
+            id: l._id,
+            title: `Loan #${l._id.toString().slice(-6).toUpperCase()}`,
+            subtitle: l.customer.name,
+            type: 'Loan',
+            url: `/loans/${l._id}`,
+          }),
+        );
+      }
 
       // 4. Search Branches (Admin/Super Admin only)
       if (isAdmin) {
@@ -138,7 +144,7 @@ const globalSearch = async (req, res) => {
         const staffQuery = {
           ...(isSuperAdmin ? {} : { ownerId: user.effectiveOwnerId }),
           $or: [{ name: searchRegex }, { email: searchRegex }],
-          role: { $in: ['admin', 'staff'] },
+          role: { $in: ['super_admin', 'admin', 'staff'] },
         };
         const allStaff = await User.find(staffQuery).limit(10);
 
@@ -170,38 +176,42 @@ const globalSearch = async (req, res) => {
           }),
         );
 
-        // 7. Search All Saving Goals - Admin only
-        const allGoals = await SavingGoal.find({
-          title: searchRegex,
-        })
-          .populate('member', 'name')
-          .limit(5);
+        // 7. Search All Saving Goals (Skip for Super Admin)
+        if (!isSuperAdmin) {
+          const allGoals = await SavingGoal.find({
+            title: searchRegex,
+          })
+            .populate('member', 'name')
+            .limit(5);
 
-        allGoals.forEach((g) =>
-          results.push({
-            id: g._id,
-            title: g.title,
-            subtitle: `By: ${g.member?.name || 'Unknown Member'}`,
-            type: 'Saving Goal',
-            url: `/members`, // Admin usually sees goals in member details
-          }),
-        );
+          allGoals.forEach((g) =>
+            results.push({
+              id: g._id,
+              title: g.title,
+              subtitle: `By: ${g.member?.name || 'Unknown Member'}`,
+              type: 'Saving Goal',
+              url: `/members`, // Admin usually sees goals in member details
+            }),
+          );
+        }
 
-        // 8. Search Financial Transactions - Admin only
-        const transactions = await FinancialTransaction.find({
-          ...(isSuperAdmin ? {} : { user: user.effectiveOwnerId }),
-          description: searchRegex,
-        }).limit(5);
+        // 8. Search Financial Transactions (Skip for Super Admin)
+        if (!isSuperAdmin) {
+          const transactions = await FinancialTransaction.find({
+            ...(isSuperAdmin ? {} : { user: user.effectiveOwnerId }),
+            description: searchRegex,
+          }).limit(5);
 
-        transactions.forEach((tx) =>
-          results.push({
-            id: tx._id,
-            title: tx.description || 'Transaction',
-            subtitle: `${tx.amount} - ${tx.category}`,
-            type: 'Transaction',
-            url: `/ledger`,
-          }),
-        );
+          transactions.forEach((tx) =>
+            results.push({
+              id: tx._id,
+              title: tx.description || 'Transaction',
+              subtitle: `${tx.amount} - ${tx.category}`,
+              type: 'Transaction',
+              url: `/ledger`,
+            }),
+          );
+        }
       }
     } else if (member) {
       // Member scope

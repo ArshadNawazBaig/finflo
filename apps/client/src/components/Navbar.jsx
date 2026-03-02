@@ -317,7 +317,7 @@ const Navbar = ({ onMenuClick }) => {
                 className="flex items-center gap-3 p-1 rounded-xl hover:bg-accent/50 transition-all group"
               >
                 <div className="hidden sm:flex flex-col items-end gap-1">
-                  {user.role === 'Super Admin' && (
+                  {user.role === 'super_admin' && (
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 dark:text-muted-foreground/60">
                       Super Admin
                     </span>

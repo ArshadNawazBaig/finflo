@@ -278,10 +278,9 @@ const getMemberById = async (req, res) => {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
-    const member = await Member.findOne({ _id: id, user: userId }).populate(
-      'customer',
-      'name email phone',
-    );
+    const member = await Member.findOne(
+      req.user.role === 'super_admin' ? { _id: id } : { _id: id, user: userId },
+    ).populate('customer', 'name email phone');
 
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
@@ -305,6 +304,8 @@ const getMemberById = async (req, res) => {
       member.branchId?.toString() === req.user.branchId?.toString()
     ) {
       isAuthorized = true; // Staff viewing member in their branch
+    } else if (req.user && req.user.role === 'super_admin') {
+      isAuthorized = true; // Super Admin viewing any member
     }
 
     if (!isAuthorized) {
@@ -504,7 +505,9 @@ const updateMember = async (req, res) => {
       }
     }
 
-    const member = await Member.findOne({ _id: id, user: userId });
+    const member = await Member.findOne(
+      req.user.role === 'super_admin' ? { _id: id } : { _id: id, user: userId },
+    );
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
@@ -568,7 +571,9 @@ const deleteMember = async (req, res) => {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
 
-    const member = await Member.findOne({ _id: id, user: userId });
+    const member = await Member.findOne(
+      req.user.role === 'super_admin' ? { _id: id } : { _id: id, user: userId },
+    );
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
