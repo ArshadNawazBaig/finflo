@@ -170,10 +170,26 @@ const getMembers = async (req, res) => {
       query.approvalStatus = { $in: ['approved', null, undefined] };
     }
 
-    // Branch Segregation: Staff/Managers only see their branch data
+    // Branch Segregation: Staff/Managers only see their branch data + unassigned members of their business
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
-      if (branchScope) query.branchId = branchScope;
+      if (branchScope) {
+        const branchFilter = {
+          $or: [
+            { branchId: branchScope },
+            { branchId: { $exists: false } },
+            { branchId: null },
+          ],
+        };
+
+        if (query.$or) {
+          const searchFilter = { $or: query.$or };
+          delete query.$or;
+          query.$and = [searchFilter, branchFilter];
+        } else {
+          query.$or = branchFilter.$or;
+        }
+      }
     }
 
     const sortBy = req.query.sortBy || 'createdAt';
@@ -204,6 +220,7 @@ const getMembers = async (req, res) => {
       .sort({ [sortBy]: sortOrder })
       .limit(limit * 1)
       .skip((page - 1) * limit)
+      .populate('branchId', 'name')
       .populate(
         'customer',
         'name email savingAccountNumber currentAccountNumber',
@@ -2936,7 +2953,7 @@ const selfRegister = async (req, res) => {
  */
 const updateApprovalStatus = async (req, res) => {
   try {
-    const { status } = req.body; // 'approved' or 'rejected'
+    const { status, branchId } = req.body; // 'approved' or 'rejected'
 
     if (!['approved', 'rejected'].includes(status)) {
       return res
@@ -2961,6 +2978,9 @@ const updateApprovalStatus = async (req, res) => {
 
     member.approvalStatus = status;
     member.isActive = status === 'approved';
+    if (branchId) {
+      member.branchId = branchId;
+    }
     await member.save();
 
     // Send email notification to the member

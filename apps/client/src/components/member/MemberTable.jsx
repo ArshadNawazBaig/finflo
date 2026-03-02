@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 import Pagination from '../ui/Pagination';
 import { Button } from '../ui/button';
 import EmptyState from '@/components/ui/EmptyState';
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { toast } from 'sonner';
 
@@ -86,6 +86,15 @@ const MemberTable = ({
                 <div className="flex items-center justify-center gap-1">
                   Profit Rate
                   {renderSortIcon('profitRate')}
+                </div>
+              </th>
+              <th
+                className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onSort('status')}
+              >
+                <div className="flex items-center justify-center gap-1">
+                  Branch
+                  {renderSortIcon('branchId')}
                 </div>
               </th>
               <th
@@ -187,6 +196,18 @@ const MemberTable = ({
                 <td className="py-4 px-4 text-center">
                   <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded text-xs">
                     {member.profitRate || 0}%
+                  </span>
+                </td>
+                <td className="py-4 px-4 text-center">
+                  <span
+                    className={cn(
+                      'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border',
+                      member.branchId
+                        ? 'bg-primary/5 text-primary border-primary/20'
+                        : 'bg-muted/50 text-muted-foreground border-border/50',
+                    )}
+                  >
+                    {member.branchId?.name || 'Global'}
                   </span>
                 </td>
                 <td className="py-4 px-4 text-center">

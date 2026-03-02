@@ -21,24 +21,69 @@ const getRequester = (req) => {
 // For admin/staff: returns all members in their branch
 const getAvailableContacts = async (req, res) => {
   try {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
     if (req.member) {
       // Member → get staff/managers in their branch
       const member = req.member;
       const branchId = member.branchId;
 
-      if (!branchId) {
-        return res.json([]);
+      let contacts = [];
+
+      // Always show the business owner
+      const owner = await User.findById(member.user).select(
+        'name email role profilePicture lastLoginAt',
+      );
+      if (owner) {
+        contacts.push({
+          _id: owner._id,
+          name: owner.name,
+          email: owner.email,
+          role: owner.role,
+          avatar: owner.profilePicture,
+          model: 'User',
+          isOnline: owner.lastLoginAt && owner.lastLoginAt > fiveMinutesAgo,
+        });
       }
 
-      const staffUsers = await User.find({
-        branchId,
-        role: { $in: ['staff', 'admin'] },
-        isActive: { $ne: false },
+      if (branchId) {
+        const staffUsers = await User.find({
+          branchId,
+          role: { $in: ['staff', 'admin'] },
+          isActive: { $ne: false },
+          _id: { $ne: owner?._id }, // Don't duplicate owner if they are in this branch
+        }).select('name email role profilePicture lastLoginAt');
+
+        const staffContacts = staffUsers.map((u) => ({
+          _id: u._id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          avatar: u.profilePicture,
+          model: 'User',
+          isOnline: u.lastLoginAt && u.lastLoginAt > fiveMinutesAgo,
+        }));
+        contacts = [...contacts, ...staffContacts];
+      }
+
+      return res.json(contacts);
+    }
+
+    // Staff/Admin → get members in their branch + other admins (for admin↔manager)
+    const user = req.user;
+    let contacts = [];
+
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      // Admin/Super Admin can chat with all branch managers (staff with manager role)
+      const managedBranches = await Branch.find({ manager: { $exists: true } });
+      const managerIds = managedBranches.map((b) => b.manager).filter(Boolean);
+
+      const managerUsers = await User.find({
+        _id: { $in: managerIds },
+        role: 'staff',
       }).select('name email role profilePicture lastLoginAt');
 
-      // Determine online status (active in last 5 minutes)
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const contacts = staffUsers.map((u) => ({
+      contacts = managerUsers.map((u) => ({
         _id: u._id,
         name: u.name,
         email: u.email,
@@ -47,28 +92,45 @@ const getAvailableContacts = async (req, res) => {
         model: 'User',
         isOnline: u.lastLoginAt && u.lastLoginAt > fiveMinutesAgo,
       }));
+
+      // ALSO fetch Members for Admin/Super Admin
+      const memberQuery =
+        user.role === 'super_admin'
+          ? { approvalStatus: 'approved' }
+          : { user: user._id, approvalStatus: 'approved' };
+
+      const members = await Member.find(memberQuery).select(
+        'name email profilePicture lastLoginAt',
+      );
+
+      const memberContacts = members.map((m) => ({
+        _id: m._id,
+        name: m.name,
+        email: m.email,
+        role: 'member',
+        avatar: m.profilePicture,
+        model: 'Member',
+        isOnline: m.lastLoginAt && m.lastLoginAt > fiveMinutesAgo,
+      }));
+
+      contacts = [...contacts, ...memberContacts];
       return res.json(contacts);
-    }
-
-    // Staff/Admin → get members in their branch + other admins (for admin↔manager)
-    const user = req.user;
-    let query = {};
-
-    if (user.role === 'admin' || user.role === 'super_admin') {
-      // Admin can chat with all branch managers (staff with manager role)
-      const managedBranches = await Branch.find({ manager: { $exists: true } });
-      const managerIds = managedBranches.map((b) => b.manager).filter(Boolean);
-      query = { _id: { $in: managerIds }, role: 'staff' };
     } else if (user.role === 'staff') {
-      // Staff sees members in their branch
+      // Staff sees members in their branch OR members with no branch (unassigned) for their owner
       const branchId = user.branchId;
+      const ownerId = user.effectiveOwnerId || user.ownerId;
+
       const members = await Member.find({
-        branchId,
+        user: ownerId,
+        $or: [
+          { branchId: branchId },
+          { branchId: { $exists: false } },
+          { branchId: null },
+        ],
         approvalStatus: 'approved',
         isActive: true,
       }).select('name email profilePicture lastLoginAt');
 
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       return res.json(
         members.map((m) => ({
           _id: m._id,
@@ -82,21 +144,7 @@ const getAvailableContacts = async (req, res) => {
       );
     }
 
-    const users = await User.find(query).select(
-      'name email role profilePicture lastLoginAt',
-    );
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    return res.json(
-      users.map((u) => ({
-        _id: u._id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        avatar: u.profilePicture,
-        model: 'User',
-        isOnline: u.lastLoginAt && u.lastLoginAt > fiveMinutesAgo,
-      })),
-    );
+    return res.json([]);
   } catch (error) {
     console.error('getAvailableContacts error:', error);
     res.status(500).json({ message: 'Failed to fetch contacts' });
@@ -386,12 +434,10 @@ const editMessage = async (req, res) => {
       const conv = await Conversation.findById(message.conversation);
       if (conv) {
         conv.participants.forEach((p) => {
-          req.io
-            .to(`user_${p.participantId}`)
-            .emit('message:edited', {
-              conversationId: conv._id.toString(),
-              message,
-            });
+          req.io.to(`user_${p.participantId}`).emit('message:edited', {
+            conversationId: conv._id.toString(),
+            message,
+          });
         });
       }
     }
