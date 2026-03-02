@@ -19,14 +19,18 @@ import {
   AlertCircle,
   MessageSquare,
   Mail,
+  Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
+import { generateWhatsAppLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
+import api from '@/lib/axios';
 
 const RepaymentCalendar = ({ upcomingPayments = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [sendingEmail, setSendingEmail] = useState({});
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -53,6 +57,31 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
 
   const selectedPayments =
     paymentsByDate[format(selectedDate, 'yyyy-MM-dd')] || [];
+
+  const handleSendEmail = async (p) => {
+    if (!p.customer?.email) {
+      toast.error(
+        `No email on file for ${p.customer?.name || 'this customer'}`,
+      );
+      return;
+    }
+
+    setSendingEmail((prev) => ({ ...prev, [p._id]: true }));
+    try {
+      await api.post('/loans/send-reminder', {
+        customerEmail: p.customer.email,
+        customerName: p.customer.name,
+        amount: p.amount,
+        dueDate: p.dueDate,
+        isOverdue: p.isOverdue,
+      });
+      toast.success(`Reminder sent to ${p.customer.email}`);
+    } catch (err) {
+      toast.error('Failed to send email. Check SMTP configuration.');
+    } finally {
+      setSendingEmail((prev) => ({ ...prev, [p._id]: false }));
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full">
@@ -217,18 +246,17 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                         </a>
                       </Tooltip>
                       <Tooltip content="Send Email Reminder" position="top">
-                        <a
-                          href={generateEmailLink(
-                            p.customer?.email || '',
-                            p.customer?.name || '',
-                            p.amount,
-                            p.dueDate,
-                            p.isOverdue,
-                          )}
-                          className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
+                        <button
+                          onClick={() => handleSendEmail(p)}
+                          disabled={sendingEmail[p._id]}
+                          className={`p-2 rounded-xl transition-all disabled:opacity-50 ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
                         >
-                          <Mail size={16} />
-                        </a>
+                          {sendingEmail[p._id] ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Mail size={16} />
+                          )}
+                        </button>
                       </Tooltip>
                     </div>
                   </div>

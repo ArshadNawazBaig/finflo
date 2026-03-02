@@ -25,6 +25,60 @@ const {
   calculateCreditLimit,
 } = require('../services/creditLimitService');
 
+/**
+ * @desc    Send a payment reminder email to a loan holder/customer
+ * @route   POST /api/loans/send-reminder
+ * @access  Private (Admin/Staff)
+ */
+const sendPaymentReminder = async (req, res) => {
+  try {
+    const { customerEmail, customerName, amount, dueDate, isOverdue } =
+      req.body;
+
+    if (!customerEmail || !customerName || !amount || !dueDate) {
+      return res.status(400).json({
+        message:
+          'Missing required fields: customerEmail, customerName, amount, dueDate',
+      });
+    }
+
+    const { loanReminderEmail } = require('../utils/emailTemplates');
+    const { format } = require('date-fns');
+
+    const formattedDate = format(new Date(dueDate), 'MMMM d, yyyy');
+    const formattedAmount = Number(amount).toLocaleString();
+
+    const subject = isOverdue
+      ? `URGENT: Overdue Loan Repayment — ${formattedDate}`
+      : `Upcoming Loan Repayment Reminder — ${formattedDate}`;
+
+    const emailSent = await sendEmail({
+      to: customerEmail,
+      subject,
+      html: loanReminderEmail(
+        customerName,
+        `Rs. ${formattedAmount}`,
+        formattedDate,
+        isOverdue ? 'overdue' : 'upcoming',
+      ),
+    });
+
+    if (!emailSent) {
+      return res.status(500).json({
+        message: 'Failed to send email. Check SMTP configuration.',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Reminder email sent to ${customerEmail}`,
+    });
+  } catch (error) {
+    console.error('sendPaymentReminder Error:', error);
+    res.status(500).json({ message: 'Failed to send reminder email' });
+  }
+};
+
 // EMI Calculation Formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
 // P = Principal, r = monthly interest rate (annual rate / 12 / 100), n = duration in months
 const calculateEMI = (principal, rate, duration) => {
@@ -1248,7 +1302,10 @@ const getUpcomingRepayments = async (req, res) => {
       query._id = loanId;
     }
 
-    const loans = await Loan.find(query).populate('customer', 'name');
+    const loans = await Loan.find(query).populate(
+      'customer',
+      'name email phone',
+    );
 
     const upcoming = [];
     const today = new Date();
@@ -2099,4 +2156,5 @@ module.exports = {
   getGrantorLoans,
   updateGrantorStatus,
   memberRepayLoan,
+  sendPaymentReminder,
 };

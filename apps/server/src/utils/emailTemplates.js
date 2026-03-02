@@ -137,7 +137,7 @@ const loanReminderEmail = (customerName, amount, dueDate, type) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
+          <a href="${`${process.env.CLIENT_URL}/member/login` || 'https://loan-master-client.vercel.app/member/login'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
         </td>
       </tr>
     </table>
