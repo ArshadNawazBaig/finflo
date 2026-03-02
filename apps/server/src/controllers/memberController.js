@@ -2858,6 +2858,39 @@ const selfRegister = async (req, res) => {
       isActive: false, // Prevents login until approved
     });
 
+    // Auto-create a linked Customer account for the member
+    try {
+      // Only create if no existing customer with this CNIC for this business
+      let customer = await Customer.findOne({
+        user: businessOwner._id,
+        cnic,
+      });
+
+      if (!customer) {
+        customer = await Customer.create({
+          user: businessOwner._id,
+          name,
+          phone,
+          email: email || undefined,
+          cnic,
+          isMember: true,
+          memberId: member._id,
+        });
+      } else {
+        // Already exists (e.g. added by admin before), just link
+        await Customer.findByIdAndUpdate(customer._id, {
+          isMember: true,
+          memberId: member._id,
+        });
+      }
+
+      // Link the customer back to the member
+      await Member.findByIdAndUpdate(member._id, { customer: customer._id });
+    } catch (customerError) {
+      // Non-fatal: member is created; customer link can be fixed by admin
+      console.error('Auto-create customer error (non-fatal):', customerError);
+    }
+
     // Notify admin & managers about the pending approval
     try {
       await notifyAdminsOfMemberAction({
