@@ -279,12 +279,6 @@ const io = new Server(httpServer, {
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   },
   allowEIO3: true,
-  // On Vercel serverless, WebSocket transport is not supported — use polling only
-  // When running locally, both transports work
-  transports:
-    process.env.NODE_ENV === 'production'
-      ? ['polling']
-      : ['polling', 'websocket'],
 });
 
 // Set instance immediately so that it's available for middleware even on Serverless

@@ -3,22 +3,20 @@ import { io } from 'socket.io-client';
 import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
 import api from '@/lib/axios';
-import { SOCKET_URL, IS_PRODUCTION } from '@/lib/constants';
+import { SOCKET_URL } from '@/lib/constants';
 
 /**
  * ChatSync — Background component (renders nothing).
  *
- * Auth: withCredentials sends HTTP-only cookie through same-origin (Vite proxy in dev,
- * or direct on production). Token from localStorage passed as fallback.
+ * Maintains one persistent socket connection (to Railway in production,
+ * through Vite proxy in dev) and keeps unreadChatCountAtom accurate in real-time.
  *
- * Transport: WebSocket in dev, long-polling only in production (Vercel serverless
- * does not support persistent WebSocket connections).
+ * Auth: withCredentials sends HTTP-only cookie. Token from localStorage as fallback.
  */
 const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);
 
   useEffect(() => {
-    // Try to get token from localStorage first (belt-and-suspenders)
     let token;
     try {
       if (userType === 'member') {
@@ -47,23 +45,19 @@ const ChatSync = ({ userType = 'user' }) => {
       }
     };
 
-    // Initial fetch on mount
     fetchCount();
 
     // ── Socket connection ────────────────────────────────────────────────────
     const socketOpts = {
       withCredentials: true,
-      // Vercel serverless doesn't support WebSocket — use polling only in production
-      transports: IS_PRODUCTION ? ['polling'] : ['polling', 'websocket'],
+      transports: ['websocket', 'polling'], // WebSocket preferred, polling as fallback
       reconnectionAttempts: 15,
       reconnectionDelay: 1500,
       timeout: 20000,
     };
     if (token) socketOpts.auth = { token };
 
-    console.log(
-      `[ChatSync] Connecting to ${SOCKET_URL || 'same-origin'} (${userType})`,
-    );
+    console.log(`[ChatSync] Connecting (${userType})`);
     const socket = io(SOCKET_URL, socketOpts);
 
     socket.on('connect', () => {
@@ -79,7 +73,6 @@ const ChatSync = ({ userType = 'user' }) => {
       console.log('[ChatSync] Disconnected:', reason);
     });
 
-    // ── message:new — server sends exact unreadCount for this user ───────────
     socket.on('message:new', ({ unreadCount }) => {
       if (typeof unreadCount === 'number') {
         setUnreadCount(unreadCount);
@@ -88,12 +81,11 @@ const ChatSync = ({ userType = 'user' }) => {
       }
     });
 
-    // ── conversation:read — this user opened a chat ───────────────────────────
     socket.on('conversation:read', () => {
       fetchCount();
     });
 
-    // ── Periodic REST fallback (15s) when socket is disconnected ─────────────
+    // REST fallback every 15s when socket is disconnected
     const fallback = setInterval(() => {
       if (!socket.connected) fetchCount();
     }, 15000);
