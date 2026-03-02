@@ -290,16 +290,18 @@ const Chat = () => {
   // ── Init socket ──────────────────────────────────────────────────────────
   // ── Init socket ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!token) return;
-
     let socket;
     const timer = setTimeout(() => {
-      socket = io(SOCKET_URL, {
-        auth: { token },
+      const socketOpts = {
+        withCredentials: true, // sends HTTP-only cookie through Vite proxy (same origin)
         transports: ['polling', 'websocket'],
         reconnectionAttempts: 5,
         timeout: 10000,
-      });
+      };
+      // Also pass token in auth if available (belt-and-suspenders)
+      if (token) socketOpts.auth = { token };
+
+      socket = io(SOCKET_URL, socketOpts);
 
       socketRef.current = socket;
 
