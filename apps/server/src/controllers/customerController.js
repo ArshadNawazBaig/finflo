@@ -14,7 +14,9 @@ const getCustomers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
-    let query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
+    let query = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation: Staff/Managers only see their branch data
     if (req.user.role === 'staff') {
@@ -216,7 +218,8 @@ const updateCustomer = async (req, res) => {
       !(
         req.user.role === 'staff' &&
         customer.branchId?.toString() === req.user.branchId?.toString()
-      )
+      ) &&
+      req.user.role !== 'super_admin'
     ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
@@ -328,7 +331,8 @@ const deleteCustomer = async (req, res) => {
       !(
         req.user.role === 'staff' &&
         customer.branchId?.toString() === req.user.branchId?.toString()
-      )
+      ) &&
+      req.user.role !== 'super_admin'
     ) {
       return res.status(401).json({ message: 'Not authorized' });
     }
@@ -376,7 +380,8 @@ const getCustomerById = async (req, res) => {
       !(
         req.user.role === 'staff' &&
         customer.branchId?.toString() === req.user.branchId?.toString()
-      )
+      ) &&
+      req.user.role !== 'super_admin'
     ) {
       return res.status(401).json({ message: 'Not authorized' });
     }

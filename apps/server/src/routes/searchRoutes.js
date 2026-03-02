@@ -31,6 +31,11 @@ const protectAny = async (req, res, next) => {
         .select('-password')
         .populate('roleRef');
       if (userDoc) {
+        // Check if account is active
+        if (!userDoc.isActive) {
+          return res.status(401).json({ message: 'User account deactivated' });
+        }
+
         // Convert to plain object so we can add non-schema properties safely
         const user = userDoc.toObject();
         user.permissions = userDoc.getPermissions();
@@ -52,6 +57,11 @@ const protectAny = async (req, res, next) => {
       // Try Member
       let memberDoc = await Member.findById(decoded.id).select('-password');
       if (memberDoc) {
+        if (!memberDoc.isActive) {
+          return res
+            .status(401)
+            .json({ message: 'Member account deactivated' });
+        }
         req.member = memberDoc.toObject();
         return next();
       }
