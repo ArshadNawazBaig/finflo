@@ -25,11 +25,12 @@ import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
 
-// Connect to the backend – use port 5001 in dev, same origin in prod
+// Connect to the backend – prefer VITE_BACKEND_URL if set
 const SOCKET_URL =
-  import.meta.env.MODE === 'development'
+  import.meta.env.VITE_BACKEND_URL ||
+  (import.meta.env.MODE === 'development'
     ? 'http://localhost:5001'
-    : window.location.origin;
+    : window.location.origin);
 
 const formatTime = (date) =>
   new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
