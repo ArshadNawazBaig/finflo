@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   TrendingUp,
   Percent,
@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSearch from '@/components/ui/TableSearch';
-import Pagination from '@/components/ui/Pagination';
+import InfiniteLoader from '@/components/InfiniteLoader';
 
 const DistributionHub = () => {
   const [data, setData] = useState({
@@ -39,36 +39,71 @@ const DistributionHub = () => {
     },
   });
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(5);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [distType, setDistType] = useState('regular'); // 'regular' or 'share'
 
-  const fetchDistributions = async () => {
+  const observer = useRef();
+  const lastElementRef = useCallback(
+    (node) => {
+      if (loading || isFetchingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          data.pagination.page < data.pagination.pages
+        ) {
+          setPage((prev) => prev + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, isFetchingMore, data.pagination.page, data.pagination.pages],
+  );
+
+  const fetchDistributions = async (pageNum, isNewSearch = false) => {
     try {
-      setLoading(true);
+      if (pageNum === 1) setLoading(true);
+      else setIsFetchingMore(true);
+
       const { data: res } = await api.get(
-        `/members/distributions?page=${page}&limit=${limit}&search=${searchTerm}`,
+        `/members/distributions?page=${pageNum}&limit=${limit}&search=${searchTerm}`,
       );
-      setData(res);
+
+      setData((prev) => ({
+        ...res,
+        distributions: isNewSearch
+          ? res.distributions
+          : [...prev.distributions, ...res.distributions],
+      }));
     } catch (error) {
       console.error('Failed to fetch distributions:', error);
       toast.error('Failed to load distribution history');
     } finally {
       setLoading(false);
+      setIsFetchingMore(false);
     }
   };
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(
       () => {
-        fetchDistributions();
+        setPage(1);
+        fetchDistributions(1, true);
       },
       searchTerm ? 500 : 0,
     );
     return () => clearTimeout(delayDebounceFn);
-  }, [page, limit, searchTerm]);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchDistributions(page);
+    }
+  }, [page]);
 
   const handleOpenModal = (type) => {
     setDistType(type);
@@ -131,159 +166,227 @@ const DistributionHub = () => {
         </div>
       )}
 
-      {/* Distribution History Table */}
-      {loading && data.distributions.length === 0 ? (
-        <div className="py-6">
-          <TableSkeleton rows={5} columns={5} />
-        </div>
-      ) : (
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
-          <CardHeader className="p-8 pb-4 border-b border-border/40">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl font-black tracking-tight">
-                  Distribution History
-                </CardTitle>
-                <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-1">
-                  A complete log of all earnings shared with members
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <TableSearch
-                  value={searchTerm}
-                  onChange={(val) => {
-                    setSearchTerm(val);
-                    setPage(1);
-                  }}
-                  placeholder="Search by member name..."
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-xl border-border/50 h-10 w-10 flex shrink-0"
-                >
-                  <Filter size={16} />
-                </Button>
-              </div>
+      {/* Distribution History Header */}
+      <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 pb-4 border-b border-border/40">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-xl font-black tracking-tight">
+                Distribution History
+              </CardTitle>
+              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-1">
+                A complete log of all earnings shared with members
+              </p>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-muted/30">
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Member / Period
-                    </th>
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Amount
-                    </th>
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Type
-                    </th>
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Method
-                    </th>
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Date
-                    </th>
+            <div className="flex items-center gap-2">
+              <TableSearch
+                value={searchTerm}
+                onChange={(val) => {
+                  setSearchTerm(val);
+                }}
+                placeholder="Search by member name..."
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl border-border/50 h-10 w-10 flex shrink-0"
+              >
+                <Filter size={16} />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Desktop View: Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-muted/30">
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Member / Period
+                  </th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Amount
+                  </th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Type
+                  </th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Method
+                  </th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {loading && data.distributions.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-0">
+                      <TableSkeleton rows={5} columns={5} />
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border/30">
-                  {data.distributions.length > 0 ? (
-                    data.distributions.map((dist) => (
-                      <tr
-                        key={dist._id}
-                        className="group hover:bg-muted/20 transition-all duration-300"
-                      >
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}
-                            >
-                              {dist.member?.name?.[0]?.toUpperCase() || 'M'}
-                            </div>
-                            <div>
-                              <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
-                                {dist.member?.name || 'Unknown Member'}
-                              </div>
-                              <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
-                                <Calendar size={10} />
-                                {dist.period}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5">
-                          <div className="text-sm font-black text-foreground">
-                            {formatCurrency(dist.amount)}
-                          </div>
-                          {dist.profitRate && (
-                            <div className="text-[10px] text-muted-foreground font-medium">
-                              {dist.profitRate}% Rate
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-8 py-5">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-emerald-500/10 text-emerald-500'}`}
+                ) : data.distributions.length > 0 ? (
+                  data.distributions.map((dist, index) => (
+                    <tr
+                      key={dist._id}
+                      ref={
+                        index === data.distributions.length - 1
+                          ? lastElementRef
+                          : null
+                      }
+                      className="group hover:bg-muted/20 transition-all duration-300"
+                    >
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}
                           >
-                            {dist.type === 'share'
-                              ? 'Business Share'
-                              : 'Regular'}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-                            <Users size={14} />
-                            {dist.method === 'custom'
-                              ? 'Custom'
-                              : 'Proportional'}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <div className="text-xs font-bold text-muted-foreground">
-                            {formatDate(dist.date)}
+                            {dist.member?.name?.[0]?.toUpperCase() || 'M'}
                           </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-8 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center opacity-30">
-                          <History size={48} className="mb-4" />
-                          <p className="text-xs font-black uppercase tracking-widest">
-                            No distribution records found
-                          </p>
+                          <div>
+                            <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
+                              {dist.member?.name || 'Unknown Member'}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                              <Calendar size={10} />
+                              {dist.period}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="text-sm font-black text-foreground">
+                          {formatCurrency(dist.amount)}
+                        </div>
+                        {dist.profitRate && (
+                          <div className="text-[10px] text-muted-foreground font-medium">
+                            {dist.profitRate}% Rate
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-8 py-5">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-emerald-500/10 text-emerald-500'}`}
+                        >
+                          {dist.type === 'share' ? 'Business Share' : 'Regular'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                          <Users size={14} />
+                          {dist.method === 'custom' ? 'Custom' : 'Proportional'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="text-xs font-bold text-muted-foreground">
+                          {formatDate(dist.date)}
                         </div>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-          {data.pagination.pages > 1 && (
-            <Pagination
-              currentPage={page}
-              totalPages={data.pagination.pages}
-              totalEntries={data.pagination.total}
-              limit={limit}
-              onPageChange={setPage}
-              onLimitChange={(newLimit) => {
-                setLimit(newLimit);
-                setPage(1);
-              }}
-            />
-          )}
-        </Card>
-      )}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center opacity-30">
+                        <History size={48} className="mb-4" />
+                        <p className="text-xs font-black uppercase tracking-widest">
+                          No distribution records found
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile View: Cards */}
+          <div className="md:hidden p-4 space-y-4">
+            {loading && data.distributions.length === 0 ? (
+              <CardsSkeleton count={5} />
+            ) : data.distributions.length > 0 ? (
+              data.distributions.map((dist, index) => (
+                <div
+                  key={dist._id}
+                  ref={
+                    index === data.distributions.length - 1
+                      ? lastElementRef
+                      : null
+                  }
+                  className="p-5 rounded-[2rem] border border-border/50 bg-background/40 hover:bg-muted/10 transition-all duration-300 group"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-primary/10 text-primary'}`}
+                      >
+                        {dist.member?.name?.[0]?.toUpperCase() || 'M'}
+                      </div>
+                      <div>
+                        <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
+                          {dist.member?.name || 'Unknown Member'}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                          <Calendar size={10} />
+                          {dist.period}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-emerald-500/10 text-emerald-500'}`}
+                    >
+                      {dist.type === 'share' ? 'Share' : 'Regular'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <div className="text-lg font-black text-foreground">
+                        {formatCurrency(dist.amount)}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
+                          <Users size={10} />
+                          {dist.method === 'custom' ? 'Custom' : 'Proportional'}
+                        </span>
+                        {dist.profitRate && (
+                          <span className="text-[10px] text-primary font-black uppercase tracking-widest">
+                            • {dist.profitRate}% Rate
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest italic">
+                      {formatDate(dist.date)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center opacity-30">
+                <History size={48} className="mx-auto mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest">
+                  No distribution records found
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Infinite Scroll Loader */}
+          <div className="py-4">
+            <InfiniteLoader isFetchingMore={isFetchingMore} />
+          </div>
+        </CardContent>
+      </Card>
 
       <DistributeProfitModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSuccess={fetchDistributions}
+        onSuccess={() => {
+          setPage(1);
+          fetchDistributions(1, true);
+        }}
         type={distType}
       />
     </div>

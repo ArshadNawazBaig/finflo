@@ -48,7 +48,7 @@ const ManageNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(5);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [isBulkDelete, setIsBulkDelete] = useState(false);

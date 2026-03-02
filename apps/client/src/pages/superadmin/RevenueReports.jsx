@@ -116,9 +116,9 @@ const RevenueReports = () => {
 
   useEffect(() => {
     if (isMobile) {
-      setLimit(3);
+      setLimit(5);
     } else {
-      setLimit(10);
+      setLimit(5);
     }
   }, [isMobile]);
 

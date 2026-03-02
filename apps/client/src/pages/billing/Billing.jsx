@@ -35,7 +35,7 @@ const Billing = () => {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(5);
 
   const observerTarget = useRef(null);
 
@@ -47,7 +47,7 @@ const Billing = () => {
 
   useEffect(() => {
     if (isMobile) {
-      setLimit(3);
+      setLimit(5);
     } else {
       setLimit(5);
     }
