@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 // Determine the API base URL based on the environment
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+import { BACKEND_URL } from './constants';
 
 const api = axios.create({
   baseURL: BACKEND_URL ? `${BACKEND_URL}/api` : '/api',

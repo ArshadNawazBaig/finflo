@@ -4,12 +4,7 @@ import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
 import api from '@/lib/axios';
 
-// Get SOCKET_URL consistent with Chat pages
-const SOCKET_URL =
-  import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5001'
-    : window.location.origin);
+import { SOCKET_URL } from '@/lib/constants';
 
 const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);

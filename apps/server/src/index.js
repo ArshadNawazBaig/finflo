@@ -256,7 +256,23 @@ const io = new Server(httpServer, {
   allowEIO3: true, // Support for older clients if needed
 });
 
+// Set instance immediately so that it's available for middleware even on Serverless
 ioInstance = io;
+
+// Production Environment Diagnostics
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET) {
+    console.error('[CRITICAL] JWT_SECRET is missing in production!');
+  }
+  if (!process.env.CLIENT_URL) {
+    console.warn(
+      '[WARNING] CLIENT_URL is not set in production. Falling back to default.',
+    );
+  }
+  console.log(
+    `[Socket] Initialized for origin: ${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}`,
+  );
+}
 
 // Socket.io auth middleware
 io.use(async (socket, next) => {

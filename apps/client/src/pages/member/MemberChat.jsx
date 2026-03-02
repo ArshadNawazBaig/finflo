@@ -23,6 +23,7 @@ import { unreadChatCountAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { SOCKET_URL } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,12 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-// Connect to the backend – prefer VITE_BACKEND_URL if set
-const SOCKET_URL =
-  import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.MODE === 'development'
-    ? 'http://localhost:5001'
-    : window.location.origin);
+// Socket configuration is now imported from @/lib/constants
 
 const formatTime = (date) =>
   new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

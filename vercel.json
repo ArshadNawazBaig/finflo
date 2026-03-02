@@ -6,7 +6,15 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/socket.io/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api/|socket\\.io/|uploads/).*)",
       "destination": "/index.html"
     }
   ]
