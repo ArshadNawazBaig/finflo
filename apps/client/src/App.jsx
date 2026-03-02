@@ -79,7 +79,9 @@ const NotFound = lazy(() => import('@/pages/static/NotFound'));
 const Documentation = lazy(() => import('@/pages/static/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/static/ApiDocumentation'));
 const AuditLogs = lazy(() => import('@/pages/admin/AuditLogs'));
+const Chat = lazy(() => import('@/pages/admin/Chat'));
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
+
 const Valentine = lazy(() => import('@/pages/static/Valentine'));
 const MemberTransactions = lazy(
   () => import('@/pages/member/MemberTransactions'),
@@ -104,6 +106,7 @@ const MemberNotifications = lazy(
 const MemberGrantorRequests = lazy(
   () => import('@/pages/member/MemberGrantorRequests'),
 );
+const MemberChat = lazy(() => import('@/pages/member/MemberChat'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -286,8 +289,10 @@ function App() {
                   {/* Paid-plan only routes */}
                   <Route element={<RequirePaidPlan />}>
                     <Route path="/support" element={<Support />} />
+                    <Route path="/chat" element={<Chat />} />
                   </Route>
                   <Route path="/notifications" element={<Notifications />} />
+
                   <Route path="/payment/success" element={<PaymentSuccess />} />
                   <Route path="/payment/cancel" element={<PaymentCancel />} />
                 </Route>
@@ -379,6 +384,7 @@ function App() {
                     path="/member/notifications"
                     element={<MemberNotifications />}
                   />
+                  <Route path="/member/chat" element={<MemberChat />} />
                 </Route>
               </Route>
 

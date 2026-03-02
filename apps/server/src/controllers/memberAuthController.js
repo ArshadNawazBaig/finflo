@@ -128,14 +128,18 @@ const loginMember = async (req, res) => {
 // @access  Private (Member)
 const getMe = async (req, res) => {
   try {
+    const User = require('../models/User');
     // req.member set by protectMember middleware
     const member = await Member.findById(req.member._id).populate(
       'user',
-      'name businessName',
+      'name businessName plan',
     );
 
     if (member) {
-      res.json(member);
+      const memberObj = member.toObject();
+      // Expose the admin's subscription plan for the premium gate in MemberChat
+      memberObj.adminPlan = member.user?.plan || 'Free';
+      res.json(memberObj);
     } else {
       res.status(404);
       throw new Error('Member not found');

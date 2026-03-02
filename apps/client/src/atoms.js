@@ -24,3 +24,4 @@ export const subscriptionAtom = atom({
   limits: null,
   loading: true,
 });
+export const unreadChatCountAtom = atom(0);
