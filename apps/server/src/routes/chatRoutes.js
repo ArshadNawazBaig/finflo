@@ -15,9 +15,12 @@ const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 
 // Middleware that accepts EITHER a staff/admin token OR a member token
-const protectAny = (req, res, next) => {
-  // Try member auth first
+const protectAny = async (req, res, next) => {
   const jwt = require('jsonwebtoken');
+  const User = require('../models/User');
+  const Member = require('../models/Member');
+  const Branch = require('../models/Branch');
+
   let token;
   if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
@@ -30,32 +33,39 @@ const protectAny = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Check if it's a member token
-    const Member = require('../models/Member');
-    const User = require('../models/User');
 
-    Member.findById(decoded.id)
+    // Check if it's a member token
+    const member = await Member.findById(decoded.id).select('-password');
+    if (member) {
+      req.member = member;
+      return next();
+    }
+
+    // Check if it's a user token (Staff/Admin/Super Admin)
+    const user = await User.findById(decoded.id)
       .select('-password')
-      .then((member) => {
-        if (member) {
-          req.member = member;
-          next();
-        } else {
-          return User.findById(decoded.id)
-            .select('-password')
-            .populate('roleRef')
-            .then((user) => {
-              if (user) {
-                req.user = user;
-                next();
-              } else {
-                res.status(401).json({ message: 'User not found' });
-              }
-            });
-        }
-      })
-      .catch(() => res.status(401).json({ message: 'Not authorized' }));
-  } catch {
+      .populate('roleRef');
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Set properties manually since we're not using the central protect middleware
+    if (user.role === 'staff') {
+      const managedBranch = await Branch.findOne({ manager: user._id });
+      user.isManager = !!managedBranch;
+      user.managedBranchId = managedBranch ? managedBranch._id : null;
+      user.effectiveOwnerId = user.ownerId;
+    } else {
+      user.isManager = false;
+      user.managedBranchId = null;
+      user.effectiveOwnerId = user._id; // Admin/Super Admin is the owner
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('[Chat Security] Error:', error.message);
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };

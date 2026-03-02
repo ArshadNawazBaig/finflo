@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, User, Shield, Calendar, Eye } from 'lucide-react';
-import { capitalize } from '@/lib/utils';
+import { capitalize, formatCurrency } from '@/lib/utils';
+import {
+  Phone,
+  Mail,
+  User,
+  Shield,
+  Calendar,
+  Eye,
+  Building2,
+} from 'lucide-react';
 
 const MemberCard = ({ member }) => {
   return (
@@ -55,6 +63,12 @@ const MemberCard = ({ member }) => {
             </span>
           </div>
         )}
+        <div className="flex items-center gap-3 text-sm">
+          <Building2 size={14} className="text-muted-foreground" />
+          <span className="text-foreground/80 font-medium">
+            {member.branchId?.name || 'Global'}
+          </span>
+        </div>
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60 mt-1">
           <Calendar size={12} />
           <span>Joined: {new Date(member.createdAt).toLocaleDateString()}</span>
