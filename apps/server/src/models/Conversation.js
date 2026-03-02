@@ -31,6 +31,18 @@ const conversationSchema = new mongoose.Schema(
       of: Number,
       default: {},
     },
+    // Serverless Real-time Sync (Vercel Fix)
+    // Map of participantId -> Date (expires after 5 seconds of inactivity)
+    typingStatus: {
+      type: Map,
+      of: Date,
+      default: {},
+    },
+    recordingStatus: {
+      type: Map,
+      of: Date,
+      default: {},
+    },
   },
   { timestamps: true },
 );

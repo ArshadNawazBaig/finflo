@@ -580,7 +580,44 @@ const Chat = () => {
       }
     }, 15000);
 
-    return () => clearInterval(pollInterval);
+    // Vercel Fix: Status (Typing/Recording) polling (every 3 seconds)
+    const statusPollInterval = setInterval(async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await api.get(
+          `/chat/conversations/${activeConv._id}/status`,
+        );
+        const { typing, recording } = res.data;
+
+        // Update typing state for this conversation
+        if (typing?.length > 0) {
+          setTypingUser({ conversationId: activeConv._id, userId: typing[0] });
+        } else {
+          setTypingUser((prev) =>
+            prev?.conversationId === activeConv._id ? null : prev,
+          );
+        }
+
+        // Update recording state for this conversation
+        if (recording?.length > 0) {
+          setRecordingUser({
+            conversationId: activeConv._id,
+            userId: recording[0],
+          });
+        } else {
+          setRecordingUser((prev) =>
+            prev?.conversationId === activeConv._id ? null : prev,
+          );
+        }
+      } catch (err) {
+        // silent fail
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearInterval(statusPollInterval);
+    };
   }, [activeConv?._id]);
 
   // ── Start a new conversation with a contact ──────────────────────────────
@@ -740,6 +777,12 @@ const Chat = () => {
           conversationId: activeConv._id,
           receiverId: activeConv.participant._id,
         });
+        // Vercel Fix: ping REST API
+        api
+          .post(`/chat/conversations/${activeConv._id}/status`, {
+            isRecording: true,
+          })
+          .catch(() => {});
       }
     } catch (err) {
       console.error('Recording error:', err);
@@ -763,6 +806,12 @@ const Chat = () => {
         conversationId: activeConv._id,
         receiverId: activeConv.participant._id,
       });
+      // Vercel Fix: ping REST API
+      api
+        .post(`/chat/conversations/${activeConv._id}/status`, {
+          isRecording: false,
+        })
+        .catch(() => {});
     }
   };
 
@@ -838,6 +887,12 @@ const Chat = () => {
         conversationId: activeConv._id,
         receiverId: activeConv.participant._id,
       });
+      // Vercel Fix: Also ping REST API
+      api
+        .post(`/chat/conversations/${activeConv._id}/status`, {
+          isTyping: true,
+        })
+        .catch(() => {});
 
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
@@ -845,6 +900,11 @@ const Chat = () => {
           conversationId: activeConv._id,
           receiverId: activeConv.participant._id,
         });
+        api
+          .post(`/chat/conversations/${activeConv._id}/status`, {
+            isTyping: false,
+          })
+          .catch(() => {});
       }, 2000);
     }
   };

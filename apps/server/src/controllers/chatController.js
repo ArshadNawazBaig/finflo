@@ -612,6 +612,122 @@ const deleteAllConversations = async (req, res) => {
   }
 };
 
+// ─── POST /api/chat/conversations/:id/status ─────────────────────────────────
+// Save transient typing/recording status for Serverless environments (Vercel Fix)
+const setStatus = async (req, res) => {
+  try {
+    const { id: requesterId } = getRequester(req);
+    const { id: convId } = req.params;
+    const { isTyping, isRecording } = req.body;
+
+    const conv = await Conversation.findById(convId);
+    if (!conv) return res.status(404).json({ message: 'Not found' });
+
+    const updates = {};
+    if (isTyping !== undefined) {
+      if (isTyping) {
+        updates[`typingStatus.${requesterId}`] = new Date();
+      } else {
+        updates[`$unset`] = updates[`$unset`] || {};
+        updates[`$unset`][`typingStatus.${requesterId}`] = 1;
+      }
+    }
+
+    if (isRecording !== undefined) {
+      if (isRecording) {
+        updates[`recordingStatus.${requesterId}`] = new Date();
+      } else {
+        updates[`$unset`] = updates[`$unset`] || {};
+        updates[`$unset`][`recordingStatus.${requesterId}`] = 1;
+      }
+    }
+
+    // Don't update timestamps just for tracking status
+    await Conversation.updateOne({ _id: convId }, updates, {
+      timestamps: false,
+    });
+
+    // Try to emit via Socket.IO if available (for localhost/fast networks)
+    if (req.io) {
+      conv.participants.forEach((p) => {
+        if (p.participantId.toString() !== requesterId.toString()) {
+          if (isTyping !== undefined) {
+            req.io
+              .to(`user_${p.participantId}`)
+              .emit(isTyping ? 'user:typing' : 'user:stop-typing', {
+                conversationId: convId,
+                userId: requesterId,
+              });
+          }
+          if (isRecording !== undefined) {
+            req.io
+              .to(`user_${p.participantId}`)
+              .emit(isRecording ? 'user:recording' : 'user:stop-recording', {
+                conversationId: convId,
+                userId: requesterId,
+              });
+          }
+        }
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Status sync failed' });
+  }
+};
+
+// ─── GET /api/chat/conversations/:id/status ──────────────────────────────────
+// Poll transient typing/recording status
+const getStatus = async (req, res) => {
+  try {
+    const { id: requesterId } = getRequester(req);
+    const { id: convId } = req.params;
+
+    const conv = await Conversation.findById(convId).select(
+      'typingStatus recordingStatus',
+    );
+    if (!conv) return res.status(404).json({ message: 'Not found' });
+
+    const now = new Date();
+    const activeThreshold = 5000; // 5 seconds
+
+    const activeTyping = [];
+    const activeRecording = [];
+
+    // Filter stale typing status
+    if (conv.typingStatus) {
+      conv.typingStatus.forEach((time, userId) => {
+        if (
+          userId !== requesterId.toString() &&
+          now - new Date(time) < activeThreshold
+        ) {
+          activeTyping.push(userId);
+        }
+      });
+    }
+
+    // Filter stale recording status
+    if (conv.recordingStatus) {
+      conv.recordingStatus.forEach((time, userId) => {
+        if (
+          userId !== requesterId.toString() &&
+          now - new Date(time) < activeThreshold
+        ) {
+          activeRecording.push(userId);
+        }
+      });
+    }
+
+    res.json({
+      typing: activeTyping,
+      recording: activeRecording,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Status poll failed' });
+  }
+};
+
 module.exports = {
   chatUpload,
   getAvailableContacts,
@@ -624,4 +740,6 @@ module.exports = {
   markAsRead,
   deleteConversation,
   deleteAllConversations,
+  setStatus,
+  getStatus,
 };
