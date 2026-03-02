@@ -768,16 +768,28 @@ const Chat = () => {
         {(!isMobile || !showThread) && (
           <div className="w-full lg:w-[340px] xl:w-[380px] border-r border-border/40 flex flex-col shrink-0">
             {loading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-muted/40 animate-pulse shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-muted/40 rounded-full animate-pulse w-3/4" />
-                      <div className="h-2 bg-muted/40 rounded-full animate-pulse w-1/2" />
-                    </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="p-6 border-b border-border/40 space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-6 w-24 bg-muted/40 rounded-lg animate-pulse" />
+                    <div className="h-8 w-8 bg-muted/40 rounded-xl animate-pulse" />
                   </div>
-                ))}
+                  <div className="h-10 bg-muted/40 rounded-xl animate-pulse w-full" />
+                </div>
+                <div className="divide-y divide-border/10">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="px-6 py-4 flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-muted/40 animate-pulse shrink-0" />
+                      <div className="flex-1 space-y-2.5 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <div className="h-3.5 bg-muted/40 rounded-full animate-pulse w-24" />
+                          <div className="h-2 bg-muted/40 rounded-full animate-pulse w-8" />
+                        </div>
+                        <div className="h-2.5 bg-muted/40 rounded-full animate-pulse w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               /* ── Conversation list (inlined to prevent remount) ── */
@@ -979,23 +991,47 @@ const Chat = () => {
                   />
                 </div>
               ) : loadingMsgs ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        'flex',
-                        i % 2 === 0 ? 'justify-start' : 'justify-end',
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          'h-10 rounded-2xl bg-muted/40 animate-pulse',
-                          i % 2 === 0 ? 'w-48' : 'w-40',
-                        )}
-                      />
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                  <div className="p-5 border-b border-border/40 flex items-center gap-4 shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-muted/40 animate-pulse" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-muted/40 rounded-full animate-pulse w-32" />
+                      <div className="h-2.5 bg-muted/40 rounded-full animate-pulse w-20" />
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'flex items-end gap-2 max-w-[80%]',
+                          i % 2 === 0
+                            ? 'justify-start mr-auto'
+                            : 'flex-row-reverse ml-auto',
+                        )}
+                      >
+                        {i % 2 === 0 && (
+                          <div className="w-6 h-6 rounded-full bg-muted/20 animate-pulse shrink-0 mb-1" />
+                        )}
+                        <div
+                          className={cn(
+                            'space-y-2',
+                            i % 2 === 0 ? 'items-start' : 'items-end',
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              'h-12 rounded-2xl bg-muted/30 animate-pulse',
+                              i % 2 === 0
+                                ? 'w-64 rounded-bl-sm'
+                                : 'w-56 rounded-br-sm',
+                            )}
+                          />
+                          <div className="h-2 bg-muted/20 rounded-full animate-pulse w-12" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
