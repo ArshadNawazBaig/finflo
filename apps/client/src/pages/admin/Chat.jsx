@@ -26,11 +26,11 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
-// Connect through the same origin so the Vite proxy forwards /socket.io to port 5001
+// Connect to the backend – use port 5001 in dev, same origin in prod
 const SOCKET_URL =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : 'http://localhost:5174';
+  import.meta.env.MODE === 'development'
+    ? 'http://localhost:5001'
+    : window.location.origin;
 
 // Format message timestamps
 const formatTime = (date) =>
@@ -279,158 +279,162 @@ const Chat = () => {
   }, [activeConv]);
 
   // ── Init socket ──────────────────────────────────────────────────────────
+  // ── Init socket ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['polling', 'websocket'], // Force polling first, then upgrade
-    });
-    socketRef.current = socket;
+    if (!token) return;
 
-    // ── Presence helpers ────────────────────────────────────────────────────
-    const setOnline = (userId, online) => {
-      const uId = userId?.toString();
-      setContacts((prev) =>
-        prev.map((c) =>
-          c._id?.toString() === uId ? { ...c, isOnline: online } : c,
-        ),
-      );
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.participant?._id?.toString() === uId
-            ? { ...c, participant: { ...c.participant, isOnline: online } }
-            : c,
-        ),
-      );
-      setActiveConv((prev) =>
-        prev?.participant?._id?.toString() === uId
-          ? { ...prev, participant: { ...prev.participant, isOnline: online } }
-          : prev,
-      );
-    };
-
-    // Full snapshot on connect
-    socket.on('user:presence_list', (list) => {
-      const onlineSet = new Set(list.map((u) => u.userId?.toString()));
-      presenceRef.current = onlineSet;
-
-      setContacts((prev) =>
-        prev.map((c) => ({
-          ...c,
-          isOnline: onlineSet.has(c._id?.toString()),
-        })),
-      );
-
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (!c.participant) return c;
-          return {
-            ...c,
-            participant: {
-              ...c.participant,
-              isOnline: onlineSet.has(c.participant._id?.toString()),
-            },
-          };
-        }),
-      );
-
-      setActiveConv((prev) => {
-        if (!prev?.participant) return prev;
-        return {
-          ...prev,
-          participant: {
-            ...prev.participant,
-            isOnline: onlineSet.has(prev.participant._id?.toString()),
-          },
-        };
+    let socket;
+    const timer = setTimeout(() => {
+      socket = io(SOCKET_URL, {
+        auth: { token },
+        transports: ['polling', 'websocket'],
+        reconnectionAttempts: 5,
+        timeout: 10000,
       });
-    });
 
-    socket.on('user:online', ({ userId }) => {
-      presenceRef.current.add(userId);
-      setOnline(userId, true);
-    });
-    socket.on('user:offline', ({ userId }) => {
-      presenceRef.current.delete(userId);
-      setOnline(userId, false);
-    });
+      socketRef.current = socket;
 
-    socket.on('user:typing', ({ conversationId, userId }) => {
-      setTypingUser({ conversationId, userId });
-    });
+      socket.on('connect_error', (err) => {
+        console.error('[Socket] Connection Error:', err.message);
+      });
 
-    socket.on('user:stop-typing', () => {
-      setTypingUser(null);
-    });
-
-    socket.on('user:recording', ({ conversationId, userId }) => {
-      setRecordingUser({ conversationId, userId });
-    });
-
-    socket.on('user:stop-recording', () => {
-      setRecordingUser(null);
-    });
-
-    socket.on('message:new', ({ conversationId, message }) => {
-      const currentActiveConv = activeConvRef.current;
-
-      if (currentActiveConv?._id === conversationId) {
-        setMessages((prev) => {
-          // Robust duplicate prevention
-          const msgId = String(message._id);
-          if (prev.some((m) => String(m._id) === msgId)) return prev;
-          return [...prev, message];
-        });
-        setTimeout(scrollToBottom, 100);
-        api.post(`/chat/conversations/${conversationId}/read`).catch(() => {});
-      }
-
-      setConversations((prev) =>
-        prev.map((c) =>
-          c._id === conversationId
-            ? {
-                ...c,
-                lastMessage: message,
-                lastActivity: message.createdAt,
-                unreadCount:
-                  currentActiveConv?._id === conversationId
-                    ? 0
-                    : (c.unreadCount || 0) + 1,
-              }
-            : c,
-        ),
-      );
-    });
-
-    socket.on('message:edited', ({ conversationId, message }) => {
-      if (activeConvRef.current?._id === conversationId) {
-        setMessages((prev) =>
-          prev.map((m) => (m._id === message._id ? message : m)),
-        );
-      }
-    });
-
-    socket.on('message:deleted', ({ conversationId, messageId }) => {
-      if (activeConvRef.current?._id === conversationId) {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m._id === messageId ? { ...m, isDeleted: true } : m,
+      // ── Presence helpers ────────────────────────────────────────────────────
+      const setOnline = (userId, online) => {
+        const uId = userId?.toString();
+        setContacts((prev) =>
+          prev.map((c) =>
+            c._id?.toString() === uId ? { ...c, isOnline: online } : c,
           ),
         );
-      }
-    });
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.participant?._id?.toString() === uId
+              ? { ...c, participant: { ...c.participant, isOnline: online } }
+              : c,
+          ),
+        );
+        setActiveConv((prev) =>
+          prev?.participant?._id?.toString() === uId
+            ? {
+                ...prev,
+                participant: { ...prev.participant, isOnline: online },
+              }
+            : prev,
+        );
+      };
+
+      socket.on('user:presence_list', (list) => {
+        const onlineSet = new Set(list.map((u) => u.userId?.toString()));
+        presenceRef.current = onlineSet;
+
+        setContacts((prev) =>
+          prev.map((c) => ({
+            ...c,
+            isOnline: onlineSet.has(c._id?.toString()),
+          })),
+        );
+
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (!c.participant) return c;
+            return {
+              ...c,
+              participant: {
+                ...c.participant,
+                isOnline: onlineSet.has(c.participant._id?.toString()),
+              },
+            };
+          }),
+        );
+
+        setActiveConv((prev) => {
+          if (!prev?.participant) return prev;
+          return {
+            ...prev,
+            participant: {
+              ...prev.participant,
+              isOnline: onlineSet.has(prev.participant._id?.toString()),
+            },
+          };
+        });
+      });
+
+      socket.on('user:online', ({ userId }) => {
+        presenceRef.current.add(userId);
+        setOnline(userId, true);
+      });
+      socket.on('user:offline', ({ userId }) => {
+        presenceRef.current.delete(userId);
+        setOnline(userId, false);
+      });
+      socket.on('user:typing', ({ conversationId, userId }) => {
+        setTypingUser({ conversationId, userId });
+      });
+      socket.on('user:stop-typing', () => {
+        setTypingUser(null);
+      });
+      socket.on('user:recording', ({ conversationId, userId }) => {
+        setRecordingUser({ conversationId, userId });
+      });
+      socket.on('user:stop-recording', () => {
+        setRecordingUser(null);
+      });
+
+      socket.on('message:new', ({ conversationId, message }) => {
+        const currentActiveConv = activeConvRef.current;
+        if (currentActiveConv?._id === conversationId) {
+          setMessages((prev) => {
+            const msgId = String(message._id);
+            if (prev.some((m) => String(m._id) === msgId)) return prev;
+            return [...prev, message];
+          });
+          setTimeout(scrollToBottom, 100);
+          api
+            .post(`/chat/conversations/${conversationId}/read`)
+            .catch(() => {});
+        }
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c._id === conversationId
+              ? {
+                  ...c,
+                  lastMessage: message,
+                  lastActivity: message.createdAt,
+                  unreadCount:
+                    currentActiveConv?._id === conversationId
+                      ? 0
+                      : (c.unreadCount || 0) + 1,
+                }
+              : c,
+          ),
+        );
+      });
+
+      socket.on('message:edited', ({ conversationId, message }) => {
+        if (activeConvRef.current?._id === conversationId) {
+          setMessages((prev) =>
+            prev.map((m) => (m._id === message._id ? message : m)),
+          );
+        }
+      });
+
+      socket.on('message:deleted', ({ conversationId, messageId }) => {
+        if (activeConvRef.current?._id === conversationId) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m._id === messageId ? { ...m, isDeleted: true } : m,
+            ),
+          );
+        }
+      });
+    }, 100);
 
     return () => {
-      socket.off('user:presence_list');
-      socket.off('user:online');
-      socket.off('user:offline');
-      socket.off('user:typing');
-      socket.off('user:stop-typing');
-      socket.off('user:recording');
-      socket.off('user:stop-recording');
-      socket.off('message:new');
-      socket.off('message:edited');
-      socket.off('message:deleted');
-      socket.disconnect();
+      clearTimeout(timer);
+      if (socket) {
+        socket.disconnect();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);

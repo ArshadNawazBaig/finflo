@@ -81,6 +81,8 @@ const allowedOrigins = [
   process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   'http://localhost:3000',
   'capacitor://localhost',
   'http://localhost',
@@ -136,6 +138,9 @@ app.use(
           'http://localhost:*',
           'http://127.0.0.1:*',
           'http://192.168.*.*:*',
+          'ws://localhost:*',
+          'ws://127.0.0.1:*',
+          'wss://*',
         ],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         objectSrc: ["'none'"],
@@ -241,12 +246,15 @@ if (process.env.NODE_ENV !== 'production') {
       origin: [
         'http://localhost:5173',
         'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
         'http://localhost:3000',
         'capacitor://localhost',
         process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
       ],
       credentials: true,
     },
+    allowEIO3: true, // Support for older clients if needed
   });
 
   ioInstance = io;

@@ -6,9 +6,9 @@ import api from '@/lib/axios';
 
 // Get SOCKET_URL consistent with Chat pages
 const SOCKET_URL =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : 'http://localhost:5174';
+  import.meta.env.MODE === 'development'
+    ? 'http://localhost:5001'
+    : window.location.origin;
 
 const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);
@@ -42,24 +42,33 @@ const ChatSync = ({ userType = 'user' }) => {
 
     if (!token) return;
 
-    const socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['polling', 'websocket'],
-    });
+    let socket;
+    const timer = setTimeout(() => {
+      socket = io(SOCKET_URL, {
+        auth: { token },
+        transports: ['polling', 'websocket'],
+        reconnectionAttempts: 5,
+        timeout: 10000,
+      });
 
-    socket.on('message:new', () => {
-      // Re-fetch counts on new message to keep it simple and accurate
-      // Alternatively, we could increment locally, but re-fetching ensures sync
-      fetchInitialCount();
-    });
+      socket.on('connect_error', (err) => {
+        console.error('[SocketSync] Connection Error:', err.message);
+      });
 
-    // Handle read events from other tabs/components
-    socket.on('conversations:updated', () => {
-      fetchInitialCount();
-    });
+      socket.on('message:new', () => {
+        fetchInitialCount();
+      });
+
+      socket.on('conversations:updated', () => {
+        fetchInitialCount();
+      });
+    }, 100);
 
     return () => {
-      socket.disconnect();
+      clearTimeout(timer);
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [setUnreadCount, userType]);
 
