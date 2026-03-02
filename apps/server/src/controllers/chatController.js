@@ -178,11 +178,28 @@ const getConversations = async (req, res) => {
           );
         }
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+        // Diagnostic Log: Track how the Map is being resolved
+        console.log(
+          `[ChatController] getConversations for ${id} (Conv ${conv._id}) - Raw Unread:`,
+          conv.unreadCount,
+        );
+
+        // Mongoose generic Map getter: conv.unreadCount.get(key)
+        let count = 0;
+        if (conv.unreadCount) {
+          // Mongoose Maps sometimes need exact string matching or `.get()` depending on strictness
+          count =
+            conv.unreadCount.get(id.toString()) ||
+            conv.unreadCount.get(id) ||
+            0;
+        }
+
         return {
           _id: conv._id,
           lastMessage: conv.lastMessage,
           lastActivity: conv.lastActivity,
-          unreadCount: conv.unreadCount?.get(id.toString()) || 0,
+          unreadCount: count,
           participant: otherInfo
             ? {
                 _id: otherInfo._id,
@@ -375,27 +392,58 @@ const sendMessage = async (req, res) => {
     });
 
     // Update conversation lastMessage and unread counts for other participants
-    const unreadUpdates = {};
+    console.log(
+      `[ChatController] sendMessage (Conv ${convId}) - Before Updates Unread:`,
+      conv.unreadCount,
+    );
+
+    // Initialize map if it doesn't exist
+    if (!conv.unreadCount) {
+      conv.unreadCount = new Map();
+    }
+
     conv.participants.forEach((p) => {
       if (p.participantId.toString() !== senderId.toString()) {
-        const currentCount =
-          conv.unreadCount?.get(p.participantId.toString()) || 0;
-        unreadUpdates[`unreadCount.${p.participantId}`] = currentCount + 1;
+        const participantIdStr = p.participantId.toString();
+
+        let currentCount = conv.unreadCount.get(participantIdStr);
+        if (currentCount === undefined)
+          currentCount = conv.unreadCount.get(p.participantId) || 0;
+
+        conv.unreadCount.set(participantIdStr, currentCount + 1);
+        console.log(
+          `[ChatController] sendMessage - Incrementing ${participantIdStr} from ${currentCount} to ${currentCount + 1}`,
+        );
       }
     });
 
-    await conv.updateOne({
-      lastMessage: message._id,
-      lastActivity: new Date(),
-      ...unreadUpdates,
-    });
+    conv.lastMessage = message._id;
+    conv.lastActivity = new Date();
 
-    // Emit via socket if available
+    // Explicitly tell Mongoose the map changed
+    conv.markModified('unreadCount');
+    await conv.save();
+
+    console.log(
+      `[ChatController] sendMessage - Applied Updates Unread:`,
+      conv.unreadCount,
+    );
+
+    // Emit via socket if available — include per-participant unread count so clients update badge instantly
     if (req.io) {
       conv.participants.forEach((p) => {
-        req.io
-          .to(`user_${p.participantId}`)
-          .emit('message:new', { conversationId: convId, message });
+        const participantNewUnread =
+          p.participantId.toString() === senderId.toString()
+            ? 0 // sender has 0 unread for their own message
+            : conv.unreadCount
+              ? conv.unreadCount.get(p.participantId.toString()) || 0
+              : 1;
+
+        req.io.to(`user_${p.participantId}`).emit('message:new', {
+          conversationId: convId,
+          message,
+          unreadCount: participantNewUnread,
+        });
       });
     }
 
@@ -518,9 +566,22 @@ const markAsRead = async (req, res) => {
       { $addToSet: { readBy: requesterId } },
     );
 
-    await conv.updateOne({
-      $set: { [`unreadCount.${requesterId}`]: 0 },
-    });
+    if (!conv.unreadCount) {
+      conv.unreadCount = new Map();
+    }
+
+    // Use .set() and markModified() to ensure Mongoose saves the Map update
+    conv.unreadCount.set(requesterId.toString(), 0);
+    conv.markModified('unreadCount');
+
+    await conv.save();
+
+    // Notify the reader's socket so ChatSync can clear the badge instantly (no REST refetch needed)
+    if (req.io) {
+      req.io.to(`user_${requesterId}`).emit('conversation:read', {
+        conversationId: convId,
+      });
+    }
 
     res.json({ success: true });
   } catch (error) {

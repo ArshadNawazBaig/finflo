@@ -389,7 +389,7 @@ const Chat = () => {
         setRecordingUser(null);
       });
 
-      socket.on('message:new', ({ conversationId, message }) => {
+      socket.on('message:new', ({ conversationId, message, unreadCount }) => {
         const currentActiveConv = activeConvRef.current;
         if (currentActiveConv?._id === conversationId) {
           setMessages((prev) => {
@@ -410,10 +410,13 @@ const Chat = () => {
                   ...c,
                   lastMessage: message,
                   lastActivity: message.createdAt,
+                  // Use server-provided count if available, else preserve existing
                   unreadCount:
                     currentActiveConv?._id === conversationId
                       ? 0
-                      : (c.unreadCount || 0) + 1,
+                      : typeof unreadCount === 'number'
+                        ? unreadCount
+                        : (c.unreadCount || 0) + 1,
                 }
               : c,
           ),
@@ -514,43 +517,48 @@ const Chat = () => {
     };
   }, [currentUserId]);
 
-  // Update global unread count whenever conversations change
-  useEffect(() => {
-    const total = conversations.reduce(
-      (acc, c) => acc + (c.unreadCount || 0),
-      0,
-    );
-    setUnreadChatCount(total);
-  }, [conversations, setUnreadChatCount]);
-
   // ── Open/select a conversation ───────────────────────────────────────────
-  const openConversation = useCallback(async (conv) => {
-    setActiveConv(conv);
-    setShowThread(true);
-    setLoadingMsgs(true);
-    try {
-      const res = await api.get(`/chat/conversations/${conv._id}/messages`);
-      setMessages(res.data.messages);
-      // Mark as read
-      await api.post(`/chat/conversations/${conv._id}/read`);
-      setConversations((prev) =>
-        prev.map((c) => (c._id === conv._id ? { ...c, unreadCount: 0 } : c)),
-      );
-      setTimeout(scrollToBottom, 100);
-    } catch {
-      toast.error('Failed to load messages');
-    } finally {
-      setLoadingMsgs(false);
-    }
-  }, []);
+  const openConversation = useCallback(
+    async (conv) => {
+      setActiveConv(conv);
+      setShowThread(true);
+      setLoadingMsgs(true);
+      try {
+        const res = await api.get(`/chat/conversations/${conv._id}/messages`);
+        setMessages(res.data.messages);
+
+        if (conv.unreadCount > 0) {
+          // Mark as read
+          await api.post(`/chat/conversations/${conv._id}/read`);
+          // Update conversations list with zeroed unread count
+          setConversations((prev) =>
+            prev.map((c) =>
+              c._id === conv._id ? { ...c, unreadCount: 0 } : c,
+            ),
+          );
+          // Update global atom SEPARATELY (never inside a setState updater - React render-phase rule)
+          setUnreadChatCount((prev) =>
+            Math.max(0, prev - (conv.unreadCount || 0)),
+          );
+        }
+        setTimeout(scrollToBottom, 50);
+      } catch {
+        toast.error('Failed to load messages');
+      } finally {
+        setLoadingMsgs(false);
+      }
+    },
+    [setUnreadChatCount],
+  );
 
   // Periodic polling fallback for active conversation (Vercel Fix)
   useEffect(() => {
     if (!activeConv?._id) return;
 
     const pollInterval = setInterval(async () => {
-      // Only poll if tab is focused to save resources
+      // Only poll if tab is focused to save resources and socket is NOT connected (fallback only)
       if (document.visibilityState !== 'visible') return;
+      if (socketRef.current?.connected) return; // Socket handles it when connected
 
       try {
         const res = await api.get(
@@ -570,6 +578,9 @@ const Chat = () => {
                 .then((fullRes) => {
                   setMessages(fullRes.data.messages);
                   setTimeout(scrollToBottom, 100);
+                  api
+                    .post(`/chat/conversations/${activeConv._id}/read`)
+                    .catch(() => {});
                 });
             }
             return prev;
@@ -580,9 +591,10 @@ const Chat = () => {
       }
     }, 15000);
 
-    // Vercel Fix: Status (Typing/Recording) polling (every 3 seconds)
+    // Status (Typing/Recording) polling — ONLY runs when socket is NOT connected (Vercel serverless fallback)
     const statusPollInterval = setInterval(async () => {
       if (document.visibilityState !== 'visible') return;
+      if (socketRef.current?.connected) return; // Socket handles typing/recording in real-time
       try {
         const res = await api.get(
           `/chat/conversations/${activeConv._id}/status`,
@@ -772,17 +784,11 @@ const Chat = () => {
       setMediaRecorder(recorder);
       setIsRecording(true);
 
-      if (socketRef.current && activeConv) {
+      if (socketRef.current?.connected && activeConv) {
         socketRef.current.emit('recording', {
           conversationId: activeConv._id,
           receiverId: activeConv.participant._id,
         });
-        // Vercel Fix: ping REST API
-        api
-          .post(`/chat/conversations/${activeConv._id}/status`, {
-            isRecording: true,
-          })
-          .catch(() => {});
       }
     } catch (err) {
       console.error('Recording error:', err);
@@ -801,17 +807,11 @@ const Chat = () => {
       streamRef.current = null;
     }
 
-    if (socketRef.current && activeConv) {
+    if (socketRef.current?.connected && activeConv) {
       socketRef.current.emit('stop-recording', {
         conversationId: activeConv._id,
         receiverId: activeConv.participant._id,
       });
-      // Vercel Fix: ping REST API
-      api
-        .post(`/chat/conversations/${activeConv._id}/status`, {
-          isRecording: false,
-        })
-        .catch(() => {});
     }
   };
 
@@ -882,29 +882,20 @@ const Chat = () => {
     const val = e.target.value;
     setMessageInput(val);
 
-    if (socketRef.current && activeConv) {
+    if (socketRef.current?.connected && activeConv) {
       socketRef.current.emit('typing', {
         conversationId: activeConv._id,
         receiverId: activeConv.participant._id,
       });
-      // Vercel Fix: Also ping REST API
-      api
-        .post(`/chat/conversations/${activeConv._id}/status`, {
-          isTyping: true,
-        })
-        .catch(() => {});
 
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
-        socketRef.current.emit('stop-typing', {
-          conversationId: activeConv._id,
-          receiverId: activeConv.participant._id,
-        });
-        api
-          .post(`/chat/conversations/${activeConv._id}/status`, {
-            isTyping: false,
-          })
-          .catch(() => {});
+        if (socketRef.current?.connected) {
+          socketRef.current.emit('stop-typing', {
+            conversationId: activeConv._id,
+            receiverId: activeConv.participant._id,
+          });
+        }
       }, 2000);
     }
   };

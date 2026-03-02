@@ -3,19 +3,36 @@ import { io } from 'socket.io-client';
 import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
 import api from '@/lib/axios';
-
 import { SOCKET_URL } from '@/lib/constants';
 
+/**
+ * ChatSync — Background component (renders nothing).
+ *
+ * Auth strategy:
+ *  - First tries to get token from localStorage (for non-cookie auth flows)
+ *  - Falls back to withCredentials: true so the HTTP-only cookie is used
+ *  - Server socket middleware already reads cookies, so this works for both member and admin
+ */
 const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);
 
   useEffect(() => {
-    // Diagnostic log for production troubleshooting
-    console.log(
-      `[SocketSync] Connecting to: ${SOCKET_URL} (Mode: ${import.meta.env.MODE})`,
-    );
-    // Only fetch if authenticated
-    const fetchInitialCount = async () => {
+    // Try to get token from localStorage first (some flows still use it)
+    let token;
+    try {
+      if (userType === 'member') {
+        const memberData = JSON.parse(localStorage.getItem('member') || '{}');
+        token = memberData.token;
+      } else {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        token = userData.token;
+      }
+    } catch {
+      token = null;
+    }
+
+    // ── REST fetch helper ────────────────────────────────────────────────────
+    const fetchCount = async () => {
       try {
         const res = await api.get('/chat/conversations');
         const total = res.data.reduce(
@@ -23,67 +40,80 @@ const ChatSync = ({ userType = 'user' }) => {
           0,
         );
         setUnreadCount(total);
-      } catch (error) {
-        console.error('ChatSync initial fetch failed:', error);
+        return total;
+      } catch {
+        return 0;
       }
     };
 
-    fetchInitialCount();
+    // Initial fetch on mount
+    fetchCount();
 
-    // Setup Socket connection for real-time updates
-    let token;
-    if (userType === 'member') {
-      const memberData = JSON.parse(localStorage.getItem('member') || '{}');
-      token = memberData.token;
-    } else {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      token = userData.token || document.cookie.match(/token=([^;]+)/)?.[1];
+    // ── Socket connection ────────────────────────────────────────────────────
+    // Use withCredentials: true so HTTP-only cookie is sent automatically.
+    // Also pass token in auth: {} if available (for non-cookie flows).
+    const socketOpts = {
+      withCredentials: true, // sends HTTP-only cookies for members using cookie auth
+      transports: ['polling', 'websocket'],
+      reconnectionAttempts: 15,
+      reconnectionDelay: 1000,
+      timeout: 10000,
+    };
+
+    // Add token to auth if available from localStorage
+    if (token) {
+      socketOpts.auth = { token };
     }
 
-    if (!token) return;
+    console.log(
+      `[ChatSync] Connecting to ${SOCKET_URL} (${userType}, cookie+token auth)`,
+    );
+    const socket = io(SOCKET_URL, socketOpts);
 
-    let socket;
-    let fallbackInterval;
-    const timer = setTimeout(() => {
-      socket = io(SOCKET_URL, {
-        auth: { token },
-        transports: ['polling', 'websocket'],
-        reconnectionAttempts: 5,
-        timeout: 10000,
-      });
+    socket.on('connect', () => {
+      console.log(`[ChatSync] Connected: ${socket.id}`);
+      // Sync on connect/reconnect in case messages arrived while disconnected
+      fetchCount();
+    });
 
-      socket.on('connect_error', (err) => {
-        console.error('[SocketSync] Connection Error:', err.message);
-      });
+    socket.on('connect_error', (err) => {
+      console.warn('[ChatSync] Socket error:', err.message);
+    });
 
-      socket.on('disconnect', () => {
-        console.log(`[SocketSync] Disconnected`);
-      });
+    socket.on('disconnect', (reason) => {
+      console.log('[ChatSync] Disconnected:', reason);
+    });
 
-      // Periodic Fallback: Refresh count every 30 seconds for robustness in Serverless/Vercel
-      fallbackInterval = setInterval(() => {
-        fetchInitialCount();
-      }, 30000);
+    // ── message:new — server sends exact unreadCount for this user ───────────
+    socket.on('message:new', ({ unreadCount }) => {
+      console.log('[ChatSync] message:new received, unreadCount:', unreadCount);
+      if (typeof unreadCount === 'number') {
+        setUnreadCount(unreadCount);
+      } else {
+        // Fallback: REST sync
+        fetchCount();
+      }
+    });
 
-      socket.on('message:new', () => {
-        fetchInitialCount();
-      });
+    // ── conversation:read — user opened a chat, server confirmed read ─────────
+    socket.on('conversation:read', () => {
+      fetchCount();
+    });
 
-      socket.on('conversations:updated', () => {
-        fetchInitialCount();
-      });
-    }, 100);
+    // ── Periodic REST fallback (every 15s) for robustness ───────────────────
+    const fallback = setInterval(() => {
+      if (!socket.connected) {
+        fetchCount();
+      }
+    }, 15000);
 
     return () => {
-      clearTimeout(timer);
-      if (fallbackInterval) clearInterval(fallbackInterval);
-      if (socket) {
-        socket.disconnect();
-      }
+      clearInterval(fallback);
+      socket.disconnect();
     };
   }, [setUnreadCount, userType]);
 
-  return null; // Background component
+  return null;
 };
 
 export default ChatSync;
