@@ -20,7 +20,10 @@ const {
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { sendEmail } = require('../utils/email');
-const { transactionEmail } = require('../utils/emailTemplates');
+const {
+  transactionEmail,
+  memberApprovalEmail,
+} = require('../utils/emailTemplates');
 const Branch = require('../models/Branch');
 const { updateMemberCreditLimit } = require('../services/creditLimitService');
 
@@ -2855,6 +2858,23 @@ const selfRegister = async (req, res) => {
       isActive: false, // Prevents login until approved
     });
 
+    // Notify admin & managers about the pending approval
+    try {
+      await notifyAdminsOfMemberAction({
+        title: 'New Member Registration Pending',
+        message: `${name} has registered and is awaiting account approval.`,
+        type: 'info',
+        ownerId: businessOwner._id,
+        link: '/members?tab=pending',
+        metadata: { memberId: member._id, phone },
+      });
+    } catch (notifError) {
+      console.error(
+        'Failed to notify admins of new self-registration:',
+        notifError,
+      );
+    }
+
     // We can't log activity for the member yet because they aren't logged in, but we can log for the business
     await logActivity({
       userId: businessOwner._id,
@@ -2909,6 +2929,22 @@ const updateApprovalStatus = async (req, res) => {
     member.approvalStatus = status;
     member.isActive = status === 'approved';
     await member.save();
+
+    // Send email notification to the member
+    if (member.email) {
+      try {
+        await sendEmail({
+          to: member.email,
+          subject:
+            status === 'approved'
+              ? '🎉 Your Account Has Been Approved!'
+              : 'Update on Your Registration Request',
+          html: memberApprovalEmail(member.name, status),
+        });
+      } catch (emailError) {
+        console.error('Failed to send approval email:', emailError);
+      }
+    }
 
     await logActivity({
       userId: req.user._id,

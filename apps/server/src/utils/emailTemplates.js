@@ -220,9 +220,48 @@ const transactionEmail = (data) => {
   );
 };
 
+/**
+ * Member Registration Approval/Rejection Email
+ */
+const memberApprovalEmail = (memberName, status) => {
+  const isApproved = status === 'approved';
+  const accentColor = isApproved ? '#16a34a' : '#dc2626';
+  const title = isApproved ? 'Account Approved!' : 'Registration Update';
+
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: ${accentColor}; font-size: 18px; font-weight: 700;">${title}</h2>
+    <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+      Dear <span style="font-weight: 700; text-transform: capitalize;">${memberName}</span>,
+    </p>
+    <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+      ${
+        isApproved
+          ? 'Great news! Your membership account has been <strong>approved</strong>. You can now log in to your member portal and access all features.'
+          : 'We have reviewed your registration request. Unfortunately, your account has been <strong>rejected</strong> at this time. Please contact your branch administrator for more information.'
+      }
+    </p>
+    ${
+      isApproved
+        ? `<table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 32px;">
+          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/member/login" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Login to Member Portal</a>
+        </td>
+      </tr>
+    </table>`
+        : ''
+    }
+    <p style="margin: 0; color: #94a3b8; font-size: 14px; text-align: center;">
+      If you have any questions, please reach out to your branch administrator.
+    </p>
+  `;
+  return getBaseTemplate(content, title);
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
   loanReminderEmail,
   transactionEmail,
+  memberApprovalEmail,
 };
