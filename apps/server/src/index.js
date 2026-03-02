@@ -132,9 +132,12 @@ const corsOptions = {
     'Authorization',
     'X-Requested-With',
     'Accept',
+    'Cookie', // needed for cross-origin HTTP-only cookie auth (Railway ↔ Vercel)
+    'cookie',
   ],
+  exposedHeaders: ['set-cookie'],
   credentials: true,
-  optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
