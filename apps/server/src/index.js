@@ -256,6 +256,11 @@ const Member = require('./models/Member');
 const User = require('./models/User');
 
 const httpServer = http.createServer(app);
+
+// Client URL - for CORS
+const clientUrl =
+  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
+
 const io = new Server(httpServer, {
   cors: {
     origin: [
@@ -265,11 +270,21 @@ const io = new Server(httpServer, {
       'http://127.0.0.1:5174',
       'http://localhost:3000',
       'capacitor://localhost',
-      process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
+      clientUrl,
+      // Also allow the same origin (Vercel monorepo: client and server on same domain)
+      'https://loan-master-client.vercel.app',
     ],
     credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   },
-  allowEIO3: true, // Support for older clients if needed
+  allowEIO3: true,
+  // On Vercel serverless, WebSocket transport is not supported — use polling only
+  // When running locally, both transports work
+  transports:
+    process.env.NODE_ENV === 'production'
+      ? ['polling']
+      : ['polling', 'websocket'],
 });
 
 // Set instance immediately so that it's available for middleware even on Serverless

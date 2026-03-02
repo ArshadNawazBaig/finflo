@@ -3,21 +3,22 @@ import { io } from 'socket.io-client';
 import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
 import api from '@/lib/axios';
-import { SOCKET_URL } from '@/lib/constants';
+import { SOCKET_URL, IS_PRODUCTION } from '@/lib/constants';
 
 /**
  * ChatSync — Background component (renders nothing).
  *
- * Auth strategy:
- *  - First tries to get token from localStorage (for non-cookie auth flows)
- *  - Falls back to withCredentials: true so the HTTP-only cookie is used
- *  - Server socket middleware already reads cookies, so this works for both member and admin
+ * Auth: withCredentials sends HTTP-only cookie through same-origin (Vite proxy in dev,
+ * or direct on production). Token from localStorage passed as fallback.
+ *
+ * Transport: WebSocket in dev, long-polling only in production (Vercel serverless
+ * does not support persistent WebSocket connections).
  */
 const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);
 
   useEffect(() => {
-    // Try to get token from localStorage first (some flows still use it)
+    // Try to get token from localStorage first (belt-and-suspenders)
     let token;
     try {
       if (userType === 'member') {
@@ -50,29 +51,23 @@ const ChatSync = ({ userType = 'user' }) => {
     fetchCount();
 
     // ── Socket connection ────────────────────────────────────────────────────
-    // Use withCredentials: true so HTTP-only cookie is sent automatically.
-    // Also pass token in auth: {} if available (for non-cookie flows).
     const socketOpts = {
-      withCredentials: true, // sends HTTP-only cookies for members using cookie auth
-      transports: ['polling', 'websocket'],
+      withCredentials: true,
+      // Vercel serverless doesn't support WebSocket — use polling only in production
+      transports: IS_PRODUCTION ? ['polling'] : ['polling', 'websocket'],
       reconnectionAttempts: 15,
-      reconnectionDelay: 1000,
-      timeout: 10000,
+      reconnectionDelay: 1500,
+      timeout: 20000,
     };
-
-    // Add token to auth if available from localStorage
-    if (token) {
-      socketOpts.auth = { token };
-    }
+    if (token) socketOpts.auth = { token };
 
     console.log(
-      `[ChatSync] Connecting to ${SOCKET_URL} (${userType}, cookie+token auth)`,
+      `[ChatSync] Connecting to ${SOCKET_URL || 'same-origin'} (${userType})`,
     );
     const socket = io(SOCKET_URL, socketOpts);
 
     socket.on('connect', () => {
       console.log(`[ChatSync] Connected: ${socket.id}`);
-      // Sync on connect/reconnect in case messages arrived while disconnected
       fetchCount();
     });
 
@@ -86,25 +81,21 @@ const ChatSync = ({ userType = 'user' }) => {
 
     // ── message:new — server sends exact unreadCount for this user ───────────
     socket.on('message:new', ({ unreadCount }) => {
-      console.log('[ChatSync] message:new received, unreadCount:', unreadCount);
       if (typeof unreadCount === 'number') {
         setUnreadCount(unreadCount);
       } else {
-        // Fallback: REST sync
         fetchCount();
       }
     });
 
-    // ── conversation:read — user opened a chat, server confirmed read ─────────
+    // ── conversation:read — this user opened a chat ───────────────────────────
     socket.on('conversation:read', () => {
       fetchCount();
     });
 
-    // ── Periodic REST fallback (every 15s) for robustness ───────────────────
+    // ── Periodic REST fallback (15s) when socket is disconnected ─────────────
     const fallback = setInterval(() => {
-      if (!socket.connected) {
-        fetchCount();
-      }
+      if (!socket.connected) fetchCount();
     }, 15000);
 
     return () => {

@@ -25,7 +25,7 @@ import { unreadChatCountAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { SOCKET_URL } from '@/lib/constants';
+import { SOCKET_URL, IS_PRODUCTION } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -294,7 +294,7 @@ const Chat = () => {
     const timer = setTimeout(() => {
       const socketOpts = {
         withCredentials: true, // sends HTTP-only cookie through Vite proxy (same origin)
-        transports: ['polling', 'websocket'],
+        transports: IS_PRODUCTION ? ['polling'] : ['polling', 'websocket'],
         reconnectionAttempts: 5,
         timeout: 10000,
       };
