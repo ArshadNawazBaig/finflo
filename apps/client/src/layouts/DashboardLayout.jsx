@@ -10,6 +10,7 @@ import InstallPrompt from '@/components/InstallPrompt';
 
 import api from '@/lib/axios';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
+import ChatSync from '@/components/ChatSync';
 
 const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -81,6 +82,7 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
+      <ChatSync userType="user" />
       <Sidebar
         isExpanded={isSidebarExpanded}
         isMobile={isMobile}

@@ -176,7 +176,7 @@ const Navbar = ({ onMenuClick }) => {
         </button> */}
 
             {/* Notifications */}
-            <div className="hidden sm:flex items-center" ref={notificationRef}>
+            <div className="flex items-center" ref={notificationRef}>
               <Tooltip content="Notifications" position="bottom">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}

@@ -48,11 +48,6 @@ const MemberBottomNav = () => {
       path: '/member/transfer',
     },
     {
-      icon: <Bell size={20} />,
-      label: 'Alerts',
-      path: '/member/notifications',
-    },
-    {
       icon: <MessageSquare size={20} />,
       label: 'Chat',
       path: '/member/chat',

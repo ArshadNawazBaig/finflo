@@ -38,6 +38,13 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(require('cookie-parser')());
 
+// Socket.io instance placeholder for middleware
+let ioInstance;
+app.use((req, res, next) => {
+  req.io = ioInstance;
+  next();
+});
+
 // Security Middleware
 const rateLimit = require('express-rate-limit');
 
@@ -242,13 +249,30 @@ if (process.env.NODE_ENV !== 'production') {
     },
   });
 
+  ioInstance = io;
+
   // Socket.io auth middleware
   io.use(async (socket, next) => {
     try {
-      const token =
+      // Check auth object, then Authorization header, then cookies
+      let token =
         socket.handshake.auth?.token ||
         socket.handshake.headers?.authorization?.split(' ')[1];
-      if (!token) return next(new Error('No token'));
+
+      if (!token && socket.handshake.headers?.cookie) {
+        const cookieToken = socket.handshake.headers.cookie
+          .split('; ')
+          .find((c) => c.startsWith('token='))
+          ?.split('=')[1];
+        if (cookieToken) token = cookieToken;
+      }
+
+      if (!token) {
+        console.log(
+          '[Socket] Auth Failed: No token provided in auth, headers, or cookies',
+        );
+        return next(new Error('No token'));
+      }
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const member = await Member.findById(decoded.id).select('_id name');
       if (member) {
@@ -261,7 +285,8 @@ if (process.env.NODE_ENV !== 'production') {
         socket.userModel = 'User';
       }
       next();
-    } catch {
+    } catch (error) {
+      console.log('[Socket] Auth Failed:', error.message);
       next(new Error('Invalid token'));
     }
   });
@@ -310,6 +335,20 @@ if (process.env.NODE_ENV !== 'production') {
       });
     });
 
+    socket.on('recording', ({ conversationId, receiverId }) => {
+      socket.to(`user_${receiverId}`).emit('user:recording', {
+        conversationId,
+        userId: socket.userId,
+      });
+    });
+
+    socket.on('stop-recording', ({ conversationId, receiverId }) => {
+      socket.to(`user_${receiverId}`).emit('user:stop-recording', {
+        conversationId,
+        userId: socket.userId,
+      });
+    });
+
     socket.on('disconnect', () => {
       console.log(`[Socket] ${socket.userModel} ${socket.userId} disconnected`);
       const entry = onlineUsers.get(socket.userId);
@@ -325,12 +364,6 @@ if (process.env.NODE_ENV !== 'production') {
         }
       }
     });
-  });
-
-  // Inject io into every request
-  app.use((req, res, next) => {
-    req.io = io;
-    next();
   });
 
   httpServer.listen(PORT, '0.0.0.0', () => {

@@ -257,6 +257,7 @@ const Chat = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [typingUser, setTypingUser] = useState(null); // { conversationId, userId }
+  const [recordingUser, setRecordingUser] = useState(null); // { conversationId, userId }
   const typingTimeoutRef = useRef(null);
 
   const socketRef = useRef(null);
@@ -264,11 +265,11 @@ const Chat = () => {
   const fileInputRef = useRef(null);
   // Store the latest presence set so it can be reapplied after data loads
   const presenceRef = useRef(new Set());
+  const streamRef = useRef(null);
+  const recorderRef = useRef(null);
 
-  const token =
-    localStorage.getItem('token') ||
-    document.cookie.match(/token=([^;]+)/)?.[1];
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = userData.token || document.cookie.match(/token=([^;]+)/)?.[1];
   const currentUserId = userData._id;
 
   // Store activeConv in a ref to avoid stale closures in socket handlers
@@ -279,7 +280,10 @@ const Chat = () => {
 
   // ── Init socket ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const socket = io(SOCKET_URL, { auth: { token } });
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['polling', 'websocket'], // Force polling first, then upgrade
+    });
     socketRef.current = socket;
 
     // ── Presence helpers ────────────────────────────────────────────────────
@@ -358,13 +362,22 @@ const Chat = () => {
       setTypingUser(null);
     });
 
+    socket.on('user:recording', ({ conversationId, userId }) => {
+      setRecordingUser({ conversationId, userId });
+    });
+
+    socket.on('user:stop-recording', () => {
+      setRecordingUser(null);
+    });
+
     socket.on('message:new', ({ conversationId, message }) => {
       const currentActiveConv = activeConvRef.current;
 
       if (currentActiveConv?._id === conversationId) {
         setMessages((prev) => {
-          // Prevent duplicates
-          if (prev.find((m) => m._id === message._id)) return prev;
+          // Robust duplicate prevention
+          const msgId = String(message._id);
+          if (prev.some((m) => String(m._id) === msgId)) return prev;
           return [...prev, message];
         });
         setTimeout(scrollToBottom, 100);
@@ -412,6 +425,8 @@ const Chat = () => {
       socket.off('user:offline');
       socket.off('user:typing');
       socket.off('user:stop-typing');
+      socket.off('user:recording');
+      socket.off('user:stop-recording');
       socket.off('message:new');
       socket.off('message:edited');
       socket.off('message:deleted');
@@ -429,21 +444,33 @@ const Chat = () => {
           api.get('/chat/conversations'),
           api.get('/chat/contacts'),
         ]);
-        // Apply any presence info already received from socket
+        // Apply any presence info and filter potential duplicates from server
         const online = presenceRef.current;
         const applyPresence = (item, id) => ({
           ...item,
           isOnline:
             online.size > 0 ? online.has(id?.toString()) : item.isOnline,
         });
-        setConversations(
-          convsRes.data.map((c) => ({
-            ...c,
-            participant: c.participant
-              ? applyPresence(c.participant, c.participant._id)
-              : c.participant,
-          })),
-        );
+
+        const rawConvs = convsRes.data.map((c) => ({
+          ...c,
+          participant: c.participant
+            ? applyPresence(c.participant, c.participant._id)
+            : c.participant,
+        }));
+
+        // Deduplicate
+        const uniqueConvs = [];
+        const seenIds = new Set();
+        rawConvs.forEach((c) => {
+          const id = String(c._id);
+          if (!seenIds.has(id)) {
+            uniqueConvs.push(c);
+            seenIds.add(id);
+          }
+        });
+
+        setConversations(uniqueConvs);
         setContacts(contactsRes.data.map((c) => applyPresence(c, c._id)));
       } catch {
         toast.error('Failed to load chat');
@@ -452,7 +479,16 @@ const Chat = () => {
       }
     };
     init();
-  }, []);
+
+    // Cleanup recording on unmount
+    return () => {
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop();
+      } else if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [currentUserId]);
 
   // Update global unread count whenever conversations change
   useEffect(() => {
@@ -494,9 +530,9 @@ const Chat = () => {
       const conv = res.data;
       // Add to list if not already there
       setConversations((prev) => {
-        const exists = prev.find((c) => c._id === conv._id);
-        if (exists) return prev;
-        return [conv, ...prev];
+        const convId = String(conv._id);
+        const exists = prev.find((c) => String(c._id) === convId);
+        return exists ? prev : [conv, ...prev];
       });
       setShowContacts(false);
       openConversation(conv);
@@ -524,7 +560,12 @@ const Chat = () => {
         { headers: { 'Content-Type': 'multipart/form-data' } },
       );
 
-      setMessages((prev) => [...prev, res.data]);
+      setMessages((prev) => {
+        // Robust duplicate prevention
+        const resId = String(res.data._id);
+        if (prev.some((m) => String(m._id) === resId)) return prev;
+        return [...prev, res.data];
+      });
       setMessageInput('');
       setSelectedFile(null);
       setFilePreview(null);
@@ -549,29 +590,75 @@ const Chat = () => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      streamRef.current = stream;
+      const getMimeType = () => {
+        const types = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/ogg;codecs=opus',
+          'audio/mp4',
+          'audio/aac',
+        ];
+        return types.find((t) => MediaRecorder.isTypeSupported(t)) || '';
+      };
+
+      const mimeType = getMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+      recorderRef.current = recorder;
       const chunks = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const file = new File([blob], `voice_${Date.now()}.webm`, {
-          type: 'audio/webm',
+        const blob = new Blob(chunks, {
+          type: recorder.mimeType || 'audio/webm',
+        });
+        const extension = (recorder.mimeType || 'audio/webm').includes('mp4')
+          ? 'mp4'
+          : 'webm';
+        const file = new File([blob], `voice_${Date.now()}.${extension}`, {
+          type: blob.type,
         });
         setSelectedFile(file);
-        setFilePreview('audio');
+        setFilePreview(URL.createObjectURL(blob));
+        // Stop all tracks
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        recorderRef.current = null;
       };
       recorder.start();
       setMediaRecorder(recorder);
       setIsRecording(true);
-    } catch {
-      toast.error('Microphone access denied');
+
+      if (socketRef.current && activeConv) {
+        socketRef.current.emit('recording', {
+          conversationId: activeConv._id,
+          receiverId: activeConv.participant._id,
+        });
+      }
+    } catch (err) {
+      console.error('Recording error:', err);
+      toast.error('Microphone access denied or error');
     }
   };
 
   const stopRecording = () => {
-    mediaRecorder?.stop();
     setIsRecording(false);
+
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      recorderRef.current.stop();
+    } else if (streamRef.current) {
+      // If recorder didn't start yet but stream exists, kill it
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+
+    if (socketRef.current && activeConv) {
+      socketRef.current.emit('stop-recording', {
+        conversationId: activeConv._id,
+        receiverId: activeConv.participant._id,
+      });
+    }
   };
 
   const handleFileSelect = (e) => {
@@ -925,14 +1012,22 @@ const Chat = () => {
             {/* File preview bar */}
             {(selectedFile || filePreview) && (
               <div className="px-4 sm:px-6 pb-2 flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-muted/30 rounded-xl px-4 py-2">
-                  {filePreview === 'audio' ? (
-                    <>
-                      <Mic size={16} className="text-primary" />
-                      <span className="text-xs font-bold">
-                        Voice clip ready
-                      </span>
-                    </>
+                <div className="flex items-center gap-2 bg-muted/30 rounded-xl px-4 py-2 flex-1 max-w-sm">
+                  {selectedFile?.type?.startsWith('audio/') ? (
+                    <div className="flex flex-col gap-1 w-full">
+                      <div className="flex items-center gap-2">
+                        <Mic size={14} className="text-primary animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+                          Voice recording preview
+                        </span>
+                      </div>
+                      <audio
+                        key={filePreview}
+                        src={filePreview}
+                        controls
+                        className="h-8 w-full filter invert dark:invert-0"
+                      />
+                    </div>
                   ) : filePreview ? (
                     <img
                       src={filePreview}
@@ -950,10 +1045,13 @@ const Chat = () => {
                 </div>
                 <button
                   onClick={() => {
+                    if (filePreview && filePreview.startsWith('blob:')) {
+                      URL.revokeObjectURL(filePreview);
+                    }
                     setSelectedFile(null);
                     setFilePreview(null);
                   }}
-                  className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground"
+                  className="p-1.5 rounded-full hover:bg-muted/50 text-muted-foreground self-start mt-1"
                 >
                   <X size={14} />
                 </button>
@@ -1003,25 +1101,28 @@ const Chat = () => {
                     </button>
                   ) : (
                     <button
-                      onMouseDown={startRecording}
-                      onMouseUp={stopRecording}
-                      onTouchStart={startRecording}
-                      onTouchEnd={stopRecording}
+                      onClick={() =>
+                        isRecording ? stopRecording() : startRecording()
+                      }
                       className={cn(
                         'p-3 rounded-2xl transition-all shrink-0',
                         isRecording
                           ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30'
                           : 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary',
                       )}
-                      title="Hold to record voice"
+                      title={isRecording ? 'Click to stop' : 'Click to record'}
                     >
-                      {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                      {isRecording ? (
+                        <div className="w-4 h-4 bg-white rounded-sm mx-auto" />
+                      ) : (
+                        <Mic size={18} />
+                      )}
                     </button>
                   )}
                 </div>
                 {isRecording && (
                   <p className="text-[10px] text-rose-500 font-bold text-center mt-2 tracking-widest animate-pulse">
-                    RECORDING... RELEASE TO SEND
+                    RECORDING... CLICK AGAIN TO STOP
                   </p>
                 )}
               </div>
