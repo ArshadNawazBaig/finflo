@@ -40,8 +40,24 @@ app.use(require('cookie-parser')());
 
 // Socket.io instance placeholder for middleware
 let ioInstance;
+
+// Background Service Initialization (Moved outside listen for Serverless compatibility)
+try {
+  initFinanceFlow();
+  initScheduledTasks();
+  console.log('[Init] Background services started');
+} catch (error) {
+  console.error('[Init] Failed to start background services:', error.message);
+}
+
 app.use((req, res, next) => {
   req.io = ioInstance;
+
+  // Manually handle Socket.io requests for environments without a persistent httpServer
+  if (req.url.startsWith('/socket.io') && ioInstance) {
+    return ioInstance.handleRequest(req, res);
+  }
+
   next();
 });
 
@@ -391,8 +407,6 @@ io.on('connection', (socket) => {
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} (on all interfaces)`);
-  initFinanceFlow();
-  initScheduledTasks();
 });
 
 // Global Error Handler
