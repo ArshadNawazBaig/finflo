@@ -41,10 +41,14 @@ const protect = async (req, res, next) => {
       }
 
       // Set effective owner ID for data filtering
-      // If super_admin, they see all (or filtered by query).
-      // If staff/admin with branchId, they see branch data.
       req.user.effectiveOwnerId =
         req.user.role === 'staff' ? req.user.ownerId : req.user._id;
+
+      // Activity Pulse: Update lastLoginAt if older than 2 minutes (Vercel Fix)
+      const now = new Date();
+      if (!req.user.lastLoginAt || now - req.user.lastLoginAt > 2 * 60 * 1000) {
+        User.findByIdAndUpdate(req.user._id, { lastLoginAt: now }).exec();
+      }
 
       next();
     } catch (error) {

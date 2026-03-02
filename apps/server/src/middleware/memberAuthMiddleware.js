@@ -24,6 +24,15 @@ const protectMember = async (req, res, next) => {
         return res.status(401).json({ message: 'Member not found' });
       }
 
+      // Activity Pulse: Update lastLoginAt if older than 2 minutes (Vercel Fix)
+      const now = new Date();
+      if (
+        !req.member.lastLoginAt ||
+        now - req.member.lastLoginAt > 2 * 60 * 1000
+      ) {
+        Member.findByIdAndUpdate(req.member._id, { lastLoginAt: now }).exec();
+      }
+
       next();
     } catch (error) {
       console.error(error);

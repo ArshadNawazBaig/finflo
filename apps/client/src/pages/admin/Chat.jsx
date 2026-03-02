@@ -544,6 +544,45 @@ const Chat = () => {
     }
   }, []);
 
+  // Periodic polling fallback for active conversation (Vercel Fix)
+  useEffect(() => {
+    if (!activeConv?._id) return;
+
+    const pollInterval = setInterval(async () => {
+      // Only poll if tab is focused to save resources
+      if (document.visibilityState !== 'visible') return;
+
+      try {
+        const res = await api.get(
+          `/chat/conversations/${activeConv._id}/messages?limit=1`,
+        );
+        const latestMsg = res.data.messages?.[0];
+
+        if (latestMsg) {
+          setMessages((prev) => {
+            const exists = prev.some(
+              (m) => String(m._id) === String(latestMsg._id),
+            );
+            if (!exists) {
+              // New message found! Re-fetch full context
+              api
+                .get(`/chat/conversations/${activeConv._id}/messages`)
+                .then((fullRes) => {
+                  setMessages(fullRes.data.messages);
+                  setTimeout(scrollToBottom, 100);
+                });
+            }
+            return prev;
+          });
+        }
+      } catch (err) {
+        // Silent fail for background poll
+      }
+    }, 15000);
+
+    return () => clearInterval(pollInterval);
+  }, [activeConv?._id]);
+
   // ── Start a new conversation with a contact ──────────────────────────────
   const startConversation = async (contact) => {
     try {

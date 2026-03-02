@@ -43,6 +43,7 @@ const ChatSync = ({ userType = 'user' }) => {
     if (!token) return;
 
     let socket;
+    let fallbackInterval;
     const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
         auth: { token },
@@ -55,6 +56,15 @@ const ChatSync = ({ userType = 'user' }) => {
         console.error('[SocketSync] Connection Error:', err.message);
       });
 
+      socket.on('disconnect', () => {
+        console.log(`[SocketSync] Disconnected`);
+      });
+
+      // Periodic Fallback: Refresh count every 30 seconds for robustness in Serverless/Vercel
+      fallbackInterval = setInterval(() => {
+        fetchInitialCount();
+      }, 30000);
+
       socket.on('message:new', () => {
         fetchInitialCount();
       });
@@ -66,6 +76,7 @@ const ChatSync = ({ userType = 'user' }) => {
 
     return () => {
       clearTimeout(timer);
+      if (fallbackInterval) clearInterval(fallbackInterval);
       if (socket) {
         socket.disconnect();
       }
