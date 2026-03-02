@@ -47,7 +47,7 @@ const Navigation = ({
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-primary transition-all relative group"
+                className="text-[12px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-primary transition-all relative group"
               >
                 {item}
                 <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
@@ -65,13 +65,13 @@ const Navigation = ({
             <div className="hidden sm:flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-[10px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
+                className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
+                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
               >
                 Join
                 <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />

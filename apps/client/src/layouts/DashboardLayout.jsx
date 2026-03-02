@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useAtom, useSetAtom } from 'jotai';
+import { isSidebarExpandedAtom, subscriptionAtom, userAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
@@ -7,12 +9,12 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
 import api from '@/lib/axios';
-import { useSetAtom } from 'jotai';
-import { subscriptionAtom, userAtom } from '@/atoms';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
 
 const DashboardLayout = () => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
+    isSidebarExpandedAtom,
+  );
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const setSubscription = useSetAtom(subscriptionAtom);

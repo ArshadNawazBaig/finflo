@@ -1,4 +1,7 @@
 import { atom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
+
+export const isSidebarExpandedAtom = atomWithStorage('isSidebarExpanded', true);
 
 export const userAtom = atom(JSON.parse(localStorage.getItem('user')) || null);
 export const tokenAtom = atom(localStorage.getItem('user') || null);

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useAtom } from 'jotai';
+import { isSidebarExpandedAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import MemberSidebar from '@/components/member/MemberSidebar';
 import MemberNavbar from '@/components/member/MemberNavbar';
@@ -7,7 +9,9 @@ import MemberBottomNav from '@/components/member/MemberBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
 const MemberLayout = () => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
+    isSidebarExpandedAtom,
+  );
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
 

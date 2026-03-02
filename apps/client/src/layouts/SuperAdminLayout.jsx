@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAtom } from 'jotai';
+import { isSidebarExpandedAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Navbar from '@/components/Navbar';
@@ -7,7 +9,9 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 
 const SuperAdminLayout = () => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
+    isSidebarExpandedAtom,
+  );
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
