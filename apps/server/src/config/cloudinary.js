@@ -50,4 +50,11 @@ module.exports = {
   generalStorage,
   userStorage,
   ticketStorage,
+  chatStorage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: 'loan-app/chat',
+      resource_type: 'auto', // handles images and audio
+    },
+  }),
 };

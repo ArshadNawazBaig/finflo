@@ -23,11 +23,15 @@ import {
   Percent,
   BookOpen,
   Shield,
+  MessageSquare,
 } from 'lucide-react';
+
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
+import { useAtomValue } from 'jotai';
+import { unreadChatCountAtom } from '@/atoms';
 
 import {
   Tooltip,
@@ -153,6 +157,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   // For mobile, we always want the "expanded" internal layout when visible
   // For desktop, it follows the actual isExpanded state
   const isLayoutExpanded = isMobile ? true : isExpanded;
+  const unreadChatCount = useAtomValue(unreadChatCountAtom);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -356,9 +361,19 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             </>
           )}
 
-          {user.plan && user.plan !== 'Free' && (
+          {(user.isManager ||
+            (user.plan && user.plan !== 'Free') ||
+            user.role === 'admin') && (
             <>
               <CategoryHeader label="Help" isExpanded={isLayoutExpanded} />
+              <NavItem
+                to="/chat"
+                icon={<MessageSquare size={18} />}
+                active={isActive('/chat')}
+                label="Chat"
+                isExpanded={isLayoutExpanded}
+                badge={unreadChatCount > 0 ? unreadChatCount : null}
+              />
               <NavItem
                 to="/support"
                 icon={<LifeBuoy size={18} />}
@@ -495,7 +510,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 };
 
-const NavItem = ({ to, icon, active, label, isExpanded }) => {
+const NavItem = ({ to, icon, active, label, isExpanded, badge }) => {
   const content = (
     <Link
       to={to}
@@ -532,6 +547,17 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => {
       >
         {label}
       </span>
+
+      {badge && (
+        <div
+          className={cn(
+            'absolute bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center min-w-[20px] h-5 px-1 shadow-lg border-2 border-card z-20 transition-all duration-300',
+            isExpanded ? 'right-4 top-1/2 -translate-y-1/2' : 'right-0 -top-1',
+          )}
+        >
+          {badge > 99 ? '99+' : badge}
+        </div>
+      )}
     </Link>
   );
 

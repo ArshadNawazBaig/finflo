@@ -10,8 +10,11 @@ import {
   BarChart3,
   TrendingUp,
   History,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAtomValue } from 'jotai';
+import { unreadChatCountAtom } from '@/atoms';
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -24,6 +27,8 @@ const MobileBottomNav = () => {
   useEffect(() => {
     setActiveTab(location.pathname);
   }, [location.pathname]);
+
+  const unreadChatCount = useAtomValue(unreadChatCountAtom);
 
   useEffect(() => {
     const handleUserUpdate = () => {
@@ -79,7 +84,7 @@ const MobileBottomNav = () => {
           label: 'Payouts',
           path: '/distributions',
         },
-        { icon: <Bell size={20} />, label: 'Alerts', path: '/notifications' },
+        { icon: <MessageSquare size={20} />, label: 'Chat', path: '/chat' },
         { icon: <Settings2 size={20} />, label: 'More', path: '/settings' },
       ];
 
@@ -108,12 +113,18 @@ const MobileBottomNav = () => {
                 layout
                 className="relative z-20 flex items-center gap-2"
               >
-                <div className="shrink-0">
+                <div className="shrink-0 relative">
                   {item.icon &&
                     cloneElement(item.icon, {
                       size: 20,
                       strokeWidth: isActive ? 2.5 : 2,
                     })}
+
+                  {item.label === 'Chat' && unreadChatCount > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] font-black rounded-full min-w-[14px] h-[14px] flex items-center justify-center border-2 border-background shadow-sm">
+                      {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                    </div>
+                  )}
                 </div>
                 <AnimatePresence mode="popLayout">
                   {isActive && (

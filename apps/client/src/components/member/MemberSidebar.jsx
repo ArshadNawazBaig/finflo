@@ -11,10 +11,14 @@ import {
   TrendingUp,
   Building2,
   ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
+
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import { Bell } from 'lucide-react';
+import { useAtomValue } from 'jotai';
+import { unreadChatCountAtom } from '@/atoms';
 import Logo from '@/components/Logo';
 
 const CategoryHeader = ({ label, isExpanded }) => {
@@ -93,6 +97,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   // For mobile, we always want the "expanded" internal layout when visible
   // For desktop, it follows the actual isExpanded state
   const isLayoutExpanded = isMobile ? true : isExpanded;
+  const unreadChatCount = useAtomValue(unreadChatCountAtom);
 
   return (
     <div className={sidebarClasses}>
@@ -174,12 +179,21 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <CategoryHeader label="System" isExpanded={isLayoutExpanded} />
         <NavItem
+          to="/member/chat"
+          icon={<MessageSquare size={18} />}
+          active={isActive('/member/chat')}
+          label="Chat"
+          isExpanded={isLayoutExpanded}
+          badge={unreadChatCount > 0 ? unreadChatCount : null}
+        />
+        <NavItem
           to="/member/notifications"
           icon={<Bell size={18} />}
           active={isActive('/member/notifications')}
           label="Notifications"
           isExpanded={isLayoutExpanded}
         />
+
         <NavItem
           to="/member/settings"
           icon={<Settings size={18} />}
@@ -271,7 +285,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 };
 
-const NavItem = ({ to, icon, active, label, isExpanded }) => (
+const NavItem = ({ to, icon, active, label, isExpanded, badge }) => (
   <Link
     to={to}
     className={cn(
@@ -307,6 +321,17 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => (
     >
       {label}
     </span>
+
+    {badge && (
+      <div
+        className={cn(
+          'absolute bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center min-w-[20px] h-5 px-1 shadow-lg border-2 border-card z-20 transition-all duration-300',
+          isExpanded ? 'right-4 top-1/2 -translate-y-1/2' : 'right-0 -top-1',
+        )}
+      >
+        {badge > 99 ? '99+' : badge}
+      </div>
+    )}
 
     {/* Custom Tooltip - only show when collapsed */}
     {!isExpanded && (

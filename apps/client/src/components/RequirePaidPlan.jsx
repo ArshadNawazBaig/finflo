@@ -7,8 +7,9 @@ import { Navigate, Outlet } from 'react-router-dom';
 const RequirePaidPlan = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const plan = user.plan || 'Free';
+  const isStaffOrManager = user.role === 'staff' || user.isManager;
 
-  if (plan === 'Free') {
+  if (plan === 'Free' && !isStaffOrManager) {
     if (user.role === 'admin') {
       return (
         <Navigate

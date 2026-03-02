@@ -165,6 +165,12 @@ const loginUser = async (req, res) => {
         const managedBranch = await Branch.findOne({ manager: user._id });
         isManager = !!managedBranch;
         if (managedBranch) branchId = managedBranch._id;
+
+        // Inherit plan from owner for staff
+        if (user.ownerId) {
+          const owner = await User.findById(user.ownerId);
+          if (owner) user.plan = owner.plan;
+        }
       }
 
       // Log activity
@@ -228,6 +234,12 @@ const getMe = async (req, res) => {
         const managedBranch = await Branch.findOne({ manager: user._id });
         isManager = !!managedBranch;
         if (managedBranch) branchId = managedBranch._id;
+
+        // Inherit plan from owner for staff
+        if (user.ownerId) {
+          const owner = await User.findById(user.ownerId);
+          if (owner) user.plan = owner.plan;
+        }
       }
 
       res.json({

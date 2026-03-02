@@ -7,6 +7,7 @@ import MemberSidebar from '@/components/member/MemberSidebar';
 import MemberNavbar from '@/components/member/MemberNavbar';
 import MemberBottomNav from '@/components/member/MemberBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
+import ChatSync from '@/components/ChatSync';
 
 const MemberLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -40,6 +41,7 @@ const MemberLayout = () => {
 
   return (
     <div className="member-portal flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden text-sm">
+      <ChatSync userType="member" />
       <MemberSidebar
         isExpanded={isSidebarExpanded}
         isMobile={isMobile}

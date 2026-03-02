@@ -10,12 +10,17 @@ import {
   Bell,
   WalletMinimal,
   Settings2,
+  MessageSquare,
 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
+import { useAtomValue } from 'jotai';
+import { unreadChatCountAtom } from '@/atoms';
 
 const MemberBottomNav = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.pathname);
+  const unreadChatCount = useAtomValue(unreadChatCountAtom);
 
   useEffect(() => {
     setActiveTab(location.pathname);
@@ -43,9 +48,9 @@ const MemberBottomNav = () => {
       path: '/member/transfer',
     },
     {
-      icon: <Bell size={20} />,
-      label: 'Alerts',
-      path: '/member/notifications',
+      icon: <MessageSquare size={20} />,
+      label: 'Chat',
+      path: '/member/chat',
     },
     { icon: <FileText size={20} />, label: 'Loans', path: '/member/loans' },
     {
@@ -79,12 +84,18 @@ const MemberBottomNav = () => {
                 layout
                 className="relative z-20 flex items-center gap-2"
               >
-                <div className="shrink-0">
+                <div className="shrink-0 relative">
                   {item.icon &&
                     cloneElement(item.icon, {
                       size: 20,
                       strokeWidth: isActive ? 2.5 : 2,
                     })}
+
+                  {item.label === 'Chat' && unreadChatCount > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] font-black rounded-full min-w-[14px] h-[14px] flex items-center justify-center border-2 border-background shadow-sm">
+                      {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                    </div>
+                  )}
                 </div>
                 <AnimatePresence mode="popLayout">
                   {isActive && (

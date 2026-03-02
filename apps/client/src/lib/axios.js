@@ -2,17 +2,10 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 // Determine the API base URL based on the environment
-const isCapacitor =
-  !!window.Capacitor ||
-  (window.webkit &&
-    window.webkit.messageHandlers &&
-    window.webkit.messageHandlers.bridge);
-
-// Production URL where the server is hosted (Update if necessary)
-const PROD_API_URL = 'https://loan-master-client.vercel.app/api';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 const api = axios.create({
-  baseURL: isCapacitor ? PROD_API_URL : '/api',
+  baseURL: BACKEND_URL ? `${BACKEND_URL}/api` : '/api',
   withCredentials: true,
 });
 
