@@ -304,32 +304,34 @@ const Transactions = () => {
               placeholder="Search transactions..."
               className="w-full sm:w-auto sm:min-w-[300px]"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <DateRangePicker
                 date={dateRange}
                 setDate={setDateRange}
                 className="w-full sm:w-auto"
               />
-              <Button
-                variant="outline"
-                size="icon"
-                className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
-                onClick={handleDownload}
-                isLoading={loading}
-                title="Download Statement (PDF)"
-              >
-                <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
-                onClick={handleExportExcel}
-                isLoading={isExportingExcel}
-                title="Export to Excel"
-              >
-                <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
-              </Button>
+              <div className="flex gap-2 w-full">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                  onClick={handleDownload}
+                  isLoading={loading}
+                  title="Download Statement (PDF)"
+                >
+                  <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                  onClick={handleExportExcel}
+                  isLoading={isExportingExcel}
+                  title="Export to Excel"
+                >
+                  <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
