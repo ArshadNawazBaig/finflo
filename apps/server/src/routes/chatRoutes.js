@@ -10,6 +10,8 @@ const {
   editMessage,
   deleteMessage,
   markAsRead,
+  deleteConversation,
+  deleteAllConversations,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -83,6 +85,8 @@ router.post(
 );
 router.put('/messages/:id', protectAny, editMessage);
 router.delete('/messages/:id', protectAny, deleteMessage);
+router.delete('/conversations/all', protectAny, deleteAllConversations);
+router.delete('/conversations/:id', protectAny, deleteConversation);
 router.post('/conversations/:id/read', protectAny, markAsRead);
 
 module.exports = router;

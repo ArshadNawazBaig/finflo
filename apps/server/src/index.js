@@ -233,153 +233,151 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
-  const http = require('http');
-  const { Server } = require('socket.io');
-  const jwt = require('jsonwebtoken');
-  const Member = require('./models/Member');
-  const User = require('./models/User');
+const http = require('http');
+const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const Member = require('./models/Member');
+const User = require('./models/User');
 
-  const httpServer = http.createServer(app);
-  const io = new Server(httpServer, {
-    cors: {
-      origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'http://localhost:3000',
-        'capacitor://localhost',
-        process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
-      ],
-      credentials: true,
-    },
-    allowEIO3: true, // Support for older clients if needed
-  });
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://localhost:3000',
+      'capacitor://localhost',
+      process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
+    ],
+    credentials: true,
+  },
+  allowEIO3: true, // Support for older clients if needed
+});
 
-  ioInstance = io;
+ioInstance = io;
 
-  // Socket.io auth middleware
-  io.use(async (socket, next) => {
-    try {
-      // Check auth object, then Authorization header, then cookies
-      let token =
-        socket.handshake.auth?.token ||
-        socket.handshake.headers?.authorization?.split(' ')[1];
+// Socket.io auth middleware
+io.use(async (socket, next) => {
+  try {
+    // Check auth object, then Authorization header, then cookies
+    let token =
+      socket.handshake.auth?.token ||
+      socket.handshake.headers?.authorization?.split(' ')[1];
 
-      if (!token && socket.handshake.headers?.cookie) {
-        const cookieToken = socket.handshake.headers.cookie
-          .split('; ')
-          .find((c) => c.startsWith('token='))
-          ?.split('=')[1];
-        if (cookieToken) token = cookieToken;
-      }
-
-      if (!token) {
-        console.log(
-          '[Socket] Auth Failed: No token provided in auth, headers, or cookies',
-        );
-        return next(new Error('No token'));
-      }
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const member = await Member.findById(decoded.id).select('_id name');
-      if (member) {
-        socket.userId = member._id.toString();
-        socket.userModel = 'Member';
-      } else {
-        const user = await User.findById(decoded.id).select('_id name');
-        if (!user) return next(new Error('User not found'));
-        socket.userId = user._id.toString();
-        socket.userModel = 'User';
-      }
-      next();
-    } catch (error) {
-      console.log('[Socket] Auth Failed:', error.message);
-      next(new Error('Invalid token'));
+    if (!token && socket.handshake.headers?.cookie) {
+      const cookieToken = socket.handshake.headers.cookie
+        .split('; ')
+        .find((c) => c.startsWith('token='))
+        ?.split('=')[1];
+      if (cookieToken) token = cookieToken;
     }
-  });
 
-  // Track online users: Map<userId, { userModel, socketCount }>
-  const onlineUsers = new Map();
-
-  io.on('connection', (socket) => {
-    // Join personal room for targeted events
-    socket.join(`user_${socket.userId}`);
-    console.log(`[Socket] ${socket.userModel} ${socket.userId} connected`);
-
-    // Add to online set
-    if (!onlineUsers.has(socket.userId)) {
-      onlineUsers.set(socket.userId, { userModel: socket.userModel, count: 1 });
-      // Broadcast to all other sockets that this user came online
-      socket.broadcast.emit('user:online', {
-        userId: socket.userId,
-        userModel: socket.userModel,
-      });
+    if (!token) {
+      console.log(
+        '[Socket] Auth Failed: No token provided in auth, headers, or cookies',
+      );
+      return next(new Error('No token'));
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const member = await Member.findById(decoded.id).select('_id name');
+    if (member) {
+      socket.userId = member._id.toString();
+      socket.userModel = 'Member';
     } else {
-      // Multiple tabs – just increment count
-      onlineUsers.get(socket.userId).count++;
+      const user = await User.findById(decoded.id).select('_id name');
+      if (!user) return next(new Error('User not found'));
+      socket.userId = user._id.toString();
+      socket.userModel = 'User';
     }
+    next();
+  } catch (error) {
+    console.log('[Socket] Auth Failed:', error.message);
+    next(new Error('Invalid token'));
+  }
+});
 
-    // Send the full online presence snapshot to the newly connected socket
-    socket.emit(
-      'user:presence_list',
-      Array.from(onlineUsers.entries()).map(([id, data]) => ({
-        userId: id,
-        userModel: data.userModel,
-      })),
-    );
+// Track online users: Map<userId, { userModel, socketCount }>
+const onlineUsers = new Map();
 
-    socket.on('typing', ({ conversationId, receiverId }) => {
-      socket.to(`user_${receiverId}`).emit('user:typing', {
-        conversationId,
-        userId: socket.userId,
-      });
+io.on('connection', (socket) => {
+  // Join personal room for targeted events
+  socket.join(`user_${socket.userId}`);
+  console.log(`[Socket] ${socket.userModel} ${socket.userId} connected`);
+
+  // Add to online set
+  if (!onlineUsers.has(socket.userId)) {
+    onlineUsers.set(socket.userId, { userModel: socket.userModel, count: 1 });
+    // Broadcast to all other sockets that this user came online
+    socket.broadcast.emit('user:online', {
+      userId: socket.userId,
+      userModel: socket.userModel,
     });
+  } else {
+    // Multiple tabs – just increment count
+    onlineUsers.get(socket.userId).count++;
+  }
 
-    socket.on('stop-typing', ({ conversationId, receiverId }) => {
-      socket.to(`user_${receiverId}`).emit('user:stop-typing', {
-        conversationId,
-        userId: socket.userId,
-      });
+  // Send the full online presence snapshot to the newly connected socket
+  socket.emit(
+    'user:presence_list',
+    Array.from(onlineUsers.entries()).map(([id, data]) => ({
+      userId: id,
+      userModel: data.userModel,
+    })),
+  );
+
+  socket.on('typing', ({ conversationId, receiverId }) => {
+    socket.to(`user_${receiverId}`).emit('user:typing', {
+      conversationId,
+      userId: socket.userId,
     });
+  });
 
-    socket.on('recording', ({ conversationId, receiverId }) => {
-      socket.to(`user_${receiverId}`).emit('user:recording', {
-        conversationId,
-        userId: socket.userId,
-      });
+  socket.on('stop-typing', ({ conversationId, receiverId }) => {
+    socket.to(`user_${receiverId}`).emit('user:stop-typing', {
+      conversationId,
+      userId: socket.userId,
     });
+  });
 
-    socket.on('stop-recording', ({ conversationId, receiverId }) => {
-      socket.to(`user_${receiverId}`).emit('user:stop-recording', {
-        conversationId,
-        userId: socket.userId,
-      });
+  socket.on('recording', ({ conversationId, receiverId }) => {
+    socket.to(`user_${receiverId}`).emit('user:recording', {
+      conversationId,
+      userId: socket.userId,
     });
+  });
 
-    socket.on('disconnect', () => {
-      console.log(`[Socket] ${socket.userModel} ${socket.userId} disconnected`);
-      const entry = onlineUsers.get(socket.userId);
-      if (entry) {
-        entry.count--;
-        if (entry.count <= 0) {
-          onlineUsers.delete(socket.userId);
-          // Broadcast offline to everyone
-          io.emit('user:offline', {
-            userId: socket.userId,
-            userModel: socket.userModel,
-          });
-        }
+  socket.on('stop-recording', ({ conversationId, receiverId }) => {
+    socket.to(`user_${receiverId}`).emit('user:stop-recording', {
+      conversationId,
+      userId: socket.userId,
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`[Socket] ${socket.userModel} ${socket.userId} disconnected`);
+    const entry = onlineUsers.get(socket.userId);
+    if (entry) {
+      entry.count--;
+      if (entry.count <= 0) {
+        onlineUsers.delete(socket.userId);
+        // Broadcast offline to everyone
+        io.emit('user:offline', {
+          userId: socket.userId,
+          userModel: socket.userModel,
+        });
       }
-    });
+    }
   });
+});
 
-  httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT} (on all interfaces)`);
-    initFinanceFlow();
-    initScheduledTasks();
-  });
-}
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT} (on all interfaces)`);
+  initFinanceFlow();
+  initScheduledTasks();
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -25,6 +25,16 @@ import { unreadChatCountAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Connect to the backend – prefer VITE_BACKEND_URL if set
 const SOCKET_URL =
@@ -254,6 +264,8 @@ const Chat = () => {
   const [showContacts, setShowContacts] = useState(false);
   const [showThread, setShowThread] = useState(false); // mobile only
   const [isRecording, setIsRecording] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null); // 'all' or conversationId
+  const [isDeleting, setIsDeleting] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
@@ -429,6 +441,17 @@ const Chat = () => {
           );
         }
       });
+      socket.on('conversation:deleted', ({ conversationId }) => {
+        setConversations((prev) =>
+          prev.filter((c) => c._id !== conversationId),
+        );
+        if (activeConvRef.current?._id === conversationId) {
+          setActiveConv(null);
+          setMessages([]);
+          setShowThread(false);
+          toast.info('Conversation was deleted');
+        }
+      });
     }, 100);
 
     return () => {
@@ -548,6 +571,48 @@ const Chat = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const deleteConversation = (convId) => {
+    setDeleteConfirmation(convId);
+  };
+
+  const deleteAllChats = () => {
+    setDeleteConfirmation('all');
+  };
+
+  const confirmDeletion = async () => {
+    if (!deleteConfirmation) return;
+    const isBulk = deleteConfirmation === 'all';
+    setIsDeleting(true);
+    try {
+      if (isBulk) {
+        await api.delete('/chat/conversations/all');
+        toast.success('All chats deleted');
+        setConversations([]);
+        setActiveConv(null);
+        setMessages([]);
+        setShowThread(false);
+      } else {
+        await api.delete(`/chat/conversations/${deleteConfirmation}`);
+        toast.success('Conversation deleted');
+        setConversations((prev) =>
+          prev.filter((c) => c._id !== deleteConfirmation),
+        );
+        if (activeConv?._id === deleteConfirmation) {
+          setActiveConv(null);
+          setMessages([]);
+          setShowThread(false);
+        }
+      }
+      setDeleteConfirmation(null);
+    } catch (error) {
+      toast.error(
+        isBulk ? 'Failed to delete all chats' : 'Failed to delete conversation',
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // ── Send a message ───────────────────────────────────────────────────────
@@ -805,13 +870,22 @@ const Chat = () => {
                     <h2 className="text-lg font-black tracking-tight">
                       Messages
                     </h2>
-                    <button
-                      onClick={() => setShowContacts((v) => !v)}
-                      className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                      title="Start new conversation"
-                    >
-                      <Edit3 size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={deleteAllChats}
+                        className="p-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors"
+                        title="Delete all chats"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setShowContacts((v) => !v)}
+                        className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                        title="Start new conversation"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                    </div>
                   </div>
                   <div className="relative">
                     <Search
@@ -975,6 +1049,15 @@ const Chat = () => {
                       </span>
                     )}
                   </p>
+                </div>
+                <div className="ml-auto">
+                  <button
+                    onClick={() => deleteConversation(activeConv._id)}
+                    className="p-2.5 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all"
+                    title="Delete conversation"
+                  >
+                    <Trash2 size={20} />
+                  </button>
                 </div>
               </div>
             ) : (
@@ -1171,6 +1254,41 @@ const Chat = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog
+        open={!!deleteConfirmation}
+        onOpenChange={(open) => !open && setDeleteConfirmation(null)}
+      >
+        <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
+              {deleteConfirmation === 'all'
+                ? 'Clear All Chats?'
+                : 'Delete Conversation?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
+              {deleteConfirmation === 'all'
+                ? 'Are you sure you want to delete ALL chats? This will permanently remove all message history for all your conversations.'
+                : 'Are you sure you want to delete this conversation? This will permanently remove all message history for both participants.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">
+            <AlertDialogCancel className="w-full rounded-2xl border-none bg-muted h-12 font-black uppercase tracking-widest text-[10px] hover:bg-muted/80">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDeletion();
+              }}
+              disabled={isDeleting}
+              className="w-full bg-rose-500 hover:bg-rose-600 rounded-2xl h-12 font-black uppercase tracking-widest text-[10px] text-white shadow-xl shadow-rose-500/20"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

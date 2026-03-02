@@ -529,6 +529,89 @@ const markAsRead = async (req, res) => {
   }
 };
 
+// ─── DELETE /api/chat/conversations/:id ───────────────────────────────────────
+const deleteConversation = async (req, res) => {
+  try {
+    const { id: requesterId, model: requesterModel } = getRequester(req);
+    const { id: convId } = req.params;
+
+    // Soft delete check: find if requester is a participant
+    const conv = await Conversation.findOne({
+      _id: convId,
+      participants: {
+        $elemMatch: {
+          participantId: requesterId,
+          participantModel: requesterModel,
+        },
+      },
+    });
+
+    if (!conv) {
+      return res.status(403).json({ message: 'Not a participant' });
+    }
+
+    // For better UX, we'll actually delete the messages and the conversation
+    // In a more robust system, we might just "hide" it for the requester
+    await ChatMessage.deleteMany({ conversation: convId });
+    await Conversation.findByIdAndDelete(convId);
+
+    // Emit socket event so the other person's UI updates if needed
+    if (req.io) {
+      conv.participants.forEach((p) => {
+        req.io.to(`user_${p.participantId}`).emit('conversation:deleted', {
+          conversationId: convId,
+        });
+      });
+    }
+
+    res.json({ success: true, message: 'Conversation deleted' });
+  } catch (error) {
+    console.error('deleteConversation error:', error);
+    res.status(500).json({ message: 'Failed to delete conversation' });
+  }
+};
+
+// ─── DELETE /api/chat/conversations/all ───────────────────────────────────────
+const deleteAllConversations = async (req, res) => {
+  try {
+    const { id: requesterId, model: requesterModel } = getRequester(req);
+
+    // Find all conversations where user is a participant
+    const conversations = await Conversation.find({
+      participants: {
+        $elemMatch: {
+          participantId: requesterId,
+          participantModel: requesterModel,
+        },
+      },
+    });
+
+    const convIds = conversations.map((c) => c._id);
+
+    // Delete all messages in those conversations
+    await ChatMessage.deleteMany({ conversation: { $in: convIds } });
+
+    // Delete the conversations
+    await Conversation.deleteMany({ _id: { $in: convIds } });
+
+    // Emit socket events
+    if (req.io) {
+      conversations.forEach((conv) => {
+        conv.participants.forEach((p) => {
+          req.io.to(`user_${p.participantId}`).emit('conversation:deleted', {
+            conversationId: conv._id.toString(),
+          });
+        });
+      });
+    }
+
+    res.json({ success: true, message: 'All chats deleted' });
+  } catch (error) {
+    console.error('deleteAllConversations error:', error);
+    res.status(500).json({ message: 'Failed to delete all chats' });
+  }
+};
+
 module.exports = {
   chatUpload,
   getAvailableContacts,
@@ -539,4 +622,6 @@ module.exports = {
   editMessage,
   deleteMessage,
   markAsRead,
+  deleteConversation,
+  deleteAllConversations,
 };

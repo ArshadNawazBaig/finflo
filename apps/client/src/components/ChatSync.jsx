@@ -15,6 +15,10 @@ const ChatSync = ({ userType = 'user' }) => {
   const setUnreadCount = useSetAtom(unreadChatCountAtom);
 
   useEffect(() => {
+    // Diagnostic log for production troubleshooting
+    console.log(
+      `[SocketSync] Connecting to: ${SOCKET_URL} (Mode: ${import.meta.env.MODE})`,
+    );
     // Only fetch if authenticated
     const fetchInitialCount = async () => {
       try {
