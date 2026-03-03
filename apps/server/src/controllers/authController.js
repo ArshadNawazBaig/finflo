@@ -258,6 +258,13 @@ const getMe = async (req, res) => {
         profilePicture: user.profilePicture,
         currency: user.currency,
         permissions: user.getPermissions(),
+        pendingMembersCount:
+          user.role === 'admin' || user.role === 'staff'
+            ? await Member.countDocuments({
+                user: user.role === 'staff' ? user.ownerId : user._id,
+                approvalStatus: 'pending',
+              })
+            : 0,
       });
     } else {
       res.status(404);

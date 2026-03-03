@@ -169,6 +169,18 @@ const ManageNotifications = () => {
     }
   };
 
+  const handleMarkAsRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
+      );
+      toast.success('Notification marked as read');
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
   const getTypeIcon = (type) => {
     switch (type) {
       case 'success':
@@ -281,6 +293,7 @@ const ManageNotifications = () => {
                   key={notification._id}
                   notification={notification}
                   onDelete={handleDelete}
+                  onMarkAsRead={handleMarkAsRead}
                 />
               ))}
             </div>
@@ -323,6 +336,9 @@ const ManageNotifications = () => {
                     <tr
                       key={notification._id}
                       onClick={() => {
+                        if (!notification.read) {
+                          handleMarkAsRead(notification._id);
+                        }
                         if (notification.link) {
                           const user = JSON.parse(
                             localStorage.getItem('user') || '{}',

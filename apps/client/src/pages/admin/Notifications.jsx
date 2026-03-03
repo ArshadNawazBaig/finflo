@@ -338,6 +338,9 @@ const Notifications = () => {
                 <div
                   key={notification._id}
                   onClick={() => {
+                    if (!notification.read) {
+                      handleMarkAsRead(notification._id);
+                    }
                     if (notification.link) {
                       const user = JSON.parse(
                         localStorage.getItem('user') || '{}',
@@ -465,6 +468,9 @@ const Notifications = () => {
                     <TableRow
                       key={notification._id}
                       onClick={() => {
+                        if (!notification.read) {
+                          handleMarkAsRead(notification._id);
+                        }
                         if (notification.link) {
                           const user = JSON.parse(
                             localStorage.getItem('user') || '{}',

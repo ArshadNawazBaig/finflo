@@ -114,6 +114,7 @@ const MemberProfile = () => {
     cnic: '',
     address: '',
     status: '',
+    branchId: '',
     shareProfitRate: '',
     jobDetail: '',
     signature: '',
@@ -124,6 +125,8 @@ const MemberProfile = () => {
       cnicImage: '',
     },
   });
+  const [branches, setBranches] = useState([]);
+  const [isBranchesLoading, setIsBranchesLoading] = useState(false);
   const [useShareCustomRates, setUseShareCustomRates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -158,6 +161,7 @@ const MemberProfile = () => {
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
   const [applyDeduction, setApplyDeduction] = useState(true);
+  const [deductFromBalance, setDeductFromBalance] = useState(false);
   const [repaymentType, setRepaymentType] = useState('installment');
 
   const getSettlementDetails = (loan) => {
@@ -259,6 +263,7 @@ const MemberProfile = () => {
         cnic: memberRes.data.cnic || '',
         address: memberRes.data.address || '',
         status: memberRes.data.status || '',
+        branchId: memberRes.data.branchId?._id || memberRes.data.branchId || '',
         shareProfitRate: memberRes.data.shareProfitRate || 0,
         jobDetail: memberRes.data.jobDetail || '',
         signature: memberRes.data.signature || '',
@@ -488,9 +493,22 @@ const MemberProfile = () => {
     fetchMemberShares,
   ]);
 
+  const fetchBranches = useCallback(async () => {
+    try {
+      setIsBranchesLoading(true);
+      const { data } = await api.get('/branches');
+      setBranches(data || []);
+    } catch (error) {
+      console.error('Failed to fetch branches', error);
+    } finally {
+      setIsBranchesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchMemberData();
-  }, [fetchMemberData]);
+    fetchBranches();
+  }, [fetchMemberData, fetchBranches]);
 
   // Auto-lookup recipient for transfer
   useEffect(() => {
@@ -637,6 +655,8 @@ const MemberProfile = () => {
         await api.post(`/members/${id}/${endpoint}`, {
           amount: parseFloat(shareAmount),
           description: shareDescription,
+          deductFromBalance:
+            shareFormType === 'deposit' ? deductFromBalance : false,
         });
         toast.success(
           shareFormType === 'deposit'
@@ -1002,6 +1022,28 @@ const MemberProfile = () => {
                         className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                         placeholder="0.00"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                        Assigned Branch
+                        {isBranchesLoading && (
+                          <Loader2 size={10} className="animate-spin" />
+                        )}
+                      </label>
+                      <select
+                        value={editForm.branchId}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, branchId: e.target.value })
+                        }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="">Unassigned</option>
+                        {branches.map((branch) => (
+                          <option key={branch._id} value={branch._id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
@@ -2040,6 +2082,45 @@ const MemberProfile = () => {
                         />
                       </div>
                     )}
+
+                    {shareFormType === 'deposit' && (
+                      <div className="md:col-span-2 p-4 rounded-xl bg-violet-500/5 border border-violet-500/10 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-violet-600">
+                              Funding Source
+                            </label>
+                            <p className="text-[10px] font-medium text-muted-foreground">
+                              Deduct from current main balance?
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDeductFromBalance(!deductFromBalance)
+                            }
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${deductFromBalance ? 'bg-violet-600' : 'bg-muted'}`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${deductFromBalance ? 'translate-x-6' : 'translate-x-1'}`}
+                            />
+                          </button>
+                        </div>
+                        {deductFromBalance && (
+                          <div className="pt-2 border-t border-violet-500/10 flex justify-between items-center text-[10px]">
+                            <span className="font-bold text-muted-foreground uppercase">
+                              Available Balance:
+                            </span>
+                            <span
+                              className={`font-black tracking-widest ${member.currentBalance < (parseFloat(shareAmount) || 0) ? 'text-rose-500' : 'text-violet-600'}`}
+                            >
+                              {formatCurrency(member.currentBalance)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         Note / Description
@@ -2289,6 +2370,21 @@ const MemberProfile = () => {
                   {member.cnic || 'Not Provided'}
                 </span>
               </div>
+
+              {member.branchId && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Building2 size={10} className="text-primary" />
+                    Assigned Branch
+                  </span>
+                  <span className="text-sm font-black capitalize">
+                    {member.branchId?.name ||
+                      (typeof member.branchId === 'string'
+                        ? 'Loading...'
+                        : 'N/A')}
+                  </span>
+                </div>
+              )}
 
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1">

@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
-import { isSidebarExpandedAtom, subscriptionAtom, userAtom } from '@/atoms';
+import {
+  isSidebarExpandedAtom,
+  subscriptionAtom,
+  userAtom,
+  pendingMembersCountAtom,
+} from '@/atoms';
 import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
@@ -20,6 +25,7 @@ const DashboardLayout = () => {
   const location = useLocation();
   const setSubscription = useSetAtom(subscriptionAtom);
   const setUser = useSetAtom(userAtom);
+  const setPendingCount = useSetAtom(pendingMembersCountAtom);
 
   // Fetch latest user data and subscription
   const fetchData = async () => {
@@ -37,6 +43,7 @@ const DashboardLayout = () => {
         JSON.stringify({ ...existing, ...userData }),
       );
       setUser(userData);
+      setPendingCount(userData.pendingMembersCount || 0);
 
       setSubscription({
         plan: subData.plan || 'Free',

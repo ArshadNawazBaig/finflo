@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import KycOcrScanner from './kyc/KycOcrScanner';
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -31,6 +32,16 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleOcrData = (data) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: data.name || prev.name,
+      cnic: data.cnic || prev.cnic,
+      email: data.email || prev.email,
+      phone: data.phone || prev.phone,
+    }));
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -104,6 +115,10 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
               {error}
             </div>
           )}
+
+          <div className="mb-8">
+            <KycOcrScanner onDataExtracted={handleOcrData} />
+          </div>
 
           <form
             id="add-member-form"

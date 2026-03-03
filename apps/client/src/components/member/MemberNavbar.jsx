@@ -239,6 +239,9 @@ const MemberNavbar = ({ onMenuClick }) => {
                           <div
                             key={notification._id}
                             onClick={() => {
+                              if (!notification.read) {
+                                markAsRead(notification._id);
+                              }
                               if (notification.link) {
                                 const safeLink = getSafeNotificationLink(
                                   notification.link,

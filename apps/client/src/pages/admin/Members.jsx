@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAtomValue } from 'jotai';
+import { pendingMembersCountAtom } from '@/atoms';
+import { useSearchParams } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -54,7 +57,11 @@ const Members = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [activeTab, setActiveTab] = useState('approved'); // 'approved' or 'pending'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab =
+    searchParams.get('type') === 'pending' ? 'pending' : 'approved';
+  const [activeTab, setActiveTab] = useState(initialTab); // 'approved' or 'pending'
+  const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
   const [summary, setSummary] = useState({
     totalInvested: 0,
     activeMembers: 0,
@@ -63,6 +70,7 @@ const Members = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
+  const [rejectMemberId, setRejectMemberId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
@@ -216,6 +224,18 @@ const Members = () => {
     selectedBranch,
   ]);
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchParams((prev) => {
+      if (tab === 'pending') {
+        prev.set('type', 'pending');
+      } else {
+        prev.delete('type');
+      }
+      return prev;
+    });
+  };
+
   const handleAddMember = () => {
     setIsAddModalOpen(true);
   };
@@ -249,6 +269,7 @@ const Members = () => {
       toast.success('Member approved successfully');
       fetchMembers(false);
       fetchSummary();
+      window.dispatchEvent(new CustomEvent('userUpdated'));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to approve member');
     } finally {
@@ -256,18 +277,21 @@ const Members = () => {
     }
   };
 
-  const handleRejectMember = async (id) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to reject this member's application?",
-      )
-    )
-      return;
+  const handleRejectMember = (id) => {
+    setRejectMemberId(id);
+  };
+
+  const confirmRejectMember = async () => {
+    if (!rejectMemberId) return;
     try {
-      setRejectingId(id);
-      await api.put(`/members/${id}/approval`, { status: 'rejected' });
-      toast.success('Member rejected');
+      setRejectingId(rejectMemberId);
+      await api.put(`/members/${rejectMemberId}/approval`, {
+        status: 'rejected',
+      });
+      toast.success('Member application rejected');
+      setRejectMemberId(null);
       fetchMembers(false);
+      window.dispatchEvent(new CustomEvent('userUpdated'));
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject member');
     } finally {
@@ -338,7 +362,7 @@ const Members = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-1 bg-muted/50 p-1.5 rounded-2xl w-full sm:w-auto">
             <button
-              onClick={() => setActiveTab('approved')}
+              onClick={() => handleTabChange('approved')}
               className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeTab === 'approved'
                   ? 'bg-white shadow-sm text-primary'
@@ -348,14 +372,19 @@ const Members = () => {
               Active Members
             </button>
             <button
-              onClick={() => setActiveTab('pending')}
-              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+              onClick={() => handleTabChange('pending')}
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 activeTab === 'pending'
                   ? 'bg-white shadow-sm text-amber-600'
                   : 'text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10'
               }`}
             >
               Pending Approvals
+              {pendingMembersCount > 0 && (
+                <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
+                  {pendingMembersCount}
+                </span>
+              )}
             </button>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
@@ -479,6 +508,31 @@ const Members = () => {
               className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
             >
               {isDeleting ? 'Deleting...' : 'Delete Member'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!rejectMemberId}
+        onOpenChange={() => setRejectMemberId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject Application</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reject this member's application? They
+              will be notified and will not be able to access the member portal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRejectMember}
+              disabled={!!rejectingId}
+              className="bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 hover:brightness-110"
+            >
+              {rejectingId ? 'Rejecting...' : 'Reject Application'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

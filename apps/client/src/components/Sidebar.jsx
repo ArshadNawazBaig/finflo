@@ -31,7 +31,7 @@ import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
 import { useAtomValue } from 'jotai';
-import { unreadChatCountAtom } from '@/atoms';
+import { unreadChatCountAtom, pendingMembersCountAtom } from '@/atoms';
 
 import {
   Tooltip,
@@ -131,6 +131,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const { hasPermission, hasAnyPermission } = usePermissions();
+  const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
 
   const userInitials = user.name
     ? user.name
@@ -221,6 +222,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               active={isActive('/members')}
               label="Members"
               isExpanded={isLayoutExpanded}
+              badge={pendingMembersCount > 0 ? pendingMembersCount : null}
             />
           )}
           {hasPermission('approve_members') && (

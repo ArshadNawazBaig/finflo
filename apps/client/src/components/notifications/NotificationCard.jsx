@@ -21,10 +21,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const NotificationCard = ({ notification, onDelete }) => {
+const NotificationCard = ({ notification, onDelete, onMarkAsRead }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
+    if (!notification.read && onMarkAsRead) {
+      onMarkAsRead(notification._id);
+    }
     if (notification.link) {
       const user = JSON.parse(
         localStorage.getItem('user') || localStorage.getItem('member') || '{}',

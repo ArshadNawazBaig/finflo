@@ -25,3 +25,4 @@ export const subscriptionAtom = atom({
   loading: true,
 });
 export const unreadChatCountAtom = atom(0);
+export const pendingMembersCountAtom = atom(0);

@@ -307,7 +307,9 @@ const getMemberById = async (req, res) => {
 
     const member = await Member.findOne(
       req.user.role === 'super_admin' ? { _id: id } : { _id: id, user: userId },
-    ).populate('customer', 'name email phone nominee');
+    )
+      .populate('customer', 'name email phone nominee')
+      .populate('branchId', 'name');
 
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
@@ -523,6 +525,7 @@ const updateMember = async (req, res) => {
       jobDetail,
       signature,
       nominee,
+      branchId,
     } = req.body;
 
     if (email) {
@@ -597,9 +600,10 @@ const updateMember = async (req, res) => {
         profitRate,
         jobDetail,
         signature,
+        branchId: branchId || undefined,
       },
       { new: true, runValidators: true },
-    );
+    ).populate('branchId', 'name');
 
     // Sync with Customer if linked
     if (updatedMember.customer) {
@@ -2370,62 +2374,123 @@ const getMemberShares = async (req, res) => {
 // @route POST /api/members/:id/share-invest
 // @access Private (Admin/Staff)
 const addShareInvestment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description } = req.body;
+    const { amount, description, deductFromBalance = false } = req.body;
 
     if (!amount || amount <= 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res
         .status(400)
         .json({ message: 'Invalid share investment amount' });
     }
 
-    const member = await Member.findOne({ _id: id, user: userId });
-    if (!member) return res.status(404).json({ message: 'Member not found' });
+    const member = await Member.findOne({ _id: id, user: userId }).session(
+      session,
+    );
+    if (!member) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    if (deductFromBalance && member.currentBalance < amount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(400)
+        .json({ message: 'Insufficient current balance for auto-deduction' });
+    }
 
     // Update member share fields atomically
+    const incObj = { shareBalance: amount, totalShareInvested: amount };
+    if (deductFromBalance) {
+      incObj.currentBalance = -amount;
+      incObj.totalWithdrawn = amount;
+    }
+
     const updatedMember = await Member.findOneAndUpdate(
       { _id: id, user: userId },
-      { $inc: { shareBalance: amount, totalShareInvested: amount } },
-      { new: true },
+      { $inc: incObj },
+      { new: true, session },
     );
 
     if (!updatedMember) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: 'Member not found' });
     }
 
     // Create business share record
-    const shareRecord = await BusinessShare.create({
-      user: userId,
-      member: id,
-      branchId: member.branchId,
-      type: 'share_deposit',
-      amount,
-      description: description || 'Business share investment',
-      shareBalanceAfter: updatedMember.shareBalance,
-    });
+    const [shareRecord] = await BusinessShare.create(
+      [
+        {
+          user: userId,
+          member: id,
+          branchId: member.branchId,
+          type: 'share_deposit',
+          amount,
+          description:
+            description ||
+            (deductFromBalance
+              ? 'Share Investment (Auto-Deducted)'
+              : 'Business share investment'),
+          shareBalanceAfter: updatedMember.shareBalance,
+        },
+      ],
+      { session },
+    );
 
-    // Financial transaction (income — share investment inflow)
-    await FinancialTransaction.create({
-      user: userId,
-      branchId: member.branchId,
-      type: 'income',
-      category: 'investment',
-      amount,
-      date: new Date(),
-      description: description || 'Business share investment',
-      member: member._id,
-      referenceId: shareRecord._id,
-      referenceModel: 'BusinessShare',
-    });
+    // If deducted from balance, log withdrawal from main ledger
+    if (deductFromBalance) {
+      await Investment.create(
+        [
+          {
+            user: userId,
+            member: id,
+            branchId: member.branchId,
+            type: 'withdrawal',
+            amount,
+            description: description || 'Share Investment (Auto-Deduction)',
+            balanceAfter: updatedMember.currentBalance,
+          },
+        ],
+        { session },
+      );
+    } else {
+      // Financial transaction only for external injections (income)
+      await FinancialTransaction.create(
+        [
+          {
+            user: userId,
+            branchId: member.branchId,
+            type: 'income',
+            category: 'investment',
+            amount,
+            date: new Date(),
+            description: description || 'Business share investment',
+            member: member._id,
+            referenceId: shareRecord._id,
+            referenceModel: 'BusinessShare',
+          },
+        ],
+        { session },
+      );
+    }
 
-    // Notify member
+    await session.commitTransaction();
+    session.endSession();
+
+    // Notify member (Outside transaction)
     try {
       await createTransactionNotification({
         recipientId: member._id,
         title: 'Business Share Invested',
-        message: `Rs. ${amount.toLocaleString()} has been added to your business share portfolio (${description || 'Business Share Deposit'}).`,
+        message: `Rs. ${amount.toLocaleString()} has been added to your business share portfolio${deductFromBalance ? ' via auto-deduction from your main balance' : ''}.`,
         type: 'success',
         branchId: member.branchId,
         action: 'member_share_deposit_notification',
@@ -2443,7 +2508,9 @@ const addShareInvestment = async (req, res) => {
           subject: 'Share Investment Confirmation',
           html: transactionEmail({
             memberName: member.name,
-            transactionType: 'Share Investment',
+            transactionType: deductFromBalance
+              ? 'Share Investment (Auto-Deduction)'
+              : 'Share Investment',
             amount: amount.toLocaleString(),
             date: new Date().toLocaleDateString('en-GB', {
               day: '2-digit',
@@ -2467,16 +2534,23 @@ const addShareInvestment = async (req, res) => {
       userId: req.user._id,
       action: 'member_share_invested',
       category: 'member',
-      details: `Added share investment of ${amount} for member: ${member.name}`,
-      metadata: { memberId: id, amount, shareId: shareRecord._id },
+      details: `Added share investment of ${amount} for member: ${member.name}${deductFromBalance ? ' (Deducted from balance)' : ''}`,
+      metadata: {
+        memberId: id,
+        amount,
+        shareId: shareRecord._id,
+        deducted: deductFromBalance,
+      },
       req,
     });
 
     // Update member's credit limit
     await updateMemberCreditLimit(id);
 
-    res.status(201).json({ shareRecord, member });
+    res.status(201).json({ shareRecord, member: updatedMember });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Add Share Investment Error:', error);
     res.status(500).json({ message: 'Failed to add share investment' });
   }
@@ -2920,41 +2994,46 @@ const selfRegister = async (req, res) => {
         .json({ message: 'Invalid security code. Business not found.' });
     }
 
-    // Check if phone or cnic already exists for this business
+    // Check if phone, email, or cnic already exists for this business
     const existingMember = await Member.findOne({
       user: businessOwner._id,
-      $or: [{ phone }, { cnic }],
+      $or: [
+        { phone },
+        { cnic },
+        ...(email ? [{ email: email.toLowerCase() }] : []),
+      ],
     });
 
     if (existingMember) {
+      const conflictField =
+        existingMember.phone === phone
+          ? 'phone number'
+          : existingMember.cnic === cnic
+            ? 'CNIC'
+            : 'email';
       return res.status(400).json({
-        message:
-          'A member with this phone or CNIC already exists in this business',
+        message: `A member with this ${conflictField} already exists in this business`,
       });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create the member as pending
+    // Create the member as pending (password will be hashed by Member model pre-save hook)
     const member = await Member.create({
       user: businessOwner._id,
       name,
       phone,
       email: email || undefined,
       cnic,
-      password: hashedPassword,
+      password,
       approvalStatus: 'pending',
       isActive: false, // Prevents login until approved
     });
 
     // Auto-create a linked Customer account for the member
     try {
-      // Only create if no existing customer with this CNIC for this business
+      // Only create if no existing customer with this CNIC or Email for this business
       let customer = await Customer.findOne({
         user: businessOwner._id,
-        cnic,
+        $or: [{ cnic }, ...(email ? [{ email: email.toLowerCase() }] : [])],
       });
 
       if (!customer) {
@@ -2989,7 +3068,7 @@ const selfRegister = async (req, res) => {
         message: `${name} has registered and is awaiting account approval.`,
         type: 'info',
         ownerId: businessOwner._id,
-        link: '/members?tab=pending',
+        link: '/members?type=pending',
         metadata: { memberId: member._id, phone },
       });
     } catch (notifError) {
@@ -3057,6 +3136,19 @@ const updateApprovalStatus = async (req, res) => {
     }
     await member.save();
 
+    // If rejected, remove the associated customer record
+    if (status === 'rejected' && member.customer) {
+      try {
+        const Customer = require('../models/Customer');
+        await Customer.findByIdAndDelete(member.customer);
+      } catch (custError) {
+        console.error(
+          'Failed to delete associated customer on rejection:',
+          custError,
+        );
+      }
+    }
+
     // Send email notification to the member
     if (member.email) {
       try {
@@ -3081,6 +3173,27 @@ const updateApprovalStatus = async (req, res) => {
       metadata: { memberId: member._id },
       req,
     });
+
+    // If rejected, remove the associated records to allow re-registration
+    if (status === 'rejected') {
+      if (member.customer) {
+        try {
+          const Customer = require('../models/Customer');
+          await Customer.findByIdAndDelete(member.customer);
+        } catch (custError) {
+          console.error(
+            'Failed to delete associated customer on rejection:',
+            custError,
+          );
+        }
+      }
+      // Delete the member record itself
+      await Member.findByIdAndDelete(member._id);
+    }
+
+    if (status !== 'rejected') {
+      await member.populate('branchId', 'name');
+    }
 
     res.json({ message: `Member successfully ${status}`, member });
   } catch (error) {

@@ -336,6 +336,7 @@ const updateCustomer = async (req, res) => {
         'cnic',
         'job',
         'monthlyIncome',
+        'branchId',
         'accountNumber',
         'savingAccountNumber',
         'currentAccountNumber',

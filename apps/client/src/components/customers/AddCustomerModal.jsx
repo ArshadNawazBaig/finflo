@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+import KycOcrScanner from '../kyc/KycOcrScanner';
+
 const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -62,6 +64,17 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
       }
     }
   }, [isOpen, user.role, user.branchId]);
+
+  const handleOcrData = (data) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: data.name || prev.name,
+      cnic: data.cnic || prev.cnic,
+      email: data.email || prev.email,
+      phone: data.phone || prev.phone,
+    }));
+    toast.success('Fields auto-filled from document');
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -241,6 +254,10 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
               {error}
             </div>
           )}
+
+          <div className="mb-8">
+            <KycOcrScanner onDataExtracted={handleOcrData} />
+          </div>
 
           <form
             id="add-customer-form"

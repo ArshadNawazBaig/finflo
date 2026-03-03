@@ -234,6 +234,7 @@ app.use('/api/external-transfers', require('./routes/externalTransferRoutes'));
 app.use('/api/loan-products', require('./routes/loanProductRoutes'));
 app.use('/api/roles', require('./routes/roleRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/ocr', require('./routes/ocrRoutes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
