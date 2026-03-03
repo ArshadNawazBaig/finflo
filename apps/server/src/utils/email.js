@@ -33,12 +33,16 @@ const createTransporter = async (settings) => {
 
     if (config && config.host && config.auth?.user) {
       return nodemailer.createTransport({
-        host: config.host,
-        port: config.port || 587,
-        secure: config.secure || false,
+        host: config.host || 'smtp.gmail.com',
+        port: parseInt(config.port) || 587,
+        secure: parseInt(config.port) === 465, // Use TLS (false) for 587, SSL (true) for 465
+        family: 4, // Force IPv4 to prevent ENETUNREACH in Railway/Docker
         auth: {
           user: config.auth.user,
           pass: config.auth.pass,
+        },
+        tls: {
+          rejectUnauthorized: false,
         },
       });
     }
@@ -57,9 +61,10 @@ const createTransporter = async (settings) => {
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
       return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT || 587,
-        secure: process.env.SMTP_PORT == 465, // Use TLS (false) for 587, SSL (true) for 465
+        host: process.env.SMTP_HOST || 'smtp.gmail.com', // Explicit fallback
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: parseInt(process.env.SMTP_PORT) === 465, // Use TLS (false) for 587, SSL (true) for 465
+        family: 4, // Force IPv4 to prevent ENETUNREACH in Railway/Docker
         auth: {
           user: user,
           pass: pass,
