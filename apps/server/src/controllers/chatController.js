@@ -789,6 +789,85 @@ const getStatus = async (req, res) => {
   }
 };
 
+// ─── POST /api/chat/messages/:id/react ───────────────────────────────────────
+const reactToMessage = async (req, res) => {
+  try {
+    const { id: requesterId, model: requesterModel } = getRequester(req);
+    const { id: msgId } = req.params;
+    const { emoji } = req.body;
+
+    if (!emoji) return res.status(400).json({ message: 'Emoji required' });
+
+    const message = await ChatMessage.findById(msgId);
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+
+    // Verify requester is participant of the conversation
+    const conv = await Conversation.findOne({
+      _id: message.conversation,
+      participants: {
+        $elemMatch: {
+          participantId: requesterId,
+          participantModel: requesterModel,
+        },
+      },
+    });
+
+    if (!conv) return res.status(403).json({ message: 'Not a participant' });
+
+    // Toggle reaction
+    const emojiReaction = message.reactions.find((r) => r.emoji === emoji);
+
+    if (emojiReaction) {
+      const userIndex = emojiReaction.users.findIndex(
+        (u) =>
+          u.userId.toString() === requesterId.toString() &&
+          u.userModel === requesterModel,
+      );
+
+      if (userIndex > -1) {
+        // Remove reaction
+        emojiReaction.users.splice(userIndex, 1);
+        // If no users left for this emoji, remove the emoji entirely
+        if (emojiReaction.users.length === 0) {
+          message.reactions = message.reactions.filter(
+            (r) => r.emoji !== emoji,
+          );
+        }
+      } else {
+        // Add reaction to existing emoji
+        emojiReaction.users.push({
+          userId: requesterId,
+          userModel: requesterModel,
+        });
+      }
+    } else {
+      // Add new emoji reaction
+      message.reactions.push({
+        emoji,
+        users: [{ userId: requesterId, userModel: requesterModel }],
+      });
+    }
+
+    await message.save();
+
+    // Emit socket event
+    if (req.io) {
+      conv.participants.forEach((p) => {
+        req.io.to(`user_${p.participantId}`).emit('message:reaction', {
+          conversationId: conv._id.toString(),
+          messageId: msgId,
+          reactions: message.reactions,
+        });
+      });
+    }
+
+    res.json(message.reactions);
+  } catch (error) {
+    console.error('reactToMessage error:', error);
+    res.status(500).json({ message: 'Failed to react to message' });
+  }
+};
+
 module.exports = {
   chatUpload,
   getAvailableContacts,
@@ -803,4 +882,5 @@ module.exports = {
   deleteAllConversations,
   setStatus,
   getStatus,
+  reactToMessage,
 };

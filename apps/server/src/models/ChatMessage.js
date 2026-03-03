@@ -43,6 +43,22 @@ const chatMessageSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
       },
     ],
+    // Emoji reactions
+    reactions: [
+      {
+        emoji: { type: String, required: true },
+        users: [
+          {
+            userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+            userModel: {
+              type: String,
+              enum: ['Member', 'User'],
+              required: true,
+            },
+          },
+        ],
+      },
+    ],
   },
   { timestamps: true },
 );

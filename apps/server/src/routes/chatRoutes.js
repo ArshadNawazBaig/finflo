@@ -14,6 +14,7 @@ const {
   deleteAllConversations,
   setStatus,
   getStatus,
+  reactToMessage,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -90,6 +91,7 @@ router.delete('/messages/:id', protectAny, deleteMessage);
 router.delete('/conversations/all', protectAny, deleteAllConversations);
 router.delete('/conversations/:id', protectAny, deleteConversation);
 router.post('/conversations/:id/read', protectAny, markAsRead);
+router.post('/messages/:id/react', protectAny, reactToMessage);
 router.post('/conversations/:id/status', protectAny, setStatus);
 router.get('/conversations/:id/status', protectAny, getStatus);
 

@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Play,
   StopCircle,
+  Smile,
 } from 'lucide-react';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'sonner';
@@ -87,16 +88,30 @@ const Avatar = ({ name = '', avatar, size = 40, online = false }) => {
 };
 
 // Single message bubble
-const MessageBubble = ({ message, isOwn, onEdit, onDelete }) => {
+const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
+
+const MessageBubble = ({
+  message,
+  isOwn,
+  onEdit,
+  onDelete,
+  onReact,
+  currentUserId,
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reactionOpen, setReactionOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const menuRef = useRef(null);
+  const reactionRef = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuOpen(false);
+      }
+      if (reactionRef.current && !reactionRef.current.contains(e.target)) {
+        setReactionOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -166,9 +181,58 @@ const MessageBubble = ({ message, isOwn, onEdit, onDelete }) => {
           </div>
         )}
 
+        {/* Reaction trigger */}
+        {!message.isDeleted && !editMode && (
+          <div
+            className={cn(
+              'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10',
+              isOwn ? '-right-8' : '-right-8',
+            )}
+            ref={reactionRef}
+          >
+            <button
+              onClick={() => setReactionOpen((v) => !v)}
+              className="p-1 rounded-full hover:bg-muted/50 transition-colors"
+            >
+              <Smile size={14} className="text-muted-foreground" />
+            </button>
+            {reactionOpen && (
+              <div
+                className={cn(
+                  'absolute top-0 bg-popover border border-border/50 rounded-full shadow-xl p-1 flex items-center gap-1 z-50 animate-in zoom-in-95 duration-200',
+                  isOwn ? 'right-full mr-1' : 'left-full ml-1',
+                )}
+              >
+                {COMMON_EMOJIS.map((emoji) => {
+                  const hasReacted = message.reactions
+                    ?.find((r) => r.emoji === emoji)
+                    ?.users.some(
+                      (u) => String(u.userId) === String(currentUserId),
+                    );
+                  return (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        onReact(message._id, emoji);
+                        setReactionOpen(false);
+                      }}
+                      className={cn(
+                        'hover:scale-125 transition-transform px-1.5 py-1 rounded-full',
+                        hasReacted && 'bg-primary/20 scale-110',
+                      )}
+                    >
+                      {emoji}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         <div
           className={cn(
-            'rounded-2xl px-4 py-2.5 shadow-sm',
+            'rounded-2xl px-4 py-2.5 shadow-sm relative',
             isOwn
               ? 'bg-primary text-white rounded-br-sm'
               : 'bg-card border border-border/40 rounded-bl-sm',
@@ -225,6 +289,37 @@ const MessageBubble = ({ message, isOwn, onEdit, onDelete }) => {
             </>
           )}
         </div>
+
+        {/* Reactions Display */}
+        {message.reactions?.length > 0 && (
+          <div
+            className={cn(
+              'flex flex-wrap gap-1 mt-1 mb-1',
+              isOwn ? 'justify-end' : 'justify-start',
+            )}
+          >
+            {message.reactions.map((r) => {
+              const hasReacted = r.users.some(
+                (u) => String(u.userId) === String(currentUserId),
+              );
+              return (
+                <button
+                  key={r.emoji}
+                  onClick={() => onReact(message._id, r.emoji)}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold transition-all',
+                    hasReacted
+                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50',
+                  )}
+                >
+                  <span>{r.emoji}</span>
+                  <span>{r.users.length}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Footer: time + edited + read receipt */}
         <div className="flex items-center gap-1 mt-0.5 px-1">
@@ -419,6 +514,15 @@ const Chat = () => {
         toast.info('Conversation was deleted');
       }
     };
+    const onMessageReaction = ({ conversationId, messageId, reactions }) => {
+      if (activeConvRef.current?._id === conversationId) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            String(m._id) === String(messageId) ? { ...m, reactions } : m,
+          ),
+        );
+      }
+    };
 
     socket.on('user:presence_list', onPresenceList);
     socket.on('user:online', onOnline);
@@ -431,6 +535,7 @@ const Chat = () => {
     socket.on('message:edited', onMessageEdited);
     socket.on('message:deleted', onMessageDeleted);
     socket.on('conversation:deleted', onConvDeleted);
+    socket.on('message:reaction', onMessageReaction);
 
     return () => {
       socket.off('user:presence_list', onPresenceList);
@@ -444,6 +549,7 @@ const Chat = () => {
       socket.off('message:edited', onMessageEdited);
       socket.off('message:deleted', onMessageDeleted);
       socket.off('conversation:deleted', onConvDeleted);
+      socket.off('message:reaction', onMessageReaction);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
@@ -832,6 +938,19 @@ const Chat = () => {
     }
   };
 
+  const handleReact = async (msgId, emoji) => {
+    try {
+      const res = await api.post(`/chat/messages/${msgId}/react`, { emoji });
+      setMessages((prev) =>
+        prev.map((m) =>
+          String(m._id) === String(msgId) ? { ...m, reactions: res.data } : m,
+        ),
+      );
+    } catch {
+      toast.error('Failed to react to message');
+    }
+  };
+
   // ── Date separator helper ─────────────────────────────────────────────────
   const renderMessages = () => {
     const items = [];
@@ -858,6 +977,8 @@ const Chat = () => {
           isOwn={isOwn}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onReact={handleReact}
+          currentUserId={currentUserId}
         />,
       );
     });
