@@ -7,7 +7,7 @@ const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const Branch = require('../models/Branch');
 const { logActivity } = require('../controllers/activityLogController');
-const { sendEmail } = require('../utils/email');
+const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
 
 /**
@@ -372,7 +372,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject: isAutoValue
             ? 'Automatic Loan Payment Confirmation'

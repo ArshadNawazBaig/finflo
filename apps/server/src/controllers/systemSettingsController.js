@@ -1,5 +1,6 @@
 const SystemSettings = require('../models/SystemSettings');
 const { logActivity } = require('./activityLogController');
+const { invalidateSettingsCache } = require('../utils/email');
 
 // Get system settings
 const getSystemSettings = async (req, res) => {
@@ -42,6 +43,7 @@ const updateSystemSettings = async (req, res) => {
 
     settings.updatedBy = req.user._id;
     await settings.save();
+    invalidateSettingsCache(); // Clear SMTP/settings cache immediately
 
     // Log activity
     const changes = [];
@@ -82,6 +84,7 @@ const resetToDefaults = async (req, res) => {
     const newSettings = await SystemSettings.create({
       updatedBy: req.user._id,
     });
+    invalidateSettingsCache(); // Clear SMTP/settings cache immediately
 
     // Log activity
     await logActivity({

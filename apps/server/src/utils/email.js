@@ -1,13 +1,34 @@
 const nodemailer = require('nodemailer');
 const SystemSettings = require('../models/SystemSettings');
 
+// ── In-memory cache for SystemSettings (60 second TTL) ────────────────────────
+let _settingsCache = null;
+let _settingsCacheTime = 0;
+const SETTINGS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+const getCachedSettings = async () => {
+  const now = Date.now();
+  if (_settingsCache && now - _settingsCacheTime < SETTINGS_CACHE_TTL_MS) {
+    return _settingsCache;
+  }
+  _settingsCache = await SystemSettings.getSettings();
+  _settingsCacheTime = now;
+  return _settingsCache;
+};
+
+// Call this whenever SMTP settings are updated so the cache is immediately invalidated
+const invalidateSettingsCache = () => {
+  _settingsCache = null;
+  _settingsCacheTime = 0;
+};
+
 /**
  * Creates a configured Nodemailer transporter using settings from the database.
  * Falls back to environment variables if DB settings are incomplete.
+ * Uses cached settings to avoid repeated DB hits.
  */
-const createTransporter = async () => {
+const createTransporter = async (settings) => {
   try {
-    const settings = await SystemSettings.getSettings();
     const config = settings.smtpConfig;
 
     if (config && config.host && config.auth?.user) {
@@ -53,14 +74,15 @@ const createTransporter = async () => {
  */
 const sendEmail = async (options) => {
   try {
-    const transporter = await createTransporter();
+    // Single cached DB read instead of two separate getSettings() calls
+    const settings = await getCachedSettings();
+    const transporter = await createTransporter(settings);
 
     if (!transporter) {
       console.warn('Email skipped: SMTP configuration is missing.');
       return false;
     }
 
-    const settings = await SystemSettings.getSettings();
     const fromEmail =
       settings.smtpConfig?.fromEmail ||
       process.env.SMTP_FROM_EMAIL ||
@@ -87,4 +109,16 @@ const sendEmail = async (options) => {
   }
 };
 
-module.exports = { sendEmail };
+/**
+ * Sends an email in a non-blocking, fire-and-forget manner.
+ * Errors are logged but never propagate to the caller.
+ * Use this to avoid blocking API responses on SMTP.
+ * @param {Object} options - Email options { to, subject, html, text }
+ */
+const sendEmailAsync = (options) => {
+  sendEmail(options).catch((err) =>
+    console.error('Background email error:', err.message),
+  );
+};
+
+module.exports = { sendEmail, sendEmailAsync, invalidateSettingsCache };

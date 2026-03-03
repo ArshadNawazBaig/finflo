@@ -19,7 +19,7 @@ const {
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
-const { sendEmail } = require('../utils/email');
+const { sendEmail, sendEmailAsync } = require('../utils/email');
 const {
   transactionEmail,
   memberApprovalEmail,
@@ -787,7 +787,7 @@ const addInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject: 'Deposit Confirmation',
           html: transactionEmail({
@@ -974,7 +974,7 @@ const withdrawInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject: 'Withdrawal Confirmation',
           html: transactionEmail({
@@ -1288,19 +1288,27 @@ const distributeProfit = async (req, res) => {
               },
             });
 
-            // Send Email Notification
+            // Send Email Notification (non-blocking)
             const branch = await Branch.findById(member.branchId);
-            await sendEmail({
-              email: member.email,
-              subject: `Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+            const branchName =
+              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+            sendEmailAsync({
+              to: member.email,
+              subject: `Profit Credited - ${branchName}`,
               html: transactionEmail({
                 memberName: member.name,
                 transactionType: 'Profit Distribution',
-                amount: profitAmount,
-                date: new Date().toLocaleDateString(),
-                referenceId: distribution._id,
-                currentBalance: member.currentBalance + profitAmount,
-                branchName: branch?.companyName || 'Our Branch',
+                amount: profitAmount.toLocaleString(),
+                date: new Date().toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                }),
+                balance: (
+                  member.currentBalance + profitAmount
+                ).toLocaleString(),
+                reference: distribution._id.toString().slice(-8).toUpperCase(),
+                branchName: branchName,
               }),
             });
           } catch (notifError) {
@@ -1404,19 +1412,27 @@ const distributeProfit = async (req, res) => {
               },
             });
 
-            // Send Email Notification
+            // Send Email Notification (non-blocking)
             const branch = await Branch.findById(member.branchId);
-            await sendEmail({
-              email: member.email,
-              subject: `Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+            const branchName =
+              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+            sendEmailAsync({
+              to: member.email,
+              subject: `Profit Credited - ${branchName}`,
               html: transactionEmail({
                 memberName: member.name,
                 transactionType: 'Profit Distribution',
-                amount: profitAmount,
-                date: new Date().toLocaleDateString(),
-                referenceId: distribution._id,
-                currentBalance: member.currentBalance + profitAmount,
-                branchName: branch?.companyName || 'Our Branch',
+                amount: profitAmount.toLocaleString(),
+                date: new Date().toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                }),
+                balance: (
+                  member.currentBalance + profitAmount
+                ).toLocaleString(),
+                reference: distribution._id.toString().slice(-8).toUpperCase(),
+                branchName: branchName,
               }),
             });
           } catch (notifError) {
@@ -1815,7 +1831,7 @@ const transferFunds = async (req, res) => {
         const branch = await Branch.findById(sender.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
-        await sendEmail({
+        sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
           html: transactionEmail({
@@ -1841,7 +1857,7 @@ const transferFunds = async (req, res) => {
         const branch = await Branch.findById(recipient.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
-        await sendEmail({
+        sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
           html: transactionEmail({
@@ -2047,7 +2063,7 @@ const adminTransferFunds = async (req, res) => {
         const branch = await Branch.findById(sender.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
-        await sendEmail({
+        sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
           html: transactionEmail({
@@ -2073,7 +2089,7 @@ const adminTransferFunds = async (req, res) => {
         const branch = await Branch.findById(recipient.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
-        await sendEmail({
+        sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
           html: transactionEmail({
@@ -2370,7 +2386,7 @@ const addShareInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject: 'Share Investment Confirmation',
           html: transactionEmail({
@@ -2487,7 +2503,7 @@ const withdrawShareInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject: 'Share Withdrawal Confirmation',
           html: transactionEmail({
@@ -2702,19 +2718,25 @@ const distributeShareProfit = async (req, res) => {
           },
         });
 
-        // Send Email Notification
+        // Send Email Notification (non-blocking)
         const branch = await Branch.findById(member.branchId);
-        await sendEmail({
-          email: member.email,
-          subject: `Share Profit Credited - ${branch?.companyName || 'FinFlow'}`,
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+        sendEmailAsync({
+          to: member.email,
+          subject: `Share Profit Credited - ${branchName}`,
           html: transactionEmail({
             memberName: member.name,
             transactionType: 'Share Profit Distribution',
-            amount: profitAmount,
-            date: new Date().toLocaleDateString(),
-            referenceId: shareRecord._id,
-            currentBalance: member.shareBalance + profitAmount,
-            branchName: branch?.companyName || 'Our Branch',
+            amount: profitAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }),
+            balance: (member.shareBalance + profitAmount).toLocaleString(),
+            reference: shareRecord._id.toString().slice(-8).toUpperCase(),
+            branchName: branchName,
           }),
         });
       } catch (notifError) {
@@ -2986,7 +3008,7 @@ const updateApprovalStatus = async (req, res) => {
     // Send email notification to the member
     if (member.email) {
       try {
-        await sendEmail({
+        sendEmailAsync({
           to: member.email,
           subject:
             status === 'approved'
@@ -2995,7 +3017,7 @@ const updateApprovalStatus = async (req, res) => {
           html: memberApprovalEmail(member.name, status),
         });
       } catch (emailError) {
-        console.error('Failed to send approval email:', emailError);
+        // error already logged by sendEmailAsync internally
       }
     }
 

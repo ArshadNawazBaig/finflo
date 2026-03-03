@@ -18,7 +18,7 @@ const {
 const { logActivity } = require('./activityLogController');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
-const { sendEmail } = require('../utils/email');
+const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
 const {
   updateMemberCreditLimit,
@@ -1030,7 +1030,7 @@ const addRepayment = async (req, res) => {
           const branchName =
             branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-          await sendEmail({
+          sendEmailAsync({
             to: member.email,
             subject: 'Loan Repayment Confirmation',
             html: transactionEmail({
@@ -1253,22 +1253,26 @@ const updateLoan = async (req, res) => {
           await notification.save();
         }
 
-        // Email Notification to Customer/Member
+        // Email Notification to Customer/Member (non-blocking)
         if (customer && customer.email) {
           const branch = await Branch.findById(loan.branchId);
           const branchName =
-            branch?.companyName || branch?.name || 'FinanceFlow';
+            branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-          await sendEmail({
-            email: customer.email,
+          sendEmailAsync({
+            to: customer.email,
             subject: `${notificationTitle} - ${branchName}`,
             html: transactionEmail({
               memberName: customer.name,
               transactionType: notificationTitle,
               amount: loan.principal.toLocaleString(),
-              date: new Date().toLocaleDateString(),
-              referenceId: loan._id.toString().slice(-8).toUpperCase(),
-              currentBalance: loan.remainingAmount.toLocaleString(),
+              date: new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              }),
+              balance: loan.remainingAmount.toLocaleString(),
+              reference: loan._id.toString().slice(-8).toUpperCase(),
               branchName: branchName,
             }),
           });
@@ -1626,21 +1630,26 @@ const approveLoan = async (req, res) => {
         await notification.save();
       }
 
-      // Email Notification to Member if applicable
+      // Email Notification to Member if applicable (non-blocking)
       if (customerForNotification && customerForNotification.email) {
         const branch = await Branch.findById(loan.branchId);
-        const branchName = branch?.companyName || branch?.name || 'FinanceFlow';
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
-          email: customerForNotification.email,
+        sendEmailAsync({
+          to: customerForNotification.email,
           subject: `Loan Approved - ${branchName}`,
           html: transactionEmail({
             memberName: customerForNotification.name,
             transactionType: 'Loan Approved',
             amount: loan.principal.toLocaleString(),
-            date: new Date().toLocaleDateString(),
-            referenceId: loan._id.toString().slice(-8).toUpperCase(),
-            currentBalance: loan.remainingAmount.toLocaleString(),
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }),
+            balance: loan.remainingAmount.toLocaleString(),
+            reference: loan._id.toString().slice(-8).toUpperCase(),
             branchName: branchName,
           }),
         });
@@ -1720,18 +1729,23 @@ const rejectLoan = async (req, res) => {
       const customer = await Customer.findById(loan.customer);
       if (customer && customer.email) {
         const branch = await Branch.findById(loan.branchId);
-        const branchName = branch?.companyName || branch?.name || 'FinanceFlow';
+        const branchName =
+          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-        await sendEmail({
-          email: customer.email,
+        sendEmailAsync({
+          to: customer.email,
           subject: `Loan Application Update - ${branchName}`,
           html: transactionEmail({
             memberName: customer.name,
             transactionType: 'Loan Rejected',
             amount: loan.principal.toLocaleString(),
-            date: new Date().toLocaleDateString(),
-            referenceId: loan._id.toString().slice(-8).toUpperCase(),
-            currentBalance: '0',
+            date: new Date().toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }),
+            balance: '0',
+            reference: loan._id.toString().slice(-8).toUpperCase(),
             branchName: branchName,
           }),
         });
@@ -2004,18 +2018,22 @@ const bulkApproveLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.companyName || branch?.name || 'FinanceFlow';
+              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-            await sendEmail({
-              email: customer.email,
+            sendEmailAsync({
+              to: customer.email,
               subject: `Loan Approved - ${branchName}`,
               html: transactionEmail({
                 memberName: customer.name,
                 transactionType: 'Loan Approved',
                 amount: loan.principal.toLocaleString(),
-                date: new Date().toLocaleDateString(),
-                referenceId: loan._id.toString().slice(-8).toUpperCase(),
-                currentBalance: loan.remainingAmount.toLocaleString(),
+                date: new Date().toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                }),
+                balance: loan.remainingAmount.toLocaleString(),
+                reference: loan._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
               }),
             });
@@ -2098,18 +2116,22 @@ const bulkRejectLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.companyName || branch?.name || 'FinanceFlow';
+              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
 
-            await sendEmail({
-              email: customer.email,
+            sendEmailAsync({
+              to: customer.email,
               subject: `Loan Application Update - ${branchName}`,
               html: transactionEmail({
                 memberName: customer.name,
                 transactionType: 'Loan Rejected',
                 amount: loan.principal.toLocaleString(),
-                date: new Date().toLocaleDateString(),
-                referenceId: loan._id.toString().slice(-8).toUpperCase(),
-                currentBalance: '0',
+                date: new Date().toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                }),
+                balance: '0',
+                reference: loan._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
               }),
             });
