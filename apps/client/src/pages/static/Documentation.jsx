@@ -24,6 +24,7 @@ import {
   Database,
   Users,
   ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -356,6 +357,109 @@ const Documentation = () => {
                 optimized for maximum administrative efficiency.
               </p>
             </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'user-guides',
+      title: 'User Guides',
+      icon: <Users className="w-4 h-4" />,
+      searchContent:
+        'user guides tutorial admin manager member dashboard loans finance operations manual',
+      content: (
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
+          <div>
+            <h2 className="text-3xl font-black tracking-tighter mb-4">
+              Role-Based User Guides
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Navigate the platform effectively based on your assigned role and
+              responsibilities.
+            </p>
+          </div>
+
+          <div className="space-y-12">
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight">
+                  Admin Guide
+                </h3>
+              </div>
+              <div className="grid gap-4 pl-13">
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">System Oversight</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Monitor portfolio health, active memberships, and audit logs
+                    to ensure system integrity and accountability.
+                  </p>
+                </div>
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">Lifecycle Management</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Define loan products, manage hierarchical team structures,
+                    and oversee the end-to-end verification queue.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-6 pt-6 border-t border-border/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-indigo-500" />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight">
+                  Manager Guide
+                </h3>
+              </div>
+              <div className="grid gap-4 pl-13">
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">Branch Operations</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Record operational outflows (Rent, Salaries, Utilities) and
+                    manage branch-specific financial ledgers.
+                  </p>
+                </div>
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">Local Growth</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Onboard new members, perform site visits, and authorize
+                    disbursements within your designated branch scope.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-6 pt-6 border-t border-border/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-emerald-500" />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight">
+                  Member Guide
+                </h3>
+              </div>
+              <div className="grid gap-4 pl-13">
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">Financial Self-Service</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Track investment growth, business shares, and loan repayment
+                    schedules via a dedicated portal.
+                  </p>
+                </div>
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <h4 className="font-bold mb-2">Social P2P Features</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Manage grantor requests, perform secure fund transfers, and
+                    interact with branch support staff in real-time.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       ),
