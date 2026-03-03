@@ -477,7 +477,7 @@ const SuperAdminDashboard = () => {
                         {user.name?.charAt(0)?.toUpperCase()}
                       </div>
                       <div className="space-y-1">
-                        <p className="font-bold text-sm tracking-tight">
+                        <p className="font-bold text-sm tracking-tight capitalize">
                           {user.name}
                         </p>
                         <p className="text-xs text-muted-foreground flex items-center gap-2">

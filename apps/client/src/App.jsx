@@ -242,17 +242,14 @@ function App() {
                     <Route path="/loan-products" element={<LoanProducts />} />
                   </Route>
 
-                  {/* Restrict pricing and billing to Admins only */}
-                  {user.role === 'admin' && (
-                    <Route
-                      element={
-                        <RequirePermissions permissions={['system_settings']} />
-                      }
-                    >
-                      <Route path="/billing" element={<Billing />} />
-                      <Route path="/pricing" element={<Pricing />} />
-                    </Route>
-                  )}
+                  <Route
+                    element={
+                      <RequirePermissions permissions={['system_settings']} />
+                    }
+                  >
+                    <Route path="/billing" element={<Billing />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                  </Route>
 
                   <Route
                     element={
