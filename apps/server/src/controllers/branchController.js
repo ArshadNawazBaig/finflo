@@ -338,7 +338,7 @@ const deleteBranch = async (req, res) => {
 // @access  Private (Admin or Branch Manager)
 const getBranchFinancials = async (req, res) => {
   try {
-    const { startDate, endDate, type, search } = req.query;
+    const { startDate, endDate, type, search, category } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -406,6 +406,14 @@ const getBranchFinancials = async (req, res) => {
       query.type = type;
     }
 
+    if (category && category !== 'all') {
+      if (category === 'expense') {
+        query.type = 'expense';
+      } else {
+        query.category = category;
+      }
+    }
+
     if (startDate && endDate) {
       query.date = {
         $gte: new Date(startDate),
@@ -415,14 +423,34 @@ const getBranchFinancials = async (req, res) => {
 
     if (search) {
       const searchRegex = new RegExp(search, 'i');
+      const searchOr = [
+        { description: searchRegex },
+        { category: searchRegex },
+      ];
+
+      // Add numeric search for amount if the search term is a number
+      const searchAmount = parseFloat(search);
+      if (!isNaN(searchAmount)) {
+        searchOr.push({ amount: searchAmount });
+      }
+
+      // Find matching customers and members for the search term to include them in the query
+      const [matchingCustomers, matchingMembers] = await Promise.all([
+        Customer.find({ name: searchRegex }).select('_id'),
+        Member.find({ name: searchRegex }).select('_id'),
+      ]);
+
+      if (matchingCustomers.length > 0) {
+        searchOr.push({
+          customer: { $in: matchingCustomers.map((c) => c._id) },
+        });
+      }
+      if (matchingMembers.length > 0) {
+        searchOr.push({ member: { $in: matchingMembers.map((m) => m._id) } });
+      }
+
       query.$and = query.$and || [];
-      query.$and.push({
-        $or: [
-          { description: searchRegex },
-          { category: searchRegex },
-          { notes: searchRegex },
-        ],
-      });
+      query.$and.push({ $or: searchOr });
     }
 
     const sortBy = req.query.sortBy || 'date';

@@ -109,6 +109,7 @@ const BranchDetail = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
+  const [ledgerCategory, setLedgerCategory] = useState('all');
 
   // Expense Filter States
   const [expenseSearch, setExpenseSearch] = useState('');
@@ -116,6 +117,7 @@ const BranchDetail = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
+  const [expenseCategory, setExpenseCategory] = useState('all');
 
   const expenseObserverTarget = useRef(null);
   const ledgerObserverTarget = useRef(null);
@@ -190,6 +192,7 @@ const BranchDetail = () => {
             page: pageToFetch,
             limit: expensePagination.limit,
             search: expenseSearch,
+            category: expenseCategory,
             startDate: expenseDateRange?.from?.toISOString(),
             endDate: expenseDateRange?.to?.toISOString(),
             sortBy: expenseSortBy,
@@ -230,6 +233,7 @@ const BranchDetail = () => {
       expenseDateRange,
       expenseSortBy,
       expenseSortOrder,
+      expenseCategory,
     ],
   );
 
@@ -248,6 +252,7 @@ const BranchDetail = () => {
             page: pageToFetch,
             limit: ledgerPagination.limit,
             search: ledgerSearch,
+            category: ledgerCategory,
             startDate: ledgerDateRange?.from?.toISOString(),
             endDate: ledgerDateRange?.to?.toISOString(),
             sortBy: ledgerSortBy,
@@ -288,6 +293,7 @@ const BranchDetail = () => {
       ledgerDateRange,
       ledgerSortBy,
       ledgerSortOrder,
+      ledgerCategory,
     ],
   );
 
@@ -457,12 +463,14 @@ const BranchDetail = () => {
     activeTab,
     ledgerSearch,
     ledgerDateRange,
+    ledgerCategory,
     ledgerSortBy,
     ledgerSortOrder,
     ledgerPagination.page,
     ledgerPagination.limit,
     expenseSearch,
     expenseDateRange,
+    expenseCategory,
     expenseSortBy,
     expenseSortOrder,
     expensePagination.page,
@@ -659,8 +667,8 @@ const BranchDetail = () => {
       )}
 
       {/* Tabs Navigation */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 mt-4 sm:mt-8">
-        <div className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 lg:w-72 no-scrollbar scrollbar-none snap-x mask-fade-right lg:mask-none">
+      <div className="flex flex-col lg:flex-row gap-4 mt-4 sm:mt-8">
+        <div className="flex lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 lg:w-60 no-scrollbar scrollbar-none snap-x mask-fade-right lg:mask-none">
           {[
             { id: 'overview', label: 'Overview', icon: <Info size={16} /> },
             {
@@ -829,17 +837,8 @@ const BranchDetail = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
-                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full">
-                    <TableSearch
-                      value={expenseSearch}
-                      onChange={(val) => {
-                        setExpenseSearch(val);
-                        setExpensePagination((prev) => ({ ...prev, page: 1 }));
-                      }}
-                      placeholder="Search expenses..."
-                      className="w-full sm:w-auto sm:min-w-[300px]"
-                    />
+                <div className="flex justify-end">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
                     <DateRangePicker
                       date={expenseDateRange}
                       setDate={(range) => {
@@ -852,12 +851,91 @@ const BranchDetail = () => {
                       variant="outline"
                       size="icon"
                       isLoading={isDownloadingExpenses}
-                      className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      className="relative rounded-[1.25rem] group overflow-hidden border-black/5 bg-black/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                       onClick={handleExpenseDownload}
                       title="Download Expense Statement (PDF)"
                     >
                       <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
                     </Button>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                  <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full">
+                    <TableSearch
+                      value={expenseSearch}
+                      onChange={(val) => {
+                        setExpenseSearch(val);
+                        setExpensePagination((prev) => ({ ...prev, page: 1 }));
+                      }}
+                      placeholder="Search expenses..."
+                      className="w-full sm:w-auto sm:min-w-[300px]"
+                    />
+                    <div className="w-full sm:w-48">
+                      <Select
+                        value={expenseCategory}
+                        onValueChange={(val) => {
+                          setExpenseCategory(val);
+                          setExpensePagination((prev) => ({
+                            ...prev,
+                            page: 1,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border/50">
+                          <SelectItem
+                            value="all"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                          >
+                            All Categories
+                          </SelectItem>
+                          <SelectItem
+                            value="rent"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-blue-600"
+                          >
+                            Rent
+                          </SelectItem>
+                          <SelectItem
+                            value="salary"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-emerald-600"
+                          >
+                            Salary
+                          </SelectItem>
+                          <SelectItem
+                            value="utilities"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-orange-600"
+                          >
+                            Utilities
+                          </SelectItem>
+                          <SelectItem
+                            value="marketing"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-purple-600"
+                          >
+                            Marketing
+                          </SelectItem>
+                          <SelectItem
+                            value="maintenance"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-amber-600"
+                          >
+                            Maintenance
+                          </SelectItem>
+                          <SelectItem
+                            value="expense"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-red-600"
+                          >
+                            Expenses
+                          </SelectItem>
+                          <SelectItem
+                            value="other"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-muted-foreground"
+                          >
+                            Other
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <Button
                     onClick={() => setIsExpenseModalOpen(true)}
@@ -945,25 +1023,8 @@ const BranchDetail = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
-                  <div>
-                    <h3 className="text-2xl font-black tracking-tight">
-                      Financial Ledger
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-medium">
-                      Complete audit trail of capital flow.
-                    </p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <TableSearch
-                      value={ledgerSearch}
-                      onChange={(val) => {
-                        setLedgerSearch(val);
-                        setLedgerPagination((prev) => ({ ...prev, page: 1 }));
-                      }}
-                      placeholder="Search ledger..."
-                      className="w-full sm:w-auto sm:min-w-[300px]"
-                    />
+                <div className="flex justify-end">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
                     <DateRangePicker
                       date={ledgerDateRange}
                       setDate={(range) => {
@@ -976,12 +1037,91 @@ const BranchDetail = () => {
                       variant="outline"
                       size="icon"
                       isLoading={isDownloadingLedger}
-                      className="relative rounded-[1.25rem] group overflow-hidden border-white/10 bg-white/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      className="relative rounded-[1.25rem] group overflow-hidden border-black/5 bg-black/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                       onClick={handleLedgerDownload}
                       title="Download Ledger Statement (PDF)"
                     >
                       <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
                     </Button>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <TableSearch
+                      value={ledgerSearch}
+                      onChange={(val) => {
+                        setLedgerSearch(val);
+                        setLedgerPagination((prev) => ({ ...prev, page: 1 }));
+                      }}
+                      placeholder="Search ledger..."
+                      className="w-full sm:w-auto sm:min-w-[300px]"
+                    />
+                    <div className="w-full sm:w-48">
+                      <Select
+                        value={ledgerCategory}
+                        onValueChange={(val) => {
+                          setLedgerCategory(val);
+                          setLedgerPagination((prev) => ({
+                            ...prev,
+                            page: 1,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border/50">
+                          <SelectItem
+                            value="all"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                          >
+                            All Categories
+                          </SelectItem>
+                          <SelectItem
+                            value="repayment"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-emerald-600"
+                          >
+                            Repayments
+                          </SelectItem>
+                          <SelectItem
+                            value="investment"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-blue-600"
+                          >
+                            Investments
+                          </SelectItem>
+                          <SelectItem
+                            value="withdrawal"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-orange-600"
+                          >
+                            Withdrawals
+                          </SelectItem>
+                          <SelectItem
+                            value="loan_disbursement"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-primary"
+                          >
+                            Disbursements
+                          </SelectItem>
+                          <SelectItem
+                            value="expense"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-red-600"
+                          >
+                            Expenses
+                          </SelectItem>
+                          <SelectItem
+                            value="profit_distribution"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-purple-600"
+                          >
+                            Profits
+                          </SelectItem>
+                          <SelectItem
+                            value="fee"
+                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-amber-600"
+                          >
+                            Fees
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 

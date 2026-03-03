@@ -148,9 +148,13 @@ const getMembers = async (req, res) => {
       search = '',
       status = '',
       approvalStatus,
+      branchId,
     } = req.query;
 
     const query = { user: userId };
+    if (branchId) {
+      query.branchId = branchId;
+    }
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },

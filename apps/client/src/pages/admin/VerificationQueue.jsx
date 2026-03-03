@@ -71,7 +71,7 @@ const VerificationQueue = () => {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Verification Center"
-        subtitle="Review and verify customer KYC documents"
+        description="Review and verify customer KYC documents, identity proofs, and account applications to maintain system integrity."
         icon={<FileCheck2 className="w-5 h-5 text-primary" />}
       />
 

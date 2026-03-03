@@ -7,7 +7,15 @@ import {
   TrendingUp,
   Wallet,
   Loader2,
+  Store,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
@@ -56,6 +64,9 @@ const Members = () => {
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState('all');
+  const [branchesLoading, setBranchesLoading] = useState(false);
 
   const observerTarget = useRef(null);
 
@@ -68,6 +79,18 @@ const Members = () => {
     } catch (e) {
     } finally {
       setSummaryLoading(false);
+    }
+  }, []);
+
+  const fetchBranches = useCallback(async () => {
+    try {
+      setBranchesLoading(true);
+      const { data } = await api.get('/branches');
+      setBranches(data || []);
+    } catch (error) {
+      console.error('Failed to fetch branches', error);
+    } finally {
+      setBranchesLoading(false);
     }
   }, []);
 
@@ -97,8 +120,12 @@ const Members = () => {
 
         const pageToFetch =
           pageOverride || (isAppend ? currentPage + 1 : currentPage);
+        const branchParam =
+          selectedBranch && selectedBranch !== 'all'
+            ? `&branchId=${selectedBranch}`
+            : '';
         const { data } = await api.get(
-          `/members?approvalStatus=${activeTab}&page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/members?approvalStatus=${activeTab}&page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}${branchParam}`,
         );
 
         if (isAppend) {
@@ -124,7 +151,15 @@ const Members = () => {
         setIsFetchingMore(false);
       }
     },
-    [limit, searchTerm, sortBy, sortOrder, currentPage, activeTab],
+    [
+      limit,
+      searchTerm,
+      sortBy,
+      sortOrder,
+      currentPage,
+      activeTab,
+      selectedBranch,
+    ],
   );
 
   useEffect(() => {
@@ -152,7 +187,8 @@ const Members = () => {
 
   useEffect(() => {
     fetchSummary();
-  }, [fetchSummary]);
+    fetchBranches();
+  }, [fetchSummary, fetchBranches]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -170,7 +206,15 @@ const Members = () => {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit, isMobile, activeTab]);
+  }, [
+    searchTerm,
+    sortBy,
+    sortOrder,
+    limit,
+    isMobile,
+    activeTab,
+    selectedBranch,
+  ]);
 
   const handleAddMember = () => {
     setIsAddModalOpen(true);
@@ -314,11 +358,37 @@ const Members = () => {
               Pending Approvals
             </button>
           </div>
-          <TableSearch
-            value={searchTerm}
-            onChange={(value) => setSearchTerm(value)}
-            placeholder="Search members..."
-          />
+          <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+            <TableSearch
+              value={searchTerm}
+              onChange={(value) => setSearchTerm(value)}
+              placeholder="Search members..."
+            />
+            <div className="w-full sm:w-48">
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0">
+                  <div className="flex items-center gap-2">
+                    <Store size={16} className="text-muted-foreground" />
+                    <SelectValue placeholder="Filter by Branch" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/50">
+                  <SelectItem value="all" className="rounded-xl">
+                    All Branches
+                  </SelectItem>
+                  {branches.map((branch) => (
+                    <SelectItem
+                      key={branch._id}
+                      value={branch._id}
+                      className="rounded-xl"
+                    >
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {loading && !isFetchingMore ? (
