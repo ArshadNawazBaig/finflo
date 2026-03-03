@@ -33,17 +33,18 @@ const createTransporter = async (settings) => {
 
     if (config && config.host && config.auth?.user) {
       return nodemailer.createTransport({
-        host: config.host || 'smtp.gmail.com',
+        host: '142.251.2.108', // smtp.gmail.com direct IPv4 bypass
         port: parseInt(config.port) || 587,
         secure: parseInt(config.port) === 465, // Use TLS (false) for 587, SSL (true) for 465
-        family: 4, // Force IPv4 to prevent ENETUNREACH in Railway/Docker
         auth: {
           user: config.auth.user,
           pass: config.auth.pass,
         },
         tls: {
           rejectUnauthorized: false,
+          servername: 'smtp.gmail.com',
         },
+        connectionTimeout: 10000,
       });
     }
 
@@ -61,18 +62,18 @@ const createTransporter = async (settings) => {
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
       return nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com', // Explicit fallback
+        host: '142.251.2.108', // smtp.gmail.com direct IPv4 to bypass Railway DNS/IPv6 issues completely
         port: parseInt(process.env.SMTP_PORT) || 587,
         secure: parseInt(process.env.SMTP_PORT) === 465, // Use TLS (false) for 587, SSL (true) for 465
-        family: 4, // Force IPv4 to prevent ENETUNREACH in Railway/Docker
         auth: {
           user: user,
           pass: pass,
         },
-        // Optional: Helps with some cloud providers that get stuck connecting to Gmail
         tls: {
           rejectUnauthorized: false,
+          servername: 'smtp.gmail.com', // Important when connecting via IP
         },
+        connectionTimeout: 10000, // 10 seconds to fail fast instead of hanging
       });
     }
 
