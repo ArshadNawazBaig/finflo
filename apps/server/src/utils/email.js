@@ -59,11 +59,14 @@ const createTransporter = async (settings) => {
       return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT || 587,
-        secure:
-          process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT == 465,
+        secure: process.env.SMTP_PORT == 465, // Use TLS (false) for 587, SSL (true) for 465
         auth: {
           user: user,
           pass: pass,
+        },
+        // Optional: Helps with some cloud providers that get stuck connecting to Gmail
+        tls: {
+          rejectUnauthorized: false,
         },
       });
     }
