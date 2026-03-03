@@ -16,7 +16,7 @@ import {
   Play,
   StopCircle,
 } from 'lucide-react';
-import { io } from 'socket.io-client';
+import { useSocket } from '@/context/SocketContext';
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
@@ -25,7 +25,6 @@ import { unreadChatCountAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { SOCKET_URL } from '@/lib/constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -287,182 +286,167 @@ const Chat = () => {
     activeConvRef.current = activeConv;
   }, [activeConv]);
 
-  // ── Init socket ──────────────────────────────────────────────────────────
-  // ── Init socket ──────────────────────────────────────────────────────────
+  // ── Use shared socket from SocketContext (one socket per session) ──────────
+  const { socketRef: sharedRef, connected } = useSocket() || {};
+
   useEffect(() => {
-    let socket;
-    const timer = setTimeout(() => {
-      const socketOpts = {
-        withCredentials: true, // sends HTTP-only cookie through Vite proxy (same origin)
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 5,
-        timeout: 10000,
-      };
-      // Also pass token in auth if available (belt-and-suspenders)
-      if (token) socketOpts.auth = { token };
+    const socket = sharedRef?.current;
+    if (!socket) return;
 
-      socket = io(SOCKET_URL, socketOpts);
+    // Sync local ref so typing/recording emitters can access it
+    socketRef.current = socket;
 
-      socketRef.current = socket;
+    // ── Presence helper ──────────────────────────────────────────────────────
+    const setOnline = (userId, online) => {
+      const uId = userId?.toString();
+      setContacts((prev) =>
+        prev.map((c) =>
+          c._id?.toString() === uId ? { ...c, isOnline: online } : c,
+        ),
+      );
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.participant?._id?.toString() === uId
+            ? { ...c, participant: { ...c.participant, isOnline: online } }
+            : c,
+        ),
+      );
+      setActiveConv((prev) =>
+        prev?.participant?._id?.toString() === uId
+          ? { ...prev, participant: { ...prev.participant, isOnline: online } }
+          : prev,
+      );
+    };
 
-      socket.on('connect_error', (err) => {
-        console.error('[Socket] Connection Error:', err.message);
-      });
-
-      // ── Presence helpers ────────────────────────────────────────────────────
-      const setOnline = (userId, online) => {
-        const uId = userId?.toString();
-        setContacts((prev) =>
-          prev.map((c) =>
-            c._id?.toString() === uId ? { ...c, isOnline: online } : c,
-          ),
-        );
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.participant?._id?.toString() === uId
-              ? { ...c, participant: { ...c.participant, isOnline: online } }
-              : c,
-          ),
-        );
-        setActiveConv((prev) =>
-          prev?.participant?._id?.toString() === uId
+    // ── Presence events ──────────────────────────────────────────────────────
+    const onPresenceList = (list) => {
+      const onlineSet = new Set(list.map((u) => u.userId?.toString()));
+      presenceRef.current = onlineSet;
+      setContacts((prev) =>
+        prev.map((c) => ({ ...c, isOnline: onlineSet.has(c._id?.toString()) })),
+      );
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.participant
             ? {
-                ...prev,
-                participant: { ...prev.participant, isOnline: online },
+                ...c,
+                participant: {
+                  ...c.participant,
+                  isOnline: onlineSet.has(c.participant._id?.toString()),
+                },
               }
-            : prev,
-        );
-      };
-
-      socket.on('user:presence_list', (list) => {
-        const onlineSet = new Set(list.map((u) => u.userId?.toString()));
-        presenceRef.current = onlineSet;
-
-        setContacts((prev) =>
-          prev.map((c) => ({
-            ...c,
-            isOnline: onlineSet.has(c._id?.toString()),
-          })),
-        );
-
-        setConversations((prev) =>
-          prev.map((c) => {
-            if (!c.participant) return c;
-            return {
-              ...c,
+            : c,
+        ),
+      );
+      setActiveConv((prev) =>
+        prev?.participant
+          ? {
+              ...prev,
               participant: {
-                ...c.participant,
-                isOnline: onlineSet.has(c.participant._id?.toString()),
+                ...prev.participant,
+                isOnline: onlineSet.has(prev.participant._id?.toString()),
               },
-            };
-          }),
-        );
+            }
+          : prev,
+      );
+    };
+    const onOnline = ({ userId }) => {
+      presenceRef.current.add(userId);
+      setOnline(userId, true);
+    };
+    const onOffline = ({ userId }) => {
+      presenceRef.current.delete(userId);
+      setOnline(userId, false);
+    };
+    const onTyping = ({ conversationId, userId }) =>
+      setTypingUser({ conversationId, userId });
+    const onStopTyping = () => setTypingUser(null);
+    const onRecording = ({ conversationId, userId }) =>
+      setRecordingUser({ conversationId, userId });
+    const onStopRecording = () => setRecordingUser(null);
 
-        setActiveConv((prev) => {
-          if (!prev?.participant) return prev;
-          return {
-            ...prev,
-            participant: {
-              ...prev.participant,
-              isOnline: onlineSet.has(prev.participant._id?.toString()),
-            },
-          };
+    // ── Message events ───────────────────────────────────────────────────────
+    const onMessageNew = ({ conversationId, message, unreadCount }) => {
+      const cur = activeConvRef.current;
+      if (cur?._id === conversationId) {
+        setMessages((prev) => {
+          const id = String(message._id);
+          return prev.some((m) => String(m._id) === id)
+            ? prev
+            : [...prev, message];
         });
-      });
-
-      socket.on('user:online', ({ userId }) => {
-        presenceRef.current.add(userId);
-        setOnline(userId, true);
-      });
-      socket.on('user:offline', ({ userId }) => {
-        presenceRef.current.delete(userId);
-        setOnline(userId, false);
-      });
-      socket.on('user:typing', ({ conversationId, userId }) => {
-        setTypingUser({ conversationId, userId });
-      });
-      socket.on('user:stop-typing', () => {
-        setTypingUser(null);
-      });
-      socket.on('user:recording', ({ conversationId, userId }) => {
-        setRecordingUser({ conversationId, userId });
-      });
-      socket.on('user:stop-recording', () => {
-        setRecordingUser(null);
-      });
-
-      socket.on('message:new', ({ conversationId, message, unreadCount }) => {
-        const currentActiveConv = activeConvRef.current;
-        if (currentActiveConv?._id === conversationId) {
-          setMessages((prev) => {
-            const msgId = String(message._id);
-            if (prev.some((m) => String(m._id) === msgId)) return prev;
-            return [...prev, message];
-          });
-          setTimeout(scrollToBottom, 100);
-          api
-            .post(`/chat/conversations/${conversationId}/read`)
-            .catch(() => {});
-        }
-
-        setConversations((prev) =>
-          prev.map((c) =>
-            c._id === conversationId
-              ? {
-                  ...c,
-                  lastMessage: message,
-                  lastActivity: message.createdAt,
-                  // Use server-provided count if available, else preserve existing
-                  unreadCount:
-                    currentActiveConv?._id === conversationId
-                      ? 0
-                      : typeof unreadCount === 'number'
-                        ? unreadCount
-                        : (c.unreadCount || 0) + 1,
-                }
-              : c,
+        setTimeout(scrollToBottom, 100);
+        api.post(`/chat/conversations/${conversationId}/read`).catch(() => {});
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c._id === conversationId
+            ? {
+                ...c,
+                lastMessage: message,
+                lastActivity: message.createdAt,
+                unreadCount:
+                  cur?._id === conversationId
+                    ? 0
+                    : typeof unreadCount === 'number'
+                      ? unreadCount
+                      : (c.unreadCount || 0) + 1,
+              }
+            : c,
+        ),
+      );
+    };
+    const onMessageEdited = ({ conversationId, message }) => {
+      if (activeConvRef.current?._id === conversationId)
+        setMessages((prev) =>
+          prev.map((m) => (m._id === message._id ? message : m)),
+        );
+    };
+    const onMessageDeleted = ({ conversationId, messageId }) => {
+      if (activeConvRef.current?._id === conversationId)
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._id === messageId ? { ...m, isDeleted: true } : m,
           ),
         );
-      });
-
-      socket.on('message:edited', ({ conversationId, message }) => {
-        if (activeConvRef.current?._id === conversationId) {
-          setMessages((prev) =>
-            prev.map((m) => (m._id === message._id ? message : m)),
-          );
-        }
-      });
-
-      socket.on('message:deleted', ({ conversationId, messageId }) => {
-        if (activeConvRef.current?._id === conversationId) {
-          setMessages((prev) =>
-            prev.map((m) =>
-              m._id === messageId ? { ...m, isDeleted: true } : m,
-            ),
-          );
-        }
-      });
-      socket.on('conversation:deleted', ({ conversationId }) => {
-        setConversations((prev) =>
-          prev.filter((c) => c._id !== conversationId),
-        );
-        if (activeConvRef.current?._id === conversationId) {
-          setActiveConv(null);
-          setMessages([]);
-          setShowThread(false);
-          toast.info('Conversation was deleted');
-        }
-      });
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (socket) {
-        socket.disconnect();
+    };
+    const onConvDeleted = ({ conversationId }) => {
+      setConversations((prev) => prev.filter((c) => c._id !== conversationId));
+      if (activeConvRef.current?._id === conversationId) {
+        setActiveConv(null);
+        setMessages([]);
+        setShowThread(false);
+        toast.info('Conversation was deleted');
       }
     };
+
+    socket.on('user:presence_list', onPresenceList);
+    socket.on('user:online', onOnline);
+    socket.on('user:offline', onOffline);
+    socket.on('user:typing', onTyping);
+    socket.on('user:stop-typing', onStopTyping);
+    socket.on('user:recording', onRecording);
+    socket.on('user:stop-recording', onStopRecording);
+    socket.on('message:new', onMessageNew);
+    socket.on('message:edited', onMessageEdited);
+    socket.on('message:deleted', onMessageDeleted);
+    socket.on('conversation:deleted', onConvDeleted);
+
+    return () => {
+      socket.off('user:presence_list', onPresenceList);
+      socket.off('user:online', onOnline);
+      socket.off('user:offline', onOffline);
+      socket.off('user:typing', onTyping);
+      socket.off('user:stop-typing', onStopTyping);
+      socket.off('user:recording', onRecording);
+      socket.off('user:stop-recording', onStopRecording);
+      socket.off('message:new', onMessageNew);
+      socket.off('message:edited', onMessageEdited);
+      socket.off('message:deleted', onMessageDeleted);
+      socket.off('conversation:deleted', onConvDeleted);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [connected]);
 
   // ── Load conversations and contacts on mount ─────────────────────────────
   useEffect(() => {
