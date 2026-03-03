@@ -16,7 +16,9 @@ const generateToken = (id) => {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  // SameSite=None required for cross-origin (Vercel frontend → Railway backend)
+  // SameSite=Lax is fine for same-origin (local dev)
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge: 24 * 60 * 60 * 1000,
 };
 
@@ -660,7 +662,9 @@ const verifyLogin2FA = async (req, res) => {
       req,
     });
 
-    res.cookie('token', generateToken(member._id), cookieOptions).json({
+    const newToken = generateToken(member._id);
+    res.cookie('token', newToken, cookieOptions).json({
+      token: newToken,
       _id: member._id,
       name: member.name,
       email: member.email,
