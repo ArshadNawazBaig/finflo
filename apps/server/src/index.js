@@ -92,9 +92,13 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
 app.use('/api/member-auth/login', authLimiter);
 
-// Restrict CORS to CLIENT_URL and mobile dev origins
+// Restrict CORS to CLIENT_URL and known allowed origins
+const productionUrl =
+  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
+
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app',
+  productionUrl,
+  'https://loan-master-client.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
@@ -106,13 +110,14 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Debug log for EVERY request with an origin
-    if (origin) console.log(`CORS Preflight/Request from origin: ${origin}`);
+    if (origin)
+      console.log(`CORS request from: ${origin} | Allowed: ${productionUrl}`);
 
-    // Check if origin is allowed
     const isAllowed =
       !origin ||
       allowedOrigins.includes(origin) ||
+      // Allow all Vercel preview deployments (*.vercel.app)
+      /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/.test(origin) ||
       (process.env.NODE_ENV !== 'production' &&
         (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
           /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
@@ -123,6 +128,7 @@ const corsOptions = {
     if (isAllowed) {
       callback(null, true);
     } else {
+      console.error(`CORS BLOCKED: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -132,7 +138,7 @@ const corsOptions = {
     'Authorization',
     'X-Requested-With',
     'Accept',
-    'Cookie', // needed for cross-origin HTTP-only cookie auth (Railway ↔ Vercel)
+    'Cookie',
     'cookie',
   ],
   exposedHeaders: ['set-cookie'],
