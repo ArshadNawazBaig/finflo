@@ -224,7 +224,7 @@ const Dashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* ── Page Header ──────────────────────────────────────── */}
       <PageHeader
-        title="Financial Intelligence"
+        title="Financial Dashboard"
         description={
           <>
             Welcome back,{' '}

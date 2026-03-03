@@ -201,7 +201,10 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             isExpanded={isLayoutExpanded}
           />
 
-          <CategoryHeader label="Users" isExpanded={isLayoutExpanded} />
+          <CategoryHeader
+            label="Users Management"
+            isExpanded={isLayoutExpanded}
+          />
           {hasAnyPermission(['view_all', 'manage_members']) && (
             <NavItem
               to="/customers"
@@ -239,7 +242,10 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             />
           )}
 
-          <CategoryHeader label="Lending" isExpanded={isLayoutExpanded} />
+          <CategoryHeader
+            label="Loans Management"
+            isExpanded={isLayoutExpanded}
+          />
           {hasPermission('manage_loans') && (
             <NavItem
               to="/loan-requests"
