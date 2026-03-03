@@ -147,6 +147,26 @@ const createCustomer = async (req, res) => {
       }
     }
 
+    // Upload nominee CNIC image to Cloudinary
+    let nomineeCnicImageUrl = '';
+    if (
+      req.body.nominee?.cnicImage &&
+      req.body.nominee.cnicImage.startsWith('data:image')
+    ) {
+      try {
+        const uploadResult = await uploadSignature(
+          req.body.nominee.cnicImage,
+          'nominee_cnics',
+        );
+        nomineeCnicImageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Nominee CNIC Upload Error:', uploadError);
+        return res
+          .status(500)
+          .json({ message: 'Failed to upload nominee CNIC image' });
+      }
+    }
+
     const customer = new Customer({
       user: req.user.effectiveOwnerId,
       branchId: finalBranchId,
@@ -161,6 +181,10 @@ const createCustomer = async (req, res) => {
       jobDetail,
       monthlyIncome,
       signature: signatureUrl,
+      nominee: {
+        ...req.body.nominee,
+        cnicImage: nomineeCnicImageUrl,
+      },
     });
 
     const createdCustomer = await customer.save();
@@ -261,6 +285,30 @@ const updateCustomer = async (req, res) => {
       }
     }
 
+    // Handle nominee CNIC image update
+    let nomineeCnicImageUrl = customer.nominee?.cnicImage;
+    if (
+      req.body.nominee?.cnicImage &&
+      req.body.nominee.cnicImage.startsWith('data:image')
+    ) {
+      try {
+        // Delete old image if it exists
+        if (customer.nominee?.cnicImage) {
+          await deleteCloudinaryFileByUrl(customer.nominee.cnicImage);
+        }
+        const uploadResult = await uploadSignature(
+          req.body.nominee.cnicImage,
+          'nominee_cnics',
+        );
+        nomineeCnicImageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Nominee CNIC Image Update Error:', uploadError);
+        return res
+          .status(500)
+          .json({ message: 'Failed to update nominee CNIC image' });
+      }
+    }
+
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
       {
@@ -268,6 +316,10 @@ const updateCustomer = async (req, res) => {
         name: name?.toLowerCase(),
         email: email?.toLowerCase(),
         signature: signatureUrl,
+        nominee: {
+          ...req.body.nominee,
+          cnicImage: nomineeCnicImageUrl,
+        },
         // Ensure user/owner cannot be changed via update
         user: customer.user,
       },
@@ -335,6 +387,16 @@ const deleteCustomer = async (req, res) => {
       req.user.role !== 'super_admin'
     ) {
       return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Delete signature from Cloudinary
+    if (customer.signature) {
+      await deleteCloudinaryFileByUrl(customer.signature);
+    }
+
+    // Delete nominee CNIC image from Cloudinary
+    if (customer.nominee?.cnicImage) {
+      await deleteCloudinaryFileByUrl(customer.nominee.cnicImage);
     }
 
     // Delete all customer documents from Cloudinary

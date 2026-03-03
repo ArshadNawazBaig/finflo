@@ -12,6 +12,7 @@ import {
   UserPlus,
   ArrowUpRight,
   BarChart3,
+  FileText,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import {
@@ -70,10 +71,10 @@ const QUICK_ACTIONS = [
     accent: 'text-primary',
   },
   {
-    label: 'Add Member',
-    description: 'Register a new member',
-    icon: <UserPlus size={22} />,
-    route: '/members',
+    label: 'Loan Requests',
+    description: 'View loan requests',
+    icon: <FileText size={22} />,
+    route: '/loan-requests',
     permission: 'manage_members',
     altPermission: 'create_member',
     iconBg: 'bg-blue-500',

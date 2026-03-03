@@ -31,6 +31,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     jobDetail: '',
     monthlyIncome: '',
     signature: '',
+    nominee: { name: '', cnic: '', relation: '' },
   });
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -108,6 +109,31 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     setFormData({ ...formData, cnic: formatCNIC(e.target.value) });
   };
 
+  const handleNomineeCNICChange = (e) => {
+    setFormData({
+      ...formData,
+      nominee: { ...formData.nominee, cnic: formatCNIC(e.target.value) },
+    });
+  };
+
+  const handleNomineeImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('CNIC image exceeds 2MB limit');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({
+          ...formData,
+          nominee: { ...formData.nominee, cnicImage: reader.result },
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const emailValidation = validateEmail(formData.email);
@@ -135,6 +161,11 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
       address: formData.address || undefined,
       branchId: formData.branchId || undefined,
       signature: formData.signature || undefined,
+      nominee: {
+        name: formData.nominee.name || '',
+        cnic: formData.nominee.cnic || '',
+        relation: formData.nominee.relation || '',
+      },
     };
 
     try {
@@ -169,6 +200,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
         jobDetail: '',
         monthlyIncome: '',
         signature: '',
+        nominee: { name: '', cnic: '', relation: '' },
       });
       setFiles([]);
     } catch (err) {
@@ -406,6 +438,115 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
                         Gen
                       </Button>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Nominee Information */}
+              <div className="space-y-3 p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20">
+                <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 px-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                  Nominee Information
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                      Nominee Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.nominee.name}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          nominee: {
+                            ...formData.nominee,
+                            name: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Full name of nominee"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                      Nominee CNIC
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.nominee.cnic}
+                      onChange={handleNomineeCNICChange}
+                      placeholder="00000-0000000-0"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Relation to Customer
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nominee.relation}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        nominee: {
+                          ...formData.nominee,
+                          relation: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="e.g. Spouse, Father, Son"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Nominee CNIC Image
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    {formData.nominee.cnicImage && (
+                      <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-border/50 bg-white shadow-sm flex items-center justify-center p-2">
+                        <img
+                          src={formData.nominee.cnicImage}
+                          alt="CNIC Preview"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              nominee: { ...formData.nominee, cnicImage: '' },
+                            })
+                          }
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-white hover:scale-110 transition-transform shadow-lg"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                    <div className="relative group p-4 border-2 border-dashed border-border/50 rounded-[1.5rem] bg-background/50 text-center hover:bg-muted/10 transition-all overflow-hidden">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleNomineeImageChange}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="flex flex-col items-center gap-1">
+                        <Upload
+                          size={16}
+                          className="text-muted-foreground group-hover:text-amber-500 transition-colors"
+                        />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {formData.nominee.cnicImage
+                            ? 'Replace CNIC Image'
+                            : 'Upload CNIC Front'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

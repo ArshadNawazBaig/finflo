@@ -298,6 +298,68 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer, onUpdate }) => {
               )}
             </div>
 
+            {/* Nominee Details */}
+            {(customer.nominee?.name ||
+              customer.nominee?.cnic ||
+              customer.nominee?.relation) && (
+              <div className="p-4 rounded-[1.5rem] bg-amber-500/5 border border-amber-500/20 space-y-3">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                  Nominee Details
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
+                      Nominee Name
+                    </p>
+                    <p className="text-sm font-black capitalize">
+                      {customer.nominee?.name || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
+                      Nominee CNIC
+                    </p>
+                    <p className="text-sm font-black font-mono">
+                      {customer.nominee?.cnic || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1 col-span-2 md:col-span-1">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
+                      Relation
+                    </p>
+                    <p className="text-sm font-black capitalize">
+                      {customer.nominee?.relation || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {customer.nominee?.cnicImage && (
+                  <div className="pt-3 border-t border-amber-500/10 space-y-2">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
+                      Nominee CNIC Image
+                    </p>
+                    <a
+                      href={customer.nominee.cnicImage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block relative h-32 w-full rounded-xl border border-amber-500/20 bg-white overflow-hidden group/cnic"
+                    >
+                      <img
+                        src={customer.nominee.cnicImage}
+                        alt="Nominee CNIC"
+                        className="w-full h-full object-contain p-2 group-hover/cnic:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cnic:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-[10px] text-white font-black uppercase tracking-widest">
+                          View Full Image
+                        </p>
+                      </div>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Make Member Section */}
             {!customer.isMember && !showMemberForm && (
               <Button

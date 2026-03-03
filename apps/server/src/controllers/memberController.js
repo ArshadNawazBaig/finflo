@@ -18,7 +18,10 @@ const {
   notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
-const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const {
+  deleteCloudinaryFileByUrl,
+  uploadSignature,
+} = require('../utils/cloudinaryHelper');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
 const {
   transactionEmail,
@@ -223,7 +226,7 @@ const getMembers = async (req, res) => {
       .populate('branchId', 'name')
       .populate(
         'customer',
-        'name email savingAccountNumber currentAccountNumber',
+        'name email savingAccountNumber currentAccountNumber nominee',
       );
 
     const count = await Member.countDocuments(query);
@@ -300,7 +303,7 @@ const getMemberById = async (req, res) => {
 
     const member = await Member.findOne(
       req.user.role === 'super_admin' ? { _id: id } : { _id: id, user: userId },
-    ).populate('customer', 'name email phone');
+    ).populate('customer', 'name email phone nominee');
 
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
@@ -515,6 +518,7 @@ const updateMember = async (req, res) => {
       profitRate,
       jobDetail,
       signature,
+      nominee,
     } = req.body;
 
     if (email) {
@@ -542,6 +546,41 @@ const updateMember = async (req, res) => {
       }
     }
 
+    // Handle nominee CNIC image update
+    let nomineeCnicImageUrl = member.nominee?.cnicImage;
+
+    // We need to fetch the customer to get the current nominee image if we want to delete it
+    // But member.customer is not populated here. Let's populate it if needed or just use the one from req.body
+
+    // Actually, nominee lives on CUSTOMER.
+    // In memberController, we just sync it.
+    // Let's get the customer first to handle image deletion if needed.
+    let linkedCustomer = null;
+    if (member.customer) {
+      linkedCustomer = await Customer.findById(member.customer);
+    }
+
+    if (nominee?.cnicImage && nominee.cnicImage.startsWith('data:image')) {
+      try {
+        // Delete old image if it exists on linked customer
+        if (linkedCustomer?.nominee?.cnicImage) {
+          await deleteCloudinaryFileByUrl(linkedCustomer.nominee.cnicImage);
+        }
+        const uploadResult = await uploadSignature(
+          nominee.cnicImage,
+          'nominee_cnics',
+        );
+        nomineeCnicImageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Nominee CNIC Image Update Error:', uploadError);
+        return res
+          .status(500)
+          .json({ message: 'Failed to update nominee CNIC image' });
+      }
+    } else if (linkedCustomer?.nominee?.cnicImage) {
+      nomineeCnicImageUrl = linkedCustomer.nominee.cnicImage;
+    }
+
     const updatedMember = await Member.findByIdAndUpdate(
       id,
       {
@@ -560,12 +599,21 @@ const updateMember = async (req, res) => {
 
     // Sync with Customer if linked
     if (updatedMember.customer) {
-      await Customer.findByIdAndUpdate(updatedMember.customer, {
+      const customerUpdate = {
         name: name?.toLowerCase(),
         email: email?.toLowerCase(),
         phone,
         address,
-      });
+      };
+
+      if (nominee) {
+        customerUpdate.nominee = {
+          ...nominee,
+          cnicImage: nomineeCnicImageUrl,
+        };
+      }
+
+      await Customer.findByIdAndUpdate(updatedMember.customer, customerUpdate);
     }
 
     // Log activity

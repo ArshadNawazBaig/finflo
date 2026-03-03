@@ -35,7 +35,8 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(require('cookie-parser')());
 
 // Socket.io instance placeholder for middleware

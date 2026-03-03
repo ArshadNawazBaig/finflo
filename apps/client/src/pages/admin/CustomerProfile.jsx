@@ -56,8 +56,15 @@ const CustomerProfileSkeleton = () => (
       ))}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div className="lg:col-span-8 h-[500px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-      <div className="lg:col-span-4 h-[500px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      <div className="lg:col-span-8 space-y-8">
+        <div className="h-[400px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+        <div className="h-[300px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      </div>
+      <div className="lg:col-span-4 space-y-8">
+        <div className="h-[300px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+        <div className="h-[220px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+        <div className="h-[140px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      </div>
     </div>
   </div>
 );
@@ -334,6 +341,72 @@ const CustomerProfile = () => {
                   )}
                 </div>
               </div>
+
+              {/* Nominee Details Card */}
+              {(customer.nominee?.name ||
+                customer.nominee?.cnic ||
+                customer.nominee?.relation) && (
+                <div className="bg-white dark:bg-slate-900 border border-amber-500/30 p-8 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-black tracking-tighter">
+                      Nominee Details
+                    </h3>
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Full Name
+                      </span>
+                      <span className="text-sm font-black capitalize">
+                        {customer.nominee?.name || 'Not provided'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        CNIC
+                      </span>
+                      <span className="text-sm font-black font-mono">
+                        {customer.nominee?.cnic || 'Not provided'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Relation
+                      </span>
+                      <span className="text-sm font-black capitalize">
+                        {customer.nominee?.relation || 'Not provided'}
+                      </span>
+                    </div>
+
+                    {customer.nominee?.cnicImage && (
+                      <div className="md:col-span-3 pt-4 border-t border-border/10 space-y-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          CNIC Image
+                        </span>
+                        <a
+                          href={customer.nominee.cnicImage}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block relative h-48 w-full md:w-1/2 rounded-2xl border border-border/50 bg-white dark:bg-slate-800 overflow-hidden group/nom-cnic shadow-sm hover:border-amber-500/50 transition-colors"
+                        >
+                          <img
+                            src={customer.nominee.cnicImage}
+                            alt="Nominee CNIC"
+                            className="w-full h-full object-contain p-3 group-hover/nom-cnic:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/nom-cnic:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-[10px] text-white font-black uppercase tracking-widest">
+                              Click to Enlarge
+                            </span>
+                          </div>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar Components */}

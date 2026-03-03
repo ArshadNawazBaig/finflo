@@ -30,6 +30,7 @@ import {
   Building2,
   BadgeDollarSign,
   PieChart,
+  ImagePlus,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -64,9 +65,16 @@ const MemberProfileSkeleton = () => (
       <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
       <div className="h-32 rounded-[2rem] border border-border/50 bg-card/50 shadow-sm" />
     </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
-      <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="lg:col-span-8 space-y-8">
+        <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+        <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+        <div className="h-[300px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      </div>
+      <div className="lg:col-span-4 space-y-8">
+        <div className="h-[400px] rounded-[2.5rem] border border-border/50 bg-card/50 shadow-sm" />
+        <div className="h-[220px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      </div>
     </div>
   </div>
 );
@@ -109,6 +117,12 @@ const MemberProfile = () => {
     shareProfitRate: '',
     jobDetail: '',
     signature: '',
+    nominee: {
+      name: '',
+      cnic: '',
+      relation: '',
+      cnicImage: '',
+    },
   });
   const [useShareCustomRates, setUseShareCustomRates] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -248,6 +262,12 @@ const MemberProfile = () => {
         shareProfitRate: memberRes.data.shareProfitRate || 0,
         jobDetail: memberRes.data.jobDetail || '',
         signature: memberRes.data.signature || '',
+        nominee: {
+          name: memberRes.data.customer?.nominee?.name || '',
+          cnic: memberRes.data.customer?.nominee?.cnic || '',
+          relation: memberRes.data.customer?.nominee?.relation || '',
+          cnicImage: memberRes.data.customer?.nominee?.cnicImage || '',
+        },
       });
 
       const investmentData = investmentsRes.data || {};
@@ -994,8 +1014,159 @@ const MemberProfile = () => {
                         onChange={(e) =>
                           setEditForm({ ...editForm, address: e.target.value })
                         }
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
+                    </div>
+
+                    {/* Nominee Details Section */}
+                    <div className="col-span-2 space-y-6 pt-4 border-t border-border/10">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                          Nominee Information
+                        </h4>
+                        <div className="h-px flex-1 bg-primary/10 ml-4" />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Nominee Name
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.nominee.name}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                nominee: {
+                                  ...editForm.nominee,
+                                  name: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            placeholder="Full Name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Nominee CNIC
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.nominee.cnic}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                nominee: {
+                                  ...editForm.nominee,
+                                  cnic: formatCNIC(e.target.value),
+                                },
+                              })
+                            }
+                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                            placeholder="XXXXX-XXXXXXX-X"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Relation
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.nominee.relation}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                nominee: {
+                                  ...editForm.nominee,
+                                  relation: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                            placeholder="e.g. Brother, Wife"
+                          />
+                        </div>
+
+                        <div className="md:col-span-3 space-y-4">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 block">
+                            Nominee CNIC Image
+                          </label>
+
+                          <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                            {editForm.nominee.cnicImage && (
+                              <div className="relative group/nom-img">
+                                <div className="h-32 w-48 rounded-2xl border border-border/50 bg-white shadow-sm overflow-hidden">
+                                  <img
+                                    src={editForm.nominee.cnicImage}
+                                    alt="Nominee CNIC"
+                                    className="w-full h-full object-contain p-2"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditForm({
+                                      ...editForm,
+                                      nominee: {
+                                        ...editForm.nominee,
+                                        cnicImage: '',
+                                      },
+                                    })
+                                  }
+                                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover/nom-img:opacity-100 transition-opacity"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="flex-1 w-full">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                id="nominee-cnic-edit"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setEditForm({
+                                        ...editForm,
+                                        nominee: {
+                                          ...editForm.nominee,
+                                          cnicImage: reader.result,
+                                        },
+                                      });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor="nominee-cnic-edit"
+                                className="flex flex-col items-center justify-center h-32 w-full border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/5 hover:bg-primary/5 hover:border-primary/30 transition-all cursor-pointer group"
+                              >
+                                <div className="flex flex-col items-center gap-2">
+                                  <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-muted-foreground group-hover:text-primary transition-colors">
+                                    <ImagePlus size={24} strokeWidth={1.5} />
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                                    {editForm.nominee.cnicImage
+                                      ? 'Change Image'
+                                      : 'Upload Nominee CNIC'}
+                                  </span>
+                                </div>
+                              </label>
+                              <p className="text-[9px] text-muted-foreground mt-3 px-2 leading-relaxed">
+                                Upload a clear photo of the nominee's CNIC
+                                (Front or Back). Supported: JPG, PNG, WEBP.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 col-span-2 gap-6">
@@ -1628,6 +1799,72 @@ const MemberProfile = () => {
               )}
             </div>
           </div>
+
+          {/* Nominee Details Card */}
+          {(member.customer?.nominee?.name ||
+            member.customer?.nominee?.cnic ||
+            member.customer?.nominee?.relation) && (
+            <div className="bg-white dark:bg-slate-900 border border-amber-500/30 p-8 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6 mt-8">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black tracking-tighter">
+                  Nominee Details
+                </h3>
+                <div className="w-2 h-2 rounded-full bg-amber-400" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Full Name
+                  </span>
+                  <span className="text-sm font-black capitalize">
+                    {member.customer?.nominee?.name || 'Not provided'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    CNIC
+                  </span>
+                  <span className="text-sm font-black font-mono">
+                    {member.customer?.nominee?.cnic || 'Not provided'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Relation
+                  </span>
+                  <span className="text-sm font-black capitalize">
+                    {member.customer?.nominee?.relation || 'Not provided'}
+                  </span>
+                </div>
+
+                {member.customer?.nominee?.cnicImage && (
+                  <div className="md:col-span-3 pt-4 border-t border-border/10 space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      CNIC Image
+                    </span>
+                    <a
+                      href={member.customer.nominee.cnicImage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block relative h-48 w-full md:w-1/2 rounded-2xl border border-border/50 bg-white dark:bg-slate-800 overflow-hidden group/nom-cnic shadow-sm hover:border-amber-500/50 transition-colors"
+                    >
+                      <img
+                        src={member.customer.nominee.cnicImage}
+                        alt="Nominee CNIC"
+                        className="w-full h-full object-contain p-3 group-hover/nom-cnic:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/nom-cnic:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-[10px] text-white font-black uppercase tracking-widest">
+                          Click to Enlarge
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── Business Share Section ─────────────────────────────── */}
           <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-violet-500/20 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
