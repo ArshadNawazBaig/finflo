@@ -47,7 +47,15 @@ const createTransporter = async (settings) => {
     const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
     const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
 
+    console.log('[SMTP CONFIG] DB config found:', !!(config && config.host));
+    console.log('[SMTP CONFIG] Env Host:', !!process.env.SMTP_HOST);
+    console.log('[SMTP CONFIG] Env User:', !!user);
+    console.log('[SMTP CONFIG] Env Pass:', !!pass);
+
     if (process.env.SMTP_HOST && user) {
+      console.log(
+        '[SMTP CONFIG] Using environment variables for SMTP fallback.',
+      );
       return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT || 587,
@@ -60,6 +68,9 @@ const createTransporter = async (settings) => {
       });
     }
 
+    console.warn(
+      '[SMTP CONFIG] No valid SMTP configuration found in DB or Env.',
+    );
     return null;
   } catch (error) {
     console.error('Failed to configure email transporter', error);
