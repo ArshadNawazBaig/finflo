@@ -28,7 +28,14 @@ const DashboardLayout = () => {
         api.get('/auth/me'),
         api.get('/subscription'),
       ]);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Merge with existing stored entry to preserve the token field.
+      // /auth/me returns profile data but NOT the token — overwriting without
+      // merging strips token from localStorage and breaks subsequent auth.
+      const existing = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem(
+        'user',
+        JSON.stringify({ ...existing, ...userData }),
+      );
       setUser(userData);
 
       setSubscription({

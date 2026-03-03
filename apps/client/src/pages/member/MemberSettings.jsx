@@ -71,11 +71,14 @@ const MemberSettings = () => {
       try {
         const memberToken = localStorage.getItem('member');
         if (!memberToken) return;
-        const { data } = await api.get('/member-auth/me', {
-          headers: { /* Auth header handled by browser cookies */ },
-        });
+        const { data } = await api.get('/member-auth/me');
         setMember(data);
-        localStorage.setItem('member', JSON.stringify(data));
+        // Merge to preserve the token stored at login — /me doesn't return token
+        const existing = JSON.parse(localStorage.getItem('member') || '{}');
+        localStorage.setItem(
+          'member',
+          JSON.stringify({ ...existing, ...data }),
+        );
       } catch (error) {
         console.error('Failed to fetch member data:', error);
       }
@@ -618,7 +621,9 @@ const SecuritySection = ({
                       '/member-auth/2fa/generate',
                       {},
                       {
-                        headers: { /* Auth header handled by browser cookies */ },
+                        headers: {
+                          /* Auth header handled by browser cookies */
+                        },
                       },
                     );
                     setQrCodeData(data.qrCode);
@@ -677,7 +682,9 @@ const SecuritySection = ({
                           '/member-auth/2fa/verify',
                           { code: twoFACode },
                           {
-                            headers: { /* Auth header handled by browser cookies */ },
+                            headers: {
+                              /* Auth header handled by browser cookies */
+                            },
                           },
                         );
                         if (data.success) {
@@ -753,7 +760,9 @@ const SecuritySection = ({
                       '/member-auth/2fa/disable',
                       { password: disable2FAPassword },
                       {
-                        headers: { /* Auth header handled by browser cookies */ },
+                        headers: {
+                          /* Auth header handled by browser cookies */
+                        },
                       },
                     );
                     if (data.success) {
@@ -939,7 +948,9 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
     try {
       const memberToken = localStorage.getItem('member');
       const { data } = await api.put('/member-auth/updatedetails', formData, {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       if (data.success) {
         const updatedMember = { ...member, ...data.data };
@@ -1064,7 +1075,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           newPassword: formData.newPassword,
         },
         {
-          headers: { /* Auth header handled by browser cookies */ },
+          headers: {
+            /* Auth header handled by browser cookies */
+          },
         },
       );
       toast.success('Password updated successfully');
@@ -1192,7 +1205,9 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
     try {
       const memberToken = localStorage.getItem('member');
       await api.delete('/member-auth/deleteaccount', {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       toast.success('Account deleted successfully');
       localStorage.removeItem('member');

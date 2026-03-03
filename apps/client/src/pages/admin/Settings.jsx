@@ -91,7 +91,9 @@ const Settings = () => {
       try {
         const { data } = await api.get('/auth/me');
         setUser(data);
-        localStorage.setItem('user', JSON.stringify(data));
+        // Merge to preserve the token stored at login — /auth/me doesn't return token
+        const existing = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...existing, ...data }));
         window.dispatchEvent(new Event('userUpdated'));
       } catch (error) {
         console.error('Failed to fetch user data:', error);
