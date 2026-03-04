@@ -4,7 +4,7 @@ node_modules/
 # Production
 dist/
 build/
-public/
+/public/
 
 # Environment
 .env
