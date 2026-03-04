@@ -8,7 +8,11 @@ import {
   Zap,
   TrendingUp,
 } from 'lucide-react';
-import { formatCNIC, validateEmail } from '@/lib/utils';
+import {
+  formatCNIC,
+  validateEmail,
+  generateDynamicAccountNumber,
+} from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +33,10 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     address: '',
     initialInvestment: '',
     profitRate: '',
+    savingAccountNumber: '',
+    currentAccountNumber: '',
   });
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,6 +52,12 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const generateAccountNumber = (type = 'savingAccountNumber') => {
+    const prefix = type === 'savingAccountNumber' ? 'SAV' : 'CUR';
+    const result = generateDynamicAccountNumber(user, prefix);
+    setFormData((prev) => ({ ...prev, [type]: result }));
   };
 
   const handleSubmit = async (e) => {
@@ -199,6 +212,57 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   placeholder="Enter complete address..."
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Saving Account
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={formData.savingAccountNumber}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-2 rounded-2xl border border-border/50 bg-background/50 text-xs font-black font-mono focus:outline-none"
+                    />
+                    {!formData.savingAccountNumber && (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          generateAccountNumber('savingAccountNumber')
+                        }
+                        className="rounded-2xl px-3 py-2 text-[10px] h-9"
+                      >
+                        Gen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Current Account
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={formData.currentAccountNumber}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-2 rounded-2xl border border-border/50 bg-background/50 text-xs font-black font-mono focus:outline-none"
+                    />
+                    {!formData.currentAccountNumber && (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          generateAccountNumber('currentAccountNumber')
+                        }
+                        className="rounded-2xl px-3 py-2 text-[10px] h-9"
+                      >
+                        Gen
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">

@@ -932,7 +932,7 @@ const MemberProfile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Full Name (Optional)
+                        Full Name
                       </label>
                       <input
                         type="text"

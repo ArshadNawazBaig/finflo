@@ -997,7 +997,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Full Name (Optional)
+              Full Name
             </label>
             <input
               type="text"
@@ -1005,7 +1005,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
               placeholder="Enter your name"
             />
           </div>

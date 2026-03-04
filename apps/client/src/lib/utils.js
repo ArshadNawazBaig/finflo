@@ -204,3 +204,23 @@ export const copyToClipboard = async (text) => {
     return false;
   }
 };
+
+/**
+ * Generates a standard 13-character account number based on business abbreviation and count
+ * Format: [ABBR]-[100000+count][RANDOM]
+ */
+export const generateDynamicAccountNumber = (user, type = 'SAV') => {
+  const abbr = (user?.businessAbbreviation || type).toUpperCase();
+  const count = (user?.customerCount || 0) + 100001;
+  const base = `${abbr}-${count}`;
+  const remaining = 13 - base.length;
+
+  let randomSuffix = '';
+  if (remaining > 0) {
+    for (let i = 0; i < remaining; i++) {
+      randomSuffix += Math.floor(Math.random() * 10);
+    }
+  }
+
+  return `${base}${randomSuffix}`;
+};

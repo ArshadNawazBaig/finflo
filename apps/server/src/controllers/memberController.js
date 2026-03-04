@@ -386,7 +386,7 @@ const createMember = async (req, res) => {
     }
 
     // Check plan limits
-    const user = await User.findById(userId).select('plan');
+    const user = await User.findById(userId).select('plan customerCount');
     const userPlan = user.plan || 'Free';
 
     // Count existing members for this user
@@ -438,6 +438,12 @@ const createMember = async (req, res) => {
     }
 
     const member = await Member.create(memberData);
+
+    // Update count if it's a new person (not from customer)
+    if (!customerId) {
+      user.customerCount = (user.customerCount || 0) + 1;
+      await user.save();
+    }
 
     // Create initial investment record AND financial transaction if there's an initial investment
     if (initialInvestment && initialInvestment > 0) {
@@ -3027,6 +3033,10 @@ const selfRegister = async (req, res) => {
       approvalStatus: 'pending',
       isActive: false, // Prevents login until approved
     });
+
+    // Update business customer count
+    businessOwner.customerCount = (businessOwner.customerCount || 0) + 1;
+    await businessOwner.save();
 
     // Auto-create a linked Customer account for the member
     try {

@@ -41,6 +41,12 @@ const userSchema = new mongoose.Schema(
     businessName: { type: String, default: '' },
     profilePicture: { type: String, default: '' },
     currency: { type: String, default: 'Rs.' },
+    businessAbbreviation: {
+      type: String,
+      maxlength: 4,
+      uppercase: true,
+      default: '',
+    },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
     stripeCustomerId: { type: String },

@@ -954,6 +954,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     email: user.email || '',
     businessName: user.businessName || '',
     currency: user.currency || 'Rs.',
+    businessAbbreviation: user.businessAbbreviation || '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -964,6 +965,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         email: user.email || '',
         businessName: user.businessName || '',
         currency: user.currency || 'Rs.',
+        businessAbbreviation: user.businessAbbreviation || '',
       });
     }
   }, [user]);
@@ -1007,7 +1009,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
+              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent capitalize"
               required
             />
           </div>
@@ -1022,6 +1024,28 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
               required
             />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Business Abbreviation</label>
+            <input
+              type="text"
+              value={formData.businessAbbreviation}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  businessAbbreviation: e.target.value
+                    .slice(0, 4)
+                    .toUpperCase(),
+                })
+              }
+              placeholder="e.g. MLO"
+              maxLength={4}
+              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent font-mono font-bold uppercase tracking-wider"
+              required
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Max 4 characters. Used as prefix for new account numbers.
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium">Preferred Currency</label>

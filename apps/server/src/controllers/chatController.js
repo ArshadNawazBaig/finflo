@@ -164,9 +164,20 @@ const getConversations = async (req, res) => {
       .populate('lastMessage')
       .sort({ lastActivity: -1 });
 
+    // Filter out conversations that were cleared and have no new activity
+    const filteredConversations = conversations.filter((conv) => {
+      const participant = conv.participants.find(
+        (p) =>
+          p.participantId.toString() === id.toString() &&
+          p.participantModel === model,
+      );
+      if (!participant || !participant.clearHistoryAt) return true;
+      return conv.lastActivity > participant.clearHistoryAt;
+    });
+
     // Enrich each conversation with the other participant's info
     const enriched = await Promise.all(
-      conversations.map(async (conv) => {
+      filteredConversations.map(async (conv) => {
         const other = conv.participants.find(
           (p) => p.participantId.toString() !== id.toString(),
         );
@@ -314,8 +325,19 @@ const getMessages = async (req, res) => {
       return res.status(403).json({ message: 'Not a participant' });
     }
 
-    const total = await ChatMessage.countDocuments({ conversation: convId });
-    const messages = await ChatMessage.find({ conversation: convId })
+    const participant = conv.participants.find(
+      (p) =>
+        p.participantId.toString() === requesterId.toString() &&
+        p.participantModel === requesterModel,
+    );
+
+    const messageQuery = { conversation: convId };
+    if (participant && participant.clearHistoryAt) {
+      messageQuery.createdAt = { $gt: participant.clearHistoryAt };
+    }
+
+    const total = await ChatMessage.countDocuments(messageQuery);
+    const messages = await ChatMessage.find(messageQuery)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -611,17 +633,19 @@ const deleteConversation = async (req, res) => {
       return res.status(403).json({ message: 'Not a participant' });
     }
 
-    // For better UX, we'll actually delete the messages and the conversation
-    // In a more robust system, we might just "hide" it for the requester
-    await ChatMessage.deleteMany({ conversation: convId });
-    await Conversation.findByIdAndDelete(convId);
+    // Per-user soft delete: Set clearHistoryAt for the requester
+    conv.participants.forEach((p) => {
+      if (p.participantId.toString() === requesterId.toString()) {
+        p.clearHistoryAt = new Date();
+      }
+    });
 
-    // Emit socket event so the other person's UI updates if needed
+    await conv.save();
+
+    // Emit socket event ONLY to the requester so their UI updates
     if (req.io) {
-      conv.participants.forEach((p) => {
-        req.io.to(`user_${p.participantId}`).emit('conversation:deleted', {
-          conversationId: convId,
-        });
+      req.io.to(`user_${requesterId}`).emit('conversation:deleted', {
+        conversationId: convId,
       });
     }
 
@@ -649,21 +673,21 @@ const deleteAllConversations = async (req, res) => {
 
     const convIds = conversations.map((c) => c._id);
 
-    // Delete all messages in those conversations
-    await ChatMessage.deleteMany({ conversation: { $in: convIds } });
-
-    // Delete the conversations
-    await Conversation.deleteMany({ _id: { $in: convIds } });
-
-    // Emit socket events
-    if (req.io) {
-      conversations.forEach((conv) => {
-        conv.participants.forEach((p) => {
-          req.io.to(`user_${p.participantId}`).emit('conversation:deleted', {
-            conversationId: conv._id.toString(),
-          });
-        });
+    // Per-user soft delete for all conversations
+    for (const conv of conversations) {
+      conv.participants.forEach((p) => {
+        if (p.participantId.toString() === requesterId.toString()) {
+          p.clearHistoryAt = new Date();
+        }
       });
+      await conv.save();
+
+      // Emit socket event ONLY to the requester for each conversation
+      if (req.io) {
+        req.io.to(`user_${requesterId}`).emit('conversation:deleted', {
+          conversationId: conv._id.toString(),
+        });
+      }
     }
 
     res.json({ success: true, message: 'All chats deleted' });

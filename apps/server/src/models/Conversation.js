@@ -14,6 +14,10 @@ const conversationSchema = new mongoose.Schema(
           required: true,
           enum: ['Member', 'User'],
         },
+        clearHistoryAt: {
+          type: Date,
+          default: null,
+        },
       },
     ],
     lastMessage: {

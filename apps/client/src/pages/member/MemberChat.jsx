@@ -1486,7 +1486,7 @@ const MemberChat = () => {
             <AlertDialogDescription className="text-center font-bold text-muted-foreground text-sm pt-2">
               {deleteConfirmation === 'all'
                 ? 'Are you sure you want to delete ALL chats? This will permanently remove all message history for all your conversations.'
-                : 'Are you sure you want to delete this conversation? This will permanently remove all message history for both participants.'}
+                : 'Are you sure you want to delete this conversation? This will permanently remove all messages.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 mt-8">

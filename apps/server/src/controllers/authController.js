@@ -287,6 +287,7 @@ const updateDetails = async (req, res) => {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
     currency: req.body.currency,
+    businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
 
   try {

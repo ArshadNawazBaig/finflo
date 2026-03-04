@@ -104,13 +104,31 @@ memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
 // Hash password before saving
 memberSchema.pre('save', async function () {
   // Generate account numbers if missing
-  if (!this.savingAccountNumber) {
-    this.savingAccountNumber =
-      'SAV-' + Math.floor(Math.random() * 9000000000 + 1000000000);
-  }
-  if (!this.currentAccountNumber) {
-    this.currentAccountNumber =
-      'CUR-' + Math.floor(Math.random() * 9000000000 + 1000000000);
+  if (!this.savingAccountNumber || !this.currentAccountNumber) {
+    const User = mongoose.model('User');
+    const user = await User.findById(this.user);
+    const abbr = user?.businessAbbreviation || '';
+    const count = (user?.customerCount || 0) + 100001;
+
+    // Helper to generate 13-digit number: [ABBR]-[COUNT][RANDOM]
+    const generateAcc = (prefix) => {
+      const base = `${abbr || prefix}-${count}`;
+      const remaining = 13 - base.length;
+      let randomDigits = '';
+      if (remaining > 0) {
+        for (let i = 0; i < remaining; i++) {
+          randomDigits += Math.floor(Math.random() * 10);
+        }
+      }
+      return `${base}${randomDigits}`;
+    };
+
+    if (!this.savingAccountNumber) {
+      this.savingAccountNumber = generateAcc('SAV');
+    }
+    if (!this.currentAccountNumber) {
+      this.currentAccountNumber = generateAcc('CUR');
+    }
   }
 
   if (!this.isModified('password')) return;
