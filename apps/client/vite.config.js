@@ -27,6 +27,7 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true,
+    allowedHosts: ['client-production-aea57.up.railway.app'],
     hmr: true,
     proxy: {
       '/api': {
