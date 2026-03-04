@@ -23,7 +23,7 @@ const invalidateSettingsCache = () => {
 };
 
 /**
- * Creates a configured Nodemailer transporter using settings from the database.
+ * Creates a configured Nodemailer transporter.
  * Falls back to environment variables if DB settings are incomplete.
  * Uses cached settings to avoid repeated DB hits.
  */
@@ -31,17 +31,21 @@ const createTransporter = async (settings) => {
   try {
     const config = settings.smtpConfig;
 
+    // Primary: use DB config if fully configured
     if (config && config.host && config.auth?.user) {
       return nodemailer.createTransport({
-        service: 'gmail',
+        host: config.host,
+        port: parseInt(config.port) || 587,
+        secure: parseInt(config.port) === 465,
         auth: {
           user: config.auth.user,
           pass: config.auth.pass,
         },
+        tls: { rejectUnauthorized: false },
       });
     }
 
-    // Fallback to Env Vars if DB is empty
+    // Fallback to Env Vars
     const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
     const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
 
@@ -55,11 +59,14 @@ const createTransporter = async (settings) => {
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
       return nodemailer.createTransport({
-        service: 'gmail',
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: parseInt(process.env.SMTP_PORT) === 465,
         auth: {
           user: user,
           pass: pass,
         },
+        tls: { rejectUnauthorized: false },
       });
     }
 
@@ -80,7 +87,6 @@ const createTransporter = async (settings) => {
  */
 const sendEmail = async (options) => {
   try {
-    // Single cached DB read instead of two separate getSettings() calls
     const settings = await getCachedSettings();
     const transporter = await createTransporter(settings);
 
@@ -91,10 +97,12 @@ const sendEmail = async (options) => {
 
     const fromEmail =
       settings.smtpConfig?.fromEmail ||
+      process.env.FROM_EMAIL ||
       process.env.SMTP_FROM_EMAIL ||
       `noreply@${settings.platformName.toLowerCase().replace(/\s+/g, '')}.com`;
     const fromName =
       settings.smtpConfig?.fromName ||
+      process.env.FROM_NAME ||
       process.env.SMTP_FROM_NAME ||
       settings.platformName;
 
@@ -117,8 +125,6 @@ const sendEmail = async (options) => {
 
 /**
  * Sends an email in a non-blocking, fire-and-forget manner.
- * Errors are logged but never propagate to the caller.
- * Use this to avoid blocking API responses on SMTP.
  * @param {Object} options - Email options { to, subject, html, text }
  */
 const sendEmailAsync = (options) => {
