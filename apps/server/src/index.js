@@ -294,6 +294,8 @@ const io = new Server(httpServer, {
 
 // Set instance immediately so that it's available for middleware even on Serverless
 ioInstance = io;
+const { setIO } = require('./utils/socketInstance');
+setIO(io); // Register globally so notificationHelper and other modules can emit events
 
 // Production Environment Diagnostics
 if (process.env.NODE_ENV === 'production') {

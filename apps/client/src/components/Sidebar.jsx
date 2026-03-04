@@ -31,7 +31,11 @@ import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import usePermissions from '@/hooks/usePermissions';
 import { useAtomValue } from 'jotai';
-import { unreadChatCountAtom, pendingMembersCountAtom } from '@/atoms';
+import {
+  unreadChatCountAtom,
+  pendingMembersCountAtom,
+  unreadNotificationsCountAtom,
+} from '@/atoms';
 
 import {
   Tooltip,
@@ -159,6 +163,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   // For desktop, it follows the actual isExpanded state
   const isLayoutExpanded = isMobile ? true : isExpanded;
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
+  const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -345,6 +350,9 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             active={isActive('/notifications')}
             label="Notifications"
             isExpanded={isLayoutExpanded}
+            badge={
+              unreadNotificationsCount > 0 ? unreadNotificationsCount : null
+            }
           />
           {hasPermission('system_settings') && (
             <>

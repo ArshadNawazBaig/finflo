@@ -42,9 +42,13 @@ import SendNotificationModal from '@/components/notifications/SendNotificationMo
 import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { useAtom } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 
 const ManageNotifications = () => {
   const [notifications, setNotifications] = useState([]);
+  const [globalNotifs, setGlobalNotifs] = useAtom(notificationsAtom);
+  const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -162,6 +166,20 @@ const ManageNotifications = () => {
       );
       setDeleteConfirmation(null);
       setIsBulkDelete(false);
+      if (isBulkDelete) {
+        setUnreadCount(0);
+        setGlobalNotifs([]);
+      } else {
+        const deletedNotif = notifications.find(
+          (n) => n._id === deleteConfirmation,
+        );
+        if (deletedNotif && !deletedNotif.read) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+        setGlobalNotifs((prev) =>
+          prev.filter((n) => n._id !== deleteConfirmation),
+        );
+      }
       fetchNotifications(1);
     } catch (error) {
       console.error('Failed to delete notification:', error);
@@ -173,6 +191,10 @@ const ManageNotifications = () => {
     try {
       await api.put(`/notifications/${id}/read`);
       setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setGlobalNotifs((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
       toast.success('Notification marked as read');

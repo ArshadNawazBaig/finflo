@@ -7,6 +7,7 @@ import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
+import { SocketProvider } from '@/context/SocketContext';
 
 const SuperAdminLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -42,47 +43,53 @@ const SuperAdminLayout = () => {
   }, [location, isMobile]);
 
   return (
-    <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
-      <SuperAdminSidebar
-        isExpanded={isSidebarExpanded}
-        isMobile={isMobile}
-        onClose={() => setIsSidebarExpanded(false)}
-      />
-
-      {/* Mobile Overlay */}
-      {isMobile && isSidebarExpanded && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
-          onClick={() => setIsSidebarExpanded(false)}
+    <SocketProvider userType="user">
+      <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
+        <SuperAdminSidebar
+          isExpanded={isSidebarExpanded}
+          isMobile={isMobile}
+          onClose={() => setIsSidebarExpanded(false)}
         />
-      )}
 
-      <div
-        className={cn(
-          'flex-1 flex flex-col h-full transition-[margin] duration-300 ease-in-out',
-          isMobile ? 'ml-0 w-full' : isSidebarExpanded ? 'ml-64' : 'ml-[70px]',
+        {/* Mobile Overlay */}
+        {isMobile && isSidebarExpanded && (
+          <div
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+            onClick={() => setIsSidebarExpanded(false)}
+          />
         )}
-      >
-        <Navbar
-          onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-          isSidebarExpanded={isSidebarExpanded}
-        />
+
         <div
           className={cn(
-            'flex-1 overflow-y-auto w-full transition-all duration-500',
-            isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
+            'flex-1 flex flex-col h-full transition-[margin] duration-300 ease-in-out',
+            isMobile
+              ? 'ml-0 w-full'
+              : isSidebarExpanded
+                ? 'ml-64'
+                : 'ml-[70px]',
           )}
         >
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
+          <Navbar
+            onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            isSidebarExpanded={isSidebarExpanded}
+          />
+          <div
+            className={cn(
+              'flex-1 overflow-y-auto w-full transition-all duration-500',
+              isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
+            )}
+          >
+            <div className="max-w-7xl mx-auto">
+              <Outlet />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile-First Navigation */}
-      <MobileBottomNav />
-      <InstallPrompt />
-    </div>
+        {/* Mobile-First Navigation */}
+        <MobileBottomNav />
+        <InstallPrompt />
+      </div>
+    </SocketProvider>
   );
 };
 

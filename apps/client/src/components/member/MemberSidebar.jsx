@@ -18,7 +18,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import { Bell } from 'lucide-react';
 import { useAtomValue } from 'jotai';
-import { unreadChatCountAtom } from '@/atoms';
+import { unreadChatCountAtom, unreadNotificationsCountAtom } from '@/atoms';
 import Logo from '@/components/Logo';
 
 const CategoryHeader = ({ label, isExpanded }) => {
@@ -98,6 +98,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   // For desktop, it follows the actual isExpanded state
   const isLayoutExpanded = isMobile ? true : isExpanded;
   const unreadChatCount = useAtomValue(unreadChatCountAtom);
+  const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
 
   return (
     <div className={sidebarClasses}>
@@ -192,6 +193,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           active={isActive('/member/notifications')}
           label="Notifications"
           isExpanded={isLayoutExpanded}
+          badge={unreadNotificationsCount > 0 ? unreadNotificationsCount : null}
         />
 
         <NavItem

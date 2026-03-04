@@ -26,3 +26,7 @@ export const subscriptionAtom = atom({
 });
 export const unreadChatCountAtom = atom(0);
 export const pendingMembersCountAtom = atom(0);
+
+// Global Notification state
+export const notificationsAtom = atom([]);
+export const unreadNotificationsCountAtom = atom(0);

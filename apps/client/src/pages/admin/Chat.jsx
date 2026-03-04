@@ -186,7 +186,7 @@ const MessageBubble = ({
           <div
             className={cn(
               'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10',
-              isOwn ? '-right-8' : '-right-8',
+              isOwn ? '-left-16' : '-right-8',
             )}
             ref={reactionRef}
           >

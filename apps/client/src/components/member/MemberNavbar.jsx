@@ -19,38 +19,21 @@ import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
+import { useAtom, useAtomValue } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 
 const MemberNavbar = ({ onMenuClick }) => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [notifications, setNotifications] = useAtom(notificationsAtom);
+  const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [loading, setLoading] = useState(false);
   const notificationRef = useRef(null);
   const profileRef = useRef(null);
-
-  const fetchNotifications = async () => {
-    try {
-      const memberToken = localStorage.getItem('member');
-      const { data } = await api.get('/member-notifications', {
-        headers: {
-          /* Auth header handled by browser cookies */
-        },
-      });
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-    } catch (error) {
-      console.error('Failed to fetch notifications', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -73,19 +56,11 @@ const MemberNavbar = ({ onMenuClick }) => {
 
   const markAsRead = async (id) => {
     try {
-      const memberToken = localStorage.getItem('member');
-      await api.put(
-        `/member-notifications/${id}/read`,
-        {},
-        {
-          headers: {
-            /* Auth header handled by browser cookies */
-          },
-        },
-      );
+      await api.put(`/member-notifications/${id}/read`);
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
+      // Decrement the global unread count
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark as read', error);
@@ -95,16 +70,8 @@ const MemberNavbar = ({ onMenuClick }) => {
   const markAllAsRead = async () => {
     try {
       setLoading(true);
-      const memberToken = localStorage.getItem('member');
-      await api.put(
-        '/member-notifications/all/read',
-        {},
-        {
-          headers: {
-            /* Auth header handled by browser cookies */
-          },
-        },
-      );
+      await api.put('/member-notifications/all/read');
+      // Update global atom locally for instant UI feedback
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
       toast.success('All notifications marked as read');
@@ -235,82 +202,109 @@ const MemberNavbar = ({ onMenuClick }) => {
                       </div>
                     ) : (
                       <div className="divide-y divide-border/5">
-                        {notifications.map((notification) => (
-                          <div
-                            key={notification._id}
-                            onClick={() => {
-                              if (!notification.read) {
-                                markAsRead(notification._id);
-                              }
-                              if (notification.link) {
-                                const safeLink = getSafeNotificationLink(
-                                  notification.link,
-                                  member.role || 'member',
-                                );
-                                if (safeLink) {
-                                  navigate(safeLink);
-                                  setShowNotifications(false);
-                                }
-                              }
-                            }}
-                            className={cn(
-                              'p-5 transition-all duration-300 flex gap-4 items-start group relative',
-                              !notification.read ? 'bg-primary/[0.03]' : '',
-                              notification.link ? 'cursor-pointer' : '',
-                            )}
-                          >
-                            {!notification.read && (
-                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-                            )}
-                            <div className="flex-1 space-y-1.5 min-w-0">
-                              <div className="flex justify-between items-start gap-4">
-                                <p
+                        {notifications.map((notification) => {
+                          const safeLink = notification.link
+                            ? getSafeNotificationLink(
+                                notification.link,
+                                member.role || 'member',
+                              )
+                            : null;
+
+                          const NotificationItem = ({ children }) => {
+                            if (safeLink) {
+                              return (
+                                <Link
+                                  to={safeLink}
+                                  onClick={() => {
+                                    if (!notification.read) {
+                                      markAsRead(notification._id);
+                                    }
+                                    setShowNotifications(false);
+                                  }}
                                   className={cn(
-                                    'text-sm font-black tracking-tight leading-none truncate',
+                                    'p-5 transition-all duration-300 flex gap-4 items-start group relative cursor-pointer hover:bg-muted/50',
                                     !notification.read
-                                      ? 'text-foreground'
-                                      : 'text-muted-foreground',
+                                      ? 'bg-primary/[0.03]'
+                                      : '',
                                   )}
                                 >
-                                  {notification.title}
-                                </p>
-                                {!notification.read && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      markAsRead(notification._id);
-                                    }}
-                                    className="text-[10px] text-primary font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
-                                  >
-                                    Mark read
-                                  </button>
-                                )}
-                              </div>
-                              <p
+                                  {children}
+                                </Link>
+                              );
+                            }
+                            return (
+                              <div
+                                onClick={() => {
+                                  if (!notification.read) {
+                                    markAsRead(notification._id);
+                                  }
+                                }}
                                 className={cn(
-                                  'text-xs leading-relaxed font-medium line-clamp-2',
-                                  !notification.read
-                                    ? 'text-foreground/70'
-                                    : 'text-muted-foreground/60',
+                                  'p-5 transition-all duration-300 flex gap-4 items-start group relative',
+                                  !notification.read ? 'bg-primary/[0.03]' : '',
                                 )}
                               >
-                                {notification.message}
-                              </p>
-                              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 pt-1">
-                                {new Date(
-                                  notification.createdAt,
-                                ).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}{' '}
-                                •{' '}
-                                {new Date(
-                                  notification.createdAt,
-                                ).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                                {children}
+                              </div>
+                            );
+                          };
+
+                          return (
+                            <NotificationItem key={notification._id}>
+                              {!notification.read && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                              )}
+                              <div className="flex-1 space-y-1.5 min-w-0">
+                                <div className="flex justify-between items-start gap-4">
+                                  <p
+                                    className={cn(
+                                      'text-sm font-black tracking-tight leading-none truncate',
+                                      !notification.read
+                                        ? 'text-foreground'
+                                        : 'text-muted-foreground',
+                                    )}
+                                  >
+                                    {notification.title}
+                                  </p>
+                                  {!notification.read && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        markAsRead(notification._id);
+                                      }}
+                                      className="text-[10px] text-primary font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      Mark read
+                                    </button>
+                                  )}
+                                </div>
+                                <p
+                                  className={cn(
+                                    'text-xs leading-relaxed font-medium line-clamp-2',
+                                    !notification.read
+                                      ? 'text-foreground/70'
+                                      : 'text-muted-foreground/60',
+                                  )}
+                                >
+                                  {notification.message}
+                                </p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 pt-1">
+                                  {new Date(
+                                    notification.createdAt,
+                                  ).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}{' '}
+                                  •{' '}
+                                  {new Date(
+                                    notification.createdAt,
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </NotificationItem>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

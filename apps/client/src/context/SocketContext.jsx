@@ -1,14 +1,16 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useSetAtom } from 'jotai';
-import { unreadChatCountAtom } from '@/atoms';
+import {
+  unreadChatCountAtom,
+  notificationsAtom,
+  unreadNotificationsCountAtom,
+} from '@/atoms';
 import api from '@/lib/axios';
 import { SOCKET_URL } from '@/lib/constants';
 
 /**
  * SocketContext — provides a SINGLE shared socket instance per user session.
- * Both ChatSync and the chat pages (Chat.jsx, MemberChat.jsx) use this
- * same socket, eliminating dual-connection issues with presence and message delivery.
  */
 const SocketContext = createContext(null);
 
@@ -17,10 +19,12 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider = ({ children, userType = 'user' }) => {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
-  const setUnreadCount = useSetAtom(unreadChatCountAtom);
+  const setUnreadMessages = useSetAtom(unreadChatCountAtom);
+  const setUnreadNotifs = useSetAtom(unreadNotificationsCountAtom);
+  const setNotifications = useSetAtom(notificationsAtom);
 
   useEffect(() => {
-    // Get token from localStorage (belt-and-suspenders alongside cookie auth)
+    // Get token from localStorage
     let token;
     try {
       if (userType === 'member') {
@@ -34,23 +38,30 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       token = null;
     }
 
-    const fetchCount = async () => {
+    const fetchCounts = async () => {
       try {
-        const res = await api.get('/chat/conversations');
-        const total = res.data.reduce(
+        // Fetch Chat Conversations for badge
+        const chatRes = await api.get('/chat/conversations');
+        const totalChatUnread = chatRes.data.reduce(
           (acc, c) => acc + (c.unreadCount || 0),
           0,
         );
-        setUnreadCount(total);
-      } catch {
-        /* silent */
+        setUnreadMessages(totalChatUnread);
+
+        // Initial fetch of notifications to populate the global state
+        const endpoint =
+          userType === 'member' ? '/member-notifications' : '/notifications';
+        const notifRes = await api.get(endpoint);
+        setNotifications(notifRes.data.notifications || []);
+        setUnreadNotifs(notifRes.data.unreadCount || 0);
+      } catch (err) {
+        console.warn('[SocketContext] Initial fetch error:', err.message);
       }
     };
 
-    // Initial badge count
-    fetchCount();
+    // Initial badge/state sync
+    fetchCounts();
 
-    // Build socket options: withCredentials for cookie auth, token as fallback
     const opts = {
       withCredentials: true,
       transports: ['websocket', 'polling'],
@@ -67,7 +78,7 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     socket.on('connect', () => {
       console.log(`[Socket] Connected: ${socket.id}`);
       setConnected(true);
-      fetchCount(); // Sync on reconnect
+      fetchCounts(); // Sync everything on reconnect
     });
 
     socket.on('disconnect', (reason) => {
@@ -75,33 +86,33 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       setConnected(false);
     });
 
-    socket.on('connect_error', (err) => {
-      console.warn('[Socket] Error:', err.message);
+    // Real-time notification updates
+    socket.on('notification:new', (notification) => {
+      console.log('[Socket] New Notification:', notification.title);
+      // Prepend the new notification to the list
+      setNotifications((prev) => [notification, ...prev]);
+      // Increment the global unread count
+      setUnreadNotifs((prev) => prev + 1);
     });
 
-    // Update the global unread badge using the server-provided count
-    socket.on('message:new', ({ unreadCount }) => {
-      if (typeof unreadCount === 'number') {
-        setUnreadCount(unreadCount);
-      } else {
-        fetchCount();
-      }
+    // Update the global unread badge by refetching all conversation unread states
+    socket.on('message:new', () => {
+      fetchCounts();
     });
 
-    // Re-sync badge when a conversation is marked as read
-    socket.on('conversation:read', () => fetchCount());
+    socket.on('conversation:read', () => fetchCounts());
 
     // Periodic fallback: only REST poll when socket is disconnected
     const fallback = setInterval(() => {
-      if (!socket.connected) fetchCount();
-    }, 15000);
+      if (!socket.connected) fetchCounts();
+    }, 30000);
 
     return () => {
       clearInterval(fallback);
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [setUnreadCount, userType]);
+  }, [setUnreadMessages, setUnreadNotifs, setNotifications, userType]);
 
   return (
     <SocketContext.Provider value={{ socketRef, connected }}>

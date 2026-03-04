@@ -32,6 +32,8 @@ import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useAtom, useSetAtom } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,7 +57,9 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [globalNotifs, setGlobalNotifs] = useAtom(notificationsAtom);
+  const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
   const [limit, setLimit] = useState(10);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [search, setSearch] = useState('');
@@ -142,7 +146,14 @@ const Notifications = () => {
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
+      // Update global count
       setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // Sync with global notifications atom (Navbar dropdown)
+      setGlobalNotifs((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
+      );
+
       toast.success('Notification marked as read');
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
@@ -155,6 +166,7 @@ const Notifications = () => {
       await api.put(`/notifications/all/read`);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
+      setGlobalNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
       toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Failed to mark all as read:', error);
@@ -189,9 +201,21 @@ const Notifications = () => {
         setNotifications([]);
         setPagination((prev) => ({ ...prev, total: 0, page: 1, pages: 1 }));
         setUnreadCount(0);
+        setGlobalNotifs([]);
       } else {
         // Remove from local state
+        const deletedNotif = notifications.find(
+          (n) => n._id === deleteConfirmation,
+        );
+        if (deletedNotif && !deletedNotif.read) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+
         setNotifications((prev) =>
+          prev.filter((n) => n._id !== deleteConfirmation),
+        );
+        // Sync with global notifications atom
+        setGlobalNotifs((prev) =>
           prev.filter((n) => n._id !== deleteConfirmation),
         );
         // Update total count locally

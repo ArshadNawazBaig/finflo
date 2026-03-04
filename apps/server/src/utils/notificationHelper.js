@@ -2,6 +2,33 @@ const mongoose = require('mongoose');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { logActivity } = require('../controllers/activityLogController');
+const { getIO } = require('./socketInstance');
+
+/**
+ * Emits a real-time socket notification to a specific user room.
+ */
+const emitNotification = (notification) => {
+  try {
+    const io = getIO();
+    if (io && notification) {
+      io.to(`user_${notification.recipient.toString()}`).emit(
+        'notification:new',
+        {
+          _id: notification._id,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          link: notification.link,
+          read: false,
+          createdAt: notification.createdAt || new Date(),
+        },
+      );
+    }
+  } catch (err) {
+    // Non-fatal: socket emit errors should never break the main flow
+    console.error('[Socket] Failed to emit notification:', err.message);
+  }
+};
 
 /**
  * Creates a notification and logs the activity.
@@ -30,7 +57,10 @@ const createTransactionNotification = async ({
     });
     await notification.save();
 
-    // 2. Log the event in Activity Logs
+    // 2. Push real-time update via socket
+    emitNotification(notification);
+
+    // 3. Log the event in Activity Logs
     try {
       await logActivity({
         userId: recipientModel === 'User' ? recipientId : null,
@@ -113,9 +143,9 @@ const notifyAdminsOfMemberAction = async ({
       ...new Set(allRecipients.map((u) => u._id.toString())),
     ];
 
-    // Create notifications for all identified admins
-    const notificationPromises = uniqueAdminIds.map((adminId) =>
-      new Notification({
+    // Create notifications for all identified admins and emit socket events
+    const notificationPromises = uniqueAdminIds.map(async (adminId) => {
+      const notification = await new Notification({
         recipient: adminId,
         recipientModel: 'User',
         title,
@@ -123,8 +153,12 @@ const notifyAdminsOfMemberAction = async ({
         type,
         link: link || metadata.link || metadata.url, // Support common names
         branchId: branchId, // Source branch context
-      }).save(),
-    );
+      }).save();
+
+      // Push real-time update via socket to each admin
+      emitNotification(notification);
+      return notification;
+    });
 
     await Promise.all(notificationPromises);
 

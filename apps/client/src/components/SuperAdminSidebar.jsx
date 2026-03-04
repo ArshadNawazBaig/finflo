@@ -17,6 +17,8 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
+import { useAtomValue } from 'jotai';
+import { unreadNotificationsCountAtom } from '@/atoms';
 
 const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
@@ -78,6 +80,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 
   const isLayoutExpanded = isMobile ? true : isExpanded;
+  const unreadNotificationsCount = useAtomValue(unreadNotificationsCountAtom);
 
   return (
     <div className={sidebarClasses}>
@@ -157,6 +160,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
           active={isActive('/super-admin/notifications')}
           label="Notifications"
           isExpanded={isLayoutExpanded}
+          badge={unreadNotificationsCount > 0 ? unreadNotificationsCount : null}
         />
         <NavItem
           to="/super-admin/activity-logs"
@@ -256,7 +260,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 };
 
-const NavItem = ({ to, icon, active, label, isExpanded }) => (
+const NavItem = ({ to, icon, active, label, isExpanded, badge }) => (
   <Link
     to={to}
     className={cn(
@@ -292,6 +296,17 @@ const NavItem = ({ to, icon, active, label, isExpanded }) => (
     >
       {label}
     </span>
+
+    {badge && (
+      <div
+        className={cn(
+          'absolute bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center min-w-[20px] h-5 px-1 shadow-lg border-2 border-card z-20 transition-all duration-300',
+          isExpanded ? 'right-4 top-1/2 -translate-y-1/2' : 'right-0 -top-1',
+        )}
+      >
+        {badge > 99 ? '99+' : badge}
+      </div>
+    )}
 
     {/* Custom Tooltip - only show when collapsed */}
     {!isExpanded && (

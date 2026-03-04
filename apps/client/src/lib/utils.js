@@ -126,8 +126,23 @@ export const getSafeNotificationLink = (link, role) => {
 
   // 1. Member Role Logic
   if (role === 'member') {
+    // Allow links starting with /member
     if (link.startsWith('/member')) return link;
-    return '/member/notifications';
+
+    // Explicitly allow general paths that members are allowed to see
+    const memberAllowedPaths = [
+      '/loans',
+      '/repayments',
+      '/savings',
+      '/grantor-requests',
+    ];
+    if (memberAllowedPaths.some((path) => link.startsWith(path))) {
+      // If the link is /loans but it should be /member/loans, transform it if necessary
+      // However, usually these links should already be correct from backend.
+      return link;
+    }
+
+    return link.startsWith('/') ? link : `/${link}`;
   }
 
   // 2. Admin / Staff / Super Admin Logic
