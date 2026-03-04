@@ -10,6 +10,7 @@ import {
   FileText,
   AlertCircle,
   Download,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -32,13 +33,16 @@ const MemberLoanDetail = () => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
+  const [showPenaltyBanner, setShowPenaltyBanner] = useState(true);
 
   useEffect(() => {
     const fetchLoanData = async () => {
       try {
         setLoading(true);
         const memberToken = localStorage.getItem('member');
-        const headers = { /* Auth header handled by browser cookies */ };
+        const headers = {
+          /* Auth header handled by browser cookies */
+        };
 
         const [loanRes, scheduleRes] = await Promise.all([
           api.get(`/loans/my-loans/${id}`, { headers }),
@@ -62,7 +66,9 @@ const MemberLoanDetail = () => {
     try {
       setLoading(true);
       const memberToken = localStorage.getItem('member');
-      const headers = { /* Auth header handled by browser cookies */ };
+      const headers = {
+        /* Auth header handled by browser cookies */
+      };
 
       const [loanRes, scheduleRes] = await Promise.all([
         api.get(`/loans/my-loans/${id}`, { headers }),
@@ -226,6 +232,48 @@ const MemberLoanDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Repayment Warning Banner */}
+      {showPenaltyBanner &&
+        loan.status !== 'completed' &&
+        loan.status !== 'rejected' && (
+          <div className="bg-orange-500/10 border border-orange-500/20 rounded-[2rem] p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4 group-hover:scale-110 transition-transform duration-500">
+              <AlertCircle size={120} className="text-orange-500" />
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPenaltyBanner(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-colors z-20"
+              title="Dismiss Notice"
+            >
+              <X size={16} strokeWidth={3} />
+            </button>
+
+            <div className="p-4 bg-orange-500/20 rounded-2xl text-orange-600 shadow-inner">
+              <AlertCircle size={24} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-2 text-center sm:text-left relative z-10">
+              <h4 className="text-lg font-black tracking-tight text-orange-700">
+                Late Payment Protection Notice
+              </h4>
+              <p className="text-sm text-orange-600/80 font-medium leading-relaxed max-w-2xl">
+                To maintain your credit profile and avoid system-generated
+                penalties, please ensure installments are paid within the{' '}
+                <span className="font-black text-orange-700 underline decoration-2 underline-offset-4">
+                  3-day grace period
+                </span>{' '}
+                of your due date. A daily late fee of{' '}
+                <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center shadow-sm">
+                  {formatCurrency(Math.round((loan.emi * 0.02) / 30))}
+                </span>{' '}
+                (2% monthly rate) will be applied automatically to all overdue
+                payments.
+              </p>
+            </div>
+          </div>
+        )}
 
       {/* Stats Quick Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
