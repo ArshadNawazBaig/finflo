@@ -21,6 +21,9 @@ import {
   ArrowLeft,
   Book,
   Target,
+  Wifi,
+  FileSearch,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -139,6 +142,11 @@ const ApiDocumentation = () => {
     { id: 'shares', label: 'Business Shares', icon: Database },
     { id: 'branches', label: 'Branch Management', icon: Globe },
     { id: 'staff', label: 'Staff Management', icon: Users },
+    { id: 'roles', label: 'Roles & Permissions', icon: Shield },
+    { id: 'transfers', label: 'External Transfers', icon: ArrowLeftRight },
+    { id: 'chat', label: 'Live Chat', icon: MessageSquare },
+    { id: 'sockets', label: 'Socket Events', icon: Wifi },
+    { id: 'ocr', label: 'OCR Extraction', icon: FileSearch },
     { id: 'goals', label: 'Saving Goals', icon: Target },
     { id: 'reports', label: 'Regulatory Reports', icon: Book },
     { id: 'search', label: 'Global Search', icon: Globe },
@@ -1256,23 +1264,6 @@ const ApiDocumentation = () => {
                 </>
               )}
 
-              {activeTab === 'reports' && (
-                <>
-                  <Endpoint
-                    method="GET"
-                    path="/api/reports/stats"
-                    description={{
-                      text: 'Get summary statistics for reports.',
-                      response: {
-                        totalLoans: 154,
-                        activeVolume: 850000,
-                        repaymentRate: 98.2,
-                      },
-                    }}
-                  />
-                </>
-              )}
-
               {activeTab === 'contact' && (
                 <>
                   <Endpoint
@@ -1412,6 +1403,261 @@ const ApiDocumentation = () => {
                     description={{
                       text: 'Mark notification as read.',
                       response: { _id: 'notif_1', read: true },
+                    }}
+                  />
+                  <Endpoint
+                    method="PUT"
+                    path="/api/notifications/read-all"
+                    description={{
+                      text: 'Mark all notifications as read for the current user.',
+                      response: {
+                        success: true,
+                        message: 'All notifications marked as read',
+                      },
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'chat' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/chat/conversations"
+                    description={{
+                      text: 'List chat conversations for the current user (Admin or Member).',
+                      response: [
+                        {
+                          _id: 'conv_1',
+                          participants: [{ _id: 'u1', name: 'Admin' }],
+                          lastMessage: 'Hello there!',
+                          updatedAt: '2026-03-01T10:00:00Z',
+                          unreadCount: 2,
+                        },
+                      ],
+                    }}
+                  />
+                  <Endpoint
+                    method="GET"
+                    path="/api/chat/messages/:userId"
+                    description={{
+                      text: 'Get paginated message history with a specific user.',
+                      response: {
+                        messages: [
+                          {
+                            _id: 'msg_1',
+                            senderId: 'u1',
+                            receiverId: 'u2',
+                            text: 'Hello',
+                            read: true,
+                            createdAt: '2026-03-01T10:00:00Z',
+                          },
+                        ],
+                        pagination: { page: 1, total: 50 },
+                      },
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/chat/send"
+                    description={{
+                      text: 'Send a new chat message. Triggers socket event to recipient.',
+                      response: {
+                        _id: 'msg_2',
+                        text: 'Are you there?',
+                        senderId: 'u1',
+                        receiverId: 'u2',
+                      },
+                    }}
+                    params={[
+                      {
+                        name: 'receiverId',
+                        type: 'string',
+                        required: true,
+                        desc: 'ID of the recipient user/member',
+                      },
+                      {
+                        name: 'text',
+                        type: 'string',
+                        desc: 'Message content (required if no attachment)',
+                      },
+                    ]}
+                  />
+                </>
+              )}
+
+              {activeTab === 'sockets' && (
+                <>
+                  <div className="p-6 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 mb-6">
+                    <h3 className="text-lg font-black text-amber-500 mb-2">
+                      WebSocket Infrastructure
+                    </h3>
+                    <p className="text-sm text-foreground/80 leading-relaxed">
+                      FinanceFlow uses Socket.io to push real-time updates
+                      directly to clients without polling. Clients should
+                      connect to <code>{`ws://{BACKEND_URL}`}</code> using the
+                      JWT token in auth headers or cookies for authenticated
+                      events.
+                    </p>
+                  </div>
+                  <Endpoint
+                    method="SOCKET"
+                    path="connect (Authenticated)"
+                    description={{
+                      text: 'Client connects with JWT. Server automatically joins the socket to user-specific and business-wide rooms.',
+                    }}
+                  />
+                  <Endpoint
+                    method="SOCKET"
+                    path="join:pending_member"
+                    description={{
+                      text: 'Observer socket joins their specific pending registration room.',
+                      response: { memberId: 'mem_123' },
+                    }}
+                  />
+                  <Endpoint
+                    method="SOCKET"
+                    path="member:approval_result"
+                    description={{
+                      text: 'Fired by server when an admin approves/rejects a pending registration. Pushed to the specific pending member room.',
+                      response: {
+                        status: 'approved',
+                        message: 'Account Approved!',
+                      },
+                    }}
+                  />
+                  <Endpoint
+                    method="SOCKET"
+                    path="member:new_registration"
+                    description={{
+                      text: 'Fired by server to the business room when a new self-registration is received.',
+                      response: { memberId: 'mem_123', name: 'John Doe' },
+                    }}
+                  />
+                  <Endpoint
+                    method="SOCKET"
+                    path="chat:message"
+                    description={{
+                      text: 'Live chat message received.',
+                      response: { senderId: 'u1', text: 'Hello' },
+                    }}
+                  />
+                  <Endpoint
+                    method="SOCKET"
+                    path="notification:new"
+                    description={{
+                      text: 'Live system notification received.',
+                      response: { title: 'Loan Approved', type: 'success' },
+                    }}
+                  />
+                </>
+              )}
+
+              {activeTab === 'roles' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/roles"
+                    description={{
+                      text: 'List available roles defined in the system.',
+                      response: [
+                        {
+                          _id: 'role_1',
+                          name: 'Loan Officer',
+                          permissions: ['manage_loans', 'view_customers'],
+                        },
+                      ],
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/roles"
+                    description={{
+                      text: 'Create a customized role with specific permissions.',
+                      response: { _id: 'role_2', name: 'Auditor' },
+                    }}
+                    params={[
+                      {
+                        name: 'name',
+                        type: 'string',
+                        required: true,
+                        desc: 'Role name',
+                      },
+                      {
+                        name: 'permissions',
+                        type: 'array',
+                        required: true,
+                        desc: 'Array of permission strings',
+                      },
+                    ]}
+                  />
+                </>
+              )}
+
+              {activeTab === 'transfers' && (
+                <>
+                  <Endpoint
+                    method="GET"
+                    path="/api/fund-movements"
+                    description={{
+                      text: 'List external fund movements (deposits/withdrawals) within the branch.',
+                      response: [
+                        {
+                          _id: 'fm_1',
+                          type: 'Deposit',
+                          amount: 5000,
+                          status: 'Cleared',
+                        },
+                      ],
+                    }}
+                  />
+                  <Endpoint
+                    method="POST"
+                    path="/api/fund-movements"
+                    description={{
+                      text: 'Create a new fund movement (external transfer in or out).',
+                      response: {
+                        _id: 'fm_2',
+                        type: 'Withdrawal',
+                        amount: 1000,
+                        status: 'Pending',
+                      },
+                    }}
+                    params={[
+                      {
+                        name: 'type',
+                        type: 'string',
+                        required: true,
+                        desc: '"Deposit" or "Withdrawal"',
+                      },
+                      {
+                        name: 'amount',
+                        type: 'number',
+                        required: true,
+                        desc: 'Transfer amount',
+                      },
+                      {
+                        name: 'accountId',
+                        type: 'string',
+                        required: true,
+                        desc: 'Target external bank account ID',
+                      },
+                    ]}
+                  />
+                </>
+              )}
+
+              {activeTab === 'ocr' && (
+                <>
+                  <Endpoint
+                    method="POST"
+                    path="/api/ocr/scan-cnic"
+                    description={{
+                      text: 'Extract text from a CNIC or ID document image using Tesseract OCR.',
+                      response: {
+                        text: '...RAW TEXT...',
+                        extractedCnic: '12345-6789012-3',
+                      },
                     }}
                   />
                 </>

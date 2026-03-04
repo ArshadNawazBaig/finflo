@@ -50,13 +50,11 @@ const MemberLogin = () => {
       }
 
       if (data.mustChangePassword) {
-        
         localStorage.setItem('member', JSON.stringify(data));
         navigate('/member/force-password-change');
         return;
       }
 
-      
       localStorage.setItem('member', JSON.stringify(data));
       navigate('/member/dashboard');
     } catch (err) {
@@ -77,7 +75,6 @@ const MemberLogin = () => {
         code: otpCode,
       });
 
-      
       localStorage.setItem('member', JSON.stringify(data));
       navigate('/member/dashboard');
     } catch (err) {
@@ -205,11 +202,14 @@ const MemberLogin = () => {
           </Button>
 
           <div className="text-center pt-4">
-            <p className="text-sm text-muted-foreground font-medium">
-              Not a member yet?{' '}
-              <span className="text-muted-foreground/70">
-                Contact your provider.
-              </span>
+            <p className="text-sm text-muted-foreground font-medium flex items-center justify-center gap-1.5">
+              Not a member yet?
+              <Link
+                to={securityCode ? `/join/${securityCode}` : '/join'}
+                className="text-primary hover:text-primary/80 font-bold transition-colors"
+              >
+                Sign up here.
+              </Link>
             </p>
           </div>
         </form>

@@ -313,48 +313,53 @@ const Documentation = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">
-                Member Portal Ecosystem
+                Member Portal & Self-Registration
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                A dedicated self-service environment for borrowers and
-                investors. Features include real-time portfolio tracking, P2P
-                fund transfers, investment growth analytics, and Smart Fund
-                Movement. The system automatically intercepts deposits to deduct
-                pending loan installments, ensuring maintaining 0% delinquency
-                for investors.
+                A dedicated self-service environment where members can apply
+                publicly with a security code. Admins approve/reject directly,
+                triggering live socket updates. Once inside, members can track
+                portfolios, execute P2P transfers, and view loan schedules.
+              </p>
+            </div>
+            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Zap className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">
+                Real-Time Socket Events
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Persistent WebSocket infrastructure powers live notifications,
+                approval results, chat presence, typing indicators, and metric
+                badge updates instantly across the entire platform with
+                zero-poll efficiency.
+              </p>
+            </div>
+            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+              <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <MessageSquare className="w-6 h-6 text-violet-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Encrypted Live Chat</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Full-featured real-time messaging between staff and members
+                equipped with typing indicators, voice note recording, read
+                receipts, media attachments, and emoji support for fast customer
+                resolution.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Shield className="w-6 h-6 text-indigo-500" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Immutable Audit Ledger</h3>
+              <h3 className="text-xl font-bold mb-3">
+                KYC & OCR Document Vault
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Regulatory-grade compliance tracking. Every system action is
-                recorded with before/after state comparisons, ensuring total
-                transparency and accountability across all business operations.
-              </p>
-            </div>
-            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Bell className="w-6 h-6 text-emerald-500" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Smart Notifications</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Advanced alerting service with infinite scroll on mobile
-                devices. Stay updated with critical loan events, approval
-                statuses, and system announcements with zero-latency delivery.
-              </p>
-            </div>
-            <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Globe className="w-6 h-6 text-orange-500" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Modern Responsive UX</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Experience a state-of-the-art interface with fluid animations,
-                perfect vertical alignment, and mobile-first navigation
-                optimized for maximum administrative efficiency.
+                Secure encrypted storage for customer identification and
+                contracts. Powered by Tesseract OCR to automatically extract
+                CNIC, names, and critical document data directly from uploaded
+                images, accelerating onboarding.
               </p>
             </div>
           </div>

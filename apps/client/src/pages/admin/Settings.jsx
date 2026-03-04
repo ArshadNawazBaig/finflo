@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
-import { cn, capitalize, validateEmail } from '@/lib/utils';
+import { cn, capitalize, validateEmail, copyToClipboard } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -676,10 +676,8 @@ const Settings = () => {
                               variant="outline"
                               size="sm"
                               className="h-9 px-3"
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  user.securityCode || '',
-                                );
+                              onClick={async () => {
+                                await copyToClipboard(user.securityCode || '');
                                 setCopiedSecurityCode(true);
                                 toast.success(
                                   'Security code copied to clipboard',
@@ -718,9 +716,9 @@ const Settings = () => {
                             variant="secondary"
                             size="sm"
                             className="font-bold tracking-tight text-xs h-9 px-4"
-                            onClick={() => {
+                            onClick={async () => {
                               const url = `${window.location.origin}/join/${user.securityCode || ''}`;
-                              navigator.clipboard.writeText(url);
+                              await copyToClipboard(url);
                               toast.success('Registration link copied!');
                             }}
                           >

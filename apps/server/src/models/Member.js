@@ -67,6 +67,10 @@ const memberSchema = new mongoose.Schema(
       enum: ['pending', 'approved', 'rejected'],
       default: 'approved',
     },
+    rejectionReason: {
+      type: String,
+      default: '',
+    },
     cnic: { type: String, required: true },
     job: { type: String },
     jobDetail: { type: String },

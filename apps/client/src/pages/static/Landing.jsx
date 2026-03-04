@@ -8,6 +8,11 @@ import {
   Bell,
   Shield,
   ShieldCheck,
+  Wifi,
+  FileSearch,
+  MessageSquareMore,
+  ArrowLeftRight,
+  Code2,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -50,52 +55,66 @@ const Landing = () => {
     () => [
       {
         icon: <Users className="w-6 h-6 text-rose-500" />,
-        title: 'Member Self-Service',
+        title: 'Member Self-Registration',
         description:
-          'Advanced portal for borrowers and investors to manage portfolios, track ROI, and execute P2P transfers.',
+          'Members apply publicly with a business security code. Admins approve or reject instantly — applicants receive live socket-driven status updates the moment a decision is made.',
         color: 'rose',
+      },
+      {
+        icon: <Wifi className="w-6 h-6 text-amber-500" />,
+        title: 'Real-Time Socket Infrastructure',
+        description:
+          'WebSocket-powered live events for approval results, notification badges, chat presence, typing indicators, and admin member registration counts — all zero-poll.',
+        color: 'amber',
+      },
+      {
+        icon: <MessageSquareMore className="w-6 h-6 text-violet-500" />,
+        title: 'Encrypted Live Chat',
+        description:
+          'Full-featured real-time messaging between staff and members with typing indicators, voice note recording, read receipts, media attachments, and emoji support.',
+        color: 'violet',
       },
       {
         icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
         title: 'Automated Credit Limits',
         description:
-          'Real-time credit ceiling calculations based on investment balance and repayment history for safer lending.',
+          'Real-time credit ceiling calculations based on member investment balance and repayment history for safer, smarter lending decisions.',
         color: 'emerald',
       },
       {
-        icon: <Bell className="w-6 h-6 text-amber-500" />,
-        title: 'Infinite Notifications',
+        icon: <FileSearch className="w-6 h-6 text-indigo-500" />,
+        title: 'KYC Vault & OCR Scanning',
         description:
-          'Real-time, paginated notification engine with adaptive infinite scroll for seamless mobile alerting.',
-        color: 'amber',
+          'Encrypted document storage for customer identification and contracts. Tesseract OCR auto-extracts CNIC and document data directly from uploaded images.',
+        color: 'indigo',
       },
       {
-        icon: <Shield className="w-6 h-6 text-emerald-500" />,
+        icon: <Shield className="w-6 h-6 text-emerald-600" />,
         title: 'Immutable Audit Ledger',
         description:
-          'Regulatory-grade activity tracking with before/after state snapshots for every critical system mutation.',
+          'Regulatory-grade activity tracking with before/after state snapshots and IP logging for every critical system mutation across all branches.',
         color: 'emerald',
-      },
-      {
-        icon: <Database className="w-6 h-6 text-indigo-500" />,
-        title: 'KYC Document Vault',
-        description:
-          'Secure, encrypted storage for customer identification, collateral documents, and digital contracts.',
-        color: 'indigo',
       },
       {
         icon: <Layers className="w-6 h-6 text-blue-500" />,
         title: 'Multi-Branch Engine',
         description:
-          'Scalable infrastructure supporting hierarchical branches with independent branding and access control.',
+          'Scalable infrastructure supporting hierarchical branches with independent branding, role-based permissions, and isolated access control.',
         color: 'blue',
       },
       {
-        icon: <Globe className="w-6 h-6 text-violet-500" />,
-        title: 'Developer First API',
+        icon: <ArrowLeftRight className="w-6 h-6 text-cyan-500" />,
+        title: 'External Fund Transfers',
         description:
-          'Modern REST API with comprehensive response schemas and automated documentation for third-party scaling.',
-        color: 'violet',
+          'Initiate tracked fund movements to external accounts with full ledger reconciliation, category tagging, and branch-level financial reporting.',
+        color: 'cyan',
+      },
+      {
+        icon: <Code2 className="w-6 h-6 text-fuchsia-500" />,
+        title: 'Developer-First REST API',
+        description:
+          'Modern REST API with comprehensive response schemas, role-gated endpoints, Socket.io event reference, and API key documentation for third-party integrations.',
+        color: 'fuchsia',
       },
     ],
     [],

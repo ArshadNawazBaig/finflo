@@ -1096,7 +1096,7 @@ const Chat = () => {
 
                 {/* Contact picker */}
                 {showContacts && (
-                  <div className="border-b border-border/40 bg-muted/10">
+                  <div className="border-b border-border/40 bg-muted/10 max-h-[calc(100vh-20rem)] overflow-y-auto">
                     <div className="p-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-6">
                       Start a conversation
                     </div>

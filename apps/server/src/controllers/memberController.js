@@ -3078,6 +3078,26 @@ const selfRegister = async (req, res) => {
       );
     }
 
+    // Real-time socket: increment pending badge on all admin/staff connections for this business
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${businessOwner._id.toString()}`).emit(
+          'member:new_registration',
+          {
+            memberId: member._id,
+            name: member.name,
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit member:new_registration:',
+        socketErr.message,
+      );
+    }
+
     // We can't log activity for the member yet because they aren't logged in, but we can log for the business
     await logActivity({
       userId: businessOwner._id,
@@ -3106,7 +3126,7 @@ const selfRegister = async (req, res) => {
  */
 const updateApprovalStatus = async (req, res) => {
   try {
-    const { status, branchId } = req.body; // 'approved' or 'rejected'
+    const { status, branchId, rejectionReason } = req.body; // 'approved' or 'rejected'
 
     if (!['approved', 'rejected'].includes(status)) {
       return res
@@ -3131,6 +3151,9 @@ const updateApprovalStatus = async (req, res) => {
 
     member.approvalStatus = status;
     member.isActive = status === 'approved';
+    if (status === 'rejected' && rejectionReason) {
+      member.rejectionReason = rejectionReason;
+    }
     if (branchId) {
       member.branchId = branchId;
     }
@@ -3173,6 +3196,31 @@ const updateApprovalStatus = async (req, res) => {
       metadata: { memberId: member._id },
       req,
     });
+
+    // Real-time socket: notify the pending member's waiting screen of the decision
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`pending_member_${member._id.toString()}`).emit(
+          'member:approval_result',
+          {
+            status,
+            memberId: member._id,
+            rejectionReason: member.rejectionReason,
+            message:
+              status === 'approved'
+                ? 'Your account has been approved! You can now log in.'
+                : 'Your registration was not approved at this time.',
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit member:approval_result:',
+        socketErr.message,
+      );
+    }
 
     // If rejected, remove the associated records to allow re-registration
     if (status === 'rejected') {

@@ -71,6 +71,7 @@ const Members = () => {
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectMemberId, setRejectMemberId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
@@ -279,17 +280,25 @@ const Members = () => {
 
   const handleRejectMember = (id) => {
     setRejectMemberId(id);
+    setRejectionReason(''); // Reset reason when opening modal
   };
 
   const confirmRejectMember = async () => {
     if (!rejectMemberId) return;
+    if (!rejectionReason.trim()) {
+      toast.error('Please provide a reason for rejection.');
+      return;
+    }
+
     try {
       setRejectingId(rejectMemberId);
       await api.put(`/members/${rejectMemberId}/approval`, {
         status: 'rejected',
+        rejectionReason: rejectionReason.trim(),
       });
       toast.success('Member application rejected');
       setRejectMemberId(null);
+      setRejectionReason('');
       fetchMembers(false);
       window.dispatchEvent(new CustomEvent('userUpdated'));
     } catch (error) {
@@ -520,9 +529,24 @@ const Members = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reject Application</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reject this member's application? They
-              will be notified and will not be able to access the member portal.
+            <AlertDialogDescription className="space-y-4">
+              <p>
+                Are you sure you want to reject this member's application? They
+                will be notified and will not be able to access the member
+                portal.
+              </p>
+              <div className="space-y-2 mt-4">
+                <label className="text-sm font-bold text-foreground">
+                  Reason for Rejection <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="e.g., Out of Quota, etc..."
+                  className="w-full h-24 p-3 rounded-xl border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  required
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

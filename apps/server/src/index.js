@@ -328,22 +328,29 @@ io.use(async (socket, next) => {
       if (cookieToken) token = cookieToken;
     }
 
+    // Allow unauthenticated observer connections (e.g. pending members waiting for approval)
     if (!token) {
       console.log(
-        '[Socket] Auth Failed: No token provided in auth, headers, or cookies',
+        '[Socket] Observer connection (no token) — limited access granted',
       );
-      return next(new Error('No token'));
+      socket.isObserver = true;
+      return next();
     }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const member = await Member.findById(decoded.id).select('_id name');
     if (member) {
       socket.userId = member._id.toString();
       socket.userModel = 'Member';
     } else {
-      const user = await User.findById(decoded.id).select('_id name');
+      const user = await User.findById(decoded.id).select(
+        '_id name role effectiveOwnerId branchId',
+      );
       if (!user) return next(new Error('User not found'));
       socket.userId = user._id.toString();
       socket.userModel = 'User';
+      socket.userRole = user.role;
+      socket.effectiveOwnerId = (user.effectiveOwnerId || user._id).toString();
     }
     next();
   } catch (error) {
@@ -356,6 +363,34 @@ io.use(async (socket, next) => {
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
+  // Observer sockets (e.g. pending members awaiting approval) get limited access
+  if (socket.isObserver) {
+    console.log('[Socket] Observer connected (unauthenticated)');
+
+    // Allow pending member to subscribe to their approval result room
+    socket.on('join:pending_member', async ({ memberId }) => {
+      try {
+        if (!memberId) return;
+        const pendingMember = await Member.findOne({
+          _id: memberId,
+          approvalStatus: 'pending',
+        }).select('_id');
+        if (pendingMember) {
+          socket.join(`pending_member_${memberId}`);
+          console.log(`[Socket] Observer joined pending_member_${memberId}`);
+        }
+      } catch (err) {
+        console.error('[Socket] join:pending_member error:', err.message);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('[Socket] Observer disconnected');
+    });
+
+    return; // Do not proceed with authenticated-only logic
+  }
+
   // Join personal room for targeted events
   socket.join(`user_${socket.userId}`);
   console.log(`[Socket] ${socket.userModel} ${socket.userId} connected`);
@@ -381,6 +416,14 @@ io.on('connection', (socket) => {
       userModel: data.userModel,
     })),
   );
+
+  // Admin/Staff: join business broadcast room to receive member registration events
+  if (socket.userModel === 'User' && socket.effectiveOwnerId) {
+    socket.join(`business_${socket.effectiveOwnerId}`);
+    console.log(
+      `[Socket] User ${socket.userId} joined business_${socket.effectiveOwnerId}`,
+    );
+  }
 
   socket.on('typing', ({ conversationId, receiverId }) => {
     socket.to(`user_${receiverId}`).emit('user:typing', {

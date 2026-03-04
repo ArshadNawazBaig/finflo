@@ -126,8 +126,8 @@ export const getSafeNotificationLink = (link, role) => {
 
   // 1. Member Role Logic
   if (role === 'member') {
-    // Allow links starting with /member
-    if (link.startsWith('/member')) return link;
+    // Allow links starting with /member/ or exactly /member
+    if (link.startsWith('/member/') || link === '/member') return link;
 
     // Explicitly allow general paths that members are allowed to see
     const memberAllowedPaths = [
@@ -154,7 +154,7 @@ export const getSafeNotificationLink = (link, role) => {
     if (isSuperAdmin && link.startsWith('/super-admin')) return link;
 
     // Reject member routes for all non-member users
-    if (link.startsWith('/member')) {
+    if (link.startsWith('/member/') || link === '/member') {
       return isSuperAdmin ? '/super-admin/notifications' : '/notifications';
     }
 
@@ -169,4 +169,38 @@ export const getSafeNotificationLink = (link, role) => {
 
   // Final Fallback for unknown roles or public routes
   return link;
+};
+
+/**
+ * Robust clipboard copy utility.
+ * Falls back to document.execCommand('copy') if navigator.clipboard is unavailable (e.g., HTTP environments or specific webviews).
+ */
+export const copyToClipboard = async (text) => {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.warn('Clipboard API failed, falling back to execCommand', err);
+    }
+  }
+
+  // Fallback for older browsers or insecure contexts
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    // Avoid scrolling to bottom
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Fallback clipboard copy failed', err);
+    return false;
+  }
 };

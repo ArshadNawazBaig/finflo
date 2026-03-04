@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import { toast } from 'sonner';
 import { useSetAtom } from 'jotai';
 import {
   unreadChatCountAtom,
   notificationsAtom,
   unreadNotificationsCountAtom,
+  pendingMembersCountAtom,
 } from '@/atoms';
 import api from '@/lib/axios';
 import { SOCKET_URL } from '@/lib/constants';
@@ -22,6 +24,7 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
   const setUnreadMessages = useSetAtom(unreadChatCountAtom);
   const setUnreadNotifs = useSetAtom(unreadNotificationsCountAtom);
   const setNotifications = useSetAtom(notificationsAtom);
+  const setPendingMembersCount = useSetAtom(pendingMembersCountAtom);
 
   useEffect(() => {
     // Get token from localStorage
@@ -95,6 +98,23 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       setUnreadNotifs((prev) => prev + 1);
     });
 
+    // Real-time pending member badge — admin only
+    if (userType === 'user') {
+      socket.on('member:new_registration', ({ name }) => {
+        console.log('[Socket] New member registration pending:', name);
+        setPendingMembersCount((prev) => prev + 1);
+        toast.info(`New Registration: ${name}`, {
+          description: 'A new member is waiting for approval.',
+          action: {
+            label: 'Review',
+            onClick: () => {
+              window.location.href = '/members?type=pending';
+            },
+          },
+        });
+      });
+    }
+
     // Update the global unread badge by refetching all conversation unread states
     socket.on('message:new', () => {
       fetchCounts();
@@ -112,7 +132,13 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [setUnreadMessages, setUnreadNotifs, setNotifications, userType]);
+  }, [
+    setUnreadMessages,
+    setUnreadNotifs,
+    setNotifications,
+    setPendingMembersCount,
+    userType,
+  ]);
 
   return (
     <SocketContext.Provider value={{ socketRef, connected }}>

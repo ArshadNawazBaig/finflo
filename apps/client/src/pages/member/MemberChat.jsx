@@ -1128,7 +1128,7 @@ const MemberChat = () => {
               </div>
 
               {showContacts && (
-                <div className="border-b border-border/40 bg-muted/10">
+                <div className="border-b border-border/40 bg-muted/10 max-h-[calc(100vh-20rem)] overflow-y-auto">
                   <p className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Available Staff
                   </p>
