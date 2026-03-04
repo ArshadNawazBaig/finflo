@@ -111,7 +111,7 @@ const AuthLayout = ({
       </div>
 
       {/* ─── Form Side ───────────────────────────────────────── */}
-      <div className="flex flex-col items-center justify-center p-4 lg:p-20 relative bg-background min-h-screen overflow-y-auto">
+      <div className="flex flex-col items-center justify-center p-4 lg:p-20 relative bg-background min-h-screen overflow-y-auto overflow-x-hidden">
         {/* Decorative elements for the form side background */}
         <div className="absolute top-0 -left-10 w-72 lg:w-96 h-72 lg:h-96 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
         <div className="absolute bottom-0 -right-10 w-72 lg:w-96 h-72 lg:h-96 bg-emerald-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />

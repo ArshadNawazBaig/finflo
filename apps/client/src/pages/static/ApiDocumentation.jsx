@@ -401,16 +401,34 @@ const ApiDocumentation = () => {
                     method="PUT"
                     path="/api/auth/updatedetails"
                     description={{
-                      text: 'Update user profile details.',
+                      text: 'Update user profile details. Now includes Business Abbreviation for organizational identity.',
                       response: {
                         success: true,
                         data: {
                           name: 'John Updated',
                           email: 'john@example.com',
+                          businessAbbreviation: 'MLO',
                         },
                         message: 'User details updated successfully',
                       },
                     }}
+                    params={[
+                      {
+                        name: 'name',
+                        type: 'string',
+                        desc: 'Updated name',
+                      },
+                      {
+                        name: 'email',
+                        type: 'string',
+                        desc: 'Updated email',
+                      },
+                      {
+                        name: 'businessAbbreviation',
+                        type: 'string',
+                        desc: '4-character uppercase prefix for custom account number generation',
+                      },
+                    ]}
                   />
                   <Endpoint
                     method="PUT"

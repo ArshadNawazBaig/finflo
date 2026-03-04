@@ -6,6 +6,7 @@ A comprehensive Finance Management System designed to streamline the lending pro
 
 - **Dashboard & Analytics**: Real-time overview of active loans, revenue, and customer statistics with modern, interactive charts.
 - **Multi-Branch Infrastructure**: Centralized management with branch-specific staff access and localized branding.
+- **Business Branding & Identity**: Customize your organizational identity with a unique **Business Abbreviation**. This abbreviation is automatically used to generate professional, 13-digit dynamic account numbers for all customers and members.
 - **Intelligent Risk & Credit Engine**: Automated credit limits and ECL calculations based on investment balance and historical behavior.
 - **Finance Management**:
   - **Issue Loans**: Flexible configuration for loan amount, interest rate, tenure, and repayment frequency.
@@ -14,16 +15,12 @@ A comprehensive Finance Management System designed to streamline the lending pro
   - **Status Tracking**: Monitor loans through various stages (Active, Paid, Defaulted, etc.).
 - **Customer & Member Management**:
   - **Automated Credit Limits**: Real-time ceiling updates based on investment portfolio and repayment history.
-  - **Account Types**: Support for multiple account types including **Saving** and **Current** accounts.
+  - **Account Generation**: Professional 13-digit account numbers (Saving and Current) generated using your unique business prefix and sequential tracking.
   - **KYC & AML Document Vault**: Securely store and manage identification and collateral documents.
+- **Communication & Engagement**:
+  - **Encrypted Live Chat**: Real-time messaging with typing indicators, voice notes, and media support. Includes per-user history clearing for enhanced privacy.
+  - **Notifications**: Comprehensive automated alerts for all transaction types and due dates via Sockets and Email.
 - **Compliance & Security**:
-  - **Immutable Audit Trails**: Comprehensive logging of critical actions for regulatory compliance.
-  - **Role-Based Access**: Granular permissions for Super Admins, Branch Admins, and Staff.
-  - **Security Protocols**: Business Security Code system for high-stakes authorization.
-- **Integration**:
-  - **File Storage**: Secure document storage integrated with **Cloudinary**.
-  - **Payments**: **Stripe** integration for subscription management.
-  - **Notifications**: Comprehensive automated alerts for all transaction types and due dates.
 
 ## 🛠 Tech Stack
 

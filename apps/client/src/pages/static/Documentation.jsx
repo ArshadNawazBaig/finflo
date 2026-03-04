@@ -252,11 +252,14 @@ const Documentation = () => {
                 2
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-bold">Configure Settings</h3>
+                <h3 className="text-xl font-bold">
+                  Configure Business Identity
+                </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Go to <strong>Settings</strong> to customize your workspace.
-                  Set your default currency, interest rates, and branding
-                  options to match your business.
+                  Go to <strong>Settings &gt; Profile</strong> to set your
+                  unique <strong>Business Abbreviation</strong>. This prefix
+                  will be used to generate professional 13-digit account numbers
+                  for all your customers and members.
                 </p>
               </div>
             </div>
@@ -340,12 +343,14 @@ const Documentation = () => {
               <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <MessageSquare className="w-6 h-6 text-violet-500" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Encrypted Live Chat</h3>
+              <h3 className="text-xl font-bold mb-3">
+                Encrypted Live Chat with Privacy
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Full-featured real-time messaging between staff and members
-                equipped with typing indicators, voice note recording, read
-                receipts, media attachments, and emoji support for fast customer
-                resolution.
+                supported by per-user history clearing. Equipped with typing
+                indicators, voice note recording, read receipts, and media
+                attachments for fast customer resolution.
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">

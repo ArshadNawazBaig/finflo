@@ -13,6 +13,7 @@ import {
   MessageSquareMore,
   ArrowLeftRight,
   Code2,
+  Sparkles,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -71,8 +72,15 @@ const Landing = () => {
         icon: <MessageSquareMore className="w-6 h-6 text-violet-500" />,
         title: 'Encrypted Live Chat',
         description:
-          'Full-featured real-time messaging between staff and members with typing indicators, voice note recording, read receipts, media attachments, and emoji support.',
+          'Full-featured real-time messaging between staff and members with typing indicators, voice notes, and media support. Includes per-user history clearing for maximum privacy.',
         color: 'violet',
+      },
+      {
+        icon: <Sparkles className="w-6 h-6 text-blue-500" />,
+        title: 'Dynamic Business Branding',
+        description:
+          'Set your business abbreviation and watch the system generate professional, 13-digit dynamic account numbers for every customer and member automatically.',
+        color: 'blue',
       },
       {
         icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
