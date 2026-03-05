@@ -47,6 +47,7 @@ const createTransporter = async (settings) => {
           user: config.auth.user,
           pass: config.auth.pass,
         },
+        family: 4, // Force IPv4 to avoid ENETUNREACH errors on ipv6-ready servers without routes
         tls: { rejectUnauthorized: false },
       });
     }
@@ -75,6 +76,7 @@ const createTransporter = async (settings) => {
           user: user,
           pass: pass,
         },
+        family: 4, // Force IPv4 for environment fallback too
         tls: { rejectUnauthorized: false },
       });
     }
