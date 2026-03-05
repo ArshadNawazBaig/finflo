@@ -143,12 +143,41 @@ If you prefer to run them separately:
   yarn workspace client dev
   ```
 
-## 🧪 Testing
+## 📱 Mobile Deployment (Capacitor)
 
-To run tests (if configured):
+This project uses **Capacitor** to target iOS and Android.
+
+### Prerequisites
+
+- **iOS**: Mac with [Xcode](https://developer.apple.com/xcode/) installed.
+- **Android**: [Android Studio](https://developer.android.com/studio) installed.
+
+### Build and Sync
+
+Every time you make changes to the frontend, you must rebuild the web assets and sync them to the native projects:
 
 ```bash
-yarn test
+# 1. Build the web app
+yarn workspace client build
+
+# 2. Sync to mobile platforms
+cd apps/client
+npx cap sync
+```
+
+### Run on Devices
+
+To open the native IDEs and run the application:
+
+- **iOS**: `npx cap open ios` (Opens Xcode)
+- **Android**: `npx cap open android` (Opens Android Studio)
+
+For **Live Reload** during development:
+
+```bash
+npx cap run ios --live-reload --external
+# or
+npx cap run android --live-reload --external
 ```
 
 ## 📄 License
