@@ -1,6 +1,6 @@
 {
   "appId": "com.loanapp.management",
-  "appName": "FinFlow",
+  "appName": "FinFlo",
   "webDir": "dist",
   "server": {
     "allowNavigation": ["loan-master-client.vercel.app"]

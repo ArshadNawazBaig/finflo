@@ -1,4 +1,4 @@
-# FinFlow - Finance Management SaaS
+# FinFlo - Finance Management SaaS
 
 A comprehensive Finance Management System designed to streamline the lending process for financial institutions. This SaaS application manages the entire loan lifecycle, from customer onboarding and loan issuance to repayment tracking and status management.
 

@@ -145,7 +145,7 @@ const systemSettingsSchema = new mongoose.Schema(
     },
     supportEmail: {
       type: String,
-      default: 'support@finflow.com',
+      default: 'support@finflo.org',
     },
     maintenanceMode: {
       type: Boolean,

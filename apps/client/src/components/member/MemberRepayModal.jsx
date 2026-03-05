@@ -389,7 +389,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </form>
 
           <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
-            TRANSACTION SECURED BY FINFLOW 3D-PROTOCOL
+            TRANSACTION SECURED BY FINFLO 3D-PROTOCOL
           </p>
         </div>
       </DialogContent>

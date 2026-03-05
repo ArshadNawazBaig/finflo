@@ -16,7 +16,7 @@ const Logo = ({
   const companyName = false;
   // ((user?.role === 'admin' || user?.isManager) && user?.name) ||
   // user?.branch?.branding?.companyName ||
-  // 'Finflow';
+  // 'Finflo';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
