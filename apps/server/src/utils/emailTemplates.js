@@ -258,9 +258,48 @@ const memberApprovalEmail = (memberName, status) => {
   return getBaseTemplate(content, title);
 };
 
+/**
+ * Business Welcome Email Template
+ */
+const welcomeBusinessEmail = (businessName) => {
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #2563eb; font-size: 18px; font-weight: 700;">Welcome to FinFlo!</h2>
+    <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+      Dear <span style="font-weight: 700; text-transform: capitalize;">${businessName}</span>,
+    </p>
+    <p style="margin: 0 0 24px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
+      We're thrilled to have you on board! Your business account has been successfully verified, and you're now ready to revolutionize your financial operations.
+    </p>
+    
+    <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+      <h3 style="margin: 0 0 12px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Quick Start Guide:</h3>
+      <ul style="margin: 0; padding: 0 0 0 20px; color: #64748b; font-size: 14px; line-height: 1.8;">
+        <li>Set up your <strong>Branches</strong> and define your branding.</li>
+        <li>Invite your <strong>Team Members</strong> and assign roles.</li>
+        <li>Create your first <strong>Loan Products</strong>.</li>
+        <li>Explore the <strong>Distribution Hub</strong> for member registration.</li>
+      </ul>
+    </div>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 32px;">
+          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/dashboard" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Go to Dashboard</a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin: 0; color: #94a3b8; font-size: 14px; text-align: center;">
+      Need help? Our support team is just an email away.
+    </p>
+  `;
+  return getBaseTemplate(content, 'Welcome to FinFlo');
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
+  welcomeBusinessEmail,
   loanReminderEmail,
   transactionEmail,
   memberApprovalEmail,

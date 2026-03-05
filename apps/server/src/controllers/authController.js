@@ -19,6 +19,7 @@ const { sendEmail } = require('../utils/email');
 const {
   verificationEmail,
   passwordResetEmail,
+  welcomeBusinessEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { validatePassword } = require('../utils/validation');
@@ -543,6 +544,17 @@ const verifyEmail = async (req, res) => {
     user.verificationCode = undefined;
     user.verificationCodeExpire = undefined;
     await user.save();
+
+    // Send Welcome Email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to FinFlo!',
+        html: welcomeBusinessEmail(user.name),
+      });
+    } catch (err) {
+      console.error('Welcome email failed to send:', err);
+    }
 
     // Log activity
     await logActivity({
