@@ -144,7 +144,7 @@ const updateLoanConfiguration = async (req, res) => {
   }
 };
 
-// Test SMTP connection and send a test email
+// Test email connection and send a test email (supports Resend + SMTP)
 const testSmtpConnection = async (req, res) => {
   try {
     const { sendEmail } = require('../utils/email');
@@ -155,6 +155,8 @@ const testSmtpConnection = async (req, res) => {
         .status(400)
         .json({ message: 'Recipient email (to) is required' });
     }
+
+    const provider = process.env.RESEND_API_KEY ? 'Resend (HTTP API)' : 'SMTP';
 
     const success = await sendEmail({
       to,
@@ -173,14 +175,20 @@ const testSmtpConnection = async (req, res) => {
 
     if (success) {
       res.json({
-        message: 'SMTP connection verified and test email sent successfully',
+        message: `Email sent successfully via ${provider}`,
+        provider,
       });
     } else {
-      res.status(500).json({ message: 'SMTP verification failed' });
+      res.status(500).json({
+        message: 'Email delivery failed. Check server logs for details.',
+        provider,
+      });
     }
   } catch (error) {
-    console.error('SMTP Test Error:', error);
-    res.status(500).json({ message: 'SMTP test failed', error: error.message });
+    console.error('Email Test Error:', error);
+    res
+      .status(500)
+      .json({ message: 'Email test failed', error: error.message });
   }
 };
 
