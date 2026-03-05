@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const SystemSettings = require('../models/SystemSettings');
 
 // ── In-memory cache for SystemSettings (60 second TTL) ────────────────────────
@@ -22,7 +23,33 @@ const invalidateSettingsCache = () => {
   _settingsCacheTime = 0;
 };
 
-const createTransporter = async (settings, debug = false) => {
+// ── Resend (HTTP API — Railway compatible) ─────────────────────────────────────
+const sendViaResend = async (options, fromEmail, fromName) => {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) return null; // Not configured, fall through to SMTP
+
+  const resend = new Resend(resendApiKey);
+
+  const { data, error } = await resend.emails.send({
+    from: `${fromName} <${fromEmail}>`,
+    to: [options.to],
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend API error: ${error.message || JSON.stringify(error)}`,
+    );
+  }
+
+  console.log(`[EMAIL] Sent via Resend: ${data.id}`);
+  return data.id;
+};
+
+// ── Nodemailer SMTP (fallback for local dev) ───────────────────────────────────
+const createSmtpTransporter = async (settings, debug = false) => {
   try {
     const config = settings.smtpConfig;
 
@@ -35,46 +62,33 @@ const createTransporter = async (settings, debug = false) => {
     ) {
       console.log('[SMTP CONFIG] Using Database configuration.');
 
-      // Gmail specific optimizations - Force 587/STARTTLS for cloud environments
       if (config.host.toLowerCase().includes('gmail.com')) {
         console.log(
-          '[SMTP CONFIG] Detected Gmail: Forcing Port 587 and STARTTLS for cloud compatibility.',
+          '[SMTP CONFIG] Detected Gmail: Forcing Port 587 and STARTTLS.',
         );
         return nodemailer.createTransport({
           host: 'smtp.gmail.com',
           port: 587,
-          secure: false, // STARTTLS
-          auth: {
-            user: config.auth.user,
-            pass: config.auth.pass,
-          },
+          secure: false,
+          auth: { user: config.auth.user, pass: config.auth.pass },
           family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: {
-            rejectUnauthorized: false,
-            minVersion: 'TLSv1.2',
-          },
+          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
       const port = parseInt(config.port) || 587;
-      console.log(
-        `[SMTP CONFIG] Using manual host: ${config.host} | Port: ${port} | Secure: ${port === 465}`,
-      );
       return nodemailer.createTransport({
         host: config.host,
         port: port,
-        secure: port === 465, // Use SSL for 465, STARTTLS for others
-        auth: {
-          user: config.auth.user,
-          pass: config.auth.pass,
-        },
-        family: 4, // Force IPv4 to avoid ENETUNREACH errors on ipv6-ready servers without routes
-        connectionTimeout: 30000, // 20s timeout
+        secure: port === 465,
+        auth: { user: config.auth.user, pass: config.auth.pass },
+        family: 4,
+        connectionTimeout: 30000,
         greetingTimeout: 30000,
         socketTimeout: 30000,
         logger: debug,
@@ -83,58 +97,38 @@ const createTransporter = async (settings, debug = false) => {
       });
     }
 
-    // Fallback to Env Vars
+    // Fallback: Env Vars
     const host = process.env.SMTP_HOST;
     const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
     const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
     const port = parseInt(process.env.SMTP_PORT) || 587;
-
-    console.log('[SMTP CONFIG] DB config check:', {
-      hasConfig: !!config,
-      hasHost: !!(config && config.host),
-      hostValue: config?.host,
-    });
 
     if (host && user && pass) {
       console.log(
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
 
-      // Gmail specific optimizations for fallback - Force 587/STARTTLS
       if (host.toLowerCase().includes('gmail.com')) {
-        console.log(
-          '[SMTP CONFIG] Detected Gmail (Env): Forcing Port 587 and STARTTLS.',
-        );
         return nodemailer.createTransport({
           host: 'smtp.gmail.com',
           port: 587,
-          secure: false, // STARTTLS
-          auth: {
-            user: user,
-            pass: pass,
-          },
+          secure: false,
+          auth: { user, pass },
           family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: {
-            rejectUnauthorized: false,
-            minVersion: 'TLSv1.2',
-          },
+          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
-      console.log(`[SMTP CONFIG] Using Env Variables: ${host} | Port: ${port}`);
       return nodemailer.createTransport({
-        host: host,
-        port: port,
+        host,
+        port,
         secure: port === 465,
-        auth: {
-          user: user,
-          pass: pass,
-        },
+        auth: { user, pass },
         family: 4,
         connectionTimeout: 30000,
         greetingTimeout: 30000,
@@ -150,28 +144,21 @@ const createTransporter = async (settings, debug = false) => {
     );
     return null;
   } catch (error) {
-    console.error('Failed to configure email transporter', error);
+    console.error('Failed to configure SMTP transporter:', error);
     return null;
   }
 };
 
 /**
- * Sends an email using the configured transporter.
- * @param {Object} options - Email options { to, subject, html, text }
- * @returns {Boolean} - Success status
+ * Sends an email.
+ * Uses Resend (HTTP) if RESEND_API_KEY is set — works on Railway.
+ * Falls back to nodemailer SMTP for local development.
+ * @param {Object} options - { to, subject, html, text, debug }
+ * @returns {Boolean} - success status
  */
 const sendEmail = async (options) => {
   try {
     const settings = await getCachedSettings();
-    const transporter = await createTransporter(
-      settings,
-      options.debug || false,
-    );
-
-    if (!transporter) {
-      console.warn('Email skipped: SMTP configuration is missing.');
-      return false;
-    }
 
     const fromEmail =
       settings.smtpConfig?.fromEmail ||
@@ -184,6 +171,27 @@ const sendEmail = async (options) => {
       process.env.SMTP_FROM_NAME ||
       settings.platformName;
 
+    // ── Try Resend first (production / Railway) ───────────────────────────────
+    if (process.env.RESEND_API_KEY) {
+      console.log('[EMAIL] Resend API key found — using Resend for delivery.');
+      await sendViaResend(options, fromEmail, fromName);
+      return true;
+    }
+
+    // ── Fall back to SMTP (local dev) ─────────────────────────────────────────
+    console.log('[EMAIL] No Resend API key — falling back to SMTP.');
+    const transporter = await createSmtpTransporter(
+      settings,
+      options.debug || false,
+    );
+
+    if (!transporter) {
+      console.warn(
+        'Email skipped: No Resend API key and no valid SMTP configuration.',
+      );
+      return false;
+    }
+
     const mailOptions = {
       from: `"${fromName}" <${fromEmail}>`,
       to: options.to,
@@ -193,20 +201,18 @@ const sendEmail = async (options) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully to ${options.to} [${info.messageId}]`);
+    console.log(`[EMAIL] Sent via SMTP to ${options.to} [${info.messageId}]`);
     return true;
   } catch (error) {
     console.error('Email Delivery Failed:', error.message);
-    if (error.stack) {
-      console.error('Stack Trace:', error.stack);
-    }
+    if (error.stack) console.error('Stack Trace:', error.stack);
     return false;
   }
 };
 
 /**
  * Sends an email in a non-blocking, fire-and-forget manner.
- * @param {Object} options - Email options { to, subject, html, text }
+ * @param {Object} options - { to, subject, html, text }
  */
 const sendEmailAsync = (options) => {
   sendEmail(options).catch((err) =>

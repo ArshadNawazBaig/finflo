@@ -144,7 +144,7 @@ const updateLoanConfiguration = async (req, res) => {
   }
 };
 
-// Test SMTP connection and send a test email
+// Test email connection and send a test email (supports Resend + SMTP)
 const testSmtpConnection = async (req, res) => {
   try {
     const { sendEmail } = require('../utils/email');
@@ -156,31 +156,40 @@ const testSmtpConnection = async (req, res) => {
         .json({ message: 'Recipient email (to) is required' });
     }
 
+    const provider = process.env.RESEND_API_KEY ? 'Resend (HTTP API)' : 'SMTP';
+
     const success = await sendEmail({
       to,
-      debug: true, // Enable detailed SMTP logging for diagnostics
-      subject: 'FinanceFlow SMTP Connection Test',
+      debug: true,
+      subject: 'FinanceFlow Email Connection Test',
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-          <h2 style="color: #0f172a;">SMTP Test Successful!</h2>
-          <p style="color: #475569;">If you are reading this, your FinanceFlow SMTP configuration (from DB or Env) is working correctly.</p>
+          <h2 style="color: #0f172a;">✅ Email Test Successful!</h2>
+          <p style="color: #475569;">Your FinanceFlow email configuration is working correctly.</p>
+          <p style="color: #475569;"><strong>Provider used:</strong> ${provider}</p>
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
           <p style="font-size: 12px; color: #94a3b8;">Sent on: ${new Date().toLocaleString()}</p>
         </div>
       `,
-      text: 'SMTP Test Successful! Your FinanceFlow configuration is working correctly.',
+      text: `Email Test Successful! Provider: ${provider}. Your FinanceFlow configuration is working correctly.`,
     });
 
     if (success) {
       res.json({
-        message: 'SMTP connection verified and test email sent successfully',
+        message: `Email sent successfully via ${provider}`,
+        provider,
       });
     } else {
-      res.status(500).json({ message: 'SMTP verification failed' });
+      res.status(500).json({
+        message: 'Email delivery failed. Check server logs for details.',
+        provider,
+      });
     }
   } catch (error) {
-    console.error('SMTP Test Error:', error);
-    res.status(500).json({ message: 'SMTP test failed', error: error.message });
+    console.error('Email Test Error:', error);
+    res
+      .status(500)
+      .json({ message: 'Email test failed', error: error.message });
   }
 };
 
