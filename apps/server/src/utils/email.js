@@ -22,12 +22,7 @@ const invalidateSettingsCache = () => {
   _settingsCacheTime = 0;
 };
 
-/**
- * Creates a configured Nodemailer transporter.
- * Falls back to environment variables if DB settings are incomplete.
- * Uses cached settings to avoid repeated DB hits.
- */
-const createTransporter = async (settings) => {
+const createTransporter = async (settings, debug = false) => {
   try {
     const config = settings.smtpConfig;
 
@@ -40,21 +35,36 @@ const createTransporter = async (settings) => {
     ) {
       console.log('[SMTP CONFIG] Using Database configuration.');
 
-      // Gmail specific optimizations
+      // Gmail specific optimizations - Force 587/STARTTLS for cloud environments
       if (config.host.toLowerCase().includes('gmail.com')) {
+        console.log(
+          '[SMTP CONFIG] Detected Gmail: Forcing Port 587 and STARTTLS for cloud compatibility.',
+        );
         return nodemailer.createTransport({
-          service: 'gmail',
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // STARTTLS
           auth: {
             user: config.auth.user,
             pass: config.auth.pass,
           },
           family: 4,
-          connectionTimeout: 15000,
-          greetingTimeout: 15000,
+          connectionTimeout: 30000,
+          greetingTimeout: 30000,
+          socketTimeout: 30000,
+          logger: debug,
+          debug: debug,
+          tls: {
+            rejectUnauthorized: false,
+            minVersion: 'TLSv1.2',
+          },
         });
       }
 
       const port = parseInt(config.port) || 587;
+      console.log(
+        `[SMTP CONFIG] Using manual host: ${config.host} | Port: ${port} | Secure: ${port === 465}`,
+      );
       return nodemailer.createTransport({
         host: config.host,
         port: port,
@@ -64,8 +74,11 @@ const createTransporter = async (settings) => {
           pass: config.auth.pass,
         },
         family: 4, // Force IPv4 to avoid ENETUNREACH errors on ipv6-ready servers without routes
-        connectionTimeout: 15000, // 15s timeout
-        greetingTimeout: 15000,
+        connectionTimeout: 30000, // 20s timeout
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
+        logger: debug,
+        debug: debug,
         tls: { rejectUnauthorized: false },
       });
     }
@@ -87,20 +100,33 @@ const createTransporter = async (settings) => {
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
 
-      // Gmail specific optimizations for fallback
+      // Gmail specific optimizations for fallback - Force 587/STARTTLS
       if (host.toLowerCase().includes('gmail.com')) {
+        console.log(
+          '[SMTP CONFIG] Detected Gmail (Env): Forcing Port 587 and STARTTLS.',
+        );
         return nodemailer.createTransport({
-          service: 'gmail',
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // STARTTLS
           auth: {
             user: user,
             pass: pass,
           },
           family: 4,
-          connectionTimeout: 15000,
-          greetingTimeout: 15000,
+          connectionTimeout: 30000,
+          greetingTimeout: 30000,
+          socketTimeout: 30000,
+          logger: debug,
+          debug: debug,
+          tls: {
+            rejectUnauthorized: false,
+            minVersion: 'TLSv1.2',
+          },
         });
       }
 
+      console.log(`[SMTP CONFIG] Using Env Variables: ${host} | Port: ${port}`);
       return nodemailer.createTransport({
         host: host,
         port: port,
@@ -109,9 +135,12 @@ const createTransporter = async (settings) => {
           user: user,
           pass: pass,
         },
-        family: 4, // Force IPv4 for environment fallback too
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
+        family: 4,
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
+        logger: debug,
+        debug: debug,
         tls: { rejectUnauthorized: false },
       });
     }
@@ -134,7 +163,10 @@ const createTransporter = async (settings) => {
 const sendEmail = async (options) => {
   try {
     const settings = await getCachedSettings();
-    const transporter = await createTransporter(settings);
+    const transporter = await createTransporter(
+      settings,
+      options.debug || false,
+    );
 
     if (!transporter) {
       console.warn('Email skipped: SMTP configuration is missing.');
@@ -165,6 +197,9 @@ const sendEmail = async (options) => {
     return true;
   } catch (error) {
     console.error('Email Delivery Failed:', error.message);
+    if (error.stack) {
+      console.error('Stack Trace:', error.stack);
+    }
     return false;
   }
 };
