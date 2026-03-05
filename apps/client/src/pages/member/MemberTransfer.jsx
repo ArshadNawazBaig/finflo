@@ -138,7 +138,9 @@ const MemberTransfer = () => {
     try {
       const memberToken = localStorage.getItem('member');
       const { data } = await api.get('/member-auth/me', {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       setMember(data);
     } catch {
@@ -158,7 +160,9 @@ const MemberTransfer = () => {
     try {
       const memberToken = localStorage.getItem('member');
       const { data } = await api.get('/external-transfers?limit=8', {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       setExtHistory(data.data || []);
     } catch {
@@ -181,7 +185,11 @@ const MemberTransfer = () => {
           const memberToken = localStorage.getItem('member');
           const { data } = await api.get(
             `/members/portal/lookup?identifier=${recipient.trim()}`,
-            { headers: { /* Auth header handled by browser cookies */ } },
+            {
+              headers: {
+                /* Auth header handled by browser cookies */
+              },
+            },
           );
           const filtered = data.filter(
             (m) => m._id !== member?._id && m.email !== member?.email,
@@ -230,7 +238,11 @@ const MemberTransfer = () => {
           amount: parseFloat(amount),
           description,
         },
-        { headers: { /* Auth header handled by browser cookies */ } },
+        {
+          headers: {
+            /* Auth header handled by browser cookies */
+          },
+        },
       );
       toast.success('Transfer successful!');
       setRecipient('');
@@ -280,7 +292,9 @@ const MemberTransfer = () => {
         description: extNote || undefined,
       };
       const { data } = await api.post(endpoint, payload, {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       setSuccessRef(data.referenceId);
       toast.success(
@@ -411,7 +425,7 @@ const MemberTransfer = () => {
                   New Transfer
                 </h3>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Secure fund movement between FinanceFlow accounts.
+                  Secure fund movement between FinFlo accounts.
                 </p>
               </div>
 
@@ -651,7 +665,7 @@ const MemberTransfer = () => {
                 </div>
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <CheckCircle2 size={12} className="text-primary" />
-                  Verified FinanceFlow Account
+                  Verified FinFlo Account
                 </div>
               </div>
             </div>

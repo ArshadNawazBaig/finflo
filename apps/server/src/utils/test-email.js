@@ -34,9 +34,9 @@ const testEmail = async () => {
 
     console.log('Sending test email to:', process.env.SMTP_EMAIL);
     const info = await transporter.sendMail({
-      from: `"FinanceFlow Diagnostic" <${process.env.SMTP_EMAIL}>`,
+      from: `"FinFlo Diagnostic" <${process.env.SMTP_EMAIL}>`,
       to: process.env.SMTP_EMAIL,
-      subject: 'FinanceFlow SMTP Diagnostic Test',
+      subject: 'FinFlo SMTP Diagnostic Test',
       text: 'If you are reading this, your SMTP configuration is working perfectly!',
       html: '<b>If you are reading this, your SMTP configuration is working perfectly!</b>',
     });

@@ -29,7 +29,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    notes: 'Self-repayment via FinanceFlow',
+    notes: 'Self-repayment via FinFlo',
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       setIsSettlement(false);
       setFormData({
         amount: '',
-        notes: 'Self-repayment via FinanceFlow',
+        notes: 'Self-repayment via FinFlo',
       });
     }
   }, [isOpen]);
@@ -50,7 +50,9 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       const memberToken = localStorage.getItem('member');
       // Fix: Use correct member profile endpoint
       const { data } = await api.get('/member-auth/me', {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       setMemberBalance(data.currentBalance || 0);
     } catch (error) {
@@ -161,7 +163,11 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           isSettlement,
           notes: formData.notes,
         },
-        { headers: { /* Auth header handled by browser cookies */ } },
+        {
+          headers: {
+            /* Auth header handled by browser cookies */
+          },
+        },
       );
 
       toast.success(
@@ -203,7 +209,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <DialogDescription className="text-sm font-medium">
                   {isSettlement
                     ? 'Pay off your loan today with adjusted interest.'
-                    : 'Select an amount to pay from your FinanceFlow Balance.'}
+                    : 'Select an amount to pay from your FinFlo Balance.'}
                 </DialogDescription>
               </div>
             </div>

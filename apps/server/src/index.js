@@ -255,7 +255,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ message: 'FinanceFlow API is running' });
+  res.json({ message: 'FinFlo API is running' });
 });
 
 const PORT = process.env.PORT || 5000;

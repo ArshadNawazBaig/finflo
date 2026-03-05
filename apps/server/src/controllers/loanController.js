@@ -1028,7 +1028,7 @@ const addRepayment = async (req, res) => {
         if (member && member.email) {
           const branch = await Branch.findById(loan.branchId);
           const branchName =
-            branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+            branch?.branding?.companyName || branch?.name || 'FinFlo';
 
           sendEmailAsync({
             to: member.email,
@@ -1257,7 +1257,7 @@ const updateLoan = async (req, res) => {
         if (customer && customer.email) {
           const branch = await Branch.findById(loan.branchId);
           const branchName =
-            branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+            branch?.branding?.companyName || branch?.name || 'FinFlo';
 
           sendEmailAsync({
             to: customer.email,
@@ -1634,7 +1634,7 @@ const approveLoan = async (req, res) => {
       if (customerForNotification && customerForNotification.email) {
         const branch = await Branch.findById(loan.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+          branch?.branding?.companyName || branch?.name || 'FinFlo';
 
         sendEmailAsync({
           to: customerForNotification.email,
@@ -1730,7 +1730,7 @@ const rejectLoan = async (req, res) => {
       if (customer && customer.email) {
         const branch = await Branch.findById(loan.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+          branch?.branding?.companyName || branch?.name || 'FinFlo';
 
         sendEmailAsync({
           to: customer.email,
@@ -1868,7 +1868,7 @@ const memberRepayLoan = async (req, res) => {
       paymentAmount,
       req, // Will use req.member for ownership
       {
-        notes: req.body.notes || 'Self-repayment via FinanceFlow',
+        notes: req.body.notes || 'Self-repayment via FinFlo',
         isAutoValue: false,
         allowEarlySettlement: isSettlementRequest,
         session,
@@ -2018,7 +2018,7 @@ const bulkApproveLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+              branch?.branding?.companyName || branch?.name || 'FinFlo';
 
             sendEmailAsync({
               to: customer.email,
@@ -2116,7 +2116,7 @@ const bulkRejectLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+              branch?.branding?.companyName || branch?.name || 'FinFlo';
 
             sendEmailAsync({
               to: customer.email,

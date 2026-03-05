@@ -34,7 +34,7 @@ const MemberDashboardSkeleton = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left col (spans 2 on lg) */}
         <div className="lg:col-span-2 space-y-8">
-          {/* FinanceFlow Insights */}
+          {/* FinFlo Insights */}
           <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">

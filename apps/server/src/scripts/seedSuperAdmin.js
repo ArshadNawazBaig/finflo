@@ -29,7 +29,7 @@ const seedSuperAdmin = async () => {
       password: superAdminPassword,
       role: 'super_admin',
       isActive: true,
-      businessName: 'FinanceFlow',
+      businessName: 'FinFlo',
     });
 
     console.log('====================================');

@@ -9,7 +9,7 @@ const reviews = [
     role: 'Small Business Owner',
     image: 'https://i.pravatar.cc/150?img=1',
     content:
-      'FinanceFlow transformed how I manage my business finances. The approval process was incredibly fast!',
+      'FinFlo transformed how I manage my business finances. The approval process was incredibly fast!',
     rating: 5,
   },
   {
@@ -36,7 +36,7 @@ const reviews = [
     role: 'Tech Entrepreneur',
     image: 'https://i.pravatar.cc/150?img=3',
     content:
-      'Bank-grade security was my top priority. FinanceFlow delivers that and more with its audit ledger.',
+      'Bank-grade security was my top priority. FinFlo delivers that and more with its audit ledger.',
     rating: 5,
   },
   {
@@ -63,7 +63,7 @@ const reviews = [
     role: 'E-commerce Seller',
     image: 'https://i.pravatar.cc/150?img=6',
     content:
-      'The low interest rates and transparent fee structure made me switch to FinanceFlow.',
+      'The low interest rates and transparent fee structure made me switch to FinFlo.',
     rating: 5,
   },
   {

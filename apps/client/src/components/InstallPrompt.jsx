@@ -109,7 +109,7 @@ const InstallPrompt = () => {
                       </div>
                       <div>
                         <h4 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
-                          FinanceFlow{' '}
+                          FinFlo{' '}
                           <span className="text-primary text-xs">App</span>
                         </h4>
                         <p className="text-[7px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
