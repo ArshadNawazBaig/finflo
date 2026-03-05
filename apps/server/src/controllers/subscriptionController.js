@@ -3,6 +3,11 @@ const User = require('../models/User');
 const Loan = require('../models/Loan');
 const Member = require('../models/Member');
 const Branch = require('../models/Branch');
+const Notification = require('../models/Notification');
+const { sendEmail } = require('../utils/email');
+const {
+  superAdminSubscriptionNotificationEmail,
+} = require('../utils/emailTemplates');
 const { getPlanLimits } = require('../utils/planLimits');
 
 const getBaseUrl = (req) => {
@@ -501,6 +506,34 @@ const verifySession = async (req, res) => {
 
     console.log(`User ${userId} updated to ${plan} plan`);
 
+    // Notify Super Admin
+    try {
+      const superAdmin = await User.findOne({ role: 'super_admin' });
+      if (superAdmin) {
+        // Email Notification
+        await sendEmail({
+          to: superAdmin.email,
+          subject: `Subscription Activated: ${updatedUser.name} (${plan})`,
+          html: superAdminSubscriptionNotificationEmail(updatedUser, plan),
+        });
+
+        // In-App Notification
+        await Notification.create({
+          recipient: superAdmin._id,
+          recipientModel: 'User',
+          title: 'Subscription Activated',
+          message: `${updatedUser.name} has activated their ${plan} plan.`,
+          type: 'success',
+          link: '/super-admin/revenue',
+        });
+      }
+    } catch (saNotifErr) {
+      console.error(
+        'Failed to notify super admin of subscription activity:',
+        saNotifErr,
+      );
+    }
+
     res.json({
       success: true,
       plan: updatedUser.plan,
@@ -535,6 +568,37 @@ const updateSubscription = async (req, res) => {
     }
 
     await user.save();
+
+    // Notify Super Admin of modification (if not Free)
+    if (plan !== 'Free') {
+      try {
+        const superAdmin = await User.findOne({ role: 'super_admin' });
+        if (superAdmin) {
+          // Email Notification
+          await sendEmail({
+            to: superAdmin.email,
+            subject: `Subscription Modified: ${user.name} (${plan})`,
+            html: superAdminSubscriptionNotificationEmail(user, plan),
+          });
+
+          // In-App Notification
+          await Notification.create({
+            recipient: superAdmin._id,
+            recipientModel: 'User',
+            title: 'Subscription Modified',
+            message: `${user.name}'s plan has been modified to ${plan} manually.`,
+            type: 'info',
+            link: '/super-admin/users',
+          });
+        }
+      } catch (saNotifErr) {
+        console.error(
+          'Failed to notify super admin of subscription modification:',
+          saNotifErr,
+        );
+      }
+    }
+
     res.json({ message: `Subscription updated to ${plan} plan`, user });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update subscription' });

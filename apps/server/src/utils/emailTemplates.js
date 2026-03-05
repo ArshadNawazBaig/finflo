@@ -334,6 +334,48 @@ const superAdminNewRegistrationEmail = (userData) => {
   return getBaseTemplate(content, 'FinFlo: New Registration Notification');
 };
 
+/**
+ * Super Admin: Subscription Update Template
+ */
+const superAdminSubscriptionNotificationEmail = (userData, planName) => {
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #16a34a; font-size: 18px; font-weight: 700;">New Subscription Update</h2>
+    <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
+      Great news! A business has updated their subscription plan.
+    </p>
+
+    <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Business Name</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: capitalize;">${userData.name}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Email Address</td>
+          <td align="right" style="padding: 8px 0; color: #2563eb; font-size: 14px; font-weight: 700;">${userData.email}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">New Plan</td>
+          <td align="right" style="padding: 8px 0; color: #16a34a; font-size: 14px; font-weight: 800;">${planName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Update Date</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px;">${new Date().toLocaleString()}</td>
+        </tr>
+      </table>
+    </div>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" style="padding-bottom: 32px;">
+          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View User Details</a>
+        </td>
+      </tr>
+    </table>
+  `;
+  return getBaseTemplate(content, 'Subscription Plan Update Notification');
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
@@ -342,4 +384,5 @@ module.exports = {
   transactionEmail,
   memberApprovalEmail,
   superAdminNewRegistrationEmail,
+  superAdminSubscriptionNotificationEmail,
 };

@@ -1,6 +1,11 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const { sendEmail } = require('../utils/email');
+const {
+  superAdminSubscriptionNotificationEmail,
+} = require('../utils/emailTemplates');
+const Notification = require('../models/Notification');
 
 const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -96,6 +101,37 @@ const handleWebhook = async (req, res) => {
               link: '/billing', // Redirect to billing
               action: 'subscription_activated',
             }).save();
+
+            // Notify Super Admin
+            try {
+              const superAdmin = await User.findOne({ role: 'super_admin' });
+              if (superAdmin) {
+                // Email Notification
+                await sendEmail({
+                  to: superAdmin.email,
+                  subject: `Subscription Activated: ${updatedUser.name} (${plan})`,
+                  html: superAdminSubscriptionNotificationEmail(
+                    updatedUser,
+                    plan,
+                  ),
+                });
+
+                // In-App Notification
+                await Notification.create({
+                  recipient: superAdmin._id,
+                  recipientModel: 'User',
+                  title: 'New Subscription',
+                  message: `${updatedUser.name} has subscribed to the ${plan} plan.`,
+                  type: 'success',
+                  link: '/super-admin/users',
+                });
+              }
+            } catch (saNotifErr) {
+              console.error(
+                'Failed to notify super admin of subscription:',
+                saNotifErr,
+              );
+            }
           } catch (notifErr) {
             console.error('Failed to notify user of subscription:', notifErr);
           }
@@ -208,6 +244,39 @@ const handleWebhook = async (req, res) => {
           console.log(
             `Subscription updated for user ${user._id}. Current Plan: ${user.plan}, Status: ${user.subscriptionStatus}`,
           );
+
+          // Notify Super Admin of Plan Update (if not Free)
+          if (user.plan !== 'Free') {
+            try {
+              const superAdmin = await User.findOne({ role: 'super_admin' });
+              if (superAdmin) {
+                // Email Notification
+                await sendEmail({
+                  to: superAdmin.email,
+                  subject: `Subscription Updated: ${user.name} (${user.plan})`,
+                  html: superAdminSubscriptionNotificationEmail(
+                    user,
+                    user.plan,
+                  ),
+                });
+
+                // In-App Notification
+                await Notification.create({
+                  recipient: superAdmin._id,
+                  recipientModel: 'User',
+                  title: 'Subscription Updated',
+                  message: `${user.name}'s plan has been updated to ${user.plan}.`,
+                  type: 'info',
+                  link: '/super-admin/users',
+                });
+              }
+            } catch (saNotifErr) {
+              console.error(
+                'Failed to notify super admin of subscription update:',
+                saNotifErr,
+              );
+            }
+          }
         } else {
           console.warn(`No user found for Stripe Customer ID: ${customerId}`);
         }

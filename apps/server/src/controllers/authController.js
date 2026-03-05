@@ -111,7 +111,7 @@ const registerUser = async (req, res) => {
               title: 'New Business Registration',
               message: `${user.name} (${user.email}) has registered on the platform.`,
               type: 'info',
-              link: '/admin/users', // Assuming this is where super admin manages users
+              link: '/super-admin/users', // Assuming this is where super admin manages users
             });
           }
         } catch (err) {
