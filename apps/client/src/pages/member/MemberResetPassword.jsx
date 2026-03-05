@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '@/lib/axios';
 import { Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, validatePassword } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -21,8 +21,9 @@ const MemberResetPassword = () => {
       toast.error('Passwords do not match');
       return;
     }
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+    const { isValid, message } = validatePassword(password);
+    if (!isValid) {
+      toast.error(message);
       return;
     }
 

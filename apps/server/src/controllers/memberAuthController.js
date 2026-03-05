@@ -8,6 +8,7 @@ const {
   verificationEmail,
   passwordResetEmail,
 } = require('../utils/emailTemplates');
+const { validatePassword } = require('../utils/validation');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -265,6 +266,11 @@ const uploadProfilePicture = async (req, res) => {
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
+  const { isValid, message } = validatePassword(newPassword);
+  if (!isValid) {
+    return res.status(400).json({ message });
+  }
+
   try {
     const member = await Member.findById(req.member._id).select('+password');
 
@@ -452,6 +458,11 @@ const resetPassword = async (req, res) => {
 
     if (!member) {
       return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    const { isValid, message } = validatePassword(req.body.password);
+    if (!isValid) {
+      return res.status(400).json({ message });
     }
 
     // Set new password
@@ -716,6 +727,11 @@ const requestMemberPasswordChangeCode = async (req, res) => {
 
 const forceMemberChangePassword = async (req, res) => {
   const { code, newPassword } = req.body;
+
+  const { isValid, message } = validatePassword(newPassword);
+  if (!isValid) {
+    return res.status(400).json({ message });
+  }
 
   try {
     const member = await Member.findById(req.member._id);

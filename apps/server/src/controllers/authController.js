@@ -21,6 +21,7 @@ const {
   passwordResetEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { validatePassword } = require('../utils/validation');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 
@@ -361,6 +362,11 @@ const uploadProfilePicture = async (req, res) => {
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
+  const { isValid, message } = validatePassword(newPassword);
+  if (!isValid) {
+    return res.status(400).json({ message });
+  }
+
   try {
     const user = await User.findById(req.user.id).select('+password');
 
@@ -484,6 +490,11 @@ const resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    const { isValid, message } = validatePassword(req.body.password);
+    if (!isValid) {
+      return res.status(400).json({ message });
     }
 
     // Set new password

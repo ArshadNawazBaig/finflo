@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
-import { cn, validateEmail } from '@/lib/utils';
+import { cn, validateEmail, validatePassword } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 
@@ -37,6 +37,14 @@ const Register = () => {
       setLoading(false);
       return;
     }
+
+    const passwordValidation = validatePassword(payload.password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.message);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data } = await api.post('/auth/register', payload);
       localStorage.setItem('temp_user_email', JSON.stringify(payload.email));

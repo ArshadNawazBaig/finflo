@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   ArrowLeft,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, validatePassword } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -35,8 +35,9 @@ const ResetPassword = () => {
       return setError('Passwords do not match');
     }
 
-    if (formData.password.length < 8) {
-      return setError('Password must be at least 8 characters long');
+    const { isValid, message } = validatePassword(formData.password);
+    if (!isValid) {
+      return setError(message);
     }
 
     setLoading(true);

@@ -8,7 +8,7 @@ import {
   ArrowRight,
   Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, validatePassword } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -58,8 +58,10 @@ const ForcePasswordChange = ({ isMember = false }) => {
     if (newPassword !== confirmPassword) {
       return setError('Passwords do not match');
     }
-    if (newPassword.length < 8) {
-      return setError('Password must be at least 8 characters');
+
+    const { isValid, message } = validatePassword(newPassword);
+    if (!isValid) {
+      return setError(message);
     }
 
     setLoading(true);

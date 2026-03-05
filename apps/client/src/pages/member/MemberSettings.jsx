@@ -30,7 +30,13 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, capitalize, formatCNIC, validateEmail } from '@/lib/utils';
+import {
+  cn,
+  capitalize,
+  formatCNIC,
+  validateEmail,
+  validatePassword,
+} from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -1061,8 +1067,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       toast.error('New passwords do not match');
       return;
     }
-    if (formData.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters');
+    const { isValid, message } = validatePassword(formData.newPassword);
+    if (!isValid) {
+      toast.error(message);
       return;
     }
     setLoading(true);

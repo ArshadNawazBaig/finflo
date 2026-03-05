@@ -1,4 +1,5 @@
 const { body, validationResult } = require('express-validator');
+const { validatePassword } = require('../utils/validation');
 
 // Error formatter
 const validate = (req, res, next) => {
@@ -24,9 +25,13 @@ const registerValidation = [
     .isLength({ min: 2 })
     .withMessage('Name must be at least 2 characters'),
   body('email').isEmail().withMessage('Please provide a valid email address'),
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+  body('password').custom((value) => {
+    const { isValid, message } = validatePassword(value);
+    if (!isValid) {
+      throw new Error(message);
+    }
+    return true;
+  }),
   validate,
 ];
 
