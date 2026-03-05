@@ -1,4 +1,4 @@
-const CACHE_NAME = 'financeflow-v3'; // Increment version to trigger update
+const CACHE_NAME = 'finflo-v3'; // Increment version to trigger update
 const urlsToCache = ['/', '/index.html', '/manifest.json', '/favicon.svg'];
 
 // Install event - Cache initial assets

@@ -16,7 +16,7 @@ const Logo = ({
   const companyName = false;
   // ((user?.role === 'admin' || user?.isManager) && user?.name) ||
   // user?.branch?.branding?.companyName ||
-  // 'Finflow';
+  // 'Finflo';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -76,7 +76,7 @@ const Logo = ({
       {/* Text */}
       {showText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-[17px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1">
+          <span className="text-[19px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1">
             {logoUrl && custom ? (
               companyName
             ) : (
@@ -86,7 +86,7 @@ const Logo = ({
                 >
                   Finance
                 </span>
-                <span className="text-primary">Flow</span>
+                <span className="text-primary">Flo</span>
               </>
             )}
           </span>

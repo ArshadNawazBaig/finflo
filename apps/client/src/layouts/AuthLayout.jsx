@@ -10,7 +10,7 @@ const AuthLayout = ({
   title,
   description,
   badge = 'Secure Access',
-  brandingTitle = 'FinanceFlow',
+  brandingTitle = 'FinFlo',
   showLogo = true,
   backToLanding = true,
 }) => {

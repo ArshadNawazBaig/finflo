@@ -370,7 +370,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       if (member && member.email) {
         const branch = await Branch.findById(loan.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinanceFlow';
+          branch?.branding?.companyName || branch?.name || 'FinFlo';
 
         sendEmailAsync({
           to: member.email,

@@ -104,7 +104,7 @@ const Footer = () => {
       </div>
       <div className="max-w-7xl mx-auto mt-32 pt-12 border-t border-slate-200 dark:border-white/5 text-center">
         <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.6em] opacity-60">
-          © 2026 FINFLOW INFRASTRUCTURE. OPERATING AT GLOBAL SCALE. ALL DATA
+          © 2026 FINFLO INFRASTRUCTURE. OPERATING AT GLOBAL SCALE. ALL DATA
           CRYPTOGRAPHICALLY SECURED.
         </p>
       </div>

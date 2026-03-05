@@ -170,7 +170,7 @@ const Reports = () => {
       doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(16, 185, 129);
-      doc.text('FINFLOW PORTAL', 14, 22);
+      doc.text('FINFLO PORTAL', 14, 22);
 
       doc.setFontSize(10);
       doc.setTextColor(100);

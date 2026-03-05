@@ -7,11 +7,11 @@ const { loanReminderEmail } = require('../utils/emailTemplates');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 
 /**
- * FinanceFlow: Automated Communication Engine
+ * FinFlo: Automated Communication Engine
  * Scans active loans and sends reminders/alerts.
  */
 const runReminderService = async () => {
-  console.log('FinanceFlow: Starting daily automated reminder scan...');
+  console.log('FinFlo: Starting daily automated reminder scan...');
 
   try {
     const activeLoans = await Loan.find({ status: 'active' }).populate(
@@ -52,9 +52,9 @@ const runReminderService = async () => {
         }
       }
     }
-    console.log('FinanceFlow: Completed daily scan.');
+    console.log('FinFlo: Completed daily scan.');
   } catch (error) {
-    console.error('FinanceFlow Error during reminder scan:', error);
+    console.error('FinFlo Error during reminder scan:', error);
   }
 };
 
@@ -101,7 +101,7 @@ const sendReminder = async (loan, installment, type) => {
       await sendEmail({
         email: customer.email,
         subject: title,
-        message: message + '\n\nBest regards,\nFinanceFlow Team',
+        message: message + '\n\nBest regards,\nFinFlo Team',
         html: loanReminderEmail(customer.name, amount, dateStr, type),
       });
     }
@@ -115,13 +115,13 @@ const sendReminder = async (loan, installment, type) => {
     await loan.save();
   } catch (err) {
     console.error(
-      `FinanceFlow: Failed to send ${type} reminder for Loan ${loan._id}:`,
+      `FinFlo: Failed to send ${type} reminder for Loan ${loan._id}:`,
       err,
     );
   }
 };
 
-// Initialize FinanceFlow (Run daily at midnight)
+// Initialize FinFlo (Run daily at midnight)
 const initFinanceFlow = () => {
   cron.schedule(
     '0 0 * * *',
@@ -132,7 +132,7 @@ const initFinanceFlow = () => {
       timezone: 'UTC', // Or system default
     },
   );
-  console.log('FinanceFlow: Automated Communication Engine initialized.');
+  console.log('FinFlo: Automated Communication Engine initialized.');
 };
 
 module.exports = { initFinanceFlow, runReminderService };

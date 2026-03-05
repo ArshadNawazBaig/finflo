@@ -137,15 +137,15 @@ const systemSettingsSchema = new mongoose.Schema(
     // Platform Configuration
     platformName: {
       type: String,
-      default: 'FinanceFlow',
+      default: 'FinFlo',
     },
     platformDescription: {
       type: String,
-      default: 'Professional FinanceFlow platform for businesses',
+      default: 'Professional FinFlo platform for businesses',
     },
     supportEmail: {
       type: String,
-      default: 'support@finflow.com',
+      default: 'support@finflo.org',
     },
     maintenanceMode: {
       type: Boolean,

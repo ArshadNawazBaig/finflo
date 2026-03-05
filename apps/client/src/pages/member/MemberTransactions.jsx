@@ -66,7 +66,9 @@ const MemberTransactions = () => {
       if (!memberToken) return;
       const res = await api.get('/members/portal/activity', {
         params: { page: 1, limit: 1 }, // summary comes from backend regardless of limit
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       if (res.data.summary) setSummary(res.data.summary);
     } catch (e) {
@@ -99,10 +101,14 @@ const MemberTransactions = () => {
               startDate: dateRange?.from?.toISOString(),
               endDate: dateRange?.to?.toISOString(),
             },
-            headers: { /* Auth header handled by browser cookies */ },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           }),
           api.get('/member-auth/me', {
-            headers: { /* Auth header handled by browser cookies */ },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           }),
         ]);
 
@@ -189,7 +195,7 @@ const MemberTransactions = () => {
     // Header styling
     doc.setFontSize(22);
     doc.setTextColor(16, 185, 129); // Primary Emerald color
-    doc.text('FINFLOW PORTAL', 14, 22);
+    doc.text('FINFLO PORTAL', 14, 22);
 
     doc.setFontSize(12);
     doc.setTextColor(100);

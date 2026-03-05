@@ -60,11 +60,15 @@ const MemberInvestment = () => {
           api.get(
             `/members/portal/activity?page=${pageToFetch}&limit=${limit}&category=investment&search=${search}`,
             {
-              headers: { /* Auth header handled by browser cookies */ },
+              headers: {
+                /* Auth header handled by browser cookies */
+              },
             },
           ),
           api.get('/member-auth/me', {
-            headers: { /* Auth header handled by browser cookies */ },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           }),
         ]);
 
@@ -162,7 +166,7 @@ const MemberInvestment = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
         title="Asset Management"
-        description="Monitor your investments, track growth, and manage your FinanceFlow portfolio."
+        description="Monitor your investments, track growth, and manage your FinFlo portfolio."
       />
 
       {/* Stats Grid */}

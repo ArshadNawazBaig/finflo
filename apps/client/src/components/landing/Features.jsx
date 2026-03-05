@@ -20,7 +20,7 @@ const Features = ({ features }) => {
             <span className="text-primary italic">Absolute Scale.</span>
           </h3>
           <p className="text-base text-slate-500 font-medium max-w-lg">
-            Engineered with a cloud-native vision, FinanceFlow offers the most
+            Engineered with a cloud-native vision, FinFlo offers the most
             resilient backend in the fintech industry.
           </p>
         </div>

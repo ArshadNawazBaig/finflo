@@ -1257,7 +1257,7 @@ const ApiDocumentation = () => {
                     description={{
                       text: 'Get basic system settings.',
                       response: {
-                        siteName: 'FinanceFlow',
+                        siteName: 'FinFlo',
                         maintenanceMode: false,
                         defaultInterestRate: 5,
                       },
@@ -1511,11 +1511,10 @@ const ApiDocumentation = () => {
                       WebSocket Infrastructure
                     </h3>
                     <p className="text-sm text-foreground/80 leading-relaxed">
-                      FinanceFlow uses Socket.io to push real-time updates
-                      directly to clients without polling. Clients should
-                      connect to <code>{`ws://{BACKEND_URL}`}</code> using the
-                      JWT token in auth headers or cookies for authenticated
-                      events.
+                      FinFlo uses Socket.io to push real-time updates directly
+                      to clients without polling. Clients should connect to{' '}
+                      <code>{`ws://{BACKEND_URL}`}</code> using the JWT token in
+                      auth headers or cookies for authenticated events.
                     </p>
                   </div>
                   <Endpoint

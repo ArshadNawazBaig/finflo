@@ -86,7 +86,7 @@ const NotFound = () => {
             <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase ">
               System
             </span>
-            <span className="text-xs font-mono text-primary">FINFLOW_PRO</span>
+            <span className="text-xs font-mono text-primary">FINFLO_PRO</span>
           </div>
         </div>
       </div>

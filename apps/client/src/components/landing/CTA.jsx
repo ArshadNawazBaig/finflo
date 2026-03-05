@@ -18,8 +18,8 @@ const CTA = () => {
               <span className="text-primary italic">Financial Evolution.</span>
             </h2>
             <p className="text-lg text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
-              Stop managing with spreadsheets. Deploy FinanceFlow today and
-              transform your lending operations into an automated powerhouse.
+              Stop managing with spreadsheets. Deploy FinFlo today and transform
+              your lending operations into an automated powerhouse.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
               <Link
