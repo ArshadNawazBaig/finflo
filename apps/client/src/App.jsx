@@ -253,7 +253,10 @@ function App() {
 
                   <Route
                     element={
-                      <RequirePermissions permissions={['approve_members']} />
+                      <RequirePermissions
+                        permissions={['approve_members', 'manage_members']}
+                        any
+                      />
                     }
                   >
                     <Route

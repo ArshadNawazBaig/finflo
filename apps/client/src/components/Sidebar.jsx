@@ -230,7 +230,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               badge={pendingMembersCount > 0 ? pendingMembersCount : null}
             />
           )}
-          {hasPermission('approve_members') && (
+          {hasAnyPermission(['approve_members', 'manage_members']) && (
             <NavItem
               to="/verification-queue"
               icon={<FileCheck2 size={18} />}
