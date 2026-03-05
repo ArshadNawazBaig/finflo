@@ -39,17 +39,33 @@ const createTransporter = async (settings) => {
       config.auth?.user
     ) {
       console.log('[SMTP CONFIG] Using Database configuration.');
+
+      // Gmail specific optimizations
+      if (config.host.toLowerCase().includes('gmail.com')) {
+        return nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: config.auth.user,
+            pass: config.auth.pass,
+          },
+          family: 4,
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+        });
+      }
+
+      const port = parseInt(config.port) || 587;
       return nodemailer.createTransport({
         host: config.host,
-        port: parseInt(config.port) || 587,
-        secure: parseInt(config.port) === 465,
+        port: port,
+        secure: port === 465, // Use SSL for 465, STARTTLS for others
         auth: {
           user: config.auth.user,
           pass: config.auth.pass,
         },
         family: 4, // Force IPv4 to avoid ENETUNREACH errors on ipv6-ready servers without routes
-        connectionTimeout: 10000, // 10s timeout
-        greetingTimeout: 10000,
+        connectionTimeout: 15000, // 15s timeout
+        greetingTimeout: 15000,
         tls: { rejectUnauthorized: false },
       });
     }
@@ -70,6 +86,21 @@ const createTransporter = async (settings) => {
       console.log(
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
+
+      // Gmail specific optimizations for fallback
+      if (host.toLowerCase().includes('gmail.com')) {
+        return nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: user,
+            pass: pass,
+          },
+          family: 4,
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+        });
+      }
+
       return nodemailer.createTransport({
         host: host,
         port: port,
@@ -79,8 +110,8 @@ const createTransporter = async (settings) => {
           pass: pass,
         },
         family: 4, // Force IPv4 for environment fallback too
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
         tls: { rejectUnauthorized: false },
       });
     }
