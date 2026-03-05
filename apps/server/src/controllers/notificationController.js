@@ -102,17 +102,25 @@ const getMyNotifications = async (req, res) => {
 
     const query = { recipient: recipientId };
 
-    // Super Admin Filter: Only show business and support related notifications
+    // Super Admin Filter: Only show platform-level events (registration, subscription, support)
     if (req.user && req.user.role === 'super_admin') {
       const superAdminActions = [
-        'branch_created',
-        'branch_deleted',
+        'user_registered', // From authController
+        'subscription_activated', // From webhook/subscription
+        'subscription_updated',
+        'subscription_modified',
         'ticket_created',
         'ticket_reply_received',
         'ticket_status_changed',
         'admin_broadcast_notification',
       ];
-      const superAdminKeywords = ['Support', 'Ticket', 'Branch', 'Business'];
+      // Keywords that typically appear in Super Admin notifications
+      const superAdminKeywords = [
+        'Registration',
+        'Subscription',
+        'Ticket',
+        'Support',
+      ];
       const keywordRegex = new RegExp(superAdminKeywords.join('|'), 'i');
 
       query.$or = [

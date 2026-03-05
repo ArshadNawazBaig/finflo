@@ -100,11 +100,8 @@ const notifyAdminsOfMemberAction = async ({
   link, // Added link support
 }) => {
   try {
-    // Find all super admins
-    const superAdmins = await User.find({
-      role: 'super_admin',
-      isActive: true,
-    });
+    // Super admins should NOT receive business member notifications
+    const superAdmins = [];
 
     // Find branch-specific admins and managers if branchId is provided
     let branchStaff = [];
