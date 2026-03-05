@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer');
-const { Resend } = require('resend');
 const SystemSettings = require('../models/SystemSettings');
 
 // ── In-memory cache for SystemSettings (60 second TTL) ────────────────────────
@@ -21,31 +20,6 @@ const getCachedSettings = async () => {
 const invalidateSettingsCache = () => {
   _settingsCache = null;
   _settingsCacheTime = 0;
-};
-
-// ── Resend (HTTP API — Railway compatible) ─────────────────────────────────────
-const sendViaResend = async (options, fromEmail, fromName) => {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (!resendApiKey) return null; // Not configured, fall through to SMTP
-
-  const resend = new Resend(resendApiKey);
-
-  const { data, error } = await resend.emails.send({
-    from: `${fromName} <${fromEmail}>`,
-    to: [options.to],
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-  });
-
-  if (error) {
-    throw new Error(
-      `Resend API error: ${error.message || JSON.stringify(error)}`,
-    );
-  }
-
-  console.log(`[EMAIL] Sent via Resend: ${data.id}`);
-  return data.id;
 };
 
 // ── Nodemailer SMTP (fallback for local dev) ───────────────────────────────────
@@ -150,9 +124,7 @@ const createSmtpTransporter = async (settings, debug = false) => {
 };
 
 /**
- * Sends an email.
- * Uses Resend (HTTP) if RESEND_API_KEY is set — works on Railway.
- * Falls back to nodemailer SMTP for local development.
+ * Sends an email using Nodemailer SMTP.
  * @param {Object} options - { to, subject, html, text, debug }
  * @returns {Boolean} - success status
  */
@@ -171,24 +143,13 @@ const sendEmail = async (options) => {
       process.env.SMTP_FROM_NAME ||
       settings.platformName;
 
-    // ── Try Resend first (production / Railway) ───────────────────────────────
-    if (process.env.RESEND_API_KEY) {
-      console.log('[EMAIL] Resend API key found — using Resend for delivery.');
-      await sendViaResend(options, fromEmail, fromName);
-      return true;
-    }
-
-    // ── Fall back to SMTP (local dev) ─────────────────────────────────────────
-    console.log('[EMAIL] No Resend API key — falling back to SMTP.');
     const transporter = await createSmtpTransporter(
       settings,
       options.debug || false,
     );
 
     if (!transporter) {
-      console.warn(
-        'Email skipped: No Resend API key and no valid SMTP configuration.',
-      );
+      console.warn('Email skipped: No valid SMTP configuration.');
       return false;
     }
 

@@ -156,8 +156,6 @@ const testSmtpConnection = async (req, res) => {
         .json({ message: 'Recipient email (to) is required' });
     }
 
-    const provider = process.env.RESEND_API_KEY ? 'Resend (HTTP API)' : 'SMTP';
-
     const success = await sendEmail({
       to,
       debug: true, // Enable detailed SMTP logging for diagnostics
@@ -175,13 +173,11 @@ const testSmtpConnection = async (req, res) => {
 
     if (success) {
       res.json({
-        message: `Email sent successfully via ${provider}`,
-        provider,
+        message: `Email sent successfully via SMTP`,
       });
     } else {
       res.status(500).json({
         message: 'Email delivery failed. Check server logs for details.',
-        provider,
       });
     }
   } catch (error) {
