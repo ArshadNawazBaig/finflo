@@ -9,28 +9,29 @@ const seedSuperAdmin = async () => {
   try {
     await connectDB();
 
-    const superAdminEmail = 'superadmin@loanmanagement.com';
-    const superAdminPassword = 'SuperAdmin@123';
+    const superAdminEmail = 'arshadnawazbaig@gmail.com';
+    const superAdminPassword = 'Arshadnb@10';
 
     // Check if super admin already exists
-    const existingSuperAdmin = await User.findOne({ email: superAdminEmail });
+    let superAdmin = await User.findOne({ role: 'super_admin' });
 
-    if (existingSuperAdmin) {
-      console.log('Super Admin already exists:');
-      console.log(`  Email: ${superAdminEmail}`);
-      console.log('  Password: [unchanged]');
-      process.exit(0);
+    if (superAdmin) {
+      console.log('Super Admin found, updating credentials...');
+      superAdmin.email = superAdminEmail;
+      superAdmin.password = superAdminPassword;
+      superAdmin.isActive = true;
+      await superAdmin.save();
+    } else {
+      console.log('Super Admin not found, creating new...');
+      superAdmin = await User.create({
+        name: 'Super Admin',
+        email: superAdminEmail,
+        password: superAdminPassword,
+        role: 'super_admin',
+        isActive: true,
+        businessName: 'FinFlo',
+      });
     }
-
-    // Create super admin
-    const superAdmin = await User.create({
-      name: 'Super Admin',
-      email: superAdminEmail,
-      password: superAdminPassword,
-      role: 'super_admin',
-      isActive: true,
-      businessName: 'FinFlo',
-    });
 
     console.log('====================================');
     console.log('  Super Admin Created Successfully!');

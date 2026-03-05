@@ -251,6 +251,33 @@ const getAllNotifications = async (req, res) => {
     // Build query
     let query = {};
 
+    // Super Admin Filter: Only show platform-level events in history
+    if (req.user && req.user.role === 'super_admin') {
+      const superAdminActions = [
+        'user_registered',
+        'subscription_activated',
+        'subscription_updated',
+        'subscription_modified',
+        'ticket_created',
+        'ticket_reply_received',
+        'ticket_status_changed',
+        'admin_broadcast_notification',
+      ];
+      const superAdminKeywords = [
+        'Registration',
+        'Subscription',
+        'Ticket',
+        'Support',
+      ];
+      const keywordRegex = new RegExp(superAdminKeywords.join('|'), 'i');
+
+      query.$or = [
+        { action: { $in: superAdminActions } },
+        { title: keywordRegex },
+        { message: keywordRegex },
+      ];
+    }
+
     // Search logic
     if (search) {
       const searchRegex = new RegExp(search, 'i');
@@ -262,11 +289,19 @@ const getAllNotifications = async (req, res) => {
 
       const userIds = matchingUsers.map((u) => u._id);
 
-      query.$or = [
+      const searchConditions = [
         { title: searchRegex },
         { message: searchRegex },
         { recipient: { $in: userIds } },
       ];
+
+      if (query.$or) {
+        // If we already have a filter (Super Admin), we must ensure search is within that filter
+        query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+        delete query.$or;
+      } else {
+        query.$or = searchConditions;
+      }
     }
 
     // Sort logic
