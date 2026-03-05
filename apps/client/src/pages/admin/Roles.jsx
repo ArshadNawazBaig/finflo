@@ -46,6 +46,7 @@ const availablePermissions = [
 ];
 
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import EmptyState from '@/components/ui/EmptyState';
 
 const Roles = () => {
   const [roles, setRoles] = useState([]);
@@ -283,6 +284,19 @@ const Roles = () => {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {!loading && filteredRoles.length === 0 && (
+        <EmptyState
+          icon={Shield}
+          title={searchQuery ? 'No Roles Found' : 'No Roles Yet'}
+          description={
+            searchQuery
+              ? `We couldn't find any roles matching "${searchQuery}".`
+              : "You haven't created any custom roles yet. Start by defining a new permission set."
+          }
+          className="border-none bg-transparent py-20"
+        />
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
