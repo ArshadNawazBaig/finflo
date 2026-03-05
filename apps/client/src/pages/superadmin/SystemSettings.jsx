@@ -42,6 +42,8 @@ const SystemSettings = () => {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('plans');
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
 
   const fetchSettings = async () => {
     try {
@@ -86,6 +88,26 @@ const SystemSettings = () => {
       toast.error('Failed to reset settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    if (!testEmail) {
+      toast.error('Please enter a recipient email');
+      return;
+    }
+
+    try {
+      setTestingSmtp(true);
+      const { data } = await api.post('/system-settings/test-connection', {
+        to: testEmail,
+      });
+      toast.success(data.message || 'Test email sent successfully');
+    } catch (error) {
+      console.error('SMTP test failed:', error);
+      toast.error(error.response?.data?.message || 'SMTP test failed');
+    } finally {
+      setTestingSmtp(false);
     }
   };
 
@@ -781,6 +803,46 @@ const SystemSettings = () => {
                             'Apply Platform Config'
                           )}
                         </Button>
+                      </div>
+
+                      {/* SMTP Utility */}
+                      <div className="bg-emerald-900/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[2.5rem] p-8 text-white">
+                        <h4 className="font-black text-[10px] uppercase tracking-widest opacity-40 mb-4 flex items-center gap-2">
+                          <Mail size={12} />
+                          SMTP Relay Diagnostic
+                        </h4>
+                        <div className="space-y-4">
+                          <p className="text-[10px] text-emerald-100/60 leading-relaxed font-medium">
+                            Verify your SMTP credentials by sending a secure
+                            diagnostic payload to an external endpoint.
+                          </p>
+                          <div className="relative">
+                            <input
+                              type="email"
+                              value={testEmail}
+                              onChange={(e) => setTestEmail(e.target.value)}
+                              placeholder="recipient@example.com"
+                              className="w-full bg-emerald-950/40 h-11 px-4 rounded-xl border border-emerald-500/10 text-xs font-bold focus:border-emerald-500/30 outline-none transition-all placeholder:text-emerald-500/20"
+                            />
+                          </div>
+                          <Button
+                            onClick={handleTestSmtp}
+                            disabled={testingSmtp}
+                            className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-500/10 transition-all"
+                          >
+                            {testingSmtp ? (
+                              <>
+                                <Loader2
+                                  size={12}
+                                  className="mr-2 animate-spin"
+                                />
+                                Analyzing Relay...
+                              </>
+                            ) : (
+                              'Dispatch Test Email'
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

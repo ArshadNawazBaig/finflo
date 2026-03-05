@@ -32,7 +32,13 @@ const createTransporter = async (settings) => {
     const config = settings.smtpConfig;
 
     // Primary: use DB config if fully configured
-    if (config && config.host && config.auth?.user) {
+    if (
+      config &&
+      config.host &&
+      config.host.trim() !== '' &&
+      config.auth?.user
+    ) {
+      console.log('[SMTP CONFIG] Using Database configuration.');
       return nodemailer.createTransport({
         host: config.host,
         port: parseInt(config.port) || 587,
@@ -46,22 +52,25 @@ const createTransporter = async (settings) => {
     }
 
     // Fallback to Env Vars
+    const host = process.env.SMTP_HOST;
     const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
     const pass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+    const port = parseInt(process.env.SMTP_PORT) || 587;
 
-    console.log('[SMTP CONFIG] DB config found:', !!(config && config.host));
-    console.log('[SMTP CONFIG] Env Host:', !!process.env.SMTP_HOST);
-    console.log('[SMTP CONFIG] Env User:', !!user);
-    console.log('[SMTP CONFIG] Env Pass:', !!pass);
+    console.log('[SMTP CONFIG] DB config check:', {
+      hasConfig: !!config,
+      hasHost: !!(config && config.host),
+      hostValue: config?.host,
+    });
 
-    if (process.env.SMTP_HOST && user) {
+    if (host && user && pass) {
       console.log(
         '[SMTP CONFIG] Using environment variables for SMTP fallback.',
       );
       return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: parseInt(process.env.SMTP_PORT) === 465,
+        host: host,
+        port: port,
+        secure: port === 465,
         auth: {
           user: user,
           pass: pass,

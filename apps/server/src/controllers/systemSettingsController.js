@@ -144,9 +144,49 @@ const updateLoanConfiguration = async (req, res) => {
   }
 };
 
+// Test SMTP connection and send a test email
+const testSmtpConnection = async (req, res) => {
+  try {
+    const { sendEmail } = require('../utils/email');
+    const { to } = req.body;
+
+    if (!to) {
+      return res
+        .status(400)
+        .json({ message: 'Recipient email (to) is required' });
+    }
+
+    const success = await sendEmail({
+      to,
+      subject: 'FinanceFlow SMTP Connection Test',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <h2 style="color: #0f172a;">SMTP Test Successful!</h2>
+          <p style="color: #475569;">If you are reading this, your FinanceFlow SMTP configuration (from DB or Env) is working correctly.</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #94a3b8;">Sent on: ${new Date().toLocaleString()}</p>
+        </div>
+      `,
+      text: 'SMTP Test Successful! Your FinanceFlow configuration is working correctly.',
+    });
+
+    if (success) {
+      res.json({
+        message: 'SMTP connection verified and test email sent successfully',
+      });
+    } else {
+      res.status(500).json({ message: 'SMTP verification failed' });
+    }
+  } catch (error) {
+    console.error('SMTP Test Error:', error);
+    res.status(500).json({ message: 'SMTP test failed', error: error.message });
+  }
+};
+
 module.exports = {
   getSystemSettings,
   updateSystemSettings,
   updateLoanConfiguration,
   resetToDefaults,
+  testSmtpConnection,
 };
