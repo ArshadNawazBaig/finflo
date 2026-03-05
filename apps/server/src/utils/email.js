@@ -48,6 +48,8 @@ const createTransporter = async (settings) => {
           pass: config.auth.pass,
         },
         family: 4, // Force IPv4 to avoid ENETUNREACH errors on ipv6-ready servers without routes
+        connectionTimeout: 10000, // 10s timeout
+        greetingTimeout: 10000,
         tls: { rejectUnauthorized: false },
       });
     }
@@ -77,6 +79,8 @@ const createTransporter = async (settings) => {
           pass: pass,
         },
         family: 4, // Force IPv4 for environment fallback too
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
         tls: { rejectUnauthorized: false },
       });
     }
