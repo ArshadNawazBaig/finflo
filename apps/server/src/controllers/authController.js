@@ -20,6 +20,7 @@ const {
   verificationEmail,
   passwordResetEmail,
   welcomeBusinessEmail,
+  superAdminNewRegistrationEmail,
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { validatePassword } = require('../utils/validation');
@@ -88,6 +89,36 @@ const registerUser = async (req, res) => {
           console.error('Verification email failed to send:', err);
         }
       }
+      // Notify Super Admin (for regular admin registrations)
+      if (!isSuperAdmin) {
+        try {
+          const superAdmin = await User.findOne({ role: 'super_admin' });
+          if (superAdmin) {
+            // Email Notification
+            await sendEmail({
+              to: superAdmin.email,
+              subject: `New Business Registration: ${user.name}`,
+              html: superAdminNewRegistrationEmail({
+                name: user.name,
+                email: user.email,
+              }),
+            });
+
+            // In-App Notification
+            await Notification.create({
+              recipient: superAdmin._id,
+              recipientModel: 'User',
+              title: 'New Business Registration',
+              message: `${user.name} (${user.email}) has registered on the platform.`,
+              type: 'info',
+              link: '/admin/users', // Assuming this is where super admin manages users
+            });
+          }
+        } catch (err) {
+          console.error('Super Admin notification failed:', err);
+        }
+      }
+
       // Log activity
       await logActivity({
         userId: user._id,
