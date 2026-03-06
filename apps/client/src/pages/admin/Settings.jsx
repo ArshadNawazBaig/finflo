@@ -269,7 +269,7 @@ const Settings = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden flex flex-col gap-6"
+              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-0 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden flex flex-col gap-6"
             >
               {/* General Section: Profile + Appearance */}
               {activeSection === 'general' && (
@@ -532,7 +532,7 @@ const Settings = () => {
 
                   {/* Danger Zone — Admin only */}
                   {isAdmin && (
-                    <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group">
+                    <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group mb-40 sm:mb-0">
                       <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                       <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
@@ -627,7 +627,7 @@ const Settings = () => {
 
               {/* Security Section */}
               {activeSection === 'security' && (
-                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
                   <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                   <div className="relative z-10">
@@ -1357,7 +1357,7 @@ const ConfigurationSection = ({ user }) => {
   }
 
   return (
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
       <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="relative z-10">

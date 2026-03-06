@@ -105,7 +105,7 @@ const MemberGrantorRequests = () => {
           className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest"
           onClick={() => navigate('/member/dashboard')}
         >
-          <ArrowLeft size={14} /> Back to Dashboard
+          <ArrowLeft size={14} /> Back
         </Button>
       </div>
 

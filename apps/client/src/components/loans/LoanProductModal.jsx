@@ -92,14 +92,23 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-[2rem]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black tracking-tight">
-            {product ? 'Edit Loan Product' : 'Create New Product'}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
-          <div className="grid grid-cols-1 gap-4">
+      <DialogContent className="sm:max-w-[500px] max-h-[95vh] p-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tight">
+              {product ? 'Edit Loan Product' : 'Create New Product'}
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <form
+            id="loan-product-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-5"
+          >
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
               <Input
@@ -215,28 +224,29 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 />
               </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-              className="rounded-xl w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              variant="gradient"
-              className="rounded-xl px-8 w-full sm:w-auto flex items-center gap-2"
-            >
-              {product ? 'Update Product' : 'Create Product'}
-            </Button>
-          </DialogFooter>
-        </form>
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="loan-product-form"
+            type="submit"
+            isLoading={loading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+          >
+            {product ? 'Update Product' : 'Create Product'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

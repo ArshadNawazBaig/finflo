@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   MessageSquare,
   Plus,
@@ -66,11 +67,19 @@ const Support = () => {
     category: 'all',
     priority: 'all',
   });
-  const [newTicket, setNewTicket] = useState({
-    subject: '',
-    description: '',
-    category: 'General Inquiry',
-    priority: 'Normal',
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      subject: '',
+      description: '',
+      category: 'General Inquiry',
+      priority: 'Normal',
+    },
   });
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -108,15 +117,14 @@ const Support = () => {
     }
   };
 
-  const handleCreateTicket = async (e) => {
-    e.preventDefault();
+  const onSubmitNewTicket = async (data) => {
     try {
       setSubmitting(true);
       const formData = new FormData();
-      formData.append('subject', newTicket.subject);
-      formData.append('description', newTicket.description);
-      formData.append('category', newTicket.category);
-      formData.append('priority', newTicket.priority);
+      formData.append('subject', data.subject);
+      formData.append('description', data.description);
+      formData.append('category', data.category);
+      formData.append('priority', data.priority);
       newTicketFiles.forEach((file) => {
         formData.append('attachments', file);
       });
@@ -126,12 +134,7 @@ const Support = () => {
       });
       toast.success('Ticket created successfully');
       setShowNewTicketModal(false);
-      setNewTicket({
-        subject: '',
-        category: 'General Inquiry',
-        priority: 'Normal',
-        description: '',
-      });
+      reset();
       setNewTicketFiles([]);
       fetchTickets();
     } catch (error) {
@@ -363,31 +366,41 @@ const Support = () => {
 
       {/* New Ticket Modal */}
       <Dialog open={showNewTicketModal} onOpenChange={setShowNewTicketModal}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="px-4 py-4 sm:p-6 border-b border-border/40 bg-card/50">
-            <DialogTitle className="text-lg sm:text-xl font-black">
-              Open Support Ticket
-            </DialogTitle>
-            <DialogDescription className="text-[11px] sm:text-sm">
-              Tell us what's happening and we'll get back to you.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateTicket}>
-            <div className="px-4 py-4 sm:p-6 space-y-4">
+        <DialogContent className="max-w-lg max-h-[95vh] !p-0 flex flex-col overflow-hidden border-none shadow-2xl rounded-[2.5rem]">
+          <form
+            id="new-ticket-form"
+            onSubmit={handleSubmit(onSubmitNewTicket)}
+            className="flex flex-col h-full overflow-hidden"
+          >
+            {/* Fixed Header */}
+            <div className="px-4 py-4 sm:p-6 border-b border-border/40 bg-card/50 z-10 shrink-0">
+              <DialogHeader>
+                <DialogTitle className="text-lg sm:text-xl font-black">
+                  Open Support Ticket
+                </DialogTitle>
+                <DialogDescription className="text-[11px] sm:text-sm mt-1">
+                  Tell us what's happening and we'll get back to you.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
               <div className="space-y-1.5">
                 <label className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-wider">
                   Subject
                 </label>
                 <input
-                  required
                   type="text"
                   className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium"
-                  value={newTicket.subject}
-                  onChange={(e) =>
-                    setNewTicket({ ...newTicket, subject: e.target.value })
-                  }
+                  {...register('subject', { required: 'Subject is required' })}
                   placeholder="Briefly describe the issue"
                 />
+                {errors.subject && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.subject.message}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -395,10 +408,8 @@ const Support = () => {
                     Category
                   </label>
                   <Select
-                    value={newTicket.category}
-                    onValueChange={(val) =>
-                      setNewTicket({ ...newTicket, category: val })
-                    }
+                    defaultValue="General Inquiry"
+                    onValueChange={(val) => setValue('category', val)}
                   >
                     <SelectTrigger className="w-full h-9 sm:h-10 rounded-xl px-4 text-xs sm:text-sm">
                       <SelectValue />
@@ -420,10 +431,8 @@ const Support = () => {
                     Priority
                   </label>
                   <Select
-                    value={newTicket.priority}
-                    onValueChange={(val) =>
-                      setNewTicket({ ...newTicket, priority: val })
-                    }
+                    defaultValue="Normal"
+                    onValueChange={(val) => setValue('priority', val)}
                   >
                     <SelectTrigger className="w-full h-9 sm:h-10 rounded-xl px-4 text-xs sm:text-sm">
                       <SelectValue />
@@ -442,21 +451,23 @@ const Support = () => {
                   Description
                 </label>
                 <textarea
-                  required
                   rows={4}
                   className="w-full bg-muted/40 border border-border/50 rounded-xl px-4 py-2 text-sm font-medium resize-none placeholder:text-[10px] sm:placeholder:text-xs"
-                  value={newTicket.description}
-                  onChange={(e) =>
-                    setNewTicket({
-                      ...newTicket,
-                      description: e.target.value,
-                    })
-                  }
+                  {...register('description', {
+                    required: 'Description is required',
+                  })}
                   placeholder="Provide details about your request..."
                 />
+                {errors.description && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
             </div>
-            <div className="px-4 py-4 sm:p-6 border-t border-border/40 bg-muted/20 flex justify-end gap-3">
+
+            {/* Fixed Footer */}
+            <div className="px-4 py-4 sm:p-6 border-t border-border/40 bg-muted/20 flex justify-end gap-3 z-10 shrink-0">
               <Button
                 type="button"
                 variant="ghost"
@@ -466,6 +477,7 @@ const Support = () => {
                 Cancel
               </Button>
               <Button
+                form="new-ticket-form"
                 type="submit"
                 variant="gradient"
                 className="px-8 sm:px-10 py-3 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"

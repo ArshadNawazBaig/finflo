@@ -64,46 +64,51 @@ const ContributeGoalModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-[2.5rem] p-8 sm:p-10 border-none shadow-2xl overflow-hidden bg-background/95 backdrop-blur-xl">
-        <DialogHeader className="relative z-10 mb-8">
-          <DialogTitle className="text-3xl font-black tracking-tighter">
-            Allocate Funds
-          </DialogTitle>
-          <DialogDescription className="text-sm font-medium">
-            Add money to your "{goal?.title}" goal
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[95vh] !p-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black tracking-tighter">
+              Allocate Funds
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium">
+              Add money to your "{goal?.title}" goal
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6 relative z-10"
-        >
-          <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white rounded-2xl shadow-sm text-primary">
-                <PiggyBank size={24} />
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <form
+            id="contribute-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
+            <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-white rounded-2xl shadow-sm text-primary">
+                  <PiggyBank size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                    Available Balance
+                  </p>
+                  <p className="font-black tracking-tight">
+                    {formatCurrency(memberBalance)}
+                  </p>
+                </div>
               </div>
-              <div>
+              <ArrowRight className="text-muted-foreground/30" />
+              <div className="text-right">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Available Balance
+                  Target Progress
                 </p>
-                <p className="font-black tracking-tight">
-                  {formatCurrency(memberBalance)}
+                <p className="font-black tracking-tight text-primary">
+                  {goal?.progress}%
                 </p>
               </div>
             </div>
-            <ArrowRight className="text-muted-foreground/30" />
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                Target Progress
-              </p>
-              <p className="font-black tracking-tight text-primary">
-                {goal?.progress}%
-              </p>
-            </div>
-          </div>
 
-          <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Contribution Amount (PKR)
@@ -123,27 +128,29 @@ const ContributeGoalModal = ({
                 </p>
               )}
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex-1 rounded-2xl h-12 font-black uppercase tracking-widest text-xs"
-              onClick={onClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="gradient"
-              className="flex-[2] rounded-2xl h-14 font-black uppercase tracking-widest text-xs"
-              disabled={loading}
-            >
-              {loading ? 'Processing...' : 'Allocate Funds'}
-            </Button>
-          </div>
-        </form>
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1 rounded-full h-12 font-black uppercase tracking-widest text-xs"
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            form="contribute-form"
+            type="submit"
+            variant="gradient"
+            className="flex-[2] rounded-full h-12 font-black uppercase tracking-widest text-xs"
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Allocate Funds'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

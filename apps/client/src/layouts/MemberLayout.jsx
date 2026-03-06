@@ -84,6 +84,7 @@ const MemberLayout = () => {
               <Suspense fallback={<DashboardSkeleton />}>
                 <Outlet />
               </Suspense>
+              <div className="py-20 sm:hidden" />
             </div>
           </div>
         </div>

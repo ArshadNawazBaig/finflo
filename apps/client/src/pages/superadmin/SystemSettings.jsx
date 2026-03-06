@@ -707,7 +707,7 @@ const SystemSettings = () => {
                     </div>
 
                     <div className="md:col-span-1 space-y-6">
-                      <div className="bg-red-500/5 border border-red-200 dark:border-red-500/20 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group">
+                      <div className="bg-red-500/5 border border-red-200 dark:border-red-500/20 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group mb-40 sm:mb-0">
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform duration-700 pointer-events-none">
                           <AlertCircle size={120} />
                         </div>

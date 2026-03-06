@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,11 +55,17 @@ const Roles = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    permissions: [],
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { name: '', description: '', permissions: [] },
   });
+  const currentPermissions = watch('permissions') || [];
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -81,14 +88,14 @@ const Roles = () => {
   const handleOpenModal = (role = null) => {
     if (role) {
       setEditingRole(role);
-      setFormData({
+      reset({
         name: role.name,
         description: role.description,
         permissions: role.permissions,
       });
     } else {
       setEditingRole(null);
-      setFormData({
+      reset({
         name: '',
         description: '',
         permissions: [],
@@ -98,25 +105,23 @@ const Roles = () => {
   };
 
   const handleTogglePermission = (permId) => {
-    setFormData((prev) => ({
-      ...prev,
-      permissions: prev.permissions.includes(permId)
-        ? prev.permissions.filter((p) => p !== permId)
-        : [...prev.permissions, permId],
-    }));
+    const current = watch('permissions') || [];
+    setValue(
+      'permissions',
+      current.includes(permId)
+        ? current.filter((p) => p !== permId)
+        : [...current, permId],
+    );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name) return toast.error('Role name is required');
-
+  const onSubmit = async (data) => {
     setSaving(true);
     try {
       if (editingRole) {
-        await api.put(`/roles/${editingRole._id}`, formData);
+        await api.put(`/roles/${editingRole._id}`, data);
         toast.success('Role updated successfully');
       } else {
-        await api.post('/roles', formData);
+        await api.post('/roles', data);
         toast.success('Role created successfully');
       }
       fetchRoles();
@@ -300,9 +305,14 @@ const Roles = () => {
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] border-none shadow-2xl p-0">
-          <form onSubmit={handleSubmit} className="flex flex-col">
-            <div className="p-8 space-y-8">
+        <DialogContent className="max-w-2xl max-h-[95vh] !p-0 flex flex-col overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+          <form
+            id="new-identity-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col h-full overflow-hidden"
+          >
+            {/* Fixed Header */}
+            <div className="p-8 border-b bg-background z-10 shrink-0">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
                   <ShieldCheck size={24} />
@@ -311,14 +321,17 @@ const Roles = () => {
                   <DialogTitle className="text-xl font-black tracking-tight">
                     {editingRole ? 'Modify Role' : 'New Identity'}
                   </DialogTitle>
-                  <p className="text-muted-foreground text-xs font-medium">
+                  <p className="text-muted-foreground text-xs font-medium mt-1">
                     {editingRole
                       ? 'Update permissions and description.'
                       : 'Create a custom permission set.'}
                   </p>
                 </div>
               </div>
+            </div>
 
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
@@ -326,14 +339,15 @@ const Roles = () => {
                   </label>
                   <input
                     type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    {...register('name', { required: 'Role name is required' })}
                     placeholder="e.g. Auditor"
                     className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
                   />
+                  {errors.name && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
@@ -341,10 +355,7 @@ const Roles = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
+                    {...register('description')}
                     placeholder="Brief purpose of this role"
                     className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-border/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
                   />
@@ -357,7 +368,7 @@ const Roles = () => {
                     Capability Registry
                   </h4>
                   <span className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">
-                    {formData.permissions.length} selected
+                    {currentPermissions.length} selected
                   </span>
                 </div>
 
@@ -369,7 +380,7 @@ const Roles = () => {
                       onClick={() => handleTogglePermission(perm.id)}
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left group/perm',
-                        formData.permissions.includes(perm.id)
+                        currentPermissions.includes(perm.id)
                           ? 'bg-primary/5 border-primary shadow-lg shadow-primary/5'
                           : 'bg-white/50 dark:bg-slate-900/50 border-border/50 hover:border-primary/30',
                       )}
@@ -377,12 +388,12 @@ const Roles = () => {
                       <div
                         className={cn(
                           'h-6 w-6 rounded-lg flex items-center justify-center border transition-colors',
-                          formData.permissions.includes(perm.id)
+                          currentPermissions.includes(perm.id)
                             ? 'bg-primary border-primary text-white'
                             : 'bg-white dark:bg-slate-800 border-border group-hover/perm:border-primary/50',
                         )}
                       >
-                        {formData.permissions.includes(perm.id) && (
+                        {currentPermissions.includes(perm.id) && (
                           <Check size={14} strokeWidth={4} />
                         )}
                       </div>
@@ -400,7 +411,8 @@ const Roles = () => {
               </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-6 flex justify-end gap-3 border-t border-border/20">
+            {/* Fixed Footer */}
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-6 flex justify-end gap-3 border-t border-border/20 z-10 shrink-0">
               <Button
                 type="button"
                 variant="ghost"
@@ -410,6 +422,7 @@ const Roles = () => {
                 Cancel
               </Button>
               <Button
+                form="new-identity-form"
                 type="submit"
                 isLoading={saving}
                 variant="gradient"

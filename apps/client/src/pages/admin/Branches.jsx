@@ -484,288 +484,301 @@ const Branches = () => {
 
       {/* Edit/Create Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {currentBranch ? 'Edit Branch' : 'Add New Branch'}
-            </DialogTitle>
-            <DialogDescription>
-              Configure branch details and white-label branding.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] !p-0 flex flex-col overflow-hidden">
+          {/* Fixed Header */}
+          <div className="p-6 border-b bg-background z-10">
+            <DialogHeader>
+              <DialogTitle>
+                {currentBranch ? 'Edit Branch' : 'Add New Branch'}
+              </DialogTitle>
+              <DialogDescription>
+                Configure branch details and white-label branding.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <form
-            id="branch-form"
-            onSubmit={handleSubmit(handleSave)}
-            className="grid gap-6 py-4"
-          >
-            <div className="space-y-4">
-              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Store size={14} /> Basic Details
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Branch Name</Label>
-                  <Input
-                    placeholder="e.g. Downtown Branch"
-                    {...register('name', {
-                      required: 'Branch name is required',
-                    })}
-                  />
-                  {errors.name && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Contact Number</Label>
-                  <Input
-                    placeholder="+92 300 1234567"
-                    {...register('contactNumber', {
-                      required: 'Contact number is required',
-                    })}
-                  />
-                  {errors.contactNumber && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.contactNumber.message}
-                    </p>
-                  )}
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <Label>Address</Label>
-                  <Input
-                    placeholder="Full street address"
-                    {...register('address', {
-                      required: 'Address is required',
-                    })}
-                  />
-                  {errors.address && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                      {errors.address.message}
-                    </p>
-                  )}
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <UserCog size={14} className="text-primary" />
-                    <Label className="text-sm font-bold">Branch Manager</Label>
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            <form
+              id="branch-form"
+              onSubmit={handleSubmit(handleSave)}
+              className="grid gap-6"
+            >
+              <div className="space-y-4">
+                <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Store size={14} /> Basic Details
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Branch Name</Label>
+                    <Input
+                      placeholder="e.g. Downtown Branch"
+                      {...register('name', {
+                        required: 'Branch name is required',
+                      })}
+                    />
+                    {errors.name && (
+                      <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                        {errors.name.message}
+                      </p>
+                    )}
                   </div>
-                  <Select
-                    value={formData.managerId || 'none'}
-                    onValueChange={(val) =>
-                      setFormData({
-                        ...formData,
-                        managerId: val === 'none' ? '' : val,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-border/40">
-                      <SelectValue placeholder="Assign a Manager (Optional)" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/40">
-                      <SelectItem value="none" className="rounded-lg">
-                        No Manager Assigned
-                      </SelectItem>
-                      {staff.map((member) => (
-                        <SelectItem
-                          key={member._id}
-                          value={member._id}
-                          className="rounded-lg"
-                        >
-                          <div className="flex flex-col py-0.5">
-                            <span className="font-bold text-sm capitalize">
-                              {member.name}
-                            </span>
-                            <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
-                              {member.email}
-                            </span>
-                          </div>
+                  <div className="space-y-2">
+                    <Label>Contact Number</Label>
+                    <Input
+                      placeholder="+92 300 1234567"
+                      {...register('contactNumber', {
+                        required: 'Contact number is required',
+                      })}
+                    />
+                    {errors.contactNumber && (
+                      <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                        {errors.contactNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Address</Label>
+                    <Input
+                      placeholder="Full street address"
+                      {...register('address', {
+                        required: 'Address is required',
+                      })}
+                    />
+                    {errors.address && (
+                      <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                        {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <UserCog size={14} className="text-primary" />
+                      <Label className="text-sm font-bold">
+                        Branch Manager
+                      </Label>
+                    </div>
+                    <Select
+                      value={formData.managerId || 'none'}
+                      onValueChange={(val) =>
+                        setFormData({
+                          ...formData,
+                          managerId: val === 'none' ? '' : val,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-border/40">
+                        <SelectValue placeholder="Assign a Manager (Optional)" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/40">
+                        <SelectItem value="none" className="rounded-lg">
+                          No Manager Assigned
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {staff.map((member) => (
+                          <SelectItem
+                            key={member._id}
+                            value={member._id}
+                            className="rounded-lg"
+                          >
+                            <div className="flex flex-col py-0.5">
+                              <span className="font-bold text-sm capitalize">
+                                {member.name}
+                              </span>
+                              <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
+                                {member.email}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-border/50">
-              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Palette size={14} /> Branding & White-Labeling
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 space-y-2">
-                  <Label>Display Name (Company Name)</Label>
-                  <Input
-                    value={formData.branding.companyName}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        branding: {
-                          ...formData.branding,
-                          companyName: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Name shown on invoices/reports"
-                  />
-                </div>
-                <div className="col-span-2 space-y-4">
-                  <Label>Branch Logo</Label>
-                  <div className="flex items-center gap-6">
-                    <div className="relative group">
-                      <div className="w-24 h-24 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-primary/40 transition-all duration-500">
-                        {logoPreview || formData.branding.logoUrl ? (
-                          <img
-                            src={logoPreview || formData.branding.logoUrl}
-                            alt="Logo preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Store
-                            className="text-muted-foreground/30"
-                            size={32}
-                          />
-                        )}
+              <div className="space-y-4 pt-4 border-t border-border/50">
+                <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Palette size={14} /> Branding & White-Labeling
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2 space-y-2">
+                    <Label>Display Name (Company Name)</Label>
+                    <Input
+                      value={formData.branding.companyName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          branding: {
+                            ...formData.branding,
+                            companyName: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Name shown on invoices/reports"
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-4">
+                    <Label>Branch Logo</Label>
+                    <div className="flex items-center gap-6">
+                      <div className="relative group">
+                        <div className="w-24 h-24 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-primary/40 transition-all duration-500">
+                          {logoPreview || formData.branding.logoUrl ? (
+                            <img
+                              src={logoPreview || formData.branding.logoUrl}
+                              alt="Logo preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Store
+                              className="text-muted-foreground/30"
+                              size={32}
+                            />
+                          )}
+                          <label
+                            htmlFor="logo-upload"
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all duration-300"
+                          >
+                            <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover:scale-100 transition-transform">
+                              <Plus size={20} className="text-white" />
+                            </div>
+                          </label>
+                        </div>
+                        <input
+                          id="logo-upload"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setLogoFile(file);
+                              setLogoPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Branch Logo
+                        </p>
+                        <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                          PNG, JPG or WEBP. Max 5MB. Used on invoices and portal
+                          branding.
+                        </p>
                         <label
                           htmlFor="logo-upload"
-                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all duration-300"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/40 transition-all duration-300 cursor-pointer text-xs font-bold text-muted-foreground hover:text-foreground select-none"
                         >
-                          <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl scale-90 group-hover:scale-100 transition-transform">
-                            <Plus size={20} className="text-white" />
-                          </div>
+                          <Plus size={14} />
+                          {logoPreview || formData.branding.logoUrl
+                            ? 'Replace Logo'
+                            : 'Upload Logo'}
                         </label>
+                        {(logoPreview || formData.branding.logoUrl) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLogoPreview(null);
+                              setLogoFile(null);
+                              setFormData({
+                                ...formData,
+                                branding: {
+                                  ...formData.branding,
+                                  logoUrl: '',
+                                },
+                              });
+                            }}
+                            className="ml-2 text-[10px] font-black uppercase tracking-wider text-destructive/70 hover:text-destructive transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
-                      <input
-                        id="logo-upload"
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setLogoFile(file);
-                            setLogoPreview(URL.createObjectURL(file));
-                          }
-                        }}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Primary Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={formData.branding.primaryColor}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branding: {
+                              ...formData.branding,
+                              primaryColor: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-12 p-1 h-10"
+                      />
+                      <Input
+                        value={formData.branding.primaryColor}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branding: {
+                              ...formData.branding,
+                              primaryColor: e.target.value,
+                            },
+                          })
+                        }
+                        className="font-mono uppercase"
                       />
                     </div>
-                    <div className="flex-1 space-y-3">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        Branch Logo
-                      </p>
-                      <p className="text-xs text-muted-foreground/60 leading-relaxed">
-                        PNG, JPG or WEBP. Max 5MB. Used on invoices and portal
-                        branding.
-                      </p>
-                      <label
-                        htmlFor="logo-upload"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/40 transition-all duration-300 cursor-pointer text-xs font-bold text-muted-foreground hover:text-foreground select-none"
-                      >
-                        <Plus size={14} />
-                        {logoPreview || formData.branding.logoUrl
-                          ? 'Replace Logo'
-                          : 'Upload Logo'}
-                      </label>
-                      {(logoPreview || formData.branding.logoUrl) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLogoPreview(null);
-                            setLogoFile(null);
-                            setFormData({
-                              ...formData,
-                              branding: {
-                                ...formData.branding,
-                                logoUrl: '',
-                              },
-                            });
-                          }}
-                          className="ml-2 text-[10px] font-black uppercase tracking-wider text-destructive/70 hover:text-destructive transition-colors"
-                        >
-                          Remove
-                        </button>
-                      )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Secondary Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={formData.branding.secondaryColor}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branding: {
+                              ...formData.branding,
+                              secondaryColor: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-12 p-1 h-10"
+                      />
+                      <Input
+                        value={formData.branding.secondaryColor}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branding: {
+                              ...formData.branding,
+                              secondaryColor: e.target.value,
+                            },
+                          })
+                        }
+                        className="font-mono uppercase"
+                      />
                     </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Primary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={formData.branding.primaryColor}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          branding: {
-                            ...formData.branding,
-                            primaryColor: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-12 p-1 h-10"
-                    />
-                    <Input
-                      value={formData.branding.primaryColor}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          branding: {
-                            ...formData.branding,
-                            primaryColor: e.target.value,
-                          },
-                        })
-                      }
-                      className="font-mono uppercase"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Secondary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="color"
-                      value={formData.branding.secondaryColor}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          branding: {
-                            ...formData.branding,
-                            secondaryColor: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-12 p-1 h-10"
-                    />
-                    <Input
-                      value={formData.branding.secondaryColor}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          branding: {
-                            ...formData.branding,
-                            secondaryColor: e.target.value,
-                          },
-                        })
-                      }
-                      className="font-mono uppercase"
-                    />
                   </div>
                 </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          {/* Fixed Footer */}
+          <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="rounded-full px-6 font-bold"
+            >
               Cancel
             </Button>
             <Button
               form="branch-form"
               type="submit"
               disabled={saving}
-              className="font-bold min-w-[120px]"
+              className="rounded-full px-8 font-bold min-w-[120px]"
             >
               {saving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -774,7 +787,7 @@ const Branches = () => {
               )}
               {currentBranch ? 'Update Branch' : 'Save Branch'}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
