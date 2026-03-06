@@ -9,11 +9,6 @@ const RedirectIfAuthenticated = () => {
     ? location.pathname.slice(0, -1)
     : location.pathname;
 
-  // Ensure isolation: if hitting admin login, clear any stale member token
-  if (!token && localStorage.getItem('member')) {
-    localStorage.removeItem('member');
-  }
-
   const isDashboard = normalizedPath === '/dashboard';
   const isForcePassword = normalizedPath === '/force-password-change';
 
