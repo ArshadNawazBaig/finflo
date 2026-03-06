@@ -329,7 +329,7 @@ const SystemSettings = () => {
         </aside>
 
         {/* Dynamic Content Area */}
-        <main className="lg:col-span-3">
+        <main className="lg:col-span-3 mb-40 sm:mb-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -337,7 +337,7 @@ const SystemSettings = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden"
+              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-4 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden"
             >
               {activeTab === 'plans' && (
                 <div className="space-y-12">
