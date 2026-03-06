@@ -18,23 +18,85 @@ import RequirePermissions from '@/components/auth/RequirePermissions';
 import RequirePaidPlan from '@/components/RequirePaidPlan';
 import { Toaster } from 'sonner';
 
+import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
+import {
+  TablePageSkeleton,
+  CardsPageSkeleton,
+  ProfilePageSkeleton,
+  SettingsPageSkeleton,
+} from '@/components/ui/PageSkeletons';
+
+const withSkeleton = (importFunc, SkeletonFallback) => {
+  const LazyComponent = lazy(importFunc);
+  return (props) => (
+    <Suspense fallback={<SkeletonFallback />}>
+      <LazyComponent {...props} />
+    </Suspense>
+  );
+};
+
 // Lazy Load Pages
 const Landing = lazy(() => import('@/pages/static/Landing'));
-const Dashboard = lazy(() => import('@/pages/admin/Dashboard'));
-const Customers = lazy(() => import('@/pages/admin/Customers'));
-const Members = lazy(() => import('@/pages/admin/Members'));
-const Loans = lazy(() => import('@/pages/admin/Loans'));
-const Transactions = lazy(() => import('@/pages/admin/Transactions'));
-const Reports = lazy(() => import('@/pages/admin/Reports'));
-const Branches = lazy(() => import('@/pages/admin/Branches'));
-const BranchDetail = lazy(() => import('@/pages/admin/BranchDetail'));
-const Team = lazy(() => import('@/pages/admin/Team'));
-const StaffProfile = lazy(() => import('@/pages/admin/StaffProfile'));
-const Settings = lazy(() => import('@/pages/admin/Settings'));
-const Billing = lazy(() => import('@/pages/billing/Billing'));
-const Pricing = lazy(() => import('@/pages/billing/Pricing'));
-const MemberProfile = lazy(() => import('@/pages/admin/MemberProfile'));
-const CustomerProfile = lazy(() => import('@/pages/admin/CustomerProfile'));
+const Dashboard = withSkeleton(
+  () => import('@/pages/admin/Dashboard'),
+  DashboardSkeleton,
+);
+const Customers = withSkeleton(
+  () => import('@/pages/admin/Customers'),
+  TablePageSkeleton,
+);
+const Members = withSkeleton(
+  () => import('@/pages/admin/Members'),
+  TablePageSkeleton,
+);
+const Loans = withSkeleton(
+  () => import('@/pages/admin/Loans'),
+  TablePageSkeleton,
+);
+const Transactions = withSkeleton(
+  () => import('@/pages/admin/Transactions'),
+  TablePageSkeleton,
+);
+const Reports = withSkeleton(
+  () => import('@/pages/admin/Reports'),
+  DashboardSkeleton,
+);
+const Branches = withSkeleton(
+  () => import('@/pages/admin/Branches'),
+  CardsPageSkeleton,
+);
+const BranchDetail = withSkeleton(
+  () => import('@/pages/admin/BranchDetail'),
+  ProfilePageSkeleton,
+);
+const Team = withSkeleton(
+  () => import('@/pages/admin/Team'),
+  CardsPageSkeleton,
+);
+const StaffProfile = withSkeleton(
+  () => import('@/pages/admin/StaffProfile'),
+  ProfilePageSkeleton,
+);
+const Settings = withSkeleton(
+  () => import('@/pages/admin/Settings'),
+  SettingsPageSkeleton,
+);
+const Billing = withSkeleton(
+  () => import('@/pages/billing/Billing'),
+  SettingsPageSkeleton,
+);
+const Pricing = withSkeleton(
+  () => import('@/pages/billing/Pricing'),
+  CardsPageSkeleton,
+);
+const MemberProfile = withSkeleton(
+  () => import('@/pages/admin/MemberProfile'),
+  ProfilePageSkeleton,
+);
+const CustomerProfile = withSkeleton(
+  () => import('@/pages/admin/CustomerProfile'),
+  ProfilePageSkeleton,
+);
 const Login = lazy(() => import('@/pages/auth/Login'));
 const Register = lazy(() => import('@/pages/auth/Register'));
 const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'));
@@ -42,10 +104,22 @@ const ForcePasswordChange = lazy(
   () => import('@/pages/auth/ForcePasswordChange'),
 );
 const SelfRegister = lazy(() => import('@/pages/auth/SelfRegister'));
-const Support = lazy(() => import('@/pages/admin/Support'));
-const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
-const Notifications = lazy(() => import('@/pages/admin/Notifications'));
-const LoanDetail = lazy(() => import('@/pages/admin/LoanDetail'));
+const Support = withSkeleton(
+  () => import('@/pages/admin/Support'),
+  CardsPageSkeleton,
+);
+const LoanLookup = withSkeleton(
+  () => import('@/pages/admin/LoanLookup'),
+  DashboardSkeleton,
+);
+const Notifications = withSkeleton(
+  () => import('@/pages/admin/Notifications'),
+  TablePageSkeleton,
+);
+const LoanDetail = withSkeleton(
+  () => import('@/pages/admin/LoanDetail'),
+  ProfilePageSkeleton,
+);
 const PrivacyPolicy = lazy(() => import('@/pages/static/PrivacyPage'));
 const TermsOfService = lazy(() => import('@/pages/static/TermsPage'));
 const PaymentSuccess = lazy(() => import('@/pages/billing/PaymentSuccess'));
@@ -53,46 +127,111 @@ const PaymentCancel = lazy(() => import('@/pages/billing/PaymentCancel'));
 const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'));
 const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
-const MemberDashboard = lazy(() => import('@/pages/member/MemberDashboard'));
-const SuperAdminDashboard = lazy(
+const MemberDashboard = withSkeleton(
+  () => import('@/pages/member/MemberDashboard'),
+  DashboardSkeleton,
+);
+const SuperAdminDashboard = withSkeleton(
   () => import('@/pages/superadmin/SuperAdminDashboard'),
+  DashboardSkeleton,
 );
-const ManageUsers = lazy(() => import('@/pages/superadmin/ManageUsers'));
-const UserDetail = lazy(() => import('@/pages/superadmin/UserDetail'));
-const SystemAnalytics = lazy(
+const ManageUsers = withSkeleton(
+  () => import('@/pages/superadmin/ManageUsers'),
+  TablePageSkeleton,
+);
+const UserDetail = withSkeleton(
+  () => import('@/pages/superadmin/UserDetail'),
+  ProfilePageSkeleton,
+);
+const SystemAnalytics = withSkeleton(
   () => import('@/pages/superadmin/SystemAnalytics'),
+  DashboardSkeleton,
 );
-const ManageNotifications = lazy(
+const ManageNotifications = withSkeleton(
   () => import('@/pages/superadmin/ManageNotifications'),
+  TablePageSkeleton,
 );
-const ActivityLogs = lazy(() => import('@/pages/superadmin/ActivityLogs'));
-const SystemSettings = lazy(() => import('@/pages/superadmin/SystemSettings'));
-const RevenueReports = lazy(() => import('@/pages/superadmin/RevenueReports'));
-const BackupExport = lazy(() => import('@/pages/superadmin/BackupExport'));
-const ManageTickets = lazy(() => import('@/pages/superadmin/ManageTickets'));
-const LoanRequests = lazy(() => import('@/pages/admin/LoanRequests'));
-const LoanProducts = lazy(() => import('@/pages/admin/LoanProducts'));
-const DistributionHub = lazy(() => import('@/pages/admin/DistributionHub'));
-const VerificationQueue = lazy(() => import('@/pages/admin/VerificationQueue'));
-const Roles = lazy(() => import('@/pages/admin/Roles'));
+const ActivityLogs = withSkeleton(
+  () => import('@/pages/superadmin/ActivityLogs'),
+  TablePageSkeleton,
+);
+const SystemSettings = withSkeleton(
+  () => import('@/pages/superadmin/SystemSettings'),
+  SettingsPageSkeleton,
+);
+const RevenueReports = withSkeleton(
+  () => import('@/pages/superadmin/RevenueReports'),
+  DashboardSkeleton,
+);
+const BackupExport = withSkeleton(
+  () => import('@/pages/superadmin/BackupExport'),
+  CardsPageSkeleton,
+);
+const ManageTickets = withSkeleton(
+  () => import('@/pages/superadmin/ManageTickets'),
+  TablePageSkeleton,
+);
+const LoanRequests = withSkeleton(
+  () => import('@/pages/admin/LoanRequests'),
+  TablePageSkeleton,
+);
+const LoanProducts = withSkeleton(
+  () => import('@/pages/admin/LoanProducts'),
+  CardsPageSkeleton,
+);
+const DistributionHub = withSkeleton(
+  () => import('@/pages/admin/DistributionHub'),
+  TablePageSkeleton,
+);
+const VerificationQueue = withSkeleton(
+  () => import('@/pages/admin/VerificationQueue'),
+  TablePageSkeleton,
+);
+const Roles = withSkeleton(
+  () => import('@/pages/admin/Roles'),
+  SettingsPageSkeleton,
+);
 const NotFound = lazy(() => import('@/pages/static/NotFound'));
 const Documentation = lazy(() => import('@/pages/static/Documentation'));
 const ApiDocumentation = lazy(() => import('@/pages/static/ApiDocumentation'));
-const AuditLogs = lazy(() => import('@/pages/admin/AuditLogs'));
-const Chat = lazy(() => import('@/pages/admin/Chat'));
+const AuditLogs = withSkeleton(
+  () => import('@/pages/admin/AuditLogs'),
+  TablePageSkeleton,
+);
+const Chat = withSkeleton(
+  () => import('@/pages/admin/Chat'),
+  DashboardSkeleton,
+);
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 
 const Valentine = lazy(() => import('@/pages/static/Valentine'));
-const MemberTransactions = lazy(
+const MemberTransactions = withSkeleton(
   () => import('@/pages/member/MemberTransactions'),
+  TablePageSkeleton,
 );
-const MemberLoanDetail = lazy(() => import('@/pages/member/MemberLoanDetail'));
-const MemberLoans = lazy(() => import('@/pages/member/MemberLoans'));
-const MemberTransfer = lazy(() => import('@/pages/member/MemberTransfer'));
-const MemberSettings = lazy(() => import('@/pages/member/MemberSettings'));
-const MemberInvestment = lazy(() => import('@/pages/member/MemberInvestment'));
-const MemberBusinessShare = lazy(
+const MemberLoanDetail = withSkeleton(
+  () => import('@/pages/member/MemberLoanDetail'),
+  ProfilePageSkeleton,
+);
+const MemberLoans = withSkeleton(
+  () => import('@/pages/member/MemberLoans'),
+  TablePageSkeleton,
+);
+const MemberTransfer = withSkeleton(
+  () => import('@/pages/member/MemberTransfer'),
+  CardsPageSkeleton,
+);
+const MemberSettings = withSkeleton(
+  () => import('@/pages/member/MemberSettings'),
+  SettingsPageSkeleton,
+);
+const MemberInvestment = withSkeleton(
+  () => import('@/pages/member/MemberInvestment'),
+  CardsPageSkeleton,
+);
+const MemberBusinessShare = withSkeleton(
   () => import('@/pages/member/MemberBusinessShare'),
+  CardsPageSkeleton,
 );
 const MemberForgotPassword = lazy(
   () => import('@/pages/member/MemberForgotPassword'),
@@ -100,16 +239,20 @@ const MemberForgotPassword = lazy(
 const MemberResetPassword = lazy(
   () => import('@/pages/member/MemberResetPassword'),
 );
-const MemberNotifications = lazy(
+const MemberNotifications = withSkeleton(
   () => import('@/pages/member/MemberNotifications'),
+  TablePageSkeleton,
 );
-const MemberGrantorRequests = lazy(
+const MemberGrantorRequests = withSkeleton(
   () => import('@/pages/member/MemberGrantorRequests'),
+  TablePageSkeleton,
 );
-const MemberChat = lazy(() => import('@/pages/member/MemberChat'));
+const MemberChat = withSkeleton(
+  () => import('@/pages/member/MemberChat'),
+  DashboardSkeleton,
+);
 
 import SplashScreen from '@/components/ui/SplashScreen';
-import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 import FloatingSettings from '@/components/landing/FloatingSettings';
 import useSystemSettings from '@/hooks/useSystemSettings';
 
