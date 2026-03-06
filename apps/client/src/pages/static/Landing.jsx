@@ -55,74 +55,46 @@ const Landing = () => {
   const features = useMemo(
     () => [
       {
-        icon: <Users className="w-6 h-6 text-rose-500" />,
-        title: 'Member Self-Registration',
+        icon: <Layers className="w-6 h-6 text-blue-500" />,
+        title: 'Multi-Branch Financial Engine',
         description:
-          'Members apply publicly with a business security code. Admins approve or reject instantly — applicants receive live socket-driven status updates the moment a decision is made.',
-        color: 'rose',
-      },
-      {
-        icon: <Wifi className="w-6 h-6 text-amber-500" />,
-        title: 'Real-Time Socket Infrastructure',
-        description:
-          'WebSocket-powered live events for approval results, notification badges, chat presence, typing indicators, and admin member registration counts — all zero-poll.',
-        color: 'amber',
-      },
-      {
-        icon: <MessageSquareMore className="w-6 h-6 text-violet-500" />,
-        title: 'Encrypted Live Chat',
-        description:
-          'Full-featured real-time messaging between staff and members with typing indicators, voice notes, and media support. Includes per-user history clearing for maximum privacy.',
-        color: 'violet',
-      },
-      {
-        icon: <Sparkles className="w-6 h-6 text-blue-500" />,
-        title: 'Dynamic Business Branding',
-        description:
-          'Set your business abbreviation and watch the system generate professional, 13-digit dynamic account numbers for every customer and member automatically.',
+          'Orchestrate multiple branches with isolated ledger control, custom branding, and hierarchical role-based access from a single consolidated dashboard.',
         color: 'blue',
       },
       {
         icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
-        title: 'Automated Credit Limits',
+        title: 'Automated Credit Risk Management',
         description:
-          'Real-time credit ceiling calculations based on member investment balance and repayment history for safer, smarter lending decisions.',
+          'Smarter lending with real-time credit ceiling calculations based on member investment history and automated repayment performance tracking.',
         color: 'emerald',
       },
       {
-        icon: <FileSearch className="w-6 h-6 text-indigo-500" />,
-        title: 'KYC Vault & OCR Scanning',
+        icon: <Users className="w-6 h-6 text-rose-500" />,
+        title: 'Member Lifecycle Management',
         description:
-          'Encrypted document storage for customer identification and contracts. Tesseract OCR auto-extracts CNIC and document data directly from uploaded images.',
+          'Streamlined member onboarding with public self-service registration, live socket-driven approval workflows, and professional dynamic account generation.',
+        color: 'rose',
+      },
+      {
+        icon: <Shield className="w-6 h-6 text-indigo-500" />,
+        title: 'Regulatory-Grade Audit Ledger',
+        description:
+          'Build absolute trust with an immutable activity log that tracks every critical system mutation with before/after state snapshots and IP-verified logs.',
         color: 'indigo',
       },
       {
-        icon: <Shield className="w-6 h-6 text-emerald-600" />,
-        title: 'Immutable Audit Ledger',
+        icon: <Sparkles className="w-6 h-6 text-amber-500" />,
+        title: 'Dynamic Business Branding',
         description:
-          'Regulatory-grade activity tracking with before/after state snapshots and IP logging for every critical system mutation across all branches.',
-        color: 'emerald',
-      },
-      {
-        icon: <Layers className="w-6 h-6 text-blue-500" />,
-        title: 'Multi-Branch Engine',
-        description:
-          'Scalable infrastructure supporting hierarchical branches with independent branding, role-based permissions, and isolated access control.',
-        color: 'blue',
+          'High-end professional identity with automated 13-digit dynamic account number generation tailored to your specific business abbreviation.',
+        color: 'amber',
       },
       {
         icon: <ArrowLeftRight className="w-6 h-6 text-cyan-500" />,
-        title: 'External Fund Transfers',
+        title: 'External Fund Reconciliation',
         description:
-          'Initiate tracked fund movements to external accounts with full ledger reconciliation, category tagging, and branch-level financial reporting.',
+          'Seamless fund movements to external accounts with integrated ledger reconciliation, category tagging, and automated branch reporting.',
         color: 'cyan',
-      },
-      {
-        icon: <Code2 className="w-6 h-6 text-fuchsia-500" />,
-        title: 'Developer-First REST API',
-        description:
-          'Modern REST API with comprehensive response schemas, role-gated endpoints, Socket.io event reference, and API key documentation for third-party integrations.',
-        color: 'fuchsia',
       },
     ],
     [],
