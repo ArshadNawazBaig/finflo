@@ -8,6 +8,8 @@ import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
+import { Suspense } from 'react';
+import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 const SuperAdminLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -79,8 +81,10 @@ const SuperAdminLayout = () => {
               isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto">
-              <Outlet />
+            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col">
+              <Suspense fallback={<DashboardSkeleton />}>
+                <Outlet />
+              </Suspense>
             </div>
           </div>
         </div>

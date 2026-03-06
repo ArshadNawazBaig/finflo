@@ -217,6 +217,7 @@ const Team = () => {
             onClick={handleAddStaff}
             variant="gradient"
             className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider w-full sm:w-auto"
+            data-onboarding-id="add-staff-button"
           >
             <Plus size={16} />
             Add Staff

@@ -8,6 +8,10 @@ import MemberNavbar from '@/components/member/MemberNavbar';
 import MemberBottomNav from '@/components/member/MemberBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
+import OnboardingGuide from '@/components/ui/OnboardingGuide';
+import { memberOnboardingSteps } from '@/config/onboardingSteps';
+import { Suspense } from 'react';
+import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 const MemberLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -76,8 +80,10 @@ const MemberLayout = () => {
               isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto">
-              <Outlet />
+            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col">
+              <Suspense fallback={<DashboardSkeleton />}>
+                <Outlet />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -85,6 +91,11 @@ const MemberLayout = () => {
         {/* Mobile-First Navigation */}
         <MemberBottomNav />
         <InstallPrompt />
+        <OnboardingGuide
+          steps={memberOnboardingSteps}
+          userId={JSON.parse(localStorage.getItem('member') || '{}')._id}
+          role="member"
+        />
       </div>
     </SocketProvider>
   );

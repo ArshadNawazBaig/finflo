@@ -1007,6 +1007,33 @@ const logoutUser = (req, res) => {
     .json({ message: 'Logged out successfully' });
 };
 
+const getOnboardingStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user.onboardingStatus || { isCompleted: false, currentStep: 0 });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateOnboardingStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.onboardingStatus = {
+      isCompleted: req.body.isCompleted ?? user.onboardingStatus?.isCompleted,
+      currentStep: req.body.currentStep ?? user.onboardingStatus?.currentStep,
+    };
+
+    await user.save();
+    res.json({ success: true, onboardingStatus: user.onboardingStatus });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   logoutUser,
   registerUser,
@@ -1027,4 +1054,6 @@ module.exports = {
   verifyLogin2FA,
   requestPasswordChangeCode,
   forceChangePassword,
+  getOnboardingStatus,
+  updateOnboardingStatus,
 };

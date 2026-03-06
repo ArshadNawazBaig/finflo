@@ -12,6 +12,12 @@ import {
   Download,
   Send,
   ShieldCheck,
+  LayoutGrid,
+  MessageSquare,
+  Settings,
+  HandMetal,
+  History,
+  Building2,
 } from 'lucide-react';
 import {
   BarChart,

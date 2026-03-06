@@ -765,6 +765,33 @@ const logoutMember = (req, res) => {
     .json({ message: 'Logged out successfully' });
 };
 
+const getOnboardingStatus = async (req, res) => {
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    res.json(member.onboardingStatus || { isCompleted: false, currentStep: 0 });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateOnboardingStatus = async (req, res) => {
+  try {
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    member.onboardingStatus = {
+      isCompleted: req.body.isCompleted ?? member.onboardingStatus?.isCompleted,
+      currentStep: req.body.currentStep ?? member.onboardingStatus?.currentStep,
+    };
+
+    await member.save();
+    res.json({ success: true, onboardingStatus: member.onboardingStatus });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   logoutMember,
   loginMember,
@@ -782,4 +809,6 @@ module.exports = {
   verifyLogin2FA,
   requestPasswordChangeCode: requestMemberPasswordChangeCode,
   forceChangePassword: forceMemberChangePassword,
+  getOnboardingStatus,
+  updateOnboardingStatus,
 };

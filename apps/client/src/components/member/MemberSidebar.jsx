@@ -137,6 +137,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/dashboard"
           icon={<LayoutGrid size={18} />}
           active={isActive('/member/dashboard')}
+          onboardingId="sidebar-dashboard"
           label="Dashboard"
           isExpanded={isLayoutExpanded}
         />
@@ -144,6 +145,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/transactions"
           icon={<History size={18} />}
           active={isActive('/member/transactions')}
+          onboardingId="sidebar-transactions"
           label="Transactions"
           isExpanded={isLayoutExpanded}
         />
@@ -153,6 +155,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/investments"
           icon={<TrendingUp size={18} />}
           active={isActive('/member/investments')}
+          onboardingId="sidebar-investments"
           label="Investments"
           isExpanded={isLayoutExpanded}
         />
@@ -160,6 +163,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/shares"
           icon={<Building2 size={18} />}
           active={isActive('/member/shares')}
+          onboardingId="sidebar-shares"
           label="Business Share"
           isExpanded={isLayoutExpanded}
         />
@@ -167,6 +171,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/loans"
           icon={<FileText size={18} />}
           active={isActive('/member/loans')}
+          onboardingId="sidebar-loans"
           label="My Loans"
           isExpanded={isLayoutExpanded}
         />
@@ -174,6 +179,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/grantor-requests"
           icon={<ShieldCheck size={18} />}
           active={isActive('/member/grantor-requests')}
+          onboardingId="sidebar-grantor"
           label="Grantor Requests"
           isExpanded={isLayoutExpanded}
         />
@@ -183,6 +189,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/chat"
           icon={<MessageSquare size={18} />}
           active={isActive('/member/chat')}
+          onboardingId="sidebar-chat"
           label="Chat"
           isExpanded={isLayoutExpanded}
           badge={unreadChatCount > 0 ? unreadChatCount : null}
@@ -191,6 +198,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/notifications"
           icon={<Bell size={18} />}
           active={isActive('/member/notifications')}
+          onboardingId="sidebar-notifications"
           label="Notifications"
           isExpanded={isLayoutExpanded}
           badge={unreadNotificationsCount > 0 ? unreadNotificationsCount : null}
@@ -200,6 +208,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           to="/member/settings"
           icon={<Settings size={18} />}
           active={isActive('/member/settings')}
+          onboardingId="sidebar-settings"
           label="Settings"
           isExpanded={isLayoutExpanded}
         />
@@ -287,9 +296,18 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 };
 
-const NavItem = ({ to, icon, active, label, isExpanded, badge }) => (
+const NavItem = ({
+  to,
+  icon,
+  active,
+  label,
+  isExpanded,
+  badge,
+  onboardingId,
+}) => (
   <Link
     to={to}
+    data-onboarding-id={onboardingId}
     className={cn(
       'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap',
       isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-12 mx-auto',

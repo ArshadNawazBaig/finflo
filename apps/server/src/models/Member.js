@@ -90,6 +90,10 @@ const memberSchema = new mongoose.Schema(
     joinDate: { type: Date, default: Date.now },
     twoFactorSecret: { type: String },
     isTwoFactorEnabled: { type: Boolean, default: false },
+    onboardingStatus: {
+      isCompleted: { type: Boolean, default: false },
+      currentStep: { type: Number, default: 0 },
+    },
   },
   { timestamps: true },
 );

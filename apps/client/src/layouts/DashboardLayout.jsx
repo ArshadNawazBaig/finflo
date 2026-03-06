@@ -12,6 +12,10 @@ import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
+import OnboardingGuide from '@/components/ui/OnboardingGuide';
+import { adminOnboardingSteps } from '@/config/onboardingSteps';
+import { Suspense } from 'react';
+import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 import api from '@/lib/axios';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
@@ -131,9 +135,11 @@ const DashboardLayout = () => {
               isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col">
               <PlanLimitBanner />
-              <Outlet />
+              <Suspense fallback={<DashboardSkeleton />}>
+                <Outlet />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -141,6 +147,11 @@ const DashboardLayout = () => {
         {/* Mobile-First Navigation */}
         <MobileBottomNav />
         <InstallPrompt />
+        <OnboardingGuide
+          steps={adminOnboardingSteps}
+          userId={JSON.parse(localStorage.getItem('user') || '{}')._id}
+          role="admin"
+        />
       </div>
     </SocketProvider>
   );

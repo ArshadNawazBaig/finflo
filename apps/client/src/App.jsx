@@ -109,11 +109,13 @@ const MemberGrantorRequests = lazy(
 const MemberChat = lazy(() => import('@/pages/member/MemberChat'));
 
 import SplashScreen from '@/components/ui/SplashScreen';
+import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 import FloatingSettings from '@/components/landing/FloatingSettings';
 import useSystemSettings from '@/hooks/useSystemSettings';
 
-// Loading Fallback
+// Loading Fallbacks
 const PageLoader = () => <SplashScreen />;
+const DashboardLoader = () => <DashboardSkeleton />;
 
 function App() {
   const { settings, loading } = useSystemSettings();
@@ -298,7 +300,7 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Super Admin Routes */}
+              {/* Super Admin Routes — DashboardSkeleton via layout wrapper */}
               <Route element={<RequireAuth />}>
                 <Route element={<RequireAdmin />}>
                   <Route path="/super-admin" element={<SuperAdminLayout />}>
@@ -351,6 +353,7 @@ function App() {
                 />
               </Route>
 
+              {/* Member Dashboard Routes */}
               <Route element={<RequireMemberAuth />}>
                 <Route element={<MemberLayout />}>
                   <Route

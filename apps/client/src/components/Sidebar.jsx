@@ -203,6 +203,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             to="/dashboard"
             icon={<LayoutGrid size={18} />}
             active={isActive('/dashboard')}
+            onboardingId="sidebar-dashboard"
             label="Dashboard"
             isExpanded={isLayoutExpanded}
           />
@@ -216,6 +217,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/customers"
               icon={<UsersRound size={18} />}
               active={isActive('/customers')}
+              onboardingId="sidebar-customers"
               label="Customers"
               isExpanded={isLayoutExpanded}
             />
@@ -225,6 +227,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/members"
               icon={<Landmark size={18} />}
               active={isActive('/members')}
+              onboardingId="sidebar-members"
               label="Members"
               isExpanded={isLayoutExpanded}
               badge={pendingMembersCount > 0 ? pendingMembersCount : null}
@@ -235,6 +238,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/verification-queue"
               icon={<FileCheck2 size={18} />}
               active={isActive('/verification-queue')}
+              onboardingId="sidebar-verification"
               label="Verify Docs"
               isExpanded={isLayoutExpanded}
             />
@@ -244,6 +248,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/team"
               icon={<Users size={18} />}
               active={isActive('/team')}
+              onboardingId="sidebar-team"
               label="Team"
               isExpanded={isLayoutExpanded}
             />
@@ -258,6 +263,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/loan-requests"
               icon={<FileQuestion size={18} />}
               active={isActive('/loan-requests')}
+              onboardingId="sidebar-requests"
               label="Requests"
               isExpanded={isLayoutExpanded}
             />
@@ -267,6 +273,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/loans"
               icon={<WalletMinimal size={18} />}
               active={isActive('/loans')}
+              onboardingId="sidebar-loans"
               label="Loans"
               isExpanded={isLayoutExpanded}
             />
@@ -276,6 +283,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/loan-products"
               icon={<BookOpen size={18} />}
               active={isActive('/loan-products')}
+              onboardingId="sidebar-catalog"
               label="Product Catalog"
               isExpanded={isLayoutExpanded}
             />
@@ -287,6 +295,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/transactions"
               icon={<ArrowRightLeft size={18} />}
               active={isActive('/transactions')}
+              onboardingId="sidebar-transactions"
               label="Transactions"
               isExpanded={isLayoutExpanded}
             />
@@ -296,6 +305,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/distributions"
               icon={<Percent size={18} />}
               active={isActive('/distributions')}
+              onboardingId="sidebar-distributions"
               label="Distributions"
               isExpanded={isLayoutExpanded}
             />
@@ -307,6 +317,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/reports"
               icon={<FileChartColumn size={18} />}
               active={isActive('/reports')}
+              onboardingId="sidebar-reports"
               label="Reports"
               isExpanded={isLayoutExpanded}
             />
@@ -320,6 +331,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                   ? isActive(`/branches/${user.branchId}`)
                   : isActive('/branches')
               }
+              onboardingId="sidebar-branches"
               label={user.isManager ? 'My Branch' : 'Branches'}
               isExpanded={isLayoutExpanded}
             />
@@ -329,6 +341,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/audit-logs"
               icon={<Archive size={18} />}
               active={isActive('/audit-logs')}
+              onboardingId="sidebar-audit"
               label="Audit Trail"
               isExpanded={isLayoutExpanded}
             />
@@ -338,6 +351,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               to="/roles"
               icon={<Shield size={18} />}
               active={isActive('/roles')}
+              onboardingId="sidebar-roles"
               label="Roles"
               isExpanded={isLayoutExpanded}
             />
@@ -348,6 +362,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             to="/notifications"
             icon={<Bell size={18} />}
             active={isActive('/notifications')}
+            onboardingId="sidebar-notifications"
             label="Notifications"
             isExpanded={isLayoutExpanded}
             badge={
@@ -362,6 +377,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                     to="/pricing"
                     icon={<Gem size={18} />}
                     active={isActive('/pricing')}
+                    onboardingId="sidebar-pricing"
                     label="Pricing"
                     isExpanded={isLayoutExpanded}
                   />
@@ -369,6 +385,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                     to="/billing"
                     icon={<CreditCard size={18} />}
                     active={isActive('/billing')}
+                    onboardingId="sidebar-billing"
                     label="Billing"
                     isExpanded={isLayoutExpanded}
                   />
@@ -386,6 +403,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                 to="/chat"
                 icon={<MessageSquare size={18} />}
                 active={isActive('/chat')}
+                onboardingId="sidebar-chat"
                 label="Chat"
                 isExpanded={isLayoutExpanded}
                 badge={unreadChatCount > 0 ? unreadChatCount : null}
@@ -394,21 +412,30 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                 to="/support"
                 icon={<LifeBuoy size={18} />}
                 active={isActive('/support')}
+                onboardingId="sidebar-support"
                 label="Support"
                 isExpanded={isLayoutExpanded}
               />
             </>
           )}
+          <NavItem
+            to="/settings"
+            icon={<Settings2 size={18} />}
+            active={isActive('/settings')}
+            onboardingId="sidebar-settings"
+            label="Settings"
+            isExpanded={isLayoutExpanded}
+          />
         </nav>
 
         <div
           className={cn(
-            'mt-auto flex flex-col gap-3 w-full relative pt-4 border-t border-border/50',
+            'mt-auto flex flex-col gap-3 w-full relative pt-4 pb-6 border-t border-border/50',
             isLayoutExpanded ? 'px-4' : 'px-0',
           )}
           ref={menuRef}
         >
-          {/* Custom Scroll Arrow - Above Settings */}
+          {/* Custom Scroll Arrow - Above Profile */}
           {canScroll && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -439,14 +466,6 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
               )}
             </Tooltip>
           )}
-
-          <NavItem
-            to="/settings"
-            icon={<Settings2 size={18} />}
-            active={isActive('/settings')}
-            label="Settings"
-            isExpanded={isLayoutExpanded}
-          />
 
           {/* User Profile Section */}
           <div className="relative">
@@ -526,10 +545,19 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   );
 };
 
-const NavItem = ({ to, icon, active, label, isExpanded, badge }) => {
+const NavItem = ({
+  to,
+  icon,
+  active,
+  label,
+  isExpanded,
+  badge,
+  onboardingId,
+}) => {
   const content = (
     <Link
       to={to}
+      data-onboarding-id={onboardingId}
       className={cn(
         'px-0 py-3 rounded-2xl transition-all duration-500 flex items-center relative group whitespace-nowrap',
         isExpanded ? 'justify-start gap-4 px-4' : 'justify-center w-12 mx-auto',

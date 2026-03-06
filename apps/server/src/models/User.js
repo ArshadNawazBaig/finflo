@@ -97,6 +97,10 @@ const userSchema = new mongoose.Schema(
     verificationCodeExpire: Date,
     twoFactorSecret: { type: String },
     isTwoFactorEnabled: { type: Boolean, default: false },
+    onboardingStatus: {
+      isCompleted: { type: Boolean, default: false },
+      currentStep: { type: Number, default: 0 },
+    },
   },
   { timestamps: true },
 );

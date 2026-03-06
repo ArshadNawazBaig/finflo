@@ -271,6 +271,7 @@ const Branches = () => {
             setIsDialogOpen(true);
           }}
           className="rounded-full px-6 font-bold"
+          data-onboarding-id="add-branch-button"
         >
           <Plus size={18} className="mr-2" />
           Add Branch

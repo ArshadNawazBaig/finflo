@@ -20,6 +20,8 @@ const {
   verifyLogin2FA,
   requestPasswordChangeCode,
   forceChangePassword,
+  getOnboardingStatus,
+  updateOnboardingStatus,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -60,5 +62,9 @@ router.post(
   requestPasswordChangeCode,
 );
 router.post('/force-change-password', protect, forceChangePassword);
+
+// Onboarding Routes
+router.get('/onboarding', protect, getOnboardingStatus);
+router.put('/onboarding', protect, updateOnboardingStatus);
 
 module.exports = router;
