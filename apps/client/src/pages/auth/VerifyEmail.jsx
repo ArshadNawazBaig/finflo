@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '@/lib/axios';
 import { Loader2, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
@@ -11,10 +12,14 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -29,11 +34,7 @@ const VerifyEmail = () => {
     }
   }, [location]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
+  const onSubmit = async ({ code }) => {
     try {
       const { data } = await api.post('/auth/verify-email', {
         email,
@@ -41,14 +42,13 @@ const VerifyEmail = () => {
       });
 
       toast.success(data.message);
-      
       localStorage.setItem('user', JSON.stringify(data));
       localStorage.removeItem('temp_user_email');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Verification failed');
-    } finally {
-      setLoading(false);
+      setError('root', {
+        message: err.response?.data?.message || 'Verification failed',
+      });
     }
   };
 
@@ -75,11 +75,11 @@ const VerifyEmail = () => {
       description={`Enter the 6-digit code sent to ${email}`}
       badge="Security Check"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {errors.root && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
             <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-            {error}
+            {errors.root.message}
           </div>
         )}
 
@@ -102,30 +102,41 @@ const VerifyEmail = () => {
               type="text"
               placeholder="123456"
               maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              required
               className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-center text-xl font-black tracking-[0.5em]"
+              {...register('code', {
+                required: 'Verification code is required',
+                minLength: { value: 6, message: 'Code must be 6 digits' },
+                maxLength: { value: 6, message: 'Code must be 6 digits' },
+                pattern: { value: /^\d{6}$/, message: 'Code must be 6 digits' },
+              })}
+              onChange={(e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+              }}
             />
           </div>
+          {errors.code && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.code.message}
+            </p>
+          )}
         </div>
 
         <Button
           type="submit"
-          disabled={loading || code.length !== 6}
+          disabled={isSubmitting}
           variant="gradient"
           className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10"
         >
           <span
             className={cn(
               'flex items-center gap-2',
-              loading ? 'opacity-0' : 'opacity-100',
+              isSubmitting ? 'opacity-0' : 'opacity-100',
             )}
           >
             Verify & Continue{' '}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </span>
-          {loading && (
+          {isSubmitting && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>

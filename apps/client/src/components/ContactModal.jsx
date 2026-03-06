@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -21,18 +22,16 @@ import { Button } from '@/components/ui/button';
 
 const ContactModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    message: '',
-  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = async (formData) => {
     setLoading(true);
-
     try {
       await api.post('/contact', {
         ...formData,
@@ -42,13 +41,7 @@ const ContactModal = ({ isOpen, onClose }) => {
 
       toast.success("Message sent successfully! We'll get back to you soon.");
       onClose();
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        message: '',
-      });
+      reset();
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
@@ -79,26 +72,25 @@ const ContactModal = ({ isOpen, onClose }) => {
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-5">
-            {/* Name */}
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <User className="w-3 h-3" /> Full Name
               </label>
               <input
                 type="text"
-                required
                 placeholder="John Doe"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                {...register('name', { required: 'Full name is required' })}
               />
+              {errors.name && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
-            {/* Email & Phone */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
@@ -106,14 +98,21 @@ const ContactModal = ({ isOpen, onClose }) => {
                 </label>
                 <input
                   type="email"
-                  required
                   placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  {...register('email', {
+                    required: 'Email is required',
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: 'Invalid email address',
+                    },
+                  })}
                 />
+                {errors.email && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
@@ -122,16 +121,12 @@ const ContactModal = ({ isOpen, onClose }) => {
                 <input
                   type="tel"
                   placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  {...register('phone')}
                 />
               </div>
             </div>
 
-            {/* Company */}
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <Building className="w-3 h-3" /> Company Name
@@ -139,29 +134,26 @@ const ContactModal = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 placeholder="Acme Corp"
-                value={formData.company}
-                onChange={(e) =>
-                  setFormData({ ...formData, company: e.target.value })
-                }
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('company')}
               />
             </div>
 
-            {/* Message */}
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <MessageSquare className="w-3 h-3" /> Message
               </label>
               <textarea
-                required
                 placeholder="Tell us about your business needs and what you'd like to discuss..."
-                value={formData.message}
-                onChange={(e) =>
-                  setFormData({ ...formData, message: e.target.value })
-                }
                 rows={5}
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/30"
+                {...register('message', { required: 'Message is required' })}
               />
+              {errors.message && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.message.message}
+                </p>
+              )}
             </div>
           </div>
 

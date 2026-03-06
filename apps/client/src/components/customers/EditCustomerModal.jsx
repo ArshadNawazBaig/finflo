@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Upload, X, Trash2, UserCircle } from 'lucide-react';
 import SignaturePad from '@/components/ui/SignaturePad';
 import api from '@/lib/axios';
@@ -18,42 +15,40 @@ import { formatCNIC, validateEmail } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    cnic: '',
-    job: '',
-    jobDetail: '',
-    monthlyIncome: '',
-    branchId: '',
-    savingAccountNumber: '',
-    currentAccountNumber: '',
-    signature: '',
-    nominee: { name: '', cnic: '', relation: '' },
-  });
   const [branches, setBranches] = useState([]);
-  const [fetchingBranches, setFetchingBranches] = useState(false);
   const [files, setFiles] = useState([]);
   const [existingDocs, setExistingDocs] = useState([]);
   const [docsToDelete, setDocsToDelete] = useState([]);
+  const [signature, setSignature] = useState('');
+  const [savingAccountNumber, setSavingAccountNumber] = useState('');
+  const [currentAccountNumber, setCurrentAccountNumber] = useState('');
+  const [nominee, setNominee] = useState({
+    name: '',
+    cnic: '',
+    relation: '',
+    cnicImage: '',
+  });
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     if (isOpen) {
       const fetchBranches = async () => {
-        setFetchingBranches(true);
         try {
           const { data } = await api.get('/branches');
           setBranches(data);
         } catch (err) {
           console.error('Failed to fetch branches', err);
-        } finally {
-          setFetchingBranches(false);
         }
       };
       fetchBranches();
@@ -62,7 +57,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   useEffect(() => {
     if (customer) {
-      setFormData({
+      reset({
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
@@ -72,20 +67,23 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         jobDetail: customer.jobDetail || '',
         monthlyIncome: customer.monthlyIncome || '',
         branchId: customer.branchId || '',
-        savingAccountNumber: customer.savingAccountNumber || '',
-        currentAccountNumber: customer.currentAccountNumber || '',
-        signature: customer.signature || '',
-        nominee: {
-          name: customer.nominee?.name || '',
-          cnic: customer.nominee?.cnic || '',
-          relation: customer.nominee?.relation || '',
-        },
+      });
+      setSavingAccountNumber(customer.savingAccountNumber || '');
+      setCurrentAccountNumber(customer.currentAccountNumber || '');
+      setSignature(customer.signature || '');
+      setNominee({
+        name: customer.nominee?.name || '',
+        cnic: customer.nominee?.cnic || '',
+        relation: customer.nominee?.relation || '',
+        cnicImage: '',
       });
       setFiles([]);
       setExistingDocs(customer.documents || []);
       setDocsToDelete([]);
     }
-  }, [customer]);
+  }, [customer, reset]);
+
+  if (!customer) return null;
 
   const generateAccountNumber = (type = 'savingAccountNumber') => {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -93,7 +91,8 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
     for (let i = 0; i < 14; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData((prev) => ({ ...prev, [type]: result }));
+    if (type === 'savingAccountNumber') setSavingAccountNumber(result);
+    else setCurrentAccountNumber(result);
     toast.success(
       `${type === 'savingAccountNumber' ? 'Saving' : 'Current'} number generated`,
     );
@@ -103,45 +102,24 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
     const selectedFiles = Array.from(e.target.files);
     const validFiles = [];
     const totalCurrentFiles = existingDocs.length + files.length;
-
     if (totalCurrentFiles + selectedFiles.length > 5) {
       toast.error('Maximum 5 files allowed total');
       return;
     }
-
     selectedFiles.forEach((file) => {
-      if (file.size > 1 * 1024 * 1024) {
+      if (file.size > 1 * 1024 * 1024)
         toast.error(`${file.name} exceeds 1MB limit`);
-      } else {
-        validFiles.push(file);
-      }
+      else validFiles.push(file);
     });
-
-    if (validFiles.length > 0) {
-      setFiles((prev) => [...prev, ...validFiles]);
-    }
+    if (validFiles.length > 0) setFiles((prev) => [...prev, ...validFiles]);
   };
 
-  const removeFile = (index) => {
+  const removeFile = (index) =>
     setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const removeExistingFile = (docId) => {
     setExistingDocs((prev) => prev.filter((doc) => doc._id !== docId));
     setDocsToDelete((prev) => [...prev, docId]);
-  };
-
-  if (!customer) return null;
-
-  const handleCNICChange = (e) => {
-    setFormData({ ...formData, cnic: formatCNIC(e.target.value) });
-  };
-
-  const handleNomineeCNICChange = (e) => {
-    setFormData({
-      ...formData,
-      nominee: { ...formData.nominee, cnic: formatCNIC(e.target.value) },
-    });
   };
 
   const handleNomineeImageChange = (e) => {
@@ -152,30 +130,21 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({
-          ...formData,
-          nominee: { ...formData.nominee, cnicImage: reader.result },
-        });
-      };
+      reader.onloadend = () =>
+        setNominee((prev) => ({ ...prev, cnicImage: reader.result }));
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (formData) => {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
-      toast.error(emailValidation.message);
-      setLoading(false);
+      setError('email', { message: emailValidation.message });
       return;
     }
 
     setLoading(true);
-
     try {
-      // 1. Process Deletions First
       if (docsToDelete.length > 0) {
         await Promise.all(
           docsToDelete.map((docId) =>
@@ -184,15 +153,17 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         );
       }
 
-      // 2. Update Core Details
       const payload = {
         ...formData,
         name: formData.name.trim().toLowerCase(),
         email: formData.email.trim().toLowerCase(),
+        savingAccountNumber,
+        currentAccountNumber,
+        signature,
+        nominee,
       };
       await api.put(`/customers/${customer._id}`, payload);
 
-      // 3. Upload New Documents if any
       if (files.length > 0) {
         setUploading(true);
         const data = new FormData();
@@ -245,7 +216,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-10 custom-scrollbar">
           <form
             id="edit-customer-form"
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
             <div className="grid grid-cols-1 gap-5">
@@ -256,14 +227,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('name', { required: 'Name is required' })}
                   />
+                  {errors.name && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -271,13 +242,18 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="cnic"
-                    value={formData.cnic}
-                    onChange={handleCNICChange}
-                    required
                     placeholder="00000-0000000-0"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                    {...register('cnic', { required: 'CNIC is required' })}
+                    onChange={(e) =>
+                      setValue('cnic', formatCNIC(e.target.value))
+                    }
                   />
+                  {errors.cnic && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.cnic.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -288,14 +264,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('email', { required: 'Email is required' })}
                   />
+                  {errors.email && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -303,14 +279,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    required
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('phone', { required: 'Phone is required' })}
                   />
+                  {errors.phone && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -321,12 +297,8 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="job"
-                    value={formData.job}
-                    onChange={(e) =>
-                      setFormData({ ...formData, job: e.target.value })
-                    }
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('job')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -335,15 +307,8 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="number"
-                    name="monthlyIncome"
-                    value={formData.monthlyIncome}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        monthlyIncome: e.target.value,
-                      })
-                    }
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('monthlyIncome')}
                   />
                 </div>
               </div>
@@ -353,12 +318,8 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   Job Detail & Office Address
                 </label>
                 <textarea
-                  name="jobDetail"
-                  value={formData.jobDetail}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jobDetail: e.target.value })
-                  }
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  {...register('jobDetail')}
                 />
               </div>
 
@@ -367,12 +328,8 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   Residential Address
                 </label>
                 <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  {...register('address')}
                 />
               </div>
 
@@ -386,13 +343,10 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </div>
                 ) : (
                   <select
-                    name="branchId"
-                    value={formData.branchId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, branchId: e.target.value })
-                    }
-                    required
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                    {...register('branchId', {
+                      required: 'Branch is required',
+                    })}
                   >
                     <option value="">Select Branch</option>
                     {branches.map((b) => (
@@ -401,6 +355,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       </option>
                     ))}
                   </select>
+                )}
+                {errors.branchId && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.branchId.message}
+                  </p>
                 )}
               </div>
 
@@ -412,11 +371,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   <div className="flex gap-2">
                     <input
                       readOnly
-                      value={formData.savingAccountNumber}
+                      value={savingAccountNumber}
                       placeholder="Gen ->"
                       className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
-                    {!formData.savingAccountNumber && (
+                    {!savingAccountNumber && (
                       <Button
                         type="button"
                         onClick={() =>
@@ -436,11 +395,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   <div className="flex gap-2">
                     <input
                       readOnly
-                      value={formData.currentAccountNumber}
+                      value={currentAccountNumber}
                       placeholder="Gen ->"
                       className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
                     />
-                    {!formData.currentAccountNumber && (
+                    {!currentAccountNumber && (
                       <Button
                         type="button"
                         onClick={() =>
@@ -455,10 +414,10 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </div>
               </div>
 
-              {/* Nominee Information */}
+              {/* Nominee */}
               <div className="space-y-3 p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20">
                 <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 px-1 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />{' '}
                   Nominee Information
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -468,15 +427,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     </label>
                     <input
                       type="text"
-                      value={formData.nominee.name}
+                      value={nominee.name}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          nominee: {
-                            ...formData.nominee,
-                            name: e.target.value,
-                          },
-                        })
+                        setNominee({ ...nominee, name: e.target.value })
                       }
                       placeholder="Full name of nominee"
                       className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
@@ -488,8 +441,13 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     </label>
                     <input
                       type="text"
-                      value={formData.nominee.cnic}
-                      onChange={handleNomineeCNICChange}
+                      value={nominee.cnic}
+                      onChange={(e) =>
+                        setNominee({
+                          ...nominee,
+                          cnic: formatCNIC(e.target.value),
+                        })
+                      }
                       placeholder="00000-0000000-0"
                       className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
                     />
@@ -501,15 +459,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    value={formData.nominee.relation}
+                    value={nominee.relation}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        nominee: {
-                          ...formData.nominee,
-                          relation: e.target.value,
-                        },
-                      })
+                      setNominee({ ...nominee, relation: e.target.value })
                     }
                     placeholder="e.g. Spouse, Father, Son"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
@@ -520,20 +472,17 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     Nominee CNIC Image
                   </label>
                   <div className="flex flex-col gap-3">
-                    {formData.nominee.cnicImage && (
+                    {nominee.cnicImage && (
                       <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-border/50 bg-white shadow-sm flex items-center justify-center p-2">
                         <img
-                          src={formData.nominee.cnicImage}
+                          src={nominee.cnicImage}
                           alt="CNIC Preview"
                           className="max-w-full max-h-full object-contain"
                         />
                         <button
                           type="button"
                           onClick={() =>
-                            setFormData({
-                              ...formData,
-                              nominee: { ...formData.nominee, cnicImage: '' },
-                            })
+                            setNominee({ ...nominee, cnicImage: '' })
                           }
                           className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-white hover:scale-110 transition-transform shadow-lg"
                         >
@@ -554,7 +503,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                           className="text-muted-foreground group-hover:text-amber-500 transition-colors"
                         />
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          {formData.nominee.cnicImage
+                          {nominee.cnicImage
                             ? 'Replace CNIC Image'
                             : 'Upload CNIC Front'}
                         </p>
@@ -631,26 +580,21 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex justify-between">
                   Signature <span>*</span>
                 </label>
-                {formData.signature &&
-                  formData.signature.startsWith('http') && (
-                    <div className="mb-2 p-2 bg-white rounded-2xl border border-border/20 flex flex-col items-center">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
-                        Current Signature
-                      </p>
-                      <img
-                        src={formData.signature}
-                        alt="Current Signature"
-                        className="max-h-24 object-contain"
-                      />
-                    </div>
-                  )}
+                {signature && signature.startsWith('http') && (
+                  <div className="mb-2 p-2 bg-white rounded-2xl border border-border/20 flex flex-col items-center">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
+                      Current Signature
+                    </p>
+                    <img
+                      src={signature}
+                      alt="Current Signature"
+                      className="max-h-24 object-contain"
+                    />
+                  </div>
+                )}
                 <SignaturePad
-                  onSave={(dataUrl) =>
-                    setFormData((prev) => ({ ...prev, signature: dataUrl }))
-                  }
-                  onClear={() =>
-                    setFormData((prev) => ({ ...prev, signature: '' }))
-                  }
+                  onSave={(dataUrl) => setSignature(dataUrl)}
+                  onClear={() => setSignature('')}
                 />
               </div>
             </div>

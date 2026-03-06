@@ -1,31 +1,28 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
-import {
-  Mail,
-  Loader2,
-  ArrowLeft,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Mail, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const MemberForgotPassword = () => {
-  const [securityCode, setSecurityCode] = useState('');
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = async (data) => {
     setLoading(true);
     try {
       await api.post('/member-auth/forgotpassword', {
-        securityCode: securityCode.trim(),
-        email: email.trim(),
+        securityCode: data.securityCode.trim(),
+        email: data.email.trim(),
       });
       setSubmitted(true);
       toast.success('Reset link sent to your registered email');
@@ -48,7 +45,7 @@ const MemberForgotPassword = () => {
       badge="Member Security"
     >
       {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label
               className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
@@ -67,13 +64,21 @@ const MemberForgotPassword = () => {
                 id="securityCode"
                 type="text"
                 placeholder="e.g. ABC123"
-                value={securityCode}
-                onChange={(e) => setSecurityCode(e.target.value.toUpperCase())}
-                required
                 maxLength={6}
                 className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+                {...register('securityCode', {
+                  required: 'Business security code is required',
+                  onChange: (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                  },
+                })}
               />
             </div>
+            {errors.securityCode && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.securityCode.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -94,12 +99,21 @@ const MemberForgotPassword = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
                 className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email format',
+                  },
+                })}
               />
             </div>
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <Button

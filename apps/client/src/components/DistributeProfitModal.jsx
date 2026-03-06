@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Loader2, TrendingUp, Calendar, FileText, Percent } from 'lucide-react';
 import {
   Dialog,
@@ -18,31 +19,28 @@ const DistributeProfitModal = ({
   type = 'regular',
 }) => {
   const isShareDist = type === 'share';
-  const [formData, setFormData] = useState({
-    totalProfit: '',
-    period: new Date().toLocaleDateString('en-US', {
-      month: 'short',
-      year: 'numeric',
-    }),
-    description: '',
-    useCustomRates: false,
-  });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value, type: inputType, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: inputType === 'checkbox' ? checked : value,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm({
+    defaultValues: {
+      totalProfit: '',
+      period: new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      }),
+      description: '',
+      useCustomRates: false,
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-    setError('');
-
     try {
       const endpoint = isShareDist
         ? '/members/distribute-share-profit'
@@ -56,17 +54,10 @@ const DistributeProfitModal = ({
 
       if (onSuccess) onSuccess();
       onClose();
-
-      // Reset form (except period)
-      setFormData({
-        ...formData,
-        totalProfit: '',
-        description: '',
-        useCustomRates: false,
-      });
+      reset();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to distribute profit';
-      setError(msg);
+      setError('root', { message: msg });
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -96,13 +87,13 @@ const DistributeProfitModal = ({
           </div>
         </DialogHeader>
 
-        {error && (
+        {errors.root && (
           <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 animate-in fade-in zoom-in-95">
-            {error}
+            {errors.root.message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
@@ -113,15 +104,20 @@ const DistributeProfitModal = ({
               </label>
               <input
                 type="number"
-                name="totalProfit"
-                value={formData.totalProfit}
-                onChange={handleChange}
-                required
                 min="1"
                 step="0.01"
                 placeholder="0.00"
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('totalProfit', {
+                  required: 'Total profit is required',
+                  min: { value: 1, message: 'Amount must be at least 1' },
+                })}
               />
+              {errors.totalProfit && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.totalProfit.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -131,13 +127,15 @@ const DistributeProfitModal = ({
               </label>
               <input
                 type="text"
-                name="period"
-                value={formData.period}
-                onChange={handleChange}
-                required
                 placeholder="e.g. Feb 2026"
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('period', { required: 'Period is required' })}
               />
+              {errors.period && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.period.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -145,11 +143,9 @@ const DistributeProfitModal = ({
                 <FileText className="w-3 h-3" /> Description / Notes
               </label>
               <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
                 placeholder="Enter details about this distribution..."
                 className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                {...register('description')}
               />
             </div>
 
@@ -170,10 +166,8 @@ const DistributeProfitModal = ({
                 <input
                   id="useCustomRates"
                   type="checkbox"
-                  name="useCustomRates"
-                  checked={formData.useCustomRates}
-                  onChange={handleChange}
                   className="w-5 h-5 rounded-lg border-border/50 bg-background transition-all accent-primary cursor-pointer"
+                  {...register('useCustomRates')}
                 />
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -18,15 +18,16 @@ import { validateEmail } from '@/lib/utils';
 
 const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '', // Optional
-    branchId: '',
-    roleRef: '',
-  });
   const [branches, setBranches] = useState([]);
   const [roles, setRoles] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +47,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
 
   useEffect(() => {
     if (staff) {
-      setFormData({
+      reset({
         name: staff.name,
         email: staff.email,
         password: '',
@@ -54,18 +55,17 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
         roleRef: staff.roleRef?._id || staff.roleRef || '',
       });
     }
-  }, [staff]);
+  }, [staff, reset]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
-      toast.error(emailValidation.message);
+      setError('email', { message: emailValidation.message });
       return;
     }
+
     setLoading(true);
     try {
-      // Create payload. Only include password if it's not empty.
       const payload = {
         ...formData,
         name: formData.name.trim().toLowerCase(),
@@ -78,6 +78,7 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
       onClose();
     } catch (error) {
       console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to update staff');
     } finally {
       setLoading(false);
     }
@@ -90,23 +91,24 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
           <DialogTitle className="text-xl font-black">
             Edit Staff Member
           </DialogTitle>
-          <DialogDescription>
+          <p className="text-xs text-muted-foreground">
             Update profile details for {staff?.name}.
-          </DialogDescription>
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
               Full Name
             </Label>
             <Input
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
               className="rounded-xl border-border/50"
+              {...register('name', { required: 'Full name is required' })}
             />
+            {errors.name && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.name.message}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -114,37 +116,39 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
             </Label>
             <Input
               type="email"
-              required
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
               className="rounded-xl border-border/50"
+              {...register('email', { required: 'Email is required' })}
             />
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
               New Password (Leave blank to keep current)
             </Label>
             <PasswordInput
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              minLength={8}
               placeholder="Leave blank to keep current"
+              className="rounded-xl border-border/50"
+              {...register('password', {
+                minLength: { value: 8, message: 'Minimum 8 characters' },
+              })}
             />
+            {errors.password && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
               Assign Branch
             </Label>
             <select
-              value={formData.branchId}
-              onChange={(e) =>
-                setFormData({ ...formData, branchId: e.target.value })
-              }
-              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              {...register('branchId')}
             >
               <option value="">No Branch (Global Access)</option>
               {branches.map((b) => (
@@ -159,11 +163,8 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
               Assign Role (Optional)
             </Label>
             <select
-              value={formData.roleRef}
-              onChange={(e) =>
-                setFormData({ ...formData, roleRef: e.target.value })
-              }
-              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              {...register('roleRef')}
             >
               <option value="">Standard Staff</option>
               {roles.map((r) => (

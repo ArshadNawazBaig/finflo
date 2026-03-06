@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
@@ -9,48 +10,45 @@ import AuthLayout from '@/layouts/AuthLayout';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const onSubmit = async (data) => {
     setLoading(true);
     const payload = {
-      ...formData,
-      name: formData.name.trim().toLowerCase(),
-      email: formData.email.trim().toLowerCase(),
+      name: data.name.trim().toLowerCase(),
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
     };
 
     const emailValidation = validateEmail(payload.email);
     if (!emailValidation.isValid) {
-      setError(emailValidation.message);
+      setError('email', { message: emailValidation.message });
       setLoading(false);
       return;
     }
 
     const passwordValidation = validatePassword(payload.password);
     if (!passwordValidation.isValid) {
-      setError(passwordValidation.message);
+      setError('password', { message: passwordValidation.message });
       setLoading(false);
       return;
     }
 
     try {
-      const { data } = await api.post('/auth/register', payload);
+      await api.post('/auth/register', payload);
       localStorage.setItem('temp_user_email', JSON.stringify(payload.email));
       navigate(`/verify-email?email=${encodeURIComponent(payload.email)}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError('root', {
+        message: err.response?.data?.message || 'Registration failed',
+      });
     } finally {
       setLoading(false);
     }
@@ -62,11 +60,11 @@ const Register = () => {
       description="Join the financial intelligence revolution"
       badge="Global Registration"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {error && (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {errors.root && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
             <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-            {error}
+            {errors.root.message}
           </div>
         )}
 
@@ -85,12 +83,15 @@ const Register = () => {
               id="name"
               type="text"
               placeholder="John Doe"
-              value={formData.name}
-              onChange={handleChange}
-              required
               className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+              {...register('name', { required: 'Full name is required' })}
             />
           </div>
+          {errors.name && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.name.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -108,12 +109,21 @@ const Register = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
               className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Invalid email format',
+                },
+              })}
             />
           </div>
+          {errors.email && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.email.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -126,14 +136,22 @@ const Register = () => {
           <PasswordInput
             id="password"
             placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            minLength={8}
             leftIcon={
               <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             }
+            {...register('password', {
+              required: 'Password is required',
+              minLength: {
+                value: 8,
+                message: 'Password must be at least 8 characters',
+              },
+            })}
           />
+          {errors.password && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         <Button

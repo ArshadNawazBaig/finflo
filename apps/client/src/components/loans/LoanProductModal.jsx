@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -19,56 +20,64 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { Loader2, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 
 const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    interestRate: '',
-    duration: '',
-    interestType: 'simple',
-    minAmount: '',
-    maxAmount: '',
-    isActive: true,
+  const [interestType, setInterestType] = useState('simple');
+  const [isActive, setIsActive] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: '',
+      description: '',
+      interestRate: '',
+      duration: '',
+      minAmount: '',
+      maxAmount: '',
+    },
   });
 
   useEffect(() => {
     if (product) {
-      setFormData({
+      reset({
         name: product.name || '',
         description: product.description || '',
         interestRate: product.interestRate || '',
         duration: product.duration || '',
-        interestType: product.interestType || 'simple',
         minAmount: product.minAmount || '',
         maxAmount: product.maxAmount || '',
-        isActive: product.isActive !== undefined ? product.isActive : true,
       });
+      setInterestType(product.interestType || 'simple');
+      setIsActive(product.isActive !== undefined ? product.isActive : true);
     } else {
-      setFormData({
+      reset({
         name: '',
         description: '',
         interestRate: '',
         duration: '',
-        interestType: 'simple',
         minAmount: '',
         maxAmount: '',
-        isActive: true,
       });
+      setInterestType('simple');
+      setIsActive(true);
     }
-  }, [product, isOpen]);
+  }, [product, isOpen, reset]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     try {
       setLoading(true);
+      const payload = { ...formData, interestType, isActive };
       if (product) {
-        await api.put(`/loan-products/${product._id}`, formData);
+        await api.put(`/loan-products/${product._id}`, payload);
         toast.success('Loan product updated successfully');
       } else {
-        await api.post('/loan-products', formData);
+        await api.post('/loan-products', payload);
         toast.success('Loan product created successfully');
       }
       onSuccess();
@@ -89,31 +98,29 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
             {product ? 'Edit Loan Product' : 'Create New Product'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
                 placeholder="e.g., Standard 12% Gold Loan"
-                required
                 className="rounded-xl"
+                {...register('name', { required: 'Product name is required' })}
               />
+              {errors.name && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
                 placeholder="Short description of the product"
                 className="rounded-xl min-h-[80px]"
+                {...register('description')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -122,38 +129,44 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 <Input
                   id="interestRate"
                   type="number"
-                  value={formData.interestRate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, interestRate: e.target.value })
-                  }
                   placeholder="12"
-                  required
                   className="rounded-xl"
+                  {...register('interestRate', {
+                    required: 'Interest rate is required',
+                    min: { value: 0, message: 'Must be ≥ 0' },
+                  })}
                 />
+                {errors.interestRate && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.interestRate.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration (Months)</Label>
                 <Input
                   id="duration"
                   type="number"
-                  value={formData.duration}
-                  onChange={(e) =>
-                    setFormData({ ...formData, duration: e.target.value })
-                  }
                   placeholder="12"
-                  required
                   className="rounded-xl"
+                  {...register('duration', {
+                    required: 'Duration is required',
+                    min: { value: 1, message: 'Must be ≥ 1' },
+                  })}
                 />
+                {errors.duration && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.duration.message}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Interest Type</Label>
                 <Select
-                  value={formData.interestType}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, interestType: val })
-                  }
+                  value={interestType}
+                  onValueChange={(val) => setInterestType(val)}
                 >
                   <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Select type" />
@@ -171,13 +184,11 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 <button
                   type="button"
                   id="isActive"
-                  onClick={() =>
-                    setFormData({ ...formData, isActive: !formData.isActive })
-                  }
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${formData.isActive ? 'bg-emerald-500' : 'bg-muted'}`}
+                  onClick={() => setIsActive(!isActive)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-muted'}`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${formData.isActive ? 'translate-x-6' : 'translate-x-1'}`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
                   />
                 </button>
               </div>
@@ -188,12 +199,9 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 <Input
                   id="minAmount"
                   type="number"
-                  value={formData.minAmount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, minAmount: e.target.value })
-                  }
                   placeholder="0"
                   className="rounded-xl"
+                  {...register('minAmount')}
                 />
               </div>
               <div className="space-y-2">
@@ -201,12 +209,9 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                 <Input
                   id="maxAmount"
                   type="number"
-                  value={formData.maxAmount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, maxAmount: e.target.value })
-                  }
                   placeholder="100000"
                   className="rounded-xl"
+                  {...register('maxAmount')}
                 />
               </div>
             </div>

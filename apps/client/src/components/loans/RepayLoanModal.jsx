@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -14,29 +15,39 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Wallet,
-  Loader2,
   DollarSign,
   MessageSquare,
   ArrowDownCircle,
   Banknote,
-} from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
-import {
-  Calendar as CalendarIcon,
-  CheckCircle2,
+  Loader2,
   AlertTriangle,
 } from 'lucide-react';
+import { formatCurrency, cn } from '@/lib/utils';
+import { Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 
 const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [memberBalance, setMemberBalance] = useState(null);
   const [isFetchingBalance, setIsFetchingBalance] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSettlement, setIsSettlement] = useState(false);
-  const [formData, setFormData] = useState({
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    notes: '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+    },
   });
+
+  const amount = watch('amount');
+  const date = watch('date');
 
   useEffect(() => {
     if (isOpen && loan?.customer?.isMember && loan?.customer?.memberId) {
@@ -47,7 +58,6 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
           setMemberBalance(data.currentBalance || 0);
         } catch (error) {
           console.error('Failed to fetch member balance', error);
-          // Fallback or handle error silently so it doesn't block entirely
         } finally {
           setIsFetchingBalance(false);
         }
@@ -63,7 +73,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   // Calculate settlement amount preview
   const getSettlementDetails = () => {
     const start = new Date(loan.startDate);
-    const now = new Date(formData.date || new Date());
+    const now = new Date(date || new Date());
 
     let monthsElapsed =
       (now.getFullYear() - start.getFullYear()) * 12 +
@@ -100,16 +110,14 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const handleSettlementToggle = (checked) => {
     setIsSettlement(checked);
     if (checked) {
-      setFormData({ ...formData, amount: settlementAmount.toString() });
+      setValue('amount', settlementAmount.toString());
     } else {
-      setFormData({ ...formData, amount: '' }); // Clear amount when toggling off
+      setValue('amount', '');
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-
     try {
       await api.post('/repayments', {
         loanId: loan._id,
@@ -126,6 +134,12 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
       );
       onSuccess();
       onClose();
+      reset({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+      });
+      setIsSettlement(false);
     } catch (error) {
       toast.error(
         error.response?.data?.message || 'Failed to record repayment',
@@ -215,12 +229,12 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </div>
           )}
 
-          {/* Member Balance Alert (Only for Members) */}
+          {/* Member Balance Alert */}
           {memberBalance !== null && (
             <div
               className={cn(
                 'mt-3 p-3 rounded-xl border flex gap-3 transition-colors',
-                Number(formData.amount) > memberBalance
+                Number(amount) > memberBalance
                   ? 'bg-red-500/10 border-red-500/20 text-red-600'
                   : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600',
               )}
@@ -237,31 +251,28 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     formatCurrency(memberBalance)
                   )}
                 </p>
-                {Number(formData.amount) > memberBalance &&
-                  !isFetchingBalance && (
-                    <p className="text-[10px] font-black text-red-500 flex items-center gap-1 mt-1">
-                      <AlertTriangle size={12} /> Exceeds available funds
-                    </p>
-                  )}
+                {Number(amount) > memberBalance && !isFetchingBalance && (
+                  <p className="text-[10px] font-black text-red-500 flex items-center gap-1 mt-1">
+                    <AlertTriangle size={12} /> Exceeds available funds
+                  </p>
+                )}
               </div>
             </div>
           )}
         </div>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
         >
           <div className="space-y-4 sm:space-y-5">
             {/* Quick Option: Monthly Installment */}
             {loan.emi > 0 && !isSettlement && (
               <div
-                onClick={() =>
-                  setFormData({ ...formData, amount: loan.emi.toString() })
-                }
+                onClick={() => setValue('amount', loan.emi.toString())}
                 className={cn(
                   'p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
-                  Number(formData.amount) === loan.emi
+                  Number(amount) === loan.emi
                     ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
                     : 'bg-muted/30 border-border/50 hover:border-emerald-500/30',
                 )}
@@ -270,7 +281,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   <div
                     className={cn(
                       'p-2 rounded-xl transition-colors',
-                      Number(formData.amount) === loan.emi
+                      Number(amount) === loan.emi
                         ? 'bg-emerald-500/20 text-emerald-600'
                         : 'bg-background text-muted-foreground group-hover:text-emerald-500',
                     )}
@@ -286,7 +297,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     </p>
                   </div>
                 </div>
-                {Number(formData.amount) === loan.emi && (
+                {Number(amount) === loan.emi && (
                   <CheckCircle2 size={20} className="text-emerald-500" />
                 )}
               </div>
@@ -326,15 +337,19 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <Input
                 id="amount"
                 type="number"
-                required
                 placeholder="e.g. 5000"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
                 max={isSettlement ? undefined : loan.remainingAmount}
                 className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                {...register('amount', {
+                  required: 'Payment amount is required',
+                  min: { value: 1, message: 'Amount must be greater than 0' },
+                })}
               />
+              {errors.amount && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.amount.message}
+                </p>
+              )}
             </div>
 
             {/* Date */}
@@ -349,27 +364,26 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <input
                   id="date"
                   type="date"
-                  required
-                  value={formData.date}
+                  className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                  {...register('date', { required: 'Date is required' })}
                   onChange={(e) => {
                     const newDate = e.target.value;
-                    setFormData({ ...formData, date: newDate });
-                    // If settlement is active, update amount based on new date
+                    setValue('date', newDate);
                     if (isSettlement) {
                       const sAmount = getSettlementDetails().amount;
-                      setFormData({
-                        ...formData,
-                        date: newDate,
-                        amount: sAmount.toString(),
-                      });
+                      setValue('amount', sAmount.toString());
                     }
                   }}
-                  className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
                   <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
+              {errors.date && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.date.message}
+                </p>
+              )}
             </div>
 
             {/* Notes */}
@@ -383,11 +397,8 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <Textarea
                 id="notes"
                 placeholder="e.g. Paid via Bank Transfer"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
                 className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] sm:min-h-[100px] resize-none"
+                {...register('notes')}
               />
             </div>
           </div>
@@ -406,7 +417,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               isLoading={loading}
               disabled={
                 memberBalance !== null &&
-                Number(formData.amount) > memberBalance &&
+                Number(amount) > memberBalance &&
                 !isFetchingBalance
               }
               variant={isSettlement ? 'gradient' : 'success'}

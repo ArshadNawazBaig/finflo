@@ -1,13 +1,6 @@
 import { useState } from 'react';
-import {
-  Loader2,
-  UserPlus,
-  Mail,
-  Phone,
-  MapPin,
-  Zap,
-  TrendingUp,
-} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Loader2, UserPlus } from 'lucide-react';
 import {
   formatCNIC,
   validateEmail,
@@ -25,49 +18,50 @@ import { Button } from '@/components/ui/button';
 import KycOcrScanner from './kyc/KycOcrScanner';
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    cnic: '',
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    initialInvestment: '',
-    profitRate: '',
-    savingAccountNumber: '',
-    currentAccountNumber: '',
-  });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [savingAccountNumber, setSavingAccountNumber] = useState('');
+  const [currentAccountNumber, setCurrentAccountNumber] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      cnic: '',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      initialInvestment: '',
+      profitRate: '',
+    },
+  });
 
   const handleOcrData = (data) => {
-    setFormData((prev) => ({
-      ...prev,
-      name: data.name || prev.name,
-      cnic: data.cnic || prev.cnic,
-      email: data.email || prev.email,
-      phone: data.phone || prev.phone,
-    }));
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (data.name) setValue('name', data.name);
+    if (data.cnic) setValue('cnic', data.cnic);
+    if (data.email) setValue('email', data.email);
+    if (data.phone) setValue('phone', data.phone);
   };
 
   const generateAccountNumber = (type = 'savingAccountNumber') => {
     const prefix = type === 'savingAccountNumber' ? 'SAV' : 'CUR';
     const result = generateDynamicAccountNumber(user, prefix);
-    setFormData((prev) => ({ ...prev, [type]: result }));
+    if (type === 'savingAccountNumber') setSavingAccountNumber(result);
+    else setCurrentAccountNumber(result);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-    setError('');
 
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
-      setError(emailValidation.message);
+      setError('email', { message: emailValidation.message });
       setLoading(false);
       return;
     }
@@ -80,20 +74,18 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         email: formData.email?.trim().toLowerCase(),
         initialInvestment: parseFloat(formData.initialInvestment) || 0,
         profitRate: parseFloat(formData.profitRate) || 0,
+        savingAccountNumber: savingAccountNumber || undefined,
+        currentAccountNumber: currentAccountNumber || undefined,
       });
       onSuccess();
       onClose();
-      setFormData({
-        cnic: '',
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        initialInvestment: '',
-        profitRate: '',
-      });
+      reset();
+      setSavingAccountNumber('');
+      setCurrentAccountNumber('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add member');
+      setError('root', {
+        message: err.response?.data?.message || 'Failed to add member',
+      });
     } finally {
       setLoading(false);
     }
@@ -123,9 +115,9 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          {error && (
+          {errors.root && (
             <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 mb-6 animate-in fade-in zoom-in-95">
-              {error}
+              {errors.root.message}
             </div>
           )}
 
@@ -135,7 +127,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
           <form
             id="add-member-form"
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
           >
             <div className="grid grid-cols-1 gap-5">
@@ -146,13 +138,15 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
                     placeholder="Enter name"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('name', { required: 'Full name is required' })}
                   />
+                  {errors.name && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -160,13 +154,18 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="text"
-                    name="cnic"
-                    value={formData.cnic}
-                    onChange={handleChange}
-                    required
                     placeholder="00000-0000000-0"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('cnic', { required: 'CNIC is required' })}
+                    onChange={(e) => {
+                      setValue('cnic', formatCNIC(e.target.value));
+                    }}
                   />
+                  {errors.cnic && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.cnic.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -177,13 +176,15 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
                     placeholder="member@example.com"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('email', { required: 'Email is required' })}
                   />
+                  {errors.email && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -191,13 +192,17 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
                     placeholder="+92 300 1234567"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('phone', {
+                      required: 'Phone number is required',
+                    })}
                   />
+                  {errors.phone && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -206,11 +211,9 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   Residential Address
                 </label>
                 <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
                   placeholder="Enter complete address..."
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  {...register('address')}
                 />
               </div>
 
@@ -222,11 +225,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   <div className="flex gap-2">
                     <input
                       readOnly
-                      value={formData.savingAccountNumber}
+                      value={savingAccountNumber}
                       placeholder="Gen ->"
                       className="w-full px-4 py-2 rounded-2xl border border-border/50 bg-background/50 text-xs font-black font-mono focus:outline-none"
                     />
-                    {!formData.savingAccountNumber && (
+                    {!savingAccountNumber && (
                       <Button
                         type="button"
                         onClick={() =>
@@ -246,11 +249,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   <div className="flex gap-2">
                     <input
                       readOnly
-                      value={formData.currentAccountNumber}
+                      value={currentAccountNumber}
                       placeholder="Gen ->"
                       className="w-full px-4 py-2 rounded-2xl border border-border/50 bg-background/50 text-xs font-black font-mono focus:outline-none"
                     />
-                    {!formData.currentAccountNumber && (
+                    {!currentAccountNumber && (
                       <Button
                         type="button"
                         onClick={() =>
@@ -272,11 +275,9 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="number"
-                    name="initialInvestment"
-                    value={formData.initialInvestment}
-                    onChange={handleChange}
                     placeholder="0.00"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('initialInvestment')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -285,11 +286,9 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <input
                     type="number"
-                    name="profitRate"
-                    value={formData.profitRate}
-                    onChange={handleChange}
                     placeholder="0.00"
                     className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('profitRate')}
                   />
                 </div>
               </div>

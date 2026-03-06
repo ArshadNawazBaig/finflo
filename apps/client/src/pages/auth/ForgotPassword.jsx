@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
@@ -7,30 +8,34 @@ import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const onSubmit = async (data) => {
     setLoading(true);
-    setError('');
     setMessage('');
 
     try {
-      const { data } = await api.post('/auth/forgotpassword', { email });
+      await api.post('/auth/forgotpassword', { email: data.email });
       setMessage('Recovery instructions have been sent to your email.');
       setSubmitted(true);
     } catch (err) {
       const detail = err.response?.data?.error
         ? `: ${err.response.data.error}`
         : '';
-      setError(
-        (err.response?.data?.message || 'Failed to send recovery email') +
+      setError('root', {
+        message:
+          (err.response?.data?.message || 'Failed to send recovery email') +
           detail,
-      );
+      });
     } finally {
       setLoading(false);
     }
@@ -47,11 +52,11 @@ const ForgotPassword = () => {
       badge="Security Recovery"
     >
       {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-              {error}
+              {errors.root.message}
             </div>
           )}
 
@@ -70,12 +75,21 @@ const ForgotPassword = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
                 className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email format',
+                  },
+                })}
               />
             </div>
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className="pt-2">

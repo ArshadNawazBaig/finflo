@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -18,45 +19,42 @@ import { Label } from '@/components/ui/label';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import {
-  Pencil,
-  Loader2,
-  DollarSign,
-  Percent,
-  Clock,
-  Activity,
-} from 'lucide-react';
+import { Pencil, DollarSign, Percent, Clock, Activity } from 'lucide-react';
 
 const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    principal: '',
-    rate: '',
-    duration: '',
-    status: '',
-    interestType: 'simple',
-  });
+  const [interestType, setInterestType] = useState('simple');
+  const [status, setStatus] = useState('active');
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   useEffect(() => {
     if (loan) {
-      setFormData({
+      reset({
         principal: loan.principal,
         rate: loan.rate,
         duration: loan.duration,
-        status: loan.status,
-        interestType: loan.interestType || 'simple',
       });
+      setInterestType(loan.interestType || 'simple');
+      setStatus(loan.status);
     }
-  }, [loan]);
+  }, [loan, reset]);
 
   if (!loan) return null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-
     try {
-      await api.put(`/loans/${loan._id}`, formData);
+      await api.put(`/loans/${loan._id}`, {
+        ...formData,
+        interestType,
+        status,
+      });
       toast.success('Loan updated successfully');
       onSuccess();
       onClose();
@@ -90,7 +88,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
         >
           <div className="space-y-4 sm:space-y-5">
@@ -106,13 +104,17 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <Input
                 id="principal"
                 type="number"
-                required
-                value={formData.principal}
-                onChange={(e) =>
-                  setFormData({ ...formData, principal: e.target.value })
-                }
                 className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('principal', {
+                  required: 'Principal is required',
+                  min: { value: 1, message: 'Must be greater than 0' },
+                })}
               />
+              {errors.principal && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.principal.message}
+                </p>
+              )}
             </div>
 
             {/* Interest Type */}
@@ -123,11 +125,9 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, interestType: 'simple' })
-                  }
+                  onClick={() => setInterestType('simple')}
                   className={`px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl border text-xs sm:text-sm font-black transition-all ${
-                    formData.interestType === 'simple'
+                    interestType === 'simple'
                       ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20'
                       : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'
                   }`}
@@ -136,11 +136,9 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, interestType: 'emi' })
-                  }
+                  onClick={() => setInterestType('emi')}
                   className={`px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl border text-xs sm:text-sm font-black transition-all ${
-                    formData.interestType === 'emi'
+                    interestType === 'emi'
                       ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20'
                       : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'
                   }`}
@@ -163,13 +161,17 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   id="rate"
                   type="number"
                   step="0.1"
-                  required
-                  value={formData.rate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, rate: e.target.value })
-                  }
                   className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  {...register('rate', {
+                    required: 'Rate is required',
+                    min: { value: 0, message: 'Must be ≥ 0' },
+                  })}
                 />
+                {errors.rate && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.rate.message}
+                  </p>
+                )}
               </div>
 
               {/* Duration */}
@@ -183,29 +185,28 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <Input
                   id="duration"
                   type="number"
-                  required
-                  value={formData.duration}
-                  onChange={(e) =>
-                    setFormData({ ...formData, duration: e.target.value })
-                  }
                   className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  {...register('duration', {
+                    required: 'Duration is required',
+                    min: { value: 1, message: 'Must be ≥ 1' },
+                  })}
                 />
+                {errors.duration && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.duration.message}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Status */}
             <div className="space-y-1.5">
-              <Label
-                htmlFor="status"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
-              >
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <Activity className="w-3 h-3" /> Agreement Status
               </Label>
               <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
-                }
+                value={status}
+                onValueChange={(value) => setStatus(value)}
               >
                 <SelectTrigger className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:ring-2 focus:ring-primary/20">
                   <SelectValue placeholder="Select Status" />

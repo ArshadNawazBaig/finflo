@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
@@ -955,18 +956,27 @@ const Settings = () => {
 };
 
 const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
-  const [formData, setFormData] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    businessName: user.businessName || '',
-    currency: user.currency || 'Rs.',
-    businessAbbreviation: user.businessAbbreviation || '',
-  });
   const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm({
+    defaultValues: {
+      name: user.name || '',
+      email: user.email || '',
+      businessName: user.businessName || '',
+      currency: user.currency || 'Rs.',
+      businessAbbreviation: user.businessAbbreviation || '',
+    },
+  });
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      reset({
         name: user.name || '',
         email: user.email || '',
         businessName: user.businessName || '',
@@ -974,13 +984,12 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         businessAbbreviation: user.businessAbbreviation || '',
       });
     }
-  }, [user]);
+  }, [user, reset]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
-      toast.error(emailValidation.message);
+      setError('email', { message: emailValidation.message });
       return;
     }
     setLoading(true);
@@ -1006,61 +1015,68 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="text-sm font-medium">Name</label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent capitalize"
-              required
+              {...register('name', { required: 'Name is required' })}
             />
+            {errors.name && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.name.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">Email</label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
-              required
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Invalid email format',
+                },
+              })}
             />
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">Business Abbreviation</label>
             <input
               type="text"
-              value={formData.businessAbbreviation}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  businessAbbreviation: e.target.value
-                    .slice(0, 4)
-                    .toUpperCase(),
-                })
-              }
               placeholder="e.g. MLO"
               maxLength={4}
               className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent font-mono font-bold uppercase tracking-wider"
-              required
+              {...register('businessAbbreviation', {
+                required: 'Business abbreviation is required',
+                maxLength: { value: 4, message: 'Max 4 characters' },
+                onChange: (e) => {
+                  e.target.value = e.target.value.slice(0, 4).toUpperCase();
+                },
+              })}
             />
             <p className="text-[10px] text-muted-foreground mt-1">
               Max 4 characters. Used as prefix for new account numbers.
             </p>
+            {errors.businessAbbreviation && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.businessAbbreviation.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">Preferred Currency</label>
             <select
-              value={formData.currency}
-              onChange={(e) =>
-                setFormData({ ...formData, currency: e.target.value })
-              }
               className="w-full px-3 py-2 border rounded-md text-foreground flex h-9 bg-transparent"
+              {...register('currency')}
             >
               <option value="$">US Dollar ($)</option>
               <option value="€">Euro (€)</option>
@@ -1109,22 +1125,23 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 };
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmNewPassword: '',
-  });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.newPassword !== formData.confirmNewPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const newPassword = watch('newPassword');
+
+  const onSubmit = async (formData) => {
     const { isValid, message } = validatePassword(formData.newPassword);
     if (!isValid) {
-      toast.error(message);
+      setError('newPassword', { message });
       return;
     }
     setLoading(true);
@@ -1135,13 +1152,11 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       });
       toast.success('Password updated successfully');
       onClose();
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: '',
-      });
+      reset();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update password');
+      setError('root', {
+        message: error.response?.data?.message || 'Failed to update password',
+      });
     } finally {
       setLoading(false);
     }
@@ -1153,43 +1168,59 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         <DialogHeader>
           <DialogTitle>Change Password</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {errors.root && (
+            <p className="text-destructive text-xs font-bold bg-destructive/10 border border-destructive/20 p-2 rounded-lg">
+              {errors.root.message}
+            </p>
+          )}
           <div>
             <label className="text-sm font-medium">Current Password</label>
             <PasswordInput
-              value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, currentPassword: e.target.value })
-              }
               className="w-full h-10"
-              required
+              {...register('currentPassword', {
+                required: 'Current password is required',
+              })}
             />
+            {errors.currentPassword && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.currentPassword.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">New Password</label>
             <PasswordInput
-              value={formData.newPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, newPassword: e.target.value })
-              }
-              minLength={8}
               className="w-full h-10"
-              required
+              {...register('newPassword', {
+                required: 'New password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
+              })}
             />
+            {errors.newPassword && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.newPassword.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">Confirm New Password</label>
             <PasswordInput
-              value={formData.confirmNewPassword}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  confirmNewPassword: e.target.value,
-                })
-              }
               className="w-full h-10"
-              required
+              {...register('confirmNewPassword', {
+                required: 'Please confirm your password',
+                validate: (value) =>
+                  value === newPassword || 'Passwords do not match',
+              })}
             />
+            {errors.confirmNewPassword && (
+              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
+                {errors.confirmNewPassword.message}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <button

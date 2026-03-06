@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import PasswordInput from '@/components/ui/PasswordInput';
 import {
@@ -17,43 +18,44 @@ import AuthLayout from '@/layouts/AuthLayout';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // 2FA step state
   const [requires2FA, setRequires2FA] = useState(false);
   const [pendingToken, setPendingToken] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const onSubmit = async (data) => {
     setLoading(true);
-    const lowercaseEmail = email.trim().toLowerCase();
+    const lowercaseEmail = data.email.trim().toLowerCase();
     try {
-      const { data } = await api.post('/auth/login', {
+      const { data: responseData } = await api.post('/auth/login', {
         email: lowercaseEmail,
-        password,
+        password: data.password,
       });
 
-      if (data.requires2FA) {
-        setPendingToken(data.pendingToken);
+      if (responseData.requires2FA) {
+        setPendingToken(responseData.pendingToken);
         setRequires2FA(true);
         setLoading(false);
         return;
       }
 
-      if (data.mustChangePassword) {
-        
-        localStorage.setItem('user', JSON.stringify(data));
+      if (responseData.mustChangePassword) {
+        localStorage.setItem('user', JSON.stringify(responseData));
         navigate('/force-password-change');
         return;
       }
 
-      
-      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('user', JSON.stringify(responseData));
 
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get('redirect');
@@ -62,7 +64,7 @@ const Login = () => {
         return;
       }
 
-      if (data.role === 'super_admin') {
+      if (responseData.role === 'super_admin') {
         navigate('/super-admin');
       } else {
         navigate('/dashboard');
@@ -75,7 +77,9 @@ const Login = () => {
         );
         return;
       }
-      setError(err.response?.data?.message || 'Login failed');
+      setError('root', {
+        message: err.response?.data?.message || 'Login failed',
+      });
     } finally {
       setLoading(false);
     }
@@ -83,14 +87,13 @@ const Login = () => {
 
   const handle2FASubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setOtpError('');
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login/verify-2fa', {
         pendingToken,
         code: otpCode.trim(),
       });
-      
       localStorage.setItem('user', JSON.stringify(data));
       if (data.role === 'super_admin') {
         navigate('/super-admin');
@@ -98,7 +101,7 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || '2FA verification failed');
+      setOtpError(err.response?.data?.message || '2FA verification failed');
     } finally {
       setLoading(false);
     }
@@ -116,10 +119,10 @@ const Login = () => {
     >
       {requires2FA ? (
         <form onSubmit={handle2FASubmit} className="space-y-5">
-          {error && (
+          {otpError && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-              {error}
+              {otpError}
             </div>
           )}
           <div className="space-y-2">
@@ -156,7 +159,7 @@ const Login = () => {
                 loading ? 'opacity-0' : 'opacity-100',
               )}
             >
-              Verify & Sign In{' '}
+              Verify &amp; Sign In{' '}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
             {loading && (
@@ -170,7 +173,7 @@ const Login = () => {
             onClick={() => {
               setRequires2FA(false);
               setOtpCode('');
-              setError('');
+              setOtpError('');
             }}
             className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -178,11 +181,11 @@ const Login = () => {
           </button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {errors.root && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-              {error}
+              {errors.root.message}
             </div>
           )}
 
@@ -201,12 +204,21 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
                 className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email format',
+                  },
+                })}
               />
             </div>
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -227,13 +239,18 @@ const Login = () => {
             <PasswordInput
               id="password"
               placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
               leftIcon={
                 <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               }
+              {...register('password', {
+                required: 'Password is required',
+              })}
             />
+            {errors.password && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <Button

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
-import { Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
-import { cn, validatePassword } from '@/lib/utils';
+import { Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { validatePassword } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -11,30 +12,37 @@ import PasswordInput from '@/components/ui/PasswordInput';
 const MemberResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    const { isValid, message } = validatePassword(password);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const newPassword = watch('password');
+
+  const onSubmit = async (data) => {
+    const { isValid, message } = validatePassword(data.password);
     if (!isValid) {
-      toast.error(message);
+      setError('password', { message });
       return;
     }
 
     setLoading(true);
     try {
-      await api.put(`/member-auth/resetpassword/${token}`, { password });
+      await api.put(`/member-auth/resetpassword/${token}`, {
+        password: data.password,
+      });
       toast.success('Password reset successful. Please login.');
       navigate('/member/login');
     } catch (err) {
       console.error('Reset password error:', err);
-      toast.error(err.response?.data?.message || 'Failed to reset password');
+      setError('root', {
+        message: err.response?.data?.message || 'Failed to reset password',
+      });
     } finally {
       setLoading(false);
     }
@@ -46,7 +54,14 @@ const MemberResetPassword = () => {
       description="Enter and confirm your secure new password."
       badge="Member Security"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {errors.root && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
+            <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+            {errors.root.message}
+          </div>
+        )}
+
         <div className="space-y-2">
           <label
             className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
@@ -57,9 +72,6 @@ const MemberResetPassword = () => {
           <PasswordInput
             id="password"
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
             className="h-11"
             leftIcon={
               <Lock
@@ -67,7 +79,19 @@ const MemberResetPassword = () => {
                 className="text-muted-foreground group-focus-within:text-primary transition-colors"
               />
             }
+            {...register('password', {
+              required: 'New password is required',
+              minLength: {
+                value: 8,
+                message: 'Password must be at least 8 characters',
+              },
+            })}
           />
+          {errors.password && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -80,9 +104,6 @@ const MemberResetPassword = () => {
           <PasswordInput
             id="confirmPassword"
             placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
             className="h-11"
             leftIcon={
               <ShieldCheck
@@ -90,7 +111,17 @@ const MemberResetPassword = () => {
                 className="text-muted-foreground group-focus-within:text-primary transition-colors"
               />
             }
+            {...register('confirmPassword', {
+              required: 'Please confirm your password',
+              validate: (value) =>
+                value === newPassword || 'Passwords do not match',
+            })}
           />
+          {errors.confirmPassword && (
+            <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
         <Button

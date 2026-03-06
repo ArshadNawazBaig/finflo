@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -22,31 +22,34 @@ import { toast } from 'sonner';
 
 const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    targetAmount: '',
-    category: 'other',
-    deadline: '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      title: '',
+      targetAmount: '',
+      category: 'other',
+      deadline: '',
+    },
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-
     try {
-      const memberToken = localStorage.getItem('member');
       await api.post('/saving-goals', formData, {
-        headers: { /* Auth header handled by browser cookies */ },
+        headers: {
+          /* Auth header handled by browser cookies */
+        },
       });
       toast.success('Goal created successfully!');
       onSuccess();
       onClose();
-      setFormData({
-        title: '',
-        targetAmount: '',
-        category: 'other',
-        deadline: '',
-      });
+      reset();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create goal');
     } finally {
@@ -70,39 +73,46 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 relative z-10"
+        >
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Goal Title
               </Label>
-              <div className="relative">
-                <Input
-                  required
-                  placeholder="e.g., New MacBook Pro"
-                  className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="e.g., New MacBook Pro"
+                className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
+                {...register('title', { required: 'Goal title is required' })}
+              />
+              {errors.title && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.title.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Target Amount (PKR)
               </Label>
-              <Input
-                required
+              <input
                 type="number"
                 placeholder="0.00"
-                className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
-                value={formData.targetAmount}
-                onChange={(e) =>
-                  setFormData({ ...formData, targetAmount: e.target.value })
-                }
+                className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-black"
+                {...register('targetAmount', {
+                  required: 'Target amount is required',
+                  min: { value: 1, message: 'Amount must be greater than 0' },
+                })}
               />
+              {errors.targetAmount && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.targetAmount.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -111,10 +121,8 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                   <Tag size={10} /> Category
                 </Label>
                 <Select
-                  value={formData.category}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, category: val })
-                  }
+                  defaultValue="other"
+                  onValueChange={(val) => setValue('category', val)}
                 >
                   <SelectTrigger className="rounded-2xl h-12 bg-muted/30 border-none">
                     <SelectValue />
@@ -136,14 +144,11 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1">
                   <Calendar size={10} /> Deadline
                 </Label>
-                <Input
+                <input
                   type="date"
-                  className="rounded-2xl h-12 bg-muted/30 border-none focus-visible:ring-primary/20"
-                  value={formData.deadline}
+                  className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
                   style={{ colorScheme: 'auto' }}
-                  onChange={(e) =>
-                    setFormData({ ...formData, deadline: e.target.value })
-                  }
+                  {...register('deadline')}
                 />
               </div>
             </div>

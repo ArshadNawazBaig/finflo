@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Mail,
-  Lock,
-  KeyRound,
-  ShieldCheck,
-  ArrowRight,
-  Loader2,
-} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Lock, KeyRound, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { cn, validatePassword } from '@/lib/utils';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
@@ -17,12 +11,8 @@ import PasswordInput from '@/components/ui/PasswordInput';
 
 const ForcePasswordChange = ({ isMember = false }) => {
   const navigate = useNavigate();
-  const [code, setCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
-  const [error, setError] = useState('');
 
   const endpointBase = isMember ? '/member-auth' : '/auth';
   const dashboardPath = isMember ? '/member/dashboard' : '/dashboard';
@@ -32,48 +22,49 @@ const ForcePasswordChange = ({ isMember = false }) => {
   );
 
   useEffect(() => {
-    // If no data in localStorage, redirect to login
     const userData = localStorage.getItem(isMember ? 'member' : 'user');
     if (!userData) {
       navigate(isMember ? '/member/login' : '/login');
     }
   }, [navigate, isMember]);
 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const newPassword = watch('newPassword');
+
   const handleSendCode = async () => {
     setSendingCode(true);
-    setError('');
     try {
       await api.post(`${endpointBase}/request-password-change-code`);
       toast.success('Security code sent to your email');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send code');
       toast.error(err.response?.data?.message || 'Failed to send code');
     } finally {
       setSendingCode(false);
     }
   };
 
-  const handleVerifyAndChange = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
-    const { isValid, message } = validatePassword(newPassword);
+  const onSubmit = async (data) => {
+    const { isValid, message } = validatePassword(data.newPassword);
     if (!isValid) {
-      return setError(message);
+      setError('newPassword', { message });
+      return;
     }
 
     setLoading(true);
-    setError('');
     try {
       await api.post(`${endpointBase}/force-change-password`, {
-        code,
-        newPassword,
+        code: data.code,
+        newPassword: data.newPassword,
       });
       toast.success('Password changed successfully!');
 
-      // Update local storage to clear mustChangePassword flag
       const updatedUser = { ...user, mustChangePassword: false };
       localStorage.setItem(
         isMember ? 'member' : 'user',
@@ -82,7 +73,9 @@ const ForcePasswordChange = ({ isMember = false }) => {
 
       navigate(dashboardPath);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to change password');
+      setError('root', {
+        message: err.response?.data?.message || 'Failed to change password',
+      });
     } finally {
       setLoading(false);
     }
@@ -94,11 +87,11 @@ const ForcePasswordChange = ({ isMember = false }) => {
       description="Your account was created by an administrator. For your security, please verify your email and set a new password."
       badge="Mandatory Security Update"
     >
-      <form onSubmit={handleVerifyAndChange} className="space-y-6">
-        {error && (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {errors.root && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
             <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-            {error}
+            {errors.root.message}
           </div>
         )}
 
@@ -128,12 +121,25 @@ const ForcePasswordChange = ({ isMember = false }) => {
                 type="text"
                 placeholder="000000"
                 maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                required
                 className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-bold tracking-[0.2em] text-center"
+                {...register('code', {
+                  required: 'Security code is required',
+                  minLength: { value: 6, message: 'Code must be 6 digits' },
+                  pattern: {
+                    value: /^\d{6}$/,
+                    message: 'Code must be 6 digits',
+                  },
+                  onChange: (e) => {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                  },
+                })}
               />
             </div>
+            {errors.code && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.code.message}
+              </p>
+            )}
           </div>
 
           <hr className="border-border/50" />
@@ -144,16 +150,25 @@ const ForcePasswordChange = ({ isMember = false }) => {
             </label>
             <PasswordInput
               placeholder="••••••••"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
               leftIcon={
                 <Lock
                   size={16}
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               }
+              {...register('newPassword', {
+                required: 'New password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
+              })}
             />
+            {errors.newPassword && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.newPassword.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -162,22 +177,29 @@ const ForcePasswordChange = ({ isMember = false }) => {
             </label>
             <PasswordInput
               placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
               leftIcon={
                 <ShieldCheck
                   size={16}
                   className="text-muted-foreground group-focus-within:text-primary transition-colors"
                 />
               }
+              {...register('confirmPassword', {
+                required: 'Please confirm your password',
+                validate: (value) =>
+                  value === newPassword || 'Passwords do not match',
+              })}
             />
+            {errors.confirmPassword && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
         </div>
 
         <Button
           type="submit"
-          disabled={loading || code.length < 6}
+          disabled={loading}
           variant="gradient"
           className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative overflow-hidden"
         >

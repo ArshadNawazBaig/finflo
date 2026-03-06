@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -10,25 +11,34 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn, validateEmail } from '@/lib/utils';
 import { Copy, CheckCircle2 } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { validateEmail } from '@/lib/utils';
 
 const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    branchId: '',
-    roleRef: '',
-  });
   const [isSuccess, setIsSuccess] = useState(false);
   const [successData, setSuccessData] = useState(null);
   const [branches, setBranches] = useState([]);
   const [roles, setRoles] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      branchId: '',
+      roleRef: '',
+    },
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,17 +56,13 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     fetchData();
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
-      toast.error(emailValidation.message);
+      setError('email', { message: emailValidation.message });
       return;
     }
+
     setLoading(true);
     const payload = {
       ...formData,
@@ -67,13 +73,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
       await api.post('/staff', payload);
       setSuccessData({ email: payload.email, password: payload.password });
       setIsSuccess(true);
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        branchId: '',
-        roleRef: '',
-      });
+      reset();
       onSuccess();
     } catch (error) {
       const message =
@@ -172,7 +172,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="space-y-2">
               <Label
                 htmlFor="name"
@@ -183,11 +183,14 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               <Input
                 id="name"
                 placeholder="Enter name"
-                value={formData.name}
-                onChange={handleChange}
-                required
                 className="rounded-xl border-border/50"
+                {...register('name', { required: 'Full name is required' })}
               />
+              {errors.name && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label
@@ -200,11 +203,14 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                 id="email"
                 type="email"
                 placeholder="Enter email"
-                value={formData.email}
-                onChange={handleChange}
-                required
                 className="rounded-xl border-border/50"
+                {...register('email', { required: 'Email is required' })}
               />
+              {errors.email && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label
@@ -216,11 +222,17 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               <PasswordInput
                 id="password"
                 placeholder="Create password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={8}
+                className="rounded-xl border-border/50"
+                {...register('password', {
+                  required: 'Password is required',
+                  minLength: { value: 8, message: 'Minimum 8 characters' },
+                })}
               />
+              {errors.password && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label
@@ -231,9 +243,8 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               </Label>
               <select
                 id="branchId"
-                value={formData.branchId}
-                onChange={handleChange}
                 className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register('branchId')}
               >
                 <option value="">No Branch (Global Access)</option>
                 {branches.map((b) => (
@@ -252,9 +263,8 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               </Label>
               <select
                 id="roleRef"
-                value={formData.roleRef}
-                onChange={handleChange}
                 className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register('roleRef')}
               >
                 <option value="">Standard Staff</option>
                 {roles.map((r) => (

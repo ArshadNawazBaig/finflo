@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import {
   Lock,
   ArrowRight,
@@ -17,35 +18,31 @@ import PasswordInput from '@/components/ui/PasswordInput';
 const ResetPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
-  });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setError,
+  } = useForm();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
-    }
+  const newPassword = watch('password');
 
-    const { isValid, message } = validatePassword(formData.password);
+  const onSubmit = async (data) => {
+    const { isValid, message } = validatePassword(data.password);
     if (!isValid) {
-      return setError(message);
+      setError('password', { message });
+      return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       await api.put(`/auth/resetpassword/${token}`, {
-        password: formData.password,
+        password: data.password,
       });
       setSuccess(true);
       toast.success('Password reset successfully!');
@@ -53,7 +50,9 @@ const ResetPassword = () => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+      setError('root', {
+        message: err.response?.data?.message || 'Failed to reset password',
+      });
     } finally {
       setLoading(false);
     }
@@ -70,11 +69,11 @@ const ResetPassword = () => {
       badge="Security Protocol"
     >
       {!success ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold p-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-              {error}
+              {errors.root.message}
             </div>
           )}
 
@@ -88,13 +87,22 @@ const ResetPassword = () => {
             <PasswordInput
               id="password"
               placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
               leftIcon={
                 <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               }
+              {...register('password', {
+                required: 'New password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters',
+                },
+              })}
             />
+            {errors.password && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -107,13 +115,20 @@ const ResetPassword = () => {
             <PasswordInput
               id="confirmPassword"
               placeholder="••••••••"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
               leftIcon={
                 <ShieldCheck className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               }
+              {...register('confirmPassword', {
+                required: 'Please confirm your password',
+                validate: (value) =>
+                  value === newPassword || 'Passwords do not match',
+              })}
             />
+            {errors.confirmPassword && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
 
           <div className="pt-2">

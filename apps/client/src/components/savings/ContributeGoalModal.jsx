@@ -1,3 +1,4 @@
+import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { PiggyBank, ArrowRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -22,32 +22,39 @@ const ContributeGoalModal = ({
   memberBalance,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!amount || amount <= 0) return;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm();
 
-    if (amount > memberBalance) {
-      toast.error('Insufficient balance in your main account');
+  const onSubmit = async ({ amount }) => {
+    const numAmount = parseFloat(amount);
+    if (numAmount > memberBalance) {
+      setError('amount', {
+        message: 'Insufficient balance in your main account',
+      });
       return;
     }
 
     setLoading(true);
-
     try {
-      const memberToken = localStorage.getItem('member');
       await api.post(
         `/saving-goals/${goal._id}/contribute`,
-        { amount },
+        { amount: numAmount },
         {
-          headers: { /* Auth header handled by browser cookies */ },
+          headers: {
+            /* Auth header handled by browser cookies */
+          },
         },
       );
-      toast.success(`Allocated ${formatCurrency(amount)} to ${goal.title}`);
+      toast.success(`Allocated ${formatCurrency(numAmount)} to ${goal.title}`);
       onSuccess();
       onClose();
-      setAmount('');
+      reset();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to contribute');
     } finally {
@@ -67,7 +74,10 @@ const ContributeGoalModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 relative z-10"
+        >
           <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white rounded-2xl shadow-sm text-primary">
@@ -98,14 +108,20 @@ const ContributeGoalModal = ({
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Contribution Amount (PKR)
               </Label>
-              <Input
-                required
+              <input
                 type="number"
                 placeholder="Enter amount to save..."
-                className="rounded-2xl h-14 bg-muted/30 border-none focus-visible:ring-primary/20 text-xl font-black tracking-tighter"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                className="w-full rounded-2xl h-14 bg-muted/30 border border-border/50 text-xl font-black tracking-tighter px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('amount', {
+                  required: 'Amount is required',
+                  min: { value: 1, message: 'Amount must be greater than 0' },
+                })}
               />
+              {errors.amount && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.amount.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -122,7 +138,7 @@ const ContributeGoalModal = ({
               type="submit"
               variant="gradient"
               className="flex-[2] rounded-2xl h-14 font-black uppercase tracking-widest text-xs"
-              disabled={loading || !amount}
+              disabled={loading}
             >
               {loading ? 'Processing...' : 'Allocate Funds'}
             </Button>

@@ -1,5 +1,6 @@
 // Force update
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -27,21 +28,32 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(false);
   const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    recipientId: userId || 'all',
-    title: '',
-    message: '',
-    type: 'info',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      recipientId: userId || 'all',
+      title: '',
+      message: '',
+      type: 'info',
+    },
   });
+
+  const recipientId = watch('recipientId');
+  const type = watch('type');
 
   useEffect(() => {
     if (isOpen && !userId) {
-      // Fetch users for dropdown if specific user not provided
       const fetchUsers = async () => {
         try {
           setFetchingUsers(true);
-          // Assuming we have an endpoint to get basic user list for admin
-          const { data } = await api.get('/super-admin/users?limit=100'); // Simplified
+          const { data } = await api.get('/super-admin/users?limit=100');
           setUsers(data.users || []);
         } catch (error) {
           console.error('Failed to fetch users', error);
@@ -52,18 +64,16 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
       fetchUsers();
     }
     if (userId) {
-      setFormData((prev) => ({ ...prev, recipientId: userId }));
+      setValue('recipientId', userId);
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, setValue]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (formData) => {
     setLoading(true);
-
     try {
       await api.post('/notifications/send', formData);
       toast.success('Notification sent successfully');
-      setFormData({
+      reset({
         recipientId: userId || 'all',
         title: '',
         message: '',
@@ -89,15 +99,13 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {!userId && (
             <div className="space-y-2">
               <Label>Recipient</Label>
               <Select
-                value={formData.recipientId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, recipientId: value })
-                }
+                value={recipientId}
+                onValueChange={(value) => setValue('recipientId', value)}
                 disabled={fetchingUsers}
               >
                 <SelectTrigger>
@@ -118,10 +126,8 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
           <div className="space-y-2">
             <Label>Type</Label>
             <Select
-              value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
+              value={type}
+              onValueChange={(value) => setValue('type', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Type" />
@@ -138,26 +144,28 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              required
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
               placeholder="Notification Title"
+              {...register('title', { required: 'Title is required' })}
             />
+            {errors.title && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.title.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label>Message</Label>
             <Textarea
-              required
-              value={formData.message}
-              onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
-              }
               placeholder="Type your message here..."
               rows={4}
+              {...register('message', { required: 'Message is required' })}
             />
+            {errors.message && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.message.message}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
 import PageHeader from '@/components/PageHeader';
@@ -926,33 +927,43 @@ const DangerZoneSection = ({ onDelete }) => (
 );
 
 const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
-  const [formData, setFormData] = useState({
-    name: member.name || '',
-    email: member.email || '',
-    cnic: member.cnic || '',
-  });
   const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+    setError,
+  } = useForm({
+    defaultValues: {
+      name: member.name || '',
+      email: member.email || '',
+      cnic: member.cnic || '',
+    },
+  });
 
   useEffect(() => {
     if (member) {
-      setFormData({
+      reset({
         name: member.name || '',
         email: member.email || '',
         cnic: member.cnic || '',
       });
     }
-  }, [member]);
+  }, [member, reset]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const emailValidation = validateEmail(formData.email);
-    if (!emailValidation.isValid) {
-      toast.error(emailValidation.message);
-      return;
+  const onSubmit = async (formData) => {
+    if (formData.email) {
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        setError('email', { message: emailValidation.message });
+        return;
+      }
     }
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('member');
       const { data } = await api.put('/member-auth/updatedetails', formData, {
         headers: {
           /* Auth header handled by browser cookies */
@@ -985,21 +996,27 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
             CNIC.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               CNIC Number (Required)
             </label>
             <input
               type="text"
-              value={formData.cnic}
-              onChange={(e) =>
-                setFormData({ ...formData, cnic: formatCNIC(e.target.value) })
-              }
               className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-              required
               placeholder="00000-0000000-0"
+              {...register('cnic', {
+                required: 'CNIC is required',
+                onChange: (e) => {
+                  setValue('cnic', formatCNIC(e.target.value));
+                },
+              })}
             />
+            {errors.cnic && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.cnic.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
@@ -1007,13 +1024,15 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
             </label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
               className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
               placeholder="Enter your name"
+              {...register('name')}
             />
+            {errors.name && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.name.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
@@ -1021,13 +1040,20 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
             </label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
               className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               placeholder="Enter your email"
+              {...register('email', {
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Invalid email format',
+                },
+              })}
             />
+            {errors.email && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -1052,29 +1078,27 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 };
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmNewPassword: '',
-  });
   const [loading, setLoading] = useState(false);
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.newPassword !== formData.confirmNewPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+    setError,
+  } = useForm();
+
+  const newPassword = watch('newPassword');
+
+  const onSubmit = async (formData) => {
     const { isValid, message } = validatePassword(formData.newPassword);
     if (!isValid) {
-      toast.error(message);
+      setError('newPassword', { message });
       return;
     }
     setLoading(true);
     try {
-      const memberToken = localStorage.getItem('member');
       await api.put(
         '/member-auth/updatepassword',
         {
@@ -1089,13 +1113,11 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       );
       toast.success('Password updated successfully');
       onClose();
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: '',
-      });
+      reset();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update password');
+      setError('root', {
+        message: error.response?.data?.message || 'Failed to update password',
+      });
     } finally {
       setLoading(false);
     }
@@ -1113,71 +1135,67 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             account security.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          {errors.root && (
+            <p className="text-destructive text-xs font-bold bg-destructive/10 border border-destructive/20 p-2 rounded-lg">
+              {errors.root.message}
+            </p>
+          )}
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Current Password
             </label>
-            <div className="relative">
-              <input
-                type={showCurrent ? 'text' : 'password'}
-                value={formData.currentPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, currentPassword: e.target.value })
-                }
-                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-              >
-                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
+            <PasswordInput
+              className="w-full h-12 px-5 rounded-2xl"
+              {...register('currentPassword', {
+                required: 'Current password is required',
+              })}
+            />
+            {errors.currentPassword && (
+              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.currentPassword.message}
+              </p>
+            )}
           </div>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 New Password
               </label>
-              <div className="relative">
-                <input
-                  type={showNew ? 'text' : 'password'}
-                  value={formData.newPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, newPassword: e.target.value })
-                  }
-                  minLength={8}
-                  className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                  placeholder="Enter new password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew(!showNew)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                >
-                  {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+              <PasswordInput
+                className="w-full h-12 px-5 rounded-2xl"
+                placeholder="Enter new password"
+                {...register('newPassword', {
+                  required: 'New password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
+                  },
+                })}
+              />
+              {errors.newPassword && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.newPassword.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                 Confirm New Password
               </label>
               <PasswordInput
-                value={formData.confirmNewPassword}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    confirmNewPassword: e.target.value,
-                  })
-                }
                 className="w-full h-12 px-5 rounded-2xl"
-                required
+                {...register('confirmNewPassword', {
+                  required: 'Please confirm your password',
+                  validate: (value) =>
+                    value === newPassword || 'Passwords do not match',
+                })}
               />
+              {errors.confirmNewPassword && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.confirmNewPassword.message}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-6">
