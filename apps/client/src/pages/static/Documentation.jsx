@@ -25,6 +25,7 @@ import {
   Users,
   ShieldCheck,
   Building2,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
