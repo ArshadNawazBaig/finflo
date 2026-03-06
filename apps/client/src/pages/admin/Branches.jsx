@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Plus,
   Search,
@@ -81,11 +82,18 @@ const Branches = () => {
     }
   }, [isManager, user.branchId, navigate]);
 
-  // Form State
+  // RHF for required text fields
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { name: '', address: '', contactNumber: '' },
+  });
+
+  // Non-form ancillary state
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    contactNumber: '',
     branding: {
       companyName: '',
       logoUrl: '',
@@ -127,27 +135,21 @@ const Branches = () => {
     fetchStaff();
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = async (rhfData) => {
     try {
       setSaving(true);
       const data = new FormData();
-      data.append('name', formData.name);
-      data.append('address', formData.address);
-      data.append('contactNumber', formData.contactNumber);
+      data.append('name', rhfData.name);
+      data.append('address', rhfData.address);
+      data.append('contactNumber', rhfData.contactNumber);
       data.append('managerId', formData.managerId);
       data.append('branding', JSON.stringify(formData.branding));
-      if (formData.isActive !== undefined)
-        data.append('isActive', formData.isActive);
 
       if (logoFile) {
         data.append('logo', logoFile);
       }
 
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
 
       if (currentBranch) {
         await api.put(`/branches/${currentBranch._id}`, data, config);
@@ -186,10 +188,12 @@ const Branches = () => {
 
   const handleEdit = (branch) => {
     setCurrentBranch(branch);
-    setFormData({
+    reset({
       name: branch.name,
       address: branch.address,
       contactNumber: branch.contactNumber,
+    });
+    setFormData({
       branding: {
         companyName: branch.branding?.companyName || '',
         logoUrl: branch.branding?.logoUrl || '',
@@ -237,10 +241,8 @@ const Branches = () => {
     setCurrentBranch(null);
     setLogoPreview(null);
     setLogoFile(null);
+    reset({ name: '', address: '', contactNumber: '' });
     setFormData({
-      name: '',
-      address: '',
-      contactNumber: '',
       branding: {
         companyName: '',
         logoUrl: '',
@@ -492,7 +494,11 @@ const Branches = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-6 py-4">
+          <form
+            id="branch-form"
+            onSubmit={handleSubmit(handleSave)}
+            className="grid gap-6 py-4"
+          >
             <div className="space-y-4">
               <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Store size={14} /> Basic Details
@@ -501,35 +507,44 @@ const Branches = () => {
                 <div className="space-y-2">
                   <Label>Branch Name</Label>
                   <Input
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
                     placeholder="e.g. Downtown Branch"
+                    {...register('name', {
+                      required: 'Branch name is required',
+                    })}
                   />
+                  {errors.name && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Contact Number</Label>
                   <Input
-                    value={formData.contactNumber}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        contactNumber: e.target.value,
-                      })
-                    }
                     placeholder="+92 300 1234567"
+                    {...register('contactNumber', {
+                      required: 'Contact number is required',
+                    })}
                   />
+                  {errors.contactNumber && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.contactNumber.message}
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Address</Label>
                   <Input
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
                     placeholder="Full street address"
+                    {...register('address', {
+                      required: 'Address is required',
+                    })}
                   />
+                  {errors.address && (
+                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                      {errors.address.message}
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-2 space-y-2">
                   <div className="flex items-center gap-2 mb-2">
@@ -635,28 +650,42 @@ const Branches = () => {
                         }}
                       />
                     </div>
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-3">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        Upload Image
+                        Branch Logo
                       </p>
                       <p className="text-xs text-muted-foreground/60 leading-relaxed">
-                        PNG, JPG or WEBP. Max size 5MB. This logo will be used
-                        on invoices and portal branding.
+                        PNG, JPG or WEBP. Max 5MB. Used on invoices and portal
+                        branding.
                       </p>
-                      <Input
-                        value={formData.branding.logoUrl}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            branding: {
-                              ...formData.branding,
-                              logoUrl: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="Or paste direct image URL..."
-                        className="h-9 text-xs"
-                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-primary/40 transition-all duration-300 cursor-pointer text-xs font-bold text-muted-foreground hover:text-foreground select-none"
+                      >
+                        <Plus size={14} />
+                        {logoPreview || formData.branding.logoUrl
+                          ? 'Replace Logo'
+                          : 'Upload Logo'}
+                      </label>
+                      {(logoPreview || formData.branding.logoUrl) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogoPreview(null);
+                            setLogoFile(null);
+                            setFormData({
+                              ...formData,
+                              branding: {
+                                ...formData.branding,
+                                logoUrl: '',
+                              },
+                            });
+                          }}
+                          className="ml-2 text-[10px] font-black uppercase tracking-wider text-destructive/70 hover:text-destructive transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -726,14 +755,15 @@ const Branches = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </form>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
             <Button
-              onClick={handleSave}
+              form="branch-form"
+              type="submit"
               disabled={saving}
               className="font-bold min-w-[120px]"
             >
