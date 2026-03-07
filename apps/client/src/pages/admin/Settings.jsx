@@ -100,10 +100,11 @@ const Settings = () => {
     const fetchUserData = async () => {
       try {
         const { data } = await api.get('/auth/me');
-        setUser(data);
         // Merge to preserve the token stored at login — /auth/me doesn't return token
         const existing = JSON.parse(localStorage.getItem('user') || '{}');
-        localStorage.setItem('user', JSON.stringify({ ...existing, ...data }));
+        const updatedData = { ...existing, ...data };
+        setUser(updatedData);
+        localStorage.setItem('user', JSON.stringify(updatedData));
         window.dispatchEvent(new Event('userUpdated'));
       } catch (error) {
         console.error('Failed to fetch user data:', error);
@@ -1000,7 +1001,8 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     try {
       const { data } = await api.put('/auth/updatedetails', formData);
       if (data.success) {
-        const updatedUser = { ...user, ...data.data };
+        const existing = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = { ...existing, ...data.data };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
         toast.success('Profile updated successfully');
@@ -1422,6 +1424,7 @@ const ConfigurationSection = ({ user }) => {
           const u = JSON.parse(userStr);
           u.currency = settings.currency;
           localStorage.setItem('user', JSON.stringify(u));
+          setUser({ ...u }); // Update parent state if possible, though ConfigurationSection is nested
         }
       } catch (_) {}
       toast.success('System configuration updated successfully');
