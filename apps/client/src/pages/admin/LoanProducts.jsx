@@ -23,16 +23,7 @@ import api from '@/lib/axios';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import LoanProductModal from '@/components/loans/LoanProductModal';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 const LoanProducts = () => {
   const [products, setProducts] = useState([]);
@@ -277,38 +268,24 @@ const LoanProducts = () => {
         </Card>
       )}
 
-      <AlertDialog
-        open={!!deleteProduct}
-        onOpenChange={() => setDeleteProduct(null)}
-      >
-        <AlertDialogContent className="rounded-[2rem]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-black">
-              Delete Product
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm font-medium">
-              Are you sure you want to delete the product{' '}
-              <span className="font-bold text-foreground">
-                "{deleteProduct?.name}"
-              </span>
-              ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
-              Cancel
-            </AlertDialogCancel>
-            <Button
-              onClick={handleDelete}
-              isLoading={isDeleting}
-              variant="destructive"
-              className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold uppercase tracking-widest text-[10px]"
-            >
-              Delete Product
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteProduct}
+        onClose={() => setDeleteProduct(null)}
+        onConfirm={handleDelete}
+        loading={isDeleting}
+        title="Delete Product"
+        description={
+          <>
+            Are you sure you want to delete the product{' '}
+            <span className="font-bold text-foreground">
+              "{deleteProduct?.name}"
+            </span>
+            ? This action cannot be undone.
+          </>
+        }
+        confirmText="Delete Product"
+        variant="danger"
+      />
 
       <LoanProductModal
         isOpen={isModalOpen}

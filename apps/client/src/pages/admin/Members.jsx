@@ -23,16 +23,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
 import MemberTable from '@/components/member/MemberTable';
@@ -497,70 +488,42 @@ const Members = () => {
         onSuccess={handleMemberAdded}
       />
 
-      <AlertDialog
-        open={!!deleteMemberId}
-        onOpenChange={() => setDeleteMemberId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Member</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this member? This action cannot be
-              undone and all associated data will be removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteMember}
-              disabled={isDeleting}
-              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Member'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteMemberId}
+        onClose={() => setDeleteMemberId(null)}
+        onConfirm={handleDeleteMember}
+        loading={isDeleting}
+        title="Delete Member"
+        description="Are you sure you want to delete this member? This action cannot be undone and all associated data will be removed."
+        confirmText="Permanently Delete"
+        variant="danger"
+      />
 
-      <AlertDialog
-        open={!!rejectMemberId}
-        onOpenChange={() => setRejectMemberId(null)}
+      <ConfirmActionModal
+        isOpen={!!rejectMemberId}
+        onClose={() => setRejectMemberId(null)}
+        onConfirm={confirmRejectMember}
+        loading={!!rejectingId}
+        title="Reject Application"
+        description="Are you sure you want to reject this member's application? They will be notified and will not be able to access the member portal."
+        confirmText="Reject Application"
+        variant="warning"
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Application</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <p>
-                Are you sure you want to reject this member's application? They
-                will be notified and will not be able to access the member
-                portal.
-              </p>
-              <div className="space-y-2 mt-4">
-                <label className="text-sm font-bold text-foreground">
-                  Reason for Rejection <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="e.g., Out of Quota, etc..."
-                  className="w-full h-24 p-3 rounded-xl border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  required
-                />
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmRejectMember}
-              disabled={!!rejectingId}
-              className="bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xl shadow-amber-500/20 hover:brightness-110"
-            >
-              {rejectingId ? 'Rejecting...' : 'Reject Application'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <div className="space-y-3 mt-4">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+            Reason for Rejection <span className="text-rose-500">*</span>
+          </label>
+          <div className="relative group">
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="e.g., Out of Quota, insufficient documentation etc..."
+              className="w-full bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all hover:border-border min-h-[120px] resize-none leading-relaxed"
+              required
+            />
+          </div>
+        </div>
+      </ConfirmActionModal>
     </div>
   );
 };

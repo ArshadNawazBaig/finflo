@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Info,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 const availablePermissions = [
@@ -133,17 +135,27 @@ const Roles = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this role?')) return;
-    setDeletingId(id);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
+
+  const handleDeleteClick = (role) => {
+    setRoleToDelete(role);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!roleToDelete) return;
+    setDeletingId(roleToDelete._id);
     try {
-      await api.delete(`/roles/${id}`);
+      await api.delete(`/roles/${roleToDelete._id}`);
       toast.success('Role deleted successfully');
       fetchRoles();
+      setIsDeleteModalOpen(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete role');
     } finally {
       setDeletingId(null);
+      setRoleToDelete(null);
     }
   };
 
@@ -244,7 +256,7 @@ const Roles = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleDelete(role._id)}
+                          onClick={() => handleDeleteClick(role)}
                           isLoading={deletingId === role._id}
                           className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center hover:scale-110 transition-transform"
                         >
@@ -434,7 +446,81 @@ const Roles = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <DeleteRoleConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        roleName={roleToDelete?.name}
+        loading={deletingId !== null}
+      />
     </div>
+  );
+};
+
+const DeleteRoleConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  roleName,
+  loading,
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10 text-center">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
+              <AlertTriangle className="text-rose-500" size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight text-rose-500">
+              Delete System Role
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium pt-2">
+              This action is irreversible and will affect all assigned team
+              members.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <p className="text-xs text-muted-foreground font-medium leading-relaxed bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10">
+                Are you sure you want to delete the{' '}
+                <span className="text-rose-600 font-black uppercase tracking-wider">
+                  "{roleName}"
+                </span>{' '}
+                role? Team members assigned to this role may lose access to
+                system features immediately.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex flex-col sm:flex-row gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={onConfirm}
+            isLoading={loading}
+            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+          >
+            Finalize Deletion
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

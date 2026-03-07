@@ -371,6 +371,7 @@ const ProfileSection = ({
                 src={member.profilePicture}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
               />
             ) : (
               initials
@@ -986,92 +987,116 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[2.5rem] border-white/50 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black tracking-tight">
-            Edit Profile
-          </DialogTitle>
-          <DialogDescription>
-            Update your personal information including your name, email, and
-            CNIC.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              CNIC Number (Required)
-            </label>
-            <input
-              type="text"
-              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-              placeholder="00000-0000000-0"
-              {...register('cnic', {
-                required: 'CNIC is required',
-                onChange: (e) => {
-                  setValue('cnic', formatCNIC(e.target.value));
-                },
-              })}
-            />
-            {errors.cnic && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.cnic.message}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
-              placeholder="Enter your name"
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Email Address (Optional)
-            </label>
-            <input
-              type="email"
-              className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-muted/20 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="Enter your email"
-              {...register('email', {
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Invalid email format',
-                },
-              })}
-            />
-            {errors.email && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
-            >
-              Save Changes
-            </Button>
-          </div>
-        </form>
+      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Edit Profile
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Update your identity details for the member portal.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <form
+            id="edit-member-profile-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                CNIC Number (Required)
+              </label>
+              <input
+                type="text"
+                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                placeholder="00000-0000000-0"
+                {...register('cnic', {
+                  required: 'CNIC is required',
+                  onChange: (e) => {
+                    setValue('cnic', formatCNIC(e.target.value));
+                  },
+                })}
+              />
+              {errors.cnic && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.cnic.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                placeholder="Enter your name"
+                {...register('name')}
+              />
+              {errors.name && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Email Address (Optional)
+              </label>
+              <input
+                type="email"
+                className="w-full h-12 px-5 rounded-2xl border border-border/50 bg-background/50 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                placeholder="Enter your email"
+                {...register('email', {
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email format',
+                  },
+                })}
+              />
+              {errors.email && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="edit-member-profile-form"
+            type="submit"
+            isLoading={loading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            <User size={16} />
+            Save Changes
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1125,96 +1150,120 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[2.5rem] border-white/50 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black tracking-tight">
-            Security Update
-          </DialogTitle>
-          <DialogDescription>
-            Enter your current password and your new password to update your
-            account security.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
-          {errors.root && (
-            <p className="text-destructive text-xs font-bold bg-destructive/10 border border-destructive/20 p-2 rounded-lg">
-              {errors.root.message}
-            </p>
-          )}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Current Password
-            </label>
-            <PasswordInput
-              className="w-full h-12 px-5 rounded-2xl"
-              {...register('currentPassword', {
-                required: 'Current password is required',
-              })}
-            />
-            {errors.currentPassword && (
-              <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                {errors.currentPassword.message}
-              </p>
+      <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Security Update
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Update your member account credentials securely.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <form
+            id="change-member-password-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
+            {errors.root && (
+              <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 mb-6 italic">
+                {errors.root.message}
+              </div>
             )}
-          </div>
-          <div className="space-y-4 pt-2">
+
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                New Password
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Current Password *
               </label>
               <PasswordInput
                 className="w-full h-12 px-5 rounded-2xl"
-                placeholder="Enter new password"
-                {...register('newPassword', {
-                  required: 'New password is required',
-                  minLength: {
-                    value: 8,
-                    message: 'Password must be at least 8 characters',
-                  },
+                {...register('currentPassword', {
+                  required: 'Current password is required',
                 })}
               />
-              {errors.newPassword && (
+              {errors.currentPassword && (
                 <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.newPassword.message}
+                  {errors.currentPassword.message}
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Confirm New Password
-              </label>
-              <PasswordInput
-                className="w-full h-12 px-5 rounded-2xl"
-                {...register('confirmNewPassword', {
-                  required: 'Please confirm your password',
-                  validate: (value) =>
-                    value === newPassword || 'Passwords do not match',
-                })}
-              />
-              {errors.confirmNewPassword && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.confirmNewPassword.message}
-                </p>
-              )}
+
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  New Password *
+                </label>
+                <PasswordInput
+                  className="w-full h-12 px-5 rounded-2xl"
+                  placeholder="Enter new password"
+                  {...register('newPassword', {
+                    required: 'New password is required',
+                    minLength: {
+                      value: 8,
+                      message: 'Password must be at least 8 characters',
+                    },
+                  })}
+                />
+                {errors.newPassword && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.newPassword.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Confirm New Password *
+                </label>
+                <PasswordInput
+                  className="w-full h-12 px-5 rounded-2xl"
+                  {...register('confirmNewPassword', {
+                    required: 'Please confirm your password',
+                    validate: (value) =>
+                      value === newPassword || 'Passwords do not match',
+                  })}
+                />
+                {errors.confirmNewPassword && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.confirmNewPassword.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex justify-end gap-3 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              className="px-8 h-10 rounded-full text-[10px] font-black uppercase tracking-widest"
-            >
-              Update Password
-            </Button>
-          </div>
-        </form>
+          </form>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="change-member-password-form"
+            type="submit"
+            isLoading={loading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            <Shield size={16} />
+            Update Password
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1247,50 +1296,69 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[2.5rem] border border-rose-500/20 shadow-2xl">
-        <DialogHeader>
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
-            <AlertTriangle className="text-rose-500" size={24} />
+      <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10 text-center">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
+              <AlertTriangle className="text-rose-500" size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight text-rose-500">
+              Irreversible Deletion
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium pt-2">
+              This action will permanently remove your portal access and
+              activity history.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <div className="space-y-6">
+            <p className="text-center text-xs text-muted-foreground font-medium leading-relaxed bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10">
+              This will permanently remove your portal access and activity
+              history. This action{' '}
+              <span className="text-rose-500 font-bold uppercase underline">
+                cannot be undone
+              </span>
+              .
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
+                Type <span className="text-rose-500">DELETE</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+                placeholder="DELETE"
+              />
+            </div>
           </div>
-          <DialogTitle className="text-center text-xl font-black tracking-tight text-rose-500">
-            Irreversible Deletion
-          </DialogTitle>
-          <DialogDescription className="text-center text-[10px] text-muted-foreground font-medium px-4 pt-2">
-            This will permanently remove your portal access and activity
-            history. This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6 pt-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
-              Type <span className="text-rose-500">DELETE</span> to confirm
-            </label>
-            <input
-              type="text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 text-center font-black uppercase tracking-widest text-rose-600"
-              placeholder="DELETE"
-            />
-          </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              isLoading={loading}
-              disabled={confirmText !== 'DELETE'}
-              className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-lg shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest"
-            >
-              Confirm Deletion
-            </Button>
-          </div>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex flex-col sm:flex-row gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            isLoading={loading}
+            disabled={confirmText !== 'DELETE'}
+            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+          >
+            Confirm Deletion
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

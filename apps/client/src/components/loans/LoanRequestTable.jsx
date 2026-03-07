@@ -144,7 +144,7 @@ const LoanRequestTable = ({
                     }
                     className="flex items-center gap-3 group/link hover:opacity-80 transition-opacity"
                   >
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize group-hover/link:bg-primary/20 transition-colors">
+                    <div className="h-9 w-9 min-w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize group-hover/link:bg-primary/20 transition-colors">
                       {request.customer?.name
                         ? request.customer.name.charAt(0).toUpperCase()
                         : '?'}
@@ -244,7 +244,7 @@ const LoanRequestTable = ({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 px-3 rounded-lg hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/50 transition-all"
+                          className="h-8 w-8 rounded-full hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/50 transition-all !p-0"
                           onClick={() => onReject(request._id)}
                           disabled={processingId === request._id}
                         >
@@ -252,19 +252,17 @@ const LoanRequestTable = ({
                             <Loader2 className="w-3 h-3 animate-spin" />
                           ) : (
                             <>
-                              <X size={14} className="mr-1" />
-                              Reject
+                              <X size={14} className="" />
                             </>
                           )}
                         </Button>
                         <Button
                           size="sm"
-                          className="h-8 px-3 bg-emerald-500 hover:bg-emerald-600 rounded-lg shadow-sm shadow-emerald-500/20"
+                          className="h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-500/20 !p-0"
                           onClick={() => onApprove(request)}
                           disabled={processingId === request._id}
                         >
-                          <Check size={14} className="mr-1" />
-                          Approve
+                          <Check size={14} className="" />
                         </Button>
                       </>
                     ) : (

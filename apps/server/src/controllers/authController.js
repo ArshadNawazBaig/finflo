@@ -26,6 +26,9 @@ const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { validatePassword } = require('../utils/validation');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -229,6 +232,7 @@ const loginUser = async (req, res) => {
           isManager,
           branchId,
           businessName: user.businessName,
+          profilePicture: user.profilePicture,
           permissions: user.getPermissions(),
         });
       }
@@ -1034,6 +1038,236 @@ const updateOnboardingStatus = async (req, res) => {
   }
 };
 
+// ─── Google OAuth Authentication ─────────────────────────────────────────────
+
+const googleLogin = async (req, res) => {
+  const { googleToken } = req.body;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email } = payload;
+    const lowercaseEmail = email?.toLowerCase();
+
+    const user = await User.findOne({ email: lowercaseEmail }).populate(
+      'roleRef',
+    );
+
+    if (!user) {
+      // Return 404 to prompt the frontend to switch to registration
+      return res.status(404).json({
+        message: 'User not found',
+        requiresRegistration: true,
+        email: lowercaseEmail,
+        name: payload.name,
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        message: 'Your account has been deactivated. Please contact support.',
+      });
+    }
+
+    // Since this is a Google Login, we trust the email. Mark as verified if not already.
+    if (!user.isVerified) {
+      user.isVerified = true;
+    }
+
+    // Link Google ID if not present
+    if (!user.googleId) {
+      user.googleId = payload.sub;
+      user.isGoogleAuth = true;
+    }
+
+    // Auto-update profile picture if none exists
+    if (!user.profilePicture && payload.picture) {
+      user.profilePicture = payload.picture;
+    }
+
+    await user.save();
+
+    // 2FA Flow
+    if (user.isTwoFactorEnabled) {
+      const pendingToken = jwt.sign(
+        { id: user._id, pending2FA: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '5m' },
+      );
+      return res.json({ requires2FA: true, pendingToken });
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save({ validateBeforeSave: false });
+
+    // Determine manager status
+    let isManager = false;
+    let branchId = user.branchId;
+    if (user.role === 'staff') {
+      const managedBranch = await Branch.findOne({ manager: user._id });
+      isManager = !!managedBranch;
+      if (managedBranch) branchId = managedBranch._id;
+
+      if (user.ownerId) {
+        const owner = await User.findById(user.ownerId);
+        if (owner) user.plan = owner.plan;
+      }
+    }
+
+    await logActivity({
+      userId: user._id,
+      action: 'user_login_google',
+      category: 'auth',
+      details: `User logged in via Google: ${user.email}`,
+      req,
+    });
+
+    const token = generateToken(user._id);
+
+    if (user.mustChangePassword) {
+      return res.cookie('token', token, cookieOptions).json({
+        token,
+        mustChangePassword: true,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isManager,
+        branchId,
+        businessName: user.businessName,
+        profilePicture: user.profilePicture,
+        permissions: user.getPermissions(),
+      });
+    }
+
+    res.cookie('token', token, cookieOptions).json({
+      token,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isManager,
+      branchId,
+      businessName: user.businessName,
+      securityCode: user.securityCode,
+      profilePicture: user.profilePicture,
+      currency: user.currency,
+      permissions: user.getPermissions(),
+    });
+  } catch (error) {
+    console.error('Google Login Error:', error);
+    res.status(500).json({ message: 'Google authentication failed' });
+  }
+};
+
+const googleRegister = async (req, res) => {
+  const { googleToken } = req.body;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId, picture } = payload;
+    const lowercaseEmail = email?.toLowerCase();
+    const lowercaseName = name?.toLowerCase();
+
+    const existingUser = await User.findOne({ email: lowercaseEmail });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const isSuperAdmin =
+      lowercaseEmail === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+
+    // Create the user
+    // Provide a random strong password for the DB requirement although we made it conditionally required,
+    // it's fine since isGoogleAuth is true, but doing it just in case.
+    // Since we updated User schema for `required: function() { return !this.isGoogleAuth; }`, password can be omitted.
+    const user = await User.create({
+      name: lowercaseName,
+      email: lowercaseEmail,
+      googleId,
+      isGoogleAuth: true,
+      profilePicture: picture || '',
+      role: isSuperAdmin ? 'super_admin' : 'admin',
+      isVerified: true, // Auto-verify since Google verified it
+    });
+
+    // Notify Super Admin (for regular admin registrations)
+    if (!isSuperAdmin) {
+      try {
+        const superAdmin = await User.findOne({ role: 'super_admin' });
+        if (superAdmin) {
+          await sendEmail({
+            to: superAdmin.email,
+            subject: `New Business Registration (Google): ${user.name}`,
+            html: superAdminNewRegistrationEmail({
+              name: user.name,
+              email: user.email,
+            }),
+          });
+
+          await Notification.create({
+            recipient: superAdmin._id,
+            recipientModel: 'User',
+            title: 'New Business Registration',
+            message: `${user.name} (${user.email}) has registered via Google.`,
+            type: 'info',
+            link: '/super-admin/users',
+          });
+        }
+      } catch (err) {
+        console.error('Super Admin notification failed:', err);
+      }
+    }
+
+    // Send Welcome Email
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to FinFlo!',
+        html: welcomeBusinessEmail(user.name),
+      });
+    } catch (err) {
+      console.error('Welcome email failed to send:', err);
+    }
+
+    await logActivity({
+      userId: user._id,
+      action: 'user_register_google',
+      category: 'auth',
+      details: `New user registered via Google: ${user.email}`,
+      req,
+    });
+
+    const token = generateToken(user._id);
+
+    res.cookie('token', token, cookieOptions).status(201).json({
+      token,
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isManager: false,
+      branchId: null,
+      businessName: user.businessName,
+      securityCode: user.securityCode,
+      profilePicture: user.profilePicture,
+      currency: user.currency,
+      permissions: user.getPermissions(),
+      message: 'Registration successful.',
+    });
+  } catch (error) {
+    console.error('Google Register Error:', error);
+    res.status(500).json({ message: 'Google registration failed' });
+  }
+};
+
 module.exports = {
   logoutUser,
   registerUser,
@@ -1056,4 +1290,6 @@ module.exports = {
   forceChangePassword,
   getOnboardingStatus,
   updateOnboardingStatus,
+  googleLogin,
+  googleRegister,
 };

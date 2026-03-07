@@ -2,16 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Search, Loader2, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TableSearch from '@/components/ui/TableSearch';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import CustomerTable from '@/components/customers/CustomerTable';
 import CustomerCard from '@/components/customers/CustomerCard';
 import PageHeader from '@/components/PageHeader';
@@ -319,32 +310,22 @@ const Customers = () => {
         onSuccess={() => fetchCustomers(false)}
       />
 
-      <AlertDialog
-        open={!!deleteCustomer}
-        onOpenChange={() => setDeleteCustomer(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{' '}
-              <strong>{deleteCustomer?.name}</strong>? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              onClick={handleDeleteConfirm}
-              isLoading={isDeleting}
-              variant="destructive"
-              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
-            >
-              Delete
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteCustomer}
+        onClose={() => setDeleteCustomer(null)}
+        onConfirm={handleDeleteConfirm}
+        loading={isDeleting}
+        title="Delete Customer"
+        description={
+          <>
+            Are you sure you want to delete{' '}
+            <strong>{deleteCustomer?.name}</strong>? This action cannot be
+            undone.
+          </>
+        }
+        confirmText="Permanently Delete"
+        variant="danger"
+      />
     </div>
   );
 };

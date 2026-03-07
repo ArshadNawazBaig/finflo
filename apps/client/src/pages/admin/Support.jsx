@@ -23,16 +23,7 @@ import { cn } from '@/lib/utils';
 
 import TicketChat from '@/components/support/TicketChat';
 import EmptyState from '@/components/ui/EmptyState';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import {
   Card,
   CardContent,
@@ -489,37 +480,16 @@ const Support = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <AlertDialogContent className="rounded-2xl border-none shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-slate-800">
-              Delete Support Ticket
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-500 font-medium">
-              Are you sure you want to delete this ticket? This will remove all
-              conversation history permanently. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={deleting}
-              className="rounded-xl border-none bg-slate-100 font-bold hover:bg-slate-200"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteTicket();
-              }}
-              disabled={deleting}
-              className="bg-rose-500 hover:bg-rose-600 rounded-xl font-bold text-white shadow-lg shadow-rose-500/30"
-            >
-              {deleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteTicket}
+        loading={deleting}
+        title="Delete Support Ticket"
+        description="Are you sure you want to delete this ticket? This will remove all conversation history permanently. This action cannot be undone."
+        confirmText="Delete Ticket"
+        variant="danger"
+      />
 
       {/* Full Image Viewer Modal */}
     </div>

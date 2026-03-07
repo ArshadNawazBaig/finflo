@@ -348,6 +348,7 @@ const MemberNavbar = ({ onMenuClick }) => {
                       src={member.profilePicture}
                       alt={member.name}
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     memberInitials

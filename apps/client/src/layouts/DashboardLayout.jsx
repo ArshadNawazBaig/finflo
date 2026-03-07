@@ -47,6 +47,7 @@ const DashboardLayout = () => {
         JSON.stringify({ ...existing, ...userData }),
       );
       setUser(userData);
+      window.dispatchEvent(new Event('userUpdated'));
       setPendingCount(userData.pendingMembersCount || 0);
 
       setSubscription({
@@ -65,11 +66,9 @@ const DashboardLayout = () => {
     fetchData();
 
     // Listen for custom events to refresh data (e.g., after subscription upgrade)
-    window.addEventListener('userUpdated', fetchData);
     window.addEventListener('subscriptionUpdated', fetchData);
 
     return () => {
-      window.removeEventListener('userUpdated', fetchData);
       window.removeEventListener('subscriptionUpdated', fetchData);
     };
   }, [setUser, setSubscription]);

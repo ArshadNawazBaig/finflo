@@ -25,16 +25,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ModernSlider from '@/components/ui/ModernSlider';
 import { cn } from '@/lib/utils';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState(null);
@@ -854,34 +845,16 @@ const SystemSettings = () => {
       </div>
 
       {/* Modernized Dialogs */}
-      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent className="rounded-[2.5rem] border-border/40 backdrop-blur-3xl p-8">
-          <AlertDialogHeader>
-            <div className="w-16 h-16 rounded-[1.5rem] bg-red-500/10 flex items-center justify-center mb-6">
-              <RotateCcw className="text-red-600 w-8 h-8" />
-            </div>
-            <AlertDialogTitle className="text-2xl font-black tracking-tight">
-              Factory Reset Initiation
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground font-medium text-base leading-relaxed">
-              This will overwrite all current system parameters with hardcoded
-              factory defaults. All custom subscription limits and interest
-              rules will be purged.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-8 gap-3 sm:gap-0">
-            <AlertDialogCancel className="h-12 px-8 rounded-2xl border-border font-bold hover:bg-muted active:scale-95 transition-all">
-              Abort Project
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReset}
-              className="h-12 px-10 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-xl shadow-red-500/20 hover:bg-red-700 active:scale-95 transition-all"
-            >
-              Confirm purging
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={showResetDialog}
+        onClose={() => setShowResetDialog(false)}
+        onConfirm={handleReset}
+        loading={saving}
+        title="Reset Factory Defaults"
+        description="Are you sure you want to restore all system settings to their factory defaults? This will overwrite your current subscription tiers, interest rates, and platform configuration. This action cannot be undone."
+        confirmText="Reset Now"
+        variant="warning"
+      />
     </div>
   );
 };

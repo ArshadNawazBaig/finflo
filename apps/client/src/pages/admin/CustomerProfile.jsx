@@ -138,19 +138,19 @@ const CustomerProfile = () => {
         }
         description={
           <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Mail size={14} className="text-primary" />
               {customer.email}
             </div>
             <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Phone size={14} className="text-primary" />
               {customer.phone}
             </div>
             {customer.address && (
               <>
                 <div className="hidden sm:block w-1 h-1 bg-border rounded-full" />
-                <div className="flex items-center gap-1.5 text-sm font-medium">
+                <div className="flex items-center gap-1.5 text-xs font-medium">
                   <MapPin size={14} className="text-primary" />
                   {customer.address}
                 </div>

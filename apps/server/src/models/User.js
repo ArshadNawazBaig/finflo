@@ -20,7 +20,15 @@ const userSchema = new mongoose.Schema(
         },
       },
     },
-    password: { type: String, required: true, minlength: 8 },
+    googleId: { type: String, sparse: true, unique: true },
+    isGoogleAuth: { type: Boolean, default: false },
+    password: {
+      type: String,
+      required: function () {
+        return !this.isGoogleAuth;
+      },
+      minlength: 8,
+    },
     role: {
       type: String,
       enum: ['super_admin', 'admin', 'staff', 'user'],
@@ -137,7 +145,8 @@ userSchema.pre('save', async function () {
   }
 
   // Hash password if modified
-  if (!this.isModified('password')) return;
+  if (!this.isModified('password') || this.isGoogleAuth || !this.password)
+    return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

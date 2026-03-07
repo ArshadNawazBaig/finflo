@@ -261,6 +261,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
                     src={member.profilePicture}
                     alt={memberName}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   memberInitials

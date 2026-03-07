@@ -56,10 +56,14 @@ const registerServiceWorker = () => {
 
 registerServiceWorker();
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <App />
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <App />
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   </React.StrictMode>,
 );
