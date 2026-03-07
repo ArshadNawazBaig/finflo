@@ -34,16 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -521,31 +512,22 @@ const ManageUsers = () => {
         onClose={() => setIsNotificationModalOpen(false)}
       />
 
-      <AlertDialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete User Permanently</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{' '}
-              <strong>{deleteUser?.name}</strong>? This will permanently remove
-              all their data and business records. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteUser();
-              }}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full px-8"
-            >
-              {deleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteUser}
+        onClose={() => setDeleteUser(null)}
+        onConfirm={handleDeleteUser}
+        loading={deleting}
+        title="Delete User Permanently"
+        description={
+          <>
+            Are you sure you want to delete <strong>{deleteUser?.name}</strong>?
+            This will permanently remove all their data and business records.
+            This action cannot be undone.
+          </>
+        }
+        confirmText="Confirm Deletion"
+        variant="danger"
+      />
     </div>
   );
 };

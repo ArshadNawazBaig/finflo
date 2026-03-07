@@ -25,16 +25,7 @@ import {
 } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import {
   Dialog,
   DialogContent,
@@ -791,35 +782,16 @@ const Branches = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteBranchId}
-        onOpenChange={() => setDeleteBranchId(null)}
-      >
-        <AlertDialogContent className="rounded-[2rem] border-border/40 backdrop-blur-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black">
-              Remove Branch
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-medium text-muted-foreground/80">
-              Are you sure you want to remove this branch? This action cannot be
-              undone and all associated data for this specific location will be
-              archived.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel className="rounded-full font-bold border-border/40 px-6">
-              Hold On
-            </AlertDialogCancel>
-            <Button
-              onClick={handleDeleteBranch}
-              isLoading={isDeleting}
-              className="bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-xl shadow-red-500/20 hover:scale-[1.02] transform transition-all duration-300 rounded-full font-black uppercase tracking-widest text-[11px] px-8"
-            >
-              Confirm Deletion
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteBranchId}
+        onClose={() => setDeleteBranchId(null)}
+        onConfirm={handleDeleteBranch}
+        loading={isDeleting}
+        title="Delete Branch"
+        description="Are you sure you want to delete this branch? This action cannot be undone and all associated data for this specific location will be archived."
+        confirmText="Confirm Deletion"
+        variant="danger"
+      />
     </div>
   );
 };

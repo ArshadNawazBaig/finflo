@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Users, ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
@@ -340,31 +331,16 @@ const Team = () => {
         onSuccess={handleStaffUpdated}
       />
 
-      <AlertDialog
-        open={!!deleteStaffId}
-        onOpenChange={() => setDeleteStaffId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this staff member? This action
-              cannot be undone and they will lose all access immediately.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              onClick={handleDeleteStaff}
-              isLoading={isDeleting}
-              variant="destructive"
-              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110"
-            >
-              Remove Member
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteStaffId}
+        onClose={() => setDeleteStaffId(null)}
+        onConfirm={handleDeleteStaff}
+        loading={isDeleting}
+        title="Remove Team Member"
+        description="Are you sure you want to remove this staff member? This action cannot be undone and they will lose all access immediately."
+        confirmText="Remove Member"
+        variant="danger"
+      />
     </div>
   );
 };

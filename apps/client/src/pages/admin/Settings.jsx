@@ -35,7 +35,6 @@ import {
   QrCode,
   KeyRound,
   UserPlus,
-  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -48,13 +47,7 @@ import {
 } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import ColorPalette from '@/components/ui/ColorPalette';
 
 const Settings = () => {
@@ -1898,7 +1891,6 @@ const Switch = ({ checked, onCheckedChange }) => (
   </button>
 );
 
-// Delete Account Confirmation Modal Component
 const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
   const [confirmText, setConfirmText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1928,73 +1920,36 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
-        {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10 text-center">
-          <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
-              <AlertTriangle className="text-rose-500" size={24} />
-            </div>
-            <DialogTitle className="text-2xl font-black tracking-tight text-rose-500">
-              Irreversible Deletion
-            </DialogTitle>
-            <DialogDescription className="text-sm font-medium pt-2">
-              This action will permanently remove your account and all
-              associated business data.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+    <ConfirmActionModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onConfirm={handleDelete}
+      loading={loading}
+      title="Irreversible Deletion"
+      description="This action will permanently remove your account and all associated business data. This action cannot be undone."
+      confirmText="Confirm Deletion"
+      variant="danger"
+      disabled={confirmText !== 'DELETE'}
+    >
+      <div className="space-y-4 pt-4">
+        <p className="text-center text-xs text-muted-foreground font-medium leading-relaxed bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10">
+          This will permanently remove your portal access and activity history.
+        </p>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          <div className="space-y-6">
-            <p className="text-center text-xs text-muted-foreground font-medium leading-relaxed bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10">
-              This will permanently remove your portal access and activity
-              history. This action{' '}
-              <span className="text-rose-500 font-bold uppercase underline">
-                cannot be undone
-              </span>
-              .
-            </p>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
-                Type <span className="text-rose-500">DELETE</span> to confirm
-              </label>
-              <input
-                type="text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
-                placeholder="DELETE"
-              />
-            </div>
-          </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
+            Type <span className="text-rose-500">DELETE</span> to confirm
+          </label>
+          <input
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+            placeholder="DELETE"
+          />
         </div>
-
-        {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            isLoading={loading}
-            disabled={confirmText !== 'DELETE'}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
-          >
-            Confirm Deletion
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ConfirmActionModal>
   );
 };
 

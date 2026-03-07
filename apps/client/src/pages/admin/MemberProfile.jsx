@@ -765,17 +765,17 @@ const MemberProfile = () => {
         }
         description={
           <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Mail size={14} className="text-primary" />
               {member.email || 'No email provided'}
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <ShieldCheck size={14} className="text-primary" />
               {member.cnic}
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Clock size={14} className="text-primary" />
               Joined {new Date(member.createdAt).toLocaleDateString()}
             </div>

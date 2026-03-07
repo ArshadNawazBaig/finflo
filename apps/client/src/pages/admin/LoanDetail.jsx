@@ -404,7 +404,7 @@ const LoanDetail = () => {
         }
         description={
           <div className="flex gap-4 text-muted-foreground flex-col sm:flex-row items-start sm:items-center">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <User size={14} className="text-primary" />
               {loan.customer?.name}
             </div>
@@ -416,7 +416,7 @@ const LoanDetail = () => {
               </span>
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
-            <div className="flex items-center gap-1.5 text-sm font-medium">
+            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Calendar size={14} className="text-primary" />
               Issued {new Date(loan.startDate).toLocaleDateString()}
             </div>

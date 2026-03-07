@@ -12,16 +12,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TableSearch from '@/components/ui/TableSearch';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import LoanTable from '@/components/loans/LoanTable';
 import LoanCard from '@/components/loans/LoanCard';
 import PageHeader from '@/components/PageHeader';
@@ -382,28 +373,22 @@ const Loans = () => {
         }}
       />
 
-      <AlertDialog open={!!deleteLoan} onOpenChange={() => setDeleteLoan(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Loan</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the loan for{' '}
-              <strong>{deleteLoan?.customer?.name}</strong>? This will also
-              delete all associated repayments. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="bg-gradient-to-r from-red-500 to-destructive text-white shadow-xl shadow-red-500/20 hover:brightness-110 hover:shadow-2xl hover:shadow-red-500/30"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmActionModal
+        isOpen={!!deleteLoan}
+        onClose={() => setDeleteLoan(null)}
+        onConfirm={handleDeleteConfirm}
+        loading={isDeleting}
+        title="Delete Loan"
+        description={
+          <>
+            Are you sure you want to delete the loan for{' '}
+            <strong>{deleteLoan?.customer?.name}</strong>? This will also delete
+            all associated repayments. This action cannot be undone.
+          </>
+        }
+        confirmText="Confirm Deletion"
+        variant="danger"
+      />
     </div>
   );
 };
