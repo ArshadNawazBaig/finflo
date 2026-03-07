@@ -1061,6 +1061,25 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Business Name *
+              </label>
+              <input
+                type="text"
+                placeholder="Enter business name"
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                {...register('businessName', {
+                  required: 'Business name is required',
+                })}
+              />
+              {errors.businessName && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.businessName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                 Email Address *
               </label>
               <input
@@ -1485,42 +1504,6 @@ const ConfigurationSection = ({ user }) => {
             * These defaults are used to calculate estimated EMIs for all new
             loan requests system-wide.
           </p>
-        </div>
-
-        {/* Currency Setting */}
-        <div className="space-y-3 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5">
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-[0.15em] text-foreground">
-              Default Currency
-            </h4>
-            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-              Used across all dashboards, reports, and loan summaries
-              system-wide.
-            </p>
-          </div>
-          <select
-            value={settings.currency}
-            onChange={(e) =>
-              setSettings({ ...settings, currency: e.target.value })
-            }
-            className="w-full max-w-xs px-4 py-2.5 rounded-xl bg-background border border-border/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-          >
-            <option value="Rs.">Pakistani Rupee (Rs.)</option>
-            <option value="$">US Dollar ($)</option>
-            <option value="€">Euro (€)</option>
-            <option value="£">British Pound (£)</option>
-            <option value="¥">Japanese Yen (¥)</option>
-            <option value="₹">Indian Rupee (₹)</option>
-            <option value="৳">Bangladeshi Taka (৳)</option>
-            <option value="₦">Nigerian Naira (₦)</option>
-            <option value="KSh">Kenyan Shilling (KSh)</option>
-            <option value="₱">Philippine Peso (₱)</option>
-            <option value="R$">Brazilian Real (R$)</option>
-            <option value="฿">Thai Baht (฿)</option>
-            <option value="₩">South Korean Won (₩)</option>
-            <option value="AED">UAE Dirham (AED)</option>
-            <option value="SAR">Saudi Riyal (SAR)</option>
-          </select>
         </div>
 
         {/* Super Admin Branding Section */}

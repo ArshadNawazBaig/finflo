@@ -247,6 +247,7 @@ const loginUser = async (req, res) => {
         branchId,
         businessName: user.businessName,
         securityCode: user.securityCode,
+        businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
         currency: user.currency,
         permissions: user.getPermissions(),
@@ -292,6 +293,7 @@ const getMe = async (req, res) => {
         customerCount: user.customerCount,
         businessName: user.businessName,
         securityCode: user.securityCode,
+        businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
         currency: user.currency,
         permissions: user.getPermissions(),
@@ -323,6 +325,7 @@ const updateDetails = async (req, res) => {
   const fieldsToUpdate = {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
+    businessName: req.body.businessName,
     currency: req.body.currency,
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
@@ -610,6 +613,7 @@ const verifyEmail = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        businessAbbreviation: user.businessAbbreviation,
         permissions: user.getPermissions(),
       });
   } catch (error) {
@@ -930,6 +934,7 @@ const verifyLogin2FA = async (req, res) => {
       branchId,
       businessName: user.businessName,
       securityCode: user.securityCode,
+      businessAbbreviation: user.businessAbbreviation,
       profilePicture: user.profilePicture,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
       permissions: user.getPermissions(),
@@ -1153,6 +1158,7 @@ const googleLogin = async (req, res) => {
       branchId,
       businessName: user.businessName,
       securityCode: user.securityCode,
+      businessAbbreviation: user.businessAbbreviation,
       profilePicture: user.profilePicture,
       currency: user.currency,
       permissions: user.getPermissions(),
@@ -1257,6 +1263,7 @@ const googleRegister = async (req, res) => {
       branchId: null,
       businessName: user.businessName,
       securityCode: user.securityCode,
+      businessAbbreviation: user.businessAbbreviation,
       profilePicture: user.profilePicture,
       currency: user.currency,
       permissions: user.getPermissions(),
