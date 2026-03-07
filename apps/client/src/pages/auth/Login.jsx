@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -83,6 +84,70 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    try {
+      const { data: responseData } = await api.post('/auth/google-login', {
+        googleToken: credentialResponse.credential,
+      });
+
+      if (responseData.requires2FA) {
+        setPendingToken(responseData.pendingToken);
+        setRequires2FA(true);
+        setLoading(false);
+        return;
+      }
+
+      if (responseData.mustChangePassword) {
+        localStorage.setItem('user', JSON.stringify(responseData));
+        navigate('/force-password-change');
+        return;
+      }
+
+      localStorage.setItem('user', JSON.stringify(responseData));
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        navigate(redirect);
+        return;
+      }
+
+      if (responseData.role === 'super_admin') {
+        navigate('/super-admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      if (
+        err.response?.status === 404 &&
+        err.response?.data?.requiresRegistration
+      ) {
+        toast.info('Account not found. Please register.');
+        navigate('/register');
+        return;
+      }
+      if (err.response?.data?.notVerified) {
+        toast.info(err.response.data.message);
+        navigate(
+          `/verify-email?email=${encodeURIComponent(err.response.data.email)}`,
+        );
+        return;
+      }
+      setError('root', {
+        message: err.response?.data?.message || 'Google authentication failed',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('root', {
+      message: 'Google Sign-In was unsuccessful. Try again later.',
+    });
   };
 
   const handle2FASubmit = async (e) => {
@@ -274,6 +339,28 @@ const Login = () => {
               </div>
             )}
           </Button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/50"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              shape="pill"
+              size="large"
+              theme="outline"
+              width="100%"
+            />
+          </div>
 
           <div className="text-center pt-4">
             <p className="text-sm text-muted-foreground font-medium">

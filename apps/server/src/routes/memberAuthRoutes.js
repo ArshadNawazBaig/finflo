@@ -19,11 +19,15 @@ const {
   forceChangePassword,
   getOnboardingStatus,
   updateOnboardingStatus,
+  googleLogin,
+  googleRegister,
 } = require('../controllers/memberAuthController');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 
 router.post('/login', loginMember);
+router.post('/google-login', googleLogin);
+router.post('/google-register', googleRegister);
 router.post('/logout', logoutMember);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);

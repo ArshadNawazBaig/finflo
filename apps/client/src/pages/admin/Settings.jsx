@@ -35,6 +35,7 @@ import {
   QrCode,
   KeyRound,
   UserPlus,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -52,6 +53,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import ColorPalette from '@/components/ui/ColorPalette';
 
@@ -305,6 +307,7 @@ const Settings = () => {
                               src={user.profilePicture}
                               alt="Profile"
                               className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
                             />
                           ) : (
                             userInitials
@@ -1011,114 +1014,154 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Name</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent capitalize"
-              {...register('name', { required: 'Name is required' })}
-            />
-            {errors.name && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.name.message}
+      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Edit Profile
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Update your account's public identity and credentials.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <form
+            id="edit-profile-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                placeholder="Enter name"
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all capitalize"
+                {...register('name', { required: 'Name is required' })}
+              />
+              {errors.name && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                placeholder="admin@example.com"
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Invalid email format',
+                  },
+                })}
+              />
+              {errors.email && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Business Abbreviation *
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. MLO"
+                maxLength={4}
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono uppercase tracking-wider"
+                {...register('businessAbbreviation', {
+                  required: 'Business abbreviation is required',
+                  maxLength: { value: 4, message: 'Max 4 characters' },
+                  onChange: (e) => {
+                    e.target.value = e.target.value.slice(0, 4).toUpperCase();
+                  },
+                })}
+              />
+              <p className="px-1 text-[10px] text-muted-foreground font-medium">
+                Max 4 characters. Used as prefix for new account numbers.
               </p>
-            )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Email</label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Invalid email format',
-                },
-              })}
-            />
-            {errors.email && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Business Abbreviation</label>
-            <input
-              type="text"
-              placeholder="e.g. MLO"
-              maxLength={4}
-              className="w-full px-3 py-2 border rounded-md text-foreground bg-transparent font-mono font-bold uppercase tracking-wider"
-              {...register('businessAbbreviation', {
-                required: 'Business abbreviation is required',
-                maxLength: { value: 4, message: 'Max 4 characters' },
-                onChange: (e) => {
-                  e.target.value = e.target.value.slice(0, 4).toUpperCase();
-                },
-              })}
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Max 4 characters. Used as prefix for new account numbers.
-            </p>
-            {errors.businessAbbreviation && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.businessAbbreviation.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Preferred Currency</label>
-            <select
-              className="w-full px-3 py-2 border rounded-md text-foreground flex h-9 bg-transparent"
-              {...register('currency')}
-            >
-              <option value="$">US Dollar ($)</option>
-              <option value="€">Euro (€)</option>
-              <option value="£">British Pound (£)</option>
-              <option value="¥">Japanese Yen (¥)</option>
-              <option value="Rs.">Pakistani Rupee </option>
-              <option value="₹">Indian Rupee (₹)</option>
-              <option value="৳">Bangladeshi Taka (৳)</option>
-              <option value="₦">Nigerian Naira (₦)</option>
-              <option value="KSh">Kenyan Shilling (KSh)</option>
-              <option value="₱">Philippine Peso (₱)</option>
-              <option value="R$">Brazilian Real (R$)</option>
-              <option value="฿">Thai Baht (฿)</option>
-              <option value="₫">Vietnamese Dong (₫)</option>
-              <option value="₩">South Korean Won (₩)</option>
-              <option value="Rp">Indonesian Rupiah (Rp)</option>
-              <option value="RM">Malaysian Ringgit (RM)</option>
-              <option value="A$">Australian Dollar (A$)</option>
-              <option value="C$">Canadian Dollar (C$)</option>
-              <option value="Fr">Swiss Franc (Fr)</option>
-              <option value="AED">UAE Dirham (AED)</option>
-              <option value="SAR">Saudi Riyal (SAR)</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              variant="gradient"
-              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
-            >
-              Save Changes
-            </Button>
-          </div>
-        </form>
+              {errors.businessAbbreviation && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.businessAbbreviation.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Preferred Currency
+              </label>
+              <select
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                {...register('currency')}
+              >
+                <option value="$">US Dollar ($)</option>
+                <option value="€">Euro (€)</option>
+                <option value="£">British Pound (£)</option>
+                <option value="¥">Japanese Yen (¥)</option>
+                <option value="Rs.">Pakistani Rupee </option>
+                <option value="₹">Indian Rupee (₹)</option>
+                <option value="৳">Bangladeshi Taka (৳)</option>
+                <option value="₦">Nigerian Naira (₦)</option>
+                <option value="KSh">Kenyan Shilling (KSh)</option>
+                <option value="₱">Philippine Peso (₱)</option>
+                <option value="R$">Brazilian Real (R$)</option>
+                <option value="฿">Thai Baht (฿)</option>
+                <option value="₫">Vietnamese Dong (₫)</option>
+                <option value="₩">South Korean Won (₩)</option>
+                <option value="Rp">Indonesian Rupiah (Rp)</option>
+                <option value="RM">Malaysian Ringgit (RM)</option>
+                <option value="A$">Australian Dollar (A$)</option>
+                <option value="C$">Canadian Dollar (C$)</option>
+                <option value="Fr">Swiss Franc (Fr)</option>
+                <option value="AED">UAE Dirham (AED)</option>
+                <option value="SAR">Saudi Riyal (SAR)</option>
+              </select>
+            </div>
+          </form>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="edit-profile-form"
+            type="submit"
+            isLoading={loading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            <User size={16} />
+            Save Changes
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1164,82 +1207,119 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {errors.root && (
-            <p className="text-destructive text-xs font-bold bg-destructive/10 border border-destructive/20 p-2 rounded-lg">
-              {errors.root.message}
-            </p>
-          )}
-          <div>
-            <label className="text-sm font-medium">Current Password</label>
-            <PasswordInput
-              className="w-full h-10"
-              {...register('currentPassword', {
-                required: 'Current password is required',
-              })}
-            />
-            {errors.currentPassword && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.currentPassword.message}
-              </p>
+      <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  Security Update
+                </DialogTitle>
+                <DialogDescription className="text-sm font-medium">
+                  Update your credentials to keep your account secure.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <form
+            id="change-password-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
+            {errors.root && (
+              <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 mb-6 italic">
+                {errors.root.message}
+              </div>
             )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">New Password</label>
-            <PasswordInput
-              className="w-full h-10"
-              {...register('newPassword', {
-                required: 'New password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
-                },
-              })}
-            />
-            {errors.newPassword && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.newPassword.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="text-sm font-medium">Confirm New Password</label>
-            <PasswordInput
-              className="w-full h-10"
-              {...register('confirmNewPassword', {
-                required: 'Please confirm your password',
-                validate: (value) =>
-                  value === newPassword || 'Passwords do not match',
-              })}
-            />
-            {errors.confirmNewPassword && (
-              <p className="text-destructive text-[10px] font-bold mt-1 animate-in fade-in slide-in-from-top-1">
-                {errors.confirmNewPassword.message}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              variant="gradient"
-              className="px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest"
-            >
-              Update Password
-            </Button>
-          </div>
-        </form>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Current Password *
+              </label>
+              <PasswordInput
+                className="w-full h-12 px-5 rounded-2xl"
+                {...register('currentPassword', {
+                  required: 'Current password is required',
+                })}
+              />
+              {errors.currentPassword && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.currentPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                New Password *
+              </label>
+              <PasswordInput
+                className="w-full h-12 px-5 rounded-2xl"
+                placeholder="Enter new password"
+                {...register('newPassword', {
+                  required: 'New password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
+                  },
+                })}
+              />
+              {errors.newPassword && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.newPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Confirm New Password *
+              </label>
+              <PasswordInput
+                className="w-full h-12 px-5 rounded-2xl"
+                {...register('confirmNewPassword', {
+                  required: 'Please confirm your password',
+                  validate: (value) =>
+                    value === newPassword || 'Passwords do not match',
+                })}
+              />
+              {errors.confirmNewPassword && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.confirmNewPassword.message}
+                </p>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+          >
+            Cancel
+          </button>
+          <Button
+            form="change-password-form"
+            type="submit"
+            isLoading={loading}
+            variant="gradient"
+            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+          >
+            <Shield size={16} />
+            Update Password
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1849,57 +1929,69 @@ const DeleteAccountConfirmModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[2.5rem] border border-rose-500/20 shadow-2xl shadow-rose-500/10">
-        <DialogHeader>
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
-            <Info className="text-rose-500" size={24} />
-          </div>
-          <DialogTitle className="text-center text-xl font-black tracking-tight text-rose-500">
-            Irreversible Deletion
-          </DialogTitle>
-          <p className="text-center text-xs text-muted-foreground font-medium px-4 pt-2 leading-relaxed">
-            This will permanently remove your account, customers, loans, and all
-            financial history. This action{' '}
-            <span className="text-rose-500 font-bold uppercase underline">
-              cannot be undone
-            </span>
-            .
-          </p>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Fixed Header */}
+        <div className="p-6 border-b bg-background z-10 text-center">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
+              <AlertTriangle className="text-rose-500" size={24} />
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight text-rose-500">
+              Irreversible Deletion
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium pt-2">
+              This action will permanently remove your account and all
+              associated business data.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="space-y-6 pt-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Confirm by typing <span className="text-rose-500">DELETE</span>
-            </label>
-            <input
-              type="text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder="Type DELETE to confirm"
-              className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all font-black uppercase tracking-widest text-center text-rose-600 placeholder:text-rose-500/30"
-            />
-          </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          <div className="space-y-6">
+            <p className="text-center text-xs text-muted-foreground font-medium leading-relaxed bg-rose-500/5 p-4 rounded-2xl border border-rose-500/10">
+              This will permanently remove your portal access and activity
+              history. This action{' '}
+              <span className="text-rose-500 font-bold uppercase underline">
+                cannot be undone
+              </span>
+              .
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 h-12 rounded-2xl border-slate-200 dark:border-slate-800 font-black text-[10px] uppercase tracking-widest"
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              isLoading={loading}
-              disabled={confirmText !== 'DELETE'}
-              className="flex-[2] h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest disabled:opacity-50 transition-all"
-            >
-              Permanently Delete Everything
-            </Button>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-center block">
+                Type <span className="text-rose-500">DELETE</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                className="w-full px-5 py-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 focus:border-rose-500 transition-all text-center font-black uppercase tracking-widest text-rose-600 placeholder:text-rose-500/30"
+                placeholder="DELETE"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="p-6 border-t bg-background z-10 flex flex-col sm:flex-row gap-3">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            isLoading={loading}
+            disabled={confirmText !== 'DELETE'}
+            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+          >
+            Confirm Deletion
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

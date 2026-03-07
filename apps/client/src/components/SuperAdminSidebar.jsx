@@ -226,9 +226,18 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
           >
             <div className="relative shrink-0">
               <div
-                className={`w-10 h-10 rounded-full ${user.profilePicture ? 'bg-primary/10' : 'bg-primary'} flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 ring-primary transition-all duration-500 hover:brightness-110`}
+                className={`w-10 h-10 rounded-full ${user.profilePicture ? 'bg-primary/10 ring-transparent overflow-hidden' : 'bg-primary ring-primary'} flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/30 ring-2 transition-all duration-500 hover:brightness-110`}
               >
-                {userInitials}
+                {user.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={userName}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  userInitials
+                )}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
             </div>

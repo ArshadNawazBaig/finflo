@@ -363,6 +363,7 @@ const Navbar = ({ onMenuClick }) => {
                         src={user.profilePicture}
                         alt="Profile"
                         className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       userInitials

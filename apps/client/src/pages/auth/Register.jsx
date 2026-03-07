@@ -7,6 +7,8 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import { cn, validateEmail, validatePassword } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
+import { toast } from 'sonner';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -52,6 +54,33 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/google-register', {
+        googleToken: credentialResponse.credential,
+      });
+
+      // Auto login on successful register
+      localStorage.setItem('user', JSON.stringify(data));
+
+      toast.success(data.message || 'Registration successful!');
+      navigate('/dashboard');
+    } catch (err) {
+      setError('root', {
+        message: err.response?.data?.message || 'Google registration failed',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('root', {
+      message: 'Google Sign-Up was unsuccessful. Try again later.',
+    });
   };
 
   return (
@@ -175,6 +204,28 @@ const Register = () => {
             </div>
           )}
         </Button>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/50"></div>
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            shape="pill"
+            size="large"
+            theme="outline"
+            width="100%"
+          />
+        </div>
 
         <div className="text-center pt-4">
           <p className="text-sm text-muted-foreground font-medium">

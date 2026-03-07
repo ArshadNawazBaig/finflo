@@ -1,4 +1,6 @@
 const Member = require('../models/Member');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
 const { authenticator } = require('otplib');
@@ -96,6 +98,7 @@ const loginMember = async (req, res) => {
           name: member.name,
           email: member.email,
           role: member.role,
+          profilePicture: member.profilePicture,
           business: member.user,
         });
       }
@@ -115,6 +118,7 @@ const loginMember = async (req, res) => {
         name: member.name,
         email: member.email,
         role: member.role,
+        profilePicture: member.profilePicture,
         mustChangePassword: false,
         business: member.user, // The business this member belongs to
       });
@@ -123,6 +127,262 @@ const loginMember = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Google auth member & get token
+// @route   POST /api/auth/member/google-login
+// @access  Public
+const googleLogin = async (req, res) => {
+  const { googleToken, securityCode } = req.body;
+
+  try {
+    if (!googleToken || !securityCode) {
+      return res.status(400).json({
+        message: 'Please provide Google token and business security code',
+      });
+    }
+
+    const User = require('../models/User');
+    const business = await User.findOne({
+      securityCode: securityCode.toUpperCase(),
+    });
+
+    if (!business) {
+      return res
+        .status(401)
+        .json({ message: 'Invalid business security code' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId, picture: profilePicture } = payload;
+    const emailLower = email.toLowerCase();
+
+    const member = await Member.findOne({
+      user: business._id,
+      $or: [{ email: emailLower }, { googleId }],
+    }).populate('user', 'name businessName securityCode');
+
+    if (!member) {
+      return res.status(404).json({
+        requiresRegistration: true,
+        email: emailLower,
+        name,
+        googleId,
+        profilePicture,
+        message:
+          'Account not found. Additional information required to register.',
+      });
+    }
+
+    if (!member.isActive) {
+      return res
+        .status(403)
+        .json({ message: 'Account is inactive. Contact admin.' });
+    }
+
+    if (!member.googleId) {
+      member.googleId = googleId;
+      member.isGoogleAuth = true;
+      if (!member.profilePicture && profilePicture) {
+        member.profilePicture = profilePicture;
+      }
+      await member.save({ validateBeforeSave: false });
+    }
+
+    if (member.isTwoFactorEnabled) {
+      const pendingToken = jwt.sign(
+        { id: member._id, pending2FA: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '5m' },
+      );
+      return res.json({
+        twoFactorRequired: true,
+        pendingToken,
+        email: member.email,
+      });
+    }
+
+    await Member.findByIdAndUpdate(member._id, { lastLoginAt: new Date() });
+
+    const token = generateToken(member._id);
+
+    await logActivity({
+      userId: member._id,
+      action: 'member_login',
+      category: 'auth',
+      details: `Member logged in via Google: ${member.email}`,
+      req,
+    });
+
+    res.cookie('token', token, cookieOptions).json({
+      token,
+      _id: member._id,
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      profilePicture: member.profilePicture,
+      mustChangePassword: false,
+      business: member.user,
+    });
+  } catch (error) {
+    console.error('Member Google Login Error:', error);
+    res.status(500).json({ message: 'Google authentication failed' });
+  }
+};
+
+// @desc    Register member via Google Auth
+// @route   POST /api/auth/member/google-register
+// @access  Public
+const googleRegister = async (req, res) => {
+  const { googleToken, securityCode, cnic, phone } = req.body;
+
+  try {
+    if (!googleToken || !securityCode || !cnic || !phone) {
+      return res.status(400).json({
+        message:
+          'Please provide all required fields (token, security code, CNIC, phone)',
+      });
+    }
+
+    const User = require('../models/User');
+    const Customer = require('../models/Customer');
+    const businessOwner = await User.findOne({
+      securityCode: securityCode.toUpperCase(),
+      role: 'admin',
+    });
+
+    if (!businessOwner) {
+      return res
+        .status(404)
+        .json({ message: 'Invalid business security code' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId, picture: profilePicture } = payload;
+    const emailLower = email.toLowerCase();
+
+    const existingMember = await Member.findOne({
+      user: businessOwner._id,
+      $or: [{ phone }, { cnic }, { email: emailLower }, { googleId }],
+    });
+
+    if (existingMember) {
+      const conflictField =
+        existingMember.phone === phone
+          ? 'phone number'
+          : existingMember.cnic === cnic
+            ? 'CNIC'
+            : 'email/Google account';
+      return res.status(400).json({
+        message: `A member with this ${conflictField} already exists in this business`,
+      });
+    }
+
+    const member = await Member.create({
+      user: businessOwner._id,
+      name,
+      phone,
+      email: emailLower,
+      cnic,
+      googleId,
+      isGoogleAuth: true,
+      profilePicture,
+      approvalStatus: 'pending',
+      isActive: false,
+    });
+
+    businessOwner.customerCount = (businessOwner.customerCount || 0) + 1;
+    await businessOwner.save();
+
+    try {
+      let customer = await Customer.findOne({
+        user: businessOwner._id,
+        $or: [{ cnic }, { email: emailLower }],
+      });
+
+      if (!customer) {
+        customer = await Customer.create({
+          user: businessOwner._id,
+          name,
+          phone,
+          email: emailLower,
+          cnic,
+          isMember: true,
+          memberId: member._id,
+          profilePicture,
+        });
+      } else {
+        await Customer.findByIdAndUpdate(customer._id, {
+          isMember: true,
+          memberId: member._id,
+        });
+      }
+      await Member.findByIdAndUpdate(member._id, { customer: customer._id });
+    } catch (customerError) {
+      console.error('Auto-create customer error (non-fatal):', customerError);
+    }
+
+    try {
+      const {
+        notifyAdminsOfMemberAction,
+      } = require('../utils/notificationHelper');
+      await notifyAdminsOfMemberAction({
+        title: 'New Member Google Registration Pending',
+        message: `${name} has registered via Google and is awaiting account approval.`,
+        type: 'info',
+        ownerId: businessOwner._id,
+        link: '/members?type=pending',
+        metadata: { memberId: member._id, phone },
+      });
+    } catch (notifError) {
+      console.error(
+        'Failed to notify admins of new Google registration:',
+        notifError,
+      );
+    }
+
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${businessOwner._id.toString()}`).emit(
+          'member:new_registration',
+          { memberId: member._id, name: member.name },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit member:new_registration:',
+        socketErr.message,
+      );
+    }
+
+    await logActivity({
+      userId: businessOwner._id,
+      action: 'member_registration_pending',
+      category: 'admin',
+      details: `New Google self-registration request from ${name}`,
+      metadata: { memberId: member._id, phone },
+      req,
+    });
+
+    res.status(201).json({
+      message:
+        'Registration successful. Your account is pending admin approval.',
+      memberId: member._id,
+    });
+  } catch (error) {
+    console.error('Member Google Register Error:', error);
+    res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
 };
 
@@ -680,6 +940,7 @@ const verifyLogin2FA = async (req, res) => {
       name: member.name,
       email: member.email,
       role: member.role,
+      profilePicture: member.profilePicture,
       business: member.user,
       isTwoFactorEnabled: member.isTwoFactorEnabled,
     });
@@ -795,6 +1056,8 @@ const updateOnboardingStatus = async (req, res) => {
 module.exports = {
   logoutMember,
   loginMember,
+  googleLogin,
+  googleRegister,
   getMe,
   updateDetails,
   uploadProfilePicture,

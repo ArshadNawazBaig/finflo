@@ -22,6 +22,8 @@ const {
   forceChangePassword,
   getOnboardingStatus,
   updateOnboardingStatus,
+  googleLogin,
+  googleRegister,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -32,6 +34,8 @@ const {
 
 router.post('/register', registerValidation, registerUser);
 router.post('/login', loginValidation, loginUser);
+router.post('/google-login', googleLogin);
+router.post('/google-register', googleRegister);
 router.post('/logout', logoutUser);
 router.post('/login/verify-2fa', verifyLogin2FA);
 router.post('/verify-email', verifyEmail);

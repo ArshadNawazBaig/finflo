@@ -34,7 +34,15 @@ const memberSchema = new mongoose.Schema(
       },
     },
     phone: { type: String, required: true },
-    password: { type: String, required: true, minlength: 8 },
+    password: {
+      type: String,
+      required: function () {
+        return !this.isGoogleAuth;
+      },
+      minlength: 8,
+    },
+    googleId: { type: String, sparse: true, unique: true },
+    isGoogleAuth: { type: Boolean, default: false },
     role: {
       type: String,
       default: 'member',
@@ -135,7 +143,7 @@ memberSchema.pre('save', async function () {
     }
   }
 
-  if (!this.isModified('password')) return;
+  if (!this.password || !this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
