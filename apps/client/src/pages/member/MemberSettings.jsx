@@ -79,13 +79,11 @@ const MemberSettings = () => {
         const memberToken = localStorage.getItem('member');
         if (!memberToken) return;
         const { data } = await api.get('/member-auth/me');
-        setMember(data);
         // Merge to preserve the token stored at login — /me doesn't return token
         const existing = JSON.parse(localStorage.getItem('member') || '{}');
-        localStorage.setItem(
-          'member',
-          JSON.stringify({ ...existing, ...data }),
-        );
+        const updatedData = { ...existing, ...data };
+        setMember(updatedData);
+        localStorage.setItem('member', JSON.stringify(updatedData));
       } catch (error) {
         console.error('Failed to fetch member data:', error);
       }
@@ -971,7 +969,8 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         },
       });
       if (data.success) {
-        const updatedMember = { ...member, ...data.data };
+        const existing = JSON.parse(localStorage.getItem('member') || '{}');
+        const updatedMember = { ...existing, ...data.data };
         localStorage.setItem('member', JSON.stringify(updatedMember));
         setMember(updatedMember);
         toast.success('Profile updated successfully');
