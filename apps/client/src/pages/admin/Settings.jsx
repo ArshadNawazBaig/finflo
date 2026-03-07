@@ -50,6 +50,14 @@ import api from '@/lib/axios';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import ColorPalette from '@/components/ui/ColorPalette';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+
 const Settings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme(); // Use Global Theme
 
