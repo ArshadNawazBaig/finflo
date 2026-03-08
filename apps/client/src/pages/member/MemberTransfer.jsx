@@ -1,123 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Send,
   Building2,
-  ArrowRight,
   ArrowDownLeft,
   ArrowUpRight,
   User,
-  CheckCircle2,
   History,
-  Info,
   Wallet,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, cn } from '@/lib/utils';
-
-const BANKS = [
-  {
-    id: 'jazzcash',
-    label: 'JazzCash',
-    type: 'wallet',
-    logo: '/assets/banks/jazzcash.png',
-  },
-  {
-    id: 'easypaisa',
-    label: 'EasyPaisa',
-    type: 'wallet',
-    logo: '/assets/banks/easypaisa.png',
-  },
-  {
-    id: 'nayapay',
-    label: 'NayaPay',
-    type: 'wallet',
-    logo: '/assets/banks/nayapay.png',
-  },
-  {
-    id: 'sadapay',
-    label: 'SadaPay',
-    type: 'wallet',
-    logo: '/assets/banks/sadapay.png',
-  },
-  {
-    id: 'meezan',
-    label: 'Meezan Bank',
-    type: 'bank',
-    logo: '/assets/banks/meezan.png',
-  },
-  { id: 'hbl', label: 'HBL', type: 'bank', logo: '/assets/banks/hbl.png' },
-  {
-    id: 'bankfalah',
-    label: 'Bank Al-Falah',
-    type: 'bank',
-    logo: '/assets/banks/bank-alfalah.png',
-  },
-  {
-    id: 'habibmetro',
-    label: 'Habib Metro',
-    type: 'bank',
-    logo: '/assets/banks/habibmetro.png',
-  },
-  { id: 'nbp', label: 'NBP', type: 'bank', logo: '/assets/banks/nbp.png' },
-  { id: 'ubl', label: 'UBL', type: 'bank', logo: '/assets/banks/ubl.png' },
-  {
-    id: 'soneri',
-    label: 'Soneri Bank',
-    type: 'bank',
-    logo: '/assets/banks/soneri.png',
-  },
-  {
-    id: 'standard-chartered',
-    label: 'SCB',
-    type: 'bank',
-    logo: '/assets/banks/standard-chartered.png',
-  },
-];
+import InternalTransferForm from '@/components/member/InternalTransferForm';
+import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
 
 const MemberTransfer = () => {
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('internal'); // 'internal' | 'external'
 
-  // Internal P2P State
-  const [p2pRecipient, setP2pRecipient] = useState('');
-  const [p2pAmount, setP2pAmount] = useState('');
-  const [p2pNote, setP2pNote] = useState('');
-  const [p2pLoading, setP2pLoading] = useState(false);
-  const [p2pLookupData, setP2pLookupData] = useState(null);
-  const [p2pResults, setP2pResults] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  // External State
-  const [extBank, setExtBank] = useState('');
-  const [extAccount, setExtAccount] = useState('');
-  const [extAccountTitle, setExtAccountTitle] = useState('');
-  const [extAmount, setExtAmount] = useState('');
-  const [extLoading, setExtLoading] = useState(false);
-  const [titleLoading, setTitleLoading] = useState(false);
-  const [isTitleVerified, setIsTitleVerified] = useState(false);
-
   // History State
   const [history, setHistory] = useState([]);
 
   // Fetch Member
-  useEffect(() => {
-    const fetchMember = async () => {
-      try {
-        const { data } = await api.get('/member-auth/me');
-        setMember(data);
-      } catch (error) {
-        toast.error('Failed to load wallet balance.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMember();
+  const fetchMember = useCallback(async () => {
+    try {
+      const { data } = await api.get('/member-auth/me');
+      setMember(data);
+    } catch (error) {
+      toast.error('Failed to load wallet balance.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchMember();
+  }, [fetchMember]);
 
   // Fetch History based on tab
   const fetchHistory = useCallback(async () => {
@@ -141,150 +60,12 @@ const MemberTransfer = () => {
     fetchHistory();
   }, [fetchHistory]);
 
-  // Lookup internal recipient
-  useEffect(() => {
-    const timeout = setTimeout(async () => {
-      if (p2pRecipient.length >= 3) {
-        try {
-          const { data } = await api.get(
-            `/members/portal/lookup?identifier=${p2pRecipient}`,
-          );
-          // Filter out current user
-          const filtered = data.filter((m) => m._id !== member?._id);
-          setP2pResults(filtered);
-          setShowDropdown(filtered.length > 0);
-
-          // Auto-select if exact match found (email or ID)
-          const exactMatch = filtered.find(
-            (m) =>
-              m.email.toLowerCase() === p2pRecipient.toLowerCase() ||
-              m.memberId === p2pRecipient,
-          );
-          if (exactMatch) {
-            setP2pLookupData(exactMatch);
-          }
-        } catch (e) {
-          setP2pResults([]);
-          setShowDropdown(false);
-        }
-      } else {
-        setP2pResults([]);
-        setShowDropdown(false);
-      }
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [p2pRecipient, member]);
-
-  // Lookup External Account Title
-  useEffect(() => {
-    const fetchTitle = async () => {
-      // Basic validation before hitting backend: needs bank and at least 10 chars for ID
-      if (!extBank || extAccount.length < 10) {
-        setIsTitleVerified(false);
-        if (extAccountTitle && isTitleVerified) setExtAccountTitle('');
-        return;
-      }
-
-      setTitleLoading(true);
-      try {
-        const { data } = await api.post('/external-transfers/resolve-title', {
-          bankCode: extBank,
-          accountIdentifier: extAccount,
-        });
-
-        if (data.success && data.accountTitle) {
-          setExtAccountTitle(data.accountTitle);
-          setIsTitleVerified(true);
-          toast.success(`Account Verified: ${data.accountTitle}`);
-        } else {
-          setIsTitleVerified(false);
-          toast.error('Could not verify account title. Please type manually.');
-        }
-      } catch (error) {
-        setIsTitleVerified(false);
-        // We don't block manual entry if the API fails, but we show a warning
-        toast.error(
-          error.response?.data?.message ||
-            'Title verification failed. Proceed with caution.',
-        );
-      } finally {
-        setTitleLoading(false);
-      }
-    };
-
-    const timeout = setTimeout(fetchTitle, 1000); // 1-second debounce
-    return () => clearTimeout(timeout);
-  }, [extAccount, extBank]);
-
-  // Handlers
-  const handleP2PTransfer = async (e) => {
-    e.preventDefault();
-    if (!p2pLookupData) return toast.error('Valid recipient required');
-    if (!p2pAmount || isNaN(p2pAmount) || p2pAmount <= 0)
-      return toast.error('Enter a valid amount');
-    if (p2pAmount > member?.currentBalance)
-      return toast.error('Insufficient funds');
-
-    setP2pLoading(true);
-    try {
-      await api.post('/members/portal/transfer', {
-        recipientId: p2pLookupData._id,
-        amount: parseFloat(p2pAmount),
-        description: p2pNote || `Transfer to ${p2pLookupData.name}`,
-      });
-      toast.success('Transfer sent successfully!');
-      setP2pAmount('');
-      setP2pNote('');
-      setP2pRecipient('');
-      setP2pLookupData(null);
-      // Refresh balance and history
-      const { data } = await api.get('/member-auth/me');
-      setMember(data);
-      fetchHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Transfer failed');
-    } finally {
-      setP2pLoading(false);
-    }
+  const handleSuccess = () => {
+    fetchMember();
+    fetchHistory();
   };
 
-  const handleExternalWithdrawal = async (e) => {
-    e.preventDefault();
-    if (!extBank || !extAccount || !extAccountTitle)
-      return toast.error('All bank details are required');
-    if (!extAmount || isNaN(extAmount) || extAmount <= 0)
-      return toast.error('Enter a valid amount');
-    if (extAmount > member?.currentBalance)
-      return toast.error('Insufficient funds');
-
-    setExtLoading(true);
-    try {
-      const selectedInst = BANKS.find((b) => b.id === extBank);
-      await api.post('/external-transfers', {
-        bankName: selectedInst.label,
-        accountIdentifier: extAccount,
-        accountTitle: extAccountTitle,
-        amount: parseFloat(extAmount),
-        direction: 'send', // Withdrawal out from system
-      });
-      toast.success('Withdrawal request submitted!');
-      setExtAmount('');
-      setExtAccount('');
-      setExtAccountTitle('');
-      setExtBank('');
-      setIsTitleVerified(false);
-      // Refresh balance and history
-      const { data } = await api.get('/member-auth/me');
-      setMember(data);
-      fetchHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Withdrawal failed');
-    } finally {
-      setExtLoading(false);
-    }
-  };
-
-  if (loading) return null; // Wait for skeleton layout implementation or use empty array
+  if (loading) return null;
 
   return (
     <div className="space-y-10 pb-20 w-full animate-in fade-in duration-300">
@@ -322,317 +103,21 @@ const MemberTransfer = () => {
             </button>
           </div>
 
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden w-full flex flex-col">
+          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden w-full flex flex-col min-h-[500px]">
             {/* Background design */}
             <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
               {activeTab === 'internal' ? (
-                <Send size={200} />
+                <User size={200} />
               ) : (
                 <Building2 size={200} />
               )}
             </div>
 
-            <div
-              className={cn(
-                'w-full transition-opacity duration-300',
-                activeTab !== 'internal' && 'hidden',
-              )}
-            >
-              <form
-                onSubmit={handleP2PTransfer}
-                className="space-y-6 relative z-10 w-full"
-              >
-                <div>
-                  <h3 className="text-2xl font-black tracking-tighter">
-                    Send to Member
-                  </h3>
-                  <p className="text-sm font-medium text-muted-foreground mt-1">
-                    Instant, zero-fee transfers between Finflo accounts.
-                  </p>
-                </div>
-
-                <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                      Recipient Email or Finflo ID
-                    </label>
-                    <div className="relative">
-                      <Input
-                        placeholder="Search by Email, ID or CNIC"
-                        className="h-14 rounded-2xl bg-background border-border/50 text-base px-6 shadow-none"
-                        value={p2pRecipient}
-                        onChange={(e) => setP2pRecipient(e.target.value)}
-                        onBlur={() =>
-                          setTimeout(() => setShowDropdown(false), 200)
-                        }
-                        onFocus={() =>
-                          p2pResults.length > 0 && setShowDropdown(true)
-                        }
-                      />
-
-                      {showDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
-                          {p2pResults.map((res) => (
-                            <button
-                              key={res._id}
-                              type="button"
-                              onClick={() => {
-                                setP2pLookupData(res);
-                                setP2pRecipient(res.email);
-                                setShowDropdown(false);
-                              }}
-                              className="w-full px-6 py-4 flex flex-col items-start gap-1 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none"
-                            >
-                              <span className="text-sm font-bold text-foreground capitalize">
-                                {res.name}
-                              </span>
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                                CNIC: {res.cnic || 'N/A'} • {res.memberId}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {p2pLookupData && (
-                      <div className="mx-2 mt-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600">
-                          <CheckCircle2 size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-emerald-600 capitalize">
-                            {p2pLookupData.name}
-                          </p>
-                          <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-widest">
-                            {p2pLookupData.memberId || 'VERIFIED'}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                      Transfer Amount
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
-                        Rs.
-                      </span>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
-                        value={p2pAmount}
-                        onChange={(e) => setP2pAmount(e.target.value)}
-                        min="1"
-                        max={member?.currentBalance || 0}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                      Note (Optional)
-                    </label>
-                    <Input
-                      placeholder="What's this for?"
-                      className="h-14 rounded-2xl bg-background border-border/50 text-sm px-6 shadow-none"
-                      value={p2pNote}
-                      onChange={(e) => setP2pNote(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={p2pLoading || !p2pLookupData || !p2pAmount}
-                  className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl transition-all active:scale-[0.98]"
-                >
-                  {p2pLoading ? 'Processing...' : 'Send Funds Instantly'}
-                  {!p2pLoading && <ArrowRight size={16} />}
-                </Button>
-              </form>
-            </div>
-
-            <div
-              className={cn(
-                'w-full transition-opacity duration-300',
-                activeTab !== 'external' && 'hidden',
-              )}
-            >
-              <form
-                onSubmit={handleExternalWithdrawal}
-                className="space-y-6 relative z-10 w-full"
-              >
-                <div>
-                  <h3 className="text-2xl font-black tracking-tighter">
-                    Withdraw to Bank / Raast
-                  </h3>
-                  <p className="text-sm font-medium text-muted-foreground mt-1">
-                    Transfer funds out to your personal bank account or mobile
-                    wallet.
-                  </p>
-                </div>
-
-                <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                      Destinaton Bank
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {BANKS.map((bank) => (
-                        <button
-                          key={bank.id}
-                          type="button"
-                          onClick={() => setExtBank(bank.id)}
-                          className={cn(
-                            'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all relative overflow-hidden group',
-                            extBank === bank.id
-                              ? 'border-primary bg-primary/10 shadow-sm'
-                              : 'border-border/60 bg-background hover:border-border hover:bg-muted/30',
-                          )}
-                        >
-                          {/* Background Ghost Logo */}
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 opacity-[0.06] pointer-events-none group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-                            <img
-                              src={bank.logo}
-                              alt=""
-                              className="w-full h-full object-contain grayscale"
-                            />
-                          </div>
-
-                          <div
-                            className={cn(
-                              'transition-transform duration-300 w-10 h-10 flex items-center justify-center relative z-10 rounded-md overflow-hidden bg-white/50',
-                              extBank === bank.id
-                                ? 'scale-110 shadow-sm'
-                                : 'grayscale opacity-70',
-                            )}
-                          >
-                            <img
-                              src={bank.logo}
-                              alt={bank.label}
-                              className="w-full h-full object-contain rounded-md"
-                            />
-                          </div>
-                          <span
-                            className={cn(
-                              'text-[10px] font-black uppercase tracking-widest text-center transition-colors relative z-10',
-                              extBank === bank.id
-                                ? 'text-primary'
-                                : 'text-muted-foreground',
-                            )}
-                          >
-                            {bank.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                        IBAN / Raast ID
-                      </label>
-                      <Input
-                        placeholder="PK... or 03..."
-                        className="h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none"
-                        value={extAccount}
-                        onChange={(e) => setExtAccount(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                        Account Title
-                      </label>
-                      <div className="relative">
-                        <Input
-                          placeholder={
-                            titleLoading
-                              ? 'Fetching name...'
-                              : 'Account Holder Name'
-                          }
-                          className={cn(
-                            'h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none uppercase transition-all',
-                            isTitleVerified &&
-                              'border-emerald-500/50 bg-emerald-500/5 text-emerald-600 font-bold',
-                            titleLoading && 'opacity-50',
-                          )}
-                          value={extAccountTitle}
-                          onChange={(e) =>
-                            setExtAccountTitle(e.target.value.toUpperCase())
-                          }
-                          disabled={titleLoading || isTitleVerified}
-                          required
-                        />
-                        {titleLoading && (
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        )}
-                        {isTitleVerified && !titleLoading && (
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
-                            <CheckCircle2 size={16} />
-                          </div>
-                        )}
-                      </div>
-                      {!isTitleVerified &&
-                        !titleLoading &&
-                        extAccount.length >= 10 && (
-                          <p className="text-[10px] text-amber-500 ml-2">
-                            Could not auto-verify. Please ensure the name
-                            exactly matches your bank records.
-                          </p>
-                        )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-                      Withdrawal Amount
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
-                        Rs.
-                      </span>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
-                        value={extAmount}
-                        onChange={(e) => setExtAmount(e.target.value)}
-                        required
-                        min="1"
-                        max={member?.currentBalance || 0}
-                      />
-                    </div>
-                    <p className="text-[10px] font-medium text-muted-foreground ml-2 flex items-center gap-1">
-                      <Info size={12} /> Standard bank processing times apply
-                      (1-2 business days).
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={
-                    extLoading ||
-                    !extBank ||
-                    !extAmount ||
-                    !extAccount ||
-                    !extAccountTitle
-                  }
-                  className="w-full h-14 rounded-2xl bg-foreground text-background hover:bg-neutral-800 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl transition-all active:scale-[0.98]"
-                >
-                  {extLoading ? 'Processing...' : 'Request Bank Withdrawal'}
-                  {!extLoading && <ArrowRight size={16} />}
-                </Button>
-              </form>
-            </div>
+            {activeTab === 'internal' ? (
+              <InternalTransferForm member={member} onSuccess={handleSuccess} />
+            ) : (
+              <BankWithdrawalForm member={member} onSuccess={handleSuccess} />
+            )}
           </div>
         </div>
 
