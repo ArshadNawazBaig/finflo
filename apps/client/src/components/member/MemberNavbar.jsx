@@ -340,19 +340,22 @@ const MemberNavbar = ({ onMenuClick }) => {
                     />
                   </div>
                 </div>
-                <div
-                  className={`w-9 h-9 rounded-full ${member.profilePicture ? 'bg-primary/10' : 'bg-primary'} shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-all duration-500 ring-2 ring-primary overflow-hidden`}
-                >
-                  {member.profilePicture ? (
-                    <img
-                      src={member.profilePicture}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    memberInitials
-                  )}
+                <div className="relative">
+                  <div
+                    className={`w-9 h-9 rounded-full ${member.profilePicture ? 'bg-primary/10' : 'bg-primary'} shadow-lg shadow-primary/20 flex items-center justify-center text-primary-foreground font-black text-sm group-hover:scale-105 transition-all duration-500 ring-2 ring-primary overflow-hidden`}
+                  >
+                    {member.profilePicture ? (
+                      <img
+                        src={member.profilePicture}
+                        alt={member.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      memberInitials
+                    )}
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full shadow-sm" />
                 </div>
               </button>
 
