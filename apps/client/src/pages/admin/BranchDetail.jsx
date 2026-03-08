@@ -1144,6 +1144,7 @@ const BranchDetail = () => {
                         <TransactionCard
                           key={transaction._id}
                           transaction={transaction}
+                          hideType={true}
                         />
                       ))}
                       {/* Infinite Scroll Trigger */}
@@ -1159,6 +1160,7 @@ const BranchDetail = () => {
                         data={ledger}
                         sortBy={ledgerSortBy}
                         sortOrder={ledgerSortOrder}
+                        hideType={true}
                         onSort={(column) => {
                           const newOrder =
                             ledgerSortBy === column && ledgerSortOrder === 'asc'

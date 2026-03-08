@@ -10,7 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-const TransactionCard = ({ transaction }) => {
+const TransactionCard = ({ transaction, hideType = false }) => {
   const isIncome = transaction.type === 'income';
 
   return (
@@ -56,9 +56,11 @@ const TransactionCard = ({ transaction }) => {
             {formatCurrency(transaction.amount)}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-              {transaction.type}
-            </span>
+            {!hideType && (
+              <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                {transaction.type}
+              </span>
+            )}
             <div
               className={cn(
                 'px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest flex items-center gap-1 border leading-none',
