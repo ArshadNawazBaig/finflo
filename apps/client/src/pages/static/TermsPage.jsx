@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Gavel,
 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const TermsPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -58,6 +59,11 @@ const TermsPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground font-sans overflow-x-hidden selection:bg-primary/20">
+      <SEO
+        title="Terms of Service"
+        description="Read the FinFlo Terms of Service. Understand the guidelines, responsibilities, and legal framework of our lending operating system."
+        canonical="/terms"
+      />
       {/* Background Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[70%] h-[70%] bg-emerald-500/5 dark:bg-emerald-500/5 rounded-full blur-[120px] animate-pulse" />

@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Globe,
 } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const PrivacyPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -57,6 +58,11 @@ const PrivacyPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground font-sans overflow-x-hidden selection:bg-primary/20">
+      <SEO
+        title="Privacy Policy"
+        description="Learn how FinFlo secures and protects your financial data. Our privacy policy outlines our commitment to transparency and bank-grade security."
+        canonical="/privacy"
+      />
       {/* Background Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-[120px] animate-pulse" />
