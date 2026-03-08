@@ -314,11 +314,24 @@ const CustomerProfile = () => {
                               Status
                             </div>
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter mt-1 ${
-                                loan.status === 'active'
-                                  ? 'bg-emerald-500/10 text-emerald-500'
-                                  : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
-                              }`}
+                              className={cn(
+                                'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter mt-1 border',
+                                loan.status === 'active' &&
+                                  'bg-blue-500/10 text-blue-500 border-blue-500/20',
+                                loan.status === 'completed' &&
+                                  'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                                loan.status === 'pending' &&
+                                  'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                                loan.status === 'rejected' &&
+                                  'bg-rose-500/10 text-rose-500 border-rose-500/20',
+                                ![
+                                  'active',
+                                  'completed',
+                                  'pending',
+                                  'rejected',
+                                ].includes(loan.status) &&
+                                  'bg-muted/50 text-muted-foreground border-border/50',
+                              )}
                             >
                               {loan.status}
                             </span>

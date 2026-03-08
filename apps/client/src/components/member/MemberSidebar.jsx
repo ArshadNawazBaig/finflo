@@ -12,6 +12,7 @@ import {
   Building2,
   ShieldCheck,
   MessageSquare,
+  Wallet,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -151,6 +152,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
         />
 
         <CategoryHeader label="Finance" isExpanded={isLayoutExpanded} />
+        <NavItem
+          to="/member/wallet"
+          icon={<Wallet size={18} />}
+          active={isActive('/member/wallet')}
+          onboardingId="sidebar-wallet"
+          label="My Wallet"
+          isExpanded={isLayoutExpanded}
+        />
         <NavItem
           to="/member/investments"
           icon={<TrendingUp size={18} />}

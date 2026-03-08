@@ -75,7 +75,7 @@ const MemberActivityCard = ({ activity }) => {
   const style = getStyle(activity.category, activity.type);
 
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all duration-300 group">
+    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[2.5rem] p-6 shadow-sm hover:shadow-md transition-all duration-300 group active:scale-[0.98]">
       <div className="flex justify-between items-start mb-5">
         <div className="flex items-center gap-4">
           <div
@@ -87,21 +87,47 @@ const MemberActivityCard = ({ activity }) => {
             {style.icon}
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-[10px] uppercase tracking-widest text-primary mb-0.5">
+            <span className="font-black text-[9px] uppercase tracking-[0.2em] text-primary/80 mb-1">
               {activity.category || activity.type}
             </span>
-            <span className="font-bold text-sm text-foreground leading-tight">
-              {activity.description ||
-                (activity.type === 'deposit'
-                  ? 'Activity Deposit'
-                  : 'Activity Withdrawal')}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-sm text-foreground leading-tight tracking-tight capitalize">
+                {activity.description ||
+                  (activity.type === 'deposit'
+                    ? 'Activity Deposit'
+                    : 'Activity Withdrawal')}
+              </span>
+              {activity.status && (
+                <div
+                  className={cn(
+                    'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
+                    activity.status === 'Completed' &&
+                      'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                    activity.status === 'Pending' &&
+                      'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                    activity.status === 'Failed' &&
+                      'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'w-1 h-1 rounded-full',
+                      activity.status === 'Completed' && 'bg-emerald-500',
+                      activity.status === 'Pending' &&
+                        'bg-amber-500 animate-pulse',
+                      activity.status === 'Failed' && 'bg-rose-500',
+                    )}
+                  />
+                  {activity.status}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="text-right">
           <div
             className={cn(
-              'font-black text-xl tracking-tighter tabular-nums',
+              'font-black text-xs tracking-tighter tabular-nums',
               style.color,
             )}
           >

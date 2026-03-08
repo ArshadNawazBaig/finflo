@@ -1,1053 +1,643 @@
 import { useState, useEffect, useCallback } from 'react';
-// Force Vite re-bundle: v3
-import { QRCodeSVG } from 'qrcode.react';
 import {
   Send,
-  QrCode,
+  Building2,
   ArrowRight,
-  TrendingUp,
-  Wallet,
   User,
   CheckCircle2,
-  XCircle,
-  Loader2,
-  Phone,
-  Mail,
-  Zap,
-  Building2,
-  ArrowDownLeft,
-  ArrowUpRight,
-  CreditCard,
-  RefreshCw,
-  Copy,
-  ChevronRight,
+  History,
+  Info,
+  Wallet,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, capitalize } from '@/lib/utils';
-import StatsCard from '@/components/StatsCard';
-import QRScanner from '@/components/QRScanner';
-import MemberTransferSkeleton from '@/components/member/MemberTransferSkeleton';
-
-// ── Bank / Wallet directory ───────────────────────────────────────────────────
-const WALLETS = [
-  { id: 'jazzcash', label: 'JazzCash', color: '#D72229', emoji: '📱' },
-  { id: 'easypaisa', label: 'EasyPaisa', color: '#1EA44A', emoji: '💚' },
-  { id: 'nayapay', label: 'NayaPay', color: '#9B5CF6', emoji: '🟣' },
-  { id: 'sadapay', label: 'SadaPay', color: '#E5343D', emoji: '❤️' },
-];
+import { formatCurrency, cn } from '@/lib/utils';
 
 const BANKS = [
-  { id: 'ubl', label: 'UBL', color: '#003087', emoji: '🏦' },
-  { id: 'habibmetro', label: 'Habib Metro', color: '#E2001A', emoji: '🏛️' },
-  { id: 'hbl', label: 'HBL', color: '#00703c', emoji: '🟢' },
-  { id: 'mcb', label: 'MCB', color: '#C8102E', emoji: '🔴' },
-  { id: 'meezan', label: 'Meezan', color: '#00529B', emoji: '🕌' },
-  { id: 'allied', label: 'Allied Bank', color: '#1D3461', emoji: '🏦' },
-  { id: 'bankfalah', label: 'Bank Al-Falah', color: '#005B99', emoji: '🌙' },
-  { id: 'scb', label: 'Standard Ch.', color: '#0F3557', emoji: '💼' },
+  {
+    id: 'jazzcash',
+    label: 'JazzCash',
+    type: 'wallet',
+    logo: '/assets/banks/jazzcash.png',
+  },
+  {
+    id: 'easypaisa',
+    label: 'EasyPaisa',
+    type: 'wallet',
+    logo: '/assets/banks/easypaisa.png',
+  },
+  {
+    id: 'nayapay',
+    label: 'NayaPay',
+    type: 'wallet',
+    logo: '/assets/banks/nayapay.png',
+  },
+  {
+    id: 'sadapay',
+    label: 'SadaPay',
+    type: 'wallet',
+    logo: '/assets/banks/sadapay.png',
+  },
+  {
+    id: 'meezan',
+    label: 'Meezan Bank',
+    type: 'bank',
+    logo: '/assets/banks/meezan.png',
+  },
+  { id: 'hbl', label: 'HBL', type: 'bank', logo: '/assets/banks/hbl.png' },
+  {
+    id: 'bankfalah',
+    label: 'Bank Al-Falah',
+    type: 'bank',
+    logo: '/assets/banks/bank-alfalah.png',
+  },
+  {
+    id: 'habibmetro',
+    label: 'Habib Metro',
+    type: 'bank',
+    logo: '/assets/banks/habibmetro.png',
+  },
+  { id: 'nbp', label: 'NBP', type: 'bank', logo: '/assets/banks/nbp.png' },
+  { id: 'ubl', label: 'UBL', type: 'bank', logo: '/assets/banks/ubl.png' },
+  {
+    id: 'soneri',
+    label: 'Soneri Bank',
+    type: 'bank',
+    logo: '/assets/banks/soneri.png',
+  },
+  {
+    id: 'standard-chartered',
+    label: 'SCB',
+    type: 'bank',
+    logo: '/assets/banks/standard-chartered.png',
+  },
 ];
 
-// ── Tiny helpers ──────────────────────────────────────────────────────────────
-const ALL_INSTITUTIONS = [...WALLETS, ...BANKS];
-
-const getInstitution = (id) => ALL_INSTITUTIONS.find((i) => i.id === id);
-
-const copyToClipboard = (text) => {
-  navigator.clipboard.writeText(text).then(() => toast.success('Copied!'));
-};
-
-// ── Transfer History Row ──────────────────────────────────────────────────────
-const HistoryRow = ({ tx }) => {
-  const inst = getInstitution(
-    tx.bankName?.toLowerCase().replace(/\s/g, ''),
-  ) || { emoji: '🏦', label: tx.bankName, color: '#6366f1' };
-  const isSend = tx.direction === 'send';
-
-  return (
-    <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/40 hover:bg-muted/30 transition-all group">
-      <div className="flex items-center gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm"
-          style={{ backgroundColor: `${inst.color}18` }}
-        >
-          {inst.emoji}
-        </div>
-        <div>
-          <p className="text-xs font-black uppercase tracking-tight">
-            {inst.label}
-          </p>
-          <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[160px]">
-            {tx.accountIdentifier}
-          </p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p
-          className={`text-sm font-black ${isSend ? 'text-destructive' : 'text-emerald-500'}`}
-        >
-          {isSend ? '−' : '+'}
-          {formatCurrency(tx.amount)}
-        </p>
-        <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1 justify-end">
-          {tx.referenceId}
-          <button
-            onClick={() => copyToClipboard(tx.referenceId)}
-            className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-          >
-            <Copy size={9} />
-          </button>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// ── Main Component ────────────────────────────────────────────────────────────
 const MemberTransfer = () => {
-  const [activeTab, setActiveTab] = useState('send'); // 'send' | 'receive' | 'external'
   const [member, setMember] = useState(null);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('internal'); // 'internal' | 'external'
 
-  // --- internal P2P state ---
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [isLookingUp, setIsLookingUp] = useState(false);
-  const [recipientName, setRecipientName] = useState('');
+  // Internal P2P State
+  const [p2pRecipient, setP2pRecipient] = useState('');
+  const [p2pAmount, setP2pAmount] = useState('');
+  const [p2pNote, setP2pNote] = useState('');
+  const [p2pLoading, setP2pLoading] = useState(false);
+  const [p2pLookupData, setP2pLookupData] = useState(null);
+  const [p2pResults, setP2pResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // --- external transfer state ---
-  const [extMode, setExtMode] = useState('send'); // 'send' | 'receive'
-  const [selectedInst, setSelectedInst] = useState(null); // institution id
-  const [extField, setExtField] = useState(''); // IBAN or mobile
-  const [extTitle, setExtTitle] = useState('');
+  // External State
+  const [extBank, setExtBank] = useState('');
+  const [extAccount, setExtAccount] = useState('');
+  const [extAccountTitle, setExtAccountTitle] = useState('');
   const [extAmount, setExtAmount] = useState('');
-  const [extNote, setExtNote] = useState('');
   const [extLoading, setExtLoading] = useState(false);
-  const [extHistory, setExtHistory] = useState([]);
-  const [histLoading, setHistLoading] = useState(false);
-  const [successRef, setSuccessRef] = useState(null);
 
-  // ── Fetch member ─────────────────────────────────────────────────────────
-  const fetchMemberData = useCallback(async () => {
-    try {
-      const memberToken = localStorage.getItem('member');
-      const { data } = await api.get('/member-auth/me', {
-        headers: {
-          /* Auth header handled by browser cookies */
-        },
-      });
-      setMember(data);
-    } catch {
-      toast.error('Failed to load profile');
-    } finally {
-      setPageLoading(false);
-    }
-  }, []);
+  // History State
+  const [history, setHistory] = useState([]);
 
+  // Fetch Member
   useEffect(() => {
-    fetchMemberData();
-  }, [fetchMemberData]);
-
-  // ── Fetch external history when tab is active ─────────────────────────────
-  const fetchExtHistory = useCallback(async () => {
-    setHistLoading(true);
-    try {
-      const memberToken = localStorage.getItem('member');
-      const { data } = await api.get('/external-transfers?limit=8', {
-        headers: {
-          /* Auth header handled by browser cookies */
-        },
-      });
-      setExtHistory(data.data || []);
-    } catch {
-      // silent
-    } finally {
-      setHistLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === 'external') fetchExtHistory();
-  }, [activeTab, fetchExtHistory]);
-
-  // ── Internal P2P lookup ───────────────────────────────────────────────────
-  useEffect(() => {
-    const lookup = async () => {
-      if (recipient && recipient.trim().length >= 3) {
-        setIsLookingUp(true);
-        try {
-          const memberToken = localStorage.getItem('member');
-          const { data } = await api.get(
-            `/members/portal/lookup?identifier=${recipient.trim()}`,
-            {
-              headers: {
-                /* Auth header handled by browser cookies */
-              },
-            },
-          );
-          const filtered = data.filter(
-            (m) => m._id !== member?._id && m.email !== member?.email,
-          );
-          setSearchResults(filtered);
-          const exact = filtered.find(
-            (m) =>
-              m.email?.toLowerCase() === recipient.trim().toLowerCase() ||
-              m.phone?.replace(/\D/g, '') ===
-                recipient.trim().replace(/\D/g, '') ||
-              m.savingAccountNumber?.toLowerCase() ===
-                recipient.trim().toLowerCase() ||
-              m.currentAccountNumber?.toLowerCase() ===
-                recipient.trim().toLowerCase(),
-          );
-          setRecipientName(exact ? exact.name : '');
-        } catch {
-          setSearchResults([]);
-          setRecipientName('');
-        } finally {
-          setIsLookingUp(false);
-        }
-      } else {
-        setSearchResults([]);
-        setRecipientName('');
+    const fetchMember = async () => {
+      try {
+        const { data } = await api.get('/member-auth/me');
+        setMember(data);
+      } catch (error) {
+        toast.error('Failed to load wallet balance.');
+      } finally {
+        setLoading(false);
       }
     };
-    const t = setTimeout(lookup, 400);
-    return () => clearTimeout(t);
-  }, [recipient, member]);
+    fetchMember();
+  }, []);
 
-  // ── Internal P2P submit ───────────────────────────────────────────────────
-  const handleTransfer = async (e) => {
-    if (e) e.preventDefault();
-    if (!recipient || !amount) {
-      toast.error('Please fill in all fields');
-      return;
-    }
+  // Fetch History based on tab
+  const fetchHistory = useCallback(async () => {
     try {
-      setLoading(true);
-      const memberToken = localStorage.getItem('member');
-      await api.post(
-        '/members/portal/transfer',
-        {
-          recipientIdentifier: recipient.trim(),
-          amount: parseFloat(amount),
-          description,
-        },
-        {
-          headers: {
-            /* Auth header handled by browser cookies */
-          },
-        },
-      );
-      toast.success('Transfer successful!');
-      setRecipient('');
-      setAmount('');
-      setDescription('');
-      fetchMemberData();
+      if (activeTab === 'internal') {
+        const { data } = await api.get('/members/portal/activity?limit=5');
+        const p2pOnly = (data.data || []).filter(
+          (tx) => tx.type === 'transfer_send' || tx.type === 'transfer_receive',
+        );
+        setHistory(p2pOnly);
+      } else {
+        const { data } = await api.get('/external-transfers?limit=5');
+        setHistory(data.data || []);
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  // Lookup internal recipient
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (p2pRecipient.length >= 3) {
+        try {
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${p2pRecipient}`,
+          );
+          // Filter out current user
+          const filtered = data.filter((m) => m._id !== member?._id);
+          setP2pResults(filtered);
+          setShowDropdown(filtered.length > 0);
+
+          // Auto-select if exact match found (email or ID)
+          const exactMatch = filtered.find(
+            (m) =>
+              m.email.toLowerCase() === p2pRecipient.toLowerCase() ||
+              m.memberId === p2pRecipient,
+          );
+          if (exactMatch) {
+            setP2pLookupData(exactMatch);
+          }
+        } catch (e) {
+          setP2pResults([]);
+          setShowDropdown(false);
+        }
+      } else {
+        setP2pResults([]);
+        setShowDropdown(false);
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [p2pRecipient, member]);
+
+  // Handlers
+  const handleP2PTransfer = async (e) => {
+    e.preventDefault();
+    if (!p2pLookupData) return toast.error('Valid recipient required');
+    if (!p2pAmount || isNaN(p2pAmount) || p2pAmount <= 0)
+      return toast.error('Enter a valid amount');
+    if (p2pAmount > member?.currentBalance)
+      return toast.error('Insufficient funds');
+
+    setP2pLoading(true);
+    try {
+      await api.post('/members/portal/transfer', {
+        recipientId: p2pLookupData._id,
+        amount: parseFloat(p2pAmount),
+        description: p2pNote || `Transfer to ${p2pLookupData.name}`,
+      });
+      toast.success('Transfer sent successfully!');
+      setP2pAmount('');
+      setP2pNote('');
+      setP2pRecipient('');
+      setP2pLookupData(null);
+      // Refresh balance and history
+      const { data } = await api.get('/member-auth/me');
+      setMember(data);
+      fetchHistory();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Transfer failed');
     } finally {
-      setLoading(false);
+      setP2pLoading(false);
     }
   };
 
-  // ── QR scan ───────────────────────────────────────────────────────────────
-  const handleScanSuccess = (decodedText) => {
-    setRecipient(decodedText.replace('finflow:', ''));
-    setShowScanner(false);
-    toast.success('Member detected!');
-  };
-
-  // ── External transfer submit ───────────────────────────────────────────────
-  const handleExternalSubmit = async (e) => {
+  const handleExternalWithdrawal = async (e) => {
     e.preventDefault();
-    if (!selectedInst || !extField || !extAmount) {
-      toast.error('Please fill in all fields and select a bank/wallet');
-      return;
-    }
-    const inst = getInstitution(selectedInst);
-    const bankType = WALLETS.some((w) => w.id === selectedInst)
-      ? 'wallet'
-      : 'bank';
+    if (!extBank || !extAccount || !extAccountTitle)
+      return toast.error('All bank details are required');
+    if (!extAmount || isNaN(extAmount) || extAmount <= 0)
+      return toast.error('Enter a valid amount');
+    if (extAmount > member?.currentBalance)
+      return toast.error('Insufficient funds');
 
+    setExtLoading(true);
     try {
-      setExtLoading(true);
-      setSuccessRef(null);
-      const memberToken = localStorage.getItem('member');
-      const endpoint =
-        extMode === 'send'
-          ? '/external-transfers'
-          : '/external-transfers/receive';
-      const payload = {
-        bankType,
-        bankName: inst.label,
-        accountIdentifier: extField,
-        accountTitle: extTitle || undefined,
+      const selectedInst = BANKS.find((b) => b.id === extBank);
+      await api.post('/external-transfers', {
+        bankName: selectedInst.label,
+        accountIdentifier: extAccount,
+        accountTitle: extAccountTitle,
         amount: parseFloat(extAmount),
-        description: extNote || undefined,
-      };
-      const { data } = await api.post(endpoint, payload, {
-        headers: {
-          /* Auth header handled by browser cookies */
-        },
+        direction: 'send', // Withdrawal out from system
       });
-      setSuccessRef(data.referenceId);
-      toast.success(
-        extMode === 'send' ? 'Transfer sent!' : 'Incoming transfer recorded!',
-      );
-      setExtField('');
-      setExtTitle('');
+      toast.success('Withdrawal request submitted!');
       setExtAmount('');
-      setExtNote('');
-      setSelectedInst(null);
-      fetchMemberData();
-      fetchExtHistory();
+      setExtAccount('');
+      setExtAccountTitle('');
+      setExtBank('');
+      // Refresh balance and history
+      const { data } = await api.get('/member-auth/me');
+      setMember(data);
+      fetchHistory();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Transfer failed');
+      toast.error(error.response?.data?.message || 'Withdrawal failed');
     } finally {
       setExtLoading(false);
     }
   };
 
-  if (pageLoading) return <MemberTransferSkeleton />;
-
-  if (!member) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
-        <div className="p-6 rounded-3xl bg-destructive/10 text-destructive">
-          <XCircle size={40} strokeWidth={1.5} />
-        </div>
-        <div>
-          <h3 className="text-lg font-black tracking-tight">
-            Failed to load profile
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Could not connect to the server. Please try again.
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setPageLoading(true);
-            fetchMemberData();
-          }}
-          className="px-6 py-3 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  const isWallet = selectedInst
-    ? WALLETS.some((w) => w.id === selectedInst)
-    : false;
-  const selInst = selectedInst ? getInstitution(selectedInst) : null;
+  if (loading) return null; // Wait for skeleton layout implementation or use empty array
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-10 pb-20 w-full animate-in fade-in duration-300">
       <PageHeader
-        title={
-          <>
-            Instant <span className="text-primary">Transfer</span>
-          </>
-        }
-        description="Send funds to any member or external bank — instantly."
+        title="Transfer & Withdraw"
+        description="Send funds to friends or withdraw exactly to your Raast/Bank account."
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Current Balance"
-          amount={formatCurrency(member.currentBalance)}
-          icon={<Wallet size={20} />}
-          color={
-            member.currentBalance < 0
-              ? 'bg-rose-500 shadow-rose-500/20'
-              : 'bg-primary shadow-primary/20'
-          }
-          isGlass
-        />
-        <StatsCard
-          title="Total Sent"
-          amount={formatCurrency(member.totalWithdrawn || 0)}
-          icon={<Send size={20} />}
-          color="bg-indigo-500 shadow-indigo-500/20"
-          isGlass
-        />
-        <StatsCard
-          title="Total Received"
-          amount={formatCurrency(member.totalInvested || 0)}
-          icon={<TrendingUp size={20} />}
-          color="bg-emerald-500 shadow-emerald-500/20"
-          isGlass
-        />
-      </div>
-
-      <div className="max-w-4xl mx-auto w-full space-y-8">
-        {/* ── Tab Switcher (3 tabs) ── */}
-        <div className="flex p-1.5 bg-muted/30 backdrop-blur-xl rounded-[2rem] border border-border/50 w-full max-w-xl mx-auto relative z-10">
-          {[
-            { id: 'send', label: 'Send', icon: <Send size={14} /> },
-            { id: 'receive', label: 'Receive', icon: <QrCode size={14} /> },
-            {
-              id: 'external',
-              label: 'IBFT / Bank',
-              icon: <Building2 size={14} />,
-            },
-          ].map((tab) => (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column - Transfer Controls */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Tabs */}
+          <div className="flex p-1.5 bg-muted/30 rounded-2xl border border-border/40 backdrop-blur-md">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${
-                activeTab === tab.id
-                  ? 'bg-primary text-white shadow-xl shadow-primary/20'
-                  : 'text-muted-foreground hover:bg-muted/50'
-              }`}
+              onClick={() => setActiveTab('internal')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all',
+                activeTab === 'internal'
+                  ? 'bg-background shadow-sm text-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
-              {tab.icon}
-              <span className="hidden sm:inline">{tab.label}</span>
+              <User size={16} /> Finflo Member
             </button>
-          ))}
-        </div>
+            <button
+              onClick={() => setActiveTab('external')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all',
+                activeTab === 'external'
+                  ? 'bg-background shadow-sm text-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Building2 size={16} /> Withdraw To Bank
+            </button>
+          </div>
 
-        {/* ══════════════════════ SEND TAB ══════════════════════ */}
-        {activeTab === 'send' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            {/* Transfer Form */}
-            <div className="bg-card/50 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8 animate-in slide-in-from-left-4 duration-500">
-              <div className="space-y-2">
-                <h3 className="text-xl font-black tracking-tighter">
-                  New Transfer
-                </h3>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Secure fund movement between FinFlo accounts.
-                </p>
-              </div>
+          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm relative overflow-hidden w-full flex flex-col">
+            {/* Background design */}
+            <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+              {activeTab === 'internal' ? (
+                <Send size={200} />
+              ) : (
+                <Building2 size={200} />
+              )}
+            </div>
 
-              <form onSubmit={handleTransfer} className="space-y-6">
-                <div className="space-y-4">
-                  <div className="relative group">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-4 mb-2 block">
-                      Recipient Details
+            <div
+              className={cn(
+                'w-full transition-opacity duration-300',
+                activeTab !== 'internal' && 'hidden',
+              )}
+            >
+              <form
+                onSubmit={handleP2PTransfer}
+                className="space-y-6 relative z-10 w-full"
+              >
+                <div>
+                  <h3 className="text-2xl font-black tracking-tighter">
+                    Send to Member
+                  </h3>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">
+                    Instant, zero-fee transfers between Finflo accounts.
+                  </p>
+                </div>
+
+                <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+                      Recipient Email or Finflo ID
                     </label>
                     <div className="relative">
-                      <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <input
-                        type="text"
-                        value={recipient}
-                        autoComplete="off"
-                        onChange={(e) => {
-                          setRecipient(e.target.value);
-                          setRecipientName('');
-                        }}
-                        placeholder="Email, Phone, or Account Number"
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-black text-sm"
-                        required
+                      <Input
+                        placeholder="Search by Email, ID or CNIC"
+                        className="h-14 rounded-2xl bg-background border-border/50 text-base px-6 shadow-none"
+                        value={p2pRecipient}
+                        onChange={(e) => setP2pRecipient(e.target.value)}
+                        onBlur={() =>
+                          setTimeout(() => setShowDropdown(false), 200)
+                        }
+                        onFocus={() =>
+                          p2pResults.length > 0 && setShowDropdown(true)
+                        }
                       />
-                      {searchResults.length > 0 && !recipientName && (
-                        <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-[2rem] bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl">
-                          {searchResults.map((m) => (
+
+                      {showDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                          {p2pResults.map((res) => (
                             <button
-                              key={m._id}
+                              key={res._id}
                               type="button"
                               onClick={() => {
-                                const id =
-                                  m.savingAccountNumber ||
-                                  m.currentAccountNumber ||
-                                  m.email ||
-                                  m.phone;
-                                setRecipient(id);
-                                setRecipientName(m.name);
-                                setTimeout(() => setSearchResults([]), 100);
+                                setP2pLookupData(res);
+                                setP2pRecipient(res.email);
+                                setShowDropdown(false);
                               }}
-                              className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-muted text-left transition-colors group"
+                              className="w-full px-6 py-4 flex flex-col items-start gap-1 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none"
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                                  <User size={16} />
-                                </div>
-                                <div>
-                                  <p className="text-xs font-black uppercase tracking-tight">
-                                    {m.name}
-                                  </p>
-                                  <p className="text-[10px] text-muted-foreground font-medium">
-                                    {m.savingAccountNumber ||
-                                      m.currentAccountNumber ||
-                                      m.email ||
-                                      m.phone}
-                                  </p>
-                                </div>
-                              </div>
+                              <span className="text-sm font-bold text-foreground capitalize">
+                                {res.name}
+                              </span>
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                                CNIC: {res.cnic || 'N/A'} • {res.memberId}
+                              </span>
                             </button>
                           ))}
                         </div>
                       )}
-                      {!isLookingUp &&
-                        recipient &&
-                        recipient.length >= 3 &&
-                        searchResults.length === 0 &&
-                        !recipientName && (
-                          <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-[2rem] bg-card/90 border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 backdrop-blur-xl">
-                            <div className="flex flex-col items-center gap-2 py-2">
-                              <div className="p-2.5 rounded-xl bg-destructive/10 text-destructive">
-                                <XCircle size={20} />
-                              </div>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                No Member Found
-                              </p>
-                            </div>
-                          </div>
-                        )}
                     </div>
-                    {recipientName && (
-                      <div className="mx-4 mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
-                        <CheckCircle2 size={14} className="shrink-0" />
-                        <span className="text-[10px] font-black uppercase tracking-tighter">
-                          Verified Recipient: {recipientName}
-                        </span>
+
+                    {p2pLookupData && (
+                      <div className="mx-2 mt-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600">
+                          <CheckCircle2 size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-emerald-600 capitalize">
+                            {p2pLookupData.name}
+                          </p>
+                          <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-widest">
+                            {p2pLookupData.memberId || 'VERIFIED'}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    {isLookingUp && !recipientName && (
-                      <p className="text-[9px] text-muted-foreground ml-6 mt-2 flex items-center gap-1.5 animate-pulse">
-                        <Loader2 size={10} className="animate-spin" /> Searching
-                        for member...
-                      </p>
                     )}
                   </div>
 
-                  <div className="relative group">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-4 mb-2 block">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
                       Transfer Amount
                     </label>
                     <div className="relative">
-                      <Zap className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full pl-14 pr-16 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-black text-sm"
-                        required
-                      />
-                      <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        PKR
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
+                        Rs.
                       </span>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
+                        value={p2pAmount}
+                        onChange={(e) => setP2pAmount(e.target.value)}
+                        min="1"
+                        max={member?.currentBalance || 0}
+                      />
                     </div>
                   </div>
 
-                  <div className="relative group">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-4 mb-2 block">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
                       Note (Optional)
                     </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                    <Input
                       placeholder="What's this for?"
-                      className="w-full px-6 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm resize-none"
-                      rows={2}
+                      className="h-14 rounded-2xl bg-background border-border/50 text-sm px-6 shadow-none"
+                      value={p2pNote}
+                      onChange={(e) => setP2pNote(e.target.value)}
                     />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  isLoading={loading}
-                  variant="gradient"
-                  className="w-full h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl"
+                  disabled={p2pLoading || !p2pLookupData || !p2pAmount}
+                  className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl transition-all active:scale-[0.98]"
                 >
-                  <Send size={18} />
-                  Execute Transfer
+                  {p2pLoading ? 'Processing...' : 'Send Funds Instantly'}
+                  {!p2pLoading && <ArrowRight size={16} />}
                 </Button>
               </form>
             </div>
 
-            {/* QR Scanner */}
-            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-              <div
-                onClick={() => setShowScanner(!showScanner)}
-                className={`p-10 rounded-[2.5rem] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-6 group ${
-                  showScanner
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border/50 bg-card/30 hover:bg-muted/20'
-                }`}
+            <div
+              className={cn(
+                'w-full transition-opacity duration-300',
+                activeTab !== 'external' && 'hidden',
+              )}
+            >
+              <form
+                onSubmit={handleExternalWithdrawal}
+                className="space-y-6 relative z-10 w-full"
               >
-                <div
-                  className={`p-6 rounded-3xl transition-all duration-500 ${
-                    showScanner
-                      ? 'bg-primary text-white scale-110'
-                      : 'bg-muted/50 text-muted-foreground group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary'
-                  }`}
-                >
-                  <QrCode size={40} strokeWidth={1.5} />
-                </div>
-                <div className="text-center">
-                  <h4 className="font-black tracking-tight text-lg mb-1">
-                    {showScanner ? 'Scanning...' : 'Scan Member QR'}
-                  </h4>
-                  <p className="text-xs font-medium text-muted-foreground max-w-[200px]">
-                    {showScanner
-                      ? "Point your camera at a member's code"
-                      : 'Instant recipient detection via camera scanner'}
+                <div>
+                  <h3 className="text-2xl font-black tracking-tighter">
+                    Withdraw to Bank / Raast
+                  </h3>
+                  <p className="text-sm font-medium text-muted-foreground mt-1">
+                    Transfer funds out to your personal bank account or mobile
+                    wallet.
                   </p>
                 </div>
-              </div>
-              {showScanner && (
-                <div className="animate-in zoom-in-95 duration-500">
-                  <QRScanner
-                    onScanSuccess={handleScanSuccess}
-                    onScanError={() => {}}
-                  />
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowScanner(false)}
-                    className="w-full mt-4 text-xs font-bold text-muted-foreground"
-                  >
-                    Cancel Scanner
-                  </Button>
+
+                <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+                      Destinaton Bank
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {BANKS.map((bank) => (
+                        <button
+                          key={bank.id}
+                          type="button"
+                          onClick={() => setExtBank(bank.id)}
+                          className={cn(
+                            'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all',
+                            extBank === bank.id
+                              ? 'border-primary bg-primary/10 shadow-sm'
+                              : 'border-border/60 bg-background hover:border-border hover:bg-muted/30',
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              'transition-transform duration-300 w-10 h-10 flex items-center justify-center',
+                              extBank === bank.id
+                                ? 'scale-110'
+                                : 'grayscale opacity-70',
+                            )}
+                          >
+                            <img
+                              src={bank.logo}
+                              alt={bank.label}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              'text-[10px] font-black uppercase tracking-widest text-center transition-colors',
+                              extBank === bank.id
+                                ? 'text-primary'
+                                : 'text-muted-foreground',
+                            )}
+                          >
+                            {bank.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+                        IBAN / Raast ID
+                      </label>
+                      <Input
+                        placeholder="PK... or 03..."
+                        className="h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none"
+                        value={extAccount}
+                        onChange={(e) => setExtAccount(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+                        Account Title
+                      </label>
+                      <Input
+                        placeholder="Account Holder Name"
+                        className="h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none uppercase"
+                        value={extAccountTitle}
+                        onChange={(e) =>
+                          setExtAccountTitle(e.target.value.toUpperCase())
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+                      Withdrawal Amount
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">
+                        Rs.
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="h-16 rounded-2xl bg-background border-border/50 text-xl font-bold pl-16 pr-6 shadow-none"
+                        value={extAmount}
+                        onChange={(e) => setExtAmount(e.target.value)}
+                        required
+                        min="1"
+                        max={member?.currentBalance || 0}
+                      />
+                    </div>
+                    <p className="text-[10px] font-medium text-muted-foreground ml-2 flex items-center gap-1">
+                      <Info size={12} /> Standard bank processing times apply
+                      (1-2 business days).
+                    </p>
+                  </div>
                 </div>
+
+                <Button
+                  type="submit"
+                  disabled={
+                    extLoading ||
+                    !extBank ||
+                    !extAmount ||
+                    !extAccount ||
+                    !extAccountTitle
+                  }
+                  className="w-full h-14 rounded-2xl bg-foreground text-background hover:bg-neutral-800 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl transition-all active:scale-[0.98]"
+                >
+                  {extLoading ? 'Processing...' : 'Request Bank Withdrawal'}
+                  {!extLoading && <ArrowRight size={16} />}
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Balance & Summary */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-8 space-y-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Wallet size={120} />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+              Available Balance
+            </p>
+            <h2 className="text-4xl font-black tracking-tighter text-foreground">
+              {formatCurrency(member?.currentBalance || 0)}
+            </h2>
+            <div className="h-px bg-border/50 w-full my-4!" />
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
+                <span>Daily Limit</span>
+                <span>Rs. 500k</span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
+                <span>Monthly Limit</span>
+                <span>Unlimited</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border/50 rounded-[2.5rem] p-6 space-y-4">
+            <h3 className="text-sm font-black tracking-tight flex items-center gap-2">
+              <History size={16} className="text-muted-foreground" /> Recent{' '}
+              {activeTab === 'internal' ? 'Transfers' : 'Withdrawals'}
+            </h3>
+
+            <div className="space-y-3">
+              {history.length === 0 ? (
+                <div className="p-6 text-center text-xs font-bold text-muted-foreground/50">
+                  No recent activity found.
+                </div>
+              ) : (
+                history.map((item) => (
+                  <div
+                    key={item._id}
+                    className="p-4 rounded-xl bg-muted/20 border border-border/30 flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-black tracking-tight capitalize">
+                          {item.description || item.bankName}
+                        </p>
+                        {item.status && (
+                          <div
+                            className={cn(
+                              'text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
+                              item.status === 'Completed' &&
+                                'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                              item.status === 'Pending' &&
+                                'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                              item.status === 'Failed' &&
+                                'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'w-1 h-1 rounded-full',
+                                item.status === 'Completed' && 'bg-emerald-500',
+                                item.status === 'Pending' &&
+                                  'bg-amber-500 animate-pulse',
+                                item.status === 'Failed' && 'bg-rose-500',
+                              )}
+                            />
+                            {item.status}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[9px] font-bold text-muted-foreground tracking-wider uppercase">
+                        {new Date(
+                          item.date || item.createdAt,
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="text-sm font-black text-rose-500">
+                      -{formatCurrency(item.amount)}
+                    </span>
+                  </div>
+                ))
               )}
             </div>
           </div>
-        )}
-
-        {/* ══════════════════════ RECEIVE TAB ══════════════════════ */}
-        {activeTab === 'receive' && (
-          <div className="max-w-md mx-auto space-y-8 animate-in zoom-in-95 duration-500">
-            <div className="bg-white dark:bg-slate-900 border border-border/50 p-12 rounded-[3rem] shadow-2xl flex flex-col items-center gap-10 text-center relative overflow-hidden">
-              <QrCode className="absolute -right-16 -top-16 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black tracking-tighter">
-                  Your Personal QR
-                </h3>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Show this to others to receive funds instantly.
-                </p>
-              </div>
-              <div className="p-8 bg-white rounded-[2.5rem] shadow-inner border-[12px] border-primary/5">
-                <QRCodeSVG
-                  value={`finflow:${member.savingAccountNumber || member.currentAccountNumber || member.email}`}
-                  size={200}
-                  level="H"
-                  includeMargin={false}
-                  imageSettings={{
-                    src: '/logo.svg',
-                    x: undefined,
-                    y: undefined,
-                    height: 40,
-                    width: 40,
-                    excavate: true,
-                  }}
-                />
-              </div>
-              <div className="space-y-4 w-full">
-                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex flex-col gap-1 items-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Account Number
-                  </span>
-                  <span className="font-black text-primary text-lg tracking-widest">
-                    {member.savingAccountNumber ||
-                      member.currentAccountNumber ||
-                      '—'}
-                  </span>
-                </div>
-                <div className="p-4 rounded-2xl bg-muted/20 border border-border/50 flex flex-col gap-1 items-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Email
-                  </span>
-                  <span className="font-black text-primary text-sm">
-                    {member.email}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <CheckCircle2 size={12} className="text-primary" />
-                  Verified FinFlo Account
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex flex-col items-center gap-3 text-center">
-                <Mail size={20} className="text-indigo-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                  Scan to Email
-                </span>
-              </div>
-              <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 flex flex-col items-center gap-3 text-center">
-                <Phone size={20} className="text-emerald-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                  Instant Receive
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════ IBFT / BANK TAB ══════════════════════ */}
-        {activeTab === 'external' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Send / Receive sub-toggle */}
-            <div className="flex p-1 bg-muted/20 rounded-2xl border border-border/40 w-fit mx-auto gap-1">
-              <button
-                onClick={() => {
-                  setExtMode('send');
-                  setSuccessRef(null);
-                }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  extMode === 'send'
-                    ? 'bg-destructive/90 text-white shadow-md'
-                    : 'text-muted-foreground hover:bg-muted/40'
-                }`}
-              >
-                <ArrowUpRight size={13} /> Send
-              </button>
-              <button
-                onClick={() => {
-                  setExtMode('receive');
-                  setSuccessRef(null);
-                }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  extMode === 'receive'
-                    ? 'bg-emerald-500/90 text-white shadow-md'
-                    : 'text-muted-foreground hover:bg-muted/40'
-                }`}
-              >
-                <ArrowDownLeft size={13} /> Receive
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              {/* Left: Form */}
-              <div className="bg-card/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border/50 space-y-6">
-                <div>
-                  <h3 className="text-lg font-black tracking-tight">
-                    {extMode === 'send'
-                      ? 'Send via Bank / Wallet'
-                      : 'Record Incoming Transfer'}
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground font-medium mt-1">
-                    {extMode === 'send'
-                      ? 'Funds will be deducted from your balance.'
-                      : 'Record money you received and credit your balance.'}
-                  </p>
-                </div>
-
-                {/* Success state */}
-                {successRef && (
-                  <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col gap-2 animate-in zoom-in-95">
-                    <div className="flex items-center gap-2 text-emerald-600">
-                      <CheckCircle2 size={18} />
-                      <span className="text-xs font-black uppercase tracking-tight">
-                        {extMode === 'send'
-                          ? 'Transfer Sent!'
-                          : 'Incoming Recorded!'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between bg-emerald-500/10 rounded-xl px-4 py-2 mt-1">
-                      <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
-                        Reference
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-[11px] text-emerald-700 dark:text-emerald-400 tracking-wider">
-                          {successRef}
-                        </span>
-                        <button
-                          onClick={() => copyToClipboard(successRef)}
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Copy size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleExternalSubmit} className="space-y-5">
-                  {/* STEP 1: Select institution */}
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
-                      1. Select Wallet or Bank
-                    </label>
-
-                    {/* Mobile Wallets */}
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
-                      Mobile Wallets
-                    </p>
-                    <div className="grid grid-cols-4 gap-2 mb-3">
-                      {WALLETS.map((w) => (
-                        <button
-                          key={w.id}
-                          type="button"
-                          onClick={() =>
-                            setSelectedInst(selectedInst === w.id ? null : w.id)
-                          }
-                          className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center ${
-                            selectedInst === w.id
-                              ? 'border-primary bg-primary/8 scale-[1.04] shadow-lg'
-                              : 'border-border/40 bg-muted/10 hover:bg-muted/30 hover:scale-[1.02]'
-                          }`}
-                          style={
-                            selectedInst === w.id
-                              ? {
-                                  borderColor: w.color,
-                                  backgroundColor: `${w.color}12`,
-                                }
-                              : {}
-                          }
-                        >
-                          <span className="text-xl leading-none">
-                            {w.emoji}
-                          </span>
-                          <span className="text-[8px] font-black uppercase tracking-tight leading-tight">
-                            {w.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Banks */}
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
-                      Banks (IBFT)
-                    </p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {BANKS.map((b) => (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() =>
-                            setSelectedInst(selectedInst === b.id ? null : b.id)
-                          }
-                          className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center ${
-                            selectedInst === b.id
-                              ? 'border-primary scale-[1.04] shadow-lg'
-                              : 'border-border/40 bg-muted/10 hover:bg-muted/30 hover:scale-[1.02]'
-                          }`}
-                          style={
-                            selectedInst === b.id
-                              ? {
-                                  borderColor: b.color,
-                                  backgroundColor: `${b.color}12`,
-                                }
-                              : {}
-                          }
-                        >
-                          <span className="text-xl leading-none">
-                            {b.emoji}
-                          </span>
-                          <span className="text-[8px] font-black uppercase tracking-tight leading-tight">
-                            {b.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Selected badge */}
-                    {selInst && (
-                      <div
-                        className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl animate-in fade-in zoom-in-95"
-                        style={{
-                          backgroundColor: `${selInst.color}12`,
-                          border: `1px solid ${selInst.color}30`,
-                        }}
-                      >
-                        <span className="text-base">{selInst.emoji}</span>
-                        <span
-                          className="text-[10px] font-black uppercase tracking-tight"
-                          style={{ color: selInst.color }}
-                        >
-                          {selInst.label} selected
-                        </span>
-                        <CheckCircle2
-                          size={12}
-                          className="ml-auto"
-                          style={{ color: selInst.color }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* STEP 2: Account details */}
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                      2. Account Details
-                    </label>
-
-                    <div className="relative">
-                      {isWallet ? (
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      )}
-                      <input
-                        type="text"
-                        value={extField}
-                        onChange={(e) => setExtField(e.target.value)}
-                        placeholder={
-                          isWallet
-                            ? '03XX-XXXXXXX (Mobile Number)'
-                            : 'PKXX XXXX XXXX XXXX XXXX XXXX (IBAN)'
-                        }
-                        className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm"
-                        required
-                      />
-                    </div>
-
-                    {!isWallet && (
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                          type="text"
-                          value={extTitle}
-                          onChange={(e) => setExtTitle(e.target.value)}
-                          placeholder="Account Title (Optional)"
-                          className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* STEP 3: Amount + Note */}
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                      3. Amount & Note
-                    </label>
-                    <div className="relative">
-                      <Zap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input
-                        type="number"
-                        value={extAmount}
-                        onChange={(e) => setExtAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full pl-10 pr-16 py-3.5 rounded-xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-black text-sm"
-                        required
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        PKR
-                      </span>
-                    </div>
-                    <textarea
-                      value={extNote}
-                      onChange={(e) => setExtNote(e.target.value)}
-                      placeholder="Note (optional)"
-                      className="w-full px-4 py-3.5 rounded-xl bg-muted/20 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm resize-none"
-                      rows={2}
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    isLoading={extLoading}
-                    className={`w-full h-12 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all ${
-                      extMode === 'send'
-                        ? 'bg-destructive hover:bg-destructive/90 text-white'
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                    }`}
-                  >
-                    {extMode === 'send' ? (
-                      <>
-                        <ArrowUpRight size={16} />
-                        Send{' '}
-                        {extAmount
-                          ? formatCurrency(parseFloat(extAmount) || 0)
-                          : 'PKR'}
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDownLeft size={16} />
-                        Record Incoming
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </div>
-
-              {/* Right: Transfer History */}
-              <div className="space-y-4 animate-in slide-in-from-right-4 duration-500">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
-                    Recent External Transfers
-                  </h4>
-                  <button
-                    onClick={fetchExtHistory}
-                    className="p-2 rounded-xl hover:bg-muted/40 text-muted-foreground transition-colors"
-                  >
-                    <RefreshCw
-                      size={13}
-                      className={histLoading ? 'animate-spin' : ''}
-                    />
-                  </button>
-                </div>
-
-                {histLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-16 rounded-2xl bg-muted/20 animate-pulse"
-                      />
-                    ))}
-                  </div>
-                ) : extHistory.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-4 py-16 text-center rounded-[2.5rem] border-2 border-dashed border-border/40">
-                    <div className="p-5 rounded-3xl bg-muted/30">
-                      <Building2
-                        size={28}
-                        className="text-muted-foreground/50"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        No transfers yet
-                      </p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-1">
-                        Your IBFT & wallet history will appear here
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {extHistory.map((tx) => (
-                      <HistoryRow key={tx._id} tx={tx} />
-                    ))}
-                  </div>
-                )}
-
-                {/* Mini info cards */}
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col gap-1">
-                    <ArrowUpRight size={16} className="text-amber-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                      Sent
-                    </span>
-                    <span className="text-sm font-black text-amber-500">
-                      {formatCurrency(
-                        extHistory
-                          .filter((t) => t.direction === 'send')
-                          .reduce((s, t) => s + t.amount, 0),
-                      )}
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-1">
-                    <ArrowDownLeft size={16} className="text-emerald-500" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                      Received
-                    </span>
-                    <span className="text-sm font-black text-emerald-500">
-                      {formatCurrency(
-                        extHistory
-                          .filter((t) => t.direction === 'receive')
-                          .reduce((s, t) => s + t.amount, 0),
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -22,6 +22,11 @@ const investmentSchema = new mongoose.Schema(
       required: true,
     },
     amount: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
+    },
     date: { type: Date, default: Date.now },
     description: { type: String },
     balanceAfter: { type: Number }, // Member's balance after this transaction

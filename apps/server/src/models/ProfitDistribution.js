@@ -28,8 +28,8 @@ const profitDistributionSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ['pending', 'paid'],
-      default: 'paid',
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
     },
   },
   { timestamps: true },

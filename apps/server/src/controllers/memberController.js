@@ -23,6 +23,7 @@ const {
   uploadSignature,
 } = require('../utils/cloudinaryHelper');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
+const raastService = require('../services/raastService');
 const {
   transactionEmail,
   memberApprovalEmail,
@@ -1534,6 +1535,54 @@ const distributeProfit = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Initiate a Raast P2M Deposit via Bank API
+ * @route   POST /api/members/portal/raast-deposit
+ * @access  Private (Member)
+ */
+const initiateRaastDeposit = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const memberId = req.member._id;
+    const userId = req.member.user;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Invalid deposit amount' });
+    }
+
+    // 1. Create a "Pending" Investment record that the Webhook will finalize
+    const pendingInvestment = await Investment.create({
+      user: userId,
+      member: memberId,
+      branchId: req.member.branchId,
+      type: 'deposit',
+      amount,
+      description: 'Wallet deposit via Raast',
+      balanceAfter: req.member.currentBalance,
+      status: 'Pending',
+      metadata: {
+        method: 'Raast P2M',
+        raastStatus: 'PENDING',
+      },
+    });
+
+    // 2. Generate the Raast QR / Intent via Service
+    const raastResponse = await raastService.generateDynamicQR(
+      amount,
+      pendingInvestment._id.toString(),
+    );
+
+    res.status(200).json({
+      success: true,
+      data: raastResponse, // Contains qrCode or intentUrl
+      investmentId: pendingInvestment._id,
+    });
+  } catch (error) {
+    console.error('Initiate Raast Deposit Error:', error);
+    res.status(500).json({ message: 'Failed to initiate Raast deposit' });
+  }
+};
+
 // @desc    Get all activity for a member (Investments, Profits, Repayments, Goals)
 // @route   GET /api/members/portal/activity
 // @access  Private (Member)
@@ -1596,6 +1645,7 @@ const getMemberActivity = async (req, res) => {
               : i.type === 'transfer_send'
                 ? 'P2P Fund Transfer (Sent)'
                 : 'P2P Fund Transfer (Received)'),
+        status: i.status || 'Completed',
         metadata: { ...i.metadata, balanceAfter: i.balanceAfter },
       };
     });
@@ -1716,10 +1766,14 @@ const getMemberActivity = async (req, res) => {
  * @access  Private (Member)
  */
 const transferFunds = async (req, res) => {
-  const { recipientIdentifier, amount, description } = req.body;
+  const { recipientId, recipientIdentifier, amount, description } = req.body;
   const senderId = req.member._id;
 
-  if (!recipientIdentifier || !amount || parseFloat(amount) <= 0) {
+  if (
+    (!recipientId && !recipientIdentifier) ||
+    !amount ||
+    parseFloat(amount) <= 0
+  ) {
     return res.status(400).json({ message: 'Invalid recipient or amount' });
   }
 
@@ -1739,24 +1793,29 @@ const transferFunds = async (req, res) => {
       throw new Error('Insufficient balance');
     }
 
-    // Find recipient by email, phone, or account numbers
-    console.log('Finding recipient for:', recipientIdentifier);
-    const recipient = await Member.findOne({
-      $or: [
-        { email: recipientIdentifier.toLowerCase() },
-        { phone: recipientIdentifier },
-        {
-          savingAccountNumber: {
-            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+    // Find recipient by ID, email, phone, or account numbers
+    let recipient;
+    if (recipientId) {
+      recipient = await Member.findById(recipientId).session(session);
+    } else {
+      console.log('Finding recipient for:', recipientIdentifier);
+      recipient = await Member.findOne({
+        $or: [
+          { email: recipientIdentifier.toLowerCase() },
+          { phone: recipientIdentifier },
+          {
+            savingAccountNumber: {
+              $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+            },
           },
-        },
-        {
-          currentAccountNumber: {
-            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+          {
+            currentAccountNumber: {
+              $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
+            },
           },
-        },
-      ],
-    }).session(session);
+        ],
+      }).session(session);
+    }
 
     if (!recipient) {
       throw new Error('Recipient not found');
@@ -2227,7 +2286,9 @@ const lookupMember = async (req, res) => {
       user: effectiveOwnerId,
       $or: orConditions,
     })
-      .select('name email phone savingAccountNumber currentAccountNumber')
+      .select(
+        'name email phone cnic memberId savingAccountNumber currentAccountNumber',
+      )
       .limit(6);
 
     res.json(members);
@@ -3285,4 +3346,5 @@ module.exports = {
   getAllDistributions,
   selfRegister,
   updateApprovalStatus,
+  initiateRaastDeposit,
 };

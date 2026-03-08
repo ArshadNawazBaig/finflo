@@ -225,6 +225,10 @@ const MemberSettings = withSkeleton(
   () => import('@/pages/member/MemberSettings'),
   SettingsPageSkeleton,
 );
+const MemberWallet = withSkeleton(
+  () => import('@/pages/member/MemberWallet'),
+  DashboardSkeleton,
+);
 const MemberInvestment = withSkeleton(
   () => import('@/pages/member/MemberInvestment'),
   CardsPageSkeleton,
@@ -517,6 +521,7 @@ function App() {
                     element={<MemberTransactions />}
                   />
                   <Route path="/member/transfer" element={<MemberTransfer />} />
+                  <Route path="/member/wallet" element={<MemberWallet />} />
                   <Route
                     path="/member/investments"
                     element={<MemberInvestment />}

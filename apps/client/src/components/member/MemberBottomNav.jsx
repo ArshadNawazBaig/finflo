@@ -38,6 +38,11 @@ const MemberBottomNav = () => {
       path: '/member/transactions',
     },
     {
+      icon: <WalletMinimal size={20} />,
+      label: 'Wallet',
+      path: '/member/wallet',
+    },
+    {
       icon: <TrendingUp size={20} />,
       label: 'Assets',
       path: '/member/investments',

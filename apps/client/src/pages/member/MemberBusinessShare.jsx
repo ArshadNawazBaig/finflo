@@ -74,11 +74,15 @@ const MemberBusinessShare = () => {
           api.get(
             `/members/portal/shares?page=${pageToFetch}&limit=${limit}&search=${search}`,
             {
-              headers: { /* Auth header handled by browser cookies */ },
+              headers: {
+                /* Auth header handled by browser cookies */
+              },
             },
           ),
           api.get('/member-auth/me', {
-            headers: { /* Auth header handled by browser cookies */ },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           }),
         ]);
 
@@ -301,8 +305,34 @@ const MemberBusinessShare = () => {
                                 )}
                               </div>
                               <div>
-                                <h4 className="font-bold text-lg tracking-tight capitalize">
+                                <h4 className="font-bold text-lg tracking-tight capitalize flex items-center gap-2">
                                   {item.description}
+                                  {item.status && (
+                                    <div
+                                      className={cn(
+                                        'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1.5 border leading-none transition-all',
+                                        item.status === 'Completed' &&
+                                          'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                        item.status === 'Pending' &&
+                                          'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                        item.status === 'Failed' &&
+                                          'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          'w-1 h-1 rounded-full',
+                                          item.status === 'Completed' &&
+                                            'bg-emerald-500',
+                                          item.status === 'Pending' &&
+                                            'bg-amber-500 animate-pulse',
+                                          item.status === 'Failed' &&
+                                            'bg-rose-500',
+                                        )}
+                                      />
+                                      {item.status}
+                                    </div>
+                                  )}
                                 </h4>
                                 <div className="flex items-center gap-3 mt-1">
                                   <p
@@ -342,7 +372,8 @@ const MemberBusinessShare = () => {
                               </p>
                               {item.shareBalanceAfter != null && (
                                 <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                                  Share: {formatCurrency(item.shareBalanceAfter)}
+                                  Share:{' '}
+                                  {formatCurrency(item.shareBalanceAfter)}
                                 </p>
                               )}
                             </div>

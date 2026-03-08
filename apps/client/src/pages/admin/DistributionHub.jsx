@@ -15,7 +15,7 @@ import StatsCard from '@/components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import DistributeProfitModal from '@/components/DistributeProfitModal';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -217,6 +217,9 @@ const DistributionHub = () => {
                   <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Date
                   </th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -283,6 +286,30 @@ const DistributionHub = () => {
                           {formatDate(dist.date)}
                         </div>
                       </td>
+                      <td className="px-8 py-5">
+                        <div
+                          className={cn(
+                            'text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md inline-flex items-center gap-1.5 border leading-none',
+                            dist.status === 'Completed' &&
+                              'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                            dist.status === 'Pending' &&
+                              'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                            dist.status === 'Failed' &&
+                              'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              dist.status === 'Completed' && 'bg-emerald-500',
+                              dist.status === 'Pending' &&
+                                'bg-amber-500 animate-pulse',
+                              dist.status === 'Failed' && 'bg-rose-500',
+                            )}
+                          />
+                          {dist.status || 'Completed'}
+                        </div>
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -333,11 +360,26 @@ const DistributionHub = () => {
                         </div>
                       </div>
                     </div>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-emerald-500/10 text-emerald-500'}`}
-                    >
-                      {dist.type === 'share' ? 'Share' : 'Regular'}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${dist.type === 'share' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-emerald-500/10 text-emerald-500'}`}
+                      >
+                        {dist.type === 'share' ? 'Share' : 'Regular'}
+                      </span>
+                      <div
+                        className={cn(
+                          'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none',
+                          dist.status === 'Completed' &&
+                            'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                          dist.status === 'Pending' &&
+                            'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                          dist.status === 'Failed' &&
+                            'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                        )}
+                      >
+                        {dist.status || 'Completed'}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-end">

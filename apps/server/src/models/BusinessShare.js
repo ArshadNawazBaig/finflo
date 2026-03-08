@@ -22,6 +22,11 @@ const businessShareSchema = new mongoose.Schema(
       required: true,
     },
     amount: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
+    },
     description: { type: String },
     shareBalanceAfter: { type: Number }, // Member's share balance after this transaction
     period: { type: String }, // e.g. "Feb 2026" — used for profit entries

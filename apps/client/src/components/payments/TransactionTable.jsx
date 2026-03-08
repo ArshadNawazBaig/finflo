@@ -50,6 +50,9 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                 </div>
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Status
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
               </th>
             </tr>
@@ -133,6 +136,31 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                   >
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div
+                    className={cn(
+                      'px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border w-fit leading-none',
+                      (transaction.status || 'Completed') === 'Completed' &&
+                        'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                      transaction.status === 'Pending' &&
+                        'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                      transaction.status === 'Failed' &&
+                        'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full',
+                        (transaction.status || 'Completed') === 'Completed' &&
+                          'bg-emerald-500',
+                        transaction.status === 'Pending' &&
+                          'bg-amber-500 animate-pulse',
+                        transaction.status === 'Failed' && 'bg-rose-500',
+                      )}
+                    />
+                    {transaction.status || 'Completed'}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">

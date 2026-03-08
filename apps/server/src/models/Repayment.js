@@ -14,6 +14,11 @@ const repaymentSchema = new mongoose.Schema(
     principalAmount: { type: Number, default: 0 },
     installmentNumber: { type: Number },
     date: { type: Date, default: Date.now },
+    status: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
+    },
     branchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',

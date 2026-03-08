@@ -76,7 +76,7 @@ const initiateExternalTransfer = async (req, res) => {
           accountTitle,
           amount: transferAmount,
           description: description || `Transfer to ${bankName}`,
-          status: 'completed',
+          status: 'Completed',
           balanceAfter: updatedMember.currentBalance,
         },
       ],

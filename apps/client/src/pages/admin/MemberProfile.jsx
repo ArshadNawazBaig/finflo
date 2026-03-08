@@ -35,7 +35,7 @@ import {
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import api from '@/lib/axios';
-import { formatCurrency, capitalize, formatCNIC } from '@/lib/utils';
+import { formatCurrency, capitalize, formatCNIC, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import jsPDF from 'jspdf';
@@ -1710,6 +1710,31 @@ const MemberProfile = () => {
                             <Calendar size={10} />
                             {new Date(inv.date).toLocaleDateString()}
                           </div>
+                          {inv.status && (
+                            <div
+                              className={cn(
+                                'text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border leading-none',
+                                inv.status === 'Completed' &&
+                                  'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                inv.status === 'Pending' &&
+                                  'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                inv.status === 'Failed' &&
+                                  'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  'w-1 h-1 rounded-full',
+                                  inv.status === 'Completed' &&
+                                    'bg-emerald-500',
+                                  inv.status === 'Pending' &&
+                                    'bg-amber-500 animate-pulse',
+                                  inv.status === 'Failed' && 'bg-rose-500',
+                                )}
+                              />
+                              {inv.status}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2215,12 +2240,39 @@ const MemberProfile = () => {
                             <p className="text-sm font-black">
                               {s.description || label}
                             </p>
-                            <p
-                              className={`text-[10px] font-black uppercase tracking-widest ${color}`}
-                            >
-                              {label}
-                              {s.period ? ` · ${s.period}` : ''}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p
+                                className={`text-[10px] font-black uppercase tracking-widest ${color}`}
+                              >
+                                {label}
+                                {s.period ? ` · ${s.period}` : ''}
+                              </p>
+                              {s.status && (
+                                <div
+                                  className={cn(
+                                    'text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border leading-none',
+                                    s.status === 'Completed' &&
+                                      'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                    s.status === 'Pending' &&
+                                      'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                    s.status === 'Failed' &&
+                                      'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                                  )}
+                                >
+                                  <span
+                                    className={cn(
+                                      'w-0.5 h-0.5 rounded-full',
+                                      s.status === 'Completed' &&
+                                        'bg-emerald-500',
+                                      s.status === 'Pending' &&
+                                        'bg-amber-500 animate-pulse',
+                                      s.status === 'Failed' && 'bg-rose-500',
+                                    )}
+                                  />
+                                  {s.status}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">

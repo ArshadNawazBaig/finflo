@@ -42,6 +42,11 @@ const financialTransactionSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    status: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
+    },
     description: {
       type: String,
     },

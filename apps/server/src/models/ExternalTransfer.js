@@ -46,8 +46,8 @@ const externalTransferSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['completed', 'failed'],
-      default: 'completed',
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'Completed',
     },
     referenceId: {
       type: String,
