@@ -3,6 +3,8 @@ import {
   Send,
   Building2,
   ArrowRight,
+  ArrowDownLeft,
+  ArrowUpRight,
   User,
   CheckCircle2,
   History,
@@ -96,6 +98,8 @@ const MemberTransfer = () => {
   const [extAccountTitle, setExtAccountTitle] = useState('');
   const [extAmount, setExtAmount] = useState('');
   const [extLoading, setExtLoading] = useState(false);
+  const [titleLoading, setTitleLoading] = useState(false);
+  const [isTitleVerified, setIsTitleVerified] = useState(false);
 
   // History State
   const [history, setHistory] = useState([]);
@@ -171,6 +175,47 @@ const MemberTransfer = () => {
     return () => clearTimeout(timeout);
   }, [p2pRecipient, member]);
 
+  // Lookup External Account Title
+  useEffect(() => {
+    const fetchTitle = async () => {
+      // Basic validation before hitting backend: needs bank and at least 10 chars for ID
+      if (!extBank || extAccount.length < 10) {
+        setIsTitleVerified(false);
+        if (extAccountTitle && isTitleVerified) setExtAccountTitle('');
+        return;
+      }
+
+      setTitleLoading(true);
+      try {
+        const { data } = await api.post('/external-transfers/resolve-title', {
+          bankCode: extBank,
+          accountIdentifier: extAccount,
+        });
+
+        if (data.success && data.accountTitle) {
+          setExtAccountTitle(data.accountTitle);
+          setIsTitleVerified(true);
+          toast.success(`Account Verified: ${data.accountTitle}`);
+        } else {
+          setIsTitleVerified(false);
+          toast.error('Could not verify account title. Please type manually.');
+        }
+      } catch (error) {
+        setIsTitleVerified(false);
+        // We don't block manual entry if the API fails, but we show a warning
+        toast.error(
+          error.response?.data?.message ||
+            'Title verification failed. Proceed with caution.',
+        );
+      } finally {
+        setTitleLoading(false);
+      }
+    };
+
+    const timeout = setTimeout(fetchTitle, 1000); // 1-second debounce
+    return () => clearTimeout(timeout);
+  }, [extAccount, extBank]);
+
   // Handlers
   const handleP2PTransfer = async (e) => {
     e.preventDefault();
@@ -227,6 +272,7 @@ const MemberTransfer = () => {
       setExtAccount('');
       setExtAccountTitle('');
       setExtBank('');
+      setIsTitleVerified(false);
       // Refresh balance and history
       const { data } = await api.get('/member-auth/me');
       setMember(data);
@@ -442,29 +488,38 @@ const MemberTransfer = () => {
                           type="button"
                           onClick={() => setExtBank(bank.id)}
                           className={cn(
-                            'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all',
+                            'p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 transition-all relative overflow-hidden group',
                             extBank === bank.id
                               ? 'border-primary bg-primary/10 shadow-sm'
                               : 'border-border/60 bg-background hover:border-border hover:bg-muted/30',
                           )}
                         >
+                          {/* Background Ghost Logo */}
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 opacity-[0.06] pointer-events-none group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+                            <img
+                              src={bank.logo}
+                              alt=""
+                              className="w-full h-full object-contain grayscale"
+                            />
+                          </div>
+
                           <div
                             className={cn(
-                              'transition-transform duration-300 w-10 h-10 flex items-center justify-center',
+                              'transition-transform duration-300 w-10 h-10 flex items-center justify-center relative z-10 rounded-md overflow-hidden bg-white/50',
                               extBank === bank.id
-                                ? 'scale-110'
+                                ? 'scale-110 shadow-sm'
                                 : 'grayscale opacity-70',
                             )}
                           >
                             <img
                               src={bank.logo}
                               alt={bank.label}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain rounded-md"
                             />
                           </div>
                           <span
                             className={cn(
-                              'text-[10px] font-black uppercase tracking-widest text-center transition-colors',
+                              'text-[10px] font-black uppercase tracking-widest text-center transition-colors relative z-10',
                               extBank === bank.id
                                 ? 'text-primary'
                                 : 'text-muted-foreground',
@@ -494,15 +549,45 @@ const MemberTransfer = () => {
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
                         Account Title
                       </label>
-                      <Input
-                        placeholder="Account Holder Name"
-                        className="h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none uppercase"
-                        value={extAccountTitle}
-                        onChange={(e) =>
-                          setExtAccountTitle(e.target.value.toUpperCase())
-                        }
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder={
+                            titleLoading
+                              ? 'Fetching name...'
+                              : 'Account Holder Name'
+                          }
+                          className={cn(
+                            'h-14 rounded-2xl bg-background border-border/50 px-6 shadow-none uppercase transition-all',
+                            isTitleVerified &&
+                              'border-emerald-500/50 bg-emerald-500/5 text-emerald-600 font-bold',
+                            titleLoading && 'opacity-50',
+                          )}
+                          value={extAccountTitle}
+                          onChange={(e) =>
+                            setExtAccountTitle(e.target.value.toUpperCase())
+                          }
+                          disabled={titleLoading || isTitleVerified}
+                          required
+                        />
+                        {titleLoading && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                        {isTitleVerified && !titleLoading && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
+                            <CheckCircle2 size={16} />
+                          </div>
+                        )}
+                      </div>
+                      {!isTitleVerified &&
+                        !titleLoading &&
+                        extAccount.length >= 10 && (
+                          <p className="text-[10px] text-amber-500 ml-2">
+                            Could not auto-verify. Please ensure the name
+                            exactly matches your bank records.
+                          </p>
+                        )}
                     </div>
                   </div>
 
@@ -591,47 +676,93 @@ const MemberTransfer = () => {
                 history.map((item) => (
                   <div
                     key={item._id}
-                    className="p-4 rounded-xl bg-muted/20 border border-border/30 flex items-center justify-between"
+                    className="p-4 rounded-xl bg-muted/20 border border-border/30 flex flex-col"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-black tracking-tight capitalize">
-                          {item.description || item.bankName}
-                        </p>
-                        {item.status && (
-                          <div
+                    {/* Top Row: Title (Left) & Status (Right) */}
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-xs font-black tracking-tight capitalize leading-tight">
+                        {item.description || item.bankName}
+                      </p>
+                      {item.status && (
+                        <div
+                          className={cn(
+                            'shrink-0 text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
+                            item.status === 'Completed' &&
+                              'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                            item.status === 'Pending' &&
+                              'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                            item.status === 'Failed' &&
+                              'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                          )}
+                        >
+                          <span
                             className={cn(
-                              'text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
-                              item.status === 'Completed' &&
-                                'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                              'w-1 h-1 rounded-full',
+                              item.status === 'Completed' && 'bg-emerald-500',
                               item.status === 'Pending' &&
-                                'bg-amber-500/10 text-amber-600 border-amber-500/20',
-                              item.status === 'Failed' &&
-                                'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                                'bg-amber-500 animate-pulse',
+                              item.status === 'Failed' && 'bg-rose-500',
                             )}
-                          >
-                            <span
-                              className={cn(
-                                'w-1 h-1 rounded-full',
-                                item.status === 'Completed' && 'bg-emerald-500',
-                                item.status === 'Pending' &&
-                                  'bg-amber-500 animate-pulse',
-                                item.status === 'Failed' && 'bg-rose-500',
+                          />
+                          {item.status}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Date/Sender (Left) & Amount (Right) */}
+                    <div className="flex items-end justify-between mt-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-[9px] font-bold text-muted-foreground tracking-wider uppercase">
+                          {new Date(
+                            item.date || item.createdAt,
+                          ).toLocaleDateString()}
+                        </p>
+
+                        {/* Sender/Recipient Details */}
+                        {(item.type === 'transfer_receive' ||
+                          item.type === 'transfer_send') && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                            <div className="text-[9px] font-bold text-muted-foreground flex items-center gap-1">
+                              {item.type === 'transfer_receive' ? (
+                                <>
+                                  <ArrowDownLeft
+                                    size={10}
+                                    className="text-emerald-500"
+                                  />
+                                  From:{' '}
+                                  <span className="text-foreground capitalize">
+                                    {item.metadata?.senderName ||
+                                      item.description?.replace(
+                                        /transfer from /i,
+                                        '',
+                                      )}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <ArrowUpRight
+                                    size={10}
+                                    className="text-rose-500"
+                                  />
+                                  To:{' '}
+                                  <span className="text-foreground capitalize">
+                                    {item.metadata?.recipientName ||
+                                      item.description?.replace(
+                                        /transfer to /i,
+                                        '',
+                                      )}
+                                  </span>
+                                </>
                               )}
-                            />
-                            {item.status}
-                          </div>
+                            </div>
+                          </>
                         )}
                       </div>
-                      <p className="text-[9px] font-bold text-muted-foreground tracking-wider uppercase">
-                        {new Date(
-                          item.date || item.createdAt,
-                        ).toLocaleDateString()}
-                      </p>
+                      <span className="text-sm font-black text-rose-500 shrink-0 ml-2">
+                        -{formatCurrency(item.amount)}
+                      </span>
                     </div>
-                    <span className="text-sm font-black text-rose-500">
-                      -{formatCurrency(item.amount)}
-                    </span>
                   </div>
                 ))
               )}

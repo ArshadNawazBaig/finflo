@@ -47,6 +47,7 @@ class RaastService {
 
       const payload = {
         merchant_id: this.merchantId,
+        terminal_id: process.env.ALFALAH_TERMINAL_ID || '001',
         order_reference: orderId,
         amount: amount.toString(),
         expiry_minutes: 60,
@@ -57,7 +58,8 @@ class RaastService {
       const response = await axios.post(`${this.apiUrl}/generate-qr`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Access-Key': this.accessKey,
+          'X-Alfalah-Client-Id': process.env.ALFALAH_CLIENT_ID,
+          'X-Alfalah-Client-Secret': process.env.ALFALAH_CLIENT_SECRET,
           'X-Signature': signature,
         },
       });

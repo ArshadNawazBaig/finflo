@@ -448,6 +448,47 @@ const MemberTransactions = () => {
                           year: 'numeric',
                         })}
                       </div>
+
+                      {/* Sender/Recipient Details */}
+                      {(item.type === 'transfer_receive' ||
+                        item.type === 'transfer_send') && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
+                            {item.type === 'transfer_receive' ? (
+                              <>
+                                <ArrowDownLeft
+                                  size={10}
+                                  className="text-emerald-500"
+                                />
+                                From:{' '}
+                                <span className="text-foreground capitalize">
+                                  {item.metadata?.senderName ||
+                                    item.description?.replace(
+                                      /transfer from /i,
+                                      '',
+                                    )}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <ArrowUpRight
+                                  size={10}
+                                  className="text-rose-500"
+                                />
+                                To:{' '}
+                                <span className="text-foreground capitalize">
+                                  {item.metadata?.recipientName ||
+                                    item.description?.replace(
+                                      /transfer to /i,
+                                      '',
+                                    )}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

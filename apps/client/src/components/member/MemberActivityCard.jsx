@@ -162,6 +162,28 @@ const MemberActivityCard = ({ activity }) => {
             </div>
           </div>
         )}
+
+        {/* Sender / Recipient */}
+        {(activity.type === 'transfer_receive' ||
+          activity.type === 'transfer_send') && (
+          <div className="bg-muted/30 rounded-2xl p-3 flex flex-col gap-1 col-span-2">
+            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
+              {activity.type === 'transfer_receive' ? (
+                <ArrowDownLeft size={10} />
+              ) : (
+                <ArrowUpRight size={10} />
+              )}
+              {activity.type === 'transfer_receive' ? 'From' : 'To'}
+            </div>
+            <div className="font-bold text-[11px] text-foreground truncate capitalize">
+              {activity.type === 'transfer_receive'
+                ? activity.metadata?.senderName ||
+                  activity.description?.replace(/transfer from /i, '')
+                : activity.metadata?.recipientName ||
+                  activity.description?.replace(/transfer to /i, '')}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

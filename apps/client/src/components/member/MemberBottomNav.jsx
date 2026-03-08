@@ -47,11 +47,11 @@ const MemberBottomNav = () => {
       label: 'Assets',
       path: '/member/investments',
     },
-    // {
-    //   icon: <Send size={20} />,
-    //   label: 'Transfer',
-    //   path: '/member/transfer',
-    // },
+    {
+      icon: <Send size={20} />,
+      label: 'Transfer',
+      path: '/member/transfer',
+    },
     {
       icon: <MessageSquare size={20} />,
       label: 'Chat',

@@ -11,6 +11,8 @@ import {
   Mail,
   Zap,
   ArrowLeft,
+  ArrowDownLeft,
+  ArrowUpRight,
   Calendar,
   Clock,
   ChevronRight,
@@ -1702,7 +1704,7 @@ const MemberProfile = () => {
                         )}
                       </div>
                       <div>
-                        <div className="text-sm font-black tracking-tight">
+                        <div className="text-sm font-black tracking-tight capitalize">
                           {inv.description || inv.type}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -1734,6 +1736,47 @@ const MemberProfile = () => {
                               />
                               {inv.status}
                             </div>
+                          )}
+
+                          {/* Sender/Recipient Details */}
+                          {(inv.type === 'transfer_receive' ||
+                            inv.type === 'transfer_send') && (
+                            <>
+                              <span className="w-1 h-1 rounded-full bg-muted-foreground/30 mx-1" />
+                              <div className="text-[10px] font-bold text-muted-foreground tracking-tight flex items-center gap-1">
+                                {inv.type === 'transfer_receive' ? (
+                                  <>
+                                    <ArrowDownLeft
+                                      size={10}
+                                      className="text-emerald-500"
+                                    />
+                                    From:{' '}
+                                    <span className="text-foreground capitalize">
+                                      {inv.metadata?.senderName ||
+                                        inv.description?.replace(
+                                          /transfer from /i,
+                                          '',
+                                        )}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ArrowUpRight
+                                      size={10}
+                                      className="text-rose-500"
+                                    />
+                                    To:{' '}
+                                    <span className="text-foreground">
+                                      {inv.metadata?.recipientName ||
+                                        inv.description?.replace(
+                                          /transfer to /i,
+                                          '',
+                                        )}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>

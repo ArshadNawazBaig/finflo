@@ -1862,6 +1862,13 @@ const transferFunds = async (req, res) => {
       balanceAfter: updatedSender.currentBalance,
       description: description || `Transfer to ${recipient.name}`,
       date: new Date(),
+      metadata: {
+        transferType: 'internal',
+        senderId: sender._id,
+        senderName: sender.name,
+        recipientId: recipient._id,
+        recipientName: recipient.name,
+      },
     });
 
     const recipientTransaction = new Investment({
@@ -1873,6 +1880,13 @@ const transferFunds = async (req, res) => {
       balanceAfter: updatedRecipient.currentBalance,
       description: description || `Transfer from ${sender.name}`,
       date: new Date(),
+      metadata: {
+        transferType: 'internal',
+        senderId: sender._id,
+        senderName: sender.name,
+        recipientId: recipient._id,
+        recipientName: recipient.name,
+      },
     });
 
     await senderTransaction.save({ session });

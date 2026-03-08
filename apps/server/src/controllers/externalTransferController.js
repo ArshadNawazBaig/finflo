@@ -8,6 +8,7 @@ const {
 } = require('../utils/notificationHelper');
 const Loan = require('../models/Loan');
 const loanRepaymentService = require('../services/loanRepaymentService');
+const payoutService = require('../services/payoutService');
 
 /**
  * @desc  Initiate an external bank / wallet transfer (send money out)
@@ -76,12 +77,38 @@ const initiateExternalTransfer = async (req, res) => {
           accountTitle,
           amount: transferAmount,
           description: description || `Transfer to ${bankName}`,
-          status: 'Completed',
+          status: 'Pending', // Initial status is now Pending for real transfers
           balanceAfter: updatedMember.currentBalance,
         },
       ],
       { session },
     );
+
+    // ── Attempt Real Payout ───────────────────────────────────────────────
+    let payoutResult;
+    try {
+      payoutResult = await payoutService.sendTransfer({
+        bankCode: bankName, // Or map bankName to bankCode if provider requires codes
+        accountIdentifier,
+        accountTitle,
+        amount: transferAmount,
+        reference: ext.referenceId,
+      });
+
+      // Update transfer with provider reference if successful
+      if (payoutResult.success) {
+        ext.status = payoutResult.status; // e.g. 'Processing' or 'Pending'
+        ext.metadata = {
+          ...ext.metadata,
+          providerRef: payoutResult.transactionId,
+        };
+        await ext.save({ session });
+      }
+    } catch (payoutError) {
+      console.error('Payout Initiation Failed:', payoutError.message);
+      // We could either fail the whole request or keep it as 'Pending' for manual retry
+      // For now, let's keep it 'Pending' so admins can see it even if API failed once
+    }
 
     await Investment.create(
       [
@@ -355,8 +382,37 @@ const getMyExternalTransfers = async (req, res) => {
   }
 };
 
+// ... existing getMyExternalTransfers
+
+/**
+ * @desc  Fetch Account Title (Name Verification) before transfer
+ * @route POST /api/external-transfers/resolve-title
+ * @access Private (Member)
+ */
+const resolveExternalAccountTitle = async (req, res) => {
+  const { bankCode, accountIdentifier } = req.body;
+
+  if (!bankCode || !accountIdentifier || accountIdentifier.length < 10) {
+    return res.status(400).json({ message: 'Valid Bank Code and ID required' });
+  }
+
+  try {
+    const result = await payoutService.resolveAccountTitle(
+      bankCode,
+      accountIdentifier,
+    );
+    res.json(result);
+  } catch (error) {
+    console.error('Account Resolution Error:', error);
+    res
+      .status(400)
+      .json({ message: error.message || 'Failed to resolve account title' });
+  }
+};
+
 module.exports = {
   initiateExternalTransfer,
   recordExternalReceive,
   getMyExternalTransfers,
+  resolveExternalAccountTitle,
 };
