@@ -10,7 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-const TransactionCard = ({ transaction }) => {
+const TransactionCard = ({ transaction, hideType = false }) => {
   const isIncome = transaction.type === 'income';
 
   return (
@@ -55,8 +55,35 @@ const TransactionCard = ({ transaction }) => {
             {isIncome ? '+' : '-'}
             {formatCurrency(transaction.amount)}
           </div>
-          <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-            {transaction.type}
+          <div className="flex items-center gap-2">
+            {!hideType && (
+              <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                {transaction.type}
+              </span>
+            )}
+            <div
+              className={cn(
+                'px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest flex items-center gap-1 border leading-none',
+                (transaction.status || 'Completed') === 'Completed' &&
+                  'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                transaction.status === 'Pending' &&
+                  'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                transaction.status === 'Failed' &&
+                  'bg-rose-500/10 text-rose-600 border-rose-500/20',
+              )}
+            >
+              <span
+                className={cn(
+                  'w-1 h-1 rounded-full',
+                  (transaction.status || 'Completed') === 'Completed' &&
+                    'bg-emerald-500',
+                  transaction.status === 'Pending' &&
+                    'bg-amber-500 animate-pulse',
+                  transaction.status === 'Failed' && 'bg-rose-500',
+                )}
+              />
+              {transaction.status || 'Completed'}
+            </div>
           </div>
         </div>
       </div>

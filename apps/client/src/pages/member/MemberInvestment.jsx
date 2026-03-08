@@ -24,6 +24,7 @@ import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import MemberDepositModal from '@/components/member/MemberDepositModal';
 
 const MemberInvestment = () => {
   const [investments, setInvestments] = useState([]);
@@ -36,6 +37,7 @@ const MemberInvestment = () => {
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const [limit, setLimit] = useState(5);
   const [search, setSearch] = useState('');
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -215,18 +217,28 @@ const MemberInvestment = () => {
               Investment Ledger
             </h2>
           </div>
-          <div className="relative w-full max-w-xs hidden sm:block">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Search investments..."
-              className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setIsDepositModalOpen(true)}
+              variant="gradient"
+              className="hidden sm:flex rounded-xl h-10 px-6 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+            >
+              <Wallet size={16} className="mr-2" />
+              Deposit via Raast
+            </Button>
+            <div className="relative w-full max-w-xs hidden sm:block">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -289,8 +301,34 @@ const MemberInvestment = () => {
                                 )}
                               </div>
                               <div>
-                                <h4 className="font-bold text-lg tracking-tight capitalize">
+                                <h4 className="font-bold text-lg tracking-tight capitalize flex items-center gap-2">
                                   {item.description}
+                                  {item.status && (
+                                    <div
+                                      className={cn(
+                                        'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1.5 border leading-none transition-all',
+                                        item.status === 'Completed' &&
+                                          'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                        item.status === 'Pending' &&
+                                          'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                        item.status === 'Failed' &&
+                                          'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          'w-1 h-1 rounded-full',
+                                          item.status === 'Completed' &&
+                                            'bg-emerald-500',
+                                          item.status === 'Pending' &&
+                                            'bg-amber-500 animate-pulse',
+                                          item.status === 'Failed' &&
+                                            'bg-rose-500',
+                                        )}
+                                      />
+                                      {item.status}
+                                    </div>
+                                  )}
                                 </h4>
                                 <div className="flex items-center gap-3 mt-1">
                                   <p
@@ -358,6 +396,27 @@ const MemberInvestment = () => {
           />
         )}
       </div>
+
+      {isMobile && (
+        <div className="fixed bottom-24 right-6 z-50">
+          <Button
+            onClick={() => setIsDepositModalOpen(true)}
+            size="icon"
+            variant="gradient"
+            className="w-14 h-14 rounded-full shadow-2xl shadow-primary/30"
+          >
+            <Wallet size={24} />
+          </Button>
+        </div>
+      )}
+
+      <MemberDepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        onSuccess={() => {
+          fetchInvestments(1, false);
+        }}
+      />
     </div>
   );
 };

@@ -26,6 +26,7 @@ const {
   getPortalShares,
   selfRegister,
   updateApprovalStatus,
+  initiateRaastDeposit,
 } = require('../controllers/memberController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -38,6 +39,7 @@ router.post('/self-register', memberValidation, selfRegister);
 router.get('/portal/activity', protectMember, getMemberActivity);
 router.get('/portal/shares', protectMember, getPortalShares);
 router.post('/portal/transfer', protectMember, transferFunds);
+router.post('/portal/raast-deposit', protectMember, initiateRaastDeposit);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
 router.get('/lookup', protect, lookupMember); // Admin can lookup members
 

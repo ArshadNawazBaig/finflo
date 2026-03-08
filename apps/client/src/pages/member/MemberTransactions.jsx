@@ -273,7 +273,7 @@ const MemberTransactions = () => {
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
+    <div className="w-full max-w-full space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 overflow-x-hidden sm:overflow-visible">
       <PageHeader
         title="Activity Ledger"
         description="Every movement of your funds, recorded with absolute transparency."
@@ -343,7 +343,7 @@ const MemberTransactions = () => {
               />
             </div>
 
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-nowrap">
               {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
                 <button
                   key={f}
@@ -403,15 +403,39 @@ const MemberTransactions = () => {
                 key={item._id}
                 className="p-6 sm:p-8 hover:bg-muted/30 transition-all flex items-center justify-between group"
               >
-                <div className="flex items-center gap-5">
-                  <div className="p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 min-w-0">
+                  <div className="p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform shrink-0 self-start sm:self-auto">
                     {getItemStyle(item.category, item.type).icon}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-lg tracking-tight capitalize">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-lg tracking-tight capitalize flex flex-wrap items-center gap-2">
                       {item.description}
+                      {item.status && (
+                        <div
+                          className={cn(
+                            'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1.5 border leading-none transition-all',
+                            item.status === 'Completed' &&
+                              'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                            item.status === 'Pending' &&
+                              'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                            item.status === 'Failed' &&
+                              'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              item.status === 'Completed' && 'bg-emerald-500',
+                              item.status === 'Pending' &&
+                                'bg-amber-500 animate-pulse',
+                              item.status === 'Failed' && 'bg-rose-500',
+                            )}
+                          />
+                          {item.status}
+                        </div>
+                      )}
                     </h4>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2 sm:mt-1">
                       <p className="text-[10px] font-black uppercase text-primary tracking-widest">
                         {item.category}
                       </p>
@@ -424,11 +448,52 @@ const MemberTransactions = () => {
                           year: 'numeric',
                         })}
                       </div>
+
+                      {/* Sender/Recipient Details */}
+                      {(item.type === 'transfer_receive' ||
+                        item.type === 'transfer_send') && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
+                            {item.type === 'transfer_receive' ? (
+                              <>
+                                <ArrowDownLeft
+                                  size={10}
+                                  className="text-emerald-500"
+                                />
+                                From:{' '}
+                                <span className="text-foreground capitalize">
+                                  {item.metadata?.senderName ||
+                                    item.description?.replace(
+                                      /transfer from /i,
+                                      '',
+                                    )}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <ArrowUpRight
+                                  size={10}
+                                  className="text-rose-500"
+                                />
+                                To:{' '}
+                                <span className="text-foreground capitalize">
+                                  {item.metadata?.recipientName ||
+                                    item.description?.replace(
+                                      /transfer to /i,
+                                      '',
+                                    )}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 shrink-0 sm:mt-0">
                   <div className="text-right">
                     <p
                       className={`text-xl font-black tracking-tighter ${getItemStyle(item.category, item.type).color}`}

@@ -23,7 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -545,9 +545,30 @@ const LoanDetail = () => {
                       <div className="text-lg font-black text-emerald-600">
                         +{formatCurrency(rp.amount)}
                       </div>
-                      <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                        Status: Confirmed
-                      </div>
+                      {rp.status && (
+                        <div
+                          className={cn(
+                            'text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-border/20 leading-none mt-1 ml-auto w-fit',
+                            rp.status === 'Completed' &&
+                              'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                            rp.status === 'Pending' &&
+                              'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                            rp.status === 'Failed' &&
+                              'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              rp.status === 'Completed' && 'bg-emerald-500',
+                              rp.status === 'Pending' &&
+                                'bg-amber-500 animate-pulse',
+                              rp.status === 'Failed' && 'bg-rose-500',
+                            )}
+                          />
+                          {rp.status}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -650,8 +671,35 @@ const LoanDetail = () => {
                           {inv.type === 'deposit' ? '+' : '-'}
                           {formatCurrency(inv.amount)}
                         </div>
-                        <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                          {inv.description || 'System Entry'}
+                        <div className="flex items-center gap-2 justify-end mt-1">
+                          {inv.status && (
+                            <div
+                              className={cn(
+                                'text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-border/20 leading-none',
+                                inv.status === 'Completed' &&
+                                  'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                inv.status === 'Pending' &&
+                                  'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                inv.status === 'Failed' &&
+                                  'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  'w-0.5 h-0.5 rounded-full',
+                                  inv.status === 'Completed' &&
+                                    'bg-emerald-500',
+                                  inv.status === 'Pending' &&
+                                    'bg-amber-500 animate-pulse',
+                                  inv.status === 'Failed' && 'bg-rose-500',
+                                )}
+                              />
+                              {inv.status}
+                            </div>
+                          )}
+                          <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                            {inv.description || 'System Entry'}
+                          </div>
                         </div>
                       </div>
                     </div>

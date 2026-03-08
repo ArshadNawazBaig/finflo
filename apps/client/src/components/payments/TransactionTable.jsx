@@ -6,7 +6,14 @@ import { cn } from '@/lib/utils';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 
-const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
+const TransactionTable = ({
+  data,
+  pagination,
+  sortBy,
+  sortOrder,
+  onSort,
+  hideType = false,
+}) => {
   const renderSortIcon = (column) => {
     if (sortBy !== column)
       return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
@@ -34,9 +41,11 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Related To
               </th>
-              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Type
-              </th>
+              {!hideType && (
+                <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                  Type
+                </th>
+              )}
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Category
               </th>
@@ -48,6 +57,9 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                   Amount
                   {renderSortIcon('amount')}
                 </div>
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Status
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
@@ -93,18 +105,20 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                     </div>
                   </div>
                 </td>
-                <td className="py-4 px-4">
-                  <span
-                    className={cn(
-                      'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
-                      transaction.type === 'income'
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : 'bg-rose-500/10 text-rose-600',
-                    )}
-                  >
-                    {transaction.type}
-                  </span>
-                </td>
+                {!hideType && (
+                  <td className="py-4 px-4">
+                    <span
+                      className={cn(
+                        'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                        transaction.type === 'income'
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : 'bg-rose-500/10 text-rose-600',
+                      )}
+                    >
+                      {transaction.type}
+                    </span>
+                  </td>
+                )}
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground text-xs font-medium capitalize">
@@ -133,6 +147,31 @@ const TransactionTable = ({ data, pagination, sortBy, sortOrder, onSort }) => {
                   >
                     {transaction.type === 'income' ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div
+                    className={cn(
+                      'px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border w-fit leading-none',
+                      (transaction.status || 'Completed') === 'Completed' &&
+                        'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                      transaction.status === 'Pending' &&
+                        'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                      transaction.status === 'Failed' &&
+                        'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full',
+                        (transaction.status || 'Completed') === 'Completed' &&
+                          'bg-emerald-500',
+                        transaction.status === 'Pending' &&
+                          'bg-amber-500 animate-pulse',
+                        transaction.status === 'Failed' && 'bg-rose-500',
+                      )}
+                    />
+                    {transaction.status || 'Completed'}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
