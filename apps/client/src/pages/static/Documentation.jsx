@@ -30,6 +30,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import SEO from '@/components/SEO';
 
 const Documentation = () => {
   const [activeSection, setActiveSection] = useState('introduction');
@@ -619,6 +620,11 @@ const Documentation = () => {
 
   return (
     <div className="min-h-screen bg-background relative animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <SEO
+        title="Documentation & Guides"
+        description="Comprehensive technical guides, API references, and user manuals for the FinFlo lending operating system."
+        canonical="/documentation"
+      />
       {/* Rest of the component remains largely the same, just updating the search input to use state */}
 
       {/* ... Background Gradients ... */}

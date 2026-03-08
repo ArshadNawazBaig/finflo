@@ -8,6 +8,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import SEO from '@/components/SEO';
 
 const Pricing = () => {
   const { settings, loading: settingsLoading } = useSystemSettings();
@@ -118,6 +119,11 @@ const Pricing = () => {
 
   return (
     <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <SEO
+        title="Pricing & Plans"
+        description="Explore FinFlo pricing plans. From our free starter plan to pro infrastructure for global lending institutions."
+        canonical="/pricing"
+      />
       <PageHeader
         title={
           <>
