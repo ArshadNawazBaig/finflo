@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
-// Navigation is kept non-lazy for immediate interaction
 import Navigation from '@/components/landing/Navigation';
+import SEO from '@/components/SEO';
 
 // Lazy load sections for performance
 const Hero = lazy(() => import('@/components/landing/Hero'));
@@ -100,8 +100,35 @@ const Landing = () => {
     [],
   );
 
+  // Structured Data (JSON-LD) for Google
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'FinFlo Banking OS',
+    operatingSystem: 'Web',
+    applicationCategory: 'FinanceApplication',
+    description:
+      "The world's most sophisticated lending operating system for hyper-growth institutions.",
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground selection:bg-primary/20 overflow-x-hidden font-sans">
+      <SEO
+        title="Scale Your Lending Empire"
+        description="FinFlo Banking OS - The ultimate cloud-native finance management system for global financial institutions. Automate lending, risk, and multi-branch operations."
+        canonical=""
+      />
+
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </script>
+
       {/* Dynamic Background Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-500/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />

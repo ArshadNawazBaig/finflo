@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, Users, Zap, ShieldCheck } from 'lucide-react';
+import { Globe, Zap, ShieldCheck, Building2 } from 'lucide-react';
 import api from '@/lib/axios';
 
 const Stats = () => {
@@ -38,9 +38,9 @@ const Stats = () => {
 
   const statItems = [
     {
-      label: 'Active Members',
+      label: 'Active Businesses',
       value: stats.activeMembers,
-      icon: <Users className="w-5 h-5 text-blue-500" />,
+      icon: <Building2 className="w-5 h-5 text-blue-500" />,
     },
     {
       label: 'Global Branches',

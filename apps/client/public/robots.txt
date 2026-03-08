@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /features
+Allow: /faq
+Disallow: /admin/
+Disallow: /super-admin/
+Disallow: /member/
+Disallow: /settings/
+Disallow: /billing/
+
+Sitemap: https://www.finflo.org/sitemap.xml
