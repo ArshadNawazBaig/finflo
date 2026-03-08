@@ -218,14 +218,19 @@ const MemberInvestment = () => {
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setIsDepositModalOpen(true)}
-              variant="gradient"
-              className="hidden sm:flex rounded-xl h-10 px-6 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
-            >
-              <Wallet size={16} className="mr-2" />
-              Deposit via Raast
-            </Button>
+            <div className="relative group hidden sm:block">
+              <Button
+                disabled
+                variant="gradient"
+                className="rounded-xl h-10 px-6 text-[11px] font-black uppercase tracking-widest bg-primary/50 text-white/40 cursor-not-allowed border border-white/10"
+              >
+                <Wallet size={16} className="mr-2" />
+                Deposit via Raast
+              </Button>
+              <div className="absolute -top-2 -right-2 bg-primary text-[8px] text-white font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg shadow-primary/20 animate-bounce z-10">
+                Coming Soon
+              </div>
+            </div>
             <div className="relative w-full max-w-xs hidden sm:block">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -399,14 +404,19 @@ const MemberInvestment = () => {
 
       {isMobile && (
         <div className="fixed bottom-24 right-6 z-50">
-          <Button
-            onClick={() => setIsDepositModalOpen(true)}
-            size="icon"
-            variant="gradient"
-            className="w-14 h-14 rounded-full shadow-2xl shadow-primary/30"
-          >
-            <Wallet size={24} />
-          </Button>
+          <div className="relative group">
+            <Button
+              disabled
+              size="icon"
+              variant="gradient"
+              className="w-14 h-14 rounded-full bg-primary/50 text-white/40 cursor-not-allowed"
+            >
+              <Wallet size={24} />
+            </Button>
+            <div className="absolute -top-2 -right-2 bg-primary text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg shadow-primary/20 animate-bounce z-10">
+              Coming Soon
+            </div>
+          </div>
         </div>
       )}
 

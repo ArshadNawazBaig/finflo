@@ -154,10 +154,10 @@ const MemberWallet = () => {
           {/* Dashboard Metrics Header */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {/* Credit Card Hero */}
-            <div className="lg:col-span-2 relative overflow-hidden bg-foreground text-background p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between min-h-[320px] group transition-all duration-500 hover:shadow-primary/20">
+            <div className="lg:col-span-2 relative overflow-hidden bg-zinc-950 text-white p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between min-h-[320px] group transition-all duration-500 hover:shadow-primary/20">
               {/* Card Hologram & Design */}
               <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-                <Wallet className="w-80 h-80 text-background" />
+                <Wallet className="w-80 h-80 text-white" />
               </div>
               <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
               <div className="absolute top-10 right-10 w-16 h-12 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md flex items-center justify-center">
@@ -198,12 +198,17 @@ const MemberWallet = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                  <Button
-                    onClick={() => setIsDepositModalOpen(true)}
-                    className="flex-1 sm:flex-none h-14 px-8 rounded-2xl bg-white text-foreground hover:bg-neutral-200 text-xs font-black uppercase tracking-widest transition-all shadow-xl hover:-translate-y-1 active:scale-95 flex items-center gap-2"
-                  >
-                    <QrCode size={18} /> Add Funds
-                  </Button>
+                  <div className="relative group flex-1 sm:flex-none">
+                    <Button
+                      disabled
+                      className="w-full h-14 px-8 rounded-2xl bg-white/50 text-zinc-900/40 text-xs font-black uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-white/10"
+                    >
+                      <QrCode size={18} /> Add Funds
+                    </Button>
+                    <div className="absolute -top-2 -right-2 bg-primary text-white text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg shadow-primary/20 animate-bounce">
+                      Coming Soon
+                    </div>
+                  </div>
                   <Button
                     onClick={() => navigate('/member/transfer')}
                     className="flex-1 sm:flex-none h-14 px-8 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-black uppercase tracking-widest transition-all backdrop-blur-md hover:-translate-y-1 active:scale-95 flex items-center gap-3"
