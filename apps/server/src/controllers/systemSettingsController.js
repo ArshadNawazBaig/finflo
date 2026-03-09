@@ -156,19 +156,20 @@ const testSmtpConnection = async (req, res) => {
         .json({ message: 'Recipient email (to) is required' });
     }
 
+    const brandName = req.user.businessName || req.user.name || 'FinFlo';
     const success = await sendEmail({
       to,
       debug: true, // Enable detailed SMTP logging for diagnostics
-      subject: 'FinFlo SMTP Connection Test',
+      subject: `${brandName} SMTP Connection Test`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
           <h2 style="color: #0f172a;">SMTP Test Successful!</h2>
-          <p style="color: #475569;">If you are reading this, your FinFlo SMTP configuration (from DB or Env) is working correctly.</p>
+          <p style="color: #475569;">If you are reading this, your ${brandName} SMTP configuration (from DB or Env) is working correctly.</p>
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
           <p style="font-size: 12px; color: #94a3b8;">Sent on: ${new Date().toLocaleString()}</p>
         </div>
       `,
-      text: 'SMTP Test Successful! Your FinFlo configuration is working correctly.',
+      text: `SMTP Test Successful! Your ${brandName} configuration is working correctly.`,
     });
 
     if (success) {

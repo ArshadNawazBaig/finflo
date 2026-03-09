@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const { loanReminderEmail } = require('../utils/emailTemplates');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
@@ -14,9 +15,9 @@ const runReminderService = async () => {
   console.log('FinFlo: Starting daily automated reminder scan...');
 
   try {
-    const activeLoans = await Loan.find({ status: 'active' }).populate(
-      'customer',
-    );
+    const activeLoans = await Loan.find({ status: 'active' })
+      .populate('customer')
+      .populate('user', 'businessName name');
 
     for (const loan of activeLoans) {
       if (!loan.customer) continue;
@@ -98,11 +99,20 @@ const sendReminder = async (loan, installment, type) => {
 
     // 2. Email Notification
     if (customer.email) {
+      const ownerBrandName = loan.user
+        ? loan.user.businessName || loan.user.name
+        : null;
       await sendEmail({
         email: customer.email,
         subject: title,
         message: message + '\n\nBest regards,\nFinFlo Team',
-        html: loanReminderEmail(customer.name, amount, dateStr, type),
+        html: loanReminderEmail(
+          customer.name,
+          amount,
+          dateStr,
+          type,
+          ownerBrandName,
+        ),
       });
     }
 

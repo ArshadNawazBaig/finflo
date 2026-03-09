@@ -344,7 +344,7 @@ const Navbar = ({ onMenuClick }) => {
                   )}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold leading-none">
-                      {capitalize(user.name)}
+                      {capitalize(user.businessName || user.name)}
                     </span>
                     <ChevronDown
                       className={cn(
@@ -378,7 +378,7 @@ const Navbar = ({ onMenuClick }) => {
                   {/* User Info Header */}
                   <div className="p-4 border-b border-border/50 bg-muted/30">
                     <p className="font-bold text-sm truncate">
-                      {capitalize(user.name)}
+                      {capitalize(user.businessName || user.name)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user.email}
@@ -401,7 +401,11 @@ const Navbar = ({ onMenuClick }) => {
                   <div className="p-2">
                     <button
                       onClick={() => {
-                        navigate('/settings');
+                        navigate(
+                          user.role === 'super_admin'
+                            ? '/super-admin/settings'
+                            : '/settings',
+                        );
                         setShowProfileMenu(false);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
@@ -411,7 +415,11 @@ const Navbar = ({ onMenuClick }) => {
                     </button>
                     <button
                       onClick={() => {
-                        navigate('/settings');
+                        navigate(
+                          user.role === 'super_admin'
+                            ? '/super-admin/settings'
+                            : '/settings',
+                        );
                         setShowProfileMenu(false);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-primary/5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"

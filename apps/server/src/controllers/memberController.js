@@ -848,7 +848,11 @@ const addInvestment = async (req, res) => {
       if (member.email) {
         const branch = await Branch.findById(member.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
 
         sendEmailAsync({
           to: member.email,
@@ -1035,7 +1039,11 @@ const withdrawInvestment = async (req, res) => {
       if (member.email) {
         const branch = await Branch.findById(member.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
 
         sendEmailAsync({
           to: member.email,
@@ -1965,7 +1973,11 @@ const transferFunds = async (req, res) => {
       if (sender.email) {
         const branch = await Branch.findById(sender.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
         sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
@@ -1991,7 +2003,11 @@ const transferFunds = async (req, res) => {
       if (recipient.email) {
         const branch = await Branch.findById(recipient.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
         sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
@@ -2197,7 +2213,11 @@ const adminTransferFunds = async (req, res) => {
       if (sender.email) {
         const branch = await Branch.findById(sender.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
         sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
@@ -2223,7 +2243,11 @@ const adminTransferFunds = async (req, res) => {
       if (recipient.email) {
         const branch = await Branch.findById(recipient.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
         sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
@@ -2582,7 +2606,11 @@ const addShareInvestment = async (req, res) => {
       if (member.email) {
         const branch = await Branch.findById(member.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
 
         sendEmailAsync({
           to: member.email,
@@ -2708,7 +2736,11 @@ const withdrawShareInvestment = async (req, res) => {
       if (member.email) {
         const branch = await Branch.findById(member.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
 
         sendEmailAsync({
           to: member.email,
@@ -2928,7 +2960,11 @@ const distributeShareProfit = async (req, res) => {
         // Send Email Notification (non-blocking)
         const branch = await Branch.findById(member.branchId);
         const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+          branch?.branding?.companyName ||
+          branch?.name ||
+          req.user.businessName ||
+          req.user.name ||
+          'FinFlo';
         sendEmailAsync({
           to: member.email,
           subject: `Share Profit Credited - ${branchName}`,
@@ -3260,13 +3296,17 @@ const updateApprovalStatus = async (req, res) => {
     // Send email notification to the member
     if (member.email) {
       try {
+        const owner = await User.findById(req.user.effectiveOwnerId).select(
+          'businessName name',
+        );
+        const ownerBrandName = owner ? owner.businessName || owner.name : null;
         sendEmailAsync({
           to: member.email,
           subject:
             status === 'approved'
               ? '🎉 Your Account Has Been Approved!'
               : 'Update on Your Registration Request',
-          html: memberApprovalEmail(member.name, status),
+          html: memberApprovalEmail(member.name, status, ownerBrandName),
         });
       } catch (emailError) {
         // error already logged by sendEmailAsync internally

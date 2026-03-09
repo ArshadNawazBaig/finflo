@@ -670,7 +670,10 @@ const forgotPassword = async (req, res) => {
       await sendEmail({
         to: member.email,
         subject: 'Reset Your Member Portal Password',
-        html: passwordResetEmail(resetUrl),
+        html: passwordResetEmail(
+          resetUrl,
+          member.user?.businessName || member.user?.name,
+        ),
       });
 
       res.status(200).json({

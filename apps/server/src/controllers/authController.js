@@ -86,7 +86,10 @@ const registerUser = async (req, res) => {
           await sendEmail({
             to: user.email,
             subject: 'Action Required: Verify Your Email',
-            html: verificationEmail(verificationCode),
+            html: verificationEmail(
+              verificationCode,
+              user.businessName || user.name,
+            ),
           });
         } catch (err) {
           console.error('Verification email failed to send:', err);
@@ -480,7 +483,7 @@ const forgotPassword = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Action Required: Reset Your Security Credentials',
-        html: passwordResetEmail(resetUrl),
+        html: passwordResetEmail(resetUrl, user.businessName || user.name),
       });
 
       res.status(200).json({
@@ -588,7 +591,7 @@ const verifyEmail = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(user.name),
+        html: welcomeBusinessEmail(user.businessName || user.name),
       });
     } catch (err) {
       console.error('Welcome email failed to send:', err);
@@ -646,7 +649,7 @@ const resendVerificationCode = async (req, res) => {
     await sendEmail({
       to: user.email,
       subject: 'Action Required: New Verification Code',
-      html: verificationEmail(verificationCode),
+      html: verificationEmail(verificationCode, user.businessName || user.name),
     });
 
     res
@@ -961,7 +964,7 @@ const requestPasswordChangeCode = async (req, res) => {
       const emailSent = await sendEmail({
         to: user.email,
         subject: 'Security Code for Password Change',
-        html: verificationEmail(code),
+        html: verificationEmail(code, user.businessName || user.name),
       });
 
       if (!emailSent) {
@@ -1237,7 +1240,7 @@ const googleRegister = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(user.name),
+        html: welcomeBusinessEmail(user.businessName || user.name),
       });
     } catch (err) {
       console.error('Welcome email failed to send:', err);

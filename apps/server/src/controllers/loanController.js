@@ -52,6 +52,13 @@ const sendPaymentReminder = async (req, res) => {
       ? `URGENT: Overdue Loan Repayment — ${formattedDate}`
       : `Upcoming Loan Repayment Reminder — ${formattedDate}`;
 
+    const reminderUser = await User.findById(req.user.effectiveOwnerId).select(
+      'businessName name',
+    );
+    const reminderBrand = reminderUser
+      ? reminderUser.businessName || reminderUser.name
+      : null;
+
     const emailSent = await sendEmail({
       to: customerEmail,
       subject,
@@ -60,6 +67,7 @@ const sendPaymentReminder = async (req, res) => {
         `Rs. ${formattedAmount}`,
         formattedDate,
         isOverdue ? 'overdue' : 'upcoming',
+        reminderBrand,
       ),
     });
 
@@ -1028,7 +1036,11 @@ const addRepayment = async (req, res) => {
         if (member && member.email) {
           const branch = await Branch.findById(loan.branchId);
           const branchName =
-            branch?.branding?.companyName || branch?.name || 'FinFlo';
+            branch?.branding?.companyName ||
+            branch?.name ||
+            req.user.businessName ||
+            req.user.name ||
+            'FinFlo';
 
           sendEmailAsync({
             to: member.email,
@@ -1257,7 +1269,11 @@ const updateLoan = async (req, res) => {
         if (customer && customer.email) {
           const branch = await Branch.findById(loan.branchId);
           const branchName =
-            branch?.branding?.companyName || branch?.name || 'FinFlo';
+            branch?.branding?.companyName ||
+            branch?.name ||
+            req.user.businessName ||
+            req.user.name ||
+            'FinFlo';
 
           sendEmailAsync({
             to: customer.email,
@@ -2018,7 +2034,11 @@ const bulkApproveLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinFlo';
+              branch?.branding?.companyName ||
+              branch?.name ||
+              req.user.businessName ||
+              req.user.name ||
+              'FinFlo';
 
             sendEmailAsync({
               to: customer.email,
@@ -2116,7 +2136,11 @@ const bulkRejectLoans = async (req, res) => {
           if (customer.email) {
             const branch = await Branch.findById(loan.branchId);
             const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinFlo';
+              branch?.branding?.companyName ||
+              branch?.name ||
+              req.user.businessName ||
+              req.user.name ||
+              'FinFlo';
 
             sendEmailAsync({
               to: customer.email,

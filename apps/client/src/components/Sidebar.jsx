@@ -145,7 +145,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         .toUpperCase()
         .slice(0, 2)
     : 'JS';
-  const userName = user.name || 'John Smith';
+  const userName = user.businessName || user.name || 'John Smith';
   const userRole = user.isManager ? 'Branch Manager' : user.role || 'User';
 
   const sidebarClasses = cn(
@@ -419,9 +419,17 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
             </>
           )}
           <NavItem
-            to="/settings"
+            to={
+              user.role === 'super_admin'
+                ? '/super-admin/settings'
+                : '/settings'
+            }
             icon={<Settings2 size={18} />}
-            active={isActive('/settings')}
+            active={
+              user.role === 'super_admin'
+                ? isActive('/super-admin/settings')
+                : isActive('/settings')
+            }
             onboardingId="sidebar-settings"
             label="Settings"
             isExpanded={isLayoutExpanded}

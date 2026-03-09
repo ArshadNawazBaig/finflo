@@ -70,7 +70,7 @@ const getBaseTemplate = (
 /**
  * Verification Email Template
  */
-const verificationEmail = (code) => {
+const verificationEmail = (code, businessName = null) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Verify Your Email</h2>
     <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
@@ -83,13 +83,13 @@ const verificationEmail = (code) => {
       This code will expire in 10 minutes for your security.
     </p>
   `;
-  return getBaseTemplate(content, 'Verify Your Email');
+  return getBaseTemplate(content, 'Verify Your Email', null, businessName);
 };
 
 /**
  * Password Reset Template
  */
-const passwordResetEmail = (resetUrl) => {
+const passwordResetEmail = (resetUrl, businessName = null) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Password Recovery Request</h2>
     <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
@@ -109,13 +109,19 @@ const passwordResetEmail = (resetUrl) => {
       ${resetUrl}
     </p>
   `;
-  return getBaseTemplate(content, 'Reset Your Password');
+  return getBaseTemplate(content, 'Reset Your Password', null, businessName);
 };
 
 /**
  * FinFlo Loan Reminder Template
  */
-const loanReminderEmail = (customerName, amount, dueDate, type) => {
+const loanReminderEmail = (
+  customerName,
+  amount,
+  dueDate,
+  type,
+  businessName = null,
+) => {
   const isOverdue = type === 'overdue';
   const accentColor = isOverdue ? '#dc2626' : '#2563eb';
   const title = isOverdue
@@ -137,7 +143,7 @@ const loanReminderEmail = (customerName, amount, dueDate, type) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${`${process.env.CLIENT_URL}/member/login` || 'https://loan-master-client.vercel.app/member/login'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
+          <a href="${`${process.env.CLIENT_URL}/member/login` || 'https://www.finflo.org/member/login'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
         </td>
       </tr>
     </table>
@@ -145,7 +151,7 @@ const loanReminderEmail = (customerName, amount, dueDate, type) => {
       If you have already made this payment, please disregard this automated reminder.
     </p>
   `;
-  return getBaseTemplate(content, title);
+  return getBaseTemplate(content, title, null, businessName || null);
 };
 
 /**
@@ -223,7 +229,7 @@ const transactionEmail = (data) => {
 /**
  * Member Registration Approval/Rejection Email
  */
-const memberApprovalEmail = (memberName, status) => {
+const memberApprovalEmail = (memberName, status, businessName = null) => {
   const isApproved = status === 'approved';
   const accentColor = isApproved ? '#16a34a' : '#dc2626';
   const title = isApproved ? 'Account Approved!' : 'Registration Update';
@@ -245,7 +251,7 @@ const memberApprovalEmail = (memberName, status) => {
         ? `<table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/member/login" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Login to Member Portal</a>
+          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/member/login" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Login to Member Portal</a>
         </td>
       </tr>
     </table>`
@@ -255,7 +261,7 @@ const memberApprovalEmail = (memberName, status) => {
       If you have any questions, please reach out to your branch administrator.
     </p>
   `;
-  return getBaseTemplate(content, title);
+  return getBaseTemplate(content, title, null, businessName || null);
 };
 
 /**
@@ -284,7 +290,7 @@ const welcomeBusinessEmail = (businessName) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/dashboard" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Go to Dashboard</a>
+          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/dashboard" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Go to Dashboard</a>
         </td>
       </tr>
     </table>
@@ -326,7 +332,7 @@ const superAdminNewRegistrationEmail = (userData) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Manage Users</a>
+          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Manage Users</a>
         </td>
       </tr>
     </table>
@@ -368,7 +374,7 @@ const superAdminSubscriptionNotificationEmail = (userData, planName) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View User Details</a>
+          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View User Details</a>
         </td>
       </tr>
     </table>

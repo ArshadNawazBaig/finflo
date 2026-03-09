@@ -369,8 +369,14 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       const member = await Member.findById(customer.memberId);
       if (member && member.email) {
         const branch = await Branch.findById(loan.branchId);
-        const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
+        let branchName = branch?.branding?.companyName || branch?.name;
+        if (!branchName) {
+          const User = require('../models/User');
+          const owner = await User.findById(loan.user).select(
+            'businessName name',
+          );
+          branchName = owner ? owner.businessName || owner.name : 'FinFlo';
+        }
 
         sendEmailAsync({
           to: member.email,
