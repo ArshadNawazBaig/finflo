@@ -283,7 +283,7 @@ const MemberTransactions = () => {
       {loading && (!member || !summary.totalDeposits) ? (
         <CardsSkeleton count={3} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-hidden">
           <StatsCard
             title="Total Inflow"
             amount={formatCurrency(summary.totalDeposits)}
@@ -343,7 +343,7 @@ const MemberTransactions = () => {
               />
             </div>
 
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-nowrap">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-wrap sm:flex-nowrap">
               {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
                 <button
                   key={f}
@@ -362,7 +362,7 @@ const MemberTransactions = () => {
                 onClick={handleExportPDF}
                 variant="outline"
                 size="sm"
-                className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap"
+                className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap w-full sm:w-auto"
               >
                 <Download size={14} />
                 Export PDF
