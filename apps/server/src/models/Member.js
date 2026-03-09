@@ -150,6 +150,7 @@ memberSchema.pre('save', async function () {
 
 // Compare password method
 memberSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

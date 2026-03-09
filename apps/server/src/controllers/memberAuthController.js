@@ -73,6 +73,13 @@ const loginMember = async (req, res) => {
         .json({ message: 'Account is inactive. Contact admin.' });
     }
 
+    if (member.isGoogleAuth && !member.password) {
+      return res.status(401).json({
+        message:
+          'This account is registered via Google. Please use the Google Login option.',
+      });
+    }
+
     if (await member.matchPassword(password)) {
       // If 2FA is enabled, return a pending status and temporary token
       if (member.isTwoFactorEnabled) {
@@ -137,6 +144,7 @@ const loginMember = async (req, res) => {
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
+    console.error('Member Login Error:', error);
     res.status(500).json({ message: error.message });
   }
 };

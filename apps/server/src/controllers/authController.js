@@ -184,6 +184,13 @@ const loginUser = async (req, res) => {
       });
     }
 
+    if (user.isGoogleAuth && !user.password) {
+      return res.status(401).json({
+        message:
+          'This account is registered via Google. Please use the Google Login option.',
+      });
+    }
+
     if (await user.matchPassword(password)) {
       // If 2FA is enabled, return a pending token and prompt for OTP
       if (user.isTwoFactorEnabled) {

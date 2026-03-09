@@ -117,8 +117,6 @@ const userSchema = new mongoose.Schema(
 // Indexes for performance
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
-userSchema.index({ email: 1 });
-userSchema.index({ securityCode: 1 });
 
 // Generate unique security code
 const generateSecurityCode = () => {
@@ -153,6 +151,7 @@ userSchema.pre('save', async function () {
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
