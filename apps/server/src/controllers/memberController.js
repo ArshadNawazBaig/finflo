@@ -1768,9 +1768,16 @@ const getMemberActivity = async (req, res) => {
     // Calculate Summary (on full filtered activity)
     const summary = activity.reduce(
       (acc, item) => {
-        if (item.type === 'deposit') {
+        if (
+          item.type === 'deposit' ||
+          item.type === 'transfer_receive' ||
+          item.type === 'external_receive'
+        ) {
           acc.totalDeposits += item.amount;
-        } else if (item.type === 'withdrawal') {
+        } else if (
+          item.type === 'withdrawal' ||
+          item.type === 'transfer_send'
+        ) {
           acc.totalWithdrawals += item.amount;
         }
         return acc;
@@ -2245,6 +2252,41 @@ const adminTransferFunds = async (req, res) => {
         'Auto Repayment Error in adminTransferFunds:',
         autoRepoError,
       );
+    }
+
+    // Dashboard Notifications
+    try {
+      // Notify Sender
+      await createTransactionNotification({
+        recipientId: sender._id,
+        title: 'Transfer Sent (Admin)',
+        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} from your account to ${recipient.name}.`,
+        type: 'info',
+        branchId: sender.branchId,
+        action: 'admin_fund_transfer_sent',
+        metadata: {
+          recipientId: recipient._id,
+          amount: transferAmount,
+          link: '/member/transactions',
+        },
+      });
+
+      // Notify Recipient
+      await createTransactionNotification({
+        recipientId: recipient._id,
+        title: 'Transfer Received (Admin)',
+        message: `An admin transferred Rs. ${transferAmount.toLocaleString()} to your account from ${sender.name}.`,
+        type: 'success',
+        branchId: recipient.branchId,
+        action: 'admin_fund_transfer_received',
+        metadata: {
+          senderId: sender._id,
+          amount: transferAmount,
+          link: '/member/transactions',
+        },
+      });
+    } catch (notifError) {
+      console.error('Admin Transfer Notification Error:', notifError);
     }
 
     // Email Notifications

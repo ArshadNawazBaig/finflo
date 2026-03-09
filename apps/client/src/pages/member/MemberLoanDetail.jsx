@@ -52,10 +52,23 @@ const MemberLoanDetail = () => {
         ]);
 
         const allRepayments = repaymentsRes.data?.data || [];
-        const calculatedPrincipalPaid = allRepayments.reduce(
+        const totalAccounted = allRepayments.reduce(
+          (sum, rp) =>
+            sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
+          0,
+        );
+        let calculatedPrincipalPaid = allRepayments.reduce(
           (sum, rp) => sum + (rp.principalAmount || 0),
           0,
         );
+
+        // Legacy fallback
+        if (totalAccounted < loanRes.data.paidAmount - 1) {
+          const missing = Math.max(0, loanRes.data.paidAmount - totalAccounted);
+          const ratio =
+            loanRes.data.principal / (loanRes.data.totalAmount || 1);
+          calculatedPrincipalPaid += missing * ratio;
+        }
 
         setLoan(loanRes.data);
         setSchedule(scheduleRes.data);
@@ -86,10 +99,21 @@ const MemberLoanDetail = () => {
       ]);
 
       const allRepayments = repaymentsRes.data?.data || [];
-      const calculatedPrincipalPaid = allRepayments.reduce(
+      const totalAccounted = allRepayments.reduce(
+        (sum, rp) => sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
+        0,
+      );
+      let calculatedPrincipalPaid = allRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0),
         0,
       );
+
+      // Legacy fallback
+      if (totalAccounted < loanRes.data.paidAmount - 1) {
+        const missing = Math.max(0, loanRes.data.paidAmount - totalAccounted);
+        const ratio = loanRes.data.principal / (loanRes.data.totalAmount || 1);
+        calculatedPrincipalPaid += missing * ratio;
+      }
 
       setLoan(loanRes.data);
       setSchedule(scheduleRes.data);

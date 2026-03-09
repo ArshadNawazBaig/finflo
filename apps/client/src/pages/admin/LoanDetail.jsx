@@ -114,10 +114,21 @@ const LoanDetail = () => {
       let currentPrincipalSum = 0;
       let actualInstallmentsPaid = 0;
 
-      const principalPaid = allRepayments.reduce(
+      const totalAccounted = allRepayments.reduce(
+        (sum, rp) => sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
+        0,
+      );
+      let principalPaid = allRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0),
         0,
       );
+
+      // Legacy fallback
+      if (totalAccounted < loanRes.data.paidAmount - 1) {
+        const missing = Math.max(0, loanRes.data.paidAmount - totalAccounted);
+        const ratio = loanRes.data.principal / (loanRes.data.totalAmount || 1);
+        principalPaid += missing * ratio;
+      }
 
       for (let i = 0; i < fullSchedule.length; i++) {
         currentPrincipalSum += fullSchedule[i].principal;

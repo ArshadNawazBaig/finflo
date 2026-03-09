@@ -1750,6 +1750,15 @@ const getLoanSchedule = async (req, res) => {
       0,
     );
 
+    // Legacy data handling: if we have paidAmount but no breakdown, estimate it using the loan ratio
+    const totalAccounted = totalActualPrincipal + totalActualInterest;
+    if (totalAccounted < loan.paidAmount - 1) {
+      const missingTotal = Math.max(0, loan.paidAmount - totalAccounted);
+      const principalRatio = loan.principal / (loan.totalAmount || 1);
+      totalActualPrincipal += missingTotal * principalRatio;
+      totalActualInterest += missingTotal * (1 - principalRatio);
+    }
+
     const updatedSchedule = schedule.map((item, index) => {
       const isLast = index === schedule.length - 1;
       let paidP = Math.min(item.principal, totalActualPrincipal);
