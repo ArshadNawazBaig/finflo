@@ -77,14 +77,13 @@ const MemberLayout = () => {
           <div
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
-              isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
+              isMobile ? 'pb-24 pt-28' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col">
+            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col px-4 lg:px-0">
               <Suspense fallback={<DashboardSkeleton />}>
                 <Outlet />
               </Suspense>
-              <div className="py-20 sm:hidden" />
             </div>
           </div>
         </div>

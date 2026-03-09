@@ -273,7 +273,7 @@ const MemberTransactions = () => {
   };
 
   return (
-    <div className="w-full max-w-full space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 overflow-x-hidden sm:overflow-visible">
+    <div className="w-full max-w-full space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 overflow-visible">
       <PageHeader
         title="Activity Ledger"
         description="Every movement of your funds, recorded with absolute transparency."
@@ -375,7 +375,7 @@ const MemberTransactions = () => {
           {loading ? (
             <MemberTransactionsSkeleton count={6} />
           ) : displayActivity.length === 0 ? (
-            <div className="p-20">
+            <div className="p-10">
               <EmptyState
                 icon={History}
                 title="No Transactions Found"
