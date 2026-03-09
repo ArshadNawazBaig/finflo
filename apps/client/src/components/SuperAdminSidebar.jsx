@@ -247,7 +247,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
                 <span className="text-xs font-black tracking-tight truncate w-full text-left bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   {capitalize(userName)}
                 </span>
-                <span className="text-[9px] font-black tracking-wide text-muted-foreground/60 truncate w-full text-left">
+                <span className="text-[9px] font-black tracking-wide text-muted-foreground/60 truncate w-full text-left capitalize">
                   {userRole}
                 </span>
               </div>

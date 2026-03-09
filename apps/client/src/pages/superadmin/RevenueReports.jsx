@@ -609,7 +609,7 @@ const RevenueReports = () => {
                           >
                             <td className="px-6 py-4">
                               <div className="text-sm">
-                                <p className="font-medium">
+                                <p className="font-medium capitalize">
                                   {payment.user.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
