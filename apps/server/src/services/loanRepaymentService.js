@@ -9,6 +9,7 @@ const Branch = require('../models/Branch');
 const { logActivity } = require('../controllers/activityLogController');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
+const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 
 /**
  * Shared service to process a loan repayment.
@@ -38,58 +39,51 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     const startDate = new Date(loan.startDate);
     const now = new Date(date);
 
-    // Precise date calculation to avoid variable month length pitfalls
-    let fullMonths =
-      now.getFullYear() * 12 +
-      now.getMonth() -
-      (startDate.getFullYear() * 12 + startDate.getMonth());
-
-    // Adjust if current day is before start day (anniversary has not passed)
-    if (now.getDate() < startDate.getDate()) {
-      fullMonths -= 1;
-    }
-    fullMonths = Math.max(0, fullMonths);
-
-    // Calculate days into the current partial month accurately
-    let daysIntoMonth = 0;
-    const lastAnniversary = new Date(startDate);
-    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
-
-    const diffTime = Math.abs(now - lastAnniversary);
-    daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    // Calculate total precise days passed since loan started
+    let diffTimeTotal = now.getTime() - startDate.getTime();
+    if (diffTimeTotal < 0) diffTimeTotal = 0;
+    const totalDaysPassed = Math.floor(diffTimeTotal / (1000 * 60 * 60 * 24));
 
     if (loan.interestType === 'simple') {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
 
-      // Charge for full months + daily pro-rate for partial month
-      // Minimum 1 month interest for business protection
-      const calculatedInterest =
-        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
-      const proRatedInterest = Math.round(
-        Math.max(monthlyInterest, calculatedInterest),
-      );
+      const proRatedInterest = Math.round(dailyInterest * totalDaysPassed);
 
       actualSettlementAmount = loan.principal + proRatedInterest;
     } else if (loan.interestType === 'emi') {
       // EMI (Reducing Balance) Early Settlement
-      // We waive unearned interest. Settlement = Current Remaining Principal + Pro-rated interest for current period.
       const monthlyRate = loan.rate / 12 / 100;
 
-      // Calculate remaining principal if we were to settle "now"
-      const r = monthlyRate;
-      const P = loan.principal;
-      const E = loan.emi;
-      const m = fullMonths;
+      // Approximate remaining true principal
+      const totalPrins = await Repayment.aggregate([
+        { $match: { loan: loan._id } },
+        { $group: { _id: null, totalPrin: { $sum: '$principalAmount' } } },
+      ]);
+      const prinPaid = totalPrins.length > 0 ? totalPrins[0].totalPrin : 0;
+      const currentPrincipal = Math.max(0, loan.principal - prinPaid);
 
-      const principalBalanceAfterM =
-        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
-      const adjustedPrincipal = Math.max(0, Math.round(principalBalanceAfterM));
+      // Find days since last repayment to calculate only the current unbilled interest
+      const lastRepayment = await Repayment.findOne({ loan: loan._id }).sort({
+        date: -1,
+      });
+      const lastDate = lastRepayment
+        ? new Date(lastRepayment.date)
+        : new Date(loan.startDate);
+      let diffTimeCurr = now.getTime() - lastDate.getTime();
+      if (diffTimeCurr < 0) diffTimeCurr = 0;
+      const currentDaysPassed = Math.floor(
+        diffTimeCurr / (1000 * 60 * 60 * 24),
+      );
 
-      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
-      const currentPeriodInterest = Math.round(dailyInterest * daysIntoMonth);
+      const dailyInterest = (currentPrincipal * monthlyRate) / 30;
+      const currentPeriodInterest = Math.round(
+        dailyInterest * currentDaysPassed,
+      );
 
-      actualSettlementAmount = adjustedPrincipal + currentPeriodInterest;
+      // Settlement target = Past Paid + What is Owed Exactly Today
+      actualSettlementAmount =
+        loan.paidAmount + currentPrincipal + currentPeriodInterest;
     }
 
     // If this payment + previous payments >= settlement amount
@@ -112,21 +106,43 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     interestAmount = Math.max(0, actualSettlementAmount - loan.principal);
     principalAmount = Math.min(repaymentAmount, loan.principal);
   } else {
-    // Normal repayment split calculation
+    // Normal repayment split calculation based on EXACT days elapsed
+    const lastRepayment = await Repayment.findOne({ loan: loan._id }).sort({
+      date: -1,
+    });
+    const lastDate = lastRepayment
+      ? new Date(lastRepayment.date)
+      : new Date(loan.startDate);
+    const currentDate = new Date(date);
+
+    // Calculate precise days passed
+    let diffTime = currentDate.getTime() - lastDate.getTime();
+    if (diffTime < 0) diffTime = 0;
+    const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
     if (loan.interestType === 'simple') {
-      const months = loan.duration || 1;
-      const totalInterest = loan.totalAmount - loan.principal;
-      const interestPerInstallment = totalInterest / months;
-      interestAmount = Math.round(
-        Math.min(interestPerInstallment, repaymentAmount),
-      );
-      principalAmount = Math.max(0, repaymentAmount - interestAmount);
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestAmount = Math.round(dailyInterest * daysPassed);
     } else {
       // EMI (Reducing Balance)
       const monthlyRate = loan.rate / 12 / 100;
-      interestAmount = Math.round(loan.remainingAmount * monthlyRate);
-      principalAmount = repaymentAmount - interestAmount;
+
+      // Approximate remaining true principal
+      const totalPrins = await Repayment.aggregate([
+        { $match: { loan: loan._id } },
+        { $group: { _id: null, totalPrin: { $sum: '$principalAmount' } } },
+      ]);
+      const prinPaid = totalPrins.length > 0 ? totalPrins[0].totalPrin : 0;
+      const currPrin = Math.max(0, loan.principal - prinPaid);
+
+      const dailyInterest = (currPrin * monthlyRate) / 30;
+      interestAmount = Math.round(dailyInterest * daysPassed);
     }
+
+    // Safety checks
+    interestAmount = Math.min(interestAmount, repaymentAmount);
+    principalAmount = Math.max(0, repaymentAmount - interestAmount);
 
     // Safeguard: Ensure values make sense
     if (principalAmount > loan.remainingAmount) {
@@ -364,44 +380,52 @@ const processRepayment = async (loan, amount, req, options = {}) => {
           },
         });
       }
+    }
 
-      // ── Email Notification ───────────────────────────────────────────────
-      const member = await Member.findById(customer.memberId);
-      if (member && member.email) {
-        const User = require('../models/User');
-        const owner = await User.findById(loan.user).select(
-          'businessName name businessLogo',
-        );
-        let branchName = branch?.branding?.companyName || branch?.name;
-        const logoUrl = branch?.branding?.logoUrl || owner?.businessLogo;
+    // ── Email Notification ───────────────────────────────────────────────
+    if (customer && customer.email) {
+      const User = require('../models/User');
+      const Branch = require('../models/Branch');
+      const owner = await User.findById(loan.user).select(
+        'businessName name businessLogo',
+      );
+      const branch = await Branch.findById(loan.branchId);
+      let branchName = branch?.branding?.companyName || branch?.name;
+      const logoUrl = branch?.branding?.logoUrl || owner?.businessLogo;
 
-        if (!branchName) {
-          branchName = owner ? owner.businessName || owner.name : 'FinFlo';
-        }
-
-        sendEmailAsync({
-          to: member.email,
-          subject: isAutoValue
-            ? 'Automatic Loan Payment Confirmation'
-            : 'Loan Repayment Confirmation',
-          html: transactionEmail({
-            memberName: member.name,
-            transactionType: isAutoValue
-              ? 'Automatic Installment'
-              : 'Loan Repayment',
-            amount: repaymentAmount.toLocaleString(),
-            date: new Date().toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-            }),
-            balance: loan.remainingAmount.toLocaleString(),
-            branchName: branchName,
-            reference: repayment._id.toString().slice(-8).toUpperCase(),
-            logoUrl: logoUrl,
-          }),
-        });
+      if (!branchName) {
+        branchName = owner ? owner.businessName || owner.name : 'FinFlo';
       }
+
+      let effectiveBalance;
+      if (customer.memberId) {
+        effectiveBalance = await calculateEffectiveBalance(customer.memberId);
+      } else {
+        effectiveBalance = -loan.remainingAmount; // Non-members only hold loan balance
+      }
+
+      sendEmailAsync({
+        to: customer.email,
+        subject: isAutoValue
+          ? 'Automatic Loan Payment Confirmation'
+          : 'Loan Repayment Confirmation',
+        html: transactionEmail({
+          memberName: customer.name,
+          transactionType: isAutoValue
+            ? 'Automatic Installment'
+            : 'Loan Repayment',
+          amount: repaymentAmount.toLocaleString(),
+          date: new Date().toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
+          balance: effectiveBalance.toLocaleString(),
+          branchName: branchName,
+          reference: repayment._id.toString().slice(-8).toUpperCase(),
+          logoUrl: logoUrl,
+        }),
+      });
     }
   } catch (notifError) {
     console.error('Repayment Notification Error in Service:', notifError);

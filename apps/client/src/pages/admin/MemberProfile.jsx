@@ -165,6 +165,10 @@ const MemberProfile = () => {
   const [applyDeduction, setApplyDeduction] = useState(true);
   const [deductFromBalance, setDeductFromBalance] = useState(false);
   const [repaymentType, setRepaymentType] = useState('installment');
+  const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] =
+    useState(null);
+  const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] =
+    useState(false);
 
   const getSettlementDetails = (loan) => {
     if (!loan)
@@ -238,6 +242,46 @@ const MemberProfile = () => {
   const settlementDetails = activeLoan
     ? getSettlementDetails(activeLoan)
     : null;
+
+  // Fetch last repayment date for active loan to show days-based installment
+  useEffect(() => {
+    if (!activeLoan?._id) return;
+    setIsFetchingActiveLoanPayment(true);
+    api
+      .get(
+        `/repayments?loanId=${activeLoan._id}&limit=1&sortBy=date&sortOrder=desc`,
+      )
+      .then(({ data }) => {
+        const reps = data?.data || [];
+        if (reps.length > 0) {
+          setLastActiveLoanPaymentDate(new Date(reps[0].date));
+        } else {
+          setLastActiveLoanPaymentDate(new Date(activeLoan.startDate));
+        }
+      })
+      .catch(() => setLastActiveLoanPaymentDate(new Date(activeLoan.startDate)))
+      .finally(() => setIsFetchingActiveLoanPayment(false));
+  }, [activeLoan?._id]);
+
+  // Daily-adjusted installment details based on days since last payment
+  const getAutoDeductionDailyDetails = () => {
+    if (!activeLoan)
+      return { daysPassed: 0, interestForDays: 0, adjustedAmount: 0 };
+    const refDate = lastActiveLoanPaymentDate || new Date(activeLoan.startDate);
+    const now = new Date();
+    let diff = now.getTime() - refDate.getTime();
+    if (diff < 0) diff = 0;
+    const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const monthlyInterest = (activeLoan.principal * activeLoan.rate) / 1200;
+    const dailyInterest = monthlyInterest / 30;
+    const interestForDays = Math.round(dailyInterest * daysPassed);
+    const principalPerInstallment = Math.round(
+      activeLoan.principal / (activeLoan.duration || 1),
+    );
+    const adjustedAmount = principalPerInstallment + interestForDays;
+    return { daysPassed, interestForDays, adjustedAmount };
+  };
+  const autoDeductionDaily = getAutoDeductionDailyDetails();
 
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
@@ -1551,17 +1595,38 @@ const MemberProfile = () => {
                                 className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${repaymentType === 'installment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
                               >
                                 <div className="relative z-10">
-                                  <p className="text-[10px] font-black uppercase tracking-widest">
-                                    EMI
-                                  </p>
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <p className="text-[10px] font-black uppercase tracking-widest">
+                                      EMI
+                                    </p>
+                                    {!isFetchingActiveLoanPayment && (
+                                      <span className="text-[8px] font-black uppercase bg-indigo-500/20 text-indigo-600 px-1 py-0.5 rounded-full">
+                                        {autoDeductionDaily.daysPassed}d
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-[11px] font-black mt-0.5">
-                                    {formatCurrency(activeLoan.emi)}
+                                    {isFetchingActiveLoanPayment
+                                      ? '...'
+                                      : formatCurrency(
+                                          autoDeductionDaily.adjustedAmount,
+                                        )}
                                   </p>
+                                  {!isFetchingActiveLoanPayment && (
+                                    <p className="text-[8px] font-medium text-indigo-600/70 mt-0.5">
+                                      incl.{' '}
+                                      {formatCurrency(
+                                        autoDeductionDaily.interestForDays,
+                                      )}{' '}
+                                      interest
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                   <Clock size={24} />
                                 </div>
                               </button>
+
                               <button
                                 type="button"
                                 onClick={() => setRepaymentType('settlement')}

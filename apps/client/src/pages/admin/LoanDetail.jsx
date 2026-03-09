@@ -40,19 +40,16 @@ import CommunicationLogs from '@/components/customers/CommunicationLogs';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 
 const LoanDetailSkeleton = () => (
-  <div className="space-y-8 animate-pulse">
-    <div className="h-40 bg-card/40 backdrop-blur-xl rounded-[2.5rem] border border-border/10" />
+  <div className="space-y-8 animate-pulse p-4">
+    <div className="h-40 bg-muted/60 rounded-[2.5rem]" />
     <div className="grid gap-6 sm:gap-6 md:grid-cols-4">
       {[1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className="h-32 rounded-[2rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm"
-        />
+        <div key={i} className="h-32 rounded-[2rem] bg-muted/60" />
       ))}
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div className="lg:col-span-8 h-[600px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-      <div className="lg:col-span-4 h-[400px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
+      <div className="lg:col-span-8 h-[600px] rounded-[2.5rem] bg-muted/60" />
+      <div className="lg:col-span-4 h-[400px] rounded-[2.5rem] bg-muted/60" />
     </div>
   </div>
 );
@@ -109,13 +106,30 @@ const LoanDetail = () => {
       const repaymentsRes = await api.get(`/repayments?loanId=${id}`);
       const allRepayments = repaymentsRes.data.data || [];
 
-      // Calculate actual installments paid based on amount, not just record count
-      const actualInstallmentsPaid = Math.min(
-        Math.floor(loanRes.data.paidAmount / loanRes.data.emi),
-        loanRes.data.duration,
-      );
-      setPaidInstallmentsCount(actualInstallmentsPaid);
+      const scheduleRes = await api.get(`/loans/${id}/schedule`);
+      const fullSchedule = scheduleRes.data || [];
 
+      // Calculate actual installments paid based on true accumulated principal
+      // (Since early payments have less interest, checking total amount undercounts)
+      let currentPrincipalSum = 0;
+      let actualInstallmentsPaid = 0;
+
+      const principalPaid = allRepayments.reduce(
+        (sum, rp) => sum + (rp.principalAmount || 0),
+        0,
+      );
+
+      for (let i = 0; i < fullSchedule.length; i++) {
+        currentPrincipalSum += fullSchedule[i].principal;
+        if (principalPaid >= currentPrincipalSum - 10) {
+          actualInstallmentsPaid = i + 1;
+        } else {
+          break;
+        }
+      }
+      setPaidInstallmentsCount(
+        Math.min(actualInstallmentsPaid, loanRes.data.duration),
+      );
       if (isMobile) {
         setRepayments(allRepayments.slice(0, itemsPerPage));
         setHasMoreRepayments(allRepayments.length > itemsPerPage);
@@ -143,8 +157,6 @@ const LoanDetail = () => {
       const upcomingRes = await api.get(`/loans/upcoming?loanId=${id}`);
       setUpcomingPayments(upcomingRes.data);
 
-      const scheduleRes = await api.get(`/loans/${id}/schedule`);
-      const fullSchedule = scheduleRes.data || [];
       setAllSchedule(fullSchedule);
 
       if (isMobile) {

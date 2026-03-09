@@ -31,6 +31,7 @@ const MemberLoanDetail = () => {
   const navigate = useNavigate();
   const [loan, setLoan] = useState(null);
   const [schedule, setSchedule] = useState([]);
+  const [truePrincipalPaid, setTruePrincipalPaid] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
   const [showPenaltyBanner, setShowPenaltyBanner] = useState(true);
@@ -44,13 +45,21 @@ const MemberLoanDetail = () => {
           /* Auth header handled by browser cookies */
         };
 
-        const [loanRes, scheduleRes] = await Promise.all([
+        const [loanRes, scheduleRes, repaymentsRes] = await Promise.all([
           api.get(`/loans/my-loans/${id}`, { headers }),
           api.get(`/loans/my-loans/${id}/schedule`, { headers }),
+          api.get(`/repayments/my-repayments?loanId=${id}`, { headers }),
         ]);
+
+        const allRepayments = repaymentsRes.data?.data || [];
+        const calculatedPrincipalPaid = allRepayments.reduce(
+          (sum, rp) => sum + (rp.principalAmount || 0),
+          0,
+        );
 
         setLoan(loanRes.data);
         setSchedule(scheduleRes.data);
+        setTruePrincipalPaid(calculatedPrincipalPaid);
       } catch (error) {
         console.error('Failed to fetch loan details:', error);
         toast.error('Failed to load loan details');
@@ -70,13 +79,21 @@ const MemberLoanDetail = () => {
         /* Auth header handled by browser cookies */
       };
 
-      const [loanRes, scheduleRes] = await Promise.all([
+      const [loanRes, scheduleRes, repaymentsRes] = await Promise.all([
         api.get(`/loans/my-loans/${id}`, { headers }),
         api.get(`/loans/my-loans/${id}/schedule`, { headers }),
+        api.get(`/repayments/my-repayments?loanId=${id}`, { headers }),
       ]);
+
+      const allRepayments = repaymentsRes.data?.data || [];
+      const calculatedPrincipalPaid = allRepayments.reduce(
+        (sum, rp) => sum + (rp.principalAmount || 0),
+        0,
+      );
 
       setLoan(loanRes.data);
       setSchedule(scheduleRes.data);
+      setTruePrincipalPaid(calculatedPrincipalPaid);
     } catch (error) {
       console.error('Failed to refresh loan details:', error);
     } finally {
@@ -116,8 +133,21 @@ const MemberLoanDetail = () => {
 
   const paidAmount = loan.totalAmount - loan.remainingAmount;
   const progressPercent = Math.round((paidAmount / loan.totalAmount) * 100);
-  const paidInstallments =
-    loan.emi > 0 ? Math.floor(loan.paidAmount / loan.emi) : 0;
+
+  // Calculate paid installments based on exact true principal paid
+  let currentPrincipalSum = 0;
+  let paidInstallments = 0;
+
+  for (let i = 0; i < schedule.length; i++) {
+    currentPrincipalSum += schedule[i].principal;
+    // We consider an installment "paid" if the principal paid so far covers its principal portion
+    // allowing a small margin of error for rounding (+/- Rs. 10)
+    if (truePrincipalPaid >= currentPrincipalSum - 10) {
+      paidInstallments = i + 1;
+    } else {
+      break;
+    }
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">

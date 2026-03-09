@@ -30,6 +30,9 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [isFetchingBalance, setIsFetchingBalance] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSettlement, setIsSettlement] = useState(false);
+  const [lastPaymentDate, setLastPaymentDate] = useState(null);
+  const [truePrincipalPaid, setTruePrincipalPaid] = useState(0);
+  const [isFetchingLastPayment, setIsFetchingLastPayment] = useState(false);
 
   const {
     register,
@@ -68,40 +71,138 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
     }
   }, [isOpen, loan]);
 
+  useEffect(() => {
+    if (isOpen && loan?._id) {
+      const fetchLastPayment = async () => {
+        setIsFetchingLastPayment(true);
+        try {
+          // Fetch full repayments history to calculate true accumulated principal
+          const { data } = await api.get(
+            `/repayments?loanId=${loan._id}&sortBy=date&sortOrder=desc`,
+          );
+          const repayments = data?.data || [];
+
+          if (repayments.length > 0) {
+            setLastPaymentDate(new Date(repayments[0].date));
+          } else {
+            setLastPaymentDate(new Date(loan.startDate));
+          }
+
+          const calculatedPrincipalPaid = repayments.reduce(
+            (sum, rp) => sum + (rp.principalAmount || 0),
+            0,
+          );
+          setTruePrincipalPaid(calculatedPrincipalPaid);
+        } catch (error) {
+          // Fallback to loan start date
+          setLastPaymentDate(new Date(loan.startDate));
+          setTruePrincipalPaid(0);
+        } finally {
+          setIsFetchingLastPayment(false);
+        }
+      };
+      fetchLastPayment();
+    }
+  }, [isOpen, loan]);
+
   if (!loan) return null;
+
+  const getDailyInstallmentDetails = () => {
+    const refDate = lastPaymentDate || new Date(loan.startDate);
+    const now = new Date();
+    let diff = now.getTime() - refDate.getTime();
+    if (diff < 0) diff = 0;
+    const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    let interestForDays = 0;
+    let principalPerInstallment = 0;
+
+    if (loan.interestType === 'simple' || !loan.interestType) {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        loan.principal / (loan.duration || 1),
+      );
+    } else {
+      // EMI Math
+      const currentPrincipal = Math.max(0, loan.principal - truePrincipalPaid);
+      const monthlyRate = loan.rate / 12 / 100;
+      const dailyInterest = (currentPrincipal * monthlyRate) / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+
+      const standardMonthlyInterest = Math.round(
+        currentPrincipal * monthlyRate,
+      );
+      principalPerInstallment = Math.round(loan.emi - standardMonthlyInterest);
+      principalPerInstallment = Math.max(0, principalPerInstallment);
+    }
+
+    const adjustedAmount = principalPerInstallment + interestForDays;
+
+    return { daysPassed, interestForDays, adjustedAmount };
+  };
+
+  const dailyInstallment = getDailyInstallmentDetails();
 
   // Calculate settlement amount preview
   const getSettlementDetails = () => {
+    if (!loan)
+      return { amount: 0, daysElapsed: 0, interest: 0, isEarly: false };
+
     const start = new Date(loan.startDate);
     const now = new Date(date || new Date());
+    let diffTimeTotal = now.getTime() - start.getTime();
+    if (diffTimeTotal < 0) diffTimeTotal = 0;
+    const totalDaysPassed = Math.floor(diffTimeTotal / (1000 * 60 * 60 * 24));
 
-    let monthsElapsed =
-      (now.getFullYear() - start.getFullYear()) * 12 +
-      (now.getMonth() - start.getMonth());
-
-    if (now.getDate() > start.getDate()) {
-      monthsElapsed++;
-    }
-
-    monthsElapsed = Math.max(1, monthsElapsed);
-
-    if (monthsElapsed >= loan.duration) {
+    // Safety fallback
+    const expectedDays = (loan.duration || 1) * 30;
+    if (totalDaysPassed >= expectedDays) {
       return {
         amount: loan.remainingAmount,
-        monthsElapsed,
+        daysElapsed: totalDaysPassed,
         interest: loan.totalAmount - loan.principal,
         isEarly: false,
       };
     }
 
-    const interest = (loan.principal * loan.rate * monthsElapsed) / 1200;
-    const adjustedTotal = loan.principal + interest;
-    return {
-      amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
-      monthsElapsed,
-      interest,
-      isEarly: true,
-    };
+    if (loan.interestType === 'simple' || !loan.interestType) {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      const totalAccruedInterest = Math.round(dailyInterest * totalDaysPassed);
+
+      const adjustedTotal = loan.principal + totalAccruedInterest;
+      return {
+        amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
+        daysElapsed: totalDaysPassed,
+        interest: totalAccruedInterest,
+        isEarly: true,
+      };
+    } else {
+      // EMI Math: Final settlement is current principal + just the current period's interest
+      const currentPrincipal = Math.max(0, loan.principal - truePrincipalPaid);
+
+      const refDate = lastPaymentDate || new Date(loan.startDate);
+      let diffDaysSinceLast = now.getTime() - refDate.getTime();
+      if (diffDaysSinceLast < 0) diffDaysSinceLast = 0;
+      const daysPassedSinceLast = Math.floor(
+        diffDaysSinceLast / (1000 * 60 * 60 * 24),
+      );
+
+      const monthlyRate = loan.rate / 12 / 100;
+      const dailyInterest = (currentPrincipal * monthlyRate) / 30;
+      const interestForCurrentPeriod = Math.round(
+        dailyInterest * daysPassedSinceLast,
+      );
+
+      return {
+        amount: Math.round(currentPrincipal + interestForCurrentPeriod),
+        daysElapsed: totalDaysPassed,
+        interest: interestForCurrentPeriod,
+        isEarly: true,
+      };
+    }
   };
 
   const details = getSettlementDetails();
@@ -224,8 +325,8 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   <span>{loan.duration} Months</span>
                 </div>
                 <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
-                  <span>Months Active</span>
-                  <span>{details.monthsElapsed} Months</span>
+                  <span>Days Active</span>
+                  <span>{details.daysElapsed} Days</span>
                 </div>
                 <div className="pt-1 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                   <span>Adjusted Interest</span>
@@ -275,35 +376,64 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               {/* Quick Option: Monthly Installment */}
               {loan.emi > 0 && !isSettlement && (
                 <div
-                  onClick={() => setValue('amount', loan.emi.toString())}
+                  onClick={() =>
+                    !isFetchingLastPayment &&
+                    setValue(
+                      'amount',
+                      dailyInstallment.adjustedAmount.toString(),
+                    )
+                  }
                   className={cn(
                     'p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
-                    Number(amount) === loan.emi
+                    Number(amount) === dailyInstallment.adjustedAmount
                       ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
                       : 'bg-muted/30 border-border/50 hover:border-emerald-500/30',
+                    isFetchingLastPayment && 'opacity-60 pointer-events-none',
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
                         'p-2 rounded-xl transition-colors',
-                        Number(amount) === loan.emi
+                        Number(amount) === dailyInstallment.adjustedAmount
                           ? 'bg-emerald-500/20 text-emerald-600'
                           : 'bg-background text-muted-foreground group-hover:text-emerald-500',
                       )}
                     >
-                      <CalendarIcon size={16} />
+                      {isFetchingLastPayment ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <CalendarIcon size={16} />
+                      )}
                     </div>
                     <div className="space-y-0.5 text-left">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        Monthly Installment
-                      </p>
-                      <p className="text-sm font-black text-foreground">
-                        {formatCurrency(loan.emi)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Monthly Installment
+                        </p>
+                        {!isFetchingLastPayment && (
+                          <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                            {dailyInstallment.daysPassed}d
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <p className="text-sm font-black text-foreground">
+                          {isFetchingLastPayment
+                            ? '...'
+                            : formatCurrency(dailyInstallment.adjustedAmount)}
+                        </p>
+                        {!isFetchingLastPayment && (
+                          <p className="text-[9px] font-bold text-muted-foreground">
+                            incl.{' '}
+                            {formatCurrency(dailyInstallment.interestForDays)}{' '}
+                            interest
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {Number(amount) === loan.emi && (
+                  {Number(amount) === dailyInstallment.adjustedAmount && (
                     <CheckCircle2 size={20} className="text-emerald-500" />
                   )}
                 </div>

@@ -20,6 +20,7 @@ const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
+const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 const {
   updateMemberCreditLimit,
   calculateCreditLimit,
@@ -967,112 +968,22 @@ const addRepayment = async (req, res) => {
       return res.status(400).json({ message: 'Loan is already completed' });
     }
 
-    // Handle Early Settlement Interest Adjustment
-    if (isSettlement) {
-      const start = new Date(loan.startDate);
-      const now = new Date(date || new Date());
-
-      // Calculate months elapsed (minimum 1 month as per requirement)
-      let monthsElapsed =
-        (now.getFullYear() - start.getFullYear()) * 12 +
-        (now.getMonth() - start.getMonth());
-
-      // If the day of month is past the start day, it's a full month
-      if (now.getDate() > start.getDate()) {
-        monthsElapsed++;
-      }
-
-      monthsElapsed = Math.max(1, monthsElapsed);
-
-      // Only adjust if monthsElapsed is less than original duration
-      if (monthsElapsed < loan.duration) {
-        let newTotalInterest;
-        if (loan.interestType === 'simple') {
-          newTotalInterest =
-            (loan.principal * loan.rate * monthsElapsed) / 1200;
-        } else {
-          // For EMI, it's more complex, but we'll follow simple interest logic for settlement for now
-          // or we could use the amortization schedule. Given the request "interest charge accordingly",
-          // simple interest pro-rata is the most common interpretation.
-          newTotalInterest =
-            (loan.principal * loan.rate * monthsElapsed) / 1200;
-        }
-
-        const newTotalAmount = Math.round(loan.principal + newTotalInterest);
-
-        // Log the adjustment
-        await logActivity({
-          userId: req.user._id,
-          action: 'loan_interest_adjusted',
-          category: 'loan',
-          details: `Loan interest adjusted for early settlement from ${loan.totalAmount} to ${newTotalAmount} (${monthsElapsed} months)`,
-          metadata: {
-            loanId: loan._id,
-            oldTotalAmount: loan.totalAmount,
-            newTotalAmount,
-            monthsElapsed,
-          },
-          req,
-        });
-
-        loan.totalAmount = newTotalAmount;
-      }
-    }
-
     // Use shared service to process repayment
+    // The service handles all interest calculation (daily-based), early settlement detection,
+    // and loan total adjustments internally using exact days elapsed.
     const { repayment } = await loanRepaymentService.processRepayment(
       loan,
       amount,
       req,
       {
         date,
+        isAutoValue: false,
+        notes: notes || '',
+        allowEarlySettlement: true,
       },
     );
 
     // ── Email Notification ────────────────────────────────────────────────
-    try {
-      const customer = loan.customer;
-      if (customer && customer.isMember && customer.memberId) {
-        const member = await Member.findById(customer.memberId);
-        if (member && member.email) {
-          const branch = await Branch.findById(loan.branchId);
-          const branchName =
-            branch?.branding?.companyName ||
-            branch?.name ||
-            req.user.businessName ||
-            req.user.name ||
-            'FinFlo';
-          const ownerLogo =
-            req.user.role === 'staff'
-              ? (await User.findById(req.user.ownerId))?.businessLogo
-              : req.user.businessLogo;
-          const logoUrl = branch?.branding?.logoUrl || ownerLogo;
-
-          sendEmailAsync({
-            to: member.email,
-            subject: 'Loan Repayment Confirmation',
-            html: transactionEmail({
-              memberName: member.name,
-              transactionType: 'Loan Repayment',
-              amount: amount.toLocaleString(),
-              date: new Date().toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-              balance: loan.remainingAmount.toLocaleString(),
-              branchName: branchName,
-              reference: repayment._id.toString().slice(-8).toUpperCase(),
-              logoUrl: logoUrl,
-            }),
-          });
-        }
-      }
-    } catch (emailError) {
-      console.error('Repayment Email Error:', emailError);
-    }
 
     // If loan is completed and customer is a member, update their credit limit
     if (loan.status === 'completed' && loan.customer.memberId) {
@@ -1300,7 +1211,9 @@ const updateLoan = async (req, res) => {
                 month: 'short',
                 year: 'numeric',
               }),
-              balance: loan.remainingAmount.toLocaleString(),
+              balance: (
+                await calculateEffectiveBalance(customer.memberId)
+              ).toLocaleString(),
               reference: loan._id.toString().slice(-8).toUpperCase(),
               branchName: branchName,
               logoUrl: logoUrl,
@@ -1821,7 +1734,54 @@ const getLoanSchedule = async (req, res) => {
     }
 
     const schedule = generateAmortizationSchedule(loan);
-    res.json(schedule);
+
+    // Overlay actual results from repayment history
+    const repayments = await Repayment.find({
+      loan: loan._id,
+      status: 'Completed',
+    }).sort({ date: 1 });
+
+    let totalActualPrincipal = repayments.reduce(
+      (sum, rp) => sum + (rp.principalAmount || 0),
+      0,
+    );
+    let totalActualInterest = repayments.reduce(
+      (sum, rp) => sum + (rp.interestAmount || 0),
+      0,
+    );
+
+    const updatedSchedule = schedule.map((item, index) => {
+      const isLast = index === schedule.length - 1;
+      let paidP = Math.min(item.principal, totalActualPrincipal);
+      if (isLast && totalActualPrincipal > 0) paidP = totalActualPrincipal;
+
+      let paidI = 0;
+      if (paidP > 0 || (isLast && totalActualInterest > 0)) {
+        paidI = Math.min(item.interest, totalActualInterest);
+        if (isLast) paidI = totalActualInterest;
+      }
+
+      const installment = {
+        ...item,
+        actualPrincipal: paidP,
+        actualInterest: paidI,
+        actualTotal: paidP + paidI,
+      };
+
+      // For UI compatibility, overwrite projected values with actuals for paid portions or completed loans
+      if (paidP > 0 || paidI > 0 || loan.status === 'completed') {
+        installment.principal = paidP;
+        installment.interest = paidI;
+        installment.amount = paidP + paidI;
+      }
+
+      totalActualPrincipal = Math.max(0, totalActualPrincipal - paidP);
+      totalActualInterest = Math.max(0, totalActualInterest - paidI);
+
+      return installment;
+    });
+
+    res.json(updatedSchedule);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -1868,7 +1828,88 @@ const getMemberLoanSchedule = async (req, res) => {
     }
 
     const schedule = generateAmortizationSchedule(loan);
-    res.json(schedule);
+
+    // Overlay actual results from repayment history
+    const repayments = await Repayment.find({
+      loan: loan._id,
+      status: 'Completed',
+    }).sort({ date: 1 });
+
+    let totalActualPrincipal = repayments.reduce(
+      (sum, rp) => sum + (rp.principalAmount || 0),
+      0,
+    );
+    let totalActualInterest = repayments.reduce(
+      (sum, rp) => sum + (rp.interestAmount || 0),
+      0,
+    );
+
+    const updatedSchedule = schedule.map((item, index) => {
+      const isLast = index === schedule.length - 1;
+      let paidP = Math.min(item.principal, totalActualPrincipal);
+      if (isLast && totalActualPrincipal > 0) paidP = totalActualPrincipal;
+
+      let paidI = 0;
+      if (paidP > 0 || (isLast && totalActualInterest > 0)) {
+        paidI = Math.min(item.interest, totalActualInterest);
+        if (isLast) paidI = totalActualInterest;
+      }
+
+      const installment = {
+        ...item,
+      };
+
+      if (paidP > 0 || paidI > 0 || loan.status === 'completed') {
+        installment.principal = paidP;
+        installment.interest = paidI;
+        installment.amount = paidP + paidI;
+      }
+
+      totalActualPrincipal = Math.max(0, totalActualPrincipal - paidP);
+      totalActualInterest = Math.max(0, totalActualInterest - paidI);
+
+      return installment;
+    });
+
+    res.json(updatedSchedule);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMemberRepayments = async (req, res) => {
+  try {
+    const { loanId, limit, page = 1 } = req.query;
+
+    const query = {
+      customer: req.member.customer,
+      status: 'Completed',
+    };
+
+    if (loanId) {
+      query.loan = loanId;
+    }
+
+    const itemsPerPage = parseInt(limit) || 50;
+    const skip = (parseInt(page) - 1) * itemsPerPage;
+
+    const repayments = await Repayment.find(query)
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(itemsPerPage)
+      .populate('loan', 'principal remainingAmount emi totalAmount')
+      .populate('customer', 'name accountNumber');
+
+    const total = await Repayment.countDocuments(query);
+
+    res.json({
+      success: true,
+      count: repayments.length,
+      total,
+      totalPages: Math.ceil(total / itemsPerPage),
+      currentPage: parseInt(page),
+      data: repayments,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -2237,6 +2278,7 @@ module.exports = {
   getLoanSchedule,
   getMemberLoanById,
   getMemberLoanSchedule,
+  getMemberRepayments,
   getGrantorLoans,
   updateGrantorStatus,
   memberRepayLoan,

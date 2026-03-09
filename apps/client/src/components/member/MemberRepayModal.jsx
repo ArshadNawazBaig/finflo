@@ -28,6 +28,9 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [memberBalance, setMemberBalance] = useState(0);
   const [fetchingBalance, setFetchingBalance] = useState(false);
   const [isSettlement, setIsSettlement] = useState(false);
+  const [lastPaymentDate, setLastPaymentDate] = useState(null);
+  const [truePrincipalPaid, setTruePrincipalPaid] = useState(0);
+  const [isFetchingLastPayment, setIsFetchingLastPayment] = useState(false);
   const [formData, setFormData] = useState({
     notes: '',
   });
@@ -45,6 +48,40 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       });
     }
   }, [isOpen, businessName]);
+
+  useEffect(() => {
+    if (isOpen && loan?._id) {
+      const fetchLastPayment = async () => {
+        setIsFetchingLastPayment(true);
+        try {
+          // Fetch full member repayments to sum up true principal paid
+          const { data } = await api.get(
+            `/repayments/my-repayments?loanId=${loan._id}`,
+          );
+          const repayments = data?.data || [];
+
+          if (repayments.length > 0) {
+            setLastPaymentDate(new Date(repayments[0].date));
+          } else {
+            setLastPaymentDate(new Date(loan.startDate));
+          }
+
+          const calculatedPrincipalPaid = repayments.reduce(
+            (sum, rp) => sum + (rp.principalAmount || 0),
+            0,
+          );
+          setTruePrincipalPaid(calculatedPrincipalPaid);
+        } catch (error) {
+          // Fallback to loan start date
+          setLastPaymentDate(new Date(loan.startDate));
+          setTruePrincipalPaid(0);
+        } finally {
+          setIsFetchingLastPayment(false);
+        }
+      };
+      fetchLastPayment();
+    }
+  }, [isOpen, loan]);
 
   const fetchMemberBalance = async () => {
     try {
@@ -65,70 +102,76 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
     }
   };
 
-  const getSettlementDetails = () => {
-    if (!loan)
-      return { amount: 0, monthsElapsed: 0, interest: 0, isEarly: false };
-    const start = new Date(loan.startDate);
+  const getDailyInstallmentDetails = () => {
+    const refDate = lastPaymentDate || new Date(loan.startDate);
     const now = new Date();
+    let diff = now.getTime() - refDate.getTime();
+    if (diff < 0) diff = 0;
+    const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    // In-sync with backend precise date calculation
-    let fullMonths =
-      now.getFullYear() * 12 +
-      now.getMonth() -
-      (start.getFullYear() * 12 + start.getMonth());
-    if (now.getDate() < start.getDate()) {
-      fullMonths -= 1;
-    }
-    fullMonths = Math.max(0, fullMonths);
-
-    const lastAnniversary = new Date(start);
-    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
-    const diffTime = Math.abs(now - lastAnniversary);
-    const daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (fullMonths >= loan.duration) {
-      return {
-        amount: Math.round(loan.remainingAmount),
-        monthsElapsed: loan.duration,
-        interest: Math.round(loan.totalAmount - loan.principal),
-        isEarly: false,
-      };
-    }
-
-    let adjustedInterest = 0;
-    let adjustedPrincipal = loan.principal;
+    let interestForDays = 0;
+    let principalPerInstallment = 0;
 
     if (loan.interestType === 'simple' || !loan.interestType) {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
-      const calculatedInterest =
-        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
-      adjustedInterest = Math.round(
-        Math.max(monthlyInterest, calculatedInterest),
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        loan.principal / (loan.duration || 1),
       );
-    } else if (loan.interestType === 'emi') {
+    } else {
+      // EMI Math
+      const currentPrincipal = Math.max(0, loan.principal - truePrincipalPaid);
       const monthlyRate = loan.rate / 12 / 100;
-      const r = monthlyRate;
-      const P = loan.principal;
-      const E = loan.emi;
-      const m = fullMonths;
+      const dailyInterest = (currentPrincipal * monthlyRate) / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
 
-      // Principal balance after m months
-      adjustedPrincipal =
-        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
-      adjustedPrincipal = Math.max(0, Math.round(adjustedPrincipal));
-
-      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
-      adjustedInterest = Math.round(dailyInterest * daysIntoMonth);
+      const standardMonthlyInterest = Math.round(
+        currentPrincipal * monthlyRate,
+      );
+      principalPerInstallment = Math.round(loan.emi - standardMonthlyInterest);
+      principalPerInstallment = Math.max(0, principalPerInstallment);
     }
 
-    const adjustedTotal = adjustedPrincipal + adjustedInterest;
+    const adjustedAmount = principalPerInstallment + interestForDays;
+
+    return { daysPassed, interestForDays, adjustedAmount };
+  };
+
+  const dailyInstallment = loan ? getDailyInstallmentDetails() : null;
+
+  const getSettlementDetails = () => {
+    if (!loan)
+      return { amount: 0, daysElapsed: 0, interest: 0, isEarly: false };
+
+    const start = new Date(loan.startDate);
+    const now = new Date();
+
+    let diffTimeTotal = now.getTime() - start.getTime();
+    if (diffTimeTotal < 0) diffTimeTotal = 0;
+    const totalDaysPassed = Math.floor(diffTimeTotal / (1000 * 60 * 60 * 24));
+
+    const totalExpectedDays = (loan.duration || 1) * 30;
+
+    if (totalDaysPassed >= totalExpectedDays) {
+      return {
+        amount: loan.remainingAmount,
+        daysElapsed: totalDaysPassed,
+        interest: loan.totalAmount - loan.principal,
+        isEarly: false,
+      };
+    }
+
+    const monthlyInterest = (loan.principal * loan.rate) / 1200;
+    const dailyInterest = monthlyInterest / 30;
+    const interest = Math.round(dailyInterest * totalDaysPassed);
+
+    const adjustedTotal = loan.principal + interest;
 
     return {
       amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
-      monthsElapsed: fullMonths,
-      daysIntoMonth,
-      interest: adjustedInterest,
+      daysElapsed: totalDaysPassed,
+      interest,
       isEarly: true,
     };
   };
@@ -248,39 +291,68 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Quick Option: Monthly Installment */}
-            {loan.emi > 0 && !isSettlement && (
+            {loan.emi > 0 && !isSettlement && dailyInstallment && (
               <div
                 onClick={() =>
-                  setFormData({ ...formData, amount: loan.emi.toString() })
+                  !isFetchingLastPayment &&
+                  setFormData({
+                    ...formData,
+                    amount: dailyInstallment.adjustedAmount.toString(),
+                  })
                 }
                 className={cn(
                   'p-4 rounded-3xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
-                  Number(formData.amount) === loan.emi
+                  Number(formData.amount) === dailyInstallment.adjustedAmount
                     ? 'bg-primary/10 border-primary shadow-sm'
                     : 'bg-muted/30 border-border/40 hover:border-primary/50',
+                  isFetchingLastPayment && 'opacity-60 pointer-events-none',
                 )}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
                       'p-2 rounded-xl transition-colors',
-                      Number(formData.amount) === loan.emi
+                      Number(formData.amount) ===
+                        dailyInstallment.adjustedAmount
                         ? 'bg-primary/20 text-primary'
                         : 'bg-background text-muted-foreground group-hover:text-primary',
                     )}
                   >
-                    <Calendar size={16} />
+                    {isFetchingLastPayment ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Calendar size={16} />
+                    )}
                   </div>
                   <div className="space-y-0.5 text-left">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Monthly Installment
-                    </p>
-                    <p className="text-sm font-black text-foreground">
-                      {formatCurrency(loan.emi)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Monthly Installment
+                      </p>
+                      {!isFetchingLastPayment && (
+                        <span className="text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                          {dailyInstallment.daysPassed}d
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className="text-sm font-black text-foreground">
+                        {isFetchingLastPayment
+                          ? '...'
+                          : formatCurrency(dailyInstallment.adjustedAmount)}
+                      </p>
+                      {!isFetchingLastPayment && (
+                        <p className="text-[9px] font-bold text-muted-foreground">
+                          incl.{' '}
+                          {formatCurrency(dailyInstallment.interestForDays)}{' '}
+                          interest
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-                {Number(formData.amount) === loan.emi && (
+                {Number(formData.amount) ===
+                  dailyInstallment.adjustedAmount && (
                   <CheckCircle2 size={20} className="text-primary" />
                 )}
               </div>
@@ -313,9 +385,17 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
               {isSettlement && (
                 <div className="mt-4 p-3 bg-blue-500/5 rounded-2xl space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex justify-between text-[9px] font-black uppercase text-blue-800/60">
-                    <span>Rate: {loan.rate}%</span>
-                    <span>Active: {details.monthsElapsed} Months</span>
+                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                    <span>Annual Rate</span>
+                    <span>{loan.rate}%</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                    <span>Original Term</span>
+                    <span>{loan.duration} Months</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                    <span>Days Active</span>
+                    <span>{details.daysElapsed} Days</span>
                   </div>
                   <div className="pt-2 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
                     <span>Adjusted Interest</span>

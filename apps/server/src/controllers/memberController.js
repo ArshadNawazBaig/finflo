@@ -28,6 +28,7 @@ const {
   transactionEmail,
   memberApprovalEmail,
 } = require('../utils/emailTemplates');
+const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 const Branch = require('../models/Branch');
 const { updateMemberCreditLimit } = require('../services/creditLimitService');
 
@@ -873,7 +874,9 @@ const addInvestment = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedMember.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(member._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -1070,7 +1073,9 @@ const withdrawInvestment = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedMember.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(member._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -1394,7 +1399,7 @@ const distributeProfit = async (req, res) => {
                   year: 'numeric',
                 }),
                 balance: (
-                  member.currentBalance + profitAmount
+                  await calculateEffectiveBalance(member._id)
                 ).toLocaleString(),
                 reference: distribution._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
@@ -1525,7 +1530,7 @@ const distributeProfit = async (req, res) => {
                   year: 'numeric',
                 }),
                 balance: (
-                  member.currentBalance + profitAmount
+                  await calculateEffectiveBalance(member._id)
                 ).toLocaleString(),
                 reference: distribution._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
@@ -2025,7 +2030,9 @@ const transferFunds = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedSender.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(sender._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -2051,7 +2058,9 @@ const transferFunds = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedRecipient.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(recipient._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: recipientTransaction._id
               .toString()
@@ -2268,7 +2277,9 @@ const adminTransferFunds = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedSender.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(sender._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -2300,7 +2311,9 @@ const adminTransferFunds = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: updatedRecipient.currentBalance.toLocaleString(),
+            balance: (
+              await calculateEffectiveBalance(recipient._id)
+            ).toLocaleString(),
             branchName: branchName,
             reference: recipientTransaction._id
               .toString()
