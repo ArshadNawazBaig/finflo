@@ -53,7 +53,7 @@ const sendPaymentReminder = async (req, res) => {
       : `Upcoming Loan Repayment Reminder — ${formattedDate}`;
 
     const reminderUser = await User.findById(req.user.effectiveOwnerId).select(
-      'businessName name',
+      'businessName name businessLogo',
     );
     const reminderBrand = reminderUser
       ? reminderUser.businessName || reminderUser.name
@@ -68,6 +68,7 @@ const sendPaymentReminder = async (req, res) => {
         formattedDate,
         isOverdue ? 'overdue' : 'upcoming',
         reminderBrand,
+        reminderUser?.businessLogo,
       ),
     });
 
@@ -1041,6 +1042,11 @@ const addRepayment = async (req, res) => {
             req.user.businessName ||
             req.user.name ||
             'FinFlo';
+          const ownerLogo =
+            req.user.role === 'staff'
+              ? (await User.findById(req.user.ownerId))?.businessLogo
+              : req.user.businessLogo;
+          const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
           sendEmailAsync({
             to: member.email,
@@ -1059,6 +1065,7 @@ const addRepayment = async (req, res) => {
               balance: loan.remainingAmount.toLocaleString(),
               branchName: branchName,
               reference: repayment._id.toString().slice(-8).toUpperCase(),
+              logoUrl: logoUrl,
             }),
           });
         }
@@ -1275,6 +1282,12 @@ const updateLoan = async (req, res) => {
             req.user.name ||
             'FinFlo';
 
+          const ownerLogo =
+            req.user.role === 'staff'
+              ? (await User.findById(req.user.ownerId))?.businessLogo
+              : req.user.businessLogo;
+          const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+
           sendEmailAsync({
             to: customer.email,
             subject: `${notificationTitle} - ${branchName}`,
@@ -1290,6 +1303,7 @@ const updateLoan = async (req, res) => {
               balance: loan.remainingAmount.toLocaleString(),
               reference: loan._id.toString().slice(-8).toUpperCase(),
               branchName: branchName,
+              logoUrl: logoUrl,
             }),
           });
         }
@@ -1651,6 +1665,11 @@ const approveLoan = async (req, res) => {
         const branch = await Branch.findById(loan.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId))?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: customerForNotification.email,
@@ -1667,6 +1686,7 @@ const approveLoan = async (req, res) => {
             balance: loan.remainingAmount.toLocaleString(),
             reference: loan._id.toString().slice(-8).toUpperCase(),
             branchName: branchName,
+            logoUrl: logoUrl,
           }),
         });
       }
@@ -1747,6 +1767,11 @@ const rejectLoan = async (req, res) => {
         const branch = await Branch.findById(loan.branchId);
         const branchName =
           branch?.branding?.companyName || branch?.name || 'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId))?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: customer.email,
@@ -1763,6 +1788,7 @@ const rejectLoan = async (req, res) => {
             balance: '0',
             reference: loan._id.toString().slice(-8).toUpperCase(),
             branchName: branchName,
+            logoUrl: logoUrl,
           }),
         });
       }
@@ -2039,6 +2065,11 @@ const bulkApproveLoans = async (req, res) => {
               req.user.businessName ||
               req.user.name ||
               'FinFlo';
+            const ownerLogo =
+              req.user.role === 'staff'
+                ? (await User.findById(req.user.ownerId))?.businessLogo
+                : req.user.businessLogo;
+            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
             sendEmailAsync({
               to: customer.email,
@@ -2055,6 +2086,7 @@ const bulkApproveLoans = async (req, res) => {
                 balance: loan.remainingAmount.toLocaleString(),
                 reference: loan._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
+                logoUrl: logoUrl,
               }),
             });
           }
@@ -2141,6 +2173,11 @@ const bulkRejectLoans = async (req, res) => {
               req.user.businessName ||
               req.user.name ||
               'FinFlo';
+            const ownerLogo =
+              req.user.role === 'staff'
+                ? (await User.findById(req.user.ownerId))?.businessLogo
+                : req.user.businessLogo;
+            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
             sendEmailAsync({
               to: customer.email,
@@ -2157,6 +2194,7 @@ const bulkRejectLoans = async (req, res) => {
                 balance: '0',
                 reference: loan._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
+                logoUrl: logoUrl,
               }),
             });
           }

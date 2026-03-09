@@ -89,6 +89,7 @@ const registerUser = async (req, res) => {
             html: verificationEmail(
               verificationCode,
               user.businessName || user.name,
+              user.businessLogo,
             ),
           });
         } catch (err) {
@@ -235,7 +236,10 @@ const loginUser = async (req, res) => {
           isManager,
           branchId,
           businessName: user.businessName,
+          businessLogo: user.businessLogo,
           profilePicture: user.profilePicture,
+          plan: user.plan,
+          subscriptionStatus: user.subscriptionStatus,
           permissions: user.getPermissions(),
         });
       }
@@ -249,10 +253,13 @@ const loginUser = async (req, res) => {
         isManager,
         branchId,
         businessName: user.businessName,
+        businessLogo: user.businessLogo,
         securityCode: user.securityCode,
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
         currency: user.currency,
+        plan: user.plan,
+        subscriptionStatus: user.subscriptionStatus,
         permissions: user.getPermissions(),
       });
     } else {
@@ -293,8 +300,10 @@ const getMe = async (req, res) => {
         branchId: branchId?._id || branchId, // Return ID, not populated object
         branch: user.branchId, // Return full branch object for backward compat
         plan: user.plan,
+        subscriptionStatus: user.subscriptionStatus,
         customerCount: user.customerCount,
         businessName: user.businessName,
+        businessLogo: user.businessLogo,
         securityCode: user.securityCode,
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
@@ -357,6 +366,26 @@ const updateDetails = async (req, res) => {
       data: user,
       message: 'User details updated successfully',
     });
+
+    // Emit branding update event if business name changed
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${user._id.toString()}`).emit(
+          'business:branding_updated',
+          {
+            businessName: user.businessName,
+            businessLogo: user.businessLogo,
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit branding update:',
+        socketErr.message,
+      );
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -398,6 +427,140 @@ const uploadProfilePicture = async (req, res) => {
   } catch (error) {
     console.error('Upload Error:', error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+const uploadBusinessLogo = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Plan check for Business Branding
+    if (user.role !== 'super_admin' && user.plan === 'Free') {
+      return res.status(403).json({
+        message:
+          'Business Branding is only available on Basic or Pro plans. Please upgrade to continue.',
+      });
+    }
+
+    // Delete old business logo from Cloudinary if it exists
+    if (user.businessLogo) {
+      const {
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      await deleteCloudinaryFileByUrl(user.businessLogo, 'image');
+    }
+
+    user.businessLogo = req.file.path;
+    await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'business_logo_updated',
+      category: 'auth',
+      details: 'User uploaded a new business logo',
+      req,
+    });
+
+    res.json({
+      success: true,
+      businessLogo: user.businessLogo,
+      message: 'Business logo updated successfully',
+    });
+
+    // Emit branding update event
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${user._id.toString()}`).emit(
+          'business:branding_updated',
+          {
+            businessName: user.businessName,
+            businessLogo: user.businessLogo,
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit branding update:',
+        socketErr.message,
+      );
+    }
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteBusinessLogo = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Plan check for Business Branding
+    if (user.role !== 'super_admin' && user.plan === 'Free') {
+      return res.status(403).json({
+        message:
+          'Business Branding is only available on Basic or Pro plans. Please upgrade to continue.',
+      });
+    }
+
+    if (!user.businessLogo) {
+      return res.status(400).json({ message: 'No business logo to delete' });
+    }
+
+    const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+    await deleteCloudinaryFileByUrl(user.businessLogo, 'image');
+
+    user.businessLogo = '';
+    await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'business_logo_deleted',
+      category: 'auth',
+      details: 'User deleted their business logo',
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: 'Business logo deleted successfully',
+    });
+
+    // Emit branding update event
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        const businessId = req.user.effectiveOwnerId || user._id;
+        io.to(`business_${businessId.toString()}`).emit(
+          'business:branding_updated',
+          {
+            businessName: user.businessName,
+            businessLogo: '',
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit branding update:',
+        socketErr.message,
+      );
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -483,7 +646,11 @@ const forgotPassword = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Action Required: Reset Your Security Credentials',
-        html: passwordResetEmail(resetUrl, user.businessName || user.name),
+        html: passwordResetEmail(
+          resetUrl,
+          user.businessName || user.name,
+          user.businessLogo,
+        ),
       });
 
       res.status(200).json({
@@ -591,7 +758,10 @@ const verifyEmail = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(user.businessName || user.name),
+        html: welcomeBusinessEmail(
+          user.businessName || user.name,
+          user.businessLogo,
+        ),
       });
     } catch (err) {
       console.error('Welcome email failed to send:', err);
@@ -649,7 +819,11 @@ const resendVerificationCode = async (req, res) => {
     await sendEmail({
       to: user.email,
       subject: 'Action Required: New Verification Code',
-      html: verificationEmail(verificationCode, user.businessName || user.name),
+      html: verificationEmail(
+        verificationCode,
+        user.businessName || user.name,
+        user.businessLogo,
+      ),
     });
 
     res
@@ -964,7 +1138,11 @@ const requestPasswordChangeCode = async (req, res) => {
       const emailSent = await sendEmail({
         to: user.email,
         subject: 'Security Code for Password Change',
-        html: verificationEmail(code, user.businessName || user.name),
+        html: verificationEmail(
+          code,
+          user.businessName || user.name,
+          user.businessLogo,
+        ),
       });
 
       if (!emailSent) {
@@ -1240,7 +1418,10 @@ const googleRegister = async (req, res) => {
       await sendEmail({
         to: user.email,
         subject: 'Welcome to FinFlo!',
-        html: welcomeBusinessEmail(user.businessName || user.name),
+        html: welcomeBusinessEmail(
+          user.businessName || user.name,
+          user.businessLogo,
+        ),
       });
     } catch (err) {
       console.error('Welcome email failed to send:', err);
@@ -1302,4 +1483,6 @@ module.exports = {
   updateOnboardingStatus,
   googleLogin,
   googleRegister,
+  uploadBusinessLogo,
+  deleteBusinessLogo,
 };

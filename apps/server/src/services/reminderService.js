@@ -17,7 +17,7 @@ const runReminderService = async () => {
   try {
     const activeLoans = await Loan.find({ status: 'active' })
       .populate('customer')
-      .populate('user', 'businessName name');
+      .populate('user', 'businessName name businessLogo');
 
     for (const loan of activeLoans) {
       if (!loan.customer) continue;
@@ -112,6 +112,7 @@ const sendReminder = async (loan, installment, type) => {
           dateStr,
           type,
           ownerBrandName,
+          loan.user?.businessLogo,
         ),
       });
     }

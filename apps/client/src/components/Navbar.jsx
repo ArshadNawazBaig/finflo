@@ -344,7 +344,11 @@ const Navbar = ({ onMenuClick }) => {
                   )}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold leading-none">
-                      {capitalize(user.businessName || user.name)}
+                      {capitalize(
+                        (['admin', 'staff'].includes(user.role)
+                          ? user.name
+                          : user.businessName) || user.name,
+                      )}
                     </span>
                     <ChevronDown
                       className={cn(
@@ -378,7 +382,11 @@ const Navbar = ({ onMenuClick }) => {
                   {/* User Info Header */}
                   <div className="p-4 border-b border-border/50 bg-muted/30">
                     <p className="font-bold text-sm truncate">
-                      {capitalize(user.businessName || user.name)}
+                      {capitalize(
+                        (['admin', 'staff'].includes(user.role)
+                          ? user.name
+                          : user.businessName) || user.name,
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user.email}

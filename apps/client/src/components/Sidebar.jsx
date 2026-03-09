@@ -145,7 +145,10 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         .toUpperCase()
         .slice(0, 2)
     : 'JS';
-  const userName = user.businessName || user.name || 'John Smith';
+  const userName =
+    (['admin', 'staff'].includes(user.role) ? user.name : user.businessName) ||
+    user.name ||
+    'John Smith';
   const userRole = user.isManager ? 'Branch Manager' : user.role || 'User';
 
   const sidebarClasses = cn(
@@ -180,7 +183,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <div
           className={cn(
-            'mb-8 transition-all',
+            'transition-all pt-1 pb-2',
             isLayoutExpanded ? 'px-2' : '',
             isMobile ? 'pt-8' : '',
           )}

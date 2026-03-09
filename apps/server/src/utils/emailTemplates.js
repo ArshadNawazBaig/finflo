@@ -11,7 +11,7 @@ const getBaseTemplate = (
   const brandName = customBrandName || process.env.FROM_NAME || 'FinFlo';
   const primaryColor = '#2563eb'; // Modern Blue
 
-  // Custom Cloudinary Logo
+  // Use custom logo if provided, otherwise fallback to default
   const logoPath =
     logoUrl ||
     'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130786/favicon_m58hqu.png';
@@ -70,7 +70,7 @@ const getBaseTemplate = (
 /**
  * Verification Email Template
  */
-const verificationEmail = (code, businessName = null) => {
+const verificationEmail = (code, businessName = null, logoUrl = null) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Verify Your Email</h2>
     <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
@@ -83,13 +83,13 @@ const verificationEmail = (code, businessName = null) => {
       This code will expire in 10 minutes for your security.
     </p>
   `;
-  return getBaseTemplate(content, 'Verify Your Email', null, businessName);
+  return getBaseTemplate(content, 'Verify Your Email', logoUrl, businessName);
 };
 
 /**
  * Password Reset Template
  */
-const passwordResetEmail = (resetUrl, businessName = null) => {
+const passwordResetEmail = (resetUrl, businessName = null, logoUrl = null) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">Password Recovery Request</h2>
     <p style="margin: 0 0 32px 0; color: #64748b; font-size: 16px; line-height: 1.6;">
@@ -109,7 +109,7 @@ const passwordResetEmail = (resetUrl, businessName = null) => {
       ${resetUrl}
     </p>
   `;
-  return getBaseTemplate(content, 'Reset Your Password', null, businessName);
+  return getBaseTemplate(content, 'Reset Your Password', logoUrl, businessName);
 };
 
 /**
@@ -121,6 +121,7 @@ const loanReminderEmail = (
   dueDate,
   type,
   businessName = null,
+  logoUrl = null,
 ) => {
   const isOverdue = type === 'overdue';
   const accentColor = isOverdue ? '#dc2626' : '#2563eb';
@@ -151,7 +152,7 @@ const loanReminderEmail = (
       If you have already made this payment, please disregard this automated reminder.
     </p>
   `;
-  return getBaseTemplate(content, title, null, businessName || null);
+  return getBaseTemplate(content, title, logoUrl, businessName || null);
 };
 
 /**
@@ -167,6 +168,7 @@ const transactionEmail = (data) => {
     branchName,
     reference,
     currency = 'Rs.',
+    logoUrl = null,
   } = data;
 
   const content = `
@@ -188,6 +190,24 @@ const transactionEmail = (data) => {
           <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Amount</td>
           <td align="right" style="padding: 8px 0; color: #2563eb; font-size: 14px; font-weight: 800;">${currency}${amount}</td>
         </tr>
+        ${
+          data.senderName
+            ? `
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Sender</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: capitalize;">${data.senderName}</td>
+        </tr>`
+            : ''
+        }
+        ${
+          data.recipientName
+            ? `
+        <tr>
+          <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Recipient</td>
+          <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px; font-weight: 700; text-transform: capitalize;">${data.recipientName}</td>
+        </tr>`
+            : ''
+        }
         <tr>
           <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Date</td>
           <td align="right" style="padding: 8px 0; color: #0f172a; font-size: 14px;">${date}</td>
@@ -221,7 +241,7 @@ const transactionEmail = (data) => {
   return getBaseTemplate(
     content,
     `Transaction Notification - ${transactionType}`,
-    null,
+    logoUrl,
     branchName,
   );
 };
@@ -229,7 +249,12 @@ const transactionEmail = (data) => {
 /**
  * Member Registration Approval/Rejection Email
  */
-const memberApprovalEmail = (memberName, status, businessName = null) => {
+const memberApprovalEmail = (
+  memberName,
+  status,
+  businessName = null,
+  logoUrl = null,
+) => {
   const isApproved = status === 'approved';
   const accentColor = isApproved ? '#16a34a' : '#dc2626';
   const title = isApproved ? 'Account Approved!' : 'Registration Update';
@@ -261,13 +286,13 @@ const memberApprovalEmail = (memberName, status, businessName = null) => {
       If you have any questions, please reach out to your branch administrator.
     </p>
   `;
-  return getBaseTemplate(content, title, null, businessName || null);
+  return getBaseTemplate(content, title, logoUrl, businessName || null);
 };
 
 /**
  * Business Welcome Email Template
  */
-const welcomeBusinessEmail = (businessName) => {
+const welcomeBusinessEmail = (businessName, logoUrl = null) => {
   const content = `
     <h2 style="margin: 0 0 16px 0; color: #2563eb; font-size: 18px; font-weight: 700;">Welcome to FinFlo!</h2>
     <p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px; line-height: 1.6;">
@@ -299,7 +324,7 @@ const welcomeBusinessEmail = (businessName) => {
       Need help? Our support team is just an email away.
     </p>
   `;
-  return getBaseTemplate(content, 'Welcome to FinFlo');
+  return getBaseTemplate(content, 'Welcome to FinFlo', logoUrl);
 };
 
 /**
@@ -337,7 +362,11 @@ const superAdminNewRegistrationEmail = (userData) => {
       </tr>
     </table>
   `;
-  return getBaseTemplate(content, 'FinFlo: New Registration Notification');
+  return getBaseTemplate(
+    content,
+    'FinFlo: New Registration Notification',
+    null,
+  );
 };
 
 /**
@@ -379,7 +408,11 @@ const superAdminSubscriptionNotificationEmail = (userData, planName) => {
       </tr>
     </table>
   `;
-  return getBaseTemplate(content, 'Subscription Plan Update Notification');
+  return getBaseTemplate(
+    content,
+    'Subscription Plan Update Notification',
+    null,
+  );
 };
 
 module.exports = {

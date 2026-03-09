@@ -55,7 +55,10 @@ const loginMember = async (req, res) => {
     const member = await Member.findOne({
       email: email.toLowerCase().trim(),
       user: business._id,
-    }).populate('user', 'name businessName securityCode');
+    }).populate(
+      'user',
+      'name businessName businessLogo securityCode plan subscriptionStatus',
+    );
 
     if (!member) {
       return res.status(401).json({
@@ -99,6 +102,10 @@ const loginMember = async (req, res) => {
           email: member.email,
           role: member.role,
           profilePicture: member.profilePicture,
+          businessLogo: member.user?.businessLogo,
+          businessName: member.user?.businessName,
+          plan: member.user?.plan,
+          subscriptionStatus: member.user?.subscriptionStatus,
           business: member.user,
         });
       }
@@ -119,6 +126,10 @@ const loginMember = async (req, res) => {
         email: member.email,
         role: member.role,
         profilePicture: member.profilePicture,
+        businessLogo: member.user?.businessLogo,
+        businessName: member.user?.businessName,
+        plan: member.user?.plan,
+        subscriptionStatus: member.user?.subscriptionStatus,
         mustChangePassword: false,
         business: member.user, // The business this member belongs to
       });
@@ -165,7 +176,7 @@ const googleLogin = async (req, res) => {
     const member = await Member.findOne({
       user: business._id,
       $or: [{ email: emailLower }, { googleId }],
-    }).populate('user', 'name businessName securityCode');
+    }).populate('user', 'name businessName businessLogo securityCode');
 
     if (!member) {
       return res.status(404).json({
@@ -226,6 +237,10 @@ const googleLogin = async (req, res) => {
       email: member.email,
       role: member.role,
       profilePicture: member.profilePicture,
+      businessLogo: member.user?.businessLogo,
+      businessName: member.user?.businessName,
+      plan: member.user?.plan,
+      subscriptionStatus: member.user?.subscriptionStatus,
       mustChangePassword: false,
       business: member.user,
     });
@@ -395,13 +410,17 @@ const getMe = async (req, res) => {
     // req.member set by protectMember middleware
     const member = await Member.findById(req.member._id).populate(
       'user',
-      'name businessName plan',
+      'name businessName businessLogo plan subscriptionStatus',
     );
 
     if (member) {
       const memberObj = member.toObject();
       // Expose the admin's subscription plan for the premium gate in MemberChat
       memberObj.adminPlan = member.user?.plan || 'Free';
+      memberObj.subscriptionStatus =
+        member.user?.subscriptionStatus || 'active';
+      memberObj.businessLogo = member.user?.businessLogo;
+      memberObj.businessName = member.user?.businessName;
       res.json(memberObj);
     } else {
       res.status(404);
@@ -673,6 +692,7 @@ const forgotPassword = async (req, res) => {
         html: passwordResetEmail(
           resetUrl,
           member.user?.businessName || member.user?.name,
+          business.businessLogo,
         ),
       });
 
@@ -913,7 +933,7 @@ const verifyLogin2FA = async (req, res) => {
 
     const member = await Member.findById(decoded.id).populate(
       'user',
-      'name businessName securityCode',
+      'name businessName securityCode plan subscriptionStatus',
     );
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
@@ -944,6 +964,10 @@ const verifyLogin2FA = async (req, res) => {
       email: member.email,
       role: member.role,
       profilePicture: member.profilePicture,
+      businessLogo: member.user?.businessLogo,
+      businessName: member.user?.businessName,
+      plan: member.user?.plan,
+      subscriptionStatus: member.user?.subscriptionStatus,
       business: member.user,
       isTwoFactorEnabled: member.isTwoFactorEnabled,
     });
@@ -955,7 +979,10 @@ const verifyLogin2FA = async (req, res) => {
 
 const requestMemberPasswordChangeCode = async (req, res) => {
   try {
-    const member = await Member.findById(req.member._id);
+    const member = await Member.findById(req.member._id).populate(
+      'user',
+      'businessName name businessLogo',
+    );
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
     // Generate 6-digit code
@@ -969,7 +996,11 @@ const requestMemberPasswordChangeCode = async (req, res) => {
       const emailSent = await sendEmail({
         to: member.email,
         subject: 'Security Code for Password Change',
-        html: verificationEmail(code),
+        html: verificationEmail(
+          code,
+          member.user?.businessName || member.user?.name,
+          member.user?.businessLogo,
+        ),
       });
 
       if (!emailSent) {

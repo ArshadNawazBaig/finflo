@@ -107,7 +107,13 @@ const MemberDashboard = () => {
                 },
               }),
             ]);
-          setMember(memberRes.data);
+          const existingMember = JSON.parse(
+            localStorage.getItem('member') || '{}',
+          );
+          const updatedMember = { ...existingMember, ...memberRes.data };
+          setMember(updatedMember);
+          localStorage.setItem('member', JSON.stringify(updatedMember));
+          window.dispatchEvent(new Event('memberUpdated'));
           setGoals(goalsRes.data);
           setActivity(activityRes.data.data || []);
           setGrantorLoans(grantorLoansRes.data || []);
@@ -175,6 +181,16 @@ const MemberDashboard = () => {
     }
     fetchDashboardData();
   }, [limit]);
+
+  useEffect(() => {
+    const handleMemberUpdate = () => {
+      const updatedMember = JSON.parse(localStorage.getItem('member') || '{}');
+      setMember(updatedMember);
+    };
+    window.addEventListener('memberUpdated', handleMemberUpdate);
+    return () =>
+      window.removeEventListener('memberUpdated', handleMemberUpdate);
+  }, []);
 
   useEffect(() => {
     if (!isMobile || !observerTarget.current) return;
@@ -258,11 +274,18 @@ const MemberDashboard = () => {
   };
 
   const activeLoansCount = loans.filter((l) => l.status === 'active').length;
+  const isProPlan =
+    (member?.plan === 'Pro' || member?.adminPlan === 'Pro') &&
+    (member?.subscriptionStatus === 'active' || !member?.subscriptionStatus);
+
+  const businessName = isProPlan
+    ? member?.businessName || member?.user?.businessName || 'FinFlo'
+    : 'FinFlo';
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
-        title="Member Dashboard"
+        title={`${businessName} Portal`}
         description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
       />
 

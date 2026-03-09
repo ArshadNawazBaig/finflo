@@ -368,13 +368,14 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       // ── Email Notification ───────────────────────────────────────────────
       const member = await Member.findById(customer.memberId);
       if (member && member.email) {
-        const branch = await Branch.findById(loan.branchId);
+        const User = require('../models/User');
+        const owner = await User.findById(loan.user).select(
+          'businessName name businessLogo',
+        );
         let branchName = branch?.branding?.companyName || branch?.name;
+        const logoUrl = branch?.branding?.logoUrl || owner?.businessLogo;
+
         if (!branchName) {
-          const User = require('../models/User');
-          const owner = await User.findById(loan.user).select(
-            'businessName name',
-          );
           branchName = owner ? owner.businessName || owner.name : 'FinFlo';
         }
 
@@ -397,6 +398,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
             balance: loan.remainingAmount.toLocaleString(),
             branchName: branchName,
             reference: repayment._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
           }),
         });
       }

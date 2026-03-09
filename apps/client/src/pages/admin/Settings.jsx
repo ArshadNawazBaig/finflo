@@ -60,6 +60,7 @@ import {
 
 const Settings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme(); // Use Global Theme
+  const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notifications');
@@ -456,6 +457,225 @@ const Settings = () => {
                       </div>
                     </div>
                   </section>
+
+                  {/* Business Branding Section */}
+                  {isAdmin && (
+                    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-50 overflow-hidden relative group">
+                      <div className="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                      <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
+                        <div className="space-y-1">
+                          <h3 className="text-xl font-black tracking-tight">
+                            Business Branding
+                          </h3>
+                          <p className="text-muted-foreground text-xs font-medium">
+                            Customize your organization's identity for emails
+                            and documents.
+                          </p>
+                        </div>
+                        {user.role !== 'super_admin' &&
+                          user.plan === 'Free' && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-600 rounded-2xl border border-amber-500/20 animate-pulse">
+                              <Zap size={14} className="fill-amber-500" />
+                              <span className="text-[10px] font-black uppercase tracking-widest">
+                                Upgrade to Unlock
+                              </span>
+                            </div>
+                          )}
+                      </div>
+
+                      <div className="relative">
+                        {user.role !== 'super_admin' &&
+                          (user.plan === 'Free' || user.plan === 'Basic') && (
+                            <div className="absolute inset-0 z-20 backdrop-blur-[2px] bg-white/10 dark:bg-black/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 border border-white/20">
+                              <div className="p-4 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-2xl">
+                                <Lock size={32} className="text-primary" />
+                              </div>
+                              <div className="text-center space-y-1">
+                                <p className="font-black text-sm uppercase tracking-widest">
+                                  Basic or Pro Feature
+                                </p>
+                                <p className="text-[10px] font-medium text-muted-foreground max-w-[200px]">
+                                  Business branding is only available for our
+                                  premium partners.
+                                </p>
+                              </div>
+                              <Button
+                                onClick={() => navigate('/pricing')}
+                                variant="gradient"
+                                size="lg"
+                                className="rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                              >
+                                Upgrade Plan
+                              </Button>
+                            </div>
+                          )}
+                        <div
+                          className={cn(
+                            'flex flex-col sm:flex-row items-center gap-8 py-4 relative z-10',
+                            user.role !== 'super_admin' &&
+                              (user.plan === 'Free' || user.plan === 'Basic') &&
+                              'opacity-20 grayscale-[0.1]',
+                          )}
+                        >
+                          <div className="relative group/logo">
+                            <div className="h-24 w-48 rounded-[2rem] bg-indigo-500/5 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/logo:border-primary/20 transition-all cursor-pointer">
+                              {user.businessLogo ? (
+                                <img
+                                  src={user.businessLogo}
+                                  alt="Business Logo"
+                                  className="w-full h-full object-contain p-2"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center gap-1 opacity-40">
+                                  <Sparkles size={24} />
+                                  <span className="text-[10px] uppercase tracking-widest">
+                                    No Logo
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Hover Overlay */}
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/logo:opacity-100 transition-all duration-300">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() =>
+                                    document
+                                      .getElementById('business-logo-upload')
+                                      .click()
+                                  }
+                                  className="bg-white/20 hover:bg-white/40 backdrop-blur-md p-2 rounded-xl transition-all"
+                                  title="Upload Logo"
+                                >
+                                  {loading ? (
+                                    <Loader2
+                                      size={16}
+                                      className="text-white animate-spin"
+                                    />
+                                  ) : (
+                                    <Upload size={16} className="text-white" />
+                                  )}
+                                </button>
+
+                                {user.businessLogo && (
+                                  <button
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (loading) return;
+                                      setLoading(true);
+                                      try {
+                                        const { data } = await api.delete(
+                                          '/auth/delete-business-logo',
+                                        );
+                                        if (data.success) {
+                                          const updatedUser = {
+                                            ...user,
+                                            businessLogo: undefined,
+                                          };
+                                          setUser(updatedUser);
+                                          localStorage.setItem(
+                                            'user',
+                                            JSON.stringify(updatedUser),
+                                          );
+                                          window.dispatchEvent(
+                                            new Event('userUpdated'),
+                                          );
+                                          toast.success(
+                                            'Business logo removed',
+                                          );
+                                        }
+                                      } catch (error) {
+                                        toast.error(
+                                          'Failed to delete business logo',
+                                        );
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }}
+                                    className="bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all"
+                                    title="Delete Logo"
+                                  >
+                                    <Trash2 size={16} className="text-white" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <input
+                              type="file"
+                              id="business-logo-upload"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast.error('Logo must be less than 2MB');
+                                  return;
+                                }
+
+                                const formData = new FormData();
+                                formData.append('businessLogo', file);
+
+                                setLoading(true);
+                                try {
+                                  const { data } = await api.put(
+                                    '/auth/updatebusinesslogo',
+                                    formData,
+                                    {
+                                      headers: {
+                                        'Content-Type': 'multipart/form-data',
+                                      },
+                                    },
+                                  );
+
+                                  if (data.success) {
+                                    const updatedUser = {
+                                      ...user,
+                                      businessLogo: data.businessLogo,
+                                    };
+                                    setUser(updatedUser);
+                                    localStorage.setItem(
+                                      'user',
+                                      JSON.stringify(updatedUser),
+                                    );
+                                    window.dispatchEvent(
+                                      new Event('userUpdated'),
+                                    );
+                                    toast.success('Business logo updated');
+                                  }
+                                } catch (error) {
+                                  console.error(error);
+                                  toast.error('Failed to update business logo');
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <h4 className="text-xl font-bold capitalize">
+                              {user.businessName || 'Business Name'}
+                            </h4>
+                            <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+                              <Sparkles size={14} className="text-primary" />
+                              Email Branding Active
+                            </div>
+                            <p className="text-[10px] text-muted-foreground max-w-xs mt-2 italic leading-relaxed">
+                              Adding a business logo will prioritize it over the
+                              default FinFlo branding in all outgoing emails.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  )}
 
                   {/* Appearance Section */}
                   <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
@@ -1005,6 +1225,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         const updatedUser = { ...existing, ...data.data };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
+        window.dispatchEvent(new Event('userUpdated'));
         toast.success('Profile updated successfully');
         onClose();
       }

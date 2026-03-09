@@ -24,6 +24,8 @@ const {
   updateOnboardingStatus,
   googleLogin,
   googleRegister,
+  uploadBusinessLogo,
+  deleteBusinessLogo,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -52,6 +54,13 @@ router.put(
 );
 router.put('/updatepassword', protect, updatePassword);
 router.delete('/delete-profile-picture', protect, deleteProfilePicture);
+router.put(
+  '/updatebusinesslogo',
+  protect,
+  upload.single('businessLogo'),
+  uploadBusinessLogo,
+);
+router.delete('/delete-business-logo', protect, deleteBusinessLogo);
 router.delete('/delete-account', protect, deleteAccount);
 
 // 2FA Routes

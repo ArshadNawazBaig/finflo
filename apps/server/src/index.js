@@ -338,9 +338,10 @@ io.use(async (socket, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const member = await Member.findById(decoded.id).select('_id name');
+    const member = await Member.findById(decoded.id).select('_id name user');
     if (member) {
       socket.userId = member._id.toString();
+      socket.businessId = member.user.toString();
       socket.userModel = 'Member';
     } else {
       const user = await User.findById(decoded.id).select(
@@ -417,11 +418,12 @@ io.on('connection', (socket) => {
     })),
   );
 
-  // Admin/Staff: join business broadcast room to receive member registration events
-  if (socket.userModel === 'User' && socket.effectiveOwnerId) {
-    socket.join(`business_${socket.effectiveOwnerId}`);
+  // Join business room if available (for both Admins and Members)
+  const businessRoomId = socket.businessId || socket.effectiveOwnerId;
+  if (businessRoomId) {
+    socket.join(`business_${businessRoomId}`);
     console.log(
-      `[Socket] User ${socket.userId} joined business_${socket.effectiveOwnerId}`,
+      `[Socket] ${socket.userModel} joined business_${businessRoomId}`,
     );
   }
 

@@ -163,7 +163,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <div
           className={cn(
-            'mb-8 transition-all',
+            'transition-all pt-1 pb-2',
             isLayoutExpanded ? 'px-2' : '',
             isMobile ? 'pt-8' : '',
           )}

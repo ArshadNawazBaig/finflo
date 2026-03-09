@@ -122,6 +122,39 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
 
     socket.on('conversation:read', () => fetchCounts());
 
+    // Real-time branding updates
+    socket.on('business:branding_updated', async (data) => {
+      console.log('[Socket] Business Branding Updated:', data.businessName);
+      try {
+        const endpoint = userType === 'member' ? '/member-auth/me' : '/auth/me';
+        const { data: profile } = await api.get(endpoint);
+
+        const storageKey = userType === 'member' ? 'member' : 'user';
+        const existingData = JSON.parse(
+          localStorage.getItem(storageKey) || '{}',
+        );
+        const updatedData = { ...existingData, ...profile };
+        localStorage.setItem(storageKey, JSON.stringify(updatedData));
+
+        // Dispatch event for other components to update
+        const eventName =
+          userType === 'member' ? 'memberUpdated' : 'userUpdated';
+        window.dispatchEvent(new Event(eventName));
+
+        // Optional: show a subtle toast
+        if (data.businessName && userType === 'member') {
+          toast.info('Branding Updated', {
+            description: `Your portal has been updated with the latest business branding.`,
+          });
+        }
+      } catch (err) {
+        console.error(
+          '[Socket] Failed to refresh profile after branding update:',
+          err.message,
+        );
+      }
+    });
+
     // Periodic fallback: only REST poll when socket is disconnected
     const fallback = setInterval(() => {
       if (!socket.connected) fetchCounts();

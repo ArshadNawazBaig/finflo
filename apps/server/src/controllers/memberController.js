@@ -850,9 +850,14 @@ const addInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: member.email,
@@ -871,6 +876,7 @@ const addInvestment = async (req, res) => {
             balance: updatedMember.currentBalance.toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
           }),
         });
       }
@@ -1041,9 +1047,14 @@ const withdrawInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: member.email,
@@ -1062,6 +1073,7 @@ const withdrawInvestment = async (req, res) => {
             balance: updatedMember.currentBalance.toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
           }),
         });
       }
@@ -1363,6 +1375,12 @@ const distributeProfit = async (req, res) => {
             const branch = await Branch.findById(member.branchId);
             const branchName =
               branch?.branding?.companyName || branch?.name || 'FinFlo';
+            const ownerLogo =
+              req.user.role === 'staff'
+                ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                    ?.businessLogo
+                : req.user.businessLogo;
+            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
             sendEmailAsync({
               to: member.email,
               subject: `Profit Credited - ${branchName}`,
@@ -1380,6 +1398,7 @@ const distributeProfit = async (req, res) => {
                 ).toLocaleString(),
                 reference: distribution._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
+                logoUrl: logoUrl,
               }),
             });
           } catch (notifError) {
@@ -1487,6 +1506,12 @@ const distributeProfit = async (req, res) => {
             const branch = await Branch.findById(member.branchId);
             const branchName =
               branch?.branding?.companyName || branch?.name || 'FinFlo';
+            const ownerLogo =
+              req.user.role === 'staff'
+                ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                    ?.businessLogo
+                : req.user.businessLogo;
+            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
             sendEmailAsync({
               to: member.email,
               subject: `Profit Credited - ${branchName}`,
@@ -1504,6 +1529,7 @@ const distributeProfit = async (req, res) => {
                 ).toLocaleString(),
                 reference: distribution._id.toString().slice(-8).toUpperCase(),
                 branchName: branchName,
+                logoUrl: logoUrl,
               }),
             });
           } catch (notifError) {
@@ -1969,15 +1995,22 @@ const transferFunds = async (req, res) => {
 
     // Email Notifications
     try {
+      const business = await User.findById(sender.user);
+      const branch = await Branch.findById(sender.branchId);
+
+      const branchName =
+        branch?.branding?.companyName ||
+        branch?.name ||
+        business?.businessName ||
+        'FinFlo';
+
+      const logoUrl =
+        branch?.branding?.logoUrl ||
+        business?.businessLogo ||
+        'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130786/favicon_m58hqu.png';
+
       // Email to Sender
       if (sender.email) {
-        const branch = await Branch.findById(sender.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.businessName ||
-          req.user.name ||
-          'FinFlo';
         sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
@@ -1995,19 +2028,15 @@ const transferFunds = async (req, res) => {
             balance: updatedSender.currentBalance.toLocaleString(),
             branchName: branchName,
             reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
+            recipientName: recipient.name,
           }),
         });
       }
 
       // Email to Recipient
       if (recipient.email) {
-        const branch = await Branch.findById(recipient.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.businessName ||
-          req.user.name ||
-          'FinFlo';
+        // Reuse business and branch context defined above
         sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
@@ -2028,6 +2057,8 @@ const transferFunds = async (req, res) => {
               .toString()
               .slice(-8)
               .toUpperCase(),
+            logoUrl: logoUrl,
+            senderName: sender.name,
           }),
         });
       }
@@ -2215,9 +2246,14 @@ const adminTransferFunds = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
         sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
@@ -2235,6 +2271,8 @@ const adminTransferFunds = async (req, res) => {
             balance: updatedSender.currentBalance.toLocaleString(),
             branchName: branchName,
             reference: senderTransaction._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
+            recipientName: recipient.name,
           }),
         });
       }
@@ -2268,6 +2306,7 @@ const adminTransferFunds = async (req, res) => {
               .toString()
               .slice(-8)
               .toUpperCase(),
+            senderName: sender.name,
           }),
         });
       }
@@ -2608,9 +2647,14 @@ const addShareInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: member.email,
@@ -2738,9 +2782,14 @@ const withdrawShareInvestment = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
 
         sendEmailAsync({
           to: member.email,
@@ -2759,6 +2808,7 @@ const withdrawShareInvestment = async (req, res) => {
             balance: updatedMember.shareBalance.toLocaleString(),
             branchName: branchName,
             reference: shareRecord._id.toString().slice(-8).toUpperCase(),
+            logoUrl: logoUrl,
           }),
         });
       }
@@ -2962,9 +3012,14 @@ const distributeShareProfit = async (req, res) => {
         const branchName =
           branch?.branding?.companyName ||
           branch?.name ||
-          req.user.businessName ||
           req.user.name ||
           'FinFlo';
+        const ownerLogo =
+          req.user.role === 'staff'
+            ? (await User.findById(req.user.ownerId).select('businessLogo'))
+                ?.businessLogo
+            : req.user.businessLogo;
+        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
         sendEmailAsync({
           to: member.email,
           subject: `Share Profit Credited - ${branchName}`,
@@ -2980,6 +3035,7 @@ const distributeShareProfit = async (req, res) => {
             balance: (member.shareBalance + profitAmount).toLocaleString(),
             reference: shareRecord._id.toString().slice(-8).toUpperCase(),
             branchName: branchName,
+            logoUrl: logoUrl,
           }),
         });
       } catch (notifError) {
@@ -3297,16 +3353,22 @@ const updateApprovalStatus = async (req, res) => {
     if (member.email) {
       try {
         const owner = await User.findById(req.user.effectiveOwnerId).select(
-          'businessName name',
+          'businessName name businessLogo',
         );
         const ownerBrandName = owner ? owner.businessName || owner.name : null;
+        const logoUrl = owner?.businessLogo;
         sendEmailAsync({
           to: member.email,
           subject:
             status === 'approved'
               ? '🎉 Your Account Has Been Approved!'
               : 'Update on Your Registration Request',
-          html: memberApprovalEmail(member.name, status, ownerBrandName),
+          html: memberApprovalEmail(
+            member.name,
+            status,
+            ownerBrandName,
+            logoUrl,
+          ),
         });
       } catch (emailError) {
         // error already logged by sendEmailAsync internally

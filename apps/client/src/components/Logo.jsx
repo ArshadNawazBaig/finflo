@@ -6,17 +6,45 @@ const Logo = ({
   custom = false,
   innerTextColor = '',
 }) => {
-  const [user] = React.useState(() =>
-    JSON.parse(localStorage.getItem('user') || '{}'),
-  );
+  const [session, setSession] = React.useState(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const member = JSON.parse(localStorage.getItem('member') || '{}');
+    return Object.keys(user).length > 0 ? user : member;
+  });
 
-  const logoUrl = false;
-  // ((user?.role === 'admin' || user?.isManager) && user?.profilePicture) ||
-  // user?.branch?.branding?.logoUrl;
-  const companyName = false;
-  // ((user?.role === 'admin' || user?.isManager) && user?.name) ||
-  // user?.branch?.branding?.companyName ||
-  // 'Finflo';
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const member = JSON.parse(localStorage.getItem('member') || '{}');
+      setSession(Object.keys(user).length > 0 ? user : member);
+    };
+
+    window.addEventListener('userUpdated', handleUpdate);
+    window.addEventListener('memberUpdated', handleUpdate);
+    return () => {
+      window.removeEventListener('userUpdated', handleUpdate);
+      window.removeEventListener('memberUpdated', handleUpdate);
+    };
+  }, []);
+
+  const isProPlan =
+    (session?.plan === 'Pro' || session?.adminPlan === 'Pro') &&
+    (session?.subscriptionStatus === 'active' || !session?.subscriptionStatus);
+
+  const logoUrl = isProPlan
+    ? session?.businessLogo ||
+      session?.business?.businessLogo ||
+      session?.user?.businessLogo ||
+      session?.branch?.branding?.logoUrl ||
+      null
+    : null;
+
+  const companyName = isProPlan
+    ? session?.businessName ||
+      session?.business?.businessName ||
+      session?.user?.businessName ||
+      session?.name
+    : '';
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -76,8 +104,8 @@ const Logo = ({
       {/* Text */}
       {showText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-[19px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1">
-            {logoUrl && custom ? (
+          <span className="text-[19px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1 capitalize">
+            {custom && companyName ? (
               companyName
             ) : (
               <>
@@ -91,7 +119,7 @@ const Logo = ({
             )}
           </span>
           <span className="text-[7px] font-black tracking-[0.7em] text-slate-500 uppercase">
-            {logoUrl && custom ? 'Partner Portal' : 'Banking OS'}
+            {custom && companyName ? 'Partner Portal' : 'Banking OS'}
           </span>
         </div>
       )}

@@ -141,7 +141,7 @@ const MemberWallet = () => {
             My <span className="text-primary">Wallet</span>
           </>
         }
-        description="Manage your available FinFlo balance, deposit funds, or transfer money."
+        description={`Manage your available ${member?.user?.businessName || 'FinFlo'} balance, deposit funds, or transfer money.`}
       />
 
       {loading && !member ? (
@@ -173,7 +173,7 @@ const MemberWallet = () => {
                     <CreditCard className="text-primary w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
-                    Finflo Platinum
+                    {member?.user?.businessName || 'FinFlo'} Platinum
                   </span>
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 ml-1">
@@ -191,7 +191,7 @@ const MemberWallet = () => {
               <div className="relative z-10 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6 mt-8">
                 <div className="hidden sm:block">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">
-                    Finflo ID
+                    {member?.user?.businessName || 'FinFlo'} ID
                   </p>
                   <p className="text-sm font-mono tracking-widest opacity-90">
                     {member?.memberId || '···· ···· ····'}

@@ -24,13 +24,15 @@ import { formatCurrency, cn } from '@/lib/utils';
 
 const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [member, setMember] = useState(null);
   const [memberBalance, setMemberBalance] = useState(0);
   const [fetchingBalance, setFetchingBalance] = useState(false);
   const [isSettlement, setIsSettlement] = useState(false);
   const [formData, setFormData] = useState({
-    amount: '',
-    notes: 'Self-repayment via FinFlo',
+    notes: '',
   });
+
+  const businessName = member?.user?.businessName || 'FinFlo';
 
   useEffect(() => {
     if (isOpen) {
@@ -39,10 +41,10 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       setIsSettlement(false);
       setFormData({
         amount: '',
-        notes: 'Self-repayment via FinFlo',
+        notes: `Self-repayment via ${businessName}`,
       });
     }
-  }, [isOpen]);
+  }, [isOpen, businessName]);
 
   const fetchMemberBalance = async () => {
     try {
@@ -54,6 +56,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           /* Auth header handled by browser cookies */
         },
       });
+      setMember(data);
       setMemberBalance(data.currentBalance || 0);
     } catch (error) {
       console.error('Failed to fetch balance:', error);
@@ -209,7 +212,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <DialogDescription className="text-sm font-medium">
                   {isSettlement
                     ? 'Pay off your loan today with adjusted interest.'
-                    : 'Select an amount to pay from your FinFlo Balance.'}
+                    : `Select an amount to pay from your ${businessName} Balance.`}
                 </DialogDescription>
               </div>
             </div>
@@ -389,7 +392,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </form>
 
           <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
-            TRANSACTION SECURED BY FINFLO 3D-PROTOCOL
+            TRANSACTION SECURED BY {businessName.toUpperCase()} 3D-PROTOCOL
           </p>
         </div>
       </DialogContent>
