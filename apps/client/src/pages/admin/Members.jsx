@@ -23,6 +23,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import MemberCardSkeleton from '@/components/skeletons/MemberCardSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
@@ -423,7 +424,11 @@ const Members = () => {
         {loading && !isFetchingMore ? (
           <div className="py-6">
             {isMobile ? (
-              <InfiniteLoader isFetchingMore={true} />
+              <div className="grid grid-cols-1 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <MemberCardSkeleton key={i} />
+                ))}
+              </div>
             ) : (
               <TableSkeleton rows={limit} columns={6} />
             )}

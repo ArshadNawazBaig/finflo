@@ -24,6 +24,7 @@ import {
   CardsPageSkeleton,
   ProfilePageSkeleton,
   SettingsPageSkeleton,
+  MembersPageSkeleton,
 } from '@/components/ui/PageSkeletons';
 
 const withSkeleton = (importFunc, SkeletonFallback) => {
@@ -47,7 +48,7 @@ const Customers = withSkeleton(
 );
 const Members = withSkeleton(
   () => import('@/pages/admin/Members'),
-  TablePageSkeleton,
+  MembersPageSkeleton,
 );
 const Loans = withSkeleton(
   () => import('@/pages/admin/Loans'),

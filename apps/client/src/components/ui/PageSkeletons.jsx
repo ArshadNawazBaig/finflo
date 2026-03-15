@@ -144,3 +144,65 @@ export const SettingsPageSkeleton = () => (
     </div>
   </div>
 );
+
+export const MembersPageSkeleton = () => (
+  <div className="flex-1 h-full flex flex-col min-h-0 overflow-hidden animate-in fade-in duration-200">
+    <PageHeaderSkeleton />
+    <div className="flex-1 p-6 space-y-6 overflow-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <Skeleton className="h-10 w-full sm:w-64 rounded-xl" />
+        <Skeleton className="h-10 w-full sm:w-32 rounded-xl" />
+      </div>
+
+      {/* Desktop Table Skeleton */}
+      <div className="hidden md:block rounded-2xl border border-border/40 overflow-hidden bg-card">
+        <div className="h-12 border-b border-border/40 bg-muted/50" />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between p-4 border-b border-border/20 last:border-0"
+          >
+            <div className="flex gap-4 items-center">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-24 rounded-full" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile Cards Skeleton */}
+      <div className="md:hidden space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-2xl border border-border/40 p-5 bg-card space-y-4"
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex gap-3">
+                <Skeleton className="h-12 w-12 rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+            <div className="pt-4 border-t border-border/20">
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
