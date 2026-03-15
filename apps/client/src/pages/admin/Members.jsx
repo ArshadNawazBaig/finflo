@@ -379,7 +379,7 @@ const Members = () => {
                   : 'text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10'
               }`}
             >
-              Pending Approvals
+              Pending <span className="hidden sm:inline">Approvals</span>
               {pendingMembersCount > 0 && (
                 <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
                   {pendingMembersCount}
