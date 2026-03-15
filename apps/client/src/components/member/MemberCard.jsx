@@ -9,8 +9,17 @@ import {
   Eye,
   Building2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const MemberCard = ({ member }) => {
+const MemberCard = ({
+  member,
+  onApprove,
+  onReject,
+  approvingId,
+  rejectingId,
+}) => {
+  const isPending = member.approvalStatus === 'pending';
+
   return (
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
       <div className="flex justify-between items-start mb-4">
@@ -35,12 +44,14 @@ const MemberCard = ({ member }) => {
         </div>
         <span
           className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-            member.status?.toLowerCase() === 'active'
-              ? 'bg-emerald-500/10 text-emerald-600'
-              : 'bg-destructive/10 text-destructive'
+            isPending
+              ? 'bg-amber-500/10 text-amber-600'
+              : member.status?.toLowerCase() === 'active'
+                ? 'bg-emerald-500/10 text-emerald-600'
+                : 'bg-destructive/10 text-destructive'
           }`}
         >
-          {member.status || 'Inactive'}
+          {isPending ? 'Pending' : member.status || 'Inactive'}
         </span>
       </div>
 
@@ -89,13 +100,34 @@ const MemberCard = ({ member }) => {
         </div>
       </div>
 
-      <Link
-        to={`/members/${member._id}`}
-        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary text-xs font-black uppercase tracking-widest transition-all active:scale-95"
-      >
-        <Eye size={14} strokeWidth={3} />
-        View Profile
-      </Link>
+      {isPending ? (
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => onReject(member._id)}
+            variant="outline"
+            isLoading={rejectingId === member._id}
+            className="flex-1 py-2.5 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/5 text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+          >
+            Reject
+          </Button>
+          <Button
+            onClick={() => onApprove(member._id)}
+            variant="gradient"
+            isLoading={approvingId === member._id}
+            className="flex-[2] py-2.5 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-primary/20"
+          >
+            Approve
+          </Button>
+        </div>
+      ) : (
+        <Link
+          to={`/members/${member._id}`}
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+        >
+          <Eye size={14} strokeWidth={3} />
+          View Profile
+        </Link>
+      )}
     </div>
   );
 };

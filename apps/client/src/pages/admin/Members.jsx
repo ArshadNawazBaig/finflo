@@ -432,7 +432,14 @@ const Members = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               {members.map((member) => (
-                <MemberCard key={member._id} member={member} />
+                <MemberCard
+                  key={member._id}
+                  member={member}
+                  onApprove={handleApproveMember}
+                  onReject={handleRejectMember}
+                  approvingId={approvingId}
+                  rejectingId={rejectingId}
+                />
               ))}
             </div>
 
