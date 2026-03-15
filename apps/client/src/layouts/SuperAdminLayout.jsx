@@ -78,14 +78,19 @@ const SuperAdminLayout = () => {
           <div
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
-              isMobile ? 'pb-36 pt-36 px-4' : 'p-4 md:p-8',
+              isMobile ? 'pt-36 px-4' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col">
+            <div
+              className={cn(
+                'max-w-7xl mx-auto flex flex-col',
+                isMobile ? 'pb-10' : 'h-full min-h-full',
+              )}
+            >
               <Suspense fallback={<DashboardSkeleton />}>
                 <Outlet />
               </Suspense>
-              <div className="py-20 sm:hidden" />
+              <div className="h-32 lg:hidden shrink-0" />
             </div>
           </div>
         </div>

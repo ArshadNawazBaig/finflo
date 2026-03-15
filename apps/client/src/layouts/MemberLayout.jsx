@@ -77,13 +77,19 @@ const MemberLayout = () => {
           <div
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
-              isMobile ? 'pb-24 pt-28' : 'p-4 md:p-8',
+              isMobile ? 'pt-28' : 'p-4 md:p-8',
             )}
           >
-            <div className="max-w-7xl mx-auto h-full min-h-full flex flex-col px-4 lg:px-0">
+            <div
+              className={cn(
+                'max-w-7xl mx-auto flex flex-col px-4 lg:px-0',
+                isMobile ? 'pb-10' : 'h-full min-h-full',
+              )}
+            >
               <Suspense fallback={<DashboardSkeleton />}>
                 <Outlet />
               </Suspense>
+              <div className="h-32 lg:hidden shrink-0" />
             </div>
           </div>
         </div>
