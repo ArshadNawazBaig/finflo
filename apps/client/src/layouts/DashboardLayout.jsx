@@ -15,7 +15,6 @@ import InstallPrompt from '@/components/InstallPrompt';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { adminOnboardingSteps } from '@/config/onboardingSteps';
 import { Suspense } from 'react';
-import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 import api from '@/lib/axios';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
@@ -141,9 +140,7 @@ const DashboardLayout = () => {
               )}
             >
               <PlanLimitBanner />
-              <Suspense fallback={<DashboardSkeleton />}>
-                <Outlet />
-              </Suspense>
+              <Outlet />
               <div className="h-32 lg:h-8 shrink-0" />
             </div>
           </div>

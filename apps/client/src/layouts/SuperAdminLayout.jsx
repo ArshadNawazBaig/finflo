@@ -9,7 +9,6 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
 import { Suspense } from 'react';
-import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 const SuperAdminLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -87,9 +86,7 @@ const SuperAdminLayout = () => {
                 isMobile ? 'pb-10' : 'h-full min-h-full',
               )}
             >
-              <Suspense fallback={<DashboardSkeleton />}>
-                <Outlet />
-              </Suspense>
+              <Outlet />
               <div className="h-32 lg:h-8 shrink-0" />
             </div>
           </div>

@@ -1,11 +1,5 @@
 import { Suspense, lazy } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import SuperAdminLayout from '@/layouts/SuperAdminLayout';
 import MemberLayout from '@/layouts/MemberLayout';
@@ -18,13 +12,15 @@ import RequirePermissions from '@/components/auth/RequirePermissions';
 import RequirePaidPlan from '@/components/RequirePaidPlan';
 import { Toaster } from 'sonner';
 
-import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 import {
   TablePageSkeleton,
   CardsPageSkeleton,
   ProfilePageSkeleton,
   SettingsPageSkeleton,
   MembersPageSkeleton,
+  AdminDashboardSkeleton,
+  ReportsSkeleton,
+  ChatSkeleton,
 } from '@/components/ui/PageSkeletons';
 
 const withSkeleton = (importFunc, SkeletonFallback) => {
@@ -40,7 +36,7 @@ const withSkeleton = (importFunc, SkeletonFallback) => {
 const Landing = lazy(() => import('@/pages/static/Landing'));
 const Dashboard = withSkeleton(
   () => import('@/pages/admin/Dashboard'),
-  DashboardSkeleton,
+  AdminDashboardSkeleton,
 );
 const Customers = withSkeleton(
   () => import('@/pages/admin/Customers'),
@@ -60,7 +56,7 @@ const Transactions = withSkeleton(
 );
 const Reports = withSkeleton(
   () => import('@/pages/admin/Reports'),
-  DashboardSkeleton,
+  ReportsSkeleton,
 );
 const Branches = withSkeleton(
   () => import('@/pages/admin/Branches'),
@@ -111,7 +107,7 @@ const Support = withSkeleton(
 );
 const LoanLookup = withSkeleton(
   () => import('@/pages/admin/LoanLookup'),
-  DashboardSkeleton,
+  TablePageSkeleton,
 );
 const Notifications = withSkeleton(
   () => import('@/pages/admin/Notifications'),
@@ -128,13 +124,14 @@ const PaymentCancel = lazy(() => import('@/pages/billing/PaymentCancel'));
 const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'));
 const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
+import MemberDashboardSkeleton from '@/components/member/MemberDashboardSkeleton';
 const MemberDashboard = withSkeleton(
   () => import('@/pages/member/MemberDashboard'),
-  DashboardSkeleton,
+  MemberDashboardSkeleton,
 );
 const SuperAdminDashboard = withSkeleton(
   () => import('@/pages/superadmin/SuperAdminDashboard'),
-  DashboardSkeleton,
+  AdminDashboardSkeleton,
 );
 const ManageUsers = withSkeleton(
   () => import('@/pages/superadmin/ManageUsers'),
@@ -146,7 +143,7 @@ const UserDetail = withSkeleton(
 );
 const SystemAnalytics = withSkeleton(
   () => import('@/pages/superadmin/SystemAnalytics'),
-  DashboardSkeleton,
+  AdminDashboardSkeleton,
 );
 const ManageNotifications = withSkeleton(
   () => import('@/pages/superadmin/ManageNotifications'),
@@ -162,7 +159,7 @@ const SystemSettings = withSkeleton(
 );
 const RevenueReports = withSkeleton(
   () => import('@/pages/superadmin/RevenueReports'),
-  DashboardSkeleton,
+  ReportsSkeleton,
 );
 const BackupExport = withSkeleton(
   () => import('@/pages/superadmin/BackupExport'),
@@ -201,7 +198,7 @@ const AuditLogs = withSkeleton(
 );
 const Chat = withSkeleton(
   () => import('@/pages/admin/Chat'),
-  DashboardSkeleton,
+  ChatSkeleton,
 );
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 
@@ -228,7 +225,7 @@ const MemberSettings = withSkeleton(
 );
 const MemberWallet = withSkeleton(
   () => import('@/pages/member/MemberWallet'),
-  DashboardSkeleton,
+  CardsPageSkeleton,
 );
 const MemberInvestment = withSkeleton(
   () => import('@/pages/member/MemberInvestment'),
@@ -254,7 +251,7 @@ const MemberGrantorRequests = withSkeleton(
 );
 const MemberChat = withSkeleton(
   () => import('@/pages/member/MemberChat'),
-  DashboardSkeleton,
+  ChatSkeleton,
 );
 
 import SplashScreen from '@/components/ui/SplashScreen';
@@ -263,7 +260,6 @@ import useSystemSettings from '@/hooks/useSystemSettings';
 
 // Loading Fallbacks
 const PageLoader = () => <SplashScreen />;
-const DashboardLoader = () => <DashboardSkeleton />;
 
 function App() {
   const { settings, loading } = useSystemSettings();
@@ -448,7 +444,7 @@ function App() {
                 </Route>
               </Route>
 
-              {/* Super Admin Routes — DashboardSkeleton via layout wrapper */}
+              {/* Super Admin Routes — Specialized skeletons applied via withSkeleton */}
               <Route element={<RequireAuth />}>
                 <Route element={<RequireAdmin />}>
                   <Route path="/super-admin" element={<SuperAdminLayout />}>

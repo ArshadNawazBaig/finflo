@@ -11,7 +11,6 @@ import { SocketProvider } from '@/context/SocketContext';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { memberOnboardingSteps } from '@/config/onboardingSteps';
 import { Suspense } from 'react';
-import DashboardSkeleton from '@/components/ui/DashboardSkeleton';
 
 const MemberLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
@@ -86,9 +85,7 @@ const MemberLayout = () => {
                 isMobile ? 'pb-10' : 'h-full min-h-full',
               )}
             >
-              <Suspense fallback={<DashboardSkeleton />}>
-                <Outlet />
-              </Suspense>
+              <Outlet />
               <div className="h-32 lg:h-8 shrink-0" />
             </div>
           </div>
