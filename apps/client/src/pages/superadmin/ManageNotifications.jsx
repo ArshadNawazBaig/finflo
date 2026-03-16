@@ -240,8 +240,8 @@ const ManageNotifications = () => {
           title="Notification History"
           description="View all notifications sent to business owners"
         >
-          <div className="flex items-center gap-3">
-            <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase min-w-[120px] justify-center flex">
+          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+            <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase min-w-[120px] justify-center flex w-full sm:w-auto">
               {pagination.total} TOTAL SENT
             </span>
             <Button
