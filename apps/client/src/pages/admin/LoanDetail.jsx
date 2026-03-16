@@ -38,6 +38,7 @@ import ApprovalActions from '@/components/loans/ApprovalActions';
 import AmortizationSchedule from '@/components/loans/AmortizationSchedule';
 import CommunicationLogs from '@/components/customers/CommunicationLogs';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const LoanDetailSkeleton = () => (
   <div className="space-y-8 animate-pulse p-4">
@@ -64,7 +65,7 @@ const LoanDetail = () => {
   const [displayedSchedule, setDisplayedSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [upcomingPayments, setUpcomingPayments] = useState([]);
   const [paidInstallmentsCount, setPaidInstallmentsCount] = useState(0);
 
@@ -90,12 +91,6 @@ const LoanDetail = () => {
   const repaymentObserverTarget = useRef(null);
   const investmentObserverTarget = useRef(null);
   const scheduleObserverTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchData = useCallback(async () => {
     try {

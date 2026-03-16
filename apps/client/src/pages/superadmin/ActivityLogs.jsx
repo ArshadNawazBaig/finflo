@@ -15,6 +15,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
@@ -30,28 +31,22 @@ import {
 import ActivityLogCard from '@/components/notifications/ActivityLogCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const isMobile = useIsMobile();
+  const skipNextEffect = useRef(false);
 
   useEffect(() => {
-    setLimit(isMobile ? 3 : 20);
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const fetchLogs = useCallback(

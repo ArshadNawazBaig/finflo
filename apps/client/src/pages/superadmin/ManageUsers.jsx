@@ -17,6 +17,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
@@ -35,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -50,18 +52,12 @@ const ManageUsers = () => {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
 
   const observerTarget = useRef(null);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    setLimit(isMobile ? 3 : 10);
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const fetchUsers = useCallback(

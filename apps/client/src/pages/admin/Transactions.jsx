@@ -21,10 +21,12 @@ import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -38,7 +40,7 @@ const Transactions = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 1),
     to: new Date(),
@@ -53,18 +55,8 @@ const Transactions = () => {
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) {
-      setLimit(3);
-    } else {
-      setLimit(10);
-    }
+useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
     setCurrentPage(1);
   }, [isMobile]);
 

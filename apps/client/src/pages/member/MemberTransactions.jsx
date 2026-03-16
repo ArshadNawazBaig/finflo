@@ -22,6 +22,7 @@ import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
@@ -45,7 +46,7 @@ const MemberTransactions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [summary, setSummary] = useState({
     totalDeposits: 0,
@@ -56,6 +57,9 @@ const MemberTransactions = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
+  useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+  }, [isMobile]);
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 

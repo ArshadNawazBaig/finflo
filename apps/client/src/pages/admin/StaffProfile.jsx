@@ -21,6 +21,7 @@ import { capitalize, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const StaffProfileSkeleton = () => (
   <div className="space-y-6 animate-pulse">
@@ -89,14 +90,8 @@ const StaffProfile = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
   const [limit] = useState(10);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchStaffData = useCallback(async () => {
     try {

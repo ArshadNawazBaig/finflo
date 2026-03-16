@@ -10,11 +10,13 @@ import AddCustomerModal from '@/components/customers/AddCustomerModal';
 import EditCustomerModal from '@/components/customers/EditCustomerModal';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import EmptyState from '@/components/ui/EmptyState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -32,16 +34,10 @@ const Customers = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Mobile & Infinite Scroll State
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchCustomers = useCallback(
     async (isAppend = false) => {
@@ -146,11 +142,7 @@ const Customers = () => {
 
   // Adjust limit based on mobile/desktop
   useEffect(() => {
-    if (isMobile) {
-      setLimit(3); // Initial load size for mobile (as requested: 3 items add)
-    } else {
-      setLimit(10); // Desktop default
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const handleDeleteClick = async (customer) => {

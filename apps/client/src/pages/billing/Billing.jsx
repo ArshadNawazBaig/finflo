@@ -21,6 +21,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Billing = () => {
   const {
@@ -31,7 +32,7 @@ const Billing = () => {
   const [billingData, setBillingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,20 +40,6 @@ const Billing = () => {
 
   const observerTarget = useRef(null);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) {
-      setLimit(5);
-    } else {
-      setLimit(5);
-    }
-    setCurrentPage(1);
-  }, [isMobile]);
 
   useEffect(() => {
     const fetchBillingInfo = async () => {

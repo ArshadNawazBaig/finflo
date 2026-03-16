@@ -64,6 +64,7 @@ import { formatCurrency, capitalize } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const BranchDetail = () => {
   const { id } = useParams();
@@ -93,7 +94,7 @@ const BranchDetail = () => {
   });
   const [fetchingFinancials, setFetchingFinancials] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
 
   // Analytics Chart State
   const [analyticsData, setAnalyticsData] = useState([]);
@@ -144,12 +145,6 @@ const BranchDetail = () => {
   const [expenseSortOrder, setExpenseSortOrder] = useState('desc');
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     // Set smaller limits for mobile infinite scroll

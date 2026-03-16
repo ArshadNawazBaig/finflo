@@ -13,8 +13,10 @@ import StaffCard from '@/components/staff/StaffCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Team = () => {
   const [staff, setStaff] = useState([]);
@@ -37,15 +39,9 @@ const Team = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchStaff = useCallback(
     async (isAppend = false, pageOverride) => {
@@ -126,13 +122,8 @@ const Team = () => {
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchStaff]);
 
-  // Adjust limit for mobile batching
   useEffect(() => {
-    if (isMobile) {
-      setLimit(3);
-    } else {
-      setLimit(10);
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const handleAddStaff = () => {

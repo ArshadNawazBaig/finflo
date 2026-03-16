@@ -10,6 +10,7 @@ import StatsCard from '@/components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import DistributeProfitModal from '@/components/DistributeProfitModal';
@@ -20,6 +21,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import DistributionTable from '@/components/distributions/DistributionTable';
 import DistributionCard from '@/components/distributions/DistributionCard';
 import DistributionCardSkeleton from '@/components/skeletons/DistributionCardSkeleton';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const DistributionHub = () => {
   const [data, setData] = useState({
@@ -40,19 +42,13 @@ const DistributionHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [distType, setDistType] = useState('regular');
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [limit, setLimit] = useState(window.innerWidth < 768 ? 5 : 10);
+  const isMobile = useIsMobile();
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
 
   const observerTarget = useRef(null);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    setLimit(isMobile ? 5 : 10);
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const fetchDistributions = useCallback(async (pageNum = 1, isAppend = false) => {

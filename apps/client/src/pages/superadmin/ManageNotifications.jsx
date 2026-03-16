@@ -16,6 +16,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
@@ -44,6 +45,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAtom } from 'jotai';
 import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ManageNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -59,18 +61,12 @@ const ManageNotifications = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
 
   const observerTarget = useRef(null);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    setLimit(isMobile ? 3 : 10);
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   const fetchNotifications = useCallback(

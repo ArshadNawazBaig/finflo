@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
@@ -41,12 +42,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -54,7 +56,12 @@ const AuditLogs = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observer = useRef();
+  const isMobile = useIsMobile();
   const skipNextEffect = useRef(false);
+
+  useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+  }, [isMobile]);
 
   const fetchLogs = useCallback(
     async (page = 1, append = false) => {

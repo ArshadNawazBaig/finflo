@@ -30,11 +30,13 @@ import AddMemberModal from '@/components/AddMemberModal';
 import MemberTable from '@/components/member/MemberTable';
 import MemberCard from '@/components/member/MemberCard';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Members = () => {
   const [members, setMembers] = useState([]);
@@ -59,7 +61,7 @@ const Members = () => {
     activeMembers: 0,
   });
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectMemberId, setRejectMemberId] = useState(null);
@@ -102,11 +104,7 @@ const Members = () => {
   }, []);
 
   useEffect(() => {
-    if (isMobile) {
-      setLimit(3);
-    } else {
-      setLimit(10);
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
     setCurrentPage(1);
   }, [isMobile]);
 

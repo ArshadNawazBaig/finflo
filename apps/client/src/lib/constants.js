@@ -7,3 +7,5 @@ export const SOCKET_URL =
     : window.location.origin);
 
 export const IS_PRODUCTION = import.meta.env.MODE === 'production';
+export const MOBILE_PAGE_LIMIT = 5;
+export const DESKTOP_PAGE_LIMIT = 10;

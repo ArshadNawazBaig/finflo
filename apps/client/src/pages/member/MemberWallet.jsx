@@ -20,6 +20,7 @@ import PageHeader from '@/components/PageHeader';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
@@ -40,7 +41,7 @@ const MemberWallet = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
 
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const navigate = useNavigate();
@@ -49,6 +50,10 @@ const MemberWallet = () => {
 
   const observerTarget = useRef(null);
   const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+  }, [isMobile]);
 
   const fetchWalletData = useCallback(
     async (pageToFetch = 1, isAppend = false) => {

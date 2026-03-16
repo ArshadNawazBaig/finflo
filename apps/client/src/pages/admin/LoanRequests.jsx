@@ -16,6 +16,7 @@ import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { formatCurrency } from '@/lib/utils';
@@ -34,6 +35,7 @@ import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 import ApproveLoanModal from '@/components/loans/ApproveLoanModal';
 import RejectLoanModal from '@/components/loans/RejectLoanModal';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const LoanRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -61,7 +63,7 @@ const LoanRequests = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Mobile & Infinite Scroll State
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -70,17 +72,7 @@ const LoanRequests = () => {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) {
-      setLimit(5);
-    } else {
-      setLimit(10);
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
     setCurrentPage(1);
   }, [isMobile]);
 

@@ -13,6 +13,7 @@ import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberLoansSkeleton from '@/components/member/MemberLoansSkeleton';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import EmptyState from '@/components/ui/EmptyState';
@@ -34,11 +35,15 @@ const MemberLoans = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEntries, setTotalEntries] = useState(0);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
+
+  useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+  }, [isMobile]);
 
   const fetchLoans = useCallback(
     async (pageToFetch = 1, isAppend = false) => {

@@ -51,6 +51,7 @@ import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -130,7 +131,7 @@ const MemberProfile = () => {
   const [branches, setBranches] = useState([]);
   const [isBranchesLoading, setIsBranchesLoading] = useState(false);
   const [useShareCustomRates, setUseShareCustomRates] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
 
   // Pagination State
   const [investmentPage, setInvestmentPage] = useState(1);
@@ -286,12 +287,6 @@ const MemberProfile = () => {
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
   const shareObserverTarget = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchMemberData = useCallback(async () => {
     try {

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatsCard from '@/components/StatsCard';
 import PaymentCard from '@/components/payments/PaymentCard';
@@ -41,6 +42,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import Pagination from '@/components/ui/Pagination';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const RevenueReports = () => {
   const [overview, setOverview] = useState(null);
@@ -51,8 +53,8 @@ const RevenueReports = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [limit, setLimit] = useState(5);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
+  const isMobile = useIsMobile();
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const observerTarget = useRef(null);
 
@@ -115,11 +117,7 @@ const RevenueReports = () => {
   }, []);
 
   useEffect(() => {
-    if (isMobile) {
-      setLimit(5);
-    } else {
-      setLimit(5);
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
 
   useEffect(() => {

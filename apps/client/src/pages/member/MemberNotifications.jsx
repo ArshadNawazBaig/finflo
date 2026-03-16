@@ -13,6 +13,7 @@ import {
   Filter,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { cn, getSafeNotificationLink } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
@@ -67,6 +68,9 @@ const MemberNotifications = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
+  useEffect(() => {
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+  }, [isMobile]);
 
   const fetchNotifications = useCallback(
     async (page = 1, isAppend = false) => {

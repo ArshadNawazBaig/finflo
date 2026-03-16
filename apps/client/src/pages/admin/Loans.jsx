@@ -22,6 +22,7 @@ import LoanDetailsModal from '@/components/loans/LoanDetailsModal';
 import EditLoanModal from '@/components/loans/EditLoanModal';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import api from '@/lib/axios';
+import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -30,6 +31,7 @@ import CountUp from 'react-countup';
 import StatsCard from '@/components/StatsCard';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import { formatCurrency } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -47,18 +49,13 @@ const Loans = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const isMobile = useIsMobile();
   const [stats, setStats] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -74,11 +71,7 @@ const Loans = () => {
   }, [fetchStats]);
 
   useEffect(() => {
-    if (isMobile) {
-      setLimit(3);
-    } else {
-      setLimit(10);
-    }
+    setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
     setCurrentPage(1);
   }, [isMobile]);
 
