@@ -107,6 +107,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'capacitor://localhost',
   'http://localhost',
+  'https://finflo-production.up.railway.app',
 ];
 
 const corsOptions = {
@@ -117,8 +118,9 @@ const corsOptions = {
     const isAllowed =
       !origin ||
       allowedOrigins.includes(origin) ||
-      // Allow all Vercel preview deployments (*.vercel.app)
+      // Allow all Vercel and Railway preview deployments
       /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/.test(origin) ||
+      /^https:\/\/[a-z0-9-]+(\.up\.railway\.app)$/.test(origin) ||
       (process.env.NODE_ENV !== 'production' &&
         (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
           /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
@@ -282,8 +284,9 @@ const io = new Server(httpServer, {
       'http://localhost:3000',
       'capacitor://localhost',
       clientUrl,
-      // Also allow the same origin (Vercel monorepo: client and server on same domain)
+      // Also allow the same origin
       'https://loan-master-client.vercel.app',
+      'https://finflo-production.up.railway.app',
     ],
     credentials: true,
     methods: ['GET', 'POST'],
