@@ -23,7 +23,7 @@ import { unreadNotificationsCountAtom } from '@/atoms';
 const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
   return (
-    <div className="px-4 pt-4 pb-2">
+    <div className="px-4 pt-2 pb-2.5">
       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
         {label}
       </span>

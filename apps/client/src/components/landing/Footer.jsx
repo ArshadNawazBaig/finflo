@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Globe, Users, Activity, Award } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 
 const Footer = () => {
   return (
@@ -77,18 +78,39 @@ const Footer = () => {
                   'API Reference': '/documentation/api',
                 };
                 const path = linkMap[item];
+                const isAppLink = [
+                  'Member Console',
+                  'Loan Lookup Portal',
+                ].includes(item);
 
-                return path ? (
-                  <li key={j} className="w-fit">
-                    <Link
-                      to={path}
-                      className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
-                    >
-                      {item}
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-                    </Link>
-                  </li>
-                ) : (
+                if (path) {
+                  if (IS_LANDING_DOMAIN && !IS_DEV && isAppLink) {
+                    return (
+                      <li key={j} className="w-fit">
+                        <a
+                          href={getAppUrl(path)}
+                          className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
+                        >
+                          {item}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+                        </a>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li key={j} className="w-fit">
+                      <Link
+                        to={path}
+                        className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
+                      >
+                        {item}
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+                      </Link>
+                    </li>
+                  );
+                }
+
+                return (
                   <li
                     key={j}
                     className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group w-fit"

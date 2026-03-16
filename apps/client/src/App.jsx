@@ -254,12 +254,50 @@ const MemberChat = withSkeleton(
   ChatSkeleton,
 );
 
-import SplashScreen from '@/components/ui/SplashScreen';
-import FloatingSettings from '@/components/landing/FloatingSettings';
+import {
+  IS_LANDING_DOMAIN,
+  IS_APP_DOMAIN,
+  IS_DEV,
+  getAppUrl,
+  getLandingUrl,
+} from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import FloatingSettings from '@/components/landing/FloatingSettings';
 
+// Redirect Helper Component
+const DomainRedirect = ({ to, useAppDomain = true }) => {
+  const targetUrl = useAppDomain ? getAppUrl(to) : getLandingUrl(to);
+  window.location.href = targetUrl;
+  return null;
+};
+
+// Landing Page Route Set
+import SplashScreen from '@/components/ui/SplashScreen';
 // Loading Fallbacks
 const PageLoader = () => <SplashScreen />;
+
+const LandingRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Landing />} />
+    <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Route path="/terms" element={<TermsOfService />} />
+    <Route path="/documentation" element={<Documentation />} />
+    <Route path="/documentation/api" element={<ApiDocumentation />} />
+    {/* Redirect any other path to the app subdomain */}
+    {!IS_DEV && (
+      <Route
+        path="*"
+        element={
+          <DomainRedirect
+            to={window.location.pathname + window.location.search}
+          />
+        }
+      />
+    )}
+    {/* Fallback for dev: show landing but allow nav */}
+    {IS_DEV && <Route path="*" element={<NotFound />} />}
+  </Routes>
+);
 
 function App() {
   const { settings, loading } = useSystemSettings();
@@ -267,6 +305,20 @@ function App() {
   const isSuperAdmin = user.role === 'super_admin';
 
   if (loading) return <PageLoader />;
+
+  // If we're on the landing domain (and not in dev, or we want to force simulation)
+  // For dev, we usually want to be able to see both, but for this task let's assume 
+  // we want to test the separation logic.
+  if (IS_LANDING_DOMAIN && !IS_DEV) {
+    return (
+      <Router>
+        <Suspense fallback={<PageLoader />}>
+          <LandingRoutes />
+        </Suspense>
+        <Toaster position="top-right" richColors />
+      </Router>
+    );
+  }
 
   return (
     <Router>
@@ -276,15 +328,67 @@ function App() {
             <Route path="*" element={<Maintenance />} />
           ) : (
             <>
-              <Route path="/" element={<Landing />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
+              {/* On App Domain, / redirects to login or dashboard */}
+              <Route
+                path="/"
+                element={
+                  IS_APP_DOMAIN && !IS_DEV ? (
+                    <RedirectIfAuthenticated>
+                      <Login />
+                    </RedirectIfAuthenticated>
+                  ) : (
+                    <Landing />
+                  )
+                }
+              />
+
+              {/* These paths belong on Landing Domain, redirect if on App Domain */}
+              <Route
+                path="/privacy"
+                element={
+                  IS_APP_DOMAIN && !IS_DEV ? (
+                    <DomainRedirect to="/privacy" useAppDomain={false} />
+                  ) : (
+                    <PrivacyPolicy />
+                  )
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  IS_APP_DOMAIN && !IS_DEV ? (
+                    <DomainRedirect to="/terms" useAppDomain={false} />
+                  ) : (
+                    <TermsOfService />
+                  )
+                }
+              />
+              <Route
+                path="/documentation"
+                element={
+                  IS_APP_DOMAIN && !IS_DEV ? (
+                    <DomainRedirect to="/documentation" useAppDomain={false} />
+                  ) : (
+                    <Documentation />
+                  )
+                }
+              />
+              <Route
+                path="/documentation/api"
+                element={
+                  IS_APP_DOMAIN && !IS_DEV ? (
+                    <DomainRedirect
+                      to="/documentation/api"
+                      useAppDomain={false}
+                    />
+                  ) : (
+                    <ApiDocumentation />
+                  )
+                }
+              />
+
               <Route path="/loan-lookup" element={<LoanLookup />} />
               <Route path="/join/:code?" element={<SelfRegister />} />
-              {/* <Route path="/for-my-love" element={<Valentine />} /> */}
-              {/* Public Routes */}
-              <Route path="/documentation" element={<Documentation />} />
-              <Route path="/documentation/api" element={<ApiDocumentation />} />
 
               {/* Regular Admin Routes */}
               <Route element={<RequireAuth />}>

@@ -9,3 +9,28 @@ export const SOCKET_URL =
 export const IS_PRODUCTION = import.meta.env.MODE === 'production';
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
+
+// Domain Configuration
+export const LANDING_DOMAIN = 'finflo.org';
+export const APP_DOMAIN = 'app.finflo.org';
+
+const hostname = window.location.hostname;
+export const IS_LANDING_DOMAIN =
+  hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
+export const IS_APP_DOMAIN = hostname === APP_DOMAIN;
+export const IS_DEV =
+  hostname === 'localhost' ||
+  hostname === '127.0.0.1' ||
+  hostname.includes('.local');
+
+export const getAppUrl = (path = '') => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (IS_DEV) return cleanPath;
+  return `https://${APP_DOMAIN}${cleanPath}`;
+};
+
+export const getLandingUrl = (path = '') => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (IS_DEV) return cleanPath;
+  return `https://${LANDING_DOMAIN}${cleanPath}`;
+};

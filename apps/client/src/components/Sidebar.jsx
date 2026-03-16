@@ -47,7 +47,7 @@ import {
 const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
   return (
-    <div className="px-4 pt-4 pb-2">
+    <div className="px-4 pt-2 pb-2.5">
       <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
         {label}
       </span>
@@ -183,8 +183,8 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <div
           className={cn(
-            'transition-all pt-1 pb-2',
-            isLayoutExpanded ? 'px-2' : '',
+            'transition-all pb-2',
+            isLayoutExpanded ? 'px-2 sm:mb-0' : 'mb-2.5',
             isMobile ? 'pt-8' : '',
           )}
         >
@@ -441,7 +441,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <div
           className={cn(
-            'mt-auto flex flex-col gap-3 w-full relative pt-4 pb-6 border-t border-border/50',
+            'mt-auto flex flex-col gap-3 w-full relative pt-4 border-t border-border/50',
             isLayoutExpanded ? 'px-4' : 'px-0',
           )}
           ref={menuRef}

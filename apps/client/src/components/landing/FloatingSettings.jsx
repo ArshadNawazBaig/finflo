@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Settings, X, Sun, Moon, Laptop } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 import ColorPalette from '@/components/ui/ColorPalette';
 import { cn } from '@/lib/utils';
@@ -22,12 +23,19 @@ const FloatingSettings = () => {
   }, [isOpen]);
 
   return (
-    <div className="fixed bottom-24 sm:bottom-6 right-6 z-[200]" ref={menuRef}>
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+      whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
+      className="fixed bottom-24 sm:bottom-6 right-6 z-[200] flex flex-col items-end"
+      ref={menuRef}
+    >
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group',
+          'w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 group cursor-grab',
           isOpen ? 'rotate-90' : 'hover:rotate-45',
         )}
       >
@@ -91,7 +99,7 @@ const FloatingSettings = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

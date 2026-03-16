@@ -5,6 +5,7 @@ import { Sun, Moon, ChevronRight, X, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Logo from '@/components/Logo';
+import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 
 const Navigation = ({
   scrollY,
@@ -23,6 +24,21 @@ const Navigation = ({
   const [isLoginMenuOpen, setIsLoginMenuOpen] = useState(false);
   const joinMenuRef = useRef(null);
   const loginMenuRef = useRef(null);
+
+  const AppLink = ({ to, children, ...props }) => {
+    if (IS_LANDING_DOMAIN && !IS_DEV) {
+      return (
+        <a href={getAppUrl(to)} {...props}>
+          {children}
+        </a>
+      );
+    }
+    return (
+      <Link to={to} {...props}>
+        {children}
+      </Link>
+    );
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,35 +107,35 @@ const Navigation = ({
             <div className="hidden sm:flex items-center gap-3">
               {isBusinessLoggedIn ? (
                 <>
-                  <Link
+                  <AppLink
                     to="/dashboard"
                     className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
                   >
                     Dashboard
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     to="/join"
                     className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
                   >
                     Member Console
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </AppLink>
                 </>
               ) : isMemberLoggedIn ? (
                 <>
-                  <Link
+                  <AppLink
                     to="/member/dashboard"
                     className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
                   >
                     Dashboard
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     to="/register"
                     className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
                   >
                     Business Console
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </AppLink>
                 </>
               ) : (
                 <>
@@ -150,7 +166,7 @@ const Navigation = ({
                           className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl"
                         >
                           <div className="p-2">
-                            <Link
+                            <AppLink
                               to="/login"
                               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
                               onClick={() => setIsLoginMenuOpen(false)}
@@ -166,8 +182,8 @@ const Navigation = ({
                                   Access admin portal
                                 </span>
                               </div>
-                            </Link>
-                            <Link
+                            </AppLink>
+                            <AppLink
                               to="/member/login"
                               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
                               onClick={() => setIsLoginMenuOpen(false)}
@@ -183,7 +199,7 @@ const Navigation = ({
                                   Access member portal
                                 </span>
                               </div>
-                            </Link>
+                            </AppLink>
                           </div>
                         </motion.div>
                       )}
@@ -213,7 +229,7 @@ const Navigation = ({
                           className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl"
                         >
                           <div className="p-2">
-                            <Link
+                            <AppLink
                               to="/register"
                               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
                               onClick={() => setIsJoinMenuOpen(false)}
@@ -229,8 +245,8 @@ const Navigation = ({
                                   Register your company
                                 </span>
                               </div>
-                            </Link>
-                            <Link
+                            </AppLink>
+                            <AppLink
                               to="/join"
                               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
                               onClick={() => setIsJoinMenuOpen(false)}
@@ -246,7 +262,7 @@ const Navigation = ({
                                   Join a business group
                                 </span>
                               </div>
-                            </Link>
+                            </AppLink>
                           </div>
                         </motion.div>
                       )}
@@ -297,71 +313,71 @@ const Navigation = ({
             <div className="mt-auto space-y-4">
               {isBusinessLoggedIn ? (
                 <>
-                  <Link
+                  <AppLink
                     to="/join"
                     onClick={() => setIsMenuOpen(false)}
                     className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
                   >
                     Member Console
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     to="/dashboard"
                     onClick={() => setIsMenuOpen(false)}
                     className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
                   >
                     Go to Dashboard
-                  </Link>
+                  </AppLink>
                 </>
               ) : isMemberLoggedIn ? (
                 <>
-                  <Link
+                  <AppLink
                     to="/register"
                     onClick={() => setIsMenuOpen(false)}
                     className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
                   >
                     Business Console
-                  </Link>
-                  <Link
+                  </AppLink>
+                  <AppLink
                     to="/member/dashboard"
                     onClick={() => setIsMenuOpen(false)}
                     className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
                   >
                     Go to Dashboard
-                  </Link>
+                  </AppLink>
                 </>
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-3">
-                    <Link
+                    <AppLink
                       to="/register"
                       onClick={() => setIsMenuOpen(false)}
                       className="py-4 bg-slate-100 dark:bg-white/5 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
                     >
                       Join as Business
-                    </Link>
-                    <Link
+                    </AppLink>
+                    <AppLink
                       to="/join"
                       onClick={() => setIsMenuOpen(false)}
                       className="py-4 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
                     >
                       Join as Member
-                    </Link>
+                    </AppLink>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <Link
+                    <AppLink
                       to="/login"
                       onClick={() => setIsMenuOpen(false)}
                       className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
                     >
                       Login as Business
-                    </Link>
-                    <Link
+                    </AppLink>
+                    <AppLink
                       to="/member/login"
                       onClick={() => setIsMenuOpen(false)}
                       className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
                     >
                       Login as Member
-                    </Link>
+                    </AppLink>
                   </div>
                 </>
               )}

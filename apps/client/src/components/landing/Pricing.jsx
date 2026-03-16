@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 
 const Pricing = () => {
   const { settings } = useSystemSettings();
@@ -54,10 +55,11 @@ const Pricing = () => {
   if (!settings) return null;
 
   const getLink = (planName) => {
-    if (isAuthenticated) {
-      return '/pricing';
+    const path = isAuthenticated ? '/pricing' : `/login?redirect=/pricing`;
+    if (IS_LANDING_DOMAIN && !IS_DEV) {
+      return getAppUrl(path);
     }
-    return `/login?redirect=/pricing`;
+    return path;
   };
 
   return (
@@ -146,6 +148,18 @@ const Pricing = () => {
                   <div className="w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] text-center bg-emerald-500/10 text-emerald-500 cursor-default border border-emerald-500/20">
                     Current Plan
                   </div>
+                ) : IS_LANDING_DOMAIN && !IS_DEV ? (
+                  <a
+                    href={getLink(plan.name)}
+                    className={cn(
+                      'w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-xl text-center',
+                      plan.popular
+                        ? 'bg-primary text-primary-foreground hover:shadow-primary/40 hover:brightness-110'
+                        : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-primary/50 dark:text-white',
+                    )}
+                  >
+                    {plan.cta}
+                  </a>
                 ) : (
                   <Link
                     to={getLink(plan.name)}
