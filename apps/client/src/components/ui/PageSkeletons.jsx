@@ -403,6 +403,88 @@ export const MembersPageSkeleton = () => (
   </div>
 );
 
+// ─── Activity Logs Page ───────────────────────────────────────────────────────
+// Matches: PageHeader (with pill) → Search & Filters row → Table
+
+export const ActivityLogsPageSkeleton = () => (
+  <div className="space-y-6 animate-in fade-in duration-200">
+    {/* Page Header */}
+    <div className="flex items-start justify-between mb-6 md:mb-8">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-8 w-48 md:w-64" />
+        <Skeleton className="h-4 w-64 md:w-96" />
+      </div>
+      <Skeleton className="h-9 w-32 rounded-full shrink-0" />
+    </div>
+
+    {/* Search & Filters */}
+    <div className="flex flex-col lg:flex-row gap-4">
+      <Skeleton className="h-12 flex-1 rounded-2xl min-w-[200px]" />
+      <div className="flex gap-4">
+        <Skeleton className="h-12 w-full sm:w-[180px] rounded-2xl" />
+        <Skeleton className="h-12 w-full sm:w-[180px] rounded-2xl" />
+      </div>
+    </div>
+
+    {/* Desktop Table */}
+    <div className="hidden md:block rounded-[2rem] border border-border/50 bg-card/50 overflow-hidden mt-2">
+      <div className="h-12 border-b border-border/40 bg-muted/30" />
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between px-6 py-4 border-b border-border/20 last:border-0"
+        >
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 shrink-0" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <div className="space-y-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 shrink-0" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      ))}
+    </div>
+
+    {/* Mobile Cards */}
+    <div className="md:hidden space-y-4 mt-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-border/40 p-4 bg-card space-y-4"
+        >
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // ─── Branches / Cards Page ────────────────────────────────────────────────────
 // Matches: PageHeader → search bar (max-w-md) → 3-col card grid
 // Each branch card: gradient header (h-32) + offset logo + body with address/phone rows

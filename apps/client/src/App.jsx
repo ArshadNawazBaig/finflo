@@ -20,6 +20,7 @@ import {
   SettingsPageSkeleton,
   MembersPageSkeleton,
   AdminDashboardSkeleton,
+  ActivityLogsPageSkeleton,
   ReportsSkeleton,
   ChatSkeleton,
 } from '@/components/ui/PageSkeletons';
@@ -152,7 +153,7 @@ const ManageNotifications = withSkeleton(
 );
 const ActivityLogs = withSkeleton(
   () => import('@/pages/superadmin/ActivityLogs'),
-  TablePageSkeleton,
+  ActivityLogsPageSkeleton,
 );
 const SystemSettings = withSkeleton(
   () => import('@/pages/superadmin/SystemSettings'),
