@@ -1,4 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import MemberInvestmentSkeleton from '@/components/member/MemberInvestmentSkeleton';
+import MemberLoansSkeleton from '@/components/member/MemberLoansSkeleton';
+import MemberTransactionsSkeleton from '@/components/member/MemberTransactionsSkeleton';
+
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -919,6 +924,178 @@ export const MemberWalletSkeleton = () => (
           </div>
         ))}
       </div>
+    </div>
+  </div>
+);
+
+export const MemberTransferSkeleton = () => (
+  <div className="space-y-10 animate-in fade-in duration-200">
+    <PageHeaderSkeleton />
+
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Left Column - Transfer Controls */}
+      <div className="lg:col-span-8 space-y-6">
+        {/* Tabs */}
+        <div className="flex p-1.5 bg-muted/30 rounded-2xl border border-border/40">
+          <Skeleton className="h-12 flex-1 rounded-xl" />
+          <Skeleton className="h-12 flex-1 rounded-xl" />
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm min-h-[500px] space-y-8">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-14 w-full rounded-2xl" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-14 w-full rounded-2xl" />
+            </div>
+            <Skeleton className="h-14 w-full rounded-2xl mt-8" />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column - Balance & Summary */}
+      <div className="lg:col-span-4 space-y-6">
+        {/* Balance Card */}
+        <div className="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-8 space-y-4">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-12 w-48" />
+          <div className="h-px bg-border/50 w-full my-4" />
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="flex justify-between">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity Card */}
+        <div className="bg-card border border-border/50 rounded-[2.5rem] p-6 space-y-4">
+          <Skeleton className="h-5 w-32" />
+          <RecentActivityListSkeleton count={3} />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+
+export const RecentActivityListSkeleton = ({ count = 3 }) => (
+  <div className="space-y-4">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="p-4 rounded-xl border border-border/30 space-y-3"
+      >
+        <div className="flex justify-between">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-5 w-16 rounded-md" />
+        </div>
+        <div className="flex justify-between items-end">
+          <div className="flex gap-2">
+            <Skeleton className="h-2 w-12" />
+            <Skeleton className="h-2 w-16" />
+          </div>
+          <Skeleton className="h-5 w-24" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+export const MemberInvestmentPageSkeleton = () => (
+  <div className="space-y-10 animate-pulse pb-20">
+    <PageHeaderSkeleton />
+    <CardsSkeleton count={3} />
+    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
+      <div className="p-8 border-b border-border/50 flex items-center justify-between bg-muted/20">
+        <Skeleton className="h-10 w-64 rounded-xl" />
+        <Skeleton className="h-10 w-32 rounded-xl" />
+      </div>
+      <MemberInvestmentSkeleton count={5} />
+    </div>
+  </div>
+);
+
+export const MemberLoansPageSkeleton = () => (
+  <div className="space-y-10 animate-pulse pb-20">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <PageHeaderSkeleton />
+    </div>
+    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
+      <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Skeleton className="h-12 w-full max-w-md rounded-2xl" />
+          <div className="flex gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-20 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <MemberLoansSkeleton count={4} />
+    </div>
+  </div>
+);
+
+export const MemberActivityPageSkeleton = () => (
+  <div className="space-y-10 animate-pulse pb-20">
+    <PageHeaderSkeleton />
+    <CardsSkeleton count={3} />
+    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
+      <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="flex gap-4 flex-1">
+            <Skeleton className="h-12 flex-1 max-w-md rounded-2xl" />
+            <Skeleton className="h-12 w-48 rounded-2xl" />
+          </div>
+          <div className="flex gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-20 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <MemberTransactionsSkeleton count={6} />
+    </div>
+  </div>
+);
+
+export const MemberNotificationsPageSkeleton = () => (
+  <div className="space-y-6 animate-pulse pb-10">
+    <PageHeaderSkeleton />
+    <div className="flex flex-col md:flex-row gap-4">
+      <Skeleton className="h-14 flex-1 rounded-lg" />
+      <Skeleton className="h-14 w-[180px] rounded-lg" />
+    </div>
+    <div className="space-y-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="p-5 rounded-2xl border border-border/10 bg-card/30 flex items-start gap-4"
+        >
+          <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
+          <div className="flex-1 space-y-3">
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-5 w-1/3 rounded-lg" />
+              <Skeleton className="h-4 w-20 rounded-lg" />
+            </div>
+            <Skeleton className="h-4 w-full rounded-lg" />
+            <Skeleton className="h-4 w-2/3 rounded-lg" />
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 );

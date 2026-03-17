@@ -51,6 +51,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { MemberNotificationsPageSkeleton } from '@/components/ui/PageSkeletons';
 
 const MemberNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -324,24 +325,7 @@ const MemberNotifications = () => {
         {/* Notifications View */}
         <div className="space-y-4">
           {loading ? (
-            <div className="grid gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-2xl border border-border/10 bg-card/30 flex items-start gap-4"
-                >
-                  <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <Skeleton className="h-5 w-1/3 rounded-lg" />
-                      <Skeleton className="h-4 w-20 rounded-lg" />
-                    </div>
-                    <Skeleton className="h-4 w-full rounded-lg" />
-                    <Skeleton className="h-4 w-2/3 rounded-lg" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MemberNotificationsPageSkeleton />
           ) : notifications.length === 0 ? (
             <EmptyState
               icon={Bell}

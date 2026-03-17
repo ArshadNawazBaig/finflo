@@ -24,6 +24,11 @@ import {
   ReportsSkeleton,
   ChatSkeleton,
   MemberWalletSkeleton,
+  MemberTransferSkeleton,
+  MemberInvestmentPageSkeleton,
+  MemberLoansPageSkeleton,
+  MemberActivityPageSkeleton,
+  MemberNotificationsPageSkeleton,
 } from '@/components/ui/PageSkeletons';
 
 const withSkeleton = (importFunc, SkeletonFallback) => {
@@ -208,7 +213,7 @@ const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 const Valentine = lazy(() => import('@/pages/static/Valentine'));
 const MemberTransactions = withSkeleton(
   () => import('@/pages/member/MemberTransactions'),
-  TablePageSkeleton,
+  MemberActivityPageSkeleton,
 );
 const MemberLoanDetail = withSkeleton(
   () => import('@/pages/member/MemberLoanDetail'),
@@ -216,11 +221,11 @@ const MemberLoanDetail = withSkeleton(
 );
 const MemberLoans = withSkeleton(
   () => import('@/pages/member/MemberLoans'),
-  TablePageSkeleton,
+  MemberLoansPageSkeleton,
 );
 const MemberTransfer = withSkeleton(
   () => import('@/pages/member/MemberTransfer'),
-  CardsPageSkeleton,
+  MemberTransferSkeleton,
 );
 const MemberSettings = withSkeleton(
   () => import('@/pages/member/MemberSettings'),
@@ -232,11 +237,11 @@ const MemberWallet = withSkeleton(
 );
 const MemberInvestment = withSkeleton(
   () => import('@/pages/member/MemberInvestment'),
-  CardsPageSkeleton,
+  MemberInvestmentPageSkeleton,
 );
 const MemberBusinessShare = withSkeleton(
   () => import('@/pages/member/MemberBusinessShare'),
-  CardsPageSkeleton,
+  MemberInvestmentPageSkeleton,
 );
 const MemberForgotPassword = lazy(
   () => import('@/pages/member/MemberForgotPassword'),
@@ -246,11 +251,11 @@ const MemberResetPassword = lazy(
 );
 const MemberNotifications = withSkeleton(
   () => import('@/pages/member/MemberNotifications'),
-  TablePageSkeleton,
+  MemberNotificationsPageSkeleton,
 );
 const MemberGrantorRequests = withSkeleton(
   () => import('@/pages/member/MemberGrantorRequests'),
-  TablePageSkeleton,
+  MemberLoansPageSkeleton,
 );
 const MemberChat = withSkeleton(
   () => import('@/pages/member/MemberChat'),

@@ -13,6 +13,10 @@ import { toast } from 'sonner';
 import { formatCurrency, cn } from '@/lib/utils';
 import InternalTransferForm from '@/components/member/InternalTransferForm';
 import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
+import {
+  MemberTransferSkeleton,
+  RecentActivityListSkeleton,
+} from '@/components/ui/PageSkeletons';
 
 const MemberTransfer = () => {
   const [member, setMember] = useState(null);
@@ -21,6 +25,7 @@ const MemberTransfer = () => {
 
   // History State
   const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Fetch Member
   const fetchMember = useCallback(async () => {
@@ -41,6 +46,7 @@ const MemberTransfer = () => {
   // Fetch History based on tab
   const fetchHistory = useCallback(async () => {
     try {
+      setHistoryLoading(true);
       if (activeTab === 'internal') {
         const { data } = await api.get('/members/portal/activity?limit=5');
         const p2pOnly = (data.data || []).filter(
@@ -53,6 +59,8 @@ const MemberTransfer = () => {
       }
     } catch (error) {
       // Silent fail
+    } finally {
+      setHistoryLoading(false);
     }
   }, [activeTab]);
 
@@ -65,7 +73,7 @@ const MemberTransfer = () => {
     fetchHistory();
   };
 
-  if (loading) return null;
+  if (loading) return <MemberTransferSkeleton />;
 
   return (
     <div className="space-y-10 pb-20 w-full animate-in fade-in duration-300">
@@ -153,7 +161,9 @@ const MemberTransfer = () => {
             </h3>
 
             <div className="space-y-3">
-              {history.length === 0 ? (
+              {historyLoading ? (
+                <RecentActivityListSkeleton count={3} />
+              ) : history.length === 0 ? (
                 <div className="p-6 text-center text-xs font-bold text-muted-foreground/50">
                   No recent activity found.
                 </div>
