@@ -28,8 +28,7 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberDepositModal from '@/components/member/MemberDepositModal';
 import { Link, useNavigate } from 'react-router-dom';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import MemberInvestmentSkeleton from '@/components/member/MemberInvestmentSkeleton';
+import { MemberWalletSkeleton } from '@/components/ui/PageSkeletons';
 
 const MemberWallet = () => {
   const [member, setMember] = useState(null);
@@ -150,10 +149,7 @@ const MemberWallet = () => {
       />
 
       {loading && !member ? (
-        <div className="space-y-10">
-          <CardsSkeleton count={1} />
-          <MemberInvestmentSkeleton count={4} />
-        </div>
+        <MemberWalletSkeleton />
       ) : (
         <>
           {/* Dashboard Metrics Header */}

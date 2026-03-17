@@ -836,3 +836,89 @@ export const ChatSkeleton = () => (
     </div>
   </div>
 );
+// ─── Member Portal ──────────────────────────────────────────────────────────
+
+export const MemberWalletSkeleton = () => (
+  <div className="space-y-10 animate-in fade-in duration-200">
+    <PageHeaderSkeleton />
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* CC Hero Card */}
+      <div className="lg:col-span-2 h-[320px] rounded-[3rem] bg-zinc-950/10 border border-border/40 p-8 flex flex-col justify-between relative overflow-hidden">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-10 rounded-lg" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-16 w-64" />
+          </div>
+        </div>
+        <div className="flex justify-between items-end">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-14 w-32 rounded-2xl" />
+            <Skeleton className="h-14 w-32 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+
+      {/* Side Quick Metrics */}
+      <div className="flex flex-col gap-6">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex-1 bg-card border border-border/50 p-8 rounded-[2.5rem] space-y-4"
+          >
+            <div className="flex justify-between items-start">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-8 w-8 rounded-xl" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <Skeleton className="h-10 w-36" />
+              <Skeleton className="h-4 w-12 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Ledger Section */}
+    <div className="bg-card rounded-[3rem] border border-border/50 shadow-sm overflow-hidden">
+      <div className="p-8 border-b border-border/50 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-2xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-10 rounded-xl" />
+      </div>
+      <div className="divide-y divide-border/40">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="p-6 sm:p-8 flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-14 w-14 rounded-2xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-3 w-16 rounded-full" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2 text-right">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-3 w-20 ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);

@@ -23,6 +23,7 @@ import {
   ActivityLogsPageSkeleton,
   ReportsSkeleton,
   ChatSkeleton,
+  MemberWalletSkeleton,
 } from '@/components/ui/PageSkeletons';
 
 const withSkeleton = (importFunc, SkeletonFallback) => {
@@ -227,7 +228,7 @@ const MemberSettings = withSkeleton(
 );
 const MemberWallet = withSkeleton(
   () => import('@/pages/member/MemberWallet'),
-  CardsPageSkeleton,
+  MemberWalletSkeleton,
 );
 const MemberInvestment = withSkeleton(
   () => import('@/pages/member/MemberInvestment'),
