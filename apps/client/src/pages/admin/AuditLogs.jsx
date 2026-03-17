@@ -313,123 +313,121 @@ const AuditLogs = () => {
       <div className="hidden lg:block rounded-[2.5rem] bg-white dark:bg-slate-900 border border-border/50 shadow-xl overflow-hidden relative group">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
         <div className="overflow-x-auto relative">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-border/50 bg-muted/20">
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 w-[180px]">
-                  Timestamp
-                </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                  Agent
-                </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                  Execution
-                </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                  Stream
-                </th>
-                <th className="text-right px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30">
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-8">
-                    <TableSkeleton rows={8} columns={5} />
-                  </td>
+          {loading ? (
+            <TableSkeleton rows={8} columns={5} />
+          ) : (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-border/50 bg-muted/20">
+                  <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 w-[180px]">
+                    Timestamp
+                  </th>
+                  <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                    Agent
+                  </th>
+                  <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                    Execution
+                  </th>
+                  <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                    Stream
+                  </th>
+                  <th className="text-right px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                    Action
+                  </th>
                 </tr>
-              ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20">
-                    <EmptyState
-                      icon={Terminal}
-                      title="Zero Traces Found"
-                      description={
-                        search
-                          ? `No system audits match your search for "${search}".`
-                          : "The system's black box is currently clear. No audit traces recorded for this stream."
-                      }
-                      variant="subtle"
-                      className="py-12"
-                    />
-                  </td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr
-                    key={log._id}
-                    className="group/row hover:bg-muted/30 transition-all cursor-pointer"
-                    onClick={() => setSelectedLog(log)}
-                  >
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col font-mono text-[11px] font-bold">
-                        <span className="text-foreground">
-                          {new Date(log.createdAt).toLocaleDateString()}
-                        </span>
-                        <span className="text-muted-foreground/60">
-                          {new Date(log.createdAt).toLocaleTimeString([], {
-                            hour12: false,
-                          })}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      {log.user ? (
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20 capitalize">
-                            {log.user.name?.charAt(0) || 'U'}
-                          </div>
-                          <div>
-                            <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
-                              {log.user.name}
-                            </p>
-                            <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">
-                              {log.user.email}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-primary/40 font-bold text-xs uppercase tracking-tighter">
-                          <Shield size={12} />
-                          Auto-System
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-2 max-w-md">
-                        <div className="p-1.5 rounded-lg bg-foreground/5 text-foreground/40">
-                          {getActionIcon(log.action)}
-                        </div>
-                        <span className="text-xs font-black uppercase tracking-tight text-foreground/80">
-                          {log.action.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-center">
-                      <span
-                        className={cn(
-                          'inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
-                          getCategoryColor(log.category),
-                        )}
-                      >
-                        {log.category}
-                      </span>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <button className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
-                        <Eye size={16} strokeWidth={2.5} />
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-20">
+                      <EmptyState
+                        icon={Terminal}
+                        title="Zero Traces Found"
+                        description={
+                          search
+                            ? `No system audits match your search for "${search}".`
+                            : "The system's black box is currently clear. No audit traces recorded for this stream."
+                        }
+                        variant="subtle"
+                        className="py-12"
+                      />
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  logs.map((log) => (
+                    <tr
+                      key={log._id}
+                      className="group/row hover:bg-muted/30 transition-all cursor-pointer"
+                      onClick={() => setSelectedLog(log)}
+                    >
+                      <td className="px-8 py-5">
+                        <div className="flex flex-col font-mono text-[11px] font-bold">
+                          <span className="text-foreground">
+                            {new Date(log.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-muted-foreground/60">
+                            {new Date(log.createdAt).toLocaleTimeString([], {
+                              hour12: false,
+                            })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        {log.user ? (
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20 capitalize">
+                              {log.user.name?.charAt(0) || 'U'}
+                            </div>
+                            <div>
+                              <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
+                                {log.user.name}
+                              </p>
+                              <p className="text-[10px] font-bold text-muted-foreground/60 font-mono">
+                                {log.user.email}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-primary/40 font-bold text-xs uppercase tracking-tighter">
+                            <Shield size={12} />
+                            Auto-System
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2 max-w-md">
+                          <div className="p-1.5 rounded-lg bg-foreground/5 text-foreground/40">
+                            {getActionIcon(log.action)}
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-tight text-foreground/80">
+                            {log.action.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-center">
+                        <span
+                          className={cn(
+                            'inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border',
+                            getCategoryColor(log.category),
+                          )}
+                        >
+                          {log.category}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <button className="p-2 rounded-xl bg-muted/50 text-muted-foreground opacity-0 group-hover/row:opacity-100 transition-all hover:bg-primary/10 hover:text-primary">
+                          <Eye size={16} strokeWidth={2.5} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        <div className="p-8 border-t border-border/30 bg-muted/10">
+        <div className="pt-6 border-t border-border/30 bg-muted/10">
           <Pagination
             currentPage={pagination.page}
             totalPages={pagination.pages}

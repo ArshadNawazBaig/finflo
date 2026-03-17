@@ -773,10 +773,7 @@ export const ChatSkeleton = () => (
         </div>
         <div className="flex-1 overflow-auto p-2 space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="p-3 flex items-center gap-3 rounded-xl"
-            >
+            <div key={i} className="p-3 flex items-center gap-3 rounded-xl">
               <Skeleton className="h-12 w-12 rounded-full shrink-0" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
