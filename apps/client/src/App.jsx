@@ -14,6 +14,7 @@ import { Toaster } from 'sonner';
 
 import {
   TablePageSkeleton,
+  LoansPageSkeleton,
   CardsPageSkeleton,
   ProfilePageSkeleton,
   SettingsPageSkeleton,
@@ -48,7 +49,7 @@ const Members = withSkeleton(
 );
 const Loans = withSkeleton(
   () => import('@/pages/admin/Loans'),
-  TablePageSkeleton,
+  LoansPageSkeleton,
 );
 const Transactions = withSkeleton(
   () => import('@/pages/admin/Transactions'),
