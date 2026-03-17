@@ -132,14 +132,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const memberRole = member.role || 'Member';
 
   const sidebarClasses = cn(
-    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
+    'h-screen h-[100dvh] flex flex-col items-center bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
     // Mobile specific classes
     isMobile
       ? `w-3/5 items-start px-4 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : // Desktop specific classes
         isExpanded
-        ? 'w-64 items-start px-4'
-        : 'w-[70px] items-center px-2',
+        ? 'w-64 items-start'
+        : 'w-[70px] items-center',
   );
 
   // For mobile, we always want the "expanded" internal layout when visible
@@ -163,14 +163,21 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
 
         <div
           className={cn(
-            'transition-all pb-2',
-            isLayoutExpanded ? 'px-2 sm:mb-0' : 'mb-2.5',
-            isMobile ? 'pt-8' : '',
+            'w-full transition-all duration-300',
+            isMobile ? 'pt-16 pb-6 px-8' : 'border-b border-border/50',
           )}
         >
-          <Link to="/member/dashboard">
-            <Logo showText={isLayoutExpanded} custom />
-          </Link>
+          <div
+            className={cn(
+              'flex items-center w-full transition-all duration-300',
+              !isMobile && 'h-16',
+              isLayoutExpanded ? 'px-6' : 'justify-center px-0',
+            )}
+          >
+            <Link to="/member/dashboard" className="flex items-center">
+              <Logo showText={isLayoutExpanded} custom />
+            </Link>
+          </div>
         </div>
 
         <nav

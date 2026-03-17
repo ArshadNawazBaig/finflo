@@ -71,12 +71,12 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const userRole = 'Super Admin';
 
   const sidebarClasses = cn(
-    'h-screen h-[100dvh] flex flex-col items-center py-4 bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
+    'h-screen h-[100dvh] flex flex-col items-center bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
     isMobile
       ? `w-3/5 items-start px-4 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : isExpanded
-        ? 'w-64 items-start px-4'
-        : 'w-[70px] items-center px-2',
+        ? 'w-64 items-start'
+        : 'w-[70px] items-center',
   );
 
   const isLayoutExpanded = isMobile ? true : isExpanded;
@@ -96,14 +96,21 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
 
       <div
         className={cn(
-          'mb-8 transition-all',
-          isLayoutExpanded ? 'px-2' : '',
-          isMobile ? 'pt-8' : '',
+          'w-full transition-all duration-300',
+          isMobile ? 'pt-16 pb-6 px-8' : 'border-b border-border/50',
         )}
       >
-        <Link to="/super-admin">
-          <Logo showText={isLayoutExpanded} />
-        </Link>
+        <div
+          className={cn(
+            'flex items-center w-full transition-all duration-300',
+            !isMobile && 'h-16',
+            isLayoutExpanded ? 'px-6' : 'justify-center px-0',
+          )}
+        >
+          <Link to="/super-admin" className="flex items-center">
+            <Logo showText={isLayoutExpanded} />
+          </Link>
+        </div>
       </div>
 
       <nav
