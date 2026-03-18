@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useAtomValue } from 'jotai';
+import { userAtom } from '@/atoms';
 import { useForm } from 'react-hook-form';
 import {
   Plus,
@@ -31,8 +33,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
 import {
@@ -63,7 +63,7 @@ const Branches = () => {
   const [staff, setStaff] = useState([]);
 
   // Get user for role-based rendering
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = useAtomValue(userAtom);
   const isManager = user.isManager && user.role === 'staff';
 
   // Manager auto-redirect: managers see only their branch detail page

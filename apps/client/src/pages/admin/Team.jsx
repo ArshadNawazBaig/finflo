@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Users, ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
+import { Plus, Users, ShieldCheck, UserCheck } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import PageHeader from '@/components/PageHeader';

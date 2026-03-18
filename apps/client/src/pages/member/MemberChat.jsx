@@ -5,7 +5,6 @@ import {
   Send,
   Paperclip,
   Mic,
-  MicOff,
   X,
   Check,
   CheckCheck,
@@ -15,12 +14,11 @@ import {
   Lock,
   Smile,
 } from 'lucide-react';
-import { io } from 'socket.io-client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
-import { useSetAtom } from 'jotai';
-import { unreadChatCountAtom } from '@/atoms';
+import { useSetAtom, useAtomValue } from 'jotai';
+import { unreadChatCountAtom, memberAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -35,7 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 
 // Socket configuration is now imported from @/lib/constants
 
@@ -385,10 +382,10 @@ const MemberChat = () => {
   const fileInputRef = useRef(null);
   const presenceRef = useRef(new Set());
 
-  const memberData = JSON.parse(localStorage.getItem('member') || '{}');
+  const memberData = useAtomValue(memberAtom);
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
-  const token = memberData.token;
+  const token = memberData?.token;
   const activeConvRef = useRef(activeConv);
   useEffect(() => {
     activeConvRef.current = activeConv;

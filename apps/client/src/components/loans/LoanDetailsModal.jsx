@@ -1,17 +1,10 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import {
-  Calendar,
-  DollarSign,
-  Percent,
-  Clock,
   Mail,
   User,
   Info,

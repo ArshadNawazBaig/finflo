@@ -6,21 +6,18 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import DistributeProfitModal from '@/components/DistributeProfitModal';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import TableSearch from '@/components/ui/TableSearch';
-import InfiniteLoader from '@/components/InfiniteLoader';
 import DistributionTable from '@/components/distributions/DistributionTable';
 import DistributionCard from '@/components/distributions/DistributionCard';
-import DistributionCardSkeleton from '@/components/skeletons/DistributionCardSkeleton';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const DistributionHub = () => {
@@ -110,6 +107,10 @@ const DistributionHub = () => {
     setModalOpen(true);
   };
 
+  if (loading && data.distributions.length === 0) {
+    return <TablePageSkeleton />;
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
@@ -141,30 +142,26 @@ const DistributionHub = () => {
       </PageHeader>
 
       {/* Summary Stats */}
-      {loading && data.distributions.length === 0 ? (
-        <CardsSkeleton count={3} />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <StatsCard
-            title="Total Regular Distributed"
-            amount={formatCurrency(data.summary?.totalRegular || 0)}
-            icon={<TrendingUp size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Total Share Distributed"
-            amount={formatCurrency(data.summary?.totalShare || 0)}
-            icon={<ArrowUpRight size={20} />}
-            color="bg-indigo-500 shadow-indigo-500/20"
-          />
-          <StatsCard
-            title="Distribution Cycles"
-            amount={data.summary?.count || 0}
-            icon={<History size={20} />}
-            color="bg-orange-500 shadow-orange-500/20"
-          />
-        </div>
-      )}
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <StatsCard
+          title="Total Regular Distributed"
+          amount={formatCurrency(data.summary?.totalRegular || 0)}
+          icon={<TrendingUp size={20} />}
+          color="bg-primary shadow-primary/20"
+        />
+        <StatsCard
+          title="Total Share Distributed"
+          amount={formatCurrency(data.summary?.totalShare || 0)}
+          icon={<ArrowUpRight size={20} />}
+          color="bg-indigo-500 shadow-indigo-500/20"
+        />
+        <StatsCard
+          title="Distribution Cycles"
+          amount={data.summary?.count || 0}
+          icon={<History size={20} />}
+          color="bg-orange-500 shadow-orange-500/20"
+        />
+      </div>
 
       {/* Distribution History Search & Title */}
       <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
@@ -191,19 +188,7 @@ const DistributionHub = () => {
 
       {/* Standalone Distribution History List */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150">
-        {loading && !isFetchingMore ? (
-          <div className="py-6">
-            {isMobile ? (
-              <div className="space-y-4">
-                {[...Array(limit)].map((_, i) => (
-                  <DistributionCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : (
-              <TableSkeleton rows={limit} columns={6} />
-            )}
-          </div>
-        ) : isMobile ? (
+        {isMobile ? (
           <div className="space-y-4">
             {data.distributions.map((dist) => (
               <DistributionCard key={dist._id} dist={dist} />

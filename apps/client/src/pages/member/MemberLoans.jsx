@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAtomValue } from 'jotai';
+import { memberAtom } from '@/atoms';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -6,12 +8,11 @@ import {
   ArrowRight,
   Download,
   Search,
-  Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
-import MemberLoansSkeleton from '@/components/member/MemberLoansSkeleton';
+import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ import Pagination from '@/components/ui/Pagination';
 
 const MemberLoans = () => {
   const navigate = useNavigate();
+  const member = useAtomValue(memberAtom);
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -54,8 +56,7 @@ const MemberLoans = () => {
           setIsFetchingMore(true);
         }
 
-        const memberToken = localStorage.getItem('member');
-        if (!memberToken) throw new Error('Not authenticated');
+        if (!member) throw new Error('Not authenticated');
 
         const { data: response } = await api.get(
           `/loans/my-loans?page=${pageToFetch}&limit=${limit}&status=${filter === 'all' ? '' : filter}&search=${search}`,

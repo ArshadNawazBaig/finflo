@@ -10,12 +10,10 @@ import {
   Calendar,
   Trash2,
   Check,
-  Filter,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { cn, getSafeNotificationLink } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
@@ -23,8 +21,8 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useAtom } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom, memberAtom } from '@/atoms';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +52,7 @@ import { Badge } from '@/components/ui/badge';
 import { MemberNotificationsPageSkeleton } from '@/components/ui/PageSkeletons';
 
 const MemberNotifications = () => {
+  const member = useAtomValue(memberAtom);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -348,12 +347,9 @@ const MemberNotifications = () => {
                       handleMarkAsRead(notification._id);
                     }
                     if (notification.link) {
-                      const member = JSON.parse(
-                        localStorage.getItem('member') || '{}',
-                      );
                       const safeLink = getSafeNotificationLink(
                         notification.link,
-                        member.role || 'member',
+                        member?.role || 'member',
                       );
                       if (safeLink) {
                         navigate(safeLink);
@@ -478,12 +474,9 @@ const MemberNotifications = () => {
                           handleMarkAsRead(notification._id);
                         }
                         if (notification.link) {
-                          const member = JSON.parse(
-                            localStorage.getItem('member') || '{}',
-                          );
                           const safeLink = getSafeNotificationLink(
                             notification.link,
-                            member.role || 'member',
+                            member?.role || 'member',
                           );
                           if (safeLink) {
                             navigate(safeLink);

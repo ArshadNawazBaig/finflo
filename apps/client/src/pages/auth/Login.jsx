@@ -8,7 +8,6 @@ import {
   Lock,
   Loader2,
   ArrowRight,
-  ShieldCheck,
   KeyRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,10 +15,13 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 import { GoogleLogin } from '@react-oauth/google';
+import { useSetAtom } from 'jotai';
+import { userAtom } from '@/atoms';
 
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const setUser = useSetAtom(userAtom);
 
   // 2FA step state
   const [requires2FA, setRequires2FA] = useState(false);
@@ -51,12 +53,12 @@ const Login = () => {
       }
 
       if (responseData.mustChangePassword) {
-        localStorage.setItem('user', JSON.stringify(responseData));
+        setUser(responseData);
         navigate('/force-password-change');
         return;
       }
 
-      localStorage.setItem('user', JSON.stringify(responseData));
+      setUser(responseData);
 
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get('redirect');
@@ -101,12 +103,12 @@ const Login = () => {
       }
 
       if (responseData.mustChangePassword) {
-        localStorage.setItem('user', JSON.stringify(responseData));
+        setUser(responseData);
         navigate('/force-password-change');
         return;
       }
 
-      localStorage.setItem('user', JSON.stringify(responseData));
+      setUser(responseData);
 
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get('redirect');
@@ -159,7 +161,7 @@ const Login = () => {
         pendingToken,
         code: otpCode.trim(),
       });
-      localStorage.setItem('user', JSON.stringify(data));
+      setUser(data);
       if (data.role === 'super_admin') {
         navigate('/super-admin');
       } else {

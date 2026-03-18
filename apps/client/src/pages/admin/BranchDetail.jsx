@@ -1,25 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Plus,
   Store,
   Receipt,
   History,
   Info,
-  ChevronRight,
-  TrendingDown,
   TrendingUp,
   Settings2,
   Power,
   PowerOff,
   MapPin,
   Phone,
-  LayoutDashboard,
   Palette,
-  ArrowLeft,
   UserCog,
-  Users,
-  Check,
   Coins,
   Download,
   ExternalLink,
@@ -37,22 +31,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
-import SplashScreen from '@/components/ui/SplashScreen';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
-import Pagination from '@/components/ui/Pagination';
 import TransactionTable from '@/components/payments/TransactionTable';
 import TransactionCard from '@/components/payments/TransactionCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -60,7 +49,7 @@ import AnalyticsChart from '@/components/AnalyticsChart';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { subMonths } from 'date-fns';
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';

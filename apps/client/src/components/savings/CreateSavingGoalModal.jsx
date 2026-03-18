@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Target, Calendar, Tag } from 'lucide-react';
+import { Calendar, Tag } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 

@@ -10,7 +10,6 @@ import {
   Pencil,
   Mail,
   Zap,
-  ArrowLeft,
   ArrowDownLeft,
   ArrowUpRight,
   Calendar,
@@ -19,19 +18,15 @@ import {
   User,
   Info,
   X,
-  FileText,
   Download,
   Loader2,
-  Briefcase,
   ShieldCheck,
-  FileCheck,
   FileBadge,
   Send,
   CheckCircle2,
   RefreshCw,
   Building2,
   BadgeDollarSign,
-  PieChart,
   ImagePlus,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -40,8 +35,6 @@ import api from '@/lib/axios';
 import { formatCurrency, capitalize, formatCNIC, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -50,7 +43,6 @@ import { exportMemberStatement } from '@/lib/pdfExportUtils';
 import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const MemberProfileSkeleton = () => (

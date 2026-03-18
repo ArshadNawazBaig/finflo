@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calculator, Info, ArrowRight } from 'lucide-react';
 import ModernSlider from '../ui/ModernSlider';

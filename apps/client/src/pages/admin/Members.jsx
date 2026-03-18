@@ -4,12 +4,10 @@ import { pendingMembersCountAtom } from '@/atoms';
 import { useSearchParams } from 'react-router-dom';
 import {
   Plus,
-  Search,
   Users,
   DollarSign,
   TrendingUp,
   Wallet,
-  Loader2,
   Store,
 } from 'lucide-react';
 import {
@@ -19,11 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import MemberCardSkeleton from '@/components/skeletons/MemberCardSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
@@ -95,12 +91,6 @@ const Members = () => {
     } finally {
       setBranchesLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -306,6 +296,10 @@ const Members = () => {
     activeMembers: summary.activeMembers,
   };
 
+  if (loading && members.length === 0) {
+    return <TablePageSkeleton />;
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
@@ -325,36 +319,32 @@ const Members = () => {
       />
 
       {/* Stats Cards */}
-      {summaryLoading ? (
-        <CardsSkeleton count={4} />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Members"
-            amount={statsDisplay.totalMembers}
-            icon={<Users size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Active Members"
-            amount={statsDisplay.activeMembers}
-            icon={<TrendingUp size={20} />}
-            color="bg-emerald-500 shadow-emerald-500/20"
-          />
-          <StatsCard
-            title="Total Invested"
-            amount={formatCurrency(statsDisplay.totalInvested)}
-            icon={<Wallet size={20} />}
-            color="bg-blue-500 shadow-blue-500/20"
-          />
-          <StatsCard
-            title="Total Profit Distributed"
-            amount={formatCurrency(statsDisplay.totalProfit)}
-            icon={<DollarSign size={20} />}
-            color="bg-purple-500 shadow-purple-500/20"
-          />
-        </div>
-      )}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total Members"
+          amount={statsDisplay.totalMembers}
+          icon={<Users size={20} />}
+          color="bg-primary shadow-primary/20"
+        />
+        <StatsCard
+          title="Active Members"
+          amount={statsDisplay.activeMembers}
+          icon={<TrendingUp size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+        />
+        <StatsCard
+          title="Total Invested"
+          amount={formatCurrency(statsDisplay.totalInvested)}
+          icon={<Wallet size={20} />}
+          color="bg-blue-500 shadow-blue-500/20"
+        />
+        <StatsCard
+          title="Total Profit Distributed"
+          amount={formatCurrency(statsDisplay.totalProfit)}
+          icon={<DollarSign size={20} />}
+          color="bg-purple-500 shadow-purple-500/20"
+        />
+      </div>
 
       {/* Tabs and Search */}
       <div className="space-y-6">
@@ -419,19 +409,7 @@ const Members = () => {
           </div>
         </div>
 
-        {loading && !isFetchingMore ? (
-          <div className="py-6">
-            {isMobile ? (
-              <div className="grid grid-cols-1 gap-4">
-                {[...Array(3)].map((_, i) => (
-                  <MemberCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : (
-              <TableSkeleton rows={limit} columns={6} />
-            )}
-          </div>
-        ) : isMobile ? (
+        {isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               {members.map((member) => (

@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useAtom } from 'jotai';
+import { memberAtom } from '@/atoms';
 import { useForm } from 'react-hook-form';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { useTheme } from '@/context/ThemeContext';
@@ -16,16 +18,9 @@ import {
   Lock,
   Loader2,
   Camera,
-  Layout,
   AlertTriangle,
-  Eye,
-  EyeOff,
   Smartphone,
-  ChevronRight,
   Sparkles,
-  ShieldCheck,
-  Check,
-  Copy,
   Trash2,
   QrCode,
   KeyRound,
@@ -33,7 +28,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   cn,
-  capitalize,
   formatCNIC,
   validateEmail,
   validatePassword,
@@ -51,9 +45,7 @@ import ColorPalette from '@/components/ui/ColorPalette';
 
 const MemberSettings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme();
-  const [member, setMember] = useState(() =>
-    JSON.parse(localStorage.getItem('member') || '{}'),
-  );
+  const [member, setMember] = useAtom(memberAtom);
   const [loading, setLoading] = useState(false);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const fileInputRef = useRef(null);
@@ -76,14 +68,9 @@ const MemberSettings = () => {
   useEffect(() => {
     const fetchMemberData = async () => {
       try {
-        const memberToken = localStorage.getItem('member');
-        if (!memberToken) return;
         const { data } = await api.get('/member-auth/me');
-        // Merge to preserve the token stored at login — /me doesn't return token
-        const existing = JSON.parse(localStorage.getItem('member') || '{}');
-        const updatedData = { ...existing, ...data };
-        setMember(updatedData);
-        localStorage.setItem('member', JSON.stringify(updatedData));
+        // Merge to preserve the token — memberAtom (atomWithStorage) handles localStorage sync
+        setMember((prev) => ({ ...prev, ...data }));
       } catch (error) {
         console.error('Failed to fetch member data:', error);
       }
@@ -92,8 +79,7 @@ const MemberSettings = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('member');
-    localStorage.removeItem('member');
+    setMember(null);
     window.location.href = '/member/login';
   };
 
@@ -322,12 +308,10 @@ const ProfileSection = ({
       );
 
       if (data.success) {
-        const updatedMember = {
-          ...member,
+        setMember((prev) => ({
+          ...prev,
           profilePicture: data.profilePicture,
-        };
-        setMember(updatedMember);
-        localStorage.setItem('member', JSON.stringify(updatedMember));
+        }));
         toast.success('Profile picture updated');
         window.dispatchEvent(new Event('memberUpdated'));
       }
@@ -408,15 +392,10 @@ const ProfileSection = ({
                         },
                       );
                       if (data.success) {
-                        const updatedMember = {
-                          ...member,
+                        setMember((prev) => ({
+                          ...prev,
                           profilePicture: undefined,
-                        };
-                        setMember(updatedMember);
-                        localStorage.setItem(
-                          'member',
-                          JSON.stringify(updatedMember),
-                        );
+                        }));
                         window.dispatchEvent(new Event('memberUpdated'));
                         toast.success('Profile picture removed');
                       }
@@ -698,15 +677,10 @@ const SecuritySection = ({
                           setQrCodeData(null);
                           setTwoFACode('');
                           toast.success('2FA enabled successfully!');
-                          // Update local storage member data
-                          const member = JSON.parse(
-                            localStorage.getItem('member') || '{}',
-                          );
-                          member.isTwoFactorEnabled = true;
-                          localStorage.setItem(
-                            'member',
-                            JSON.stringify(member),
-                          );
+                          setMember((prev) => ({
+                            ...prev,
+                            isTwoFactorEnabled: true,
+                          }));
                         }
                       } catch (e) {
                         toast.error(
@@ -775,12 +749,10 @@ const SecuritySection = ({
                       setIs2FAEnabled(false);
                       setDisable2FAPassword('');
                       toast.success('2FA disabled successfully');
-                      // Update local storage member data
-                      const member = JSON.parse(
-                        localStorage.getItem('member') || '{}',
-                      );
-                      member.isTwoFactorEnabled = false;
-                      localStorage.setItem('member', JSON.stringify(member));
+                      setMember((prev) => ({
+                        ...prev,
+                        isTwoFactorEnabled: false,
+                      }));
                     }
                   } catch (e) {
                     toast.error(
@@ -969,10 +941,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         },
       });
       if (data.success) {
-        const existing = JSON.parse(localStorage.getItem('member') || '{}');
-        const updatedMember = { ...existing, ...data.data };
-        localStorage.setItem('member', JSON.stringify(updatedMember));
-        setMember(updatedMember);
+        setMember((prev) => ({ ...prev, ...data.data }));
         toast.success('Profile updated successfully');
         onClose();
         window.dispatchEvent(new Event('memberUpdated'));
@@ -1283,8 +1252,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
         },
       });
       toast.success('Account deleted successfully');
-      localStorage.removeItem('member');
-      localStorage.removeItem('member');
+      setMember(null);
       window.location.href = '/member/login';
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete account');

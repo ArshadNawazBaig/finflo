@@ -1,9 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
-import { cn } from '@/lib/utils';
 
 const AuthLayout = ({
   children,

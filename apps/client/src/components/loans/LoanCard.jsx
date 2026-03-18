@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom';
 import {
-  Banknote,
-  Calendar,
-  Clock,
   Edit,
   Trash2,
   Info,
@@ -10,7 +7,7 @@ import {
   Mail,
   Download,
 } from 'lucide-react';
-import { formatCurrency, capitalize, cn } from '@/lib/utils';
+import { formatCurrency, capitalize } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';

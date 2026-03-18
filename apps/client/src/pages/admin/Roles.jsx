@@ -6,19 +6,13 @@ import {
   Shield,
   Plus,
   Search,
-  MoreVertical,
   Edit,
   Trash2,
   Check,
-  X,
   ShieldCheck,
-  Lock,
-  ChevronRight,
-  Info,
-  Loader2,
   AlertTriangle,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';

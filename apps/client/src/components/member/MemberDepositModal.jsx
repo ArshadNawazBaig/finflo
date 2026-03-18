@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
   Wallet,
-  Loader2,
   DollarSign,
   QrCode,
   CheckCircle2,

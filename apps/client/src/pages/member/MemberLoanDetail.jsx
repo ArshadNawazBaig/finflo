@@ -7,7 +7,6 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  FileText,
   AlertCircle,
   Download,
   X,
@@ -18,7 +17,7 @@ import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
 import AmortizationSchedule from '@/components/loans/AmortizationSchedule';
 import api from '@/lib/axios';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';

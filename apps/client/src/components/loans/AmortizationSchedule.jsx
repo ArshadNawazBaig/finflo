@@ -1,11 +1,7 @@
-import React from 'react';
 import {
   Calendar,
   CheckCircle2,
   Clock,
-  DollarSign,
-  TrendingUp,
-  FileText,
 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
 

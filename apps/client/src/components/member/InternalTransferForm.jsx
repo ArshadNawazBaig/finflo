@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';

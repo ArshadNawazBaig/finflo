@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Building2, CheckCircle2, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Building2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { BANKS } from '@/constants/banks';
 import ComingSoon from '@/components/ui/ComingSoon';
-import BankSelector from '@/components/member/BankSelector';
 
 const BankWithdrawalForm = ({ member, onSuccess }) => {
   const [bank, setBank] = useState('');

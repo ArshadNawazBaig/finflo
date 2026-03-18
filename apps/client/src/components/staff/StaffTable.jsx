@@ -4,7 +4,6 @@ import {
   UserCheck,
   Shield,
   User as UserIcon,
-  Settings2,
   Edit,
   Trash2,
 } from 'lucide-react';

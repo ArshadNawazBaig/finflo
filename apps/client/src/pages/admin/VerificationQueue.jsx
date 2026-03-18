@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
+import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import { toast } from 'sonner';
 import {
   ShieldCheck,
@@ -8,13 +9,11 @@ import {
   FileText,
   Clock,
   ExternalLink,
-  Loader2,
   FileCheck2,
   User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 
 const statusColor = {
@@ -67,6 +66,10 @@ const VerificationQueue = () => {
     }
   };
 
+  if (loading && queue.length === 0) {
+    return <RegistryPageSkeleton />;
+  }
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -76,29 +79,7 @@ const VerificationQueue = () => {
       />
 
       <div className="flex-1 p-6 space-y-4 overflow-auto">
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-card/40 border border-border/10 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-6 animate-pulse"
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-2xl bg-muted/40 shrink-0" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 w-1/3 bg-muted/30 rounded-lg" />
-                    <div className="h-3 w-1/2 bg-muted/20 rounded-lg" />
-                  </div>
-                </div>
-                <div className="h-4 w-24 bg-muted/20 rounded-full" />
-                <div className="flex gap-2">
-                  <div className="h-9 w-24 bg-muted/30 rounded-xl" />
-                  <div className="h-9 w-24 bg-muted/30 rounded-xl" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : queue.length === 0 ? (
+        {queue.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground bg-card rounded-3xl border border-border/50">
             <ShieldCheck
               size={48}

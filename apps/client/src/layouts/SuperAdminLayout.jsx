@@ -1,40 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
-import { isSidebarExpandedAtom } from '@/atoms';
+import { useAtomValue, useAtom } from 'jotai';
+import { isSidebarExpandedAtom, userAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import SuperAdminSidebar from '@/components/SuperAdminSidebar';
 import Navbar from '@/components/Navbar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
-import { Suspense } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const SuperAdminLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
     isSidebarExpandedAtom,
   );
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = useAtomValue(userAtom);
 
-  // Handle resize and initial check
+  // Close sidebar on mobile/tablet by default
   useEffect(() => {
-    const checkIsMobile = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarExpanded(false);
-      }
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+    if (isMobile) {
+      setIsSidebarExpanded(false);
+    }
+  }, [isMobile, setIsSidebarExpanded]);
 
   // Close sidebar on route change on mobile
   useEffect(() => {

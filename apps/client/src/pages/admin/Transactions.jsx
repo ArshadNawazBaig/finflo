@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Search,
   DollarSign,
   TrendingUp,
   Hash,
-  Loader2,
   ArrowDown,
   Download,
   FileSpreadsheet,
@@ -14,13 +12,12 @@ import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import TableSearch from '@/components/ui/TableSearch';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
+import api from '@/lib/axios';
 import StatsCard from '@/components/StatsCard';
 import TransactionTable from '@/components/payments/TransactionTable';
 import TransactionCard from '@/components/payments/TransactionCard';
 import PageHeader from '@/components/PageHeader';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -233,6 +230,10 @@ useEffect(() => {
     }
   };
 
+  if (loading && transactions.length === 0) {
+    return <TablePageSkeleton />;
+  }
+
   const netCashFlow = summary.totalIncome - summary.totalExpense;
 
   return (
@@ -247,40 +248,36 @@ useEffect(() => {
       />
 
       {/* Summary Cards */}
-      {loading && !transactions.length ? (
-        <CardsSkeleton count={3} className="md:grid-cols-3 lg:grid-cols-3" />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-          <StatsCard
-            title="Total Transactions"
-            amount={summary.totalTransactions}
-            icon={<Hash size={20} />}
-            color="bg-primary shadow-primary/20"
-          />
-          <StatsCard
-            title="Total Income"
-            amount={formatCurrency(summary.totalIncome)}
-            icon={<TrendingUp size={20} />}
-            color="bg-emerald-500 shadow-emerald-500/20"
-          />
-          <StatsCard
-            title="Total Expense"
-            amount={formatCurrency(summary.totalExpense)}
-            icon={<ArrowDown size={20} />}
-            color="bg-rose-500 shadow-rose-500/20"
-          />
-          <StatsCard
-            title="Net Cash Flow"
-            amount={formatCurrency(netCashFlow)}
-            icon={<DollarSign size={20} />}
-            color={
-              netCashFlow >= 0
-                ? 'bg-blue-500 shadow-blue-500/20'
-                : 'bg-orange-500 shadow-orange-500/20'
-            }
-          />
-        </div>
-      )}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <StatsCard
+          title="Total Transactions"
+          amount={summary.totalTransactions}
+          icon={<Hash size={20} />}
+          color="bg-primary shadow-primary/20"
+        />
+        <StatsCard
+          title="Total Income"
+          amount={formatCurrency(summary.totalIncome)}
+          icon={<TrendingUp size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+        />
+        <StatsCard
+          title="Total Expense"
+          amount={formatCurrency(summary.totalExpense)}
+          icon={<ArrowDown size={20} />}
+          color="bg-rose-500 shadow-rose-500/20"
+        />
+        <StatsCard
+          title="Net Cash Flow"
+          amount={formatCurrency(netCashFlow)}
+          icon={<DollarSign size={20} />}
+          color={
+            netCashFlow >= 0
+              ? 'bg-blue-500 shadow-blue-500/20'
+              : 'bg-orange-500 shadow-orange-500/20'
+          }
+        />
+      </div>
 
       {/* Filter and Table Section */}
       <div className="space-y-4">
@@ -328,15 +325,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {loading && !isFetchingMore ? (
-          <div className="py-6">
-            {isMobile ? (
-              <InfiniteLoader isFetchingMore={true} />
-            ) : (
-              <TableSkeleton rows={limit} columns={6} />
-            )}
-          </div>
-        ) : isMobile ? (
+        {isMobile ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               {transactions.map((transaction) => (

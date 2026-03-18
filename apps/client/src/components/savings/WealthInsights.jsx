@@ -1,7 +1,6 @@
 import {
   TrendingUp,
   TrendingDown,
-  PiggyBank,
   CreditCard,
   Landmark,
 } from 'lucide-react';

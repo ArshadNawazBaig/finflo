@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Settings, X, Sun, Moon, Laptop } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 import ColorPalette from '@/components/ui/ColorPalette';
 import { cn } from '@/lib/utils';

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 // Force Vite re-bundle: v2
 import { Html5QrcodeScanner } from 'html5-qrcode';
 

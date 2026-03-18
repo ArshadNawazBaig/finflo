@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Code2,
   Copy,
   Check,
   ChevronLeft,
-  Server,
   Lock,
   Database,
   Terminal,
@@ -16,9 +13,7 @@ import {
   MessageSquare,
   Globe,
   Layout,
-  Menu,
   Shield,
-  ArrowLeft,
   Book,
   Target,
   Wifi,
@@ -27,7 +22,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 

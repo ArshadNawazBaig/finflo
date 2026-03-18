@@ -3,7 +3,6 @@ import { capitalize, formatCurrency } from '@/lib/utils';
 import {
   Phone,
   Mail,
-  User,
   Shield,
   Calendar,
   Eye,

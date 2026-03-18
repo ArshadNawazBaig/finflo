@@ -1,7 +1,5 @@
 import {
-  Edit,
   Trash2,
-  CreditCard,
   ArrowUp,
   ArrowDown,
   ChevronsUpDown,

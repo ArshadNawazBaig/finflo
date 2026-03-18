@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  X,
   Wallet,
   TrendingUp,
   ArrowUpCircle,
@@ -15,9 +14,7 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import api from '@/lib/axios';
 import { formatCurrency, capitalize } from '@/lib/utils';

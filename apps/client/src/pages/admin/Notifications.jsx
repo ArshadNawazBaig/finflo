@@ -10,7 +10,6 @@ import {
   Calendar,
   Trash2,
   Check,
-  Filter,
 } from 'lucide-react';
 import {
   Table,
@@ -23,16 +22,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import api from '@/lib/axios';
 import { cn, getSafeNotificationLink } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
+import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 import {
   AlertDialog,
@@ -253,6 +251,10 @@ const Notifications = () => {
     }
   };
 
+  if (loading && notifications.length === 0) {
+    return <RegistryPageSkeleton />;
+  }
+
   return (
     <div className="relative pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Background Gradients */}
@@ -320,31 +322,7 @@ const Notifications = () => {
 
         {/* Notifications View */}
         <div className="space-y-4">
-          {loading ? (
-            isMobile ? (
-              <div className="grid gap-4">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="p-5 rounded-2xl border border-border/30 bg-card/30 animate-pulse flex items-start gap-4"
-                  >
-                    <div className="h-10 w-10 rounded-xl bg-muted/30 shrink-0" />
-                    <div className="flex-1 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <div className="h-4 w-1/4 rounded bg-muted/30" />
-                        <div className="h-3 w-16 rounded bg-muted/30" />
-                      </div>
-                      <div className="h-4 w-3/4 rounded bg-muted/30" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-border/50 bg-card overflow-hidden">
-                <TableSkeleton rows={8} columns={5} />
-              </div>
-            )
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <EmptyState
               icon={Bell}
               title="No Notifications Found"

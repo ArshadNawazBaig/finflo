@@ -1,7 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAtomValue } from 'jotai';
+import { memberAtom } from '@/atoms';
 
 const RedirectIfMemberAuthenticated = () => {
-  const memberToken = localStorage.getItem('member');
+  const member = useAtomValue(memberAtom);
   const location = useLocation();
 
   // Robust path normalized comparison (ignoring trailing slash)
@@ -15,7 +17,7 @@ const RedirectIfMemberAuthenticated = () => {
   const isDashboard = normalizedPath === '/member/dashboard';
   const isForcePassword = normalizedPath === '/member/force-password-change';
 
-  if (memberToken && !isDashboard && !isForcePassword) {
+  if (member?.token && !isDashboard && !isForcePassword) {
     return <Navigate to="/member/dashboard" replace />;
   }
 

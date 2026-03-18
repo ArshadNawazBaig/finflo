@@ -1,4 +1,3 @@
-import React from 'react';
 import { Mail, Calendar, AlertCircle, Info, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

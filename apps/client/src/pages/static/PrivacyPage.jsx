@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   Shield,
   ChevronDown,
-  ChevronUp,
   Lock,
   Eye,
   FileText,

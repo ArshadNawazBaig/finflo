@@ -14,7 +14,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
-import MemberLoansSkeleton from '@/components/member/MemberLoansSkeleton';
+import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 

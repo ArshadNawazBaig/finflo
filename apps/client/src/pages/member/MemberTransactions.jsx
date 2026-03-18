@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   History,
   Search,
-  Filter,
   ArrowUpRight,
   ArrowDownLeft,
   PieChart,
@@ -29,7 +28,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
-import MemberTransactionsSkeleton from '@/components/member/MemberTransactionsSkeleton';
+import { MemberTransactionsSkeleton } from '@/components/ui/PageSkeletons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 import InfiniteLoader from '@/components/InfiniteLoader';

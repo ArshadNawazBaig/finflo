@@ -1,18 +1,10 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import {
   Users,
   Layers,
-  Database,
-  Globe,
-  Bell,
   Shield,
   ShieldCheck,
-  Wifi,
-  FileSearch,
-  MessageSquareMore,
   ArrowLeftRight,
-  Code2,
   Sparkles,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';

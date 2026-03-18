@@ -1,23 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   Building2,
   Mail,
   Calendar,
   CreditCard,
   Users,
   TrendingUp,
-  Clock,
   CheckCircle2,
   XCircle,
   Edit,
   Save,
   X,
-  Eye,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { formatCurrency, capitalize, cn } from '@/lib/utils';
+import { capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import {

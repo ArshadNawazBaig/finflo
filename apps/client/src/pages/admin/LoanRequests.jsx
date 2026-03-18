@@ -4,34 +4,21 @@ import {
   Check,
   X,
   Loader2,
-  Calendar,
-  Percent,
   Search,
   Clock,
   CheckCircle,
   XCircle,
 } from 'lucide-react';
-import { format } from 'date-fns';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
-import { useForm } from 'react-hook-form';
-import { formatCurrency } from '@/lib/utils';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+
+
 import LoanRequestTable from '@/components/loans/LoanRequestTable';
 import LoanRequestCard from '@/components/loans/LoanRequestCard';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import InfiniteLoader from '@/components/InfiniteLoader';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import StatsCard from '@/components/StatsCard';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 import ApproveLoanModal from '@/components/loans/ApproveLoanModal';
 import RejectLoanModal from '@/components/loans/RejectLoanModal';
@@ -258,6 +245,10 @@ const LoanRequests = () => {
     }
   };
 
+  if (loading && requests.length === 0) {
+    return <TablePageSkeleton />;
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
       <PageHeader
@@ -266,30 +257,26 @@ const LoanRequests = () => {
       />
 
       {/* Statistics Cards */}
-      {statsLoading && stats.pending === 0 && stats.approved === 0 ? (
-        <CardsSkeleton count={3} />
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-          <StatsCard
-            title="Pending Requests"
-            amount={stats.pending}
-            icon={<Clock size={20} />}
-            color="bg-amber-500 shadow-amber-500/20"
-          />
-          <StatsCard
-            title="Approved Requests"
-            amount={stats.approved}
-            icon={<CheckCircle size={20} />}
-            color="bg-emerald-500 shadow-emerald-500/20"
-          />
-          <StatsCard
-            title="Rejected Requests"
-            amount={stats.rejected}
-            icon={<XCircle size={20} />}
-            color="bg-red-500 shadow-red-500/20"
-          />
-        </div>
-      )}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+        <StatsCard
+          title="Pending Requests"
+          amount={stats.pending}
+          icon={<Clock size={20} />}
+          color="bg-amber-500 shadow-amber-500/20"
+        />
+        <StatsCard
+          title="Approved Requests"
+          amount={stats.approved}
+          icon={<CheckCircle size={20} />}
+          color="bg-emerald-500 shadow-emerald-500/20"
+        />
+        <StatsCard
+          title="Rejected Requests"
+          amount={stats.rejected}
+          icon={<XCircle size={20} />}
+          color="bg-red-500 shadow-red-500/20"
+        />
+      </div>
 
       {/* Search Bar */}
       <div className="space-y-4">
@@ -310,9 +297,7 @@ const LoanRequests = () => {
         {/* Desktop: Table View */}
         {!isMobile && (
           <>
-            {loading ? (
-              <TableSkeleton />
-            ) : requests.length === 0 ? (
+            {requests.length === 0 && !loading ? (
               <EmptyState
                 icon={FileQuestion}
                 title="No Loan Requests"

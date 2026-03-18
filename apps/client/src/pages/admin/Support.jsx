@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   MessageSquare,
   Plus,
   Search,
-  Clock,
-  CheckCircle2,
   AlertCircle,
-  Filter,
-  User,
-  Building2,
   Trash2,
   ChevronLeft,
   LifeBuoy,
@@ -17,17 +12,13 @@ import {
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 import TicketChat from '@/components/support/TicketChat';
 import EmptyState from '@/components/ui/EmptyState';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';

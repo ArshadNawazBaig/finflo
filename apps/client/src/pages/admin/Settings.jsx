@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
@@ -15,8 +15,6 @@ import {
   LogOut,
   Mail,
   Lock,
-  Eye,
-  EyeOff,
   Sliders,
   Smartphone,
   Loader2,
@@ -26,8 +24,6 @@ import {
   Camera,
   Upload,
   Zap,
-  Layout,
-  ChevronRight,
   Info,
   Sparkles,
   Save,
@@ -49,6 +45,8 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import ColorPalette from '@/components/ui/ColorPalette';
+import { useAtom } from 'jotai';
+import { userAtom } from '@/atoms';
 
 import {
   Dialog,
@@ -73,9 +71,7 @@ const Settings = () => {
         };
   });
 
-  const [user, setUser] = useState(() =>
-    JSON.parse(localStorage.getItem('user') || '{}'),
-  );
+  const [user, setUser] = useAtom(userAtom);
 
   const isManager = user.isManager && user.role === 'staff';
   const isAdmin = ['admin', 'Admin', 'super_admin', 'staff'].includes(
@@ -101,18 +97,14 @@ const Settings = () => {
     const fetchUserData = async () => {
       try {
         const { data } = await api.get('/auth/me');
-        // Merge to preserve the token stored at login — /auth/me doesn't return token
-        const existing = JSON.parse(localStorage.getItem('user') || '{}');
-        const updatedData = { ...existing, ...data };
-        setUser(updatedData);
-        localStorage.setItem('user', JSON.stringify(updatedData));
-        window.dispatchEvent(new Event('userUpdated'));
+        // Merge to preserve the token stored at login
+        setUser((prev) => ({ ...prev, ...data }));
       } catch (error) {
         console.error('Failed to fetch user data:', error);
       }
     };
     fetchUserData();
-  }, []);
+  }, [setUser]);
 
   // Notifications Effect
   useEffect(() => {
@@ -124,8 +116,7 @@ const Settings = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('user');
+    setUser(null);
     window.location.href = '/login';
   };
 
@@ -352,18 +343,10 @@ const Settings = () => {
                                       '/auth/delete-profile-picture',
                                     );
                                     if (data.success) {
-                                      const updatedUser = {
-                                        ...user,
+                                      setUser((prev) => ({
+                                        ...prev,
                                         profilePicture: undefined,
-                                      };
-                                      setUser(updatedUser);
-                                      localStorage.setItem(
-                                        'user',
-                                        JSON.stringify(updatedUser),
-                                      );
-                                      window.dispatchEvent(
-                                        new Event('userUpdated'),
-                                      );
+                                      }));
                                       toast.success('Profile picture removed');
                                     }
                                   } catch (error) {
@@ -413,17 +396,10 @@ const Settings = () => {
                               );
 
                               if (data.success) {
-                                const updatedUser = {
-                                  ...user,
+                                setUser((prev) => ({
+                                  ...prev,
                                   profilePicture: data.profilePicture,
-                                };
-                                setUser(updatedUser);
-                                localStorage.setItem(
-                                  'user',
-                                  JSON.stringify(updatedUser),
-                                );
-                                // Dispatch event to update sidebar
-                                window.dispatchEvent(new Event('userUpdated'));
+                                }));
                                 toast.success('Profile picture updated');
                               }
                             } catch (error) {
@@ -572,18 +548,10 @@ const Settings = () => {
                                           '/auth/delete-business-logo',
                                         );
                                         if (data.success) {
-                                          const updatedUser = {
-                                            ...user,
+                                          setUser((prev) => ({
+                                            ...prev,
                                             businessLogo: undefined,
-                                          };
-                                          setUser(updatedUser);
-                                          localStorage.setItem(
-                                            'user',
-                                            JSON.stringify(updatedUser),
-                                          );
-                                          window.dispatchEvent(
-                                            new Event('userUpdated'),
-                                          );
+                                          }));
                                           toast.success(
                                             'Business logo removed',
                                           );
@@ -635,18 +603,10 @@ const Settings = () => {
                                   );
 
                                   if (data.success) {
-                                    const updatedUser = {
-                                      ...user,
+                                    setUser((prev) => ({
+                                      ...prev,
                                       businessLogo: data.businessLogo,
-                                    };
-                                    setUser(updatedUser);
-                                    localStorage.setItem(
-                                      'user',
-                                      JSON.stringify(updatedUser),
-                                    );
-                                    window.dispatchEvent(
-                                      new Event('userUpdated'),
-                                    );
+                                    }));
                                     toast.success('Business logo updated');
                                   }
                                 } catch (error) {

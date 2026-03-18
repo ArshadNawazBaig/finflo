@@ -1,0 +1,214 @@
+import {
+  LayoutGrid,
+  UsersRound,
+  Landmark,
+  FileCheck2,
+  Users,
+  FileQuestion,
+  WalletMinimal,
+  BookOpen,
+  ArrowRightLeft,
+  Percent,
+  FileChartColumn,
+  ShieldCheck,
+  Archive,
+  Shield,
+  Bell,
+  Gem,
+  CreditCard,
+  MessageSquare,
+  LifeBuoy,
+  Settings2,
+} from 'lucide-react';
+
+export const sidebarMenuConfig = [
+  {
+    category: 'Overview',
+    items: [
+      {
+        to: '/dashboard',
+        icon: LayoutGrid,
+        label: 'Dashboard',
+        onboardingId: 'sidebar-dashboard',
+      },
+    ],
+  },
+  {
+    category: 'Users Management',
+    items: [
+      {
+        to: '/customers',
+        icon: UsersRound,
+        label: 'Customers',
+        onboardingId: 'sidebar-customers',
+        permissions: ['view_all', 'manage_members'],
+        any: true,
+      },
+      {
+        to: '/members',
+        icon: Landmark,
+        label: 'Members',
+        onboardingId: 'sidebar-members',
+        permissions: ['view_all', 'manage_members'],
+        any: true,
+        getBadge: (atoms) => atoms.pendingMembersCount,
+      },
+      {
+        to: '/verification-queue',
+        icon: FileCheck2,
+        label: 'Verify Docs',
+        onboardingId: 'sidebar-verification',
+        permissions: ['approve_members', 'manage_members'],
+        any: true,
+      },
+      {
+        to: '/team',
+        icon: Users,
+        label: 'Team',
+        onboardingId: 'sidebar-team',
+        permissions: ['manage_roles'],
+      },
+    ],
+  },
+  {
+    category: 'Loans Management',
+    items: [
+      {
+        to: '/loan-requests',
+        icon: FileQuestion,
+        label: 'Requests',
+        onboardingId: 'sidebar-requests',
+        permissions: ['manage_loans'],
+      },
+      {
+        to: '/loans',
+        icon: WalletMinimal,
+        label: 'Loans',
+        onboardingId: 'sidebar-loans',
+        permissions: ['view_all', 'manage_loans'],
+        any: true,
+      },
+      {
+        to: '/loan-products',
+        icon: BookOpen,
+        label: 'Product Catalog',
+        onboardingId: 'sidebar-catalog',
+        permissions: ['manage_loans', 'system_settings'],
+        any: true,
+      },
+    ],
+  },
+  {
+    category: 'Finance',
+    items: [
+      {
+        to: '/transactions',
+        icon: ArrowRightLeft,
+        label: 'Transactions',
+        onboardingId: 'sidebar-transactions',
+        permissions: ['view_all', 'view_reports', 'manage_loans'],
+        any: true,
+      },
+      {
+        to: '/distributions',
+        icon: Percent,
+        label: 'Distributions',
+        onboardingId: 'sidebar-distributions',
+        permissions: ['manage_members', 'view_reports'],
+        any: true,
+      },
+    ],
+  },
+  {
+    category: 'Admin',
+    items: [
+      {
+        to: '/reports',
+        icon: FileChartColumn,
+        label: 'Reports',
+        onboardingId: 'sidebar-reports',
+        permissions: ['view_reports'],
+      },
+      {
+        to: (user) => (user?.isManager ? `/branches/${user?.branchId}` : '/branches'),
+        icon: ShieldCheck,
+        label: (user) => (user?.isManager ? 'My Branch' : 'Branches'),
+        onboardingId: 'sidebar-branches',
+        permissions: ['manage_branches'],
+      },
+      {
+        to: '/audit-logs',
+        icon: Archive,
+        label: 'Audit Trail',
+        onboardingId: 'sidebar-audit',
+        permissions: ['view_reports', 'manage_roles'],
+        any: true,
+      },
+      {
+        to: '/roles',
+        icon: Shield,
+        label: 'Roles',
+        onboardingId: 'sidebar-roles',
+        permissions: ['manage_roles'],
+      },
+    ],
+  },
+  {
+    category: 'System',
+    items: [
+      {
+        to: '/notifications',
+        icon: Bell,
+        label: 'Notifications',
+        onboardingId: 'sidebar-notifications',
+        getBadge: (atoms) => atoms.unreadNotificationsCount,
+      },
+      {
+        to: '/pricing',
+        icon: Gem,
+        label: 'Pricing',
+        onboardingId: 'sidebar-pricing',
+        permissions: ['system_settings'],
+        condition: (user) => user?.role === 'admin',
+      },
+      {
+        to: '/billing',
+        icon: CreditCard,
+        label: 'Billing',
+        onboardingId: 'sidebar-billing',
+        permissions: ['system_settings'],
+        condition: (user) => user?.role === 'admin',
+      },
+    ],
+  },
+  {
+    category: 'Help',
+    items: [
+      {
+        to: '/chat',
+        icon: MessageSquare,
+        label: 'Chat',
+        onboardingId: 'sidebar-chat',
+        getBadge: (atoms) => atoms.unreadChatCount,
+      },
+      {
+        to: '/support',
+        icon: LifeBuoy,
+        label: 'Support',
+        onboardingId: 'sidebar-support',
+      },
+    ],
+    condition: (user) =>
+      user?.isManager || (user?.plan && user?.plan !== 'Free') || user?.role === 'admin',
+  },
+  {
+    items: [
+      {
+        to: (user) => (user?.role === 'super_admin' ? '/super-admin/settings' : '/settings'),
+        icon: Settings2,
+        label: 'Settings',
+        onboardingId: 'sidebar-settings',
+      },
+    ],
+  },
+];

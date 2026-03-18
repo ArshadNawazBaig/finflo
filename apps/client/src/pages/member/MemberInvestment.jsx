@@ -6,13 +6,11 @@ import {
   ArrowDownLeft,
   PieChart,
   History,
-  Info,
-  Loader2,
   Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
-import MemberInvestmentSkeleton from '@/components/member/MemberInvestmentSkeleton';
+import { MemberInvestmentSkeleton } from '@/components/ui/PageSkeletons';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 import StatsCard from '@/components/StatsCard';
 import { cn } from '@/lib/utils';

@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import {
   Receipt,
   User,
-  ArrowRightLeft,
   TrendingUp,
   ArrowDown,
 } from 'lucide-react';

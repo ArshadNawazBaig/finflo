@@ -6,10 +6,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronsUpDown,
 } from 'lucide-react';
-import { format, setYear, setMonth } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { format, setYear } from 'date-fns';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';

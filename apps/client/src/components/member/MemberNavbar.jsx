@@ -4,10 +4,6 @@ import {
   AlignLeft,
   Sun,
   Moon,
-  Check,
-  X,
-  Loader2,
-  User,
   Settings,
   LogOut,
   ChevronDown,
@@ -19,7 +15,7 @@ import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom } from 'jotai';
 import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
 
 const MemberNavbar = ({ onMenuClick }) => {

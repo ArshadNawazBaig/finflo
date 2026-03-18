@@ -1,27 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Mail,
   Phone,
   MapPin,
   DollarSign,
   UserPlus,
-  ArrowLeft,
-  Calendar,
   Clock,
-  ChevronRight,
   User,
   Info,
-  X,
   CreditCard,
   Briefcase,
   Layers,
   Wallet,
   PlusCircle,
   ShieldCheck,
-  FileCheck,
-  Download,
-  FileBadge,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -30,7 +23,6 @@ import AddLoanModal from '@/components/loans/AddLoanModal';
 import api from '@/lib/axios';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';

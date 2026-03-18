@@ -5,7 +5,6 @@ import {
   Send,
   Paperclip,
   Mic,
-  MicOff,
   X,
   Check,
   CheckCheck,
@@ -13,13 +12,11 @@ import {
   Edit3,
   Trash2,
   Image as ImageIcon,
-  Play,
-  StopCircle,
   Smile,
 } from 'lucide-react';
 import { useSocket } from '@/context/SocketContext';
 import { toast } from 'sonner';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import api from '@/lib/axios';
 import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
