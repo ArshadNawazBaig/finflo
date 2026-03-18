@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   Scale,
   ChevronDown,
-  ChevronUp,
   FileCheck,
   Users,
   AlertTriangle,

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Search,
   X,
-  Loader2,
   User,
   FileText,
   Layout,

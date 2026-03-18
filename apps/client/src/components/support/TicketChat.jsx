@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import React from 'react';
 import {
-  MessageSquare,
   Send,
   Trash2,
   Paperclip,
@@ -11,9 +10,6 @@ import {
   Play,
   Square,
   Pencil,
-  Image,
-  FileText,
-  Volume2,
   Search,
 } from 'lucide-react';
 import api from '@/lib/axios';

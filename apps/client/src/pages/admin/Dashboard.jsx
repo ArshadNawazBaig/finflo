@@ -9,17 +9,9 @@ import {
   ShieldCheck,
   DollarSign,
   CreditCard,
-  UserPlus,
   ArrowUpRight,
   BarChart3,
   FileText,
-  LayoutGrid,
-  Landmark,
-  WalletMinimal,
-  ArrowRightLeft,
-  FileChartColumn,
-  Settings2,
-  FileCheck2,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import {
@@ -54,7 +46,6 @@ import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import usePermissions from '@/hooks/usePermissions';
 import ActivityFeed from '@/components/ActivityFeed';
-import { Building2, Zap, HandMetal } from 'lucide-react';
 
 const RISK_COLORS = {
   'A+': '#10b981',

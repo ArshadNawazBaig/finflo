@@ -1,16 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Plus,
-  Search,
-  Loader2,
   CreditCard,
-  DollarSign,
-  TrendingUp,
   ExternalLink,
   Coins,
   Download,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TableSearch from '@/components/ui/TableSearch';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import LoanTable from '@/components/loans/LoanTable';
@@ -27,7 +22,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
-import CountUp from 'react-countup';
 import StatsCard from '@/components/StatsCard';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import { formatCurrency } from '@/lib/utils';

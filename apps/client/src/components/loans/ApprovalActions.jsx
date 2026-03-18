@@ -1,7 +1,5 @@
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useState } from 'react';
-import api from '@/lib/axios';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ApproveLoanModal from './ApproveLoanModal';
 import RejectLoanModal from './RejectLoanModal';

@@ -1,10 +1,9 @@
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   ArrowUpRight,
   ArrowDownLeft,
   TrendingUp,
-  Wallet,
   Calendar,
   History,
   PieChart,

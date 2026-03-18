@@ -14,13 +14,14 @@ import {
   MessageSquare,
   Wallet,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
+
+import { useAtom, useAtomValue } from 'jotai';
+import { unreadChatCountAtom, unreadNotificationsCountAtom, memberAtom } from '@/atoms';
 import { cn, capitalize } from '@/lib/utils';
-import { Bell } from 'lucide-react';
-import { useAtomValue } from 'jotai';
-import { unreadChatCountAtom, unreadNotificationsCountAtom } from '@/atoms';
 import Logo from '@/components/Logo';
 
 import {
@@ -49,6 +50,8 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const menuRef = useRef(null);
   const navRef = useRef(null);
+
+  const [member, setMember] = useAtom(memberAtom);
 
   const [canScroll, setCanScroll] = useState(false);
 
@@ -102,25 +105,11 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('member');
-    localStorage.removeItem('member');
+    setMember(null);
     window.location.href = '/member/login';
   };
 
-  const [member, setMember] = useState(() =>
-    JSON.parse(localStorage.getItem('member') || '{}'),
-  );
-
-  useEffect(() => {
-    const handleMemberUpdate = () => {
-      setMember(JSON.parse(localStorage.getItem('member') || '{}'));
-    };
-    window.addEventListener('memberUpdated', handleMemberUpdate);
-    return () =>
-      window.removeEventListener('memberUpdated', handleMemberUpdate);
-  }, []);
-
-  const memberInitials = member.name
+  const memberInitials = member?.name
     ? member.name
         .split(' ')
         .map((n) => n[0])
@@ -128,8 +117,8 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
         .toUpperCase()
         .slice(0, 2)
     : 'M';
-  const memberName = member.name || 'Member';
-  const memberRole = member.role || 'Member';
+  const memberName = member?.name || 'Member';
+  const memberRole = member?.role || 'Member';
 
   const sidebarClasses = cn(
     'h-screen h-[100dvh] flex flex-col items-center bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',

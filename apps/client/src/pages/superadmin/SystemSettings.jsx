@@ -10,7 +10,6 @@ import {
   Zap,
   Shield,
   Layout,
-  ChevronRight,
   Loader2,
   AlertCircle,
   Plus,

@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Users,
-  DollarSign,
   CreditCard,
-  ArrowUpRight,
-  ArrowDownRight,
   PieChart as PieChartIcon,
 } from 'lucide-react';
 import {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +9,6 @@ import {
   Download,
   Shield,
   Plus,
-  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';

@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,6 @@ import {
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { Save } from 'lucide-react';
 
 const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
   const [loading, setLoading] = useState(false);

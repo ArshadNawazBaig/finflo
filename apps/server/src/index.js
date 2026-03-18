@@ -1,5 +1,5 @@
 const path = require('path');
-// Pre-load iconv-lite encodings to prevent "CANNOT FIND MODULE '../ENCODINGS'" error in certain environments
+// Pre-load iconv-lite encodings
 try {
   const iconv = require('iconv-lite');
   iconv.getCodec('utf8');
@@ -7,17 +7,20 @@ try {
   console.error('Warning: Failed to pre-load iconv-lite encodings:', e.message);
 }
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
-// Force restart
+
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+const http = require('http');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const { initFinanceFlow } = require('./services/reminderService');
 const { initScheduledTasks } = require('./services/scheduledTasksService');
+const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter } = require('./config/security');
+const setupStandardMiddleware = require('./middleware/standard');
+const errorHandler = require('./middleware/errorHandler');
+const { initSocket } = require('./socket/socketHandler');
 
 const app = express();
+const httpServer = http.createServer(app);
 
 // Webhook Route (Must be before express.json)
 app.use(
@@ -26,162 +29,51 @@ app.use(
   require('./routes/webhookRoutes'),
 );
 
-// Global Request Logger for Debugging
-app.use((req, res, next) => {
-  console.log(
-    `[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`,
-  );
-  next();
-});
+// Modular Middleware Setup
+setupStandardMiddleware(app);
+app.use(corsMiddleware);
+app.use(helmetMiddleware);
 
-// Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(require('cookie-parser')());
+// Socket.io initialization
+const clientUrl = process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
+const io = initSocket(httpServer, clientUrl);
 
-// Socket.io instance placeholder for middleware
-let ioInstance;
-
-// Background Service Initialization (Moved outside listen for Serverless compatibility)
-try {
-  initFinanceFlow();
-  initScheduledTasks();
-  console.log('[Init] Background services started');
-} catch (error) {
-  console.error('[Init] Failed to start background services:', error.message);
-}
-
-app.use((req, res, next) => {
-  req.io = ioInstance;
-
-  // Manually handle Socket.io requests for environments without a persistent httpServer
-  if (req.url.startsWith('/socket.io') && ioInstance) {
-    return ioInstance.handleRequest(req, res);
+// Database Connection & Background Services
+const startBackgroundServices = () => {
+  try {
+    initFinanceFlow();
+    initScheduledTasks();
+    console.log('[Init] Background services started');
+  } catch (error) {
+    console.error('[Init] Failed to start background services:', error.message);
   }
+};
 
+// Connect to DB and then start services
+connectDB()
+  .then(() => {
+    startBackgroundServices();
+  })
+  .catch((err) => {
+    console.error('[Critical] DB Connection failed on startup:', err.message);
+  });
+
+// Socket instance for middleware
+app.use((req, res, next) => {
+  req.io = io;
+  if (req.url.startsWith('/socket.io') && io) {
+    return io.handleRequest(req, res);
+  }
   next();
 });
 
-// Security Middleware
-const rateLimit = require('express-rate-limit');
-
-// General API Rate Limiting
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Increased limit to 1000 requests per 15 minutes
-  message: {
-    message:
-      'Too many requests from this IP, please try again after 15 minutes',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Stricter Rate Limiting for Auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 200, // Increased limit to 200 requests per hour for login/forgot-password
-  message: {
-    message: 'Too many authentication attempts, please try again after an hour',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+// Rate Limiting
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
 app.use('/api/member-auth/login', authLimiter);
 
-// Restrict CORS to CLIENT_URL and known allowed origins
-const productionUrl =
-  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
-
-const allowedOrigins = [
-  productionUrl,
-  'https://loan-master-client.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'http://localhost:3000',
-  'capacitor://localhost',
-  'http://localhost',
-  'https://finflo-production.up.railway.app',
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (origin)
-      console.log(`CORS request from: ${origin} | Allowed: ${productionUrl}`);
-
-    const isAllowed =
-      !origin ||
-      allowedOrigins.includes(origin) ||
-      // Allow all Vercel and Railway preview deployments
-      /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/.test(origin) ||
-      /^https:\/\/[a-z0-9-]+(\.up\.railway\.app)$/.test(origin) ||
-      (process.env.NODE_ENV !== 'production' &&
-        (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
-          /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
-          /^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(
-            origin,
-          )));
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.error(`CORS BLOCKED: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Cookie',
-    'cookie',
-  ],
-  exposedHeaders: ['set-cookie'],
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-
-// Enhanced Helmet configuration
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
-        connectSrc: [
-          "'self'",
-          'https://api.stripe.com',
-          'http://localhost:*',
-          'http://127.0.0.1:*',
-          'http://192.168.*.*:*',
-          'ws://localhost:*',
-          'ws://127.0.0.1:*',
-          'wss://*',
-        ],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://js.stripe.com'],
-      },
-    },
-  }),
-);
-app.use(morgan('dev'));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// Middleware to ensure DB connection
+// Database Connection Middleware (Safety Net)
 app.use(async (req, res, next) => {
   if (req.path.startsWith('/api')) {
     try {
@@ -199,44 +91,10 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Maintenance Mode Enforcement
 app.use(maintenanceMiddleware);
 
-// Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/member-auth', require('./routes/memberAuthRoutes'));
-app.use('/api/customers', require('./routes/customerRoutes'));
-app.use('/api/loans', require('./routes/loanRoutes'));
-app.use('/api/staff', require('./routes/staffRoutes'));
-app.use('/api/repayments', require('./routes/repaymentRoutes'));
-app.use('/api/ledger', require('./routes/ledgerRoutes'));
-app.use('/api/members', require('./routes/memberRoutes'));
-app.use('/api/subscription', require('./routes/subscriptionRoutes'));
-app.use('/api/dashboard', require('./routes/dashboardRoutes'));
-app.use('/api/reports', require('./routes/reportRoutes'));
-app.use('/api/branches', require('./routes/branchRoutes'));
-app.use('/api/contact', require('./routes/contactRoutes'));
-app.use('/api/super-admin', require('./routes/superAdminRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use(
-  '/api/member-notifications',
-  require('./routes/memberNotificationRoutes'),
-);
-app.use('/api/activity-logs', require('./routes/activityLogRoutes'));
-
-app.use('/api/system-settings', require('./routes/systemSettingsRoutes'));
-app.use('/api/revenue', require('./routes/revenueRoutes'));
-app.use('/api/backup', require('./routes/backupRoutes'));
-app.use('/api/tickets', require('./routes/supportTicketRoutes'));
-app.use('/api/public', require('./routes/publicRoutes'));
-app.use('/api/communication', require('./routes/communicationRoutes'));
-app.use('/api/saving-goals', require('./routes/savingGoalRoutes'));
-app.use('/api/search', require('./routes/searchRoutes'));
-app.use('/api/external-transfers', require('./routes/externalTransferRoutes'));
-app.use('/api/loan-products', require('./routes/loanProductRoutes'));
-app.use('/api/roles', require('./routes/roleRoutes'));
-app.use('/api/chat', require('./routes/chatRoutes'));
-app.use('/api/ocr', require('./routes/ocrRoutes'));
+// Centralized Routing
+app.use('/api', require('./routes'));
 
 app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
@@ -248,11 +106,7 @@ app.get('/api/health', async (req, res) => {
       mongoUriSet: !!process.env.MONGO_URI,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-      mongoUriSet: !!process.env.MONGO_URI,
-    });
+    res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
@@ -260,239 +114,12 @@ app.get('/', (req, res) => {
   res.json({ message: 'FinFlo API is running' });
 });
 
+// Error Handling
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 5000;
-
-const http = require('http');
-const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
-const Member = require('./models/Member');
-const User = require('./models/User');
-
-const httpServer = http.createServer(app);
-
-// Client URL - for CORS
-const clientUrl =
-  process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
-
-const io = new Server(httpServer, {
-  cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://localhost:3000',
-      'capacitor://localhost',
-      clientUrl,
-      // Also allow the same origin
-      'https://loan-master-client.vercel.app',
-      'https://finflo-production.up.railway.app',
-    ],
-    credentials: true,
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  },
-  allowEIO3: true,
-});
-
-// Set instance immediately so that it's available for middleware even on Serverless
-ioInstance = io;
-const { setIO } = require('./utils/socketInstance');
-setIO(io); // Register globally so notificationHelper and other modules can emit events
-
-// Production Environment Diagnostics
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET) {
-    console.error('[CRITICAL] JWT_SECRET is missing in production!');
-  }
-  if (!process.env.CLIENT_URL) {
-    console.warn(
-      '[WARNING] CLIENT_URL is not set in production. Falling back to default.',
-    );
-  }
-  console.log(
-    `[Socket] Initialized for origin: ${process.env.CLIENT_URL || 'https://loan-master-client.vercel.app'}`,
-  );
-}
-
-// Socket.io auth middleware
-io.use(async (socket, next) => {
-  try {
-    // Check auth object, then Authorization header, then cookies
-    let token =
-      socket.handshake.auth?.token ||
-      socket.handshake.headers?.authorization?.split(' ')[1];
-
-    if (!token && socket.handshake.headers?.cookie) {
-      const cookieToken = socket.handshake.headers.cookie
-        .split('; ')
-        .find((c) => c.startsWith('token='))
-        ?.split('=')[1];
-      if (cookieToken) token = cookieToken;
-    }
-
-    // Allow unauthenticated observer connections (e.g. pending members waiting for approval)
-    if (!token) {
-      console.log(
-        '[Socket] Observer connection (no token) — limited access granted',
-      );
-      socket.isObserver = true;
-      return next();
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const member = await Member.findById(decoded.id).select('_id name user');
-    if (member) {
-      socket.userId = member._id.toString();
-      socket.businessId = member.user.toString();
-      socket.userModel = 'Member';
-    } else {
-      const user = await User.findById(decoded.id).select(
-        '_id name role effectiveOwnerId branchId',
-      );
-      if (!user) return next(new Error('User not found'));
-      socket.userId = user._id.toString();
-      socket.userModel = 'User';
-      socket.userRole = user.role;
-      socket.effectiveOwnerId = (user.effectiveOwnerId || user._id).toString();
-    }
-    next();
-  } catch (error) {
-    console.log('[Socket] Auth Failed:', error.message);
-    next(new Error('Invalid token'));
-  }
-});
-
-// Track online users: Map<userId, { userModel, socketCount }>
-const onlineUsers = new Map();
-
-io.on('connection', (socket) => {
-  // Observer sockets (e.g. pending members awaiting approval) get limited access
-  if (socket.isObserver) {
-    console.log('[Socket] Observer connected (unauthenticated)');
-
-    // Allow pending member to subscribe to their approval result room
-    socket.on('join:pending_member', async ({ memberId }) => {
-      try {
-        if (!memberId) return;
-        const pendingMember = await Member.findOne({
-          _id: memberId,
-          approvalStatus: 'pending',
-        }).select('_id');
-        if (pendingMember) {
-          socket.join(`pending_member_${memberId}`);
-          console.log(`[Socket] Observer joined pending_member_${memberId}`);
-        }
-      } catch (err) {
-        console.error('[Socket] join:pending_member error:', err.message);
-      }
-    });
-
-    socket.on('disconnect', () => {
-      console.log('[Socket] Observer disconnected');
-    });
-
-    return; // Do not proceed with authenticated-only logic
-  }
-
-  // Join personal room for targeted events
-  socket.join(`user_${socket.userId}`);
-  console.log(`[Socket] ${socket.userModel} ${socket.userId} connected`);
-
-  // Add to online set
-  if (!onlineUsers.has(socket.userId)) {
-    onlineUsers.set(socket.userId, { userModel: socket.userModel, count: 1 });
-    // Broadcast to all other sockets that this user came online
-    socket.broadcast.emit('user:online', {
-      userId: socket.userId,
-      userModel: socket.userModel,
-    });
-  } else {
-    // Multiple tabs – just increment count
-    onlineUsers.get(socket.userId).count++;
-  }
-
-  // Send the full online presence snapshot to the newly connected socket
-  socket.emit(
-    'user:presence_list',
-    Array.from(onlineUsers.entries()).map(([id, data]) => ({
-      userId: id,
-      userModel: data.userModel,
-    })),
-  );
-
-  // Join business room if available (for both Admins and Members)
-  const businessRoomId = socket.businessId || socket.effectiveOwnerId;
-  if (businessRoomId) {
-    socket.join(`business_${businessRoomId}`);
-    console.log(
-      `[Socket] ${socket.userModel} joined business_${businessRoomId}`,
-    );
-  }
-
-  socket.on('typing', ({ conversationId, receiverId }) => {
-    socket.to(`user_${receiverId}`).emit('user:typing', {
-      conversationId,
-      userId: socket.userId,
-    });
-  });
-
-  socket.on('stop-typing', ({ conversationId, receiverId }) => {
-    socket.to(`user_${receiverId}`).emit('user:stop-typing', {
-      conversationId,
-      userId: socket.userId,
-    });
-  });
-
-  socket.on('recording', ({ conversationId, receiverId }) => {
-    socket.to(`user_${receiverId}`).emit('user:recording', {
-      conversationId,
-      userId: socket.userId,
-    });
-  });
-
-  socket.on('stop-recording', ({ conversationId, receiverId }) => {
-    socket.to(`user_${receiverId}`).emit('user:stop-recording', {
-      conversationId,
-      userId: socket.userId,
-    });
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`[Socket] ${socket.userModel} ${socket.userId} disconnected`);
-    const entry = onlineUsers.get(socket.userId);
-    if (entry) {
-      entry.count--;
-      if (entry.count <= 0) {
-        onlineUsers.delete(socket.userId);
-        // Broadcast offline to everyone
-        io.emit('user:offline', {
-          userId: socket.userId,
-          userModel: socket.userModel,
-        });
-      }
-    }
-  });
-});
-
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} (on all interfaces)`);
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('Global Error Handler:', err);
-  if (err.stack) console.error(err.stack);
-
-  const statusCode = err.http_code || err.status || 500;
-
-  res.status(statusCode).json({
-    message: err.message || 'Internal Server Error',
-    error: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-  });
-});
-
 module.exports = app;
-
-// Force restart for revenue update verify (Timezone Fix)

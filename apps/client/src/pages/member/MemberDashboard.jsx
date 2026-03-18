@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAtom } from 'jotai';
+import { memberAtom } from '@/atoms';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Wallet,
   TrendingUp,
-  DollarSign,
   FileText,
   Plus,
   PieChart,
@@ -12,12 +13,6 @@ import {
   Download,
   Send,
   ShieldCheck,
-  LayoutGrid,
-  MessageSquare,
-  Settings,
-  HandMetal,
-  History,
-  Building2,
 } from 'lucide-react';
 import {
   BarChart,
@@ -31,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
-import MemberDashboardSkeleton from '@/components/member/MemberDashboardSkeleton';
+import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import WealthInsights from '@/components/savings/WealthInsights';
 import SavingGoalsList from '@/components/savings/SavingGoalsList';
@@ -49,7 +44,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
-  const [member, setMember] = useState(null);
+  const [member, setMember] = useAtom(memberAtom);
   const [loans, setLoans] = useState([]);
   const [grantorLoans, setGrantorLoans] = useState([]);
   const [goals, setGoals] = useState([]);
@@ -80,7 +75,6 @@ const MemberDashboard = () => {
           setIsFetchingMore(true);
         }
 
-        const memberToken = localStorage.getItem('member');
         const pageToFetch = isAppend ? currentPage + 1 : 1;
 
         if (!isAppend) {
@@ -107,13 +101,8 @@ const MemberDashboard = () => {
                 },
               }),
             ]);
-          const existingMember = JSON.parse(
-            localStorage.getItem('member') || '{}',
-          );
-          const updatedMember = { ...existingMember, ...memberRes.data };
-          setMember(updatedMember);
-          localStorage.setItem('member', JSON.stringify(updatedMember));
-          window.dispatchEvent(new Event('memberUpdated'));
+          // memberAtom (atomWithStorage) handles localStorage sync
+          setMember((prev) => ({ ...prev, ...memberRes.data }));
           setGoals(goalsRes.data);
           setActivity(activityRes.data.data || []);
           setGrantorLoans(grantorLoansRes.data || []);
@@ -157,7 +146,6 @@ const MemberDashboard = () => {
 
   const handleGrantorStatus = async (loanId, status) => {
     try {
-      const memberToken = localStorage.getItem('member');
       await api.patch(
         `/loans/${loanId}/grantor-status`,
         { status },
@@ -182,15 +170,6 @@ const MemberDashboard = () => {
     fetchDashboardData();
   }, [limit]);
 
-  useEffect(() => {
-    const handleMemberUpdate = () => {
-      const updatedMember = JSON.parse(localStorage.getItem('member') || '{}');
-      setMember(updatedMember);
-    };
-    window.addEventListener('memberUpdated', handleMemberUpdate);
-    return () =>
-      window.removeEventListener('memberUpdated', handleMemberUpdate);
-  }, []);
 
   useEffect(() => {
     if (!isMobile || !observerTarget.current) return;
@@ -213,7 +192,6 @@ const MemberDashboard = () => {
   const handleDeleteGoal = async (id) => {
     if (!window.confirm('Are you sure you want to remove this goal?')) return;
     try {
-      const memberToken = localStorage.getItem('member');
       await api.delete(`/saving-goals/${id}`, {
         headers: {
           /* Auth header handled by browser cookies */

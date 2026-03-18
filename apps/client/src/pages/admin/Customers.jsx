@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Search, Loader2, Users } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Plus, Loader2, Users, Store, Download } from 'lucide-react';
 import TableSearch from '@/components/ui/TableSearch';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import CustomerTable from '@/components/customers/CustomerTable';
@@ -8,7 +7,7 @@ import CustomerCard from '@/components/customers/CustomerCard';
 import PageHeader from '@/components/PageHeader';
 import AddCustomerModal from '@/components/customers/AddCustomerModal';
 import EditCustomerModal from '@/components/customers/EditCustomerModal';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
+import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -17,6 +16,14 @@ import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -26,12 +33,14 @@ const Customers = () => {
   const [deleteCustomer, setDeleteCustomer] = useState(null);
   const [convertCustomer, setConvertCustomer] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState('all');
 
   // Mobile & Infinite Scroll State
   const isMobile = useIsMobile();
@@ -39,8 +48,17 @@ const Customers = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const observerTarget = useRef(null);
 
+  const fetchBranches = async () => {
+    try {
+      const { data } = await api.get('/branches');
+      setBranches(data || []);
+    } catch (error) {
+      console.error('Failed to fetch branches', error);
+    }
+  };
+
   const fetchCustomers = useCallback(
-    async (isAppend = false) => {
+    async (isAppend = false, pageNum = currentPage) => {
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -48,9 +66,10 @@ const Customers = () => {
           setLoading(true);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : currentPage;
+        const pageToFetch = isAppend ? currentPage + 1 : pageNum;
+        const branchParam = selectedBranch !== 'all' ? `&branchId=${selectedBranch}` : '';
         const { data } = await api.get(
-          `/customers?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+          `/customers?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}${branchParam}`,
         );
 
         if (isAppend) {
@@ -64,6 +83,7 @@ const Customers = () => {
           setCurrentPage(pageToFetch);
         } else {
           setCustomers(data.data || []);
+          setCurrentPage(pageNum);
         }
 
         setTotalEntries(data.totalEntries || 0);
@@ -76,10 +96,9 @@ const Customers = () => {
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchTerm, sortBy, sortOrder],
+    [currentPage, limit, searchTerm, sortBy, sortOrder, selectedBranch],
   );
 
-  // Handle Sort Change
   const handleSort = (column) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -90,27 +109,24 @@ const Customers = () => {
     setCurrentPage(1);
   };
 
-  // Initial Fetch & Search Debounce (Resets to page 1)
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      } else {
-        fetchCustomers(false);
-      }
+      fetchCustomers(false, 1);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit]);
+  }, [searchTerm, sortBy, sortOrder, limit, selectedBranch, fetchCustomers]);
 
-  // Handle Page Change (Mostly for Desktop Pagination)
   useEffect(() => {
     if (!isMobile) {
-      fetchCustomers(false);
+      fetchCustomers(false, currentPage);
     }
   }, [currentPage, isMobile]);
 
-  // Infinite Scroll Observer
   useEffect(() => {
     if (!isMobile) return;
 
@@ -121,12 +137,6 @@ const Customers = () => {
           !isFetchingMore &&
           currentPage < totalPages
         ) {
-          // When scrolling, we load 3 items at a time as requested
-          // Note: The API usually works with pages/limits.
-          // To strictly load 3, we adjust the limit just for this next fetch
-          // But for consistency with the existing paginated API, we'll fetch the next "page"
-          // which has 'limit' items. If the user strictly wants 3, we'd need to change limit=3.
-          // Let's set limit to 3 for mobile batching.
           fetchCustomers(true);
         }
       },
@@ -140,9 +150,9 @@ const Customers = () => {
     return () => observer.disconnect();
   }, [isMobile, isFetchingMore, currentPage, totalPages, fetchCustomers]);
 
-  // Adjust limit based on mobile/desktop
   useEffect(() => {
     setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
+    setCurrentPage(1);
   }, [isMobile]);
 
   const handleDeleteClick = async (customer) => {
@@ -179,109 +189,178 @@ const Customers = () => {
     }
   };
 
+  const handleDownloadData = () => {
+    // Basic CSV implementation
+    const headers = ['Name', 'Email', 'Phone', 'Onboarded', 'Status'];
+    const rows = customers.map(c => [
+      c.name,
+      c.email,
+      c.phone,
+      new Date(c.createdAt).toLocaleDateString(),
+      c.isMember ? 'Member' : 'Prospect'
+    ]);
+    
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "customers_registry.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading && customers.length === 0) {
+    return <RegistryPageSkeleton />;
+  }
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 sm:pb-6">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader
         title="Customer Registry"
         description="Registry of all onboarded individuals and corporate entities."
-      >
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          variant="gradient"
-          className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
-          data-onboarding-id="add-customer-button"
-        >
-          <Plus size={16} strokeWidth={3} />
-          Add Customer
-        </Button>
-      </PageHeader>
+        action={
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="gradient"
+            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+            isLoading={loading && customers.length === 0}
+          >
+            <Plus size={16} />
+            Add Customer
+          </Button>
+        }
+      />
 
-      {/* Stats Grid - Moved from Dashboard */}
-
-      <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <TableSearch
-          value={searchTerm}
-          onChange={(value) => {
-            setSearchTerm(value);
-            setCurrentPage(1);
-          }}
-          placeholder="Search customers..."
-        />
-      </div>
-
-      <div className="mt-4">
-        {loading ? (
-          isMobile ? (
-            <div className="py-12 flex justify-center">
-              <InfiniteLoader isFetchingMore={true} />
-            </div>
-          ) : (
-            <TableSkeleton rows={8} columns={6} />
-          )
-        ) : (
-          <>
-            {isMobile ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  {customers.map((customer) => (
-                    <CustomerCard
-                      key={customer._id}
-                      customer={customer}
-                      onEdit={setEditCustomer}
-                      onDelete={handleDeleteClick}
-                      onConvert={setConvertCustomer}
-                    />
-                  ))}
-                </div>
-
-                {/* Infinite Scroll Trigger */}
-                {currentPage < totalPages && (
-                  <div ref={observerTarget}>
-                    <InfiniteLoader isFetchingMore={isFetchingMore} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full justify-between">
+          <TableSearch
+            value={searchTerm}
+            onChange={(value) => {
+              setSearchTerm(value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search customers..."
+            className="w-full sm:w-auto sm:min-w-[300px]"
+          />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:w-48">
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="h-12 rounded-2xl bg-white/5 border-primary/10 px-4 focus:ring-0 backdrop-blur-xl">
+                  <div className="flex items-center gap-2">
+                    <Store size={16} className="text-primary/60" />
+                    <SelectValue placeholder="All Branches" />
                   </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/50 bg-white/95 backdrop-blur-md">
+                  <SelectItem value="all" className="rounded-xl">
+                    All Branches
+                  </SelectItem>
+                  {branches.map((branch) => (
+                    <SelectItem
+                      key={branch._id}
+                      value={branch._id}
+                      className="rounded-xl"
+                    >
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-[1.25rem] group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+              onClick={() => fetchCustomers(false)}
+              isLoading={loading}
+              title="Refresh Data"
+            >
+              <Loader2
+                className={cn(
+                  'relative w-4 h-4 text-primary group-hover:rotate-180 transition-transform duration-700',
+                  loading && 'animate-spin',
                 )}
-
-                {customers.length === 0 && (
-                  <EmptyState
-                    icon={Users}
-                    title="No Customers Found"
-                    description={
-                      searchTerm
-                        ? "We couldn't find any customers matching your search."
-                        : 'Your customer list is currently empty. Start by adding your first client.'
-                    }
-                    className="border-none bg-card/50"
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-                <CustomerTable
-                  data={customers}
-                  pagination={{
-                    currentPage,
-                    totalPages,
-                    totalEntries,
-                    limit,
-                    onPageChange: setCurrentPage,
-                    onLimitChange: (newLimit) => {
-                      setLimit(newLimit);
-                      setCurrentPage(1);
-                    },
-                  }}
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  onEdit={(customer) => setEditCustomer(customer)}
-                  onDelete={handleDeleteClick}
-                  onConvert={(customer) => setConvertCustomer(customer)}
-                />
-              </div>
-            )}
-          </>
-        )}
+              />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-[1.25rem] group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+              onClick={handleDownloadData}
+              title="Download Data"
+            >
+              <Download className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
+            </Button>
+          </div>
+        </div>
       </div>
 
+      {isMobile ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {customers.map((customer) => (
+              <CustomerCard
+                key={customer._id}
+                customer={customer}
+                onEdit={(c) => {
+                  setEditCustomer(c);
+                  setIsModalOpen(true);
+                }}
+                onDelete={handleDeleteClick}
+                onConvert={setConvertCustomer}
+              />
+            ))}
+          </div>
+
+          {/* Infinite Scroll Trigger */}
+          {currentPage < totalPages && (
+            <div ref={observerTarget}>
+              <InfiniteLoader isFetchingMore={isFetchingMore} />
+            </div>
+          )}
+
+          {customers.length === 0 && (
+            <EmptyState
+              icon={Users}
+              title="No Customers Found"
+              description={
+                searchTerm
+                  ? "We couldn't find any customers matching your search."
+                  : 'Your customer list is currently empty. Start by adding your first client.'
+              }
+              className="border-none bg-card/50"
+            />
+          )}
+        </div>
+      ) : (
+        <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden min-h-[400px]">
+          <CustomerTable
+            data={customers}
+            pagination={{
+              currentPage,
+              totalPages,
+              totalEntries,
+              limit,
+              onPageChange: (page) => setCurrentPage(page),
+              onLimitChange: (newLimit) => {
+                setLimit(newLimit);
+                setCurrentPage(1);
+              },
+            }}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            onEdit={(customer) => setEditCustomer(customer)}
+            onDelete={handleDeleteClick}
+            onConvert={(customer) => setConvertCustomer(customer)}
+          />
+        </div>
+      )}
+
+      {/* Modals */}
       <AddCustomerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Loader2,
   ShieldCheck,
   Search,
   AlertCircle,
@@ -9,7 +8,6 @@ import {
   Download,
   Fingerprint,
   Mail,
-  ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';

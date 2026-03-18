@@ -18,7 +18,6 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
@@ -28,11 +27,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Cell,

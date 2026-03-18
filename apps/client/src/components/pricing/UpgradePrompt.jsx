@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Zap, ArrowRight, X } from 'lucide-react';
+import { Zap, ArrowRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { capitalize } from '@/lib/utils';
 
 const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');

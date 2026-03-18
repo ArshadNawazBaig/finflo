@@ -6,7 +6,6 @@ import {
   Settings2,
   LogOut,
   ChevronUp,
-  Shield,
   Bell,
   ScrollText,
   DollarSign,
@@ -14,11 +13,8 @@ import {
   LifeBuoy,
   X,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn, capitalize } from '@/lib/utils';
-import Logo from '@/components/Logo';
-import { useAtomValue } from 'jotai';
-import { unreadNotificationsCountAtom } from '@/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { userAtom, unreadNotificationsCountAtom } from '@/atoms';
 
 const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
@@ -39,6 +35,8 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const menuRef = useRef(null);
 
+  const [user, setUser] = useAtom(userAtom);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -53,13 +51,11 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('user');
+    setUser(null);
     window.location.href = '/login';
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userInitials = user.name
+  const userInitials = user?.name
     ? user.name
         .split(' ')
         .map((n) => n[0])
@@ -67,7 +63,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
         .toUpperCase()
         .slice(0, 2)
     : 'SA';
-  const userName = user.name || 'Super Admin';
+  const userName = user?.name || 'Super Admin';
   const userRole = 'Super Admin';
 
   const sidebarClasses = cn(

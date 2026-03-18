@@ -1,7 +1,10 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { useAtomValue } from 'jotai';
+import { memberAtom } from '@/atoms';
+
 const RequireMemberAuth = () => {
-  const memberToken = localStorage.getItem('member');
+  const member = useAtomValue(memberAtom);
   const location = useLocation();
 
   // Robust path normalized comparison
@@ -9,15 +12,8 @@ const RequireMemberAuth = () => {
     ? location.pathname.slice(0, -1)
     : location.pathname;
 
-  if (!memberToken) {
+  if (!member) {
     return <Navigate to="/member/login" state={{ from: location }} replace />;
-  }
-
-  let member = {};
-  try {
-    member = JSON.parse(memberToken || '{}');
-  } catch (e) {
-    console.error('Failed to parse member token', e);
   }
 
   // Only redirect to force-password-change if not already there

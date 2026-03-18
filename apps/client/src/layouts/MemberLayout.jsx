@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { isSidebarExpandedAtom } from '@/atoms';
+import { isSidebarExpandedAtom, memberAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import MemberSidebar from '@/components/member/MemberSidebar';
 import MemberNavbar from '@/components/member/MemberNavbar';
@@ -10,30 +8,39 @@ import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { memberOnboardingSteps } from '@/config/onboardingSteps';
-import { Suspense } from 'react';
+import { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import api from '@/lib/axios';
 
 const MemberLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
     isSidebarExpandedAtom,
   );
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const location = useLocation();
+  const [member, setMember] = useAtom(memberAtom);
 
-  // Handle resize and initial check
+  const fetchData = async () => {
+    try {
+      const { data: memberData } = await api.get('/member-auth/me');
+      // memberAtom (atomWithStorage) handles the localStorage sync automatically
+      setMember((prev) => ({ ...prev, ...memberData }));
+    } catch (error) {
+      console.error('Failed to sync member layout data:', error);
+    }
+  };
+
   useEffect(() => {
-    const checkIsMobile = () => {
-      const mobile = window.innerWidth < 1024; // lg breakpoint to include tablets
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarExpanded(false); // Default to closed on mobile/tablet
-      }
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    return () => window.removeEventListener('resize', checkIsMobile);
+    fetchData();
   }, []);
+
+  // Close sidebar on mobile/tablet by default
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarExpanded(false);
+    }
+  }, [isMobile, setIsSidebarExpanded]);
 
   // Close sidebar on route change on mobile
   useEffect(() => {
@@ -96,7 +103,7 @@ const MemberLayout = () => {
         <InstallPrompt />
         <OnboardingGuide
           steps={memberOnboardingSteps}
-          userId={JSON.parse(localStorage.getItem('member') || '{}')._id}
+          userId={member?._id}
           role="member"
         />
       </div>

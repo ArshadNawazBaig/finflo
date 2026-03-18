@@ -6,9 +6,8 @@ import {
   CreditCard,
   Calendar,
   Search,
-  Download,
 } from 'lucide-react';
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,8 +26,6 @@ import {
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   PieChart,
@@ -38,7 +35,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import Pagination from '@/components/ui/Pagination';
@@ -109,12 +105,6 @@ const RevenueReports = () => {
       if (isAppend) setIsFetchingMore(false);
     }
   };
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);

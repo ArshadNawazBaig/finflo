@@ -4,10 +4,17 @@ import { Navigate, Outlet } from 'react-router-dom';
  * Route guard that restricts access to paid plan users (Basic or Pro).
  * Free-plan users are redirected to /billing with a state message.
  */
+import { useAtomValue } from 'jotai';
+import { userAtom } from '@/atoms';
+
+/**
+ * Route guard that restricts access to paid plan users (Basic or Pro).
+ * Free-plan users are redirected to /billing with a state message.
+ */
 const RequirePaidPlan = () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const plan = user.plan || 'Free';
-  const isStaffOrManager = user.role === 'staff' || user.isManager;
+  const user = useAtomValue(userAtom);
+  const plan = user?.plan || 'Free';
+  const isStaffOrManager = user?.role === 'staff' || user?.isManager;
 
   if (plan === 'Free' && !isStaffOrManager) {
     if (user.role === 'admin') {

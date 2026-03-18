@@ -9,10 +9,8 @@ import {
   Eye,
   Trash2,
   Clock,
-  Download,
   ShieldCheck,
   FileBadge,
-  Loader2,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';

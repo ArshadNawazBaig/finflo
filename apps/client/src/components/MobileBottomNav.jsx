@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, cloneElement } from 'react';
+import { useEffect, useState, cloneElement } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -6,7 +6,6 @@ import {
   Users,
   WalletMinimal,
   Settings2,
-  Bell,
   BarChart3,
   TrendingUp,
   History,

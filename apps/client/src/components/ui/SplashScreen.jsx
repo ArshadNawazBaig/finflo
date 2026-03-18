@@ -1,6 +1,4 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 const SplashScreen = () => {
   return (

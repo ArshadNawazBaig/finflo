@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Book,
   Code2,
@@ -13,13 +13,8 @@ import {
   LifeBuoy,
   ArrowLeft,
   Shield,
-  CreditCard,
-  Bell,
   Globe,
   Lock,
-  Eye,
-  FileText,
-  ChevronDown,
   Zap,
   Database,
   Users,

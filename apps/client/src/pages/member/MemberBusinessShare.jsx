@@ -2,12 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   TrendingUp,
   Building2,
-  Wallet,
   ArrowUpRight,
   ArrowDownLeft,
   PieChart,
   History,
-  Loader2,
   BadgeDollarSign,
   Search,
 } from 'lucide-react';
@@ -21,8 +19,10 @@ import EmptyState from '@/components/ui/EmptyState';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
-import MemberInvestmentSkeleton from '@/components/member/MemberInvestmentSkeleton';
+import {
+  CardsSkeleton,
+  MemberInvestmentSkeleton,
+} from '@/components/ui/PageSkeletons';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 
 const TYPE_LABELS = {

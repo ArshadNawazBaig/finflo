@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
 import {
   Lock,
-  Loader2,
   ArrowRight,
   ShieldCheck,
   Mail,
@@ -15,11 +14,14 @@ import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { GoogleLogin } from '@react-oauth/google';
+import { useSetAtom } from 'jotai';
+import { memberAtom } from '@/atoms';
 
 const MemberLogin = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const setMember = useSetAtom(memberAtom);
 
   // 2FA state
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
@@ -63,12 +65,12 @@ const MemberLogin = () => {
     }
 
     if (responseData.mustChangePassword) {
-      localStorage.setItem('member', JSON.stringify(responseData));
+      setMember(responseData);
       navigate('/member/force-password-change');
       return;
     }
 
-    localStorage.setItem('member', JSON.stringify(responseData));
+    setMember(responseData);
     navigate('/member/dashboard');
   };
 
@@ -174,7 +176,7 @@ const MemberLogin = () => {
         code: otpCode,
       });
 
-      localStorage.setItem('member', JSON.stringify(data));
+      setMember(data);
       navigate('/member/dashboard');
     } catch (err) {
       console.error('2FA verification error:', err);

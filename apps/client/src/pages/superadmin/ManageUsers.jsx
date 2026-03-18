@@ -14,11 +14,9 @@ import {
   Users,
   Building2,
   Send,
-  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
-import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';

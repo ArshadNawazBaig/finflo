@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { toast } from 'sonner';
+import { getDefaultStore } from 'jotai';
+import { memberAtom, userAtom } from '@/atoms';
 
 // Determine the API base URL based on the environment
 import { BACKEND_URL } from './constants';
@@ -9,17 +10,20 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Read token directly from Jotai in-memory store (avoids localStorage timing issues)
+const getToken = (isMemberRoute) => {
+  const store = getDefaultStore();
+  const user = store.get(userAtom);
+  const member = store.get(memberAtom);
+  return isMemberRoute
+    ? member?.token || user?.token
+    : user?.token || member?.token;
+};
+
 api.interceptors.request.use(
   (config) => {
-    // Attempt to get token from localStorage
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const member = JSON.parse(localStorage.getItem('member') || '{}');
-
-    // Intelligently pick token based on the current route
     const isMemberRoute = window.location.pathname.startsWith('/member/');
-    const token = isMemberRoute
-      ? member.token || user.token
-      : user.token || member.token;
+    const token = getToken(isMemberRoute);
 
     if (token && typeof token === 'string') {
       config.headers.Authorization = `Bearer ${token}`;
@@ -35,18 +39,15 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const isMemberRoute = window.location.pathname.startsWith('/member/');
+      const store = getDefaultStore();
 
       if (isMemberRoute) {
-        localStorage.removeItem('member');
-        localStorage.removeItem('member');
-        // Avoid redirect loop if already on login page
+        store.set(memberAtom, null);
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/member/login';
         }
       } else {
-        localStorage.removeItem('user');
-        localStorage.removeItem('user');
-        // Avoid redirect loop if already on login page
+        store.set(userAtom, null);
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }

@@ -4,16 +4,13 @@ import { cn, getSafeNotificationLink } from '@/lib/utils';
 import {
   Bell,
   Search,
-  Filter,
   CheckCircle2,
   AlertTriangle,
   Info,
   XCircle,
   Send,
   Calendar,
-  User,
   Trash2,
-  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
@@ -43,11 +40,12 @@ import SendNotificationModal from '@/components/notifications/SendNotificationMo
 import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
-import { useAtom } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom, userAtom } from '@/atoms';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ManageNotifications = () => {
+  const user = useAtomValue(userAtom);
   const [notifications, setNotifications] = useState([]);
   const [globalNotifs, setGlobalNotifs] = useAtom(notificationsAtom);
   const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
@@ -358,12 +356,9 @@ const ManageNotifications = () => {
                           handleMarkAsRead(notification._id);
                         }
                         if (notification.link) {
-                          const user = JSON.parse(
-                            localStorage.getItem('user') || '{}',
-                          );
                           const safeLink = getSafeNotificationLink(
                             notification.link,
-                            user.role,
+                            user?.role,
                           );
                           if (safeLink) {
                             navigate(safeLink);

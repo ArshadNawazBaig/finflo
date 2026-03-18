@@ -1,7 +1,10 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { useAtomValue } from 'jotai';
+import { userAtom } from '@/atoms';
+
 const RequireAuth = () => {
-  const token = localStorage.getItem('user');
+  const user = useAtomValue(userAtom);
   const location = useLocation();
 
   // Robust path normalized comparison
@@ -9,11 +12,10 @@ const RequireAuth = () => {
     ? location.pathname.slice(0, -1)
     : location.pathname;
 
-  if (!token) {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
   if (user.mustChangePassword && normalizedPath !== '/force-password-change') {
     return <Navigate to="/force-password-change" replace />;
   }

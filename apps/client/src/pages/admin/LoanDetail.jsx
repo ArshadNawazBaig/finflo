@@ -5,15 +5,12 @@ import {
   DollarSign,
   Percent,
   Clock,
-  Mail,
   User,
   Info,
   TrendingUp,
   Wallet,
   ShieldCheck,
   Zap,
-  MessageSquare,
-  ArrowLeft,
   CheckCircle2,
   AlertCircle,
   FileText,
@@ -26,11 +23,9 @@ import api from '@/lib/axios';
 import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import Tooltip from '@/components/ui/Tooltip';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
-import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import DocumentManager from '@/components/customers/DocumentManager';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import RepaymentCalendar from '@/components/loans/RepaymentCalendar';

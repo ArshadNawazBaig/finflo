@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import {
@@ -14,7 +14,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { adminOnboardingSteps } from '@/config/onboardingSteps';
-import { Suspense } from 'react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 import api from '@/lib/axios';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
@@ -24,10 +24,10 @@ const DashboardLayout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useAtom(
     isSidebarExpandedAtom,
   );
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const location = useLocation();
   const setSubscription = useSetAtom(subscriptionAtom);
-  const setUser = useSetAtom(userAtom);
+  const [user, setUser] = useAtom(userAtom);
   const setPendingCount = useSetAtom(pendingMembersCountAtom);
 
   // Fetch latest user data and subscription
@@ -37,15 +37,8 @@ const DashboardLayout = () => {
         api.get('/auth/me'),
         api.get('/subscription'),
       ]);
-      // Merge with existing stored entry to preserve the token field.
-      // /auth/me returns profile data but NOT the token — overwriting without
-      // merging strips token from localStorage and breaks subsequent auth.
-      const existing = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ ...existing, ...userData }),
-      );
-      setUser(userData);
+      // Merge with existing state to preserve the token and other fields.
+      setUser((prev) => ({ ...prev, ...userData }));
       window.dispatchEvent(new Event('userUpdated'));
       setPendingCount(userData.pendingMembersCount || 0);
 
@@ -72,22 +65,12 @@ const DashboardLayout = () => {
     };
   }, [setUser, setSubscription]);
 
-  // Handle resize and initial check
+  // Close sidebar on mobile/tablet by default
   useEffect(() => {
-    const checkIsMobile = () => {
-      const mobile = window.innerWidth < 1024; // lg breakpoint to include tablets
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarExpanded(false); // Default to closed on mobile/tablet
-      }
-      // On desktop, we preserve the user's choice (don't auto-expand)
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+    if (isMobile) {
+      setIsSidebarExpanded(false);
+    }
+  }, [isMobile, setIsSidebarExpanded]);
 
   // Close sidebar on route change on mobile
   useEffect(() => {
@@ -151,7 +134,7 @@ const DashboardLayout = () => {
         <InstallPrompt />
         <OnboardingGuide
           steps={adminOnboardingSteps}
-          userId={JSON.parse(localStorage.getItem('user') || '{}')._id}
+          userId={user?._id}
           role="admin"
         />
       </div>

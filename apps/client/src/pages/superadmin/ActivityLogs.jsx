@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ScrollText,
   Search,
-  Filter,
   Calendar,
   User,
   Shield,
@@ -12,11 +11,9 @@ import {
   Bell,
   FileEdit,
   Trash2,
-  Loader2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
-import { Skeleton } from '@/components/ui/skeleton';
 import Pagination from '@/components/ui/Pagination';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
@@ -113,11 +110,7 @@ const ActivityLogs = () => {
       { threshold: 1.0 },
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
 
-    return () => observer.disconnect();
   }, [isMobile, isFetchingMore, pagination, fetchLogs]);
 
   const getCategoryColor = (cat) => {

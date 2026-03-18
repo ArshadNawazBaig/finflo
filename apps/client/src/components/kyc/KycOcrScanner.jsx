@@ -2,9 +2,7 @@ import { useState, useRef } from 'react';
 import {
   Camera,
   Upload,
-  Loader2,
   CheckCircle2,
-  AlertCircle,
   RefreshCw,
   Scan,
   FileText,

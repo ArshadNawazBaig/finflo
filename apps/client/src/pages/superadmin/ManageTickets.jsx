@@ -1,33 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MessageSquare,
   Search,
-  Clock,
   CheckCircle2,
   AlertCircle,
-  Send,
   Filter,
   User,
   Building2,
   Trash2,
   ChevronLeft,
-  Paperclip,
-  Mic,
-  X,
-  Pause,
-  Play,
-  Square,
-  Pencil,
-  Image,
-  FileText,
-  Volume2,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import TicketChat from '@/components/support/TicketChat';
 import EmptyState from '@/components/ui/EmptyState';
 import {
@@ -42,8 +28,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';

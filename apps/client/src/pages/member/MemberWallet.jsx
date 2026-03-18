@@ -6,8 +6,6 @@ import {
   History,
   QrCode,
   Send,
-  Loader2,
-  Building2,
   CreditCard,
   TrendingUp,
   ArrowUp,
