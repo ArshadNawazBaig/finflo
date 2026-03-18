@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAtomValue, useAtom } from 'jotai';
 import { isSidebarExpandedAtom, userAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
