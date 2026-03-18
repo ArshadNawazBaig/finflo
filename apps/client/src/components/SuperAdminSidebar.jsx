@@ -13,8 +13,11 @@ import {
   LifeBuoy,
   X,
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAtom, useAtomValue } from 'jotai';
 import { userAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { cn, capitalize } from '@/lib/utils';
+import Logo from '@/components/Logo';
 
 const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
