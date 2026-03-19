@@ -1,0 +1,57 @@
+name: finflo-app
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: finflo-server
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    # Load environment variables into the server container
+    env_file:
+      - ./apps/server/.env
+    # Uncomment the below section and the `mongo` service for local MongoDB
+    # environment:
+    #   - MONGO_URI=mongodb://mongo:27017/finflo
+    # depends_on:
+    #   - mongo
+    networks:
+      - finflo-network
+
+  client:
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
+      # To provide build-time variables (e.g. VITE_API_URL):
+      # args:
+      #   - VITE_API_URL=http://localhost:5000
+    container_name: finflo-client
+    ports:
+      - "5174:80"
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - finflo-network
+
+# Uncomment if you want to run a local MongoDB instance
+#   mongo:
+#     image: mongo:7.0
+#     container_name: finflo-mongo
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongo-data:/data/db
+#     restart: unless-stopped
+#     networks:
+#       - finflo-network
+
+networks:
+  finflo-network:
+    driver: bridge
+
+# Uncomment if using the mongo service
+# volumes:
+#   mongo-data:

@@ -143,6 +143,21 @@ If you prefer to run them separately:
   yarn workspace client dev
   ```
 
+### Docker Deployment
+
+To run the entire application stack using Docker:
+
+1. Create your `.env` file in `apps/server/.env` based on the `.env.example`.
+2. Build and start the containers in detached mode:
+   ```bash
+   docker compose up -d --build
+   ```
+3. The Vite client will be accessible at `http://localhost`, and the Express server at `http://localhost:5000`.
+4. To stop the containers:
+   ```bash
+   docker compose down
+   ```
+
 ## 📱 Mobile Deployment (Capacitor)
 
 This project uses **Capacitor** to target iOS and Android.

@@ -1,0 +1,34 @@
+node_modules
+apps/client/node_modules
+apps/server/node_modules
+
+# Build outputs
+dist
+build
+apps/client/dist
+.next
+out
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git
+.github
+.gitignore
+
+# Environment files
+.env*
+!.env.example
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+LICENSE
+Business\ Guide.md
