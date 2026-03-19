@@ -15,7 +15,6 @@ const allowedOrigins = [
   'http://127.0.0.1:5174',
   'http://localhost:3000',
   'capacitor://localhost',
-  'http://localhost',
   'https://finflo-production.up.railway.app',
 ];
 
@@ -59,26 +58,31 @@ const corsOptions = {
 
 const helmetOptions = {
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com', 'https://apis.google.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
       connectSrc: [
         "'self'",
         'https://api.stripe.com',
+        'http://localhost:5174',
         'http://localhost:*',
         'http://127.0.0.1:*',
         'http://192.168.*.*:*',
         'ws://localhost:*',
         'ws://127.0.0.1:*',
         'wss://*',
+        'https://accounts.google.com',
+        'https://play.google.com',
       ],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'self'", 'https://js.stripe.com'],
+      frameSrc: ["'self'", 'https://js.stripe.com', 'https://accounts.google.com'],
     },
   },
 };
@@ -87,7 +91,8 @@ const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
   message: {
-    message: 'Too many requests from this IP, please try again after 15 minutes',
+    message:
+      'Too many requests from this IP, please try again after 15 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
