@@ -96,7 +96,7 @@ const Landing = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'FinFlo Banking OS',
+    name: 'finflo',
     operatingSystem: 'Web',
     applicationCategory: 'FinanceApplication',
     description:
@@ -112,7 +112,7 @@ const Landing = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground selection:bg-primary/20 overflow-x-hidden font-sans">
       <SEO
         title="Scale Your Lending Empire"
-        description="FinFlo Banking OS - The ultimate cloud-native finance management system for global financial institutions. Automate lending, risk, and multi-branch operations."
+        description="finflo - The ultimate cloud-native finance management system for global financial institutions. Automate lending, risk, and multi-branch operations."
         canonical=""
       />
 

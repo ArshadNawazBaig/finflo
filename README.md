@@ -1,4 +1,4 @@
-# FinFlo - Finance Management SaaS
+# finflo - Finance Management SaaS
 
 A comprehensive Finance Management System designed to streamline the lending process for financial institutions. This SaaS application manages the entire loan lifecycle, from customer onboarding and loan issuance to repayment tracking and status management.
 
@@ -49,9 +49,10 @@ A comprehensive Finance Management System designed to streamline the lending pro
 
 Ensure you have the following installed on your machine:
 
-- [Node.js](https://nodejs.org/) (v16+ recommended)
-- [Yarn](https://yarnpkg.com/) (or npm)
-- [MongoDB](https://www.mongodb.com/) (Local or Atlas URI)
+- [Node.js](https://nodejs.org/) (v22+ recommended)
+- [npm](https://www.npmjs.com/) (Standard for project build scripts)
+- [Docker & Docker Compose](https://www.docker.com/) (For containerized deployment)
+- [MongoDB Atlas](https://www.mongodb.com/) (With IP whitelisting configured)
 
 ## 📦 Installation
 
@@ -59,13 +60,13 @@ Ensure you have the following installed on your machine:
 
     ```bash
     git clone <repository-url>
-    cd finance-management-app
+    cd finflo
     ```
 
 2.  **Install Dependencies**
-    We use `yarn` workspaces to manage dependencies for both client and server from the root.
+    We use npm workspaces to manage dependencies for both client and server from the root.
     ```bash
-    yarn install
+    npm install
     ```
 
 ## ⚙️ Configuration
@@ -79,10 +80,10 @@ Create a `.env` file in the `apps/server` directory and configure the following 
 PORT=5001
 
 # Database
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/loan-management
+MONGO_URI=mongodb+srv://arshadnawazbaig:arshadnawazbaig@cluster0.ds395jn.mongodb.net/loan-management
 
 # Security
-JWT_SECRET=your_jwt_secret_key
+JWT_SECRET=dev_secret_key_123
 
 # Payment Gateway (Stripe)
 STRIPE_SECRET_KEY=sk_test_...
@@ -92,7 +93,7 @@ STRIPE_PRICE_ID_PRO=price_...
 STRIPE_PORTAL_CONFIGURATION_ID=bpc_...
 
 # Client URL (CORS)
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5174
 
 # Email Service (SMTP)
 SMTP_HOST=sandbox.smtp.mailtrap.io
@@ -107,56 +108,51 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 CLOUDINARY_URL=cloudinary://...
+
+# Google Auth
+GOOGLE_CLIENT_ID=52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com
 ```
 
 ### Client Configuration
 
-The client primarily connects to the server. Ensure the proxy in `apps/client/vite.config.js` or API base URL matches your server port (default 5001).
+The client primarily connects to the server via a reverse proxy in Docker or direct URL in development. Ensure `VITE_BACKEND_URL` in `apps/client/.env` (if used) matches `http://localhost:5001`.
 
 ## 🏃‍♂️ Running the Application
 
-You can run both the client and server concurrently from the root directory.
+### 🐳 Docker Deployment (Recommended)
 
-### Development Mode
+To run the entire stack (Frontend + Backend + Nginx) with Docker:
 
-data
+1.  **Build and Start**:
+    ```bash
+    docker compose up --build -d
+    ```
+    - **Frontend**: [http://localhost:5174](http://localhost:5174)
+    - **Backend API**: [http://localhost:5001](http://localhost:5001)
+
+2.  **Stop Containers**:
+    ```bash
+    docker compose down
+    ```
+
+### ⬆️ Pushing to Docker Hub
+
+This project is configured for easy deployment to Docker Hub under the `arshadnawazbaig` registry.
+
+1.  **Build Images**: `docker compose build`
+2.  **Login**: `docker login`
+3.  **Push**: `docker compose push`
+
+### 💻 Local Development Mode
+
+To run both concurrently without Docker:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
-This command sends:
-
-- **Server** on [http://localhost:5001](http://localhost:5001)
-- **Client** on [http://localhost:5173](http://localhost:5173) (or similar)
-
-### Individual Startup
-
-If you prefer to run them separately:
-
-- **Server only**:
-  ```bash
-  yarn workspace server dev
-  ```
-- **Client only**:
-  ```bash
-  yarn workspace client dev
-  ```
-
-### Docker Deployment
-
-To run the entire application stack using Docker:
-
-1. Create your `.env` file in `apps/server/.env` based on the `.env.example`.
-2. Build and start the containers in detached mode:
-   ```bash
-   docker compose up -d --build
-   ```
-3. The Vite client will be accessible at `http://localhost`, and the Express server at `http://localhost:5000`.
-4. To stop the containers:
-   ```bash
-   docker compose down
-   ```
+- **Server**: [http://localhost:5001](http://localhost:5001)
+- **Client**: [http://localhost:5174](http://localhost:5174)
 
 ## 📱 Mobile Deployment (Capacitor)
 
@@ -173,7 +169,7 @@ Every time you make changes to the frontend, you must rebuild the web assets and
 
 ```bash
 # 1. Build the web app
-yarn workspace client build
+npm run build --workspace=apps/client
 
 # 2. Sync to mobile platforms
 cd apps/client
@@ -190,9 +186,9 @@ To open the native IDEs and run the application:
 For **Live Reload** during development:
 
 ```bash
-npx cap run ios --live-reload --external
+npx cap run ios
 # or
-npx cap run android --live-reload --external
+npx cap run android
 ```
 
 ## 📄 License
