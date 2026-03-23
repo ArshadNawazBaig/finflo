@@ -15,6 +15,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5174',
   'http://localhost:3000',
   'capacitor://localhost',
+  'http://localhost',
   'https://finflo-production.up.railway.app',
 ];
 

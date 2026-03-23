@@ -8,6 +8,10 @@
   "plugins": {
     "CapacitorHttp": {
       "enabled": true
+    },
+    "GoogleAuth": {
+      "forceCodeForRefreshToken": true,
+      "clientId": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com"
     }
   }
 }
