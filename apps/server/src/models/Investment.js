@@ -18,10 +18,15 @@ const investmentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['deposit', 'withdrawal', 'transfer_send', 'transfer_receive'],
+      enum: ['deposit', 'withdrawal', 'transfer_send', 'transfer_receive', 'profit'],
       required: true,
     },
     amount: { type: Number, required: true },
+    accountType: {
+      type: String,
+      enum: ['current', 'saving'],
+      default: 'current',
+    },
     status: {
       type: String,
       enum: ['Pending', 'Completed', 'Failed'],

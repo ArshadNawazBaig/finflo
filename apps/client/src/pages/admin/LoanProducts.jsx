@@ -67,7 +67,7 @@ const LoanProducts = () => {
   };
 
   const isAdmin =
-    JSON.parse(localStorage.getItem('user') || '{}').role === 'admin';
+    (JSON.parse(localStorage.getItem('user') || '{}') || {}).role === 'admin';
 
   if (loading && products.length === 0) {
     return <TablePageSkeleton />;

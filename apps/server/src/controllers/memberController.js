@@ -756,6 +756,7 @@ const addInvestment = async (req, res) => {
       description,
       applyDeduction = true,
       repaymentType = 'settlement',
+      accountType = 'current', // 'current' or 'saving'
     } = req.body;
 
     if (!amount || amount <= 0) {
@@ -767,13 +768,19 @@ const addInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    const balanceBefore = member.currentBalance;
-    const investedBefore = member.totalInvested;
+    const isSaving = accountType === 'saving';
+
+    const balanceBefore = isSaving ? member.savingBalance : member.currentBalance;
+    const investedBefore = isSaving ? member.totalSavingDeposited : member.totalInvested;
 
     // Update member balances atomically
+    const incFields = isSaving
+      ? { totalSavingDeposited: amount, savingBalance: amount }
+      : { totalInvested: amount, currentBalance: amount };
+
     const updatedMember = await Member.findOneAndUpdate(
       { _id: id, user: userId },
-      { $inc: { totalInvested: amount, currentBalance: amount } },
+      { $inc: incFields },
       { new: true },
     );
 
@@ -781,15 +788,18 @@ const addInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
+    const balanceAfter = isSaving ? updatedMember.savingBalance : updatedMember.currentBalance;
+
     // Create investment record
     const investment = await Investment.create({
       user: userId,
       member: id,
-      branchId: member.branchId, // Tag with member's branch
+      branchId: member.branchId,
       type: 'deposit',
       amount,
-      description: description || 'Investment deposit',
-      balanceAfter: updatedMember.currentBalance,
+      accountType,
+      description: description || (isSaving ? 'Saving account deposit' : 'Investment deposit'),
+      balanceAfter,
     });
 
     // Create Financial Transaction
@@ -797,10 +807,10 @@ const addInvestment = async (req, res) => {
       user: userId,
       branchId: member.branchId,
       type: 'income',
-      category: 'investment',
+      category: isSaving ? 'saving_deposit' : 'investment',
       amount,
       date: new Date(),
-      description: description || 'Investment deposit',
+      description: description || (isSaving ? 'Saving account deposit' : 'Investment deposit'),
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
@@ -810,36 +820,33 @@ const addInvestment = async (req, res) => {
     // Log activity with before/after state
     await logActivity({
       userId: req.user._id,
-      action: 'member_investment_added',
+      action: isSaving ? 'member_saving_deposit' : 'member_investment_added',
       category: 'member',
-      details: `Added investment of ${amount} for member: ${member.name}`,
+      details: `Added ${isSaving ? 'saving' : 'investment'} deposit of ${amount} for member: ${member.name}`,
       metadata: {
         memberId: id,
         amount,
+        accountType,
         investmentId: investment._id,
-        before: {
-          currentBalance: balanceBefore,
-          totalInvested: investedBefore,
-        },
-        after: {
-          currentBalance: updatedMember.currentBalance,
-          totalInvested: updatedMember.totalInvested,
-        },
+        before: { balance: balanceBefore, totalDeposited: investedBefore },
+        after: { balance: balanceAfter, totalDeposited: isSaving ? updatedMember.totalSavingDeposited : updatedMember.totalInvested },
       },
       req,
     });
 
     // ── Notifications ──────────────────────────────────────────────────────
     try {
+      const accountLabel = isSaving ? 'Saving Account' : 'Current Account';
       await createTransactionNotification({
         recipientId: member._id,
-        title: 'Deposit Received',
-        message: `Your account has been credited with Rs. ${amount.toLocaleString()} (${description || 'Manual Deposit'}).`,
+        title: `${accountLabel} Deposit`,
+        message: `Your ${accountLabel.toLowerCase()} has been credited with Rs. ${amount.toLocaleString()} (${description || 'Manual Deposit'}).`,
         type: 'success',
         branchId: member.branchId,
         action: 'member_deposit_notification',
         metadata: {
           amount,
+          accountType,
           investmentId: investment._id,
           link: '/member/investments',
         },
@@ -862,10 +869,10 @@ const addInvestment = async (req, res) => {
 
         sendEmailAsync({
           to: member.email,
-          subject: 'Deposit Confirmation',
+          subject: `${accountLabel} Deposit Confirmation`,
           html: transactionEmail({
             memberName: member.name,
-            transactionType: 'Deposit',
+            transactionType: `${accountLabel} Deposit`,
             amount: amount.toLocaleString(),
             date: new Date().toLocaleDateString('en-GB', {
               day: '2-digit',
@@ -874,9 +881,7 @@ const addInvestment = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: (
-              await calculateEffectiveBalance(member._id)
-            ).toLocaleString(),
+            balance: balanceAfter.toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -887,66 +892,69 @@ const addInvestment = async (req, res) => {
       console.error('Deposit Notification Error:', notifError);
     }
 
-    // ── Automatic Loan Deduction ───────────────────────────────────────────
-    try {
-      const activeLoan = await Loan.findOne({
-        customer: member.customer,
-        status: 'active',
-      });
+    // ── Automatic Loan Deduction (only for current account) ────────────────
+    if (!isSaving) {
+      try {
+        const activeLoan = await Loan.findOne({
+          customer: member.customer,
+          status: 'active',
+        });
 
-      if (activeLoan && applyDeduction) {
-        let deductionAmount = Math.min(amount, activeLoan.remainingAmount);
+        if (activeLoan && applyDeduction) {
+          let deductionAmount = Math.min(amount, activeLoan.remainingAmount);
 
-        // If monthly installment, cap deduction at 1 EMI
-        if (repaymentType === 'installment') {
-          deductionAmount = Math.min(deductionAmount, activeLoan.emi);
+          // If monthly installment, cap deduction at 1 EMI
+          if (repaymentType === 'installment') {
+            deductionAmount = Math.min(deductionAmount, activeLoan.emi);
+          }
+
+          if (deductionAmount > 0) {
+            await loanRepaymentService.processRepayment(
+              activeLoan,
+              deductionAmount,
+              req,
+              {
+                notes: `Auto-deduction from deposit: ${description || 'Manual Deposit'}`,
+                isAutoValue: true,
+                allowEarlySettlement: repaymentType === 'settlement',
+              },
+            );
+            // Refetch member to get updated balance for the response
+            const updatedMember = await Member.findById(member._id);
+            return res.status(201).json({
+              investment,
+              member: updatedMember,
+              autoRepayment: {
+                applied: true,
+                amount: deductionAmount,
+                loanId: activeLoan._id,
+              },
+            });
+          }
         }
-
-        if (deductionAmount > 0) {
-          await loanRepaymentService.processRepayment(
-            activeLoan,
-            deductionAmount,
-            req,
-            {
-              notes: `Auto-deduction from deposit: ${description || 'Manual Deposit'}`,
-              isAutoValue: true,
-              allowEarlySettlement: repaymentType === 'settlement',
-            },
-          );
-          // Refetch member to get updated balance for the response
-          const updatedMember = await Member.findById(member._id);
-          return res.status(201).json({
-            investment,
-            member: updatedMember,
-            autoRepayment: {
-              applied: true,
-              amount: deductionAmount,
-              loanId: activeLoan._id,
-            },
-          });
-        }
+      } catch (autoRepoError) {
+        console.error('Auto Repayment Error in addInvestment:', autoRepoError);
+        // Non-fatal, return the deposit success
       }
-    } catch (autoRepoError) {
-      console.error('Auto Repayment Error in addInvestment:', autoRepoError);
-      // Non-fatal, return the deposit success
+
+      // Update member's credit limit
+      await updateMemberCreditLimit(id);
     }
 
-    // Update member's credit limit
-    await updateMemberCreditLimit(id);
-
-    res.status(201).json({ investment, member });
+    res.status(201).json({ investment, member: updatedMember });
   } catch (error) {
     console.error('Add Investment Error:', error);
     res.status(500).json({ message: 'Failed to add investment' });
   }
 };
 
+
 // Withdraw investment
 const withdrawInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description } = req.body;
+    const { amount, description, accountType = 'current' } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid withdrawal amount' });
@@ -957,25 +965,34 @@ const withdrawInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    if (member.currentBalance < amount) {
+    const isSaving = accountType === 'saving';
+    const availableBalance = isSaving ? member.savingBalance : member.currentBalance;
+
+    if (availableBalance < amount) {
       return res
         .status(400)
-        .json({ message: 'Insufficient balance for withdrawal' });
+        .json({ message: `Insufficient ${isSaving ? 'saving' : 'current'} account balance for withdrawal` });
     }
 
-    const balanceBefore = member.currentBalance;
-    const withdrawnBefore = member.totalWithdrawn;
+    const balanceBefore = availableBalance;
+    const withdrawnBefore = isSaving ? member.totalSavingWithdrawn : member.totalWithdrawn;
 
     // Update member balances atomically
+    const incFields = isSaving
+      ? { savingBalance: -amount, totalSavingWithdrawn: amount }
+      : { currentBalance: -amount, totalWithdrawn: amount };
+
     const updatedMember = await Member.findOneAndUpdate(
       { _id: id, user: userId },
-      { $inc: { currentBalance: -amount, totalWithdrawn: amount } },
+      { $inc: incFields },
       { new: true },
     );
 
     if (!updatedMember) {
       return res.status(404).json({ message: 'Member not found' });
     }
+
+    const balanceAfter = isSaving ? updatedMember.savingBalance : updatedMember.currentBalance;
 
     // Create investment record
     const investment = await Investment.create({
@@ -984,8 +1001,9 @@ const withdrawInvestment = async (req, res) => {
       branchId: member.branchId,
       type: 'withdrawal',
       amount,
-      description: description || 'Investment withdrawal',
-      balanceAfter: updatedMember.currentBalance,
+      accountType,
+      description: description || (isSaving ? 'Saving account withdrawal' : 'Investment withdrawal'),
+      balanceAfter,
     });
 
     // Create Financial Transaction
@@ -993,10 +1011,10 @@ const withdrawInvestment = async (req, res) => {
       user: userId,
       branchId: member.branchId,
       type: 'expense',
-      category: 'withdrawal',
+      category: isSaving ? 'saving_withdrawal' : 'withdrawal',
       amount,
       date: new Date(),
-      description: description || 'Investment withdrawal',
+      description: description || (isSaving ? 'Saving account withdrawal' : 'Investment withdrawal'),
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
@@ -1006,39 +1024,38 @@ const withdrawInvestment = async (req, res) => {
     // Log activity with before/after state
     await logActivity({
       userId: req.user._id,
-      action: 'member_withdrawal_added',
+      action: isSaving ? 'member_saving_withdrawal' : 'member_withdrawal_added',
       category: 'member',
-      details: `Processed withdrawal of ${amount} for member: ${member.name}`,
+      details: `Processed ${isSaving ? 'saving' : ''} withdrawal of ${amount} for member: ${member.name}`,
       metadata: {
         memberId: id,
         amount,
+        accountType,
         investmentId: investment._id,
-        before: {
-          currentBalance: balanceBefore,
-          totalWithdrawn: withdrawnBefore,
-        },
-        after: {
-          currentBalance: member.currentBalance,
-          totalWithdrawn: member.totalWithdrawn,
-        },
+        before: { balance: balanceBefore, totalWithdrawn: withdrawnBefore },
+        after: { balance: balanceAfter, totalWithdrawn: isSaving ? updatedMember.totalSavingWithdrawn : updatedMember.totalWithdrawn },
       },
       req,
     });
 
-    // Update member's credit limit
-    await updateMemberCreditLimit(id);
+    // Update member's credit limit (only for current account)
+    if (!isSaving) {
+      await updateMemberCreditLimit(id);
+    }
 
     // ── Notifications ──────────────────────────────────────────────────────
     try {
+      const accountLabel = isSaving ? 'Saving Account' : 'Current Account';
       await createTransactionNotification({
         recipientId: member._id,
-        title: 'Withdrawal Processed',
-        message: `A withdrawal of Rs. ${amount.toLocaleString()} has been processed from your account (${description || 'Manual Withdrawal'}).`,
+        title: `${accountLabel} Withdrawal`,
+        message: `A withdrawal of Rs. ${amount.toLocaleString()} has been processed from your ${accountLabel.toLowerCase()} (${description || 'Manual Withdrawal'}).`,
         type: 'info',
         branchId: member.branchId,
         action: 'member_withdrawal_notification',
         metadata: {
           amount,
+          accountType,
           investmentId: investment._id,
           link: '/member/investments',
         },
@@ -1061,10 +1078,10 @@ const withdrawInvestment = async (req, res) => {
 
         sendEmailAsync({
           to: member.email,
-          subject: 'Withdrawal Confirmation',
+          subject: `${accountLabel} Withdrawal Confirmation`,
           html: transactionEmail({
             memberName: member.name,
-            transactionType: 'Withdrawal',
+            transactionType: `${accountLabel} Withdrawal`,
             amount: amount.toLocaleString(),
             date: new Date().toLocaleDateString('en-GB', {
               day: '2-digit',
@@ -1073,9 +1090,7 @@ const withdrawInvestment = async (req, res) => {
               hour: '2-digit',
               minute: '2-digit',
             }),
-            balance: (
-              await calculateEffectiveBalance(member._id)
-            ).toLocaleString(),
+            balance: balanceAfter.toLocaleString(),
             branchName: branchName,
             reference: investment._id.toString().slice(-8).toUpperCase(),
             logoUrl: logoUrl,
@@ -1086,7 +1101,7 @@ const withdrawInvestment = async (req, res) => {
       console.error('Withdrawal Notification Error:', notifError);
     }
 
-    res.status(201).json({ investment, member });
+    res.status(201).json({ investment, member: updatedMember });
   } catch (error) {
     console.error('Withdraw Investment Error:', error);
     res.status(500).json({ message: 'Failed to withdraw investment' });
@@ -1812,7 +1827,7 @@ const getMemberActivity = async (req, res) => {
  * @access  Private (Member)
  */
 const transferFunds = async (req, res) => {
-  const { recipientId, recipientIdentifier, amount, description } = req.body;
+  const { recipientId, recipientIdentifier, amount, description, accountType = 'current' } = req.body;
   const senderId = req.member._id;
 
   if (
@@ -1828,15 +1843,16 @@ const transferFunds = async (req, res) => {
 
   try {
     const sender = await Member.findById(senderId).session(session);
+    const availableBalance = accountType === 'current' ? sender.currentBalance : sender.savingBalance;
     console.log(
       'Sender Balance:',
-      sender.currentBalance,
+      availableBalance,
       'Transfer Amount:',
       amount,
     );
-    if (sender.currentBalance < parseFloat(amount)) {
+    if (availableBalance < parseFloat(amount)) {
       console.log('Insufficient balance error');
-      throw new Error('Insufficient balance');
+      throw new Error(`Insufficient ${accountType} balance`);
     }
 
     // Find recipient by ID, email, phone, or account numbers
@@ -1874,14 +1890,13 @@ const transferFunds = async (req, res) => {
     const transferAmount = Math.round(parseFloat(amount));
 
     // Update balances atomically inside session
+    const senderUpdate = accountType === 'current'
+      ? { currentBalance: -transferAmount, totalWithdrawn: transferAmount }
+      : { savingBalance: -transferAmount, totalSavingWithdrawn: transferAmount };
+
     await Member.updateOne(
       { _id: sender._id },
-      {
-        $inc: {
-          currentBalance: -transferAmount,
-          totalWithdrawn: transferAmount,
-        },
-      },
+      { $inc: senderUpdate },
       { session },
     );
     await Member.updateOne(
@@ -1905,7 +1920,7 @@ const transferFunds = async (req, res) => {
       branchId: sender.branchId,
       type: 'transfer_send',
       amount: transferAmount,
-      balanceAfter: updatedSender.currentBalance,
+      balanceAfter: accountType === 'current' ? updatedSender.currentBalance : updatedSender.savingBalance,
       description: description || `Transfer to ${recipient.name}`,
       date: new Date(),
       metadata: {
@@ -2100,7 +2115,7 @@ const transferFunds = async (req, res) => {
  * @access  Private (Admin/Staff)
  */
 const adminTransferFunds = async (req, res) => {
-  const { senderId, recipientIdentifier, amount, description } = req.body;
+  const { senderId, recipientIdentifier, amount, description, accountType = 'current' } = req.body;
 
   if (!senderId || !recipientIdentifier || !amount || parseFloat(amount) <= 0) {
     return res
@@ -2117,8 +2132,9 @@ const adminTransferFunds = async (req, res) => {
       throw new Error('Sender member not found');
     }
 
-    if (sender.currentBalance < parseFloat(amount)) {
-      throw new Error('Insufficient balance in sender account');
+    const availableBalance = accountType === 'current' ? sender.currentBalance : sender.savingBalance;
+    if (availableBalance < parseFloat(amount)) {
+      throw new Error(`Insufficient balance in sender ${accountType} account`);
     }
 
     // Find recipient by email, phone, or account numbers
@@ -2150,14 +2166,13 @@ const adminTransferFunds = async (req, res) => {
     const transferAmount = Math.round(parseFloat(amount));
 
     // Update balances atomically inside session
+    const senderUpdate = accountType === 'current'
+      ? { currentBalance: -transferAmount, totalWithdrawn: transferAmount }
+      : { savingBalance: -transferAmount, totalSavingWithdrawn: transferAmount };
+
     await Member.updateOne(
       { _id: sender._id },
-      {
-        $inc: {
-          currentBalance: -transferAmount,
-          totalWithdrawn: transferAmount,
-        },
-      },
+      { $inc: senderUpdate },
       { session },
     );
     await Member.updateOne(
@@ -2181,7 +2196,7 @@ const adminTransferFunds = async (req, res) => {
       branchId: sender.branchId,
       type: 'transfer_send',
       amount: transferAmount,
-      balanceAfter: sender.currentBalance,
+      balanceAfter: accountType === 'current' ? updatedSender.currentBalance : updatedSender.savingBalance,
       description: description || `Admin Transfer to ${recipient.name}`,
       date: new Date(),
     });
@@ -3173,6 +3188,9 @@ const getAllDistributions = async (req, res) => {
         .reduce((sum, d) => sum + d.amount, 0),
       totalShare: allDistributions
         .filter((d) => d.type === 'share')
+        .reduce((sum, d) => sum + d.amount, 0),
+      totalSaving: allDistributions
+        .filter((d) => d.type === 'saving')
         .reduce((sum, d) => sum + d.amount, 0),
       count: total,
     };

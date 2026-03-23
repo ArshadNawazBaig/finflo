@@ -70,6 +70,7 @@ const userSchema = new mongoose.Schema(
     passwordChangeCodeExpire: { type: Date },
     plan: { type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' },
     customerCount: { type: Number, default: 0 },
+    savingProfitRate: { type: Number, default: 0, min: 0, max: 100 }, // Annual profit rate % for saving accounts
     nextBillingDate: { type: Date },
     paymentMethods: [
       {

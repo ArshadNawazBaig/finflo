@@ -65,6 +65,12 @@ const memberSchema = new mongoose.Schema(
     totalShareInvested: { type: Number, default: 0 },
     totalShareProfit: { type: Number, default: 0 },
     shareProfitRate: { type: Number, default: 0 }, // Custom profit rate for shares
+    // Saving Account (separate from main balance — earns daily profit)
+    savingBalance: { type: Number, default: 0 },
+    totalSavingDeposited: { type: Number, default: 0 },
+    totalSavingWithdrawn: { type: Number, default: 0 },
+    totalSavingProfit: { type: Number, default: 0 },
+    lastSavingProfitAt: { type: Date }, // De-dupe daily cron
     status: {
       type: String,
       enum: ['Active', 'Inactive'],

@@ -47,7 +47,7 @@ const Transactions = () => {
     totalIncome: 0,
     totalExpense: 0,
   });
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);

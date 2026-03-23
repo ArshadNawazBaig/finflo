@@ -51,7 +51,7 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
 
 const Reports = () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const isAdmin = ['admin', 'super_admin'].includes(user.role);
 
   const [activeTab, setActiveTab] = useState('performance');

@@ -15,7 +15,7 @@ import { formatCNIC, validateEmail } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [branches, setBranches] = useState([]);

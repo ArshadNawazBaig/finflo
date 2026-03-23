@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 const UpgradePrompt = ({ isOpen, onClose, plan, limit, current, feature }) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const isAdmin = user.role === 'admin';
 
   const getUpgradeMessage = () => {

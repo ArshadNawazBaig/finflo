@@ -13,6 +13,7 @@ import {
   Download,
   Send,
   ShieldCheck,
+  BadgeDollarSign,
 } from 'lucide-react';
 import {
   BarChart,
@@ -271,9 +272,9 @@ const MemberDashboard = () => {
         <MemberDashboardSkeleton />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             <StatsCard
-              title="Main Balance"
+              title="Current Account"
               amount={formatCurrency(member?.currentBalance || 0)}
               icon={<Wallet size={20} />}
               color={
@@ -281,6 +282,12 @@ const MemberDashboard = () => {
                   ? 'bg-rose-500 shadow-rose-500/20'
                   : 'bg-primary shadow-primary/20'
               }
+            />
+            <StatsCard
+              title="Saving Account"
+              amount={formatCurrency(member?.savingBalance || 0)}
+              icon={<BadgeDollarSign size={20} />}
+              color="bg-teal-500 shadow-teal-500/20"
             />
             <StatsCard
               title="Credit Limit"
@@ -295,8 +302,8 @@ const MemberDashboard = () => {
               color="bg-emerald-500 shadow-emerald-500/20"
             />
             <StatsCard
-              title="Total Profit"
-              amount={formatCurrency(member?.totalProfit || 0)}
+              title="Saving Profit"
+              amount={formatCurrency(member?.totalSavingProfit || 0)}
               icon={<PieChart size={20} />}
               color="bg-blue-500 shadow-blue-500/20"
             />

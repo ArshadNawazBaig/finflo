@@ -315,6 +315,7 @@ const getMe = async (req, res) => {
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
         currency: user.currency,
+        savingProfitRate: user.savingProfitRate || 0,
         permissions: user.getPermissions(),
         pendingMembersCount:
           user.role === 'admin' || user.role === 'staff'
@@ -348,6 +349,14 @@ const updateDetails = async (req, res) => {
     currency: req.body.currency,
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
+
+  // Allow admins to update savingProfitRate
+  if (req.body.savingProfitRate !== undefined) {
+    const rate = parseFloat(req.body.savingProfitRate);
+    if (!isNaN(rate) && rate >= 0 && rate <= 100) {
+      fieldsToUpdate.savingProfitRate = rate;
+    }
+  }
 
   try {
     const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {

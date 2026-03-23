@@ -20,7 +20,7 @@ const MobileBottomNav = () => {
   const [activeTab, setActiveTab] = useState(location.pathname);
 
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem('user') || '{}'),
+    (JSON.parse(localStorage.getItem('user') || '{}') || {}),
   );
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const MobileBottomNav = () => {
 
   useEffect(() => {
     const handleUserUpdate = () => {
-      setUser(JSON.parse(localStorage.getItem('user') || '{}'));
+      setUser((JSON.parse(localStorage.getItem('user') || '{}') || {}));
     };
     window.addEventListener('userUpdated', handleUserUpdate);
     return () => window.removeEventListener('userUpdated', handleUserUpdate);

@@ -15,10 +15,11 @@ const Navigation = ({
   setTheme,
 }) => {
   const isMobile = useMediaQuery('(max-width: 1024px)');
-  const loggedInUser = JSON.parse(localStorage.getItem('user') || 'null');
-  const loggedInMember = localStorage.getItem('member');
-  const isBusinessLoggedIn = !!loggedInUser;
-  const isMemberLoggedIn = !!loggedInMember;
+  const loggedInUser = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const memberRaw = localStorage.getItem('member');
+  const loggedInMember = memberRaw && memberRaw !== 'null' ? JSON.parse(memberRaw) : {};
+  const isBusinessLoggedIn = Object.keys(loggedInUser).length > 0;
+  const isMemberLoggedIn = Object.keys(loggedInMember).length > 0;
   const isLoggedIn = isBusinessLoggedIn || isMemberLoggedIn;
   const [isJoinMenuOpen, setIsJoinMenuOpen] = useState(false);
   const [isLoginMenuOpen, setIsLoginMenuOpen] = useState(false);

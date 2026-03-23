@@ -133,7 +133,7 @@ const BranchDetail = () => {
   const [expenseSortBy, setExpenseSortBy] = useState('date');
   const [expenseSortOrder, setExpenseSortOrder] = useState('desc');
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
 
   useEffect(() => {
     // Set smaller limits for mobile infinite scroll

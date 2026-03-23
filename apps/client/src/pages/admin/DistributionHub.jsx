@@ -121,19 +121,14 @@ const DistributionHub = () => {
         }
         description="Manage and track profit distributions for regular investments and business shares."
       >
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => handleOpenModal('regular')}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest flex-1 sm:flex-none"
-          >
-            <Percent size={16} />
-            Regular Profit
-          </Button>
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+          <div className="bg-teal-500/10 border border-teal-500/20 text-teal-600 px-4 py-2 rounded-xl text-xs font-bold leading-none flex items-center gap-2">
+            <Percent size={14} /> Saving profit is accrued automatically daily
+          </div>
           <Button
             onClick={() => handleOpenModal('share')}
-            variant="outline"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest border-primary/20 hover:bg-primary/5 flex-1 sm:flex-none"
+            variant="gradient"
+            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest flex-1 sm:flex-none shadow-indigo-500/20"
           >
             <TrendingUp size={16} />
             Share Profit
@@ -141,13 +136,12 @@ const DistributionHub = () => {
         </div>
       </PageHeader>
 
-      {/* Summary Stats */}
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <StatsCard
-          title="Total Regular Distributed"
-          amount={formatCurrency(data.summary?.totalRegular || 0)}
-          icon={<TrendingUp size={20} />}
-          color="bg-primary shadow-primary/20"
+          title="Total Saving Distributed"
+          amount={formatCurrency(data.summary?.totalSaving || 0)}
+          icon={<Percent size={20} />}
+          color="bg-teal-500 shadow-teal-500/20"
         />
         <StatsCard
           title="Total Share Distributed"

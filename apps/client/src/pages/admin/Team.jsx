@@ -176,7 +176,7 @@ const Team = () => {
   };
 
   const [user] = useState(() =>
-    JSON.parse(localStorage.getItem('user') || '{}'),
+    (JSON.parse(localStorage.getItem('user') || '{}') || {}),
   );
 
   const filteredStaff = staff.filter(

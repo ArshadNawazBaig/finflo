@@ -34,7 +34,7 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
         const data = JSON.parse(localStorage.getItem('member') || '{}');
         token = data.token;
       } else {
-        const data = JSON.parse(localStorage.getItem('user') || '{}');
+        const data = (JSON.parse(localStorage.getItem('user') || '{}') || {});
         token = data.token;
       }
     } catch {

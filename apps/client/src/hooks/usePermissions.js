@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 
 const usePermissions = () => {
   const [permissions, setPermissions] = useState(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
     return user.permissions || [];
   });
 
   useEffect(() => {
     const handleUserUpdate = () => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
       setPermissions(user.permissions || []);
     };
 

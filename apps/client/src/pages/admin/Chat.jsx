@@ -368,7 +368,7 @@ const Chat = () => {
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
 
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const userData = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const token = userData.token || document.cookie.match(/token=([^;]+)/)?.[1];
   const currentUserId = userData._id;
 

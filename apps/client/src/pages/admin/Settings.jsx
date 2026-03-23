@@ -1156,6 +1156,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
       businessName: user.businessName || '',
       currency: user.currency || 'Rs.',
       businessAbbreviation: user.businessAbbreviation || '',
+      savingProfitRate: user.savingProfitRate || 0,
     },
   });
 
@@ -1167,6 +1168,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         businessName: user.businessName || '',
         currency: user.currency || 'Rs.',
         businessAbbreviation: user.businessAbbreviation || '',
+        savingProfitRate: user.savingProfitRate || 0,
       });
     }
   }, [user, reset]);
@@ -1181,7 +1183,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     try {
       const { data } = await api.put('/auth/updatedetails', formData);
       if (data.success) {
-        const existing = JSON.parse(localStorage.getItem('user') || '{}');
+        const existing = (JSON.parse(localStorage.getItem('user') || '{}') || {});
         const updatedUser = { ...existing, ...data.data };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -1341,6 +1343,33 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                 <option value="AED">UAE Dirham (AED)</option>
                 <option value="SAR">Saudi Riyal (SAR)</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                Saving Profit Rate (% Annual)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="e.g. 12.5"
+                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                {...register('savingProfitRate', {
+                  min: { value: 0, message: 'Rate cannot be negative' },
+                  max: { value: 100, message: 'Rate cannot exceed 100%' },
+                  setValueAs: (v) => v === '' ? 0 : parseFloat(v)
+                })}
+              />
+              <p className="px-1 text-[10px] text-muted-foreground font-medium">
+                Annual profit rate applied daily to all members' saving accounts.
+              </p>
+              {errors.savingProfitRate && (
+                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  {errors.savingProfitRate.message}
+                </p>
+              )}
             </div>
           </form>
         </div>

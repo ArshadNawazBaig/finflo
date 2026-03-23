@@ -12,6 +12,7 @@ import {
   ArrowDown,
   Activity,
   RefreshCw,
+  BadgeDollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
@@ -176,7 +177,7 @@ const MemberWallet = () => {
                   </span>
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 ml-1">
-                  Available Balance
+                  Current Account Balance
                 </p>
                 <h2 className="text-5xl md:text-7xl font-black tracking-tighter drop-shadow-sm">
                   {formatCurrency(member?.currentBalance || 0)}
@@ -220,7 +221,24 @@ const MemberWallet = () => {
 
             {/* Quick Metrics */}
             <div className="flex flex-col gap-6 h-full">
-              <div className="flex-1 bg-card border border-border/50 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:border-primary/30 transition-all">
+              <div className="flex-1 bg-card border border-border/50 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition-all">
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                  <BadgeDollarSign className="w-20 h-20" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                  Saving Account
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black tracking-tighter">
+                    {formatCurrency(member?.savingBalance || 0)}
+                  </h3>
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-full">
+                    <TrendingUp size={10} /> Profit: {formatCurrency(member?.totalSavingProfit || 0)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-card border border-border/50 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
                   <TrendingUp className="w-20 h-20" />
                 </div>

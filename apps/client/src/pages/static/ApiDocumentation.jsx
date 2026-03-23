@@ -151,7 +151,7 @@ const ApiDocumentation = () => {
   ];
 
   const [user, setUser] = useState(() =>
-    JSON.parse(localStorage.getItem('user') || '{}'),
+    (JSON.parse(localStorage.getItem('user') || '{}') || {}),
   );
   const [loading, setLoading] = useState(true);
   // State for scroll

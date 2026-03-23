@@ -71,10 +71,12 @@ const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
                     <span
                       className={cn(
                         "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-                        dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" : "bg-emerald-500/10 text-emerald-500"
+                        dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" :
+                          dist.type === 'saving' ? "bg-teal-500/10 text-teal-600" :
+                            "bg-emerald-500/10 text-emerald-500"
                       )}
                     >
-                      {dist.type === 'share' ? 'Business Share' : 'Regular'}
+                      {dist.type === 'share' ? 'Business Share' : dist.type === 'saving' ? 'Saving Profit' : 'Regular'}
                     </span>
                   </td>
                   <td className="px-8 py-5">

@@ -13,7 +13,7 @@ const Pricing = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('user');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
     setIsAuthenticated(!!token);
     if (token && user.plan) {
       setCurrentPlan(user.plan);

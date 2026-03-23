@@ -10,6 +10,7 @@ const InternalTransferForm = ({ member, onSuccess }) => {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accountType, setAccountType] = useState('current');
   const [lookupData, setLookupData] = useState(null);
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -53,14 +54,16 @@ const InternalTransferForm = ({ member, onSuccess }) => {
     if (!lookupData) return toast.error('Valid recipient required');
     if (!amount || isNaN(amount) || amount <= 0)
       return toast.error('Enter a valid amount');
-    if (amount > member?.currentBalance)
-      return toast.error('Insufficient funds');
+    const availableBalance = accountType === 'current' ? member?.currentBalance : member?.savingBalance;
+    if (amount > availableBalance)
+      return toast.error(`Insufficient ${accountType} funds`);
 
     setLoading(true);
     try {
       await api.post('/members/portal/transfer', {
         recipientId: lookupData._id,
         amount: parseFloat(amount),
+        accountType,
         description: note || `Transfer to ${lookupData.name}`,
       });
       toast.success('Transfer sent successfully!');
@@ -86,6 +89,31 @@ const InternalTransferForm = ({ member, onSuccess }) => {
       </div>
 
       <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40">
+        <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
+          <button
+            type="button"
+            onClick={() => setAccountType('current')}
+            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              accountType === 'current'
+                ? 'bg-primary text-white shadow-lg'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            Current
+          </button>
+          <button
+            type="button"
+            onClick={() => setAccountType('saving')}
+            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              accountType === 'saving'
+                ? 'bg-teal-500 text-white shadow-lg'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            Saving
+          </button>
+        </div>
+
         <div className="space-y-2 text-left">
           <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
             Recipient Email or Finflo ID
@@ -157,7 +185,7 @@ const InternalTransferForm = ({ member, onSuccess }) => {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="1"
-              max={member?.currentBalance || 0}
+              max={accountType === 'current' ? (member?.currentBalance || 0) : (member?.savingBalance || 0)}
             />
           </div>
         </div>

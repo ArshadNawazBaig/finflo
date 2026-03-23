@@ -39,7 +39,7 @@ import {
 
 const Support = () => {
   const [user] = useState(() =>
-    JSON.parse(localStorage.getItem('user') || '{}'),
+    (JSON.parse(localStorage.getItem('user') || '{}') || {}),
   );
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);

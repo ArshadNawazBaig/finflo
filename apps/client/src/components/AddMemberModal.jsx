@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import KycOcrScanner from './kyc/KycOcrScanner';
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const [loading, setLoading] = useState(false);
   const [savingAccountNumber, setSavingAccountNumber] = useState('');
   const [currentAccountNumber, setCurrentAccountNumber] = useState('');

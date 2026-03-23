@@ -89,6 +89,7 @@ const MemberProfile = () => {
   const [showInvestmentForm, setShowInvestmentForm] = useState(false);
   const [showProfitRateForm, setShowProfitRateForm] = useState(false);
   const [investmentType, setInvestmentType] = useState('deposit');
+  const [investAccountType, setInvestAccountType] = useState('current');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
@@ -96,6 +97,7 @@ const MemberProfile = () => {
   const [recipientIdentifier, setRecipientIdentifier] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [transferDescription, setTransferDescription] = useState('');
+  const [transferAccountType, setTransferAccountType] = useState('current');
   const [isTransferring, setIsTransferring] = useState(false);
   const [recalcLoading, setRecalcLoading] = useState(false);
   const [searchTransferResults, setSearchTransferResults] = useState([]);
@@ -599,14 +601,17 @@ const MemberProfile = () => {
     try {
       setIsSubmittingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
+      const isSaving = investAccountType === 'saving';
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
         description,
-        applyDeduction: investmentType === 'deposit' ? applyDeduction : false,
-        repaymentType: investmentType === 'deposit' ? repaymentType : undefined,
+        accountType: investAccountType,
+        applyDeduction: investmentType === 'deposit' && !isSaving ? applyDeduction : false,
+        repaymentType: investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
       });
+      const accountLabel = isSaving ? 'Saving' : 'Current';
       toast.success(
-        `${investmentType === 'deposit' ? 'Investment added' : 'Withdrawal processed'} successfully`,
+        `${accountLabel} account ${investmentType === 'deposit' ? 'deposit' : 'withdrawal'} processed successfully`,
       );
       setAmount('');
       setDescription('');
@@ -650,6 +655,7 @@ const MemberProfile = () => {
         senderId: id,
         recipientIdentifier: recipientIdentifier.trim(),
         amount: parseFloat(transferAmount),
+        accountType: transferAccountType,
         description: transferDescription,
       });
 
@@ -886,12 +892,19 @@ const MemberProfile = () => {
       </PageHeader>
 
       {/* Stats Row */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-5">
         <StatsCard
-          title="Current Balance"
+          title="Current Account"
           amount={formatCurrency(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
           color="bg-primary text-primary border-primary/20"
+          isGlass
+        />
+        <StatsCard
+          title="Saving Account"
+          amount={formatCurrency(member.savingBalance || 0)}
+          icon={<BadgeDollarSign size={18} />}
+          color="bg-teal-500 text-teal-600 border-teal-500/20"
           isGlass
         />
         <StatsCard
@@ -902,8 +915,8 @@ const MemberProfile = () => {
           isGlass
         />
         <StatsCard
-          title="Total Yield Earned"
-          amount={formatCurrency(member.totalProfit || 0)}
+          title="Saving Profit"
+          amount={formatCurrency(member.totalSavingProfit || 0)}
           icon={<TrendingUp size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
           isGlass
@@ -1340,6 +1353,30 @@ const MemberProfile = () => {
                 </form>
               ) : showTransferForm ? (
                 <form onSubmit={handleTransfer} className="space-y-6">
+                  <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setTransferAccountType('current')}
+                      className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        transferAccountType === 'current'
+                          ? 'bg-primary text-white shadow-lg'
+                          : 'text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      Current
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTransferAccountType('saving')}
+                      className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        transferAccountType === 'saving'
+                          ? 'bg-teal-500 text-white shadow-lg'
+                          : 'text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      Saving
+                    </button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 relative">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -1469,29 +1506,55 @@ const MemberProfile = () => {
                 </form>
               ) : (
                 <form onSubmit={handleInvestmentSubmit} className="space-y-6">
-                  <div className="flex gap-4 p-1 bg-muted/30 rounded-2xl w-fit">
-                    <button
-                      type="button"
-                      onClick={() => setInvestmentType('deposit')}
-                      className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                        investmentType === 'deposit'
-                          ? 'bg-emerald-500 text-white shadow-lg'
-                          : 'text-muted-foreground hover:bg-muted'
-                      }`}
-                    >
-                      Deposit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setInvestmentType('withdrawal')}
-                      className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                        investmentType === 'withdrawal'
-                          ? 'bg-indigo-500 text-white shadow-lg'
-                          : 'text-muted-foreground hover:bg-muted'
-                      }`}
-                    >
-                      Withdraw
-                    </button>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
+                      <button
+                        type="button"
+                        onClick={() => setInvestmentType('deposit')}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          investmentType === 'deposit'
+                            ? 'bg-emerald-500 text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        Deposit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInvestmentType('withdrawal')}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          investmentType === 'withdrawal'
+                            ? 'bg-indigo-500 text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        Withdraw
+                      </button>
+                    </div>
+                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
+                      <button
+                        type="button"
+                        onClick={() => setInvestAccountType('current')}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          investAccountType === 'current'
+                            ? 'bg-primary text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        Current
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInvestAccountType('saving')}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          investAccountType === 'saving'
+                            ? 'bg-teal-500 text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        Saving
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1524,7 +1587,7 @@ const MemberProfile = () => {
                     </div>
                   </div>
 
-                  {investmentType === 'deposit' &&
+                  {investmentType === 'deposit' && investAccountType === 'current' &&
                     loans.some((l) => l.status === 'active') && (
                       <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4 animate-in slide-in-from-top-4 duration-500">
                         <div className="flex items-center justify-between">

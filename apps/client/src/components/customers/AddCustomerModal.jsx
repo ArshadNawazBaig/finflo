@@ -21,7 +21,7 @@ import {
 import KycOcrScanner from '../kyc/KycOcrScanner';
 
 const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fetchingBranches, setFetchingBranches] = useState(false);

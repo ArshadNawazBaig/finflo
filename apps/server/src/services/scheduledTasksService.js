@@ -308,6 +308,132 @@ const runTrustRatingRecalc = async () => {
   }
 };
 
+// ─── Job 5: Daily Saving Account Profit Accrual ─────────────────────────────
+/**
+ * Runs daily at 02:00.
+ * For each admin with a savingProfitRate > 0, applies daily prorated profit
+ * to every active member's saving balance.
+ * Daily Profit = savingBalance × (annualRate / 100 / 365)
+ */
+const runSavingProfitAccrual = async () => {
+  console.log('[CRON] runSavingProfitAccrual: starting...');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  try {
+    const User = require('../models/User');
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const ProfitDistribution = require('../models/ProfitDistribution');
+    const FinancialTransaction = require('../models/FinancialTransaction');
+
+    // Find all admin users with saving profit rate > 0
+    const admins = await User.find({
+      role: { $in: ['admin'] },
+      savingProfitRate: { $gt: 0 },
+      isActive: true,
+    });
+
+    if (admins.length === 0) {
+      console.log('[CRON] runSavingProfitAccrual: no admins with saving profit rate. Skipping.');
+      return;
+    }
+
+    let totalProcessed = 0;
+    let totalProfitDistributed = 0;
+
+    for (const admin of admins) {
+      const annualRate = admin.savingProfitRate;
+      const dailyRate = annualRate / 100 / 365;
+
+      // Find all active members belonging to this admin with saving balance > 0
+      const members = await Member.find({
+        user: admin._id,
+        status: 'Active',
+        savingBalance: { $gt: 0 },
+      });
+
+      if (members.length === 0) continue;
+
+      const period = today.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+
+      for (const member of members) {
+        // De-dupe: skip if profit already applied today
+        if (member.lastSavingProfitAt) {
+          const lastApplied = new Date(member.lastSavingProfitAt);
+          lastApplied.setHours(0, 0, 0, 0);
+          if (lastApplied.getTime() === today.getTime()) continue;
+        }
+
+        const dailyProfit = Math.round(member.savingBalance * dailyRate);
+        if (dailyProfit <= 0) continue;
+
+        // Atomically update saving balance and profit
+        const updatedMember = await Member.findByIdAndUpdate(
+          member._id,
+          {
+            $inc: { savingBalance: dailyProfit, totalSavingProfit: dailyProfit },
+            $set: { lastSavingProfitAt: new Date() },
+          },
+          { new: true },
+        );
+
+        // Create investment record for the profit
+        const investment = await Investment.create({
+          user: admin._id,
+          member: member._id,
+          branchId: member.branchId,
+          type: 'profit',
+          accountType: 'saving',
+          amount: dailyProfit,
+          description: `Daily saving profit (${annualRate}% annual)`,
+          balanceAfter: updatedMember.savingBalance,
+        });
+
+        // Create ProfitDistribution record
+        await ProfitDistribution.create({
+          user: admin._id,
+          member: member._id,
+          branchId: member.branchId,
+          amount: dailyProfit,
+          type: 'saving',
+          period,
+          description: `Daily saving profit accrual at ${annualRate}% annual rate`,
+          calculationMethod: 'daily_rate',
+          investmentSharePercent: dailyRate * 100,
+        });
+
+        // Create Financial Transaction
+        await new FinancialTransaction({
+          user: admin._id,
+          branchId: member.branchId,
+          type: 'expense',
+          category: 'saving_profit',
+          amount: dailyProfit,
+          date: new Date(),
+          description: `Daily saving profit for ${member.name}`,
+          member: member._id,
+          referenceId: investment._id,
+          referenceModel: 'Investment',
+        }).save();
+
+        totalProcessed++;
+        totalProfitDistributed += dailyProfit;
+      }
+    }
+
+    console.log(
+      `[CRON] runSavingProfitAccrual: distributed profit to ${totalProcessed} member(s). Total: ${totalProfitDistributed}`,
+    );
+  } catch (err) {
+    console.error('[CRON] runSavingProfitAccrual ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -327,7 +453,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 4 jobs registered.');
+  // Job 5: Daily saving profit accrual at 02:30
+  cron.schedule('30 2 * * *', runSavingProfitAccrual, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 5 jobs registered.');
 };
 
 module.exports = {
@@ -337,4 +468,5 @@ module.exports = {
   runLateFeeAccrual,
   runRepaymentReminders,
   runTrustRatingRecalc,
+  runSavingProfitAccrual,
 };

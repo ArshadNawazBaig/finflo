@@ -7,15 +7,15 @@ const Logo = ({
   innerTextColor = '',
 }) => {
   const [session, setSession] = React.useState(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const member = JSON.parse(localStorage.getItem('member') || '{}');
+    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {}) || {};
+    const member = JSON.parse(localStorage.getItem('member') || '{}') || {};
     return Object.keys(user).length > 0 ? user : member;
   });
 
   React.useEffect(() => {
     const handleUpdate = () => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const member = JSON.parse(localStorage.getItem('member') || '{}');
+      const user = (JSON.parse(localStorage.getItem('user') || '{}') || {}) || {};
+      const member = JSON.parse(localStorage.getItem('member') || '{}') || {};
       setSession(Object.keys(user).length > 0 ? user : member);
     };
 
