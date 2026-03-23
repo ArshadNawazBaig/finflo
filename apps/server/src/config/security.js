@@ -84,8 +84,10 @@ const helmetOptions = {
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'self'", 'https://js.stripe.com', 'https://accounts.google.com'],
+      upgradeInsecureRequests: null,
     },
   },
+  hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
 };
 
 const apiLimiter = rateLimit({
