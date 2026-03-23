@@ -25,7 +25,7 @@ const Hero = () => {
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white">
                 Scale Your <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 via-primary to-emerald-500 italic">
+                <span className="text-primary italic">
                   Lending Empire.
                 </span>
               </h1>
