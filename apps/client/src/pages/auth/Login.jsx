@@ -159,7 +159,7 @@ const Login = () => {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       console.log('Initializing GoogleAuth with explicit clientId and scopes...');
       await GoogleAuth.initialize({
-        clientId: '52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com',
+        clientId: import.meta.env.VITE_GOOGLE_ANDROID_CLIENT_ID,
         scopes: 'profile,email'
       });
       const googleUser = await GoogleAuth.signIn();
@@ -380,7 +380,7 @@ const Login = () => {
             type="submit"
             disabled={loading}
             variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative"
+            className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative flex items-center justify-center"
           >
             <span
               className={cn(
@@ -409,7 +409,7 @@ const Login = () => {
             </div>
           </div>
 
-          <div>
+          <div className="flex flex-col items-center justify-center w-full space-y-4">
             {(() => {
               try {
                 const isNative = window.Capacitor?.getPlatform() !== 'web';
@@ -419,7 +419,7 @@ const Login = () => {
                       type="button"
                       onClick={signInWithGoogleNative}
                       variant="outline"
-                      className="h-12 w-full rounded-xl border-border bg-background shadow-sm hover:bg-accent flex items-center justify-center gap-3 group transition-all"
+                      className="h-12 w-full max-w-sm rounded-xl border-border bg-background shadow-sm hover:bg-accent flex items-center justify-center gap-3 group transition-all"
                     >
                       <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -449,14 +449,16 @@ const Login = () => {
                 // Fallback to web Google Login if Capacitor or plugin is not available
               }
               return (
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  shape="pill"
-                  size="large"
-                  theme="outline"
-                  width="100%"
-                />
+                <div className="w-full flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    shape="pill"
+                    size="large"
+                    theme="outline"
+                    width="100%"
+                  />
+                </div>
               );
             })()}
           </div>

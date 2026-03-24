@@ -97,7 +97,7 @@ const ForgotPassword = () => {
               type="submit"
               disabled={loading}
               variant="gradient"
-              className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10"
+              className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
             >
               <span
                 className={cn(

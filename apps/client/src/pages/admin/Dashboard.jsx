@@ -165,7 +165,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+    const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
     if (user?.name) setUserName(user.name);
 
     // Detect branch manager and resolve branch name

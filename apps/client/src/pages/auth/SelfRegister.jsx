@@ -449,7 +449,7 @@ const SelfRegister = () => {
           type="submit"
           disabled={isSubmitting}
           variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10"
+          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10 flex items-center justify-center"
         >
           <span className="flex items-center justify-center gap-2 transition-all duration-300">
             {isSubmitting ? (

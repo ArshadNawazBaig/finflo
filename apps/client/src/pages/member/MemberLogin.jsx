@@ -16,6 +16,7 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import { GoogleLogin } from '@react-oauth/google';
 import { useSetAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
+import { cn } from '@/lib/utils';
 
 const MemberLogin = () => {
   const navigate = useNavigate();
@@ -149,7 +150,7 @@ const MemberLogin = () => {
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       await GoogleAuth.initialize({
-        clientId: '52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com',
+        clientId: import.meta.env.VITE_GOOGLE_ANDROID_CLIENT_ID,
         scopes: 'profile,email'
       });
       const googleUser = await GoogleAuth.signIn();
@@ -274,7 +275,7 @@ const MemberLogin = () => {
             isLoading={loading}
             disabled={otpCode.length !== 6}
             variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative shadow-lg shadow-primary/10"
+            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
           >
             Verify Code{' '}
             <ArrowRight
@@ -589,7 +590,7 @@ const MemberLogin = () => {
           type="submit"
           isLoading={loading}
           variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10"
+          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10 flex items-center justify-center"
         >
           Sign In to Portal
           <ArrowRight
@@ -609,19 +610,19 @@ const MemberLogin = () => {
           </div>
         </div>
 
-        <div className="flex justify-center flex-col items-center gap-2">
-          <p className="text-[10px] text-muted-foreground/70 text-center mb-1">
+        <div className="pt-2 text-center w-full flex flex-col items-center">
+          <p className="text-[10px] text-muted-foreground/70 mb-4 max-w-[280px] leading-relaxed">
             {!securityCodeValue || securityCodeValue.length < 6
-              ? 'Enter your Business Security Code first to enable Google Sign In'
-              : 'Use your Google account to sign in'}
+              ? 'Enter your 6-digit Business Security Code first to enable Google Sign In'
+              : 'Use your Google account to securely access your member portal'}
           </p>
 
           <div
-            className={
-              !securityCodeValue || securityCodeValue.length < 6
-                ? 'opacity-50 pointer-events-none'
-                : ''
-            }
+            className={cn(
+              'w-full flex justify-center',
+              (!securityCodeValue || securityCodeValue.length < 6) &&
+                'opacity-50 pointer-events-none'
+            )}
           >
             {(() => {
               try {

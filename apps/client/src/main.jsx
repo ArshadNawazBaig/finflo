@@ -63,7 +63,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <HelmetProvider>
       <GoogleOAuthProvider
-        clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}
+        clientId={import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID || ''}
       >
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <App />

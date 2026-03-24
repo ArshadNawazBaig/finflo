@@ -135,7 +135,7 @@ const AuthLayout = ({
                   </Link>
                 </div>
               )}
-              <div className="space-y-3">
+              <div className="space-y-3 text-center">
                 <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-foreground leading-tight">
                   {title}
                 </h2>

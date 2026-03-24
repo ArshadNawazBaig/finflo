@@ -10,6 +10,7 @@ import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import InfiniteLoader from '@/components/InfiniteLoader';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
@@ -19,6 +20,31 @@ import TableSearch from '@/components/ui/TableSearch';
 import DistributionTable from '@/components/distributions/DistributionTable';
 import DistributionCard from '@/components/distributions/DistributionCard';
 import { useIsMobile } from '@/hooks/useIsMobile';
+
+const DistributionCardSkeleton = () => (
+  <div className="p-5 rounded-[2rem] border border-border/50 bg-background/40 animate-pulse">
+    <div className="flex justify-between items-start mb-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-muted/30" />
+        <div className="space-y-2">
+          <div className="h-4 w-24 bg-muted/30 rounded" />
+          <div className="h-3 w-16 bg-muted/20 rounded" />
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-2">
+        <div className="h-5 w-12 bg-muted/20 rounded-full" />
+        <div className="h-3 w-10 bg-muted/10 rounded" />
+      </div>
+    </div>
+    <div className="flex justify-between items-end">
+      <div className="space-y-2">
+        <div className="h-6 w-20 bg-muted/30 rounded" />
+        <div className="h-3 w-28 bg-muted/20 rounded" />
+      </div>
+      <div className="h-3 w-16 bg-muted/10 rounded italic" />
+    </div>
+  </div>
+);
 
 const DistributionHub = () => {
   const [data, setData] = useState({
@@ -197,14 +223,9 @@ const DistributionHub = () => {
               </div>
             )}
 
-            {/* Infinite Scroll Trigger */}
-            <div ref={observerTarget} className="h-4 w-full" />
-            
-            {isFetchingMore && (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <DistributionCardSkeleton key={i} />
-                ))}
+            {data.pagination.page < data.pagination.pages && (
+              <div ref={observerTarget}>
+                <InfiniteLoader isFetchingMore={isFetchingMore} />
               </div>
             )}
           </div>
