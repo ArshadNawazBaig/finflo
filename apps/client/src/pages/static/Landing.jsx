@@ -98,7 +98,7 @@ const Landing = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'finflo',
+    name: 'Finflo Banking OS',
     operatingSystem: 'Web',
     applicationCategory: 'FinanceApplication',
     description:
