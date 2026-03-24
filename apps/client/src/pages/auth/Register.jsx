@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
+  useDocumentTitle('Register');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 

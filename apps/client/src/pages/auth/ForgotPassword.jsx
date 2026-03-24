@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Mail, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const ForgotPassword = () => {
+  useDocumentTitle('Forgot Password');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);

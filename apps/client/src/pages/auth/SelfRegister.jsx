@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
@@ -28,6 +29,7 @@ import { SOCKET_URL } from '@/lib/constants';
  * Public facing page where members can self-register given a business security code inline.
  */
 const SelfRegister = () => {
+  useDocumentTitle('Join');
   const { code } = useParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);

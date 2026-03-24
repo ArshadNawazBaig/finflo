@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -20,6 +21,7 @@ import { userAtom } from '@/atoms';
 import { Capacitor } from '@capacitor/core';
 
 const Login = () => {
+  useDocumentTitle('Login');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const setUser = useSetAtom(userAtom);

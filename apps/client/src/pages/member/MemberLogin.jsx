@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -19,6 +20,7 @@ import { memberAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 
 const MemberLogin = () => {
+  useDocumentTitle('Member Login');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);

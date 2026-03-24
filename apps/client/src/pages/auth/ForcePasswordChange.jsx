@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Lock, KeyRound, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
 
 const ForcePasswordChange = ({ isMember = false }) => {
+  useDocumentTitle('Change Password');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);

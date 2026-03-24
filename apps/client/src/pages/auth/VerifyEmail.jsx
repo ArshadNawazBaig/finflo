@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '@/lib/axios';
@@ -9,6 +10,7 @@ import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const VerifyEmail = () => {
+  useDocumentTitle('Verify Email');
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');

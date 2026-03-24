@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -10,6 +11,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import PasswordInput from '@/components/ui/PasswordInput';
 
 const MemberResetPassword = () => {
+  useDocumentTitle('Reset Password');
   const { token } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/axios';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
 
 const MemberForgotPassword = () => {
+  useDocumentTitle('Forgot Password');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 

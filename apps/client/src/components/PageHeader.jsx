@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const SITE_NAME = 'finflo';
 
 const PageHeader = ({
   title,
@@ -14,6 +17,16 @@ const PageHeader = ({
   children,
 }) => {
   const isCard = variant === 'card';
+
+  // Auto-update browser tab title
+  useEffect(() => {
+    if (title && typeof title === 'string') {
+      document.title = `${title} | ${SITE_NAME}`;
+    }
+    return () => {
+      document.title = SITE_NAME;
+    };
+  }, [title]);
 
   // Helper to split title and color the last word
   const renderTitle = () => {
