@@ -384,9 +384,9 @@ const OnboardingGuide = ({ steps, userId, role }) => {
                   </motion.div>
                   <button
                     onClick={handleComplete}
-                    className="p-2 -mr-2 rounded-full hover:bg-white/5 text-muted-foreground/50 hover:text-foreground transition-all"
+                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:text-primary transition-all px-4 py-2 rounded-full hover:bg-primary/5 border border-border/10 flex items-center gap-2 group"
                   >
-                    <X size={20} />
+                    Skip <X size={14} className="group-hover:rotate-90 transition-transform" />
                   </button>
                 </div>
 
@@ -419,7 +419,7 @@ const OnboardingGuide = ({ steps, userId, role }) => {
                     ))}
                   </div>
                   <div className="flex gap-3 justify-between w-full items-center">
-                    {currentStep > 0 && (
+                    {currentStep > 0 ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -428,6 +428,8 @@ const OnboardingGuide = ({ steps, userId, role }) => {
                       >
                         <ChevronLeft size={14} className="mr-1" /> Back
                       </Button>
+                    ) : (
+                      <div />
                     )}
                     <Button
                       variant="gradient"
