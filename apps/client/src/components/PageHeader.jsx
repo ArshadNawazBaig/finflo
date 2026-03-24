@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SITE_NAME = 'finflo';
+const SITE_NAME = 'Finflo Banking OS';
 
 const PageHeader = ({
   title,

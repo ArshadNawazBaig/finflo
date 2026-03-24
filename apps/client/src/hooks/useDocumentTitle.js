@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SITE_NAME = 'finflo';
+const SITE_NAME = 'Finflo Banking OS';
 
 /**
  * Sets the browser tab title. Resets to site name on unmount.

@@ -16,7 +16,7 @@ const SEO = ({
   ogType = 'website',
   ogImage,
 }) => {
-  const siteName = 'finflo';
+  const siteName = 'Finflo Banking OS';
   const fullTitle = title ? `${title} | ${siteName}` : siteName;
   const defaultDescription =
     'FinFlo Banking OS - Secure, cloud-native finance management system designed for global financial institutions.';
