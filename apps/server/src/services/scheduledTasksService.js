@@ -123,13 +123,6 @@ const runLateFeeAccrual = async () => {
       const daysLate = daysBetween(nextDue, today);
       if (daysLate <= GRACE_PERIOD_DAYS) continue;
 
-      // Already applied a fee today?
-      if (loan.lateFeeAppliedAt) {
-        const lastApplied = new Date(loan.lateFeeAppliedAt);
-        lastApplied.setHours(0, 0, 0, 0);
-        if (lastApplied.getTime() === today.getTime()) continue;
-      }
-
       const dailyFee = Math.round((loan.emi * LATE_FEE_RATE) / 30);
       const maxFee = Math.round(loan.remainingAmount * LATE_FEE_CAP_PCT);
       const currentAccrued = loan.lateFeeAmount || 0;
@@ -139,10 +132,22 @@ const runLateFeeAccrual = async () => {
       const applicableFee = Math.min(dailyFee, maxFee - currentAccrued);
       if (applicableFee <= 0) continue;
 
-      await Loan.findByIdAndUpdate(loan._id, {
-        $inc: { lateFeeAmount: applicableFee },
-        lateFeeAppliedAt: new Date(),
-      });
+      // Atomic update with daily de-duplication
+      const updatedLoan = await Loan.findOneAndUpdate(
+        {
+          _id: loan._id,
+          $or: [
+            { lateFeeAppliedAt: { $exists: false } },
+            { lateFeeAppliedAt: { $lt: today } },
+          ],
+        },
+        {
+          $inc: { lateFeeAmount: applicableFee },
+          $set: { lateFeeAppliedAt: new Date() },
+        },
+        { new: true },
+      );
+      if (!updatedLoan) continue;
 
       processed++;
     }
@@ -189,16 +194,31 @@ const runRepaymentReminders = async () => {
         const shouldRemind = daysUntilDue === 7 || daysUntilDue === 1;
         if (!shouldRemind) continue;
 
-        // De-dupe: check automatedReminders on loan
         const reminderKey = `reminder_${daysUntilDue}d_inst${item.installment}`;
-        const alreadySent = loan.automatedReminders?.some(
-          (r) =>
-            r.type === reminderKey && r.installmentNumber === item.installment,
-        );
-        if (alreadySent) continue;
-
+        
+        // De-dupe: check if already sent in this run (per instance) or in DB
         const customer = await Customer.findById(loan.customer);
         if (!customer?.isMember || !customer.memberId) continue;
+
+        // Atomic check and push to prevent multiple instances from sending
+        const updatedLoan = await Loan.findOneAndUpdate(
+          {
+            _id: loan._id,
+            'automatedReminders.type': { $ne: reminderKey },
+          },
+          {
+            $push: {
+              automatedReminders: {
+                type: reminderKey,
+                installmentNumber: item.installment,
+                sentAt: new Date(),
+              },
+            },
+          },
+          { new: true },
+        );
+
+        if (!updatedLoan) continue;
 
         const label = daysUntilDue === 7 ? 'in 7 days' : 'tomorrow';
         await createTransactionNotification({
@@ -209,17 +229,6 @@ const runRepaymentReminders = async () => {
           branchId: loan.branchId,
           action: 'upcoming_emi_reminder',
           metadata: { loanId: loan._id, link: '/member/loans' },
-        });
-
-        // Mark as sent
-        await Loan.findByIdAndUpdate(loan._id, {
-          $push: {
-            automatedReminders: {
-              type: reminderKey,
-              installmentNumber: item.installment,
-              sentAt: new Date(),
-            },
-          },
         });
 
         sent++;
@@ -362,25 +371,29 @@ const runSavingProfitAccrual = async () => {
       });
 
       for (const member of members) {
-        // De-dupe: skip if profit already applied today
-        if (member.lastSavingProfitAt) {
-          const lastApplied = new Date(member.lastSavingProfitAt);
-          lastApplied.setHours(0, 0, 0, 0);
-          if (lastApplied.getTime() === today.getTime()) continue;
-        }
-
         const dailyProfit = Math.round(member.savingBalance * dailyRate);
         if (dailyProfit <= 0) continue;
 
-        // Atomically update saving balance and profit
-        const updatedMember = await Member.findByIdAndUpdate(
-          member._id,
+        // Atomic update with daily de-duplication
+        const updatedMember = await Member.findOneAndUpdate(
           {
-            $inc: { savingBalance: dailyProfit, totalSavingProfit: dailyProfit },
+            _id: member._id,
+            $or: [
+              { lastSavingProfitAt: { $exists: false } },
+              { lastSavingProfitAt: { $lt: today } },
+            ],
+          },
+          {
+            $inc: {
+              savingBalance: dailyProfit,
+              totalSavingProfit: dailyProfit,
+            },
             $set: { lastSavingProfitAt: new Date() },
           },
           { new: true },
         );
+
+        if (!updatedMember) continue;
 
         // Create investment record for the profit
         const investment = await Investment.create({
