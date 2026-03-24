@@ -114,6 +114,7 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('admin');
   const [isManager, setIsManager] = useState(false);
   const [branchName, setBranchName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [dateRange, setDateRange] = useState({
     from: subMonths(new Date(), 6),
     to: new Date(),
@@ -167,6 +168,9 @@ const Dashboard = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
     if (user?.name) setUserName(user.name);
+    if (user?.businessName) setBusinessName(user.businessName);
+    if (user?.business?.businessName && !user?.businessName)
+      setBusinessName(user.business.businessName);
 
     // Detect branch manager and resolve branch name
     const managerFlag = user?.isManager === true;
@@ -223,7 +227,9 @@ const Dashboard = () => {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* ── Page Header ──────────────────────────────────────── */}
       <PageHeader
-        title="Financial Dashboard"
+        title={
+          businessName ? `${businessName} Dashboard` : 'Financial Dashboard'
+        }
         description={
           <>
             Welcome back,{' '}
@@ -692,7 +698,7 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="h-full min-h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-border/40 bg-card/30 text-muted-foreground/50 gap-2">
+                  <div className="h-full min-h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-border bg-card text-muted-foreground/50 gap-2">
                     <ShieldCheck size={32} className="opacity-30" />
                     <p className="text-xs font-black uppercase tracking-widest">
                       No risk data yet
