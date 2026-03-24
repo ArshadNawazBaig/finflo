@@ -23,6 +23,10 @@ import AuthRoutes from '@/routes/AuthRoutes';
 
 // Shared Lazy Components
 const Landing = lazy(() => import('@/pages/static/Landing'));
+const PrivacyPolicy = lazy(() => import('@/pages/static/PrivacyPage'));
+const TermsOfService = lazy(() => import('@/pages/static/TermsPage'));
+const Documentation = lazy(() => import('@/pages/static/Documentation'));
+const ApiDocumentation = lazy(() => import('@/pages/static/ApiDocumentation'));
 const Login = lazy(() => import('@/pages/auth/Login'));
 const SelfRegister = lazy(() => import('@/pages/auth/SelfRegister'));
 const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
@@ -66,6 +70,10 @@ function App() {
               {/* Shared Top-level Routes */}
               <Route path="/loan-lookup" element={<LoanLookup />} />
               <Route path="/join/:code?" element={<SelfRegister />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/documentation" element={<Documentation />} />
+              <Route path="/documentation/api" element={<ApiDocumentation />} />
 
               {/* Auth Routes */}
               {AuthRoutes()}
