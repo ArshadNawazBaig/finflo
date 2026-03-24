@@ -61,18 +61,7 @@ function App() {
           ) : (
             <>
               {/* On App Domain, / redirects to login or dashboard */}
-              <Route
-                path="/"
-                element={
-                  IS_APP_DOMAIN && !IS_DEV ? (
-                    <RedirectIfAuthenticated>
-                      <Login />
-                    </RedirectIfAuthenticated>
-                  ) : (
-                    <Landing />
-                  )
-                }
-              />
+              <Route path="/" element={<Landing />} />
 
               {/* Shared Top-level Routes */}
               <Route path="/loan-lookup" element={<LoanLookup />} />
