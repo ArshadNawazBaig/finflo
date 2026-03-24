@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-const RedirectIfAuthenticated = () => {
+const RedirectIfAuthenticated = ({ children }) => {
   const token = localStorage.getItem('user');
   const location = useLocation();
 
@@ -27,7 +27,8 @@ const RedirectIfAuthenticated = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <Outlet />;
+  return children || <Outlet />;
 };
 
 export default RedirectIfAuthenticated;
+
