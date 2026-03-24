@@ -17,6 +17,8 @@ const allowedOrigins = [
   'capacitor://localhost',
   'http://localhost',
   'https://finflo-production.up.railway.app',
+  'https://app.finflo.org',
+  'https://finflo.org',
 ];
 
 const corsOptions = {
@@ -29,6 +31,7 @@ const corsOptions = {
       allowedOrigins.includes(origin) ||
       /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/.test(origin) ||
       /^https:\/\/[a-z0-9-]+(\.up\.railway\.app)$/.test(origin) ||
+      /^https:\/\/(.*\.)?finflo\.org$/.test(origin) ||
       (process.env.NODE_ENV !== 'production' &&
         (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
           /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
