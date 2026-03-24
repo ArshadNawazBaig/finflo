@@ -16,18 +16,45 @@ const Footer = () => {
             Precision-engineered for global capital flow.
           </p>
           <div className="flex gap-4">
-            {[Globe, Users, Activity, Award].map((Icon, i) => (
-              <div
-                key={i}
-                className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
-              >
-                <Icon
-                  size={20}
-                  strokeWidth={2.5}
-                  className="group-hover:scale-110 transition-transform"
-                />
-              </div>
-            ))}
+            {[
+              { Icon: Globe, link: '#architecture' },
+              { Icon: Users, link: '/join' },
+              { Icon: Activity, link: '/documentation/api' },
+              { Icon: Award, link: '/privacy' },
+            ].map(({ Icon, link }, i) => {
+              const IsExternal = link.startsWith('http');
+              const IsAnchor = link.startsWith('#');
+
+              if (IsAnchor) {
+                return (
+                  <a
+                    key={i}
+                    href={link}
+                    className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
+                  >
+                    <Icon
+                      size={20}
+                      strokeWidth={2.5}
+                      className="group-hover:scale-110 transition-transform"
+                    />
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={i}
+                  to={link}
+                  className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
+                >
+                  <Icon
+                    size={20}
+                    strokeWidth={2.5}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -70,6 +97,10 @@ const Footer = () => {
             <ul className="space-y-6">
               {col.items.map((item, j) => {
                 const linkMap = {
+                  'Ledger Core': '/documentation#architecture',
+                  'Neural Underwriting': '/documentation#architecture',
+                  'Neural Risks': '/documentation#architecture',
+                  'API Gateway': '/documentation/api',
                   'Global Policy': '/privacy',
                   'Terms of Service': '/terms',
                   'Loan Lookup Portal': '/loan-lookup',

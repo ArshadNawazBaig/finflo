@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const faqData = [
   {
@@ -93,8 +94,10 @@ const FAQItem = ({ question, answer, isOpen, onClick, index }) => {
   );
 };
 
-const FAQ = () => {
+const FAQ = ({ onContactClick }) => {
   const [openIndex, setOpenIndex] = useState(0);
+  const { settings } = useSystemSettings();
+  const supportEmail = settings?.supportEmail || 'support@finflo.org';
 
   return (
     <section
@@ -143,7 +146,10 @@ const FAQ = () => {
           <p className="text-white/80 font-medium mb-6">
             Our dedicated support team is ready to help you scale.
           </p>
-          <button className="px-8 py-4 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform">
+          <button
+            onClick={onContactClick}
+            className="inline-block px-8 py-4 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform"
+          >
             Contact Enterprise Support
           </button>
         </motion.div>

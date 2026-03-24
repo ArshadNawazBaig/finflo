@@ -3,14 +3,20 @@ const Branch = require('../models/Branch');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Loan = require('../models/Loan');
+const Lead = require('../models/Lead');
 
 // @desc    Get landing page stats (Active Members, Global Branches)
 // @route   GET /api/public/stats
 // @access  Public
 exports.getLandingStats = async (req, res) => {
   try {
+    // Count active businesses (User role: 'admin' and isActive: true)
+    const activeBusinessesCount = await User.countDocuments({
+      role: 'admin',
+      isActive: true,
+    });
+
     // Count active members (isActive: true)
-    // You might also want to check if the associated user is active, but keeping it simple for now
     const activeMembersCount = await Member.countDocuments({ isActive: true });
 
     // Count active branches
@@ -19,6 +25,7 @@ exports.getLandingStats = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
+        activeBusinesses: activeBusinessesCount,
         activeMembers: activeMembersCount,
         globalBranches: globalBranchesCount,
       },
@@ -88,6 +95,40 @@ exports.loanLookup = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error during lookup',
+    });
+  }
+};
+
+// @desc    Submit Contact/Lead form
+// @route   POST /api/public/contact
+// @access  Public
+exports.submitLead = async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email and message',
+      });
+    }
+
+    await Lead.create({
+      name,
+      email,
+      message,
+    });
+
+    res.status(201).json({
+      success: true,
+      message:
+        'Your message has been received. Our team will contact you soon.',
+    });
+  } catch (error) {
+    console.error('Lead Submission Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error submitting contact form',
     });
   }
 };

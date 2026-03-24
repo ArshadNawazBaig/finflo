@@ -11,6 +11,7 @@ import { useTheme } from '@/context/ThemeContext';
 
 import Navigation from '@/components/landing/Navigation';
 import SEO from '@/components/SEO';
+import ContactModal from '@/components/landing/ContactModal';
 
 // Lazy load sections for performance
 const Hero = lazy(() => import('@/components/landing/Hero'));
@@ -37,6 +38,7 @@ const Landing = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -48,23 +50,23 @@ const Landing = () => {
     () => [
       {
         icon: <Layers className="w-6 h-6 text-blue-500" />,
-        title: 'Multi-Branch Financial Engine',
+        title: 'Multi-Branch Atomic Engine',
         description:
-          'Orchestrate multiple branches with isolated ledger control, custom branding, and hierarchical role-based access from a single consolidated dashboard.',
+          'High-precision financial logic with Atomic Idempotent Operations. Orchestrate multiple branches with custom domains and isolated ledger control.',
         color: 'blue',
       },
       {
         icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
-        title: 'Automated Credit Risk Management',
+        title: 'Automated Credit & Risk Scoring',
         description:
-          'Smarter lending with real-time credit ceiling calculations based on member investment history and automated repayment performance tracking.',
+          'Smarter lending with real-time credit ceiling calculations and daily behavior-based risk updates. 100% data integrity for all profit distributions.',
         color: 'emerald',
       },
       {
         icon: <Users className="w-6 h-6 text-rose-500" />,
-        title: 'Member Lifecycle Management',
+        title: 'Interactive Member Ecosystem',
         description:
-          'Streamlined member onboarding with public self-service registration, live socket-driven approval workflows, and professional dynamic account generation.',
+          'Guided onboarding for members and staff, live socket-driven approval workflows, and professional dynamic account generation across the platform.',
         color: 'rose',
       },
       {
@@ -76,9 +78,9 @@ const Landing = () => {
       },
       {
         icon: <Sparkles className="w-6 h-6 text-amber-500" />,
-        title: 'Dynamic Business Branding',
+        title: 'Professional White-Label Branding',
         description:
-          'High-end professional identity with automated 13-digit dynamic account number generation tailored to your specific business abbreviation.',
+          'Enterprise-grade identity with custom domain support and automated 13-digit account numbers tailored to your specific business abbreviation.',
         color: 'amber',
       },
       {
@@ -143,10 +145,15 @@ const Landing = () => {
         <MobileShowcase />
         <Testimonials />
         <Pricing />
-        <FAQ />
-        <CTA />
+        <FAQ onContactClick={() => setIsContactModalOpen(true)} />
+        <CTA onContactClick={() => setIsContactModalOpen(true)} />
         <Footer />
       </Suspense>
+
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

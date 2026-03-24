@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
-const CTA = () => {
+const CTA = ({ onContactClick }) => {
+  const { settings } = useSystemSettings();
+  const supportEmail = settings?.supportEmail || 'support@finflo.org';
   return (
     <section className="py-24 px-6 relative z-10 overflow-hidden">
       <div className="max-w-6xl mx-auto">
@@ -38,7 +41,10 @@ const CTA = () => {
                   Initiate System Now
                 </Link>
               )}
-              <button className="bg-white/5 backdrop-blur-xl border border-white/10 px-10 py-5 rounded-full font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all active:scale-95">
+              <button
+                onClick={onContactClick}
+                className="inline-block bg-white/5 backdrop-blur-xl border border-white/10 px-10 py-5 rounded-full font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all active:scale-95 shadow-xl text-center"
+              >
                 Talk to Infrastructure
               </button>
             </div>

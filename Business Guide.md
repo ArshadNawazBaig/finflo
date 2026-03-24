@@ -11,7 +11,9 @@ Your journey begins with establishing your digital presence.
 - **Admin Account Creation**: Sign up as the primary business owner. This account grants full oversight of your financial ecosystem.
 - **Business Identity**:
   - Navigate to **Settings > Profile**.
-  - **Business Abbreviation**: Set a unique 3-4 character abbreviation (e.g., "MLO"). This prefix will be used for all generated account numbers, ensuring your professional branding.
+  - **Business Abbreviation**: Set a unique 3-4 character abbreviation (e.g., "MLO"). This prefix will be used for all generated account numbers.
+  - **Dynamic Branding**: Once set, your business name will automatically appear on all dashboard headers, reports, and browser tabs (e.g., "Dashboard | Finflo Banking OS").
+  - **Custom Domains**: The platform supports deployment on custom subdomains like `app.finflo.org`, ensuring a white-label experience for your team and members.
   - **Security Code**: Generate or set your organization's unique **Security Code**. This code is vital for member self-registration.
 - **Financial Localization**: Choose your **Preferred Currency** (e.g., Rs., $, €) to ensure all ledgers and reports align with your local operations.
 
@@ -27,9 +29,11 @@ Scale your business by defining your organizational structure.
   - Use the **Roles & Permissions** module to define exactly what each staff member can see and do (e.g., Manager, Teller, Auditor).
 - **Security Protocols**: Enable **Two-Factor Authentication (2FA)** for your administrative accounts to ensure the highest level of security.
 
-## 3. Onboarding Customers & Investors
+## 3. Onboarding & Community Building
 
-Build your community with advanced registration tools.
+Build your community with advanced registration and guidance tools.
+
+- **Interactive Onboarding**: New staff and admins are greeted by an automated high-resolution onboarding guide that walks through key system modules. Users have the flexibility to skip the guide at any step.
 
 ### Customer Registration
 

@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 
 const Stats = () => {
   const [stats, setStats] = useState({
+    activeBusinesses: '...',
     activeMembers: '...',
     globalBranches: '...',
     loanProcessing: '<2.4s',
@@ -16,6 +17,7 @@ const Stats = () => {
       try {
         const { data } = await api.get('/public/stats');
         setStats({
+          activeBusinesses: data.data.activeBusinesses + '+',
           activeMembers: data.data.activeMembers + '+',
           globalBranches: data.data.globalBranches,
           loanProcessing: '<2.4s',
@@ -25,6 +27,7 @@ const Stats = () => {
         console.error('Failed to fetch stats:', error);
         // Fallback to defaults if API fails
         setStats({
+          activeBusinesses: '12',
           activeMembers: '1.2M+',
           globalBranches: '850',
           loanProcessing: '<2.4s',
@@ -39,7 +42,7 @@ const Stats = () => {
   const statItems = [
     {
       label: 'Active Businesses',
-      value: stats.activeMembers,
+      value: stats.activeBusinesses,
       icon: <Building2 className="w-5 h-5 text-blue-500" />,
     },
     {

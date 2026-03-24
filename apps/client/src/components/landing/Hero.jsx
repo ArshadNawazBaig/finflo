@@ -21,18 +21,16 @@ const Hero = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
                 </span>
-                Financial Engineering 2.0 Released
+                Banking Engine 3.0: Atomic & Redundant
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white">
                 Scale Your <br />
-                <span className="text-primary italic">
-                  Lending Empire.
-                </span>
+                <span className="text-primary italic">Lending Empire.</span>
               </h1>
               <p className="text-base text-slate-600 dark:text-slate-400 font-medium max-w-lg leading-relaxed">
-                The world's most sophisticated lending operating system. Built
-                for hyper-growth institutions to automate complex portfolios
-                with AI-driven risk scoring and a multi-branch ecosystem.
+                The world's most sophisticated lending operating system. Now
+                powered by **Atomic Idempotent Operations** for 100% financial
+                integrity and full **White-Label Custom Branding**.
               </p>
             </motion.div>
 
@@ -75,17 +73,17 @@ const Hero = () => {
             >
               <div className="flex flex-col items-center text-center md:text-left md:items-start">
                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
-                  Trusted By Global Leaders
+                  Our Subsidiaries
                 </span>
-                <div className="flex gap-8 items-center overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
-                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white">
-                    FIN-TECH
+                <div className="flex gap-12 items-center overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
+                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white uppercase">
+                    NORTHSPEX
                   </span>
-                  <span className="text-lg font-black tracking-widest text-slate-900 dark:text-white">
-                    NEXUS
+                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white uppercase">
+                    CALIBREON
                   </span>
-                  <span className="text-lg font-black italic tracking-tight text-slate-900 dark:text-white">
-                    KREDO
+                  <span className="text-lg font-black italic text-slate-900 dark:text-white uppercase">
+                    MICRO LOANS.
                   </span>
                 </div>
               </div>

@@ -34,15 +34,21 @@ const Documentation = () => {
   const location = useLocation();
 
   useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && sections.some((s) => s.id === hash)) {
+      setActiveSection(hash);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.hash]);
+
+  useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    if (window.scrollY > 400) {
-      window.scrollTo({ top: 400, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeSection]);
 
   const sections = [
@@ -65,14 +71,10 @@ const Documentation = () => {
               onboarding to loan tracking,{' '}
               <strong className="text-foreground">P2P fund transfers</strong>,
               and automated reporting, providing everything you need to run a
-              successful lending business. Features include a powerful
-              <strong className="text-foreground">Member Portal</strong> for
-              comprehensive self-service, account management, and
-              <strong className="text-foreground">
-                {' '}
-                Automated Credit Limits
-              </strong>
-              .
+              successful lending business. Features include an{' '}
+              <strong className="text-foreground">Interactive Onboarding Experience</strong>,
+              a powerful <strong className="text-foreground">Member Portal</strong>,
+              and <strong className="text-foreground">Automated Credit Limits</strong>.
             </p>
           </div>
 
@@ -168,15 +170,16 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-bold flex items-center gap-2 text-indigo-500">
                 <Zap className="w-5 h-5" />
-                Intelligent Risk & Credit Engine
+                Intelligent Risk & Atomic Finance Engine
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The risk engine calculates Expected Credit Loss (ECL) and
-                Automated Credit Limits in real-time. It analyzes
-                investment-to-loan ratios, historical payment velocity, and
-                portfolio heath to provide dynamic lending suggestions. Credit
-                limits are automatically recalculated every 24 hours based on
-                active investment balances and repayment scoring.
+                Automated Credit Limits in real-time. Financial operations like
+                profit distribution and late fee accrual use **Atomic
+                Idempotent Operations** to ensure data integrity and prevent
+                duplicate distributions in high-availability environments.
+                Credit limits are automatically recalculated every 24 hours
+                based on active investment balances and repayment scoring.
               </p>
             </div>
 
@@ -351,17 +354,18 @@ const Documentation = () => {
               </p>
             </div>
             <div className="p-8 rounded-[2.5rem] bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Shield className="w-6 h-6 text-indigo-500" />
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Rocket className="w-6 h-6 text-emerald-500" />
               </div>
               <h3 className="text-xl font-bold mb-3">
-                KYC & OCR Document Vault
+                Interactive Onboarding & Dynamic Branding
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Secure encrypted storage for customer identification and
-                contracts. Powered by Tesseract OCR to automatically extract
-                CNIC, names, and critical document data directly from uploaded
-                images, accelerating onboarding.
+                New users are welcomed by a high-resolution interactive
+                onboarding guide. The entire platform, including dashboard
+                headers and reports, dynamically adapts to your business
+                branding based on your registered business name and custom
+                subdomain (`app.finflo.org`).
               </p>
             </div>
           </div>
