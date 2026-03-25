@@ -24,6 +24,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import { formatCNIC, validateEmail } from '@/lib/utils';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { SOCKET_URL } from '@/lib/constants';
+import SEO from '@/components/SEO';
 
 /**
  * Public facing page where members can self-register given a business security code inline.
@@ -133,24 +134,144 @@ const SelfRegister = () => {
     // Approval decision received
     if (approvalState === 'approved') {
       return (
+        <>
+          <SEO
+            title="Account Approved"
+            description="Your Finflo account has been approved. Redirecting to login..."
+            keywords="finflo approval, account active, banking registration success"
+          />
+          <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+
+            <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden text-center">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400" />
+              <CardContent className="pt-12 pb-10 px-8 space-y-6">
+                <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-500 animate-in zoom-in duration-500">
+                  <CheckCircle2 size={40} />
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-2xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">
+                    Account Approved! 🎉
+                  </CardTitle>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Your account has been approved. Redirecting you to login...
+                  </p>
+                </div>
+                <Button
+                  onClick={() =>
+                    navigate(
+                      `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
+                    )
+                  }
+                  variant="gradient"
+                  className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
+                >
+                  Go to Login
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      );
+    }
+
+    if (approvalState === 'rejected') {
+      return (
+        <>
+          <SEO
+            title="Registration Rejected"
+            description="Unfortunately, your registration was not approved."
+            keywords="registration rejected, finflo application status"
+          />
+          <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
+            <div className="absolute top-0 -left-4 w-72 h-72 bg-destructive/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+
+            <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden text-center">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-destructive/80 via-destructive to-destructive/80" />
+              <CardContent className="pt-12 pb-10 px-8 space-y-6">
+                <div className="w-20 h-20 bg-destructive/10 border border-destructive/20 rounded-full flex items-center justify-center mx-auto text-destructive animate-in zoom-in duration-500">
+                  <XCircle size={40} />
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-2xl font-black tracking-tight">
+                    Not Approved
+                  </CardTitle>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Unfortunately, your registration was not approved at this
+                    time.
+                  </p>
+                  {rejectionReason && (
+                    <div className="mt-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-left">
+                      <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-1">
+                        Reason
+                      </p>
+                      <p className="text-sm font-medium text-destructive/90">
+                        {rejectionReason}
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-muted-foreground text-xs leading-relaxed pt-2">
+                    Please contact the business administrator for assistance.
+                  </p>
+                </div>
+                <Button
+                  onClick={() =>
+                    navigate(
+                      `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
+                    )
+                  }
+                  variant="outline"
+                  className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
+                >
+                  Back to Login
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      );
+    }
+
+    // Default: pending / waiting state
+    return (
+      <>
+        <SEO
+          title="Application Pending"
+          description="Your registration is currently being reviewed by the administration."
+          keywords="finflo pending, application review, registration status"
+        />
         <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+          {/* Dynamic Background Blobs */}
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
           <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden text-center">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400" />
+
             <CardContent className="pt-12 pb-10 px-8 space-y-6">
               <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-500 animate-in zoom-in duration-500">
                 <CheckCircle2 size={40} />
               </div>
+
               <div className="space-y-2">
-                <CardTitle className="text-2xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">
-                  Account Approved! 🎉
+                <CardTitle className="text-2xl font-black tracking-tight">
+                  Application Received
                 </CardTitle>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Your account has been approved. Redirecting you to login...
+                  Your registration has been submitted and is currently being
+                  reviewed by the administration. You will be notified here as
+                  soon as a decision is made.
                 </p>
               </div>
+
+              {/* Live waiting indicator */}
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium py-2 px-4 rounded-full bg-muted/30 border border-border/40 w-fit mx-auto">
+                <Clock size={13} className="text-amber-500 animate-pulse" />
+                <span>Waiting for admin review...</span>
+              </div>
+
               <Button
                 onClick={() =>
                   navigate(
@@ -160,116 +281,24 @@ const SelfRegister = () => {
                 variant="gradient"
                 className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
               >
-                Go to Login
+                Return to Login
               </Button>
             </CardContent>
           </Card>
         </div>
-      );
-    }
-
-    if (approvalState === 'rejected') {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-destructive/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-
-          <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden text-center">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-destructive/80 via-destructive to-destructive/80" />
-            <CardContent className="pt-12 pb-10 px-8 space-y-6">
-              <div className="w-20 h-20 bg-destructive/10 border border-destructive/20 rounded-full flex items-center justify-center mx-auto text-destructive animate-in zoom-in duration-500">
-                <XCircle size={40} />
-              </div>
-              <div className="space-y-2">
-                <CardTitle className="text-2xl font-black tracking-tight">
-                  Not Approved
-                </CardTitle>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Unfortunately, your registration was not approved at this
-                  time.
-                </p>
-                {rejectionReason && (
-                  <div className="mt-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-left">
-                    <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-1">
-                      Reason
-                    </p>
-                    <p className="text-sm font-medium text-destructive/90">
-                      {rejectionReason}
-                    </p>
-                  </div>
-                )}
-                <p className="text-muted-foreground text-xs leading-relaxed pt-2">
-                  Please contact the business administrator for assistance.
-                </p>
-              </div>
-              <Button
-                onClick={() =>
-                  navigate(
-                    `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
-                  )
-                }
-                variant="outline"
-                className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
-              >
-                Back to Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-
-    // Default: pending / waiting state
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
-        {/* Dynamic Background Blobs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-emerald-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-400/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
-
-        <Card className="w-full max-w-md relative z-10 glass dark:glass-dark border-border/50 shadow-sm rounded-[2.5rem] overflow-hidden text-center">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400" />
-
-          <CardContent className="pt-12 pb-10 px-8 space-y-6">
-            <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-500 animate-in zoom-in duration-500">
-              <CheckCircle2 size={40} />
-            </div>
-
-            <div className="space-y-2">
-              <CardTitle className="text-2xl font-black tracking-tight">
-                Application Received
-              </CardTitle>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Your registration has been submitted and is currently being
-                reviewed by the administration. You will be notified here as
-                soon as a decision is made.
-              </p>
-            </div>
-
-            {/* Live waiting indicator */}
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium py-2 px-4 rounded-full bg-muted/30 border border-border/40 w-fit mx-auto">
-              <Clock size={13} className="text-amber-500 animate-pulse" />
-              <span>Waiting for admin review...</span>
-            </div>
-
-            <Button
-              onClick={() =>
-                navigate(
-                  `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
-                )
-              }
-              variant="gradient"
-              className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
-            >
-              Return to Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      </>
     );
   }
 
   return (
-    <AuthLayout
+    <>
+      <SEO
+        title="Join Finflo"
+        description="Create your Finflo account and join our secure banking network."
+        keywords="join finflo, business registration, banking member application, create finance account"
+        canonical="/join"
+      />
+      <AuthLayout
       title="Member Application"
       description="Please fill in your valid credentials to proceed with your onboarding."
       badge="Member Access Request"
@@ -483,6 +512,7 @@ const SelfRegister = () => {
         </div>
       </div>
     </AuthLayout>
+    </>
   );
 };
 

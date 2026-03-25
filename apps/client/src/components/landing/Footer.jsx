@@ -116,17 +116,7 @@ const Footer = () => {
 
                 if (path) {
                   if (IS_LANDING_DOMAIN && !IS_DEV && isAppLink) {
-                    return (
-                      <li key={j} className="w-fit">
-                        <a
-                          href={getAppUrl(path)}
-                          className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
-                        >
-                          {item}
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-                        </a>
-                      </li>
-                    );
+                    return null; // Hide app links on landing domain
                   }
                   return (
                     <li key={j} className="w-fit">

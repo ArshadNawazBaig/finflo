@@ -19,6 +19,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useSetAtom } from 'jotai';
 import { userAtom } from '@/atoms';
 import { Capacitor } from '@capacitor/core';
+import SEO from '@/components/SEO';
 
 const Login = () => {
   useDocumentTitle('Login');
@@ -233,7 +234,14 @@ const Login = () => {
   };
 
   return (
-    <AuthLayout
+    <>
+      <SEO
+        title="Member Login"
+        description="Login to your Finflo account to manage your finances, loans, and business operations."
+        keywords="finflo login, member portal, business console login, secure banking access"
+        canonical="/login"
+      />
+      <AuthLayout
       title={requires2FA ? 'Two-Factor Auth' : 'Welcome Back'}
       description={
         requires2FA
@@ -479,6 +487,7 @@ const Login = () => {
         </form>
       )}
     </AuthLayout>
+    </>
   );
 };
 

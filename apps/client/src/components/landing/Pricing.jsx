@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import useSystemSettings from '@/hooks/useSystemSettings';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 
-const Pricing = () => {
+const Pricing = ({ onContactClick }) => {
   const { settings } = useSystemSettings();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPlan, setCurrentPlan] = useState(null);
@@ -149,8 +149,8 @@ const Pricing = () => {
                     Current Plan
                   </div>
                 ) : IS_LANDING_DOMAIN && !IS_DEV ? (
-                  <a
-                    href={getLink(plan.name)}
+                  <button
+                    onClick={onContactClick}
                     className={cn(
                       'w-full py-5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-xl text-center',
                       plan.popular
@@ -158,8 +158,8 @@ const Pricing = () => {
                         : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-primary/50 dark:text-white',
                     )}
                   >
-                    {plan.cta}
-                  </a>
+                    Contact Us
+                  </button>
                 ) : (
                   <Link
                     to={getLink(plan.name)}

@@ -32,7 +32,22 @@
   </url>
   <url>
     <loc>https://www.finflo.org/login</loc>
-    <lastmod>2026-03-08</lastmod>
+    <lastmod>2026-03-25</lastmod>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://app.finflo.org/login</loc>
+    <lastmod>2026-03-25</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://app.finflo.org/join</loc>
+    <lastmod>2026-03-25</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.finflo.org/documentation</loc>
+    <lastmod>2026-03-25</lastmod>
+    <priority>0.7</priority>
   </url>
 </urlset>

@@ -106,39 +106,24 @@ const Navigation = ({
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <div className="hidden sm:flex items-center gap-3">
-              {isBusinessLoggedIn ? (
+              {isLoggedIn ? (
                 <>
                   <AppLink
-                    to="/dashboard"
+                    to={isBusinessLoggedIn ? "/dashboard" : "/member/dashboard"}
                     className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
                   >
                     Dashboard
                   </AppLink>
                   <AppLink
-                    to="/join"
+                    to={isBusinessLoggedIn ? "/join" : "/register"}
                     className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
                   >
-                    Member Console
-                    <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </AppLink>
-                </>
-              ) : isMemberLoggedIn ? (
-                <>
-                  <AppLink
-                    to="/member/dashboard"
-                    className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
-                  >
-                    Dashboard
-                  </AppLink>
-                  <AppLink
-                    to="/register"
-                    className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
-                  >
-                    Business Console
+                    {isBusinessLoggedIn ? "Member Console" : "Business Console"}
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </AppLink>
                 </>
               ) : (
+                (!IS_LANDING_DOMAIN || IS_DEV) && (
                 <>
                   <div className="relative" ref={loginMenuRef}>
                     <button
@@ -270,6 +255,7 @@ const Navigation = ({
                     </AnimatePresence>
                   </div>
                 </>
+                )
               )}
             </div>
             <button
@@ -348,38 +334,42 @@ const Navigation = ({
                 </>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <AppLink
-                      to="/register"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="py-4 bg-slate-100 dark:bg-white/5 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                    >
-                      Join as Business
-                    </AppLink>
-                    <AppLink
-                      to="/join"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="py-4 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
-                    >
-                      Join as Member
-                    </AppLink>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <AppLink
-                      to="/login"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                    >
-                      Login as Business
-                    </AppLink>
-                    <AppLink
-                      to="/member/login"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                    >
-                      Login as Member
-                    </AppLink>
-                  </div>
+                  {(!IS_LANDING_DOMAIN || IS_DEV) && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <AppLink
+                          to="/register"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="py-4 bg-slate-100 dark:bg-white/5 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                        >
+                          Join as Business
+                        </AppLink>
+                        <AppLink
+                          to="/join"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="py-4 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+                        >
+                          Join as Member
+                        </AppLink>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <AppLink
+                          to="/login"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                        >
+                          Login as Business
+                        </AppLink>
+                        <AppLink
+                          to="/member/login"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                        >
+                          Login as Member
+                        </AppLink>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>

@@ -40,15 +40,7 @@ const Hero = () => {
               transition={{ delay: 0.4, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start"
             >
-              {IS_LANDING_DOMAIN && !IS_DEV ? (
-                <a
-                  href={getAppUrl('/register')}
-                  className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
-                >
-                  Start Evolution Now
-                  <ArrowRight size={16} />
-                </a>
-              ) : (
+              {(!IS_LANDING_DOMAIN || IS_DEV) && (
                 <Link
                   to="/register"
                   className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"

@@ -6,12 +6,14 @@ import { Helmet } from 'react-helmet-async';
  * @param {string} props.title - The page title
  * @param {string} props.description - The meta description
  * @param {string} [props.canonical] - The canonical URL
+ * @param {string} [props.keywords] - SEO keywords (comma-separated)
  * @param {string} [props.ogType] - Open Graph type (default: website)
  * @param {string} [props.ogImage] - Social sharing image URL
  */
 const SEO = ({
   title,
   description,
+  keywords,
   canonical,
   ogType = 'website',
   ogImage,
@@ -20,7 +22,9 @@ const SEO = ({
   const fullTitle = title ? `${title} | ${siteName}` : siteName;
   const defaultDescription =
     'FinFlo Banking OS - Secure, cloud-native finance management system designed for global financial institutions.';
-  const siteUrl = 'https://www.finflo.org/';
+  const defaultKeywords =
+    'finflo, banking os, lending software, finance management, cloud-native banking, saas banking, automated lending, risk scoring, financial infrastructure, banking as a service';
+  const siteUrl = window.location.origin + '/';
   const image =
     ogImage ||
     'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772965794/og_sbq9d7_fzsk4z.png';
@@ -30,6 +34,7 @@ const SEO = ({
       {/* Standard Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="description" content={description || defaultDescription} />
+      <meta name="keywords" content={keywords || defaultKeywords} />
       {canonical && <link rel="canonical" href={`${siteUrl}${canonical}`} />}
 
       {/* Open Graph Meta Tags */}

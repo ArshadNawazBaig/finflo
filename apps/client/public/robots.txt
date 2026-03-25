@@ -3,6 +3,10 @@ Allow: /
 Allow: /pricing
 Allow: /features
 Allow: /faq
+Allow: /login
+Allow: /register
+Allow: /join
+Allow: /documentation
 Disallow: /admin/
 Disallow: /super-admin/
 Disallow: /member/
@@ -10,3 +14,4 @@ Disallow: /settings/
 Disallow: /billing/
 
 Sitemap: https://www.finflo.org/sitemap.xml
+Sitemap: https://app.finflo.org/sitemap.xml

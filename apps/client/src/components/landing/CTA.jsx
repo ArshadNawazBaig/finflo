@@ -26,14 +26,7 @@ const CTA = ({ onContactClick }) => {
               your lending operations into an automated powerhouse.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              {IS_LANDING_DOMAIN && !IS_DEV ? (
-                <a
-                  href={getAppUrl('/register')}
-                  className="bg-primary text-primary-foreground px-10 py-5 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_50px_rgba(99,102,241,0.4)] hover:shadow-[0_0_80px_rgba(99,102,241,0.6)] hover:scale-105 transition-all active:scale-95"
-                >
-                  Initiate System Now
-                </a>
-              ) : (
+              {(!IS_LANDING_DOMAIN || IS_DEV) && (
                 <Link
                   to="/register"
                   className="bg-primary text-primary-foreground px-10 py-5 rounded-full font-black uppercase tracking-widest text-xs shadow-[0_0_50px_rgba(99,102,241,0.4)] hover:shadow-[0_0_80px_rgba(99,102,241,0.6)] hover:scale-105 transition-all active:scale-95"

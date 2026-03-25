@@ -115,7 +115,8 @@ const Landing = () => {
       <SEO
         title="Scale Your Lending Empire"
         description="finflo - The ultimate cloud-native finance management system for global financial institutions. Automate lending, risk, and multi-branch operations."
-        canonical=""
+        keywords="finflo, banking operating system, lending automation, credit risk scoring, multi-branch banking, financial infrastructure, white-label banking, fintech, financial software, loan management, digital banking"
+        canonical="/"
       />
 
       {/* JSON-LD Structured Data */}
@@ -144,7 +145,7 @@ const Landing = () => {
         <Workbench />
         <MobileShowcase />
         <Testimonials />
-        <Pricing />
+        <Pricing onContactClick={() => setIsContactModalOpen(true)} />
         <FAQ onContactClick={() => setIsContactModalOpen(true)} />
         <CTA onContactClick={() => setIsContactModalOpen(true)} />
         <Footer />
