@@ -56,5 +56,23 @@ export default defineConfig({
         ws: true, // proxy WebSocket connections for Socket.io
       },
     },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        try {
+          if (req.url) {
+            decodeURI(req.url);
+          }
+          next();
+        } catch (e) {
+          if (e instanceof URIError) {
+            console.warn('Malformed URI detected, redirecting to root:', req.url);
+            req.url = '/';
+            next();
+          } else {
+            next(e);
+          }
+        }
+      });
+    },
   },
 });
