@@ -25,6 +25,9 @@ const CTA = ({ onContactClick }) => {
               Stop managing with spreadsheets. Deploy FinFlo today and transform
               your lending operations into an automated powerhouse.
             </p>
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-primary/60">
+              Direct Infrastructure Access: {supportEmail}
+            </div>
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
               {(!IS_LANDING_DOMAIN || IS_DEV) && (
                 <Link
