@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Loader2, Users, Store, Download } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, Users, Store, Download } from 'lucide-react';
 import TableSearch from '@/components/ui/TableSearch';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import CustomerTable from '@/components/customers/CustomerTable';
@@ -278,10 +278,9 @@ const Customers = () => {
               isLoading={loading}
               title="Refresh Data"
             >
-              <Loader2
+              <RefreshCw
                 className={cn(
-                  'relative w-4 h-4 text-primary group-hover:rotate-180 transition-transform duration-700',
-                  loading && 'animate-spin',
+                  'relative w-4 h-4 text-primary group-hover:rotate-180 transition-transform duration-700'
                 )}
               />
             </Button>
