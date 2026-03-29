@@ -21,26 +21,26 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
   );
 
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:bg-primary/20 transition-colors">
+    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-xl p-4 shadow-xs hover:shadow-md transition-all duration-300 group">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-2">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-base group-hover:bg-primary/20 transition-colors">
             {loan.customer?.name?.charAt(0) || 'U'}
           </div>
           <div className="flex flex-col">
             <Link
               to={`/customers/${loan.customer?._id}`}
-              className="font-bold text-base hover:text-primary transition-colors cursor-pointer block leading-tight"
+              className="font-bold text-sm hover:text-primary transition-colors cursor-pointer block leading-tight"
             >
               {capitalize(loan.customer?.name || 'Unknown')}
             </Link>
-            <span className="text-[10px] text-muted-foreground/60 font-medium ">
+            <span className="text-[9px] text-muted-foreground/60 font-medium ">
               ID: {loan._id.slice(-6).toUpperCase()}
             </span>
           </div>
         </div>
         <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
             loan.status === 'active'
               ? 'bg-blue-500/10 text-blue-600'
               : loan.status === 'completed'
@@ -55,34 +55,34 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
           {loan.status}
         </span>
       </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="space-y-1">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+// ... (lines 58-92)
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="space-y-0.5">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
             Principal
           </span>
-          <div className="font-black text-sm">
+          <div className="font-black text-xs">
             {formatCurrency(loan.principal)}
           </div>
         </div>
-        <div className="space-y-1 text-right">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+        <div className="space-y-0.5 text-right">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
             Term
           </span>
-          <div className="font-bold text-sm bg-muted/50 inline-block px-2 py-0.5 rounded-lg">
+          <div className="font-bold text-xs bg-muted/50 inline-block px-1.5 py-0.5 rounded-md">
             {loan.termMonths || 'N/A'} Mo
           </div>
         </div>
-        <div className="col-span-2 space-y-2">
+        <div className="col-span-2 space-y-1.5">
           <div className="flex justify-between items-end">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
               Repayment Progress
             </span>
-            <span className="text-[10px] font-black text-primary">
+            <span className="text-[9px] font-black text-primary">
               {progress}%
             </span>
           </div>
-          <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -91,10 +91,10 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-border/30">
+      <div className="flex items-center justify-between pt-3 border-t border-border/30">
         <div className="flex items-center gap-1">
           {loan.status === 'pending' && (
-            <div className="mr-2 pr-2 border-r border-border/30">
+            <div className="mr-1.5 pr-1.5 border-r border-border/30">
               <ApprovalActions
                 loan={loan}
                 onSuccess={() => onRefresh && onRefresh()}
@@ -112,9 +112,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
               )}
               target="_blank"
               rel="noreferrer"
-              className="p-2 rounded-xl hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-all active:scale-90"
+              className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600 transition-all active:scale-90"
             >
-              <MessageSquare size={18} />
+              <MessageSquare size={16} />
             </a>
           </Tooltip>
           <Tooltip content="Email" position="top">
@@ -126,9 +126,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
                 new Date(),
                 false,
               )}
-              className="p-2 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
             >
-              <Mail size={18} />
+              <Mail size={16} />
             </a>
           </Tooltip>
           <Tooltip content="Download Statement" position="top">
@@ -136,9 +136,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
               variant="outline"
               size="icon"
               onClick={() => exportLoanStatement(loan, loan.repayments || [])}
-              className="h-9 w-9 rounded-xl border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
+              className="h-8 w-8 rounded-lg border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
             >
-              <Download size={18} />
+              <Download size={16} />
             </Button>
           </Tooltip>
           <Tooltip content="Edit" position="top">
@@ -146,9 +146,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
               variant="outline"
               size="icon"
               onClick={() => onEdit(loan)}
-              className="h-9 w-9 rounded-xl border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
+              className="h-8 w-8 rounded-lg border-border/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 transition-all active:scale-90"
             >
-              <Edit size={18} />
+              <Edit size={16} />
             </Button>
           </Tooltip>
           <Tooltip content="Delete" position="top">
@@ -156,17 +156,17 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
               variant="outline"
               size="icon"
               onClick={() => onDelete(loan)}
-              className="h-9 w-9 rounded-xl border-destructive/20 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
+              className="h-8 w-8 rounded-lg border-destructive/20 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90"
             >
-              <Trash2 size={18} />
+              <Trash2 size={16} />
             </Button>
           </Tooltip>
         </div>
         <Link
           to={`/loans/${loan._id}`}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-95"
         >
-          <Info size={14} strokeWidth={3} />
+          <Info size={12} strokeWidth={3} />
           Details
         </Link>
       </div>

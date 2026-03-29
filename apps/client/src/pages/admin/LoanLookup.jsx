@@ -179,14 +179,14 @@ const LoanLookup = () => {
         <div className="absolute top-0 -right-10 w-96 h-96 bg-emerald-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-        <main className="relative z-10 flex-1 container mx-auto px-6 py-20 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
+        <main className="relative z-10 flex-1 container mx-auto px-6 py-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-6 rounded-2xl shadow-xs">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h2 className="text-4xl font-black tracking-tight capitalize">
+                <h2 className="text-3xl font-black tracking-tight capitalize">
                   {result.customer.name}
                 </h2>
-                <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/20">
                   Verified Holder
                 </span>
               </div>
@@ -204,7 +204,7 @@ const LoanLookup = () => {
             <Button
               variant="gradient"
               onClick={resetLookup}
-              className="rounded-full px-10 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
+              className="rounded-full px-8 h-12 font-black uppercase tracking-widest text-[10px] shadow-xs"
             >
               Perform New Search
             </Button>
@@ -215,7 +215,7 @@ const LoanLookup = () => {
               result.loans.map((loan) => (
                 <Card
                   key={loan._id}
-                  className="group hover:-translate-y-2 transition-all duration-500 border-white/20 dark:border-white/5 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] shadow-xl hover:shadow-primary/5"
+                  className="group hover:-translate-y-1 transition-all duration-300 border-white/20 dark:border-white/5 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-xs hover:shadow-md"
                 >
                   <div
                     className={cn(
@@ -229,7 +229,7 @@ const LoanLookup = () => {
                             : 'bg-yellow-500',
                     )}
                   />
-                  <CardHeader className="pb-4 pt-10 px-8">
+                  <CardHeader className="pb-3 pt-6 px-6">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -255,60 +255,59 @@ const LoanLookup = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6 px-8 pb-10 flex-1 flex flex-col">
+                  <CardContent className="space-y-5 px-6 pb-6 flex-1 flex flex-col text-sm">
                     <div className="flex items-end justify-between border-b border-border/50 pb-6">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                          Principal
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
+                          Principal Amount
                         </p>
-                        <div className="text-3xl font-black text-primary flex items-baseline gap-1">
-                          <span className="text-sm font-medium text-muted-foreground"></span>
+                        <div className="text-2xl font-black text-primary tracking-tighter flex items-baseline gap-1">
                           {formatAmount(loan.principal)}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                          Rate
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
+                          Interest Rate
                         </p>
-                        <div className="text-2xl font-black text-blue-500">
+                        <div className="text-xl font-black text-blue-500 tracking-tight">
                           {loan.rate}%
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-y-6 gap-x-4 text-sm">
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs">
                       <div>
-                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
                           Duration
                         </p>
-                        <p className="font-bold text-base">
+                        <p className="font-bold text-sm tracking-tight">
                           {loan.duration}{' '}
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] text-muted-foreground">
                             Months
                           </span>
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
                           Start Date
                         </p>
-                        <p className="font-bold text-base">
+                        <p className="font-bold text-sm tracking-tight">
                           {format(new Date(loan.startDate), 'MMM dd, yyyy')}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
                           Monthly EMI
                         </p>
-                        <p className="font-bold text-base">
+                        <p className="font-bold text-sm tracking-tight">
                           {formatAmount(loan.emi)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5">
+                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
                           Total Value
                         </p>
-                        <p className="font-bold text-base">
+                        <p className="font-bold text-sm tracking-tight text-primary">
                           {formatAmount(loan.totalAmount)}
                         </p>
                       </div>
@@ -337,20 +336,20 @@ const LoanLookup = () => {
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600/70 mb-1">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                            <p className="text-[8px] font-bold uppercase tracking-widest text-emerald-600/70 mb-0.5">
                               Settled
                             </p>
-                            <p className="font-black text-emerald-600">
+                            <p className="font-black text-emerald-600 text-sm">
                               {formatAmount(loan.paidAmount)}
                             </p>
                           </div>
-                          <div className="p-3 rounded-2xl bg-orange-500/5 border border-orange-500/10">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-orange-600/70 mb-1">
+                          <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                            <p className="text-[8px] font-bold uppercase tracking-widest text-orange-600/70 mb-0.5">
                               Outstanding
                             </p>
-                            <p className="font-black text-orange-600">
+                            <p className="font-black text-orange-600 text-sm">
                               {formatAmount(loan.remainingAmount)}
                             </p>
                           </div>
@@ -362,7 +361,7 @@ const LoanLookup = () => {
 
                     <Button
                       variant="outline"
-                      className="w-full h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest border-border/50 hover:bg-muted/50 transition-all group/btn shadow-sm"
+                      className="w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-widest border-border/50 hover:bg-muted/50 transition-all group/btn shadow-xs"
                       onClick={() =>
                         generateLoanPDF(
                           loan,
@@ -382,7 +381,7 @@ const LoanLookup = () => {
                 icon={FileText}
                 title="No Loans Found"
                 description="We couldn't find any loan records associated with these details."
-                className="col-span-full border-white/20 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] py-20 shadow-xl"
+                className="col-span-full border-white/20 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl py-12 shadow-xs"
               />
             )}
           </div>
@@ -464,7 +463,7 @@ const LoanLookup = () => {
           type="submit"
           isLoading={loading}
           variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-lg shadow-primary/10 mt-4"
+          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-xs mt-4"
         >
           <span className="flex items-center justify-center gap-2">
             Execute Search

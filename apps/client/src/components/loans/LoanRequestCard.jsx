@@ -6,25 +6,25 @@ import { Button } from '@/components/ui/button';
 
 const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
   return (
-    <div className="bg-card p-4 rounded-xl border border-border/50 hover:shadow-md transition-all">
-      <div className="flex justify-between items-start mb-3">
+    <div className="bg-card p-3 rounded-lg border border-border/50 shadow-xs hover:shadow-md transition-all">
+      <div className="flex justify-between items-start mb-2.5">
         <div>
           <Link
             to={
               request.customer?._id ? `/customers/${request.customer._id}` : '#'
             }
-            className="text-base font-bold hover:text-primary transition-colors"
+            className="text-sm font-bold hover:text-primary transition-colors"
           >
             {request.customer?.name}
           </Link>
-          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-            <Calendar size={12} />
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <Calendar size={10} />
             {format(new Date(request.createdAt), 'MMM dd, yyyy')}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-1.5">
           <span
-            className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
               request.status === 'active'
                 ? 'bg-emerald-500/10 text-emerald-600'
                 : request.status === 'pending'
@@ -38,7 +38,7 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
           </span>
           {request.riskDetails ? (
             <span
-              className={`px-2.5 py-1 rounded-lg text-xs font-black border ${
+              className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${
                 ['A+', 'A'].includes(request.riskDetails.grade)
                   ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                   : ['B', 'C'].includes(request.riskDetails.grade)
@@ -49,27 +49,27 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
               Risk: {request.riskDetails.grade}
             </span>
           ) : (
-            <span className="px-2.5 py-1 text-[10px] font-black text-muted-foreground/50 uppercase">
+            <span className="px-2 py-0.5 text-[9px] font-black text-muted-foreground/50 uppercase">
               Risk: —
             </span>
           )}
         </div>
       </div>
 
-      <div className="space-y-2 mb-4">
-        <div className="flex justify-between text-sm">
+      <div className="space-y-1.5 mb-3">
+        <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Amount</span>
           <span className="font-bold text-primary">
             {formatCurrency(request.principal)}
           </span>
         </div>
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Duration</span>
           <span className="font-bold">{request.duration} Months</span>
         </div>
         {request.notes && (
-          <div className="pt-1">
-            <p className="text-xs text-muted-foreground line-clamp-2 ">
+          <div className="pt-0.5">
+            <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
               "{request.notes}"
             </p>
           </div>
@@ -80,31 +80,31 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         {request.status === 'pending' ? (
           <>
             <Button
-              className="flex-1 h-9"
+              className="flex-1 h-8 text-[10px]"
               variant="outline"
               onClick={() => onReject(request._id)}
               disabled={processingId === request._id}
             >
               {processingId === request._id ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <>
-                  <X size={14} className="mr-1" />
+                  <X size={12} className="mr-1" />
                   Reject
                 </>
               )}
             </Button>
             <Button
-              className="flex-1 h-9 bg-emerald-500 hover:bg-emerald-600"
+              className="flex-1 h-8 text-[10px] bg-emerald-500 hover:bg-emerald-600"
               onClick={() => onApprove(request)}
               disabled={processingId === request._id}
             >
-              <Check size={14} className="mr-1" />
+              <Check size={12} className="mr-1" />
               Approve
             </Button>
           </>
         ) : (
-          <div className="w-full py-2 bg-muted/30 rounded-lg text-center text-xs font-bold text-muted-foreground ">
+          <div className="w-full py-1.5 bg-muted/30 rounded-md text-center text-[10px] font-bold text-muted-foreground ">
             Request {request.status}
           </div>
         )}
