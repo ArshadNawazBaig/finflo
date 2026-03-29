@@ -64,10 +64,24 @@ export default defineConfig({
           }
           next();
         } catch (e) {
-          if (e instanceof URIError) {
-            console.warn('Malformed URI detected, redirecting to root:', req.url);
-            req.url = '/';
-            next();
+          if (e.name === 'URIError' || e instanceof URIError) {
+            console.warn('[Vite] Malformed URI detected:', req.url);
+
+            // Sanitize the URL: replace lone % with %25 if not part of a valid hex sequence
+            const sanitizedUrl = req.url.replace(/%(?![0-9a-fA-F]{2})/g, '%25');
+
+            if (sanitizedUrl !== req.url) {
+              console.warn(`[Vite] Sanitized URI to: ${sanitizedUrl}`);
+              req.url = sanitizedUrl;
+              if (req.originalUrl) req.originalUrl = sanitizedUrl;
+              next();
+            } else {
+              // Fallback for other malformed URI edge cases
+              console.warn('[Vite] Sanitization failed, redirecting to root');
+              req.url = '/';
+              if (req.originalUrl) req.originalUrl = '/';
+              next();
+            }
           } else {
             next(e);
           }

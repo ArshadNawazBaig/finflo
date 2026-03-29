@@ -32,12 +32,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Skip service worker for external requests (like Google Auth)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // Skip service worker entirely for payment routes - no caching, no fallback
   if (url.pathname.includes('/payment/')) {
     event.respondWith(
       fetch(event.request).catch((error) => {
         console.error('Payment route fetch failed:', error);
-        // Return a basic error response instead of trying to cache
         return new Response('Payment page loading...', {
           status: 200,
           headers: { 'Content-Type': 'text/html' },
@@ -56,7 +60,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Only cache successful responses
           if (response.ok) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -65,8 +68,8 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // Fallback to cache if offline
+        .catch((err) => {
+          console.warn('Navigation fetch failed, trying cache:', err);
           return caches.match(event.request);
         }),
     );
@@ -76,7 +79,14 @@ self.addEventListener('fetch', (event) => {
   // Common assets - Cache first
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      return (
+        response ||
+        fetch(event.request).catch((err) => {
+          console.error('Asset fetch failed:', event.request.url, err);
+          // Return a failure response instead of letting the promise reject
+          return new Response('Asset load failed', { status: 404 });
+        })
+      );
     }),
   );
 });
