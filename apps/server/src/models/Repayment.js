@@ -16,7 +16,7 @@ const repaymentSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ['Pending', 'Completed', 'Failed'],
+      enum: ['Pending', 'Completed', 'Failed', 'Reversed'],
       default: 'Completed',
     },
     branchId: {

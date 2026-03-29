@@ -47,8 +47,22 @@ const financialTransactionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Completed', 'Failed'],
+      enum: ['Pending', 'Completed', 'Failed', 'Reversed'],
       default: 'Completed',
+    },
+    reversedAt: { type: Date },
+    reversedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    reversalReason: { type: String },
+    reversalTransaction: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FinancialTransaction',
+    },
+    originalTransaction: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FinancialTransaction',
     },
     description: {
       type: String,

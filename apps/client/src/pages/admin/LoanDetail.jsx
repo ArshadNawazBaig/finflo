@@ -101,14 +101,18 @@ const LoanDetail = () => {
 
       // Calculate actual installments paid based on true accumulated principal
       // (Since early payments have less interest, checking total amount undercounts)
+      // Filter out reversed repayments for paid calculations
+      const activeRepayments = allRepayments.filter(
+        (rp) => rp.status !== 'Reversed',
+      );
       let currentPrincipalSum = 0;
       let actualInstallmentsPaid = 0;
 
-      const totalAccounted = allRepayments.reduce(
+      const totalAccounted = activeRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
         0,
       );
-      let principalPaid = allRepayments.reduce(
+      let principalPaid = activeRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0),
         0,
       );
@@ -538,10 +542,18 @@ const LoanDetail = () => {
                 repayments.map((rp, i) => (
                   <div
                     key={rp._id}
-                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className={cn(
+                      'flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group',
+                      rp.status === 'Reversed' && 'opacity-50',
+                    )}
                   >
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                      <div className={cn(
+                        'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
+                        rp.status === 'Reversed'
+                          ? 'bg-orange-500/10 text-orange-500'
+                          : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white',
+                      )}>
                         <CheckCircle2 size={22} />
                       </div>
                       <div>
@@ -555,7 +567,12 @@ const LoanDetail = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-black text-emerald-600">
+                      <div className={cn(
+                        'text-lg font-black',
+                        rp.status === 'Reversed'
+                          ? 'text-muted-foreground line-through'
+                          : 'text-emerald-600',
+                      )}>
                         +{formatCurrency(rp.amount)}
                       </div>
                       {rp.status && (
@@ -568,6 +585,8 @@ const LoanDetail = () => {
                               'bg-amber-500/10 text-amber-600 border-amber-500/20',
                             rp.status === 'Failed' &&
                               'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                            rp.status === 'Reversed' &&
+                              'bg-orange-500/10 text-orange-600 border-orange-500/20',
                           )}
                         >
                           <span
@@ -577,6 +596,7 @@ const LoanDetail = () => {
                               rp.status === 'Pending' &&
                                 'bg-amber-500 animate-pulse',
                               rp.status === 'Failed' && 'bg-rose-500',
+                              rp.status === 'Reversed' && 'bg-orange-500',
                             )}
                           />
                           {rp.status}

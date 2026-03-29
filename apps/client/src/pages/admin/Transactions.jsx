@@ -6,6 +6,8 @@ import {
   ArrowDown,
   Download,
   FileSpreadsheet,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
@@ -24,6 +26,15 @@ import { toast } from 'sonner';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -48,6 +59,11 @@ const Transactions = () => {
     totalExpense: 0,
   });
   const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+
+  // Reversal state
+  const [reversalTarget, setReversalTarget] = useState(null);
+  const [reversalReason, setReversalReason] = useState('');
+  const [isReversing, setIsReversing] = useState(false);
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -234,6 +250,25 @@ useEffect(() => {
     return <TablePageSkeleton />;
   }
 
+  const handleReverseTransaction = async () => {
+    if (!reversalTarget || !reversalReason.trim()) return;
+    try {
+      setIsReversing(true);
+      await api.post(`/ledger/${reversalTarget._id}/reverse`, {
+        reason: reversalReason.trim(),
+      });
+      toast.success('Transaction reversed successfully');
+      setReversalTarget(null);
+      setReversalReason('');
+      fetchTransactions(false);
+    } catch (error) {
+      console.error('Reverse Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to reverse transaction');
+    } finally {
+      setIsReversing(false);
+    }
+  };
+
   const netCashFlow = summary.totalIncome - summary.totalExpense;
 
   return (
@@ -332,6 +367,7 @@ useEffect(() => {
                 <TransactionCard
                   key={transaction._id}
                   transaction={transaction}
+                  onReverse={(tx) => setReversalTarget(tx)}
                 />
               ))}
             </div>
@@ -374,10 +410,131 @@ useEffect(() => {
               sortBy={sortBy}
               sortOrder={sortOrder}
               onSort={handleSort}
+              onReverse={(tx) => setReversalTarget(tx)}
             />
           </div>
         )}
       </div>
+
+      {/* Reversal Confirmation Dialog */}
+      <Dialog
+        open={!!reversalTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReversalTarget(null);
+            setReversalReason('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[480px] w-[95vw] rounded-[1.5rem] sm:rounded-[2.5rem] !p-0 border-none shadow-2xl overflow-hidden flex flex-col gap-0 bg-card">
+          {/* Gradient Header */}
+          <div className="bg-gradient-to-br from-orange-500 to-amber-600 p-6 sm:p-10 text-white relative shrink-0">
+            <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-10">
+              <RotateCcw size={64} className="sm:w-20 sm:h-20" />
+            </div>
+            <DialogHeader className="relative z-10 text-left items-start">
+              <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter leading-none mb-2">
+                Reverse Transaction
+              </DialogTitle>
+              <DialogDescription className="text-white/70 font-black uppercase tracking-[0.2em] text-[8px] sm:text-[10px]">
+                Financial Correction Authorization
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {reversalTarget && (
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">
+                {/* Transaction Details */}
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                    Transaction Details
+                  </Label>
+                  <div className="bg-muted/30 rounded-2xl border border-border/20 overflow-hidden divide-y divide-border/20">
+                    <div className="flex items-center justify-between p-4">
+                      <span className="text-xs text-muted-foreground font-medium">Amount</span>
+                      <span className="font-black text-lg tabular-nums text-orange-600">
+                        {formatCurrency(reversalTarget.amount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4">
+                      <span className="text-xs text-muted-foreground font-medium">Category</span>
+                      <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 text-[10px] font-black uppercase tracking-widest">
+                        {reversalTarget.category?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4">
+                      <span className="text-xs text-muted-foreground font-medium">Related To</span>
+                      <span className="font-bold text-sm capitalize">
+                        {reversalTarget.customer?.name ||
+                          reversalTarget.member?.name ||
+                          'System'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4">
+                      <span className="text-xs text-muted-foreground font-medium">Type</span>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        reversalTarget.type === 'income'
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : 'bg-rose-500/10 text-rose-600'
+                      }`}>
+                        {reversalTarget.type}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning */}
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20">
+                  <AlertTriangle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-orange-700 dark:text-orange-400 font-medium leading-relaxed">
+                    This will undo all financial effects and create a counter-entry in the ledger. This action cannot be undone.
+                  </p>
+                </div>
+
+                {/* Reason Input */}
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                    Reason for Reversal *
+                  </Label>
+                  <Input
+                    id="reversal-reason"
+                    placeholder="E.g. Wrong amount entered, should be 1,000 instead of 10,000"
+                    value={reversalReason}
+                    onChange={(e) => setReversalReason(e.target.value)}
+                    className="h-14 sm:h-16 rounded-2xl border-border/40 bg-muted/30 font-bold text-sm sm:text-base tracking-tight px-6 focus-visible:ring-orange-500/20 focus-visible:border-orange-500 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Buttons */}
+          <div className="px-6 sm:px-10 pb-6 sm:pb-8 shrink-0 mt-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReversalTarget(null);
+                  setReversalReason('');
+                }}
+                className="flex-1 rounded-xl h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!reversalReason.trim() || reversalReason.trim().length < 3}
+                isLoading={isReversing}
+                onClick={handleReverseTransaction}
+                className="flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] bg-orange-600 hover:bg-orange-700 shadow-lg shadow-orange-500/20 transform transition-all active:scale-95 order-1 sm:order-2 gap-2"
+              >
+                <RotateCcw size={14} />
+                Authorize Reversal
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

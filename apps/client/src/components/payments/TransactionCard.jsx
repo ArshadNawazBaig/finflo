@@ -5,15 +5,32 @@ import {
   User,
   TrendingUp,
   ArrowDown,
+  RotateCcw,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-const TransactionCard = ({ transaction, hideType = false }) => {
+const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
+
+const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
   const isIncome = transaction.type === 'income';
+  const isReversed = transaction.status === 'Reversed';
+  const isReversal = !!transaction.originalTransaction;
+  const canReverse =
+    onReverse &&
+    !isReversed &&
+    !isReversal &&
+    transaction.status === 'Completed' &&
+    !NON_REVERSIBLE.includes(transaction.category);
 
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300">
+    <div
+      className={cn(
+        'bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300',
+        isReversed && 'opacity-50',
+      )}
+    >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div
@@ -28,6 +45,9 @@ const TransactionCard = ({ transaction, hideType = false }) => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-sm text-foreground capitalize">
+              {isReversal && (
+                <span className="text-amber-600 mr-1">[REV]</span>
+              )}
               {transaction.category.replace(/_/g, ' ')}
             </span>
             {transaction.category === 'salary' && transaction.referenceId && (
@@ -48,7 +68,11 @@ const TransactionCard = ({ transaction, hideType = false }) => {
           <div
             className={cn(
               'font-black text-base tabular-nums',
-              isIncome ? 'text-emerald-600' : 'text-rose-600',
+              isReversed
+                ? 'text-muted-foreground line-through'
+                : isIncome
+                  ? 'text-emerald-600'
+                  : 'text-rose-600',
             )}
           >
             {isIncome ? '+' : '-'}
@@ -69,6 +93,8 @@ const TransactionCard = ({ transaction, hideType = false }) => {
                   'bg-amber-500/10 text-amber-600 border-amber-500/20',
                 transaction.status === 'Failed' &&
                   'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                transaction.status === 'Reversed' &&
+                  'bg-orange-500/10 text-orange-600 border-orange-500/20',
               )}
             >
               <span
@@ -79,6 +105,7 @@ const TransactionCard = ({ transaction, hideType = false }) => {
                   transaction.status === 'Pending' &&
                     'bg-amber-500 animate-pulse',
                   transaction.status === 'Failed' && 'bg-rose-500',
+                  transaction.status === 'Reversed' && 'bg-orange-500',
                 )}
               />
               {transaction.status || 'Completed'}
@@ -120,6 +147,20 @@ const TransactionCard = ({ transaction, hideType = false }) => {
           <p className="text-[11px] text-muted-foreground/80 font-medium ">
             "{transaction.description || transaction.notes}"
           </p>
+        </div>
+      )}
+
+      {canReverse && (
+        <div className="mt-3 pt-3 border-t border-border/30">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onReverse(transaction)}
+            className="w-full h-9 text-xs font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-500/10 rounded-xl gap-1.5"
+          >
+            <RotateCcw size={13} />
+            Reverse Transaction
+          </Button>
         </div>
       )}
     </div>

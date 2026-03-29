@@ -1019,6 +1019,9 @@ const getRepayments = async (req, res) => {
     if (branchScope) query.branchId = branchScope;
   }
 
+  // Exclude reversed repayments from standard views
+  query.status = { $ne: 'Reversed' };
+
   if (loanId) query.loan = loanId;
   if (customerId) query.customer = customerId;
 

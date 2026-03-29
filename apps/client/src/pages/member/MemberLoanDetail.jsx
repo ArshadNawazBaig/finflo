@@ -51,12 +51,16 @@ const MemberLoanDetail = () => {
         ]);
 
         const allRepayments = repaymentsRes.data?.data || [];
-        const totalAccounted = allRepayments.reduce(
+        // Filter out reversed repayments for calculations
+        const activeRepayments = allRepayments.filter(
+          (rp) => rp.status !== 'Reversed',
+        );
+        const totalAccounted = activeRepayments.reduce(
           (sum, rp) =>
             sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
           0,
         );
-        let calculatedPrincipalPaid = allRepayments.reduce(
+        let calculatedPrincipalPaid = activeRepayments.reduce(
           (sum, rp) => sum + (rp.principalAmount || 0),
           0,
         );
@@ -98,11 +102,15 @@ const MemberLoanDetail = () => {
       ]);
 
       const allRepayments = repaymentsRes.data?.data || [];
-      const totalAccounted = allRepayments.reduce(
+      // Filter out reversed repayments for calculations
+      const activeRepayments = allRepayments.filter(
+        (rp) => rp.status !== 'Reversed',
+      );
+      const totalAccounted = activeRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0) + (rp.interestAmount || 0),
         0,
       );
-      let calculatedPrincipalPaid = allRepayments.reduce(
+      let calculatedPrincipalPaid = activeRepayments.reduce(
         (sum, rp) => sum + (rp.principalAmount || 0),
         0,
       );

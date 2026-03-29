@@ -1,10 +1,13 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/button';
+
+const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
 
 const TransactionTable = ({
   data,
@@ -13,6 +16,7 @@ const TransactionTable = ({
   sortOrder,
   onSort,
   hideType = false,
+  onReverse,
 }) => {
   const renderSortIcon = (column) => {
     if (sortBy !== column)
@@ -64,121 +68,167 @@ const TransactionTable = ({
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
               </th>
+              {onReverse && (
+                <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap text-center">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
-            {data.map((transaction) => (
-              <tr
-                key={transaction._id}
-                className="group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors"
-              >
-                <td className="py-4 px-4 text-muted-foreground font-medium">
-                  {format(new Date(transaction.date), 'MMM d, yyyy')}
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-3">
+            {data.map((transaction) => {
+              const isReversed = transaction.status === 'Reversed';
+              const isReversal = !!transaction.originalTransaction;
+              const canReverse =
+                onReverse &&
+                !isReversed &&
+                !isReversal &&
+                transaction.status === 'Completed' &&
+                !NON_REVERSIBLE.includes(transaction.category);
+
+              return (
+                <tr
+                  key={transaction._id}
+                  className={cn(
+                    'group border-b border-border/50 last:border-none hover:bg-muted/30 transition-colors',
+                    isReversed && 'opacity-50',
+                  )}
+                >
+                  <td className="py-4 px-4 text-muted-foreground font-medium">
+                    {format(new Date(transaction.date), 'MMM d, yyyy')}
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
+                          transaction.customer
+                            ? 'bg-primary/10 text-primary'
+                            : transaction.category === 'salary'
+                              ? 'bg-orange-500/10 text-orange-600'
+                              : 'bg-blue-500/10 text-blue-500',
+                        )}
+                      >
+                        {(
+                          transaction.customer?.name ||
+                          transaction.member?.name ||
+                          (transaction.category === 'salary' && 'B') ||
+                          'U'
+                        ).charAt(0)}
+                      </div>
+                      <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
+                        {capitalize(
+                          transaction.customer?.name ||
+                            transaction.member?.name ||
+                            (transaction.category === 'salary' &&
+                              'Branch Operations') ||
+                            'System',
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  {!hideType && (
+                    <td className="py-4 px-4">
+                      <span
+                        className={cn(
+                          'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                          transaction.type === 'income'
+                            ? 'bg-emerald-500/10 text-emerald-600'
+                            : 'bg-rose-500/10 text-rose-600',
+                        )}
+                      >
+                        {transaction.type}
+                      </span>
+                    </td>
+                  )}
+                  <td className="py-4 px-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium capitalize">
+                        {isReversal && (
+                          <span className="text-amber-600 mr-1">[REV]</span>
+                        )}
+                        {transaction.category.replace('_', ' ')}
+                      </span>
+                      {transaction.category === 'salary' &&
+                        transaction.referenceId && (
+                          <Link
+                            to={`/team/${transaction.referenceId._id || transaction.referenceId}`}
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
+                          >
+                            <User size={10} />
+                            {transaction.referenceId.name}
+                          </Link>
+                        )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-right">
                     <div
                       className={cn(
-                        'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
-                        transaction.customer
-                          ? 'bg-primary/10 text-primary'
-                          : transaction.category === 'salary'
-                            ? 'bg-orange-500/10 text-orange-600'
-                            : 'bg-blue-500/10 text-blue-500',
+                        'font-bold tabular-nums',
+                        isReversed
+                          ? 'text-muted-foreground line-through'
+                          : transaction.type === 'income'
+                            ? 'text-emerald-600'
+                            : 'text-rose-600',
                       )}
                     >
-                      {(
-                        transaction.customer?.name ||
-                        transaction.member?.name ||
-                        (transaction.category === 'salary' && 'B') ||
-                        'U'
-                      ).charAt(0)}
+                      {transaction.type === 'income' ? '+' : '-'}
+                      {formatCurrency(transaction.amount)}
                     </div>
-                    <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
-                      {capitalize(
-                        transaction.customer?.name ||
-                          transaction.member?.name ||
-                          (transaction.category === 'salary' &&
-                            'Branch Operations') ||
-                          'System',
-                      )}
-                    </div>
-                  </div>
-                </td>
-                {!hideType && (
-                  <td className="py-4 px-4">
-                    <span
-                      className={cn(
-                        'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
-                        transaction.type === 'income'
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600',
-                      )}
-                    >
-                      {transaction.type}
-                    </span>
                   </td>
-                )}
-                <td className="py-4 px-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-muted-foreground text-xs font-medium capitalize">
-                      {transaction.category.replace('_', ' ')}
-                    </span>
-                    {transaction.category === 'salary' &&
-                      transaction.referenceId && (
-                        <Link
-                          to={`/team/${transaction.referenceId._id || transaction.referenceId}`}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-[9px] font-black uppercase tracking-tight text-primary hover:bg-primary/20 transition-all w-fit"
-                        >
-                          <User size={10} />
-                          {transaction.referenceId.name}
-                        </Link>
-                      )}
-                  </div>
-                </td>
-                <td className="py-4 px-4 text-right">
-                  <div
-                    className={cn(
-                      'font-bold tabular-nums',
-                      transaction.type === 'income'
-                        ? 'text-emerald-600'
-                        : 'text-rose-600',
-                    )}
-                  >
-                    {transaction.type === 'income' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <div
-                    className={cn(
-                      'px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border w-fit leading-none',
-                      (transaction.status || 'Completed') === 'Completed' &&
-                        'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
-                      transaction.status === 'Pending' &&
-                        'bg-amber-500/10 text-amber-600 border-amber-500/20',
-                      transaction.status === 'Failed' &&
-                        'bg-rose-500/10 text-rose-600 border-rose-500/20',
-                    )}
-                  >
-                    <span
+                  <td className="py-4 px-4">
+                    <div
                       className={cn(
-                        'w-1.5 h-1.5 rounded-full',
+                        'px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border w-fit leading-none',
                         (transaction.status || 'Completed') === 'Completed' &&
-                          'bg-emerald-500',
+                          'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
                         transaction.status === 'Pending' &&
-                          'bg-amber-500 animate-pulse',
-                        transaction.status === 'Failed' && 'bg-rose-500',
+                          'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                        transaction.status === 'Failed' &&
+                          'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                        transaction.status === 'Reversed' &&
+                          'bg-orange-500/10 text-orange-600 border-orange-500/20',
                       )}
-                    />
-                    {transaction.status || 'Completed'}
-                  </div>
-                </td>
-                <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
-                  {transaction.description || transaction.notes || '-'}
-                </td>
-              </tr>
-            ))}
+                    >
+                      <span
+                        className={cn(
+                          'w-1.5 h-1.5 rounded-full',
+                          (transaction.status || 'Completed') === 'Completed' &&
+                            'bg-emerald-500',
+                          transaction.status === 'Pending' &&
+                            'bg-amber-500 animate-pulse',
+                          transaction.status === 'Failed' && 'bg-rose-500',
+                          transaction.status === 'Reversed' && 'bg-orange-500',
+                        )}
+                      />
+                      {transaction.status || 'Completed'}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
+                    {transaction.description || transaction.notes || '-'}
+                  </td>
+                  {onReverse && (
+                    <td className="py-4 px-4 text-center">
+                      {canReverse ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onReverse(transaction)}
+                          className="h-8 px-3 text-xs font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-500/10 rounded-xl gap-1.5"
+                        >
+                          <RotateCcw size={13} />
+                          Reverse
+                        </Button>
+                      ) : isReversed ? (
+                        <span className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">
+                          Reversed
+                        </span>
+                      ) : null}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

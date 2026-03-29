@@ -1,6 +1,10 @@
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const Member = require('../models/Member');
+const Repayment = require('../models/Repayment');
+const Investment = require('../models/Investment');
+const Loan = require('../models/Loan');
+const { logActivity } = require('./activityLogController');
 
 // @desc    Get all financial transactions (Unified Ledger)
 // @route   GET /api/ledger
@@ -208,7 +212,189 @@ const exportLedgerExcel = async (req, res) => {
   }
 };
 
+// @desc    Reverse a financial transaction
+// @route   POST /api/ledger/:id/reverse
+// @access  Private (Admin/Manager only)
+const reverseTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason || reason.trim().length < 3) {
+      return res.status(400).json({ message: 'A reason for reversal is required (min 3 characters)' });
+    }
+
+    // 1. Find the original transaction
+    const originalTx = await FinancialTransaction.findById(id)
+      .populate('customer', 'name memberId')
+      .populate('member', 'name');
+
+    if (!originalTx) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    // Authorization check
+    if (
+      !req.user.isSuperAdmin &&
+      originalTx.user.toString() !== req.user.effectiveOwnerId.toString()
+    ) {
+      return res.status(403).json({ message: 'Not authorized to reverse this transaction' });
+    }
+
+    // 2. Check if already reversed
+    if (originalTx.status === 'Reversed') {
+      return res.status(400).json({ message: 'This transaction has already been reversed' });
+    }
+
+    if (originalTx.status !== 'Completed') {
+      return res.status(400).json({ message: 'Only completed transactions can be reversed' });
+    }
+
+    // 3. Block reversal for loan disbursements and profit distributions
+    const nonReversibleCategories = ['loan_disbursement', 'profit_distribution'];
+    if (nonReversibleCategories.includes(originalTx.category)) {
+      return res.status(400).json({
+        message: `${originalTx.category.replace('_', ' ')} transactions cannot be reversed as they involve complex lifecycle changes.`,
+      });
+    }
+
+    const amount = originalTx.amount;
+
+    // 4. Undo side effects based on category
+    // ── REPAYMENT ──
+    if (originalTx.category === 'repayment' && originalTx.loan) {
+      // Restore loan balances
+      const loan = await Loan.findById(originalTx.loan);
+      if (loan) {
+        const wasCompleted = loan.status === 'completed';
+        await Loan.findByIdAndUpdate(loan._id, {
+          $inc: {
+            paidAmount: -amount,
+            remainingAmount: amount,
+          },
+          ...(wasCompleted ? { status: 'active' } : {}),
+        });
+      }
+
+      // Mark the Repayment record as Reversed
+      if (originalTx.referenceId) {
+        await Repayment.findByIdAndUpdate(originalTx.referenceId, {
+          status: 'Reversed',
+        });
+      }
+
+      // Restore member balance (repayments deduct from member balance)
+      if (originalTx.customer?.memberId) {
+        await Member.findByIdAndUpdate(originalTx.customer.memberId, {
+          $inc: {
+            currentBalance: amount,
+            totalWithdrawn: -amount,
+          },
+        });
+
+        // Mark the withdrawal Investment record as Reversed
+        if (originalTx.referenceId) {
+          await Investment.findOneAndUpdate(
+            {
+              member: originalTx.customer.memberId,
+              type: 'withdrawal',
+              amount: amount,
+              description: { $regex: originalTx.loan.toString().slice(-6), $options: 'i' },
+            },
+            { status: 'Reversed' },
+            { sort: { createdAt: -1 } },
+          );
+        }
+      }
+    }
+
+    // ── INVESTMENT / SAVING DEPOSIT ──
+    if (['investment', 'saving_deposit'].includes(originalTx.category) && originalTx.member) {
+      const isSaving = originalTx.category === 'saving_deposit';
+      const decFields = isSaving
+        ? { savingBalance: -amount, totalSavingDeposited: -amount }
+        : { currentBalance: -amount, totalInvested: -amount };
+
+      await Member.findByIdAndUpdate(originalTx.member, { $inc: decFields });
+
+      // Mark the Investment record as Reversed
+      if (originalTx.referenceId) {
+        await Investment.findByIdAndUpdate(originalTx.referenceId, {
+          status: 'Reversed',
+        });
+      }
+    }
+
+    // ── WITHDRAWAL / SAVING WITHDRAWAL ──
+    if (['withdrawal', 'saving_withdrawal'].includes(originalTx.category) && originalTx.member) {
+      const isSaving = originalTx.category === 'saving_withdrawal';
+      const restoreFields = isSaving
+        ? { savingBalance: amount, totalSavingWithdrawn: -amount }
+        : { currentBalance: amount, totalWithdrawn: -amount };
+
+      await Member.findByIdAndUpdate(originalTx.member, { $inc: restoreFields });
+
+      // Mark the Investment record as Reversed
+      if (originalTx.referenceId) {
+        await Investment.findByIdAndUpdate(originalTx.referenceId, {
+          status: 'Reversed',
+        });
+      }
+    }
+
+    // 5. Create counter-entry (reversal transaction)
+    const reversalTx = await FinancialTransaction.create({
+      user: originalTx.user,
+      branchId: originalTx.branchId,
+      type: originalTx.type === 'income' ? 'expense' : 'income',
+      category: originalTx.category,
+      amount: amount,
+      date: new Date(),
+      status: 'Completed',
+      description: `[REVERSAL] ${originalTx.description || originalTx.category} — Reason: ${reason}`,
+      customer: originalTx.customer?._id || originalTx.customer,
+      member: originalTx.member?._id || originalTx.member,
+      loan: originalTx.loan,
+      originalTransaction: originalTx._id,
+    });
+
+    // 6. Mark original as Reversed
+    originalTx.status = 'Reversed';
+    originalTx.reversedAt = new Date();
+    originalTx.reversedBy = req.user._id;
+    originalTx.reversalReason = reason;
+    originalTx.reversalTransaction = reversalTx._id;
+    await originalTx.save();
+
+    // 7. Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'transaction_reversed',
+      category: 'transaction',
+      details: `Reversed ${originalTx.category} transaction of ${amount} — Reason: ${reason}`,
+      metadata: {
+        originalTransactionId: originalTx._id,
+        reversalTransactionId: reversalTx._id,
+        amount,
+        category: originalTx.category,
+        reason,
+      },
+      req,
+    });
+
+    res.json({
+      message: 'Transaction reversed successfully',
+      originalTransaction: originalTx,
+      reversalTransaction: reversalTx,
+    });
+  } catch (error) {
+    console.error('Reverse Transaction Error:', error);
+    res.status(500).json({ message: 'Failed to reverse transaction' });
+  }
+};
+
 module.exports = {
   getLedger,
   exportLedgerExcel,
+  reverseTransaction,
 };

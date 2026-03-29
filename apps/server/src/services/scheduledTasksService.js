@@ -355,11 +355,11 @@ const runSavingProfitAccrual = async () => {
       const annualRate = admin.savingProfitRate;
       const dailyRate = annualRate / 100 / 365;
 
-      // Find all active members belonging to this admin with saving balance > 0
+      // Find all active members belonging to this admin with saving balance >= 10000
       const members = await Member.find({
         user: admin._id,
         status: 'Active',
-        savingBalance: { $gt: 0 },
+        savingBalance: { $gte: 10000 },
       });
 
       if (members.length === 0) continue;
@@ -385,8 +385,7 @@ const runSavingProfitAccrual = async () => {
           },
           {
             $inc: {
-              savingBalance: dailyProfit,
-              totalSavingProfit: dailyProfit,
+              pendingSavingProfit: dailyProfit,
             },
             $set: { lastSavingProfitAt: new Date() },
           },
@@ -395,44 +394,8 @@ const runSavingProfitAccrual = async () => {
 
         if (!updatedMember) continue;
 
-        // Create investment record for the profit
-        const investment = await Investment.create({
-          user: admin._id,
-          member: member._id,
-          branchId: member.branchId,
-          type: 'profit',
-          accountType: 'saving',
-          amount: dailyProfit,
-          description: `Daily saving profit (${annualRate}% annual)`,
-          balanceAfter: updatedMember.savingBalance,
-        });
-
-        // Create ProfitDistribution record
-        await ProfitDistribution.create({
-          user: admin._id,
-          member: member._id,
-          branchId: member.branchId,
-          amount: dailyProfit,
-          type: 'saving',
-          period,
-          description: `Daily saving profit accrual at ${annualRate}% annual rate`,
-          calculationMethod: 'daily_rate',
-          investmentSharePercent: dailyRate * 100,
-        });
-
-        // Create Financial Transaction
-        await new FinancialTransaction({
-          user: admin._id,
-          branchId: member.branchId,
-          type: 'expense',
-          category: 'saving_profit',
-          amount: dailyProfit,
-          date: new Date(),
-          description: `Daily saving profit for ${member.name}`,
-          member: member._id,
-          referenceId: investment._id,
-          referenceModel: 'Investment',
-        }).save();
+        // Daily accruals no longer create ledger entries immediately;
+        // they are stored as pendingSavingProfit and distributed monthly.
 
         totalProcessed++;
         totalProfitDistributed += dailyProfit;
@@ -444,6 +407,127 @@ const runSavingProfitAccrual = async () => {
     );
   } catch (err) {
     console.error('[CRON] runSavingProfitAccrual ERROR:', err);
+  }
+};
+
+// ─── Job 6: Monthly Saving Account Profit Distribution ────────────────────────
+/**
+ * Runs monthly on the 1st at 03:00.
+ * Distributes the accumulated `pendingSavingProfit` to members' saving balances,
+ * and creates the corresponding real ledger entries for the entire month's worth of profit.
+ */
+const runMonthlySavingProfitDistribution = async () => {
+  console.log('[CRON] runMonthlySavingProfitDistribution: starting...');
+  const today = new Date();
+
+  try {
+    const User = require('../models/User');
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const ProfitDistribution = require('../models/ProfitDistribution');
+    const FinancialTransaction = require('../models/FinancialTransaction');
+
+    // Find all admin users with saving profit rate > 0
+    const admins = await User.find({
+      role: { $in: ['admin'] },
+      savingProfitRate: { $gt: 0 },
+      isActive: true,
+    });
+
+    if (admins.length === 0) {
+      console.log('[CRON] runMonthlySavingProfit: no admins found. Skipping.');
+      return;
+    }
+
+    let totalProcessed = 0;
+    let totalProfitDistributed = 0;
+
+    for (const admin of admins) {
+      const annualRate = admin.savingProfitRate;
+
+      // Find all active members with accumulated pending profit
+      const members = await Member.find({
+        user: admin._id,
+        status: 'Active',
+        pendingSavingProfit: { $gt: 0 },
+      });
+
+      if (members.length === 0) continue;
+
+      // Label as the previous month, e.g., "Feb 2026"
+      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const period = prevMonth.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
+
+      for (const member of members) {
+        const distributedProfit = member.pendingSavingProfit;
+
+        // Atomic update verifying the pending amount matches, effectively resetting it
+        const updatedMember = await Member.findOneAndUpdate(
+          { _id: member._id, pendingSavingProfit: distributedProfit },
+          {
+            $inc: {
+              savingBalance: distributedProfit,
+              totalSavingProfit: distributedProfit,
+            },
+            $set: { pendingSavingProfit: 0 },
+          },
+          { new: true }
+        );
+
+        if (!updatedMember) continue;
+
+        // Create investment record for the profit
+        const investment = await Investment.create({
+          user: admin._id,
+          member: member._id,
+          branchId: member.branchId,
+          type: 'profit',
+          accountType: 'saving',
+          amount: distributedProfit,
+          description: `Monthly saving profit distribution (${annualRate}% annual)`,
+          balanceAfter: updatedMember.savingBalance,
+        });
+
+        // Create ProfitDistribution record
+        await ProfitDistribution.create({
+          user: admin._id,
+          member: member._id,
+          branchId: member.branchId,
+          amount: distributedProfit,
+          type: 'saving',
+          period,
+          description: `Monthly saving profit distribution at ${annualRate}% annual rate`,
+          calculationMethod: 'daily_accumulated',
+          investmentSharePercent: annualRate,
+        });
+
+        // Create Financial Transaction
+        await new FinancialTransaction({
+          user: admin._id,
+          branchId: member.branchId,
+          type: 'expense',
+          category: 'saving_profit',
+          amount: distributedProfit,
+          date: new Date(),
+          description: `Monthly saving profit for ${member.name}`,
+          member: member._id,
+          referenceId: investment._id,
+          referenceModel: 'Investment',
+        }).save();
+
+        totalProcessed++;
+        totalProfitDistributed += distributedProfit;
+      }
+    }
+
+    console.log(
+      `[CRON] runMonthlySavingProfitDistribution: distributed profit to ${totalProcessed} member(s). Total: ${totalProfitDistributed}`,
+    );
+  } catch (err) {
+    console.error('[CRON] runMonthlySavingProfitDistribution ERROR:', err);
   }
 };
 
@@ -471,7 +555,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 5 jobs registered.');
+  // Job 6: Monthly saving profit distribution at 03:00 on the 1st of every month
+  cron.schedule('0 3 1 * *', runMonthlySavingProfitDistribution, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 6 jobs registered.');
 };
 
 module.exports = {
@@ -482,4 +571,5 @@ module.exports = {
   runRepaymentReminders,
   runTrustRatingRecalc,
   runSavingProfitAccrual,
+  runMonthlySavingProfitDistribution,
 };

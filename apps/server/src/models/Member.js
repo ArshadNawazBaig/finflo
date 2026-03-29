@@ -67,6 +67,7 @@ const memberSchema = new mongoose.Schema(
     shareProfitRate: { type: Number, default: 0 }, // Custom profit rate for shares
     // Saving Account (separate from main balance — earns daily profit)
     savingBalance: { type: Number, default: 0 },
+    pendingSavingProfit: { type: Number, default: 0 }, // Accrued daily, distributed monthly
     totalSavingDeposited: { type: Number, default: 0 },
     totalSavingWithdrawn: { type: Number, default: 0 },
     totalSavingProfit: { type: Number, default: 0 },
