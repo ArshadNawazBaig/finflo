@@ -76,8 +76,8 @@ const StatsCard = ({
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 dark:text-muted-foreground">
+        <div className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md bg-primary/10 text-primary inline-flex w-fit shadow-sm border border-primary/20">
             {title}
           </p>
           <div className="flex flex-col">
