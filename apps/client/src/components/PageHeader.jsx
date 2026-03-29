@@ -14,6 +14,7 @@ const PageHeader = ({
   variant = 'simple',
   bodyClassName,
   className,
+  action,
   children,
 }) => {
   const isCard = variant === 'card';
@@ -88,7 +89,7 @@ const PageHeader = ({
         </div>
       </div>
 
-      {children && (
+      {(children || action) && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -98,7 +99,7 @@ const PageHeader = ({
             bodyClassName,
           )}
         >
-          {children}
+          {children || action}
         </motion.div>
       )}
     </motion.div>
