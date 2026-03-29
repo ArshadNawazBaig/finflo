@@ -108,7 +108,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const userInitials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'JS';
-  const userName = (['admin', 'staff'].includes(user?.role) ? user?.name : user?.businessName) || user?.name || 'User';
+  const userName = user?.name || 'User';
   const userRole = user?.isManager ? 'Branch Manager' : user?.role || 'User';
 
   const isLayoutExpanded = isMobile ? true : isExpanded;

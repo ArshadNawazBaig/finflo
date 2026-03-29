@@ -1,6 +1,7 @@
 const SystemSettings = require('../models/SystemSettings');
 const { logActivity } = require('./activityLogController');
 const { invalidateSettingsCache } = require('../utils/email');
+const { getEmailBranding } = require('../utils/brandingUtils');
 
 // Get system settings
 const getSystemSettings = async (req, res) => {
@@ -156,7 +157,7 @@ const testSmtpConnection = async (req, res) => {
         .json({ message: 'Recipient email (to) is required' });
     }
 
-    const brandName = req.user.businessName || req.user.name || 'FinFlo';
+    const { brandName } = await getEmailBranding(req.user, null);
     const success = await sendEmail({
       to,
       debug: true, // Enable detailed SMTP logging for diagnostics

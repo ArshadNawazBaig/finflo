@@ -25,6 +25,7 @@ const {
   updateMemberCreditLimit,
   calculateCreditLimit,
 } = require('../services/creditLimitService');
+const { getEmailBranding } = require('../utils/brandingUtils');
 
 /**
  * @desc    Send a payment reminder email to a loan holder/customer
@@ -1188,19 +1189,7 @@ const updateLoan = async (req, res) => {
 
         // Email Notification to Customer/Member (non-blocking)
         if (customer && customer.email) {
-          const branch = await Branch.findById(loan.branchId);
-          const branchName =
-            branch?.branding?.companyName ||
-            branch?.name ||
-            req.user.businessName ||
-            req.user.name ||
-            'FinFlo';
-
-          const ownerLogo =
-            req.user.role === 'staff'
-              ? (await User.findById(req.user.ownerId))?.businessLogo
-              : req.user.businessLogo;
-          const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+          const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, loan.branchId);
 
           sendEmailAsync({
             to: customer.email,
@@ -1578,14 +1567,7 @@ const approveLoan = async (req, res) => {
 
       // Email Notification to Member if applicable (non-blocking)
       if (customerForNotification && customerForNotification.email) {
-        const branch = await Branch.findById(loan.branchId);
-        const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId))?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, loan.branchId);
 
         sendEmailAsync({
           to: customerForNotification.email,
@@ -1680,14 +1662,7 @@ const rejectLoan = async (req, res) => {
     try {
       const customer = await Customer.findById(loan.customer);
       if (customer && customer.email) {
-        const branch = await Branch.findById(loan.branchId);
-        const branchName =
-          branch?.branding?.companyName || branch?.name || 'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId))?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, loan.branchId);
 
         sendEmailAsync({
           to: customer.email,
@@ -2111,18 +2086,7 @@ const bulkApproveLoans = async (req, res) => {
           }).catch(() => {});
 
           if (customer.email) {
-            const branch = await Branch.findById(loan.branchId);
-            const branchName =
-              branch?.branding?.companyName ||
-              branch?.name ||
-              req.user.businessName ||
-              req.user.name ||
-              'FinFlo';
-            const ownerLogo =
-              req.user.role === 'staff'
-                ? (await User.findById(req.user.ownerId))?.businessLogo
-                : req.user.businessLogo;
-            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+            const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, loan.branchId);
 
             sendEmailAsync({
               to: customer.email,
@@ -2219,18 +2183,7 @@ const bulkRejectLoans = async (req, res) => {
           }).catch(() => {});
 
           if (customer.email) {
-            const branch = await Branch.findById(loan.branchId);
-            const branchName =
-              branch?.branding?.companyName ||
-              branch?.name ||
-              req.user.businessName ||
-              req.user.name ||
-              'FinFlo';
-            const ownerLogo =
-              req.user.role === 'staff'
-                ? (await User.findById(req.user.ownerId))?.businessLogo
-                : req.user.businessLogo;
-            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+            const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, loan.branchId);
 
             sendEmailAsync({
               to: customer.email,

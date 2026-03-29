@@ -214,10 +214,15 @@ const loginUser = async (req, res) => {
         isManager = !!managedBranch;
         if (managedBranch) branchId = managedBranch._id;
 
-        // Inherit plan from owner for staff
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId);
-          if (owner) user.plan = owner.plan;
+          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAbbreviation');
+          if (owner) {
+            user.plan = owner.plan;
+            // Always use the owner's branding for staff/managers
+            if (owner.businessName) user.businessName = owner.businessName;
+            if (owner.businessLogo) user.businessLogo = owner.businessLogo;
+            if (owner.businessAbbreviation) user.businessAbbreviation = owner.businessAbbreviation;
+          }
         }
       }
 
@@ -291,10 +296,15 @@ const getMe = async (req, res) => {
         isManager = !!managedBranch;
         if (managedBranch) branchId = managedBranch._id;
 
-        // Inherit plan from owner for staff
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId);
-          if (owner) user.plan = owner.plan;
+          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAbbreviation');
+          if (owner) {
+            user.plan = owner.plan;
+            // Always use the owner's branding for staff/managers
+            if (owner.businessName) user.businessName = owner.businessName;
+            if (owner.businessLogo) user.businessLogo = owner.businessLogo;
+            if (owner.businessAbbreviation) user.businessAbbreviation = owner.businessAbbreviation;
+          }
         }
       }
 

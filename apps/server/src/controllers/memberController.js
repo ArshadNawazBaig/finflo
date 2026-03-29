@@ -31,6 +31,7 @@ const {
 const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 const Branch = require('../models/Branch');
 const { updateMemberCreditLimit } = require('../services/creditLimitService');
+const { getEmailBranding } = require('../utils/brandingUtils');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -854,18 +855,7 @@ const addInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
-        const branch = await Branch.findById(member.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
 
         sendEmailAsync({
           to: member.email,
@@ -1063,18 +1053,7 @@ const withdrawInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
-        const branch = await Branch.findById(member.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
 
         sendEmailAsync({
           to: member.email,
@@ -1392,15 +1371,7 @@ const distributeProfit = async (req, res) => {
             });
 
             // Send Email Notification (non-blocking)
-            const branch = await Branch.findById(member.branchId);
-            const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinFlo';
-            const ownerLogo =
-              req.user.role === 'staff'
-                ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                    ?.businessLogo
-                : req.user.businessLogo;
-            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+            const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
             sendEmailAsync({
               to: member.email,
               subject: `Profit Credited - ${branchName}`,
@@ -1523,15 +1494,7 @@ const distributeProfit = async (req, res) => {
             });
 
             // Send Email Notification (non-blocking)
-            const branch = await Branch.findById(member.branchId);
-            const branchName =
-              branch?.branding?.companyName || branch?.name || 'FinFlo';
-            const ownerLogo =
-              req.user.role === 'staff'
-                ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                    ?.businessLogo
-                : req.user.businessLogo;
-            const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+            const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
             sendEmailAsync({
               to: member.email,
               subject: `Profit Credited - ${branchName}`,
@@ -2022,19 +1985,7 @@ const transferFunds = async (req, res) => {
 
     // Email Notifications
     try {
-      const business = await User.findById(sender.user);
-      const branch = await Branch.findById(sender.branchId);
-
-      const branchName =
-        branch?.branding?.companyName ||
-        branch?.name ||
-        business?.businessName ||
-        'FinFlo';
-
-      const logoUrl =
-        branch?.branding?.logoUrl ||
-        business?.businessLogo ||
-        'https://res.cloudinary.com/dzfcf4sqf/image/upload/v1772130786/favicon_m58hqu.png';
+      const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, sender.branchId);
 
       // Email to Sender
       if (sender.email) {
@@ -2308,18 +2259,7 @@ const adminTransferFunds = async (req, res) => {
     try {
       // Email to Sender
       if (sender.email) {
-        const branch = await Branch.findById(sender.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, sender.branchId);
         sendEmailAsync({
           to: sender.email,
           subject: 'Transfer Sent Confirmation',
@@ -2347,13 +2287,7 @@ const adminTransferFunds = async (req, res) => {
 
       // Email to Recipient
       if (recipient.email) {
-        const branch = await Branch.findById(recipient.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.businessName ||
-          req.user.name ||
-          'FinFlo';
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, recipient.branchId);
         sendEmailAsync({
           to: recipient.email,
           subject: 'Transfer Received Confirmation',
@@ -2713,18 +2647,7 @@ const addShareInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
-        const branch = await Branch.findById(member.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
 
         sendEmailAsync({
           to: member.email,
@@ -2848,18 +2771,7 @@ const withdrawShareInvestment = async (req, res) => {
 
       // Email Notification
       if (member.email) {
-        const branch = await Branch.findById(member.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
 
         sendEmailAsync({
           to: member.email,
@@ -3078,18 +2990,7 @@ const distributeShareProfit = async (req, res) => {
         });
 
         // Send Email Notification (non-blocking)
-        const branch = await Branch.findById(member.branchId);
-        const branchName =
-          branch?.branding?.companyName ||
-          branch?.name ||
-          req.user.name ||
-          'FinFlo';
-        const ownerLogo =
-          req.user.role === 'staff'
-            ? (await User.findById(req.user.ownerId).select('businessLogo'))
-                ?.businessLogo
-            : req.user.businessLogo;
-        const logoUrl = branch?.branding?.logoUrl || ownerLogo;
+        const { brandName: branchName, logoUrl } = await getEmailBranding(req.user, member.branchId);
         sendEmailAsync({
           to: member.email,
           subject: `Share Profit Credited - ${branchName}`,
