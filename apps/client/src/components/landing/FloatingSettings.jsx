@@ -44,40 +44,41 @@ const FloatingSettings = () => {
 
       {/* Settings Panel */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-[320px] sm:w-[380px] bg-card/95 backdrop-blur-2xl border border-border/50 rounded-3xl shadow-2xl p-6 animate-in fade-in zoom-in-95 slide-in-from-bottom-10 h-auto max-h-[80vh] overflow-y-auto overflow-x-hidden scrollbar-hide">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-black tracking-tight mb-1">
-                Theme Customization
+        <div className="absolute bottom-14 right-0 w-[240px] bg-card/95 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-10 h-auto max-h-[80vh] overflow-y-auto overflow-x-hidden scrollbar-hide">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+                Theme Settings
               </h3>
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">
-                Adjust the look and feel
-              </p>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={14} />
+              </button>
             </div>
 
             {/* Theme Mode */}
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                Appearance
-              </h4>
-              <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {[
-                  { id: 'light', icon: <Sun size={18} />, label: 'Light' },
-                  { id: 'dark', icon: <Moon size={18} />, label: 'Dark' },
-                  { id: 'system', icon: <Laptop size={18} />, label: 'System' },
+                  { id: 'light', icon: <Sun size={14} />, label: 'Light' },
+                  { id: 'dark', icon: <Moon size={14} />, label: 'Dark' },
+                  { id: 'system', icon: <Laptop size={14} />, label: 'System' },
                 ].map((mode) => (
                   <button
                     key={mode.id}
                     onClick={() => setTheme(mode.id)}
                     className={cn(
-                      'flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all',
+                      'flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl border transition-all',
                       theme === mode.id
                         ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border/50 hover:bg-muted/50 text-muted-foreground',
+                        : 'border-border/40 hover:bg-muted/50 text-muted-foreground',
                     )}
+                    title={mode.label}
                   >
                     {mode.icon}
-                    <span className="text-[10px] font-bold uppercase">
+                    <span className="text-[8px] font-bold uppercase tracking-tighter">
                       {mode.label}
                     </span>
                   </button>
@@ -86,14 +87,14 @@ const FloatingSettings = () => {
             </div>
 
             {/* Color Palette */}
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+            <div className="space-y-2 border-t border-border/40 pt-3">
+              <h4 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
                 Primary Hue
               </h4>
               <ColorPalette
                 primaryColor={primaryColor}
                 setPrimaryColor={setPrimaryColor}
-                className="gap-3 sm:gap-4 justify-between"
+                className="gap-1.5 justify-center"
               />
             </div>
           </div>

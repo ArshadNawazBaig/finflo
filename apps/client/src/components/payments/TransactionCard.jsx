@@ -1,12 +1,6 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import {
-  Receipt,
-  User,
-  TrendingUp,
-  ArrowDown,
-  RotateCcw,
-} from 'lucide-react';
+import { Receipt, User, TrendingUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,7 +21,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
   return (
     <div
       className={cn(
-        'bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300',
+        'bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-3 py-4 shadow-sm hover:shadow-md transition-all duration-300',
         isReversed && 'opacity-50',
       )}
     >
@@ -45,9 +39,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-sm text-foreground capitalize">
-              {isReversal && (
-                <span className="text-amber-600 mr-1">[REV]</span>
-              )}
+              {isReversal && <span className="text-amber-600 mr-1">[REV]</span>}
               {transaction.category.replace(/_/g, ' ')}
             </span>
             {transaction.category === 'salary' && transaction.referenceId && (

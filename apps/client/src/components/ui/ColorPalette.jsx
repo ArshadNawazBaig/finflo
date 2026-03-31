@@ -56,38 +56,27 @@ export const COLORS = [
 
 const ColorPalette = ({ primaryColor, setPrimaryColor, className }) => {
   return (
-    <div className={cn('flex flex-wrap gap-4 pt-2', className)}>
+    <div className={cn('flex flex-wrap gap-2 pt-1', className)}>
       {COLORS.map((c) => (
-        <div key={c.name} className="flex flex-col items-center gap-2">
-          <button
-            onClick={() => setPrimaryColor(c.value)}
-            className={cn(
-              'relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl transition-all hover:scale-110 active:scale-95',
-              primaryColor === c.value
-                ? 'ring-4 ring-offset-4 ring-offset-background'
-                : 'hover:ring-2 hover:ring-offset-2',
-            )}
-            style={{
-              backgroundColor: c.color,
-              '--tw-ring-color': c.color,
-            }}
-            title={c.name}
-          >
-            {primaryColor === c.value && (
-              <Check className="text-white w-5 h-5 animate-in zoom-in" />
-            )}
-          </button>
-          <span
-            className={cn(
-              'text-[9px] font-black uppercase tracking-tighter transition-colors',
-              primaryColor === c.value
-                ? 'text-primary'
-                : 'text-muted-foreground/50',
-            )}
-          >
-            {c.name}
-          </span>
-        </div>
+        <button
+          key={c.name}
+          onClick={() => setPrimaryColor(c.value)}
+          className={cn(
+            'relative flex items-center justify-center w-8 h-8 rounded-xl transition-all hover:scale-110 active:scale-95',
+            primaryColor === c.value
+              ? 'ring-2 ring-offset-2 ring-offset-background'
+              : 'hover:ring-1 hover:ring-offset-1',
+          )}
+          style={{
+            backgroundColor: c.color,
+            '--tw-ring-color': c.color,
+          }}
+          title={c.name}
+        >
+          {primaryColor === c.value && (
+            <Check className="text-white w-4 h-4 animate-in zoom-in" />
+          )}
+        </button>
       ))}
     </div>
   );
