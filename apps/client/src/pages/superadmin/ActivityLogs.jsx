@@ -40,6 +40,7 @@ const ActivityLogs = () => {
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const isMobile = useIsMobile();
+  const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 
   useEffect(() => {
@@ -110,7 +111,15 @@ const ActivityLogs = () => {
       { threshold: 1.0 },
     );
 
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
 
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
   }, [isMobile, isFetchingMore, pagination, fetchLogs]);
 
   const getCategoryColor = (cat) => {
