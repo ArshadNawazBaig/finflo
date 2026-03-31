@@ -42,6 +42,7 @@ const VerificationQueue = withSkeleton(() => import('@/pages/admin/VerificationQ
 const Roles = withSkeleton(() => import('@/pages/admin/Roles'), SettingsPageSkeleton);
 const AuditLogs = withSkeleton(() => import('@/pages/admin/AuditLogs'), RegistryPageSkeleton);
 const Chat = withSkeleton(() => import('@/pages/admin/Chat'), ChatSkeleton);
+const TellerMode = withSkeleton(() => import('@/pages/admin/TellerMode'), TablePageSkeleton);
 const PaymentSuccess = withSkeleton(() => import('@/pages/billing/PaymentSuccess'), CardsPageSkeleton);
 const PaymentCancel = withSkeleton(() => import('@/pages/billing/PaymentCancel'), CardsPageSkeleton);
 
@@ -72,6 +73,8 @@ const AdminRoutes = () => (
       <Route element={<RequirePermissions permissions={['view_all', 'view_reports', 'manage_loans']} any />}>
         <Route path="/transactions" element={<Transactions />} />
       </Route>
+
+      <Route path="/teller" element={<TellerMode />} />
 
       <Route element={<RequirePermissions permissions={['view_reports']} />}>
         <Route path="/reports" element={<Reports />} />

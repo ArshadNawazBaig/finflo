@@ -1519,3 +1519,104 @@ export const MemberNotificationsPageSkeleton = () => (
     </div>
   </div>
 );
+
+export const TellerStatsSkeleton = () => (
+  <div className="grid grid-cols-3 gap-3 w-full max-w-3xl">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} className="p-4 rounded-[2rem] bg-muted/5 border border-border/20 flex flex-col items-center justify-center text-center">
+        <Skeleton className="h-4 w-4 rounded-full mb-1.5" />
+        <Skeleton className="h-2 w-16 mb-1" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    ))}
+  </div>
+);
+
+export const TellerMemberCardSkeleton = () => (
+  <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <Skeleton className="w-16 h-16 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-3 w-48" />
+            <Skeleton className="h-2 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-24 rounded-full" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="p-4 rounded-2xl bg-muted/5 border border-border/20 space-y-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3 w-3 rounded-full" />
+              <Skeleton className="h-2 w-16" />
+            </div>
+            <Skeleton className="h-5 w-24" />
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-28 rounded-[2rem]" />
+      ))}
+    </div>
+  </div>
+);
+
+export const TellerJournalSkeleton = () => (
+  <div className="w-full space-y-6 animate-in fade-in duration-500">
+    <div className="p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-sm space-y-8">
+      <div className="grid grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-1">
+            <Skeleton className="h-2 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-4">
+        <div className="border-b border-border/50 pb-4 flex justify-between px-2">
+           {Array.from({ length: 4 }).map((_, i) => (
+             <Skeleton key={i} className="h-3 w-20" />
+           ))}
+        </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="py-5 px-2 flex items-center justify-between border-b border-border/10 last:border-0">
+            <div className="flex items-center gap-2 w-1/4">
+              <Skeleton className="h-3 w-3 rounded-full" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <div className="flex items-center gap-2 w-1/4">
+              <Skeleton className="h-7 w-7 rounded-lg" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="w-1/4">
+               <Skeleton className="h-5 w-16 rounded-lg" />
+            </div>
+            <div className="w-1/4 text-right">
+               <Skeleton className="h-4 w-20 ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const TellerSearchSkeleton = () => (
+  <div className="space-y-2 p-3">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl">
+        <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-2 w-20" />
+        </div>
+        <Skeleton className="h-4 w-4 rounded-full" />
+      </div>
+    ))}
+  </div>
+);

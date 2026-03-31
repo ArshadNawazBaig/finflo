@@ -19,6 +19,7 @@ import {
   MessageSquare,
   LifeBuoy,
   Settings2,
+  Zap,
 } from 'lucide-react';
 
 export const sidebarMenuConfig = [
@@ -30,6 +31,14 @@ export const sidebarMenuConfig = [
         icon: LayoutGrid,
         label: 'Dashboard',
         onboardingId: 'sidebar-dashboard',
+      },
+      {
+        to: '/teller',
+        icon: Zap,
+        label: 'Teller Mode',
+        onboardingId: 'sidebar-teller',
+        permissions: ['view_all', 'manage_members'],
+        any: true,
       },
     ],
   },
