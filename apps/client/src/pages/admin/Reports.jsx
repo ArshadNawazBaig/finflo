@@ -90,6 +90,10 @@ const Reports = () => {
   });
   const [isExporting, setIsExporting] = useState(false);
 
+  // Balance Sheet State
+  const [balanceSheet, setBalanceSheet] = useState(null);
+  const [loadingBalanceSheet, setLoadingBalanceSheet] = useState(false);
+
   // Branch Analytics
   const [branchSummaries, setBranchSummaries] = useState(null);
   const [loadingBranch, setLoadingBranch] = useState(false);
@@ -150,6 +154,24 @@ const Reports = () => {
       fetchPnL();
     }
   }, [activeTab, dateRange]);
+
+  const fetchBalanceSheet = async () => {
+    try {
+      setLoadingBalanceSheet(true);
+      const { data: bsData } = await api.get('/reports/balance-sheet');
+      setBalanceSheet(bsData);
+    } catch (error) {
+      toast.error('Failed to fetch Balance Sheet');
+    } finally {
+      setLoadingBalanceSheet(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'balance-sheet' && !balanceSheet) {
+      fetchBalanceSheet();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === 'branch-analytics' && !branchSummaries) {
@@ -591,6 +613,18 @@ const Reports = () => {
         >
           <FileText size={14} />
           Profit & Loss
+        </button>
+        <button
+          onClick={() => setActiveTab('balance-sheet')}
+          className={cn(
+            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            activeTab === 'balance-sheet'
+              ? 'border-teal-500 text-teal-500'
+              : 'border-transparent text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <Landmark size={14} />
+          Balance Sheet
         </button>
         {isAdmin && (
           <button
@@ -1581,6 +1615,101 @@ const Reports = () => {
           ) : (
             <div className="text-center py-12 bg-card rounded-3xl border border-border/50 text-muted-foreground">
               Data unavailable.
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'balance-sheet' ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h2 className="text-xl font-black tracking-tight">Balance Sheet</h2>
+              <p className="text-xs text-muted-foreground font-medium mt-1">Formal Assets = Liabilities + Equity statement</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={fetchBalanceSheet} variant="outline" className="rounded-full text-[10px] font-black uppercase tracking-widest px-4 h-9">
+                <Loader2 size={12} className={loadingBalanceSheet ? 'animate-spin mr-1' : 'mr-1'} /> Refresh
+              </Button>
+            </div>
+          </div>
+
+          {loadingBalanceSheet ? (
+            <TableSkeleton rows={8} columns={2} />
+          ) : balanceSheet ? (
+            <div className="overflow-hidden rounded-[2rem] border border-border/50 shadow-sm bg-card">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50">
+                    <th className="text-left p-4 pl-6 text-xs font-black uppercase tracking-widest text-muted-foreground">Account</th>
+                    <th className="text-right p-4 pr-6 text-xs font-black uppercase tracking-widest text-muted-foreground">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* ASSETS */}
+                  <tr className="bg-emerald-500/5">
+                    <td colSpan={2} className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-emerald-600">Assets</td>
+                  </tr>
+                  <tr className="border-b border-border/30">
+                    <td className="p-3 pl-10 text-foreground/80">Loans Receivable</td>
+                    <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.assets?.loansReceivable || 0)}</td>
+                  </tr>
+                  <tr className="border-b border-border/30">
+                    <td className="p-3 pl-10 text-foreground/80">Cash at Hand / Bank</td>
+                    <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.assets?.cashAtHand || 0)}</td>
+                  </tr>
+                  {(balanceSheet.assets?.termDepositAssets > 0) && (
+                    <tr className="border-b border-border/30">
+                      <td className="p-3 pl-10 text-foreground/80">Term Deposit Assets</td>
+                      <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.assets.termDepositAssets)}</td>
+                    </tr>
+                  )}
+                  <tr className="bg-emerald-500/10 font-black">
+                    <td className="p-4 pl-6 text-emerald-700 dark:text-emerald-400">Total Assets</td>
+                    <td className="p-4 pr-6 text-right font-mono text-emerald-700 dark:text-emerald-400">{formatCurrency(balanceSheet.assets?.totalAssets || 0)}</td>
+                  </tr>
+
+                  {/* LIABILITIES */}
+                  <tr className="bg-rose-500/5">
+                    <td colSpan={2} className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-rose-600 mt-4">Liabilities</td>
+                  </tr>
+                  <tr className="border-b border-border/30">
+                    <td className="p-3 pl-10 text-foreground/80">Member Capital (Deposits)</td>
+                    <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.liabilities?.memberCapital || 0)}</td>
+                  </tr>
+                  {(balanceSheet.liabilities?.termDepositLiabilities > 0) && (
+                    <tr className="border-b border-border/30">
+                      <td className="p-3 pl-10 text-foreground/80">Term Deposit Liabilities</td>
+                      <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.liabilities.termDepositLiabilities)}</td>
+                    </tr>
+                  )}
+                  <tr className="bg-rose-500/10 font-black">
+                    <td className="p-4 pl-6 text-rose-700 dark:text-rose-400">Total Liabilities</td>
+                    <td className="p-4 pr-6 text-right font-mono text-rose-700 dark:text-rose-400">{formatCurrency(balanceSheet.liabilities?.totalLiabilities || 0)}</td>
+                  </tr>
+
+                  {/* EQUITY */}
+                  <tr className="bg-indigo-500/5">
+                    <td colSpan={2} className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-indigo-600 mt-4">Equity</td>
+                  </tr>
+                  <tr className="border-b border-border/30">
+                    <td className="p-3 pl-10 text-foreground/80">Retained Earnings</td>
+                    <td className="p-3 pr-6 text-right font-mono">{formatCurrency(balanceSheet.equity?.retainedEarnings || 0)}</td>
+                  </tr>
+                  <tr className="bg-indigo-500/10 font-black">
+                    <td className="p-4 pl-6 text-indigo-700 dark:text-indigo-400">Total Equity</td>
+                    <td className="p-4 pr-6 text-right font-mono text-indigo-700 dark:text-indigo-400">{formatCurrency(balanceSheet.equity?.totalEquity || 0)}</td>
+                  </tr>
+
+                  {/* BALANCE CHECK */}
+                  <tr className={cn('border-t-2 border-border', Math.abs(balanceSheet.balanceCheck || 0) < 1 ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white')}>
+                    <td className="p-5 pl-6 font-black text-base">Balance Check (A − L − E)</td>
+                    <td className="p-5 pr-6 text-right font-mono font-black text-lg">{formatCurrency(balanceSheet.balanceCheck || 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-card rounded-3xl border border-border/50 text-muted-foreground">
+              No balance sheet data available.
             </div>
           )}
         </div>

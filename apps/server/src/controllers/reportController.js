@@ -682,12 +682,125 @@ const getRegulatorySavedSnapshots = async (req, res) => {
   }
 };
 
+const getBalanceSheet = async (req, res) => {
+  try {
+    const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
+
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
+    }
+
+    const loans = await Loan.find({ ...query, status: { $ne: 'rejected' } });
+    const members = await Member.find(query);
+    const transactions = await FinancialTransaction.find(query);
+
+    // Try to load TermDeposit model
+    let TermDeposit;
+    try { TermDeposit = require('../models/TermDeposit'); } catch (e) { TermDeposit = null; }
+
+    const activeTermDeposits = TermDeposit
+      ? await TermDeposit.find({ ...query, status: 'active' })
+      : [];
+
+    // ══════ ASSETS ══════
+    const loansReceivable = loans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
+
+    const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
+    const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
+    const totalRepaid = loans.reduce((sum, l) => sum + (l.paidAmount || 0), 0);
+    const totalDisbursed = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
+    const totalExpenses = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const termDepositAssets = activeTermDeposits.reduce(
+      (sum, td) => sum + (td.principal || 0), 0,
+    );
+
+    const cashAtHand = totalDeposits - totalWithdrawn + totalRepaid - totalDisbursed - totalExpenses;
+
+    const totalAssets = loansReceivable + cashAtHand + termDepositAssets;
+
+    // ══════ LIABILITIES ══════
+    const memberCurrentBalances = members.reduce((sum, m) => sum + (m.currentBalance || 0), 0);
+    const memberSavingBalances = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
+    const memberShareBalances = members.reduce((sum, m) => sum + (m.shareBalance || 0), 0);
+
+    // Term deposit obligations (principal + projected profit owed back)
+    const termDepositObligations = activeTermDeposits.reduce(
+      (sum, td) => sum + (td.principal || 0) + (td.projectedProfit || 0), 0,
+    );
+
+    const totalLiabilities = memberCurrentBalances + memberSavingBalances + memberShareBalances + termDepositObligations;
+
+    // ══════ EQUITY ══════
+    const populatedRepayments = await Repayment.find(query).populate('loan', 'principal totalAmount');
+    const totalInterestEarned = populatedRepayments.reduce((sum, r) => {
+      if (r.interestAmount != null) return sum + r.interestAmount;
+      if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0 || !r.loan.principal) return sum;
+      const totalInterest = r.loan.totalAmount - r.loan.principal;
+      const profitRatio = totalInterest / r.loan.totalAmount;
+      return sum + r.amount * profitRatio;
+    }, 0);
+
+    const ProfitDistribution = require('../models/ProfitDistribution');
+    const distributions = await ProfitDistribution.find(query);
+    const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
+
+    // Fee income (checkbook, late fees, etc.)
+    const feeIncome = transactions
+      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const retainedEarnings = totalInterestEarned + feeIncome - totalDistributed - totalExpenses;
+    const totalEquity = retainedEarnings;
+
+    const discrepancy = totalAssets - (totalLiabilities + totalEquity);
+
+    res.status(200).json({
+      generatedAt: new Date(),
+      assets: {
+        cashAtHand: Math.round(cashAtHand),
+        loansReceivable: Math.round(loansReceivable),
+        termDepositsHeld: Math.round(termDepositAssets),
+        totalAssets: Math.round(totalAssets),
+      },
+      liabilities: {
+        memberCurrentAccounts: Math.round(memberCurrentBalances),
+        memberSavingAccounts: Math.round(memberSavingBalances),
+        memberShareCapital: Math.round(memberShareBalances),
+        termDepositObligations: Math.round(termDepositObligations),
+        totalLiabilities: Math.round(totalLiabilities),
+      },
+      equity: {
+        interestEarned: Math.round(totalInterestEarned),
+        feeIncome: Math.round(feeIncome),
+        profitDistributed: Math.round(totalDistributed),
+        operatingExpenses: Math.round(totalExpenses),
+        retainedEarnings: Math.round(retainedEarnings),
+        totalEquity: Math.round(totalEquity),
+      },
+      balanceCheck: {
+        totalAssets: Math.round(totalAssets),
+        totalLiabilitiesPlusEquity: Math.round(totalLiabilities + totalEquity),
+        discrepancy: Math.round(discrepancy),
+        isBalanced: Math.abs(discrepancy) < 1,
+      },
+    });
+  } catch (error) {
+    console.error('Balance Sheet Error:', error);
+    res.status(500).json({ message: 'Failed to generate balance sheet' });
+  }
+};
+
 module.exports = {
   getReportStats,
   generateIFRS9Report,
   generateBasel3Report,
   getTrialBalance,
   getProfitAndLoss,
+  getBalanceSheet,
   getBranchSummary,
   saveRegulatorySnapshot,
   getRegulatorySavedSnapshots,

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ShieldCheck,
   History,
@@ -8,6 +9,10 @@ import {
   FileText,
   ChevronRight,
   ArrowLeft,
+  PenTool,
+  ScrollText,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
@@ -17,12 +22,19 @@ import { formatCurrency, capitalize } from '@/lib/utils';
 import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
+import SignaturePad from '@/components/ui/SignaturePad';
 
 const MemberGrantorRequests = () => {
   const navigate = useNavigate();
   const [grantorLoans, setGrantorLoans] = useState([]);
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Agreement modal state
+  const [agreementLoan, setAgreementLoan] = useState(null);
+  const [signature, setSignature] = useState(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -45,13 +57,37 @@ const MemberGrantorRequests = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleGrantorStatus = async (loanId, status) => {
+  // Open agreement modal instead of directly approving
+  const openAgreement = (loan) => {
+    setAgreementLoan(loan);
+    setSignature(member?.signature || null);
+    setAgreedToTerms(false);
+  };
+
+  const closeAgreement = () => {
+    setAgreementLoan(null);
+    setSignature(null);
+    setAgreedToTerms(false);
+  };
+
+  const handleGrantorStatus = async (loanId, status, sig = null) => {
     try {
-      await api.patch(`/loans/${loanId}/grantor-status`, { status });
-      toast.success(`Grantor request ${status} successfully`);
-      fetchData(); // Refresh data
+      setIsSubmitting(true);
+      await api.patch(`/loans/${loanId}/grantor-status`, {
+        status,
+        ...(sig ? { signature: sig } : {}),
+      });
+      toast.success(
+        status === 'approved'
+          ? 'Agreement signed & request approved successfully'
+          : 'Grantor request rejected',
+      );
+      closeAgreement();
+      fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to update status`);
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -186,12 +222,11 @@ const MemberGrantorRequests = () => {
 
                   <div className="flex items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/50">
                     <Button
-                      onClick={() => handleGrantorStatus(loan._id, 'approved')}
+                      onClick={() => openAgreement(loan)}
                       variant="default"
                       className="rounded-full px-8 h-12 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                     >
-                      <CheckCircle2 size={16} className="mr-2" /> Approve
-                      Request
+                      <PenTool size={16} className="mr-2" /> Review & Sign
                     </Button>
                     <Button
                       onClick={() => handleGrantorStatus(loan._id, 'rejected')}
@@ -200,12 +235,12 @@ const MemberGrantorRequests = () => {
                     >
                       <XCircle size={16} className="mr-2" /> Reject
                     </Button>
-                    <Link
+                    {/* <Link
                       to={`/member/loans/${loan._id}`}
                       className="p-3 bg-muted rounded-2xl hover:bg-primary/10 hover:text-primary transition-all shadow-sm"
                     >
                       <ChevronRight size={20} />
-                    </Link>
+                    </Link> */}
                   </div>
                 </div>
               </div>
@@ -297,6 +332,293 @@ const MemberGrantorRequests = () => {
           </div>
         )}
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          GUARANTOR AGREEMENT MODAL
+      ═══════════════════════════════════════════════════════════════════ */}
+      {agreementLoan &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+            <div className="bg-card rounded-[2rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-border/50 overflow-hidden">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-8 py-5 border-b border-border/30 bg-gradient-to-r from-primary/5 to-indigo-500/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <ScrollText size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black tracking-tight">
+                      Guarantor Agreement
+                    </h2>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Read carefully before signing
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeAgreement}
+                  className="p-2 rounded-xl hover:bg-muted transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Scrollable Agreement Body */}
+              <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+                {/* Loan Summary Card */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-muted/30 border border-border/30">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Borrower
+                    </p>
+                    <p className="text-sm font-black capitalize mt-0.5">
+                      {agreementLoan.customer?.name}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Loan Amount
+                    </p>
+                    <p className="text-sm font-black text-primary mt-0.5">
+                      {formatCurrency(agreementLoan.principal)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Duration
+                    </p>
+                    <p className="text-sm font-black mt-0.5">
+                      {agreementLoan.duration} Months
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Monthly EMI
+                    </p>
+                    <p className="text-sm font-black mt-0.5">
+                      {formatCurrency(agreementLoan.emi)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Agreement Text */}
+                <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+                  <h3 className="text-base font-black text-foreground flex items-center gap-2">
+                    <FileText size={16} className="text-primary" />
+                    Terms & Conditions of Guarantorship
+                  </h3>
+
+                  <div className="space-y-3 pl-1">
+                    <p>
+                      <strong className="text-foreground">
+                        1. Guarantee Obligation:
+                      </strong>{' '}
+                      I,{' '}
+                      <span className="text-foreground font-bold">
+                        {member?.name || 'the undersigned'}
+                      </span>
+                      , CNIC:{' '}
+                      <span className="text-foreground font-bold">
+                        {member?.cnic || 'N/A'}
+                      </span>
+                      , hereby voluntarily agree to act as a guarantor for the
+                      loan of{' '}
+                      <span className="text-primary font-bold">
+                        {formatCurrency(agreementLoan.principal)}
+                      </span>{' '}
+                      issued to{' '}
+                      <span className="text-foreground font-bold capitalize">
+                        {agreementLoan.customer?.name}
+                      </span>
+                      .
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">2. Liability:</strong>{' '}
+                      In the event the borrower fails to repay the loan or any
+                      installment thereof, I understand that I shall be jointly
+                      and severally liable for the outstanding loan amount,
+                      including any accrued interest, late fees, and penalties.
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">
+                        3. Recovery Rights:
+                      </strong>{' '}
+                      The lending institution reserves the right to recover
+                      outstanding dues from my account balances (current and/or
+                      saving accounts) without prior notice, in the event of
+                      borrower default.
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">
+                        4. Duration of Guarantee:
+                      </strong>{' '}
+                      This guarantee shall remain in effect from the loan
+                      disbursement date until the loan is fully repaid,
+                      including all principal, interest, late fees, and any
+                      other charges. The loan duration is{' '}
+                      <span className="text-foreground font-bold">
+                        {agreementLoan.duration} months
+                      </span>{' '}
+                      with a monthly installment of{' '}
+                      <span className="text-foreground font-bold">
+                        {formatCurrency(agreementLoan.emi)}
+                      </span>
+                      .
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">
+                        5. Credit Impact:
+                      </strong>{' '}
+                      I acknowledge that acting as a guarantor may affect my own
+                      credit limit and future borrowing capacity. My available
+                      credit limit may be reduced by the guaranteed loan amount
+                      until the loan is fully settled.
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">
+                        6. Irrevocability:
+                      </strong>{' '}
+                      Once accepted, this guarantee cannot be withdrawn or
+                      cancelled while the loan remains outstanding, unless the
+                      borrower provides an alternative guarantor approved by the
+                      lending institution.
+                    </p>
+
+                    <p>
+                      <strong className="text-foreground">
+                        7. Legal Proceedings:
+                      </strong>{' '}
+                      In case of default, the lending institution may initiate
+                      legal proceedings against me as the guarantor to recover
+                      the outstanding amount, and I consent to the jurisdiction
+                      of local courts for resolution of any disputes.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Warning Box */}
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                  <AlertTriangle
+                    size={18}
+                    className="text-amber-500 mt-0.5 shrink-0"
+                  />
+                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400 leading-relaxed">
+                    By signing this agreement, you accept full financial
+                    responsibility as a guarantor. If the borrower defaults, you
+                    may be required to repay the outstanding amount from your
+                    own account. Please ensure you understand the risks before
+                    proceeding.
+                  </p>
+                </div>
+
+                {/* Terms Checkbox */}
+                <label className="flex items-start gap-3 cursor-pointer group p-4 rounded-2xl hover:bg-muted/30 transition-all border border-transparent hover:border-border/30">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 w-5 h-5 rounded border-2 border-primary/30 text-primary focus:ring-primary/20 cursor-pointer accent-primary"
+                  />
+                  <span className="text-sm font-bold text-foreground leading-relaxed">
+                    I have read, understood, and agree to all the terms and
+                    conditions of this Guarantor Agreement. I confirm that I am
+                    signing this document voluntarily and without coercion.
+                  </span>
+                </label>
+
+                {/* Guarantor Info */}
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-muted/20 border border-border/20">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      Guarantor Name
+                    </p>
+                    <p className="text-sm font-black mt-0.5 capitalize">
+                      {member?.name || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                      CNIC
+                    </p>
+                    <p className="text-sm font-black mt-0.5">
+                      {member?.cnic || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Signature Pad or Saved Signature */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+                    <PenTool size={14} className="text-primary" />
+                    Your Signature
+                  </h3>
+
+                  {member?.signature ? (
+                    <div className="rounded-2xl border-2 border-primary/20 bg-white flex flex-col items-center justify-center gap-4 py-6">
+                      <img
+                        src={member.signature}
+                        alt="Saved Signature"
+                        className="max-h-24 object-contain mix-blend-multiply"
+                      />
+                      <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 uppercase tracking-widest">
+                        <CheckCircle2 size={12} />
+                        Using your saved signature
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <SignaturePad
+                        onSave={(dataUrl) => setSignature(dataUrl)}
+                        onClear={() => setSignature(null)}
+                      />
+                      {!signature && agreedToTerms && (
+                        <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
+                          <AlertTriangle size={10} />
+                          Please draw your signature above to proceed
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-8 py-5 border-t border-border/30 flex items-center justify-between bg-muted/10">
+                <Button
+                  variant="outline"
+                  onClick={closeAgreement}
+                  className="rounded-full px-6 h-11 text-[10px] font-black uppercase tracking-widest"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    handleGrantorStatus(
+                      agreementLoan._id,
+                      'approved',
+                      signature || member?.signature,
+                    )
+                  }
+                  disabled={
+                    !agreedToTerms ||
+                    (!signature && !member?.signature) ||
+                    isSubmitting
+                  }
+                  isLoading={isSubmitting}
+                  className="rounded-full px-8 h-11 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 size={16} className="mr-2" />I Agree & Approve
+                </Button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

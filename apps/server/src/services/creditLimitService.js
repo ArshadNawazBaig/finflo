@@ -22,7 +22,7 @@ const calculateCreditLimit = async (memberId) => {
   const member = await Member.findById(memberId);
   if (!member) return 0;
 
-  // Base Limit: 3x share balance
+  // Base Limit: 5x share balance
   const baseLimit = (member.shareBalance || 0) * 5;
   let multiplier = 1.0;
 

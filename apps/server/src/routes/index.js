@@ -33,6 +33,7 @@ const routes = [
   ['/chat', './chatRoutes'],
   ['/checkbooks', './checkbookRoutes'],
   ['/ocr', './ocrRoutes'],
+  ['/term-deposits', './termDepositRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

@@ -33,6 +33,7 @@ import {
   UserPlus,
   BookOpen,
   AlertTriangle,
+  Landmark,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -1575,6 +1576,12 @@ const ConfigurationSection = ({ user }) => {
     lateFeeType: 'fixed',
     lateFeeRate: 500,
     lateFeeGracePeriodDays: 3,
+    termDepositRates: [
+      { duration: 6, rate: 8 },
+      { duration: 12, rate: 10 },
+      { duration: 24, rate: 12 },
+    ],
+    termDepositEarlyBreakPenalty: 50,
     smtpConfig: {
       host: '',
       port: 587,
@@ -1611,6 +1618,12 @@ const ConfigurationSection = ({ user }) => {
           lateFeeType: data.lateFeeType || 'fixed',
           lateFeeRate: data.lateFeeRate ?? 500,
           lateFeeGracePeriodDays: data.lateFeeGracePeriodDays ?? 3,
+          termDepositRates: data.termDepositRates || [
+            { duration: 6, rate: 8 },
+            { duration: 12, rate: 10 },
+            { duration: 24, rate: 12 },
+          ],
+          termDepositEarlyBreakPenalty: data.termDepositEarlyBreakPenalty ?? 50,
           smtpConfig: data.smtpConfig || {
             host: '',
             port: 587,
@@ -2189,6 +2202,99 @@ const ConfigurationSection = ({ user }) => {
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                 * Members will have this many days after their installment due date before a late fee is applied.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Term Deposit Configuration Section */}
+        <div className="space-y-6 pt-4 border-t border-border/20">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2 mb-2">
+              <Landmark size={14} />
+              Term Deposit Configuration
+            </h3>
+            <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+              Configure profit rate tiers for fixed-duration term deposits and the penalty applied for early withdrawal.
+            </p>
+          </div>
+
+          <div className="space-y-4 bg-emerald-500/5 p-6 rounded-[2rem] border border-emerald-500/10">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Rate Tiers
+              </label>
+              {(settings.termDepositRates || []).map((tier, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Duration (Months)</label>
+                    <input
+                      type="number" min="1" value={tier.duration}
+                      onChange={(e) => {
+                        const updated = [...settings.termDepositRates];
+                        updated[idx].duration = parseInt(e.target.value) || 1;
+                        setSettings({ ...settings, termDepositRates: updated });
+                      }}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Rate (% p.a.)</label>
+                    <input
+                      type="number" min="0" step="0.5" value={tier.rate}
+                      onChange={(e) => {
+                        const updated = [...settings.termDepositRates];
+                        updated[idx].rate = parseFloat(e.target.value) || 0;
+                        setSettings({ ...settings, termDepositRates: updated });
+                      }}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = settings.termDepositRates.filter((_, i) => i !== idx);
+                      setSettings({ ...settings, termDepositRates: updated });
+                    }}
+                    className="mt-5 p-2 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setSettings({
+                    ...settings,
+                    termDepositRates: [...(settings.termDepositRates || []), { duration: 6, rate: 8 }],
+                  });
+                }}
+                className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
+              >
+                + Add Tier
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-emerald-500/10">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  Early Break Penalty (% of Profit)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">%</span>
+                  <input
+                    type="number" min="0" max="100" step="5"
+                    value={settings.termDepositEarlyBreakPenalty}
+                    onChange={(e) => setSettings({ ...settings, termDepositEarlyBreakPenalty: parseFloat(e.target.value) || 0 })}
+                    className="w-full pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
+                  />
+                </div>
+              </div>
+              <div className="flex items-end">
+                <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
+                  * When a member breaks a term deposit early, this percentage of accrued profit is deducted as a penalty.
+                </p>
+              </div>
             </div>
           </div>
         </div>

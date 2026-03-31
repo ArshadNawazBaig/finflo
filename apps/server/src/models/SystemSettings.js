@@ -162,6 +162,29 @@ const systemSettingsSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // Term Deposit Configuration
+    termDepositRates: {
+      type: [
+        {
+          duration: { type: Number, required: true }, // months
+          rate: { type: Number, required: true }, // annual %
+        },
+      ],
+      default: [
+        { duration: 3, rate: 6 },
+        { duration: 6, rate: 8 },
+        { duration: 12, rate: 10 },
+        { duration: 18, rate: 11 },
+        { duration: 24, rate: 12 },
+      ],
+    },
+    termDepositEarlyBreakPenalty: {
+      type: Number,
+      default: 50,
+      min: 0,
+      max: 100,
+    },
+
     // Platform Configuration
     platformName: {
       type: String,

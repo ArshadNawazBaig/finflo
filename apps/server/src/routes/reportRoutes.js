@@ -7,6 +7,7 @@ const {
   getTrialBalance,
   getProfitAndLoss,
   getBranchSummary,
+  getBalanceSheet,
   saveRegulatorySnapshot,
   getRegulatorySavedSnapshots,
 } = require('../controllers/reportController');
@@ -18,6 +19,7 @@ router.get('/basel3', protect, generateBasel3Report);
 router.get('/trial-balance', protect, getTrialBalance);
 router.get('/profit-loss', protect, getProfitAndLoss);
 router.get('/branch-summary', protect, getBranchSummary);
+router.get('/balance-sheet', protect, getBalanceSheet);
 
 router
   .route('/snapshots')

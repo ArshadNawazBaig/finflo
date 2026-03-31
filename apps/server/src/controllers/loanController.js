@@ -690,8 +690,15 @@ const getGrantorLoans = async (req, res) => {
  * @access  Private (Member)
  */
 const updateGrantorStatus = async (req, res) => {
-  const { status } = req.body; // 'approved' or 'rejected'
+  const { status, signature } = req.body; // 'approved' or 'rejected', signature is base64 data URL
   try {
+    // Require signature for approval
+    if (status === 'approved' && !signature) {
+      return res
+        .status(400)
+        .json({ message: 'Signature is required to approve a guarantor request' });
+    }
+
     const loan = await Loan.findOne({
       _id: req.params.id,
       $or: [{ grantor1: req.member._id }, { grantor2: req.member._id }],
@@ -716,6 +723,8 @@ const updateGrantorStatus = async (req, res) => {
       loan.grantor1Status = status;
       if (status === 'approved') {
         loan.grantor1ApprovedAt = new Date();
+        loan.grantor1Signature = signature;
+        loan.grantor1AgreementAcceptedAt = new Date();
       }
     } else {
       if (loan.grantor2Status !== 'pending') {
@@ -726,6 +735,8 @@ const updateGrantorStatus = async (req, res) => {
       loan.grantor2Status = status;
       if (status === 'approved') {
         loan.grantor2ApprovedAt = new Date();
+        loan.grantor2Signature = signature;
+        loan.grantor2AgreementAcceptedAt = new Date();
       }
     }
 

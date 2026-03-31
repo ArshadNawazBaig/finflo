@@ -39,6 +39,8 @@ const updateSystemSettings = async (req, res) => {
       'lateFeeType',
       'lateFeeRate',
       'lateFeeGracePeriodDays',
+      'termDepositRates',
+      'termDepositEarlyBreakPenalty',
     ];
 
     allowedFields.forEach((field) => {
