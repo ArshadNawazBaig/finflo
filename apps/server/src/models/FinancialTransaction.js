@@ -35,6 +35,7 @@ const financialTransactionSchema = new mongoose.Schema(
         'saving_withdrawal',
         'saving_profit',
         'checkbook_fee',
+        'late_fee',
       ],
       required: true,
     },

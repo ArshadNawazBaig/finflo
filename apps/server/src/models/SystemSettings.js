@@ -141,6 +141,27 @@ const systemSettingsSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // Late Fee / Penalty Configuration
+    lateFeeEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    lateFeeType: {
+      type: String,
+      enum: ['fixed', 'percentage'],
+      default: 'fixed',
+    },
+    lateFeeRate: {
+      type: Number,
+      default: 500,
+      min: 0,
+    },
+    lateFeeGracePeriodDays: {
+      type: Number,
+      default: 3,
+      min: 0,
+    },
+
     // Platform Configuration
     platformName: {
       type: String,

@@ -31,6 +31,7 @@ import {
   BookOpen,
   XCircle,
   Hash,
+  FileText,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -42,7 +43,7 @@ import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
-import { exportMemberStatement } from '@/lib/pdfExportUtils';
+import { exportMemberStatement, generateTransactionReceipt } from '@/lib/pdfExportUtils';
 import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -2063,23 +2064,44 @@ const MemberProfile = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div
-                        className={`text-lg font-black ${
-                          inv.type === 'deposit' ||
+                    <div className="text-right flex items-center gap-3">
+                      <Tooltip content="Download Receipt">
+                        <button
+                          onClick={() =>
+                            generateTransactionReceipt({
+                              member,
+                              type: inv.type,
+                              amount: inv.amount,
+                              description: inv.description,
+                              date: inv.date,
+                              balanceAfter: inv.balanceAfter,
+                              referenceId: inv._id,
+                              accountType: inv.accountType || 'current',
+                            })
+                          }
+                          className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <FileText size={14} />
+                        </button>
+                      </Tooltip>
+                      <div>
+                        <div
+                          className={`text-lg font-black ${
+                            inv.type === 'deposit' ||
+                            inv.type === 'transfer_receive'
+                              ? 'text-emerald-600'
+                              : 'text-indigo-600'
+                          }`}
+                        >
+                          {inv.type === 'deposit' ||
                           inv.type === 'transfer_receive'
-                            ? 'text-emerald-600'
-                            : 'text-indigo-600'
-                        }`}
-                      >
-                        {inv.type === 'deposit' ||
-                        inv.type === 'transfer_receive'
-                          ? '+'
-                          : '-'}{' '}
-                        {formatCurrency(inv.amount)}
-                      </div>
-                      <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                        Balance: {formatCurrency(inv.balanceAfter)}
+                            ? '+'
+                            : '-'}{' '}
+                          {formatCurrency(inv.amount)}
+                        </div>
+                        <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                          Balance: {formatCurrency(inv.balanceAfter)}
+                        </div>
                       </div>
                     </div>
                   </div>

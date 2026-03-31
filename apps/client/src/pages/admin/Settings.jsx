@@ -32,6 +32,7 @@ import {
   KeyRound,
   UserPlus,
   BookOpen,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -1570,6 +1571,10 @@ const ConfigurationSection = ({ user }) => {
     maintenanceMode: false,
     estimatedMaintenanceTime: '',
     checkbookFee: 250,
+    lateFeeEnabled: true,
+    lateFeeType: 'fixed',
+    lateFeeRate: 500,
+    lateFeeGracePeriodDays: 3,
     smtpConfig: {
       host: '',
       port: 587,
@@ -1602,6 +1607,10 @@ const ConfigurationSection = ({ user }) => {
           maintenanceMode: data.maintenanceMode || false,
           estimatedMaintenanceTime: data.estimatedMaintenanceTime || '',
           checkbookFee: data.checkbookFee ?? 250,
+          lateFeeEnabled: data.lateFeeEnabled ?? true,
+          lateFeeType: data.lateFeeType || 'fixed',
+          lateFeeRate: data.lateFeeRate ?? 500,
+          lateFeeGracePeriodDays: data.lateFeeGracePeriodDays ?? 3,
           smtpConfig: data.smtpConfig || {
             host: '',
             port: 587,
@@ -2064,6 +2073,121 @@ const ConfigurationSection = ({ user }) => {
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
                 * This fee is deducted from the member's current account balance when a checkbook is issued. Set to 0 for free checkbooks.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Late Fee / Penalty Configuration Section */}
+        <div className="space-y-6 pt-4 border-t border-border/20">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-rose-500 flex items-center gap-2 mb-2">
+              <AlertTriangle size={14} />
+              Late Fee Configuration
+            </h3>
+            <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+              Configure automatic penalties applied to overdue loan installments. Late fees are applied after the grace period expires.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-rose-500/5 p-6 rounded-[2rem] border border-rose-500/10 py-8">
+            <div className="md:col-span-2 flex items-center justify-between p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+              <div>
+                <p className="text-sm font-black uppercase tracking-widest mb-1">
+                  Enable Late Fees
+                </p>
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Automatically apply penalties to overdue loan installments
+                </p>
+              </div>
+              <Switch
+                checked={settings.lateFeeEnabled}
+                onCheckedChange={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    lateFeeEnabled: !prev.lateFeeEnabled,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Fee Type
+              </label>
+              <div className="flex gap-2 p-1 bg-white/50 dark:bg-slate-800/50 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, lateFeeType: 'fixed' })}
+                  className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    settings.lateFeeType === 'fixed'
+                      ? 'bg-rose-500 text-white shadow-lg'
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  Fixed Amount
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, lateFeeType: 'percentage' })}
+                  className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    settings.lateFeeType === 'percentage'
+                      ? 'bg-rose-500 text-white shadow-lg'
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  % of EMI
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                {settings.lateFeeType === 'percentage' ? 'Fee Rate (%)' : 'Fee Amount'}
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
+                  {settings.lateFeeType === 'percentage' ? '%' : (settings.currency || 'Rs.')}
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step={settings.lateFeeType === 'percentage' ? '0.5' : '1'}
+                  value={settings.lateFeeRate}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      lateFeeRate: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Grace Period (Days)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="30"
+                step="1"
+                value={settings.lateFeeGracePeriodDays}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    lateFeeGracePeriodDays: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                placeholder="3"
+              />
+            </div>
+            <div className="flex items-end">
+              <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
+                * Members will have this many days after their installment due date before a late fee is applied.
               </p>
             </div>
           </div>

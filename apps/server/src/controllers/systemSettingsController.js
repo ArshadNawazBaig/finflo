@@ -35,6 +35,10 @@ const updateSystemSettings = async (req, res) => {
       'emailTemplates',
       'smtpConfig',
       'checkbookFee',
+      'lateFeeEnabled',
+      'lateFeeType',
+      'lateFeeRate',
+      'lateFeeGracePeriodDays',
     ];
 
     allowedFields.forEach((field) => {
