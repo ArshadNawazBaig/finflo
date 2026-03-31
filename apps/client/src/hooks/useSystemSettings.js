@@ -8,12 +8,24 @@ const useSystemSettings = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       try {
         setLoading(true);
-        const { data } = await api.get(`/system-settings?t=${Date.now()}`);
+        console.log('[useSystemSettings] Fetching system settings...');
+        const { data } = await api.get(`/system-settings?t=${Date.now()}`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        console.log('[useSystemSettings] System settings loaded:', !!data);
         setSettings(data);
       } catch (err) {
-        console.error('Failed to fetch system settings:', err);
+        if (err.name === 'AbortError' || err.code === 'ECONNABORTED') {
+          console.error('[useSystemSettings] Fetch timed out after 10s');
+        } else {
+          console.error('[useSystemSettings] Failed to fetch system settings:', err);
+        }
         setError(err);
       } finally {
         setLoading(false);

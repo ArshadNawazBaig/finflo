@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Settings, X, Sun, Moon, Laptop } from 'lucide-react';
+import { Palette, X, Sun, Moon, Laptop } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 import ColorPalette from '@/components/ui/ColorPalette';
@@ -39,7 +39,7 @@ const FloatingSettings = () => {
           isOpen ? 'rotate-90' : 'hover:rotate-45',
         )}
       >
-        {isOpen ? <X size={16} /> : <Settings size={16} />}
+        {isOpen ? <X size={16} /> : <Palette size={16} />}
       </button>
 
       {/* Settings Panel */}

@@ -24,6 +24,22 @@ window.addEventListener(
   true,
 );
 
+// Global Unhandled Rejection Handler for silent startup crashes
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🔥 CRITICAL: Unhandled Promise Rejection:', event.reason);
+  if (import.meta.env.DEV) {
+    console.warn('Startup might be stuck due to above error.');
+  }
+});
+
+// Global Unhandled Rejection Handler for silent startup crashes
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🔥 CRITICAL: Unhandled Promise Rejection:', event.reason);
+  if (import.meta.env.DEV) {
+    console.warn('Startup might be stuck due to above error.');
+  }
+});
+
 // Service Worker Registration Handler
 const registerServiceWorker = () => {
   if (!('serviceWorker' in navigator)) return;
