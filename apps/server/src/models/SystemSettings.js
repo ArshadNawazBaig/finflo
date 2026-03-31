@@ -134,6 +134,13 @@ const systemSettingsSchema = new mongoose.Schema(
       },
     },
 
+    // Checkbook Configuration
+    checkbookFee: {
+      type: Number,
+      default: 250,
+      min: 0,
+    },
+
     // Platform Configuration
     platformName: {
       type: String,

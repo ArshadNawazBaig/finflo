@@ -31,6 +31,7 @@ const routes = [
   ['/loan-products', './loanProductRoutes'],
   ['/roles', './roleRoutes'],
   ['/chat', './chatRoutes'],
+  ['/checkbooks', './checkbookRoutes'],
   ['/ocr', './ocrRoutes'],
 ];
 

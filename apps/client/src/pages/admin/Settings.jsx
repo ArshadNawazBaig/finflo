@@ -31,6 +31,7 @@ import {
   QrCode,
   KeyRound,
   UserPlus,
+  BookOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -1568,6 +1569,7 @@ const ConfigurationSection = ({ user }) => {
     supportEmail: '',
     maintenanceMode: false,
     estimatedMaintenanceTime: '',
+    checkbookFee: 250,
     smtpConfig: {
       host: '',
       port: 587,
@@ -1599,6 +1601,7 @@ const ConfigurationSection = ({ user }) => {
           supportEmail: data.supportEmail || '',
           maintenanceMode: data.maintenanceMode || false,
           estimatedMaintenanceTime: data.estimatedMaintenanceTime || '',
+          checkbookFee: data.checkbookFee ?? 250,
           smtpConfig: data.smtpConfig || {
             host: '',
             port: 587,
@@ -2020,6 +2023,51 @@ const ConfigurationSection = ({ user }) => {
             </div>
           </div>
         )}
+
+        {/* Checkbook Configuration Section */}
+        <div className="space-y-6 pt-4 border-t border-border/20">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 mb-2">
+              <BookOpen size={14} />
+              Checkbook Configuration
+            </h3>
+            <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
+              Set the fee charged to members when a checkbook is issued. This amount is automatically deducted from the member's current account.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Checkbook Issuance Fee
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
+                  {settings.currency || 'Rs.'}
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={settings.checkbookFee}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      checkbookFee: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                  placeholder="250"
+                />
+              </div>
+            </div>
+            <div className="flex items-end">
+              <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
+                * This fee is deducted from the member's current account balance when a checkbook is issued. Set to 0 for free checkbooks.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="flex justify-end pt-2">
           <Button

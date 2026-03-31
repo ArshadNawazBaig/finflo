@@ -28,6 +28,9 @@ import {
   Building2,
   BadgeDollarSign,
   ImagePlus,
+  BookOpen,
+  XCircle,
+  Hash,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -164,6 +167,18 @@ const MemberProfile = () => {
     useState(null);
   const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] =
     useState(false);
+
+  // Checkbook state
+  const [checkbooks, setCheckbooks] = useState([]);
+  const [showCheckbookForm, setShowCheckbookForm] = useState(false);
+  const [checkbookLeaves, setCheckbookLeaves] = useState(25);
+  const [checkbookNotes, setCheckbookNotes] = useState('');
+  const [isIssuingCheckbook, setIsIssuingCheckbook] = useState(false);
+  const [isCheckbooksLoading, setIsCheckbooksLoading] = useState(false);
+  const [checkbookPage, setCheckbookPage] = useState(1);
+  const [checkbookTotalPages, setCheckbookTotalPages] = useState(1);
+  const [checkbookTotal, setCheckbookTotal] = useState(0);
+  const [isCancellingCheckbook, setIsCancellingCheckbook] = useState(null);
 
   const getSettlementDetails = (loan) => {
     if (!loan)
@@ -722,6 +737,74 @@ const MemberProfile = () => {
     if (id) fetchMemberShares(1, false);
   }, [id, fetchMemberShares, shareLimit]);
 
+  // ── Checkbook handlers ──────────────────────────────────────────────────────
+  const fetchCheckbooks = useCallback(
+    async (page = 1) => {
+      setIsCheckbooksLoading(true);
+      try {
+        const { data } = await api.get(
+          `/checkbooks/member/${id}?page=${page}&limit=5`,
+        );
+        setCheckbooks(data.checkbooks || []);
+        setCheckbookPage(data.currentPage || 1);
+        setCheckbookTotalPages(data.totalPages || 1);
+        setCheckbookTotal(data.total || 0);
+      } catch (error) {
+        console.error('Failed to load checkbooks:', error);
+      } finally {
+        setIsCheckbooksLoading(false);
+      }
+    },
+    [id],
+  );
+
+  useEffect(() => {
+    if (id) fetchCheckbooks(1);
+  }, [id, fetchCheckbooks]);
+
+  const handleIssueCheckbook = async (e) => {
+    e.preventDefault();
+    setIsIssuingCheckbook(true);
+    try {
+      const { data } = await api.post('/checkbooks/issue', {
+        memberId: id,
+        numberOfLeaves: checkbookLeaves,
+        notes: checkbookNotes,
+      });
+      toast.success(data.message || 'Checkbook issued successfully');
+      setCheckbookLeaves(25);
+      setCheckbookNotes('');
+      setShowCheckbookForm(false);
+      fetchMemberData();
+      fetchCheckbooks(1);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to issue checkbook',
+      );
+    } finally {
+      setIsIssuingCheckbook(false);
+    }
+  };
+
+  const handleCancelCheckbook = async (checkbookId, refund = false) => {
+    setIsCancellingCheckbook(checkbookId);
+    try {
+      const { data } = await api.put(`/checkbooks/${checkbookId}/cancel`, {
+        refund,
+      });
+      toast.success(data.message || 'Checkbook cancelled');
+      fetchMemberData();
+      fetchCheckbooks(checkbookPage);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to cancel checkbook',
+      );
+    } finally {
+      setIsCancellingCheckbook(null);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
   const handleRecalcBalance = async () => {
     try {
       setRecalcLoading(true);
@@ -821,73 +904,88 @@ const MemberProfile = () => {
           </div>
         }
       >
-        <div className="flex flex-wrap items-center gap-2 justify-end">
-          <Tooltip content="Edit Member Details">
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-wrap items-center gap-2 justify-end">
+            <Tooltip content="Edit Member Details">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowMemberForm(true)}
+                className="w-12 h-12 rounded-2xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all border border-primary/10"
+              >
+                <Pencil size={18} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Sync Balance from Ledger">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRecalcBalance}
+                isLoading={recalcLoading}
+                className="w-12 h-12 rounded-2xl bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"
+              >
+                <RefreshCw size={18} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Adjust Performance Rates">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowProfitRateForm(true)}
+                className="w-12 h-12 rounded-2xl bg-amber-500/5 text-amber-600 hover:bg-amber-500 hover:text-white transition-all border border-amber-500/10"
+              >
+                <Zap size={18} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="P2P Transfer">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowTransferForm(true)}
+                className="w-12 h-12 rounded-2xl bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/10"
+              >
+                <Send size={18} />
+              </Button>
+            </Tooltip>
+
+            <Tooltip content="Issue Checkbook">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowCheckbookForm(true)}
+                className="w-12 h-12 rounded-2xl bg-indigo-500/5 text-indigo-600 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/10"
+              >
+                <BookOpen size={18} />
+              </Button>
+            </Tooltip>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 justify-end">
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowMemberForm(true)}
-              className="w-12 h-12 rounded-2xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all border border-primary/10"
+              onClick={() => {
+                setInvestmentType('deposit');
+                setShowInvestmentForm(true);
+              }}
+              variant="outline"
+              className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
             >
-              <Pencil size={18} />
+              <ArrowUpCircle className="w-4 h-4" />
+              Balance
             </Button>
-          </Tooltip>
 
-          <Tooltip content="Sync Balance from Ledger">
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRecalcBalance}
-              isLoading={recalcLoading}
-              className="w-12 h-12 rounded-2xl bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"
+              variant="gradient"
+              isLoading={isExporting}
+              onClick={handleDownloadReport}
+              className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
             >
-              <RefreshCw size={18} />
+              <Download size={16} />
+              Report
             </Button>
-          </Tooltip>
-
-          <Tooltip content="Adjust Performance Rates">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowProfitRateForm(true)}
-              className="w-12 h-12 rounded-2xl bg-amber-500/5 text-amber-600 hover:bg-amber-500 hover:text-white transition-all border border-amber-500/10"
-            >
-              <Zap size={18} />
-            </Button>
-          </Tooltip>
-
-          <Tooltip content="P2P Transfer">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowTransferForm(true)}
-              className="w-12 h-12 rounded-2xl bg-emerald-500/5 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/10"
-            >
-              <Send size={18} />
-            </Button>
-          </Tooltip>
-
-          <Button
-            onClick={() => {
-              setInvestmentType('deposit');
-              setShowInvestmentForm(true);
-            }}
-            variant="outline"
-            className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
-          >
-            <ArrowUpCircle className="w-4 h-4" />
-            Balance
-          </Button>
-
-          <Button
-            variant="gradient"
-            isLoading={isExporting}
-            onClick={handleDownloadReport}
-            className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
-          >
-            <Download size={16} />
-            Report
-          </Button>
+          </div>
         </div>
       </PageHeader>
 
@@ -937,7 +1035,8 @@ const MemberProfile = () => {
           {(showInvestmentForm ||
             showProfitRateForm ||
             showTransferForm ||
-            showMemberForm) && (
+            showMemberForm ||
+            showCheckbookForm) && (
             <div className="p-5 sm:p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border-2 border-primary/20 shadow-2xl animate-in zoom-in-95 duration-500">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-black tracking-tight flex items-center gap-2">
@@ -948,6 +1047,8 @@ const MemberProfile = () => {
                       <Zap size={20} />
                     ) : showTransferForm ? (
                       <Send size={20} />
+                    ) : showCheckbookForm ? (
+                      <BookOpen size={20} />
                     ) : (
                       <ArrowUpCircle size={20} />
                     )}
@@ -958,6 +1059,8 @@ const MemberProfile = () => {
                       ? 'Performance Configuration'
                       : showTransferForm
                         ? 'P2P Fund Transfer'
+                        : showCheckbookForm
+                          ? 'Issue Checkbook'
                         : 'Fund Movement'}
                 </h3>
                 <button
@@ -966,6 +1069,7 @@ const MemberProfile = () => {
                     setShowProfitRateForm(false);
                     setShowTransferForm(false);
                     setShowMemberForm(false);
+                    setShowCheckbookForm(false);
                   }}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                 >
@@ -1501,6 +1605,69 @@ const MemberProfile = () => {
                     >
                       {!isTransferring && <Send size={16} className="mr-2" />}
                       Initiate Transfer
+                    </Button>
+                  </div>
+                </form>
+              ) : showCheckbookForm ? (
+                <form onSubmit={handleIssueCheckbook} className="space-y-6">
+                  <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                    <div className="flex items-center gap-2 text-indigo-600 mb-1">
+                      <Info size={14} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">
+                        Fee Deduction Notice
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                      The checkbook fee will be automatically deducted from the member's <strong>current account</strong>. 
+                      Current balance: <strong className="text-primary">{formatCurrency(member.currentBalance || 0)}</strong>
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Number of Leaves
+                      </label>
+                      <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl">
+                        {[25, 50, 100].map((val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setCheckbookLeaves(val)}
+                            className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                              checkbookLeaves === val
+                                ? 'bg-indigo-500 text-white shadow-lg'
+                                : 'text-muted-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {val} Leaves
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                        Notes (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={checkbookNotes}
+                        onChange={(e) => setCheckbookNotes(e.target.value)}
+                        placeholder="e.g. Requested by member"
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="submit"
+                      isLoading={isIssuingCheckbook}
+                      variant="gradient"
+                      className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                    >
+                      {!isIssuingCheckbook && <BookOpen size={16} className="mr-2" />}
+                      Issue Checkbook
                     </Button>
                   </div>
                 </form>
@@ -2469,6 +2636,162 @@ const MemberProfile = () => {
                 </>
               )}
             </div>
+          </div>
+          {/* ────────────────────────────────────────────────────────── */}
+
+          {/* ── Checkbook Section ──────────────────────────────────── */}
+          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black tracking-tighter text-primary">
+                  Checkbook Registry
+                </h3>
+                <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                  Track all checkbooks issued to this member.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
+                  {checkbookTotal} Total
+                </span>
+                <div className="p-3 rounded-2xl bg-indigo-500/10">
+                  <BookOpen className="w-5 h-5 text-indigo-500" />
+                </div>
+              </div>
+            </div>
+
+            {isCheckbooksLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : checkbooks.length === 0 ? (
+              <EmptyState
+                icon={BookOpen}
+                title="No Checkbooks Issued"
+                description="Issue a checkbook using the action button above."
+              />
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-border/50">
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
+                          <div className="flex items-center gap-1">
+                            <Hash size={10} />
+                            Checkbook #
+                          </div>
+                        </th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Leaves</th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Fee</th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Status</th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Date</th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {checkbooks.map((cb) => (
+                        <tr
+                          key={cb._id}
+                          className="group hover:bg-muted/20 transition-colors"
+                        >
+                          <td className="py-3 pr-4">
+                            <span className="text-xs font-black font-mono text-indigo-600">
+                              {cb.checkbookNumber}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span className="text-xs font-bold">
+                              {cb.numberOfLeaves}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span className="text-xs font-black text-primary">
+                              {formatCurrency(cb.fee)}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span
+                              className={cn(
+                                'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+                                cb.status === 'active'
+                                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                  : cb.status === 'cancelled'
+                                    ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                                    : 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+                              )}
+                            >
+                              {cb.status}
+                              {cb.refunded && ' (Refunded)'}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              {new Date(cb.createdAt).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </td>
+                          <td className="py-3">
+                            {cb.status === 'active' && (
+                              <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Tooltip content="Cancel & Refund">
+                                  <button
+                                    onClick={() =>
+                                      handleCancelCheckbook(cb._id, true)
+                                    }
+                                    disabled={
+                                      isCancellingCheckbook === cb._id
+                                    }
+                                    className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors disabled:opacity-50"
+                                  >
+                                    {isCancellingCheckbook === cb._id ? (
+                                      <Loader2
+                                        size={12}
+                                        className="animate-spin"
+                                      />
+                                    ) : (
+                                      <RefreshCw size={12} />
+                                    )}
+                                  </button>
+                                </Tooltip>
+                                <Tooltip content="Cancel (No Refund)">
+                                  <button
+                                    onClick={() =>
+                                      handleCancelCheckbook(cb._id, false)
+                                    }
+                                    disabled={
+                                      isCancellingCheckbook === cb._id
+                                    }
+                                    className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors disabled:opacity-50"
+                                  >
+                                    <XCircle size={12} />
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {checkbookTotalPages > 1 && (
+                  <div className="mt-6 border-t border-border/50 pt-6">
+                    <Pagination
+                      currentPage={checkbookPage}
+                      totalPages={checkbookTotalPages}
+                      totalEntries={checkbookTotal}
+                      limit={5}
+                      onPageChange={(p) => fetchCheckbooks(p)}
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
           {/* ────────────────────────────────────────────────────────── */}
 

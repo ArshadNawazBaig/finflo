@@ -34,6 +34,7 @@ const updateSystemSettings = async (req, res) => {
       'estimatedMaintenanceTime',
       'emailTemplates',
       'smtpConfig',
+      'checkbookFee',
     ];
 
     allowedFields.forEach((field) => {
