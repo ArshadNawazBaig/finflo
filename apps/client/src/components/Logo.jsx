@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAtomValue } from 'jotai';
+import { userAtom, memberAtom } from '@/atoms';
 
 const Logo = ({
   className = 'h-8',
@@ -6,26 +8,14 @@ const Logo = ({
   custom = false,
   innerTextColor = '',
 }) => {
-  const [session, setSession] = React.useState(() => {
-    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {}) || {};
-    const member = JSON.parse(localStorage.getItem('member') || '{}') || {};
-    return Object.keys(user).length > 0 ? user : member;
-  });
+  const user = useAtomValue(userAtom);
+  const member = useAtomValue(memberAtom);
 
-  React.useEffect(() => {
-    const handleUpdate = () => {
-      const user = (JSON.parse(localStorage.getItem('user') || '{}') || {}) || {};
-      const member = JSON.parse(localStorage.getItem('member') || '{}') || {};
-      setSession(Object.keys(user).length > 0 ? user : member);
-    };
-
-    window.addEventListener('userUpdated', handleUpdate);
-    window.addEventListener('memberUpdated', handleUpdate);
-    return () => {
-      window.removeEventListener('userUpdated', handleUpdate);
-      window.removeEventListener('memberUpdated', handleUpdate);
-    };
-  }, []);
+  const session = user && Object.keys(user).length > 0
+    ? user
+    : member && Object.keys(member).length > 0
+    ? member
+    : {};
 
   const isProPlan =
     (session?.plan === 'Pro' || session?.adminPlan === 'Pro') &&

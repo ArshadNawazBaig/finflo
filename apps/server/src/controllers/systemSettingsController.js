@@ -119,17 +119,24 @@ const updateLoanConfiguration = async (req, res) => {
     const settings = await SystemSettings.getSettings();
     const oldSettings = settings.toObject();
 
-    if (req.body.defaultInterestRate !== undefined) {
-      settings.defaultInterestRate = req.body.defaultInterestRate;
-    }
+    const allowedFields = [
+      'defaultInterestRate',
+      'defaultLoanTerm',
+      'currency',
+      'checkbookFee',
+      'lateFeeEnabled',
+      'lateFeeType',
+      'lateFeeRate',
+      'lateFeeGracePeriodDays',
+      'termDepositRates',
+      'termDepositEarlyBreakPenalty'
+    ];
 
-    if (req.body.defaultLoanTerm !== undefined) {
-      settings.defaultLoanTerm = req.body.defaultLoanTerm;
-    }
-
-    if (req.body.currency !== undefined) {
-      settings.currency = req.body.currency;
-    }
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        settings[field] = req.body[field];
+      }
+    });
 
     settings.updatedBy = req.user._id;
     await settings.save();

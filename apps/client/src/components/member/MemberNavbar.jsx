@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
-import { useAtom } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { notificationsAtom, unreadNotificationsCountAtom, memberAtom } from '@/atoms';
 
 const MemberNavbar = ({ onMenuClick }) => {
   const { theme, setTheme } = useTheme();
@@ -85,18 +85,7 @@ const MemberNavbar = ({ onMenuClick }) => {
     navigate('/member/login');
   };
 
-  const [member, setMember] = useState(() =>
-    JSON.parse(localStorage.getItem('member') || '{}'),
-  );
-
-  useEffect(() => {
-    const handleMemberUpdate = () => {
-      setMember(JSON.parse(localStorage.getItem('member') || '{}'));
-    };
-    window.addEventListener('memberUpdated', handleMemberUpdate);
-    return () =>
-      window.removeEventListener('memberUpdated', handleMemberUpdate);
-  }, []);
+  const member = useAtomValue(memberAtom) || {};
 
   const memberInitials = member.name
     ? member.name
