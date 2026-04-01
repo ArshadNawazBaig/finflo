@@ -28,4 +28,11 @@ const repaymentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Indexes for performance
+repaymentSchema.index({ loan: 1, date: -1 });
+repaymentSchema.index({ user: 1, date: -1 });
+repaymentSchema.index({ customer: 1 });
+repaymentSchema.index({ branchId: 1 });
+repaymentSchema.index({ status: 1 });
+
 module.exports = mongoose.model('Repayment', repaymentSchema);

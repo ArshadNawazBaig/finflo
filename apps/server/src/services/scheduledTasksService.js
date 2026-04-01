@@ -3,15 +3,40 @@ const Loan = require('../models/Loan');
 const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
 const Notification = require('../models/Notification');
+const SystemSettings = require('../models/SystemSettings');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const {
   createTransactionNotification,
 } = require('../utils/notificationHelper');
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-const GRACE_PERIOD_DAYS = 3;
-const LATE_FEE_RATE = 0.02; // 2% of EMI per month, prorated daily
-const LATE_FEE_CAP_PCT = 0.2; // never exceed 20% of remaining balance
+// ─── Fallback Constants (used only if SystemSettings fails) ─────────────────
+const DEFAULT_GRACE_PERIOD_DAYS = 3;
+const DEFAULT_LATE_FEE_CAP_PCT = 0.2; // never exceed 20% of remaining balance
+
+/**
+ * Fetch late fee configuration from SystemSettings with safe fallbacks.
+ */
+const getLateFeeConfig = async () => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    return {
+      enabled: settings.lateFeeEnabled !== false,
+      type: settings.lateFeeType || 'fixed',
+      rate: settings.lateFeeRate ?? 500,
+      gracePeriodDays: settings.lateFeeGracePeriodDays ?? DEFAULT_GRACE_PERIOD_DAYS,
+      capPct: DEFAULT_LATE_FEE_CAP_PCT,
+    };
+  } catch (err) {
+    console.error('[CRON] Failed to fetch SystemSettings, using defaults:', err.message);
+    return {
+      enabled: true,
+      type: 'fixed',
+      rate: 500,
+      gracePeriodDays: DEFAULT_GRACE_PERIOD_DAYS,
+      capPct: DEFAULT_LATE_FEE_CAP_PCT,
+    };
+  }
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -49,6 +74,9 @@ const runOverdueDowngrade = async () => {
   today.setHours(0, 0, 0, 0);
 
   try {
+    const config = await getLateFeeConfig();
+    const gracePeriodDays = config.gracePeriodDays;
+
     const activeLoans = await Loan.find({
       status: 'active',
     }).populate('customer');
@@ -60,7 +88,7 @@ const runOverdueDowngrade = async () => {
       if (!nextDue) continue;
 
       const daysLate = daysBetween(nextDue, today);
-      if (daysLate <= GRACE_PERIOD_DAYS) continue;
+      if (daysLate <= gracePeriodDays) continue;
 
       // Downgrade to overdue
       await Loan.findByIdAndUpdate(loan._id, {
@@ -77,7 +105,7 @@ const runOverdueDowngrade = async () => {
           await createTransactionNotification({
             recipientId: customer.memberId,
             title: '⚠️ Loan Payment Overdue',
-            message: `Your loan #${loan._id.toString().slice(-6).toUpperCase()} is now overdue by ${daysLate - GRACE_PERIOD_DAYS} day(s). Please make a payment as soon as possible to avoid additional late fees.`,
+            message: `Your loan #${loan._id.toString().slice(-6).toUpperCase()} is now overdue by ${daysLate - gracePeriodDays} day(s). Please make a payment as soon as possible to avoid additional late fees.`,
             type: 'warning',
             branchId: loan.branchId,
             action: 'loan_overdue_notification',
@@ -90,7 +118,7 @@ const runOverdueDowngrade = async () => {
     }
 
     console.log(
-      `[CRON] runOverdueDowngrade: ${downgraded} loan(s) marked overdue.`,
+      `[CRON] runOverdueDowngrade: ${downgraded} loan(s) marked overdue (grace: ${gracePeriodDays}d).`,
     );
   } catch (err) {
     console.error('[CRON] runOverdueDowngrade ERROR:', err);
@@ -110,6 +138,14 @@ const runLateFeeAccrual = async () => {
   today.setHours(0, 0, 0, 0);
 
   try {
+    const config = await getLateFeeConfig();
+
+    // Respect the lateFeeEnabled toggle from admin settings
+    if (!config.enabled) {
+      console.log('[CRON] runLateFeeAccrual: late fees disabled in settings. Skipping.');
+      return;
+    }
+
     const overdueLoans = await Loan.find({
       status: { $in: ['active', 'overdue'] },
     });
@@ -121,10 +157,19 @@ const runLateFeeAccrual = async () => {
       if (!nextDue) continue;
 
       const daysLate = daysBetween(nextDue, today);
-      if (daysLate <= GRACE_PERIOD_DAYS) continue;
+      if (daysLate <= config.gracePeriodDays) continue;
 
-      const dailyFee = Math.round((loan.emi * LATE_FEE_RATE) / 30);
-      const maxFee = Math.round(loan.remainingAmount * LATE_FEE_CAP_PCT);
+      // Calculate daily fee based on configured type
+      let dailyFee;
+      if (config.type === 'percentage') {
+        // Percentage of EMI, prorated daily (e.g., rate=2 means 2% of EMI per month)
+        dailyFee = Math.round((loan.emi * config.rate / 100) / 30);
+      } else {
+        // Fixed amount, prorated daily (e.g., rate=500 means Rs.500 per month)
+        dailyFee = Math.round(config.rate / 30);
+      }
+
+      const maxFee = Math.round(loan.remainingAmount * config.capPct);
       const currentAccrued = loan.lateFeeAmount || 0;
 
       if (currentAccrued >= maxFee) continue; // Already at cap
@@ -153,7 +198,7 @@ const runLateFeeAccrual = async () => {
     }
 
     console.log(
-      `[CRON] runLateFeeAccrual: late fees applied to ${processed} loan(s).`,
+      `[CRON] runLateFeeAccrual: late fees applied to ${processed} loan(s) (type: ${config.type}, rate: ${config.rate}, grace: ${config.gracePeriodDays}d).`,
     );
   } catch (err) {
     console.error('[CRON] runLateFeeAccrual ERROR:', err);

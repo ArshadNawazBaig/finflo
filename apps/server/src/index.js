@@ -34,6 +34,12 @@ setupStandardMiddleware(app);
 app.use(corsMiddleware);
 app.use(helmetMiddleware);
 
+// Security: Sanitize inputs against NoSQL injection & HTTP param pollution
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
+app.use(mongoSanitize());
+app.use(hpp());
+
 // Socket.io initialization
 const clientUrl = process.env.CLIENT_URL || 'https://loan-master-client.vercel.app';
 const io = initSocket(httpServer, clientUrl);
@@ -121,5 +127,31 @@ const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} (on all interfaces)`);
 });
+
+// ─── Graceful Shutdown ────────────────────────────────────────────────────────
+const mongoose = require('mongoose');
+
+const gracefulShutdown = (signal) => {
+  console.log(`\n[${signal}] Graceful shutdown initiated...`);
+  httpServer.close(async () => {
+    console.log('[Shutdown] HTTP server closed. Cleaning up...');
+    try {
+      await mongoose.connection.close();
+      console.log('[Shutdown] Database connection closed.');
+    } catch (err) {
+      console.error('[Shutdown] Error closing DB:', err.message);
+    }
+    process.exit(0);
+  });
+
+  // Force kill if shutdown takes too long (e.g. stuck connections)
+  setTimeout(() => {
+    console.error('[Shutdown] Forced exit after 10s timeout.');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 module.exports = app;
