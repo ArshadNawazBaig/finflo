@@ -52,7 +52,7 @@ const PageHeader = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        'flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden',
+        'flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative',
         isCard
           ? 'bg-white dark:bg-slate-900/50 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm'
           : 'mb-6 sm:mb-8', // Reduced margin as well
@@ -61,7 +61,9 @@ const PageHeader = ({
     >
       {/* Decorative Icon for card variant */}
       {isCard && Icon && (
-        <Icon className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+          <Icon className="absolute -right-12 -top-12 w-64 h-64 opacity-[0.03] text-primary" />
+        </div>
       )}
 
       <div className="flex items-center gap-4 relative z-10">
