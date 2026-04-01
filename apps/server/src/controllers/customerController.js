@@ -3,10 +3,10 @@ const User = require('../models/User');
 const Member = require('../models/Member');
 const Notification = require('../models/Notification');
 const { canAddCustomer } = require('../utils/planLimits');
-const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { deleteCloudinaryFileByUrl, uploadSignature } = require('../utils/cloudinaryHelper');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const { logActivity } = require('./activityLogController');
-const { uploadSignature } = require('../utils/cloudinaryHelper');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 const getCustomers = async (req, res) => {
   try {
@@ -25,13 +25,14 @@ const getCustomers = async (req, res) => {
     }
 
     if (search) {
+      const safeSearch = escapeRegExp(search);
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { cnic: { $regex: search, $options: 'i' } },
-        { savingAccountNumber: { $regex: search, $options: 'i' } },
-        { currentAccountNumber: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { phone: { $regex: safeSearch, $options: 'i' } },
+        { cnic: { $regex: safeSearch, $options: 'i' } },
+        { savingAccountNumber: { $regex: safeSearch, $options: 'i' } },
+        { currentAccountNumber: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
@@ -309,20 +310,33 @@ const updateCustomer = async (req, res) => {
       }
     }
 
+    // Whitelist allowed fields to prevent mass-assignment attacks
+    const allowedFields = {};
+    if (name !== undefined) allowedFields.name = name.toLowerCase();
+    if (email !== undefined) allowedFields.email = email.toLowerCase();
+    if (req.body.phone !== undefined) allowedFields.phone = req.body.phone;
+    if (req.body.address !== undefined) allowedFields.address = req.body.address;
+    if (cnic !== undefined) allowedFields.cnic = cnic;
+    if (req.body.job !== undefined) allowedFields.job = req.body.job;
+    if (req.body.jobDetail !== undefined) allowedFields.jobDetail = req.body.jobDetail;
+    if (req.body.monthlyIncome !== undefined) allowedFields.monthlyIncome = req.body.monthlyIncome;
+    if (req.body.savingAccountNumber !== undefined) allowedFields.savingAccountNumber = req.body.savingAccountNumber;
+    if (req.body.currentAccountNumber !== undefined) allowedFields.currentAccountNumber = req.body.currentAccountNumber;
+    if (signatureUrl) allowedFields.signature = signatureUrl;
+    if (req.body.nominee) {
+      allowedFields.nominee = {
+        ...req.body.nominee,
+        cnicImage: nomineeCnicImageUrl,
+      };
+    }
+    // branchId can only be changed by admin, not staff
+    if (req.body.branchId !== undefined && req.user.role !== 'staff') {
+      allowedFields.branchId = req.body.branchId;
+    }
+
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
-      {
-        ...req.body,
-        name: name?.toLowerCase(),
-        email: email?.toLowerCase(),
-        signature: signatureUrl,
-        nominee: {
-          ...req.body.nominee,
-          cnicImage: nomineeCnicImageUrl,
-        },
-        // Ensure user/owner cannot be changed via update
-        user: customer.user,
-      },
+      allowedFields,
       { new: true, runValidators: true },
     );
 
@@ -460,6 +474,18 @@ const uploadDocuments = async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (!customer) {
       return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    // Ownership check: prevent uploading docs to another business's customer
+    if (
+      customer.user.toString() !== req.user.effectiveOwnerId.toString() &&
+      !(
+        req.user.role === 'staff' &&
+        customer.branchId?.toString() === req.user.branchId?.toString()
+      ) &&
+      req.user.role !== 'super_admin'
+    ) {
+      return res.status(401).json({ message: 'Not authorized' });
     }
 
     if (!req.files || req.files.length === 0) {

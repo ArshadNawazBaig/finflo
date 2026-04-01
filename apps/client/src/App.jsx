@@ -7,6 +7,7 @@ import { userAtom } from '@/atoms';
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
 import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import {
   IS_LANDING_DOMAIN,
   IS_APP_DOMAIN,
@@ -47,51 +48,55 @@ function App() {
   // Landing Domain Specific View
   if (IS_LANDING_DOMAIN && !IS_DEV) {
     return (
-      <Router>
-        <Suspense fallback={<PageLoader />}>
-          <LandingRoutes DomainRedirect={DomainRedirect} />
-        </Suspense>
-        <Toaster position="top-right" richColors />
-      </Router>
+      <ErrorBoundary>
+        <Router>
+          <Suspense fallback={<PageLoader />}>
+            <LandingRoutes DomainRedirect={DomainRedirect} />
+          </Suspense>
+          <Toaster position="top-right" richColors />
+        </Router>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <Router>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {settings?.maintenanceMode && !isSuperAdmin ? (
-            <Route path="*" element={<Maintenance />} />
-          ) : (
-            <>
-              {/* On App Domain, / redirects to login or dashboard */}
-              <Route path="/" element={<Landing />} />
+    <ErrorBoundary>
+      <Router>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {settings?.maintenanceMode && !isSuperAdmin ? (
+              <Route path="*" element={<Maintenance />} />
+            ) : (
+              <>
+                {/* On App Domain, / redirects to login or dashboard */}
+                <Route path="/" element={<Landing />} />
 
-              {/* Shared Top-level Routes */}
-              <Route path="/loan-lookup" element={<LoanLookup />} />
-              <Route path="/join/:code?" element={<SelfRegister />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/documentation" element={<Documentation />} />
-              <Route path="/documentation/api" element={<ApiDocumentation />} />
+                {/* Shared Top-level Routes */}
+                <Route path="/loan-lookup" element={<LoanLookup />} />
+                <Route path="/join/:code?" element={<SelfRegister />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/documentation" element={<Documentation />} />
+                <Route path="/documentation/api" element={<ApiDocumentation />} />
 
-              {/* Auth Routes */}
-              {AuthRoutes()}
+                {/* Auth Routes */}
+                {AuthRoutes()}
 
-              {/* Feature Routes */}
-              {AdminRoutes()}
-              {SuperAdminRoutes()}
-              {MemberRoutes()}
+                {/* Feature Routes */}
+                {AdminRoutes()}
+                {SuperAdminRoutes()}
+                {MemberRoutes()}
 
-              {/* Catch All - 404 */}
-              <Route path="*" element={<NotFound />} />
-            </>
-          )}
-        </Routes>
-      </Suspense>
-      <Toaster position="top-right" richColors />
-      <FloatingSettings />
-    </Router>
+                {/* Catch All - 404 */}
+                <Route path="*" element={<NotFound />} />
+              </>
+            )}
+          </Routes>
+        </Suspense>
+        <Toaster position="top-right" richColors />
+        <FloatingSettings />
+      </Router>
+    </ErrorBoundary>
   );
 }
 

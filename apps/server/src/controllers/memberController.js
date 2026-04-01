@@ -32,6 +32,7 @@ const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 const Branch = require('../models/Branch');
 const { updateMemberCreditLimit } = require('../services/creditLimitService');
 const { getEmailBranding } = require('../utils/brandingUtils');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -159,13 +160,14 @@ const getMembers = async (req, res) => {
       query.branchId = branchId;
     }
     if (search) {
+      const safeSearch = escapeRegExp(search);
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { cnic: { $regex: search, $options: 'i' } },
-        { savingAccountNumber: { $regex: search, $options: 'i' } },
-        { currentAccountNumber: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { phone: { $regex: safeSearch, $options: 'i' } },
+        { cnic: { $regex: safeSearch, $options: 'i' } },
+        { savingAccountNumber: { $regex: safeSearch, $options: 'i' } },
+        { currentAccountNumber: { $regex: safeSearch, $options: 'i' } },
       ];
     }
     if (status) {

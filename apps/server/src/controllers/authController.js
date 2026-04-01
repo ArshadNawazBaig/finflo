@@ -155,6 +155,9 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const lowercaseEmail = email?.toLowerCase();
 
+  const MAX_LOGIN_ATTEMPTS = 5;
+  const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
+
   try {
     const user = await User.findOne({ email: lowercaseEmail }).populate(
       'roleRef',
@@ -162,6 +165,15 @@ const loginUser = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if account is locked
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        message: `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`,
+        locked: true,
+      });
     }
 
     // Check if account is active
@@ -192,8 +204,15 @@ const loginUser = async (req, res) => {
     }
 
     if (await user.matchPassword(password)) {
+      // Reset failed attempts on successful login
+      if (user.failedLoginAttempts > 0 || user.lockUntil) {
+        user.failedLoginAttempts = 0;
+        user.lockUntil = undefined;
+      }
+
       // If 2FA is enabled, return a pending token and prompt for OTP
       if (user.isTwoFactorEnabled) {
+        await user.save();
         const pendingToken = jwt.sign(
           { id: user._id, pending2FA: true },
           process.env.JWT_SECRET,
@@ -275,6 +294,17 @@ const loginUser = async (req, res) => {
         permissions: user.getPermissions(),
       });
     } else {
+      // Increment failed attempts and lock if threshold reached
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_TIME_MS);
+        await user.save();
+        return res.status(423).json({
+          message: 'Too many failed attempts. Account locked for 15 minutes.',
+          locked: true,
+        });
+      }
+      await user.save();
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {

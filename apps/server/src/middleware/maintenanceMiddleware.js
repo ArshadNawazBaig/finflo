@@ -2,6 +2,27 @@ const SystemSettings = require('../models/SystemSettings');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+// In-memory cache to avoid querying DB on every single request
+let cachedMaintenanceMode = null;
+let cacheExpiresAt = 0;
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds
+
+/**
+ * Refresh the cached maintenance state from DB.
+ * Called automatically when cache expires, or externally when settings change.
+ */
+const refreshMaintenanceCache = async () => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    cachedMaintenanceMode = settings?.maintenanceMode || false;
+    cacheExpiresAt = Date.now() + CACHE_TTL_MS;
+  } catch (err) {
+    console.error('[Maintenance] Cache refresh error:', err.message);
+    // On error, default to non-maintenance to avoid locking out users
+    cachedMaintenanceMode = false;
+  }
+};
+
 const maintenanceMiddleware = async (req, res, next) => {
   // Always allow health checks and the settings request itself (to avoid deadlock)
   if (req.path === '/api/health' || req.path === '/api/system-settings') {
@@ -9,11 +30,13 @@ const maintenanceMiddleware = async (req, res, next) => {
   }
 
   try {
-    const settings = await SystemSettings.getSettings();
+    // Refresh cache if expired
+    if (Date.now() > cacheExpiresAt) {
+      await refreshMaintenanceCache();
+    }
 
-    if (settings && settings.maintenanceMode) {
+    if (cachedMaintenanceMode) {
       // Check for superadmin bypass
-      // We check if there's a token and if it's a superadmin
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         try {
@@ -47,3 +70,4 @@ const maintenanceMiddleware = async (req, res, next) => {
 };
 
 module.exports = maintenanceMiddleware;
+module.exports.refreshMaintenanceCache = refreshMaintenanceCache;

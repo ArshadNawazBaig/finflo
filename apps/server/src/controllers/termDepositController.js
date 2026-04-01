@@ -142,6 +142,12 @@ const createTermDeposit = async (req, res) => {
  */
 const getTermDeposits = async (req, res) => {
   try {
+    // Ownership check: verify member belongs to this business
+    const member = await Member.findById(req.params.memberId);
+    if (!member || member.user.toString() !== req.user.effectiveOwnerId.toString()) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
     const deposits = await TermDeposit.find({ member: req.params.memberId })
       .sort({ createdAt: -1 });
     res.json(deposits);
@@ -161,7 +167,7 @@ const breakTermDeposit = async (req, res) => {
 
   try {
     const deposit = await TermDeposit.findById(req.params.id).session(session);
-    if (!deposit) {
+    if (!deposit || deposit.user.toString() !== req.user.effectiveOwnerId.toString()) {
       await session.abortTransaction();
       return res.status(404).json({ message: 'Term deposit not found' });
     }
@@ -244,7 +250,7 @@ const matureTermDeposit = async (req, res) => {
 
   try {
     const deposit = await TermDeposit.findById(req.params.id).session(session);
-    if (!deposit) {
+    if (!deposit || deposit.user.toString() !== req.user.effectiveOwnerId.toString()) {
       await session.abortTransaction();
       return res.status(404).json({ message: 'Term deposit not found' });
     }

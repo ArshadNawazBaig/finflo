@@ -111,6 +111,8 @@ const userSchema = new mongoose.Schema(
       isCompleted: { type: Boolean, default: false },
       currentStep: { type: Number, default: 0 },
     },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date },
   },
   { timestamps: true },
 );

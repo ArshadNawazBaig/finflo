@@ -35,9 +35,24 @@ app.use(corsMiddleware);
 app.use(helmetMiddleware);
 
 // Security: Sanitize inputs against NoSQL injection & HTTP param pollution
-const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
-app.use(mongoSanitize());
+
+// Custom NoSQL injection sanitizer (Express 5 compatible — req.query is immutable/safe)
+const sanitizeObject = (obj) => {
+  if (!obj || typeof obj !== 'object') return;
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith('$')) {
+      delete obj[key];
+    } else if (typeof obj[key] === 'object') {
+      sanitizeObject(obj[key]);
+    }
+  }
+};
+app.use((req, res, next) => {
+  sanitizeObject(req.body);
+  sanitizeObject(req.params);
+  next();
+});
 app.use(hpp());
 
 // Socket.io initialization
@@ -79,22 +94,21 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/forgotpassword', authLimiter);
 app.use('/api/member-auth/login', authLimiter);
 
-// Database Connection Middleware (Safety Net)
+// Database Connection Middleware (Safety Net — only reconnects if disconnected)
+const mongoose = require('mongoose');
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api')) {
+  if (req.path.startsWith('/api') && mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
-      next();
     } catch (error) {
       console.error('Database middleware error:', error.message);
-      res.status(500).json({
+      return res.status(500).json({
         message: 'Database connection failed',
         error: error.message,
       });
     }
-  } else {
-    next();
   }
+  next();
 });
 
 app.use(maintenanceMiddleware);
@@ -103,7 +117,6 @@ app.use(maintenanceMiddleware);
 app.use('/api', require('./routes'));
 
 app.get('/api/health', async (req, res) => {
-  const mongoose = require('mongoose');
   try {
     await connectDB();
     res.json({
@@ -129,7 +142,6 @@ httpServer.listen(PORT, '0.0.0.0', () => {
 });
 
 // ─── Graceful Shutdown ────────────────────────────────────────────────────────
-const mongoose = require('mongoose');
 
 const gracefulShutdown = (signal) => {
   console.log(`\n[${signal}] Graceful shutdown initiated...`);
