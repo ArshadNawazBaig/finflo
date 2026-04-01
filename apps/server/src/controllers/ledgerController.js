@@ -21,6 +21,8 @@ const getLedger = async (req, res) => {
       endDate,
       type,
       category,
+      member,
+      customer,
       sortBy = 'date',
       sortOrder: sortOrderQuery,
     } = req.query;
@@ -28,21 +30,38 @@ const getLedger = async (req, res) => {
 
     const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
-    if (startDate && endDate) {
-      query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        // Force UTC parsing to ensure consistent calendar date matching regardless of server timezone
+        const start = new Date(startDate.includes('T') ? startDate : `${startDate}T00:00:00.000Z`);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate.includes('T') ? endDate : `${endDate}T23:59:59.999Z`);
+        query.date.$lte = end;
+      }
     }
 
     // Branch Segregation: Staff/Managers only see their branch data
-    if (req.user.role === 'staff') {
+    if (req.user.role === 'staff' && !member && !customer) {
       const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) query.branchId = branchScope;
     }
 
     if (type) query.type = type;
     if (category) query.category = category;
+    
+    if (member) {
+      const memberDoc = await Member.findById(member).select('customer');
+      if (memberDoc?.customer) {
+        query.$or = [{ member: member }, { customer: memberDoc.customer }];
+      } else {
+        query.member = member;
+      }
+    } else if (customer) {
+      query.customer = customer;
+    }
 
     // Search logic (complex because of customer/member names)
     if (search) {
@@ -76,16 +95,20 @@ const getLedger = async (req, res) => {
 
     // Calculate full summary ignoring pagination but respecting search/date filters
     const allMatching =
-      await FinancialTransaction.find(query).select('type amount');
-    const summary = {
-      totalIncome: allMatching
-        .filter((t) => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0),
-      totalExpense: allMatching
-        .filter((t) => t.type === 'expense' || t.type === 'loan')
-        .reduce((sum, t) => sum + t.amount, 0),
-      totalTransactions: totalEntries,
-    };
+      await FinancialTransaction.find(query).select('type category amount');
+    
+    const summary = allMatching.reduce((acc, t) => {
+      const type = (t.type || '').toLowerCase();
+      const cat = (t.category || '').toLowerCase();
+      const amt = t.amount || 0;
+
+      if (type === 'income' || cat.includes('repayment') || cat.includes('deposit')) {
+        acc.totalIncome += amt;
+      } else if (type === 'expense' || type === 'loan' || cat.includes('withdrawal') || cat.includes('disbursement')) {
+        acc.totalExpense += amt;
+      }
+      return acc;
+    }, { totalIncome: 0, totalExpense: 0, totalTransactions: totalEntries });
 
     res.json({
       data: transactions,

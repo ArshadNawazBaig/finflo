@@ -1521,48 +1521,49 @@ export const MemberNotificationsPageSkeleton = () => (
 );
 
 export const TellerStatsSkeleton = () => (
-  <div className="grid grid-cols-3 gap-3 w-full max-w-3xl">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
     {Array.from({ length: 3 }).map((_, i) => (
-      <div key={i} className="p-4 rounded-[2rem] bg-muted/5 border border-border/20 flex flex-col items-center justify-center text-center">
-        <Skeleton className="h-4 w-4 rounded-full mb-1.5" />
-        <Skeleton className="h-2 w-16 mb-1" />
-        <Skeleton className="h-4 w-24" />
+      <div
+        key={i}
+        className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-sm relative overflow-hidden"
+      >
+        <Skeleton className="w-10 h-10 rounded-2xl mb-4" />
+        <Skeleton className="h-2 w-20 mb-2 opacity-50" />
+        <Skeleton className="h-8 w-28" />
       </div>
     ))}
   </div>
 );
 
 export const TellerMemberCardSkeleton = () => (
-  <div className="space-y-8 animate-in fade-in duration-500">
-    <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <Skeleton className="w-16 h-16 rounded-2xl" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-3 w-48" />
-            <Skeleton className="h-2 w-24" />
-          </div>
+  <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-sm space-y-8 animate-in fade-in duration-500">
+    <div className="flex items-start justify-between">
+      <div className="flex items-center gap-4">
+        <Skeleton className="w-14 h-14 rounded-2xl shadow-lg" />
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-2.5 w-24 opacity-60" />
         </div>
-        <Skeleton className="h-10 w-24 rounded-full" />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-muted/5 border border-border/20 space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-3 w-3 rounded-full" />
-              <Skeleton className="h-2 w-16" />
-            </div>
-            <Skeleton className="h-5 w-24" />
-          </div>
-        ))}
-      </div>
+      <Skeleton className="h-8 w-8 rounded-xl opacity-20" />
     </div>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+    <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} className="h-28 rounded-[2rem]" />
+        <div
+          key={i}
+          className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/30"
+        >
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-9 h-9 rounded-xl opacity-30" />
+            <Skeleton className="h-2 w-20 opacity-50" />
+          </div>
+          <Skeleton className="h-4 w-24" />
+        </div>
       ))}
     </div>
+
+    <Skeleton className="h-14 w-full rounded-2xl opacity-10" />
   </div>
 );
 
@@ -1607,15 +1608,15 @@ export const TellerJournalSkeleton = () => (
 );
 
 export const TellerSearchSkeleton = () => (
-  <div className="space-y-2 p-3">
+  <div className="space-y-1 p-1">
     {Array.from({ length: 3 }).map((_, i) => (
-      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl">
-        <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+      <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
+        <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
         <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-2 w-20" />
+          <Skeleton className="h-3.5 w-24" />
+          <Skeleton className="h-2 w-32 opacity-50" />
         </div>
-        <Skeleton className="h-4 w-4 rounded-full" />
+        <Skeleton className="h-4 w-4 rounded-full opacity-20" />
       </div>
     ))}
   </div>

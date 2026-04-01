@@ -1537,6 +1537,7 @@ const approveLoan = async (req, res) => {
       date: new Date(),
       description: `Loan disbursement for ${loan.customer.name}`,
       customer: loan.customer._id || loan.customer,
+      member: loan.customer?.memberId || null,
       loan: loan._id,
       referenceId: loan._id,
       referenceModel: 'Loan',

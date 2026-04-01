@@ -284,6 +284,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     date: new Date(date),
     description: `Loan repayment for ${loan.customer.name || 'Member'}${isEarlySettlement ? ' (Early Settlement)' : ''}`,
     customer: loan.customer._id || loan.customer,
+    member: customer?.memberId || loan.customer?.memberId || null,
     loan: loan._id,
     referenceId: repayment._id,
     referenceModel: 'Repayment',
