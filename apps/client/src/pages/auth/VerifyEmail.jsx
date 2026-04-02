@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useSetAtom } from 'jotai';
 import api from '@/lib/axios';
 import { Loader2, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import AuthLayout from '@/layouts/AuthLayout';
+import { userAtom } from '@/atoms';
 
 const VerifyEmail = () => {
   useDocumentTitle('Verify Email');
   const navigate = useNavigate();
+  const setUser = useSetAtom(userAtom);
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [resending, setResending] = useState(false);
@@ -44,7 +47,7 @@ const VerifyEmail = () => {
       });
 
       toast.success(data.message);
-      localStorage.setItem('user', JSON.stringify(data));
+      setUser(data);
       localStorage.removeItem('temp_user_email');
       navigate('/dashboard');
     } catch (err) {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import useDocumentTitle from '@/hooks/useDocumentTitle';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useSetAtom } from 'jotai';
 import api from '@/lib/axios';
 import { User, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import PasswordInput from '@/components/ui/PasswordInput';
@@ -10,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/AuthLayout';
 import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
+import { userAtom } from '@/atoms';
 
 const Register = () => {
   useDocumentTitle('Register');
   const navigate = useNavigate();
+  const setUser = useSetAtom(userAtom);
   const [loading, setLoading] = useState(false);
 
   const {
@@ -65,8 +68,8 @@ const Register = () => {
         googleToken: credentialResponse.credential,
       });
 
-      // Auto login on successful register
-      localStorage.setItem('user', JSON.stringify(data));
+      // Auto login on successful register — update both atom and localStorage
+      setUser(data);
 
       toast.success(data.message || 'Registration successful!');
       navigate('/dashboard');
@@ -99,8 +102,8 @@ const Register = () => {
         googleToken: googleUser.authentication.idToken,
       });
 
-      // Auto login on successful register
-      localStorage.setItem('user', JSON.stringify(data));
+      // Auto login on successful register — update both atom and localStorage
+      setUser(data);
 
       toast.success(data.message || 'Registration successful!');
       navigate('/dashboard');

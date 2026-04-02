@@ -1,7 +1,9 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAtomValue } from 'jotai';
+import { userAtom } from '@/atoms';
 
 const RedirectIfAuthenticated = ({ children }) => {
-  const token = localStorage.getItem('user');
+  const user = useAtomValue(userAtom);
   const location = useLocation();
 
   // Robust path normalized comparison
@@ -12,15 +14,12 @@ const RedirectIfAuthenticated = ({ children }) => {
   const isDashboard = normalizedPath === '/dashboard';
   const isForcePassword = normalizedPath === '/force-password-change';
 
-  const hasValidToken = token && token !== 'null' && token !== 'undefined';
-
   if (
-    hasValidToken &&
+    user &&
     !isDashboard &&
     !isForcePassword &&
     normalizedPath !== '/super-admin'
   ) {
-    const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
     if (user?.role === 'super_admin') {
       return <Navigate to="/super-admin" replace />;
     }
