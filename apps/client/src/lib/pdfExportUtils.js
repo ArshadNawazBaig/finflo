@@ -308,6 +308,12 @@ export const renderPdfSignatures = async (doc, { startY, businessContext = {} } 
     if (stampBase64) {
       doc.addImage(stampBase64, 'PNG', margin, currentY - 20, 25, 25);
     }
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(50, 50, 50);
+    doc.text('Official Business Stamp', margin, currentY + 5, {
+      align: 'left',
+    });
   }
 
   return currentY + 15;
