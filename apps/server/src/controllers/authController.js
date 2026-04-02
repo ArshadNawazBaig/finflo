@@ -329,13 +329,18 @@ const getMe = async (req, res) => {
         if (managedBranch) branchId = managedBranch._id;
 
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAddress businessAbbreviation');
+          const owner = await User.findById(user.ownerId).select(
+            'plan businessName businessLogo businessAddress businessAbbreviation businessStamp ceoSignature',
+          );
           if (owner) {
             user.plan = owner.plan;
             // Always use the owner's branding for staff/managers
             if (owner.businessName) user.businessName = owner.businessName;
             if (owner.businessLogo) user.businessLogo = owner.businessLogo;
-            if (owner.businessAbbreviation) user.businessAbbreviation = owner.businessAbbreviation;
+            if (owner.businessStamp) user.businessStamp = owner.businessStamp;
+            if (owner.ceoSignature) user.ceoSignature = owner.ceoSignature;
+            if (owner.businessAbbreviation)
+              user.businessAbbreviation = owner.businessAbbreviation;
           }
         }
       }
@@ -354,6 +359,8 @@ const getMe = async (req, res) => {
         businessName: user.businessName,
         businessLogo: user.businessLogo,
         businessAddress: user.businessAddress,
+        businessStamp: user.businessStamp,
+        ceoSignature: user.ceoSignature,
         securityCode: user.securityCode,
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
@@ -390,6 +397,8 @@ const updateDetails = async (req, res) => {
     email: req.body.email?.toLowerCase(),
     businessName: req.body.businessName,
     businessAddress: req.body.businessAddress,
+    businessStamp: req.body.businessStamp,
+    ceoSignature: req.body.ceoSignature,
     currency: req.body.currency,
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
@@ -437,6 +446,8 @@ const updateDetails = async (req, res) => {
           {
             businessName: user.businessName,
             businessLogo: user.businessLogo,
+            businessStamp: user.businessStamp,
+            ceoSignature: user.ceoSignature,
           },
         );
       }
@@ -556,6 +567,188 @@ const uploadBusinessLogo = async (req, res) => {
     }
   } catch (error) {
     console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const uploadBusinessStamp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Plan check for Business Branding
+    if (user.role !== 'super_admin' && user.plan === 'Free') {
+      return res.status(403).json({
+        message:
+          'Business Branding is only available on Basic or Pro plans. Please upgrade to continue.',
+      });
+    }
+
+    // Delete old business stamp from Cloudinary if it exists
+    if (user.businessStamp) {
+      const {
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      await deleteCloudinaryFileByUrl(user.businessStamp, 'image');
+    }
+
+    user.businessStamp = req.file.path;
+    await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'business_stamp_updated',
+      category: 'auth',
+      details: 'User uploaded a new business stamp',
+      req,
+    });
+
+    res.json({
+      success: true,
+      businessStamp: user.businessStamp,
+      message: 'Business stamp updated successfully',
+    });
+
+    // Emit branding update event
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${user._id.toString()}`).emit(
+          'business:branding_updated',
+          {
+            businessName: user.businessName,
+            businessLogo: user.businessLogo,
+            businessStamp: user.businessStamp,
+            ceoSignature: user.ceoSignature,
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit branding update:',
+        socketErr.message,
+      );
+    }
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteBusinessStamp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.businessStamp) {
+      return res.status(400).json({ message: 'No business stamp to delete' });
+    }
+
+    const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+    await deleteCloudinaryFileByUrl(user.businessStamp, 'image');
+
+    user.businessStamp = '';
+    await user.save();
+
+    res.json({ success: true, message: 'Business stamp removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const uploadCeoSignature = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Plan check for Business Branding
+    if (user.role !== 'super_admin' && user.plan === 'Free') {
+      return res.status(403).json({
+        message:
+          'Business Branding is only available on Basic or Pro plans. Please upgrade to continue.',
+      });
+    }
+
+    // Delete old signature from Cloudinary if it exists
+    if (user.ceoSignature) {
+      const {
+        deleteCloudinaryFileByUrl,
+      } = require('../utils/cloudinaryHelper');
+      await deleteCloudinaryFileByUrl(user.ceoSignature, 'image');
+    }
+
+    user.ceoSignature = req.file.path;
+    await user.save();
+
+    // Log activity
+    await logActivity({
+      userId: user._id,
+      action: 'ceo_signature_updated',
+      category: 'auth',
+      details: 'User uploaded a new CEO signature',
+      req,
+    });
+
+    res.json({
+      success: true,
+      ceoSignature: user.ceoSignature,
+      message: 'CEO signature updated successfully',
+    });
+
+    // Emit branding update event
+    try {
+      const { getIO } = require('../utils/socketInstance');
+      const io = getIO();
+      if (io) {
+        io.to(`business_${user._id.toString()}`).emit(
+          'business:branding_updated',
+          {
+            businessName: user.businessName,
+            businessLogo: user.businessLogo,
+            businessStamp: user.businessStamp,
+            ceoSignature: user.ceoSignature,
+          },
+        );
+      }
+    } catch (socketErr) {
+      console.error(
+        '[Socket] Failed to emit branding update:',
+        socketErr.message,
+      );
+    }
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteCeoSignature = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.ceoSignature) {
+      return res.status(400).json({ message: 'No CEO signature to delete' });
+    }
+
+    const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+    await deleteCloudinaryFileByUrl(user.ceoSignature, 'image');
+
+    user.ceoSignature = '';
+    await user.save();
+
+    res.json({ success: true, message: 'CEO signature removed successfully' });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -1545,4 +1738,8 @@ module.exports = {
   googleRegister,
   uploadBusinessLogo,
   deleteBusinessLogo,
+  uploadBusinessStamp,
+  deleteBusinessStamp,
+  uploadCeoSignature,
+  deleteCeoSignature,
 };

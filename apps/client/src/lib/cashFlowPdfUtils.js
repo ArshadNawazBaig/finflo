@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
 import { format } from 'date-fns';
-import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase } from './pdfExportUtils';
+import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from './pdfExportUtils';
 
 export const exportCashFlowStatement = async (
   data = {},
@@ -91,6 +91,9 @@ export const exportCashFlowStatement = async (
     doc.setTextColor(150);
     doc.text('No transaction records found for this period.', 14, tableY + 12);
   }
+
+  const finalY = doc.lastAutoTable?.finalY || tableY + 20;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
   renderPdfFooter(doc, { businessContext: ctx });
 

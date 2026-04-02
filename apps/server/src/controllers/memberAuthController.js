@@ -57,7 +57,7 @@ const loginMember = async (req, res) => {
       user: business._id,
     }).populate(
       'user',
-      'name businessName businessLogo businessAddress securityCode plan subscriptionStatus',
+      'name businessName businessLogo businessAddress businessStamp ceoSignature securityCode plan subscriptionStatus',
     );
 
     if (!member) {
@@ -110,6 +110,8 @@ const loginMember = async (req, res) => {
           role: member.role,
           profilePicture: member.profilePicture,
           businessLogo: member.user?.businessLogo,
+          businessStamp: member.user?.businessStamp,
+          ceoSignature: member.user?.ceoSignature,
           businessName: member.user?.businessName,
           plan: member.user?.plan,
           subscriptionStatus: member.user?.subscriptionStatus,
@@ -418,7 +420,7 @@ const getMe = async (req, res) => {
     // req.member set by protectMember middleware
     const member = await Member.findById(req.member._id).populate(
       'user',
-      'name businessName businessLogo businessAddress plan subscriptionStatus',
+      'name businessName businessLogo businessAddress businessStamp ceoSignature plan subscriptionStatus',
     );
 
     if (member) {
@@ -428,6 +430,8 @@ const getMe = async (req, res) => {
       memberObj.subscriptionStatus =
         member.user?.subscriptionStatus || 'active';
       memberObj.businessLogo = member.user?.businessLogo;
+      memberObj.businessStamp = member.user?.businessStamp;
+      memberObj.ceoSignature = member.user?.ceoSignature;
       memberObj.businessName = member.user?.businessName;
       memberObj.businessAddress = member.user?.businessAddress;
       res.json(memberObj);

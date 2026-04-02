@@ -50,6 +50,8 @@ const userSchema = new mongoose.Schema(
     profilePicture: { type: String, default: '' },
     businessLogo: { type: String, default: '' },
     businessAddress: { type: String, default: '' },
+    businessStamp: { type: String, default: '' },
+    ceoSignature: { type: String, default: '' },
     currency: { type: String, default: 'Rs.' },
     businessAbbreviation: {
       type: String,

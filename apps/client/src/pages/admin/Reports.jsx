@@ -180,7 +180,7 @@ const Reports = () => {
   const exportAdvancedPDF = async (type) => {
     try {
       setIsExporting(true);
-      const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase } = await import('@/lib/pdfExportUtils');
+      const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
       const ctx = getBusinessContext();
       const doc = new jsPDF();
 
@@ -423,6 +423,9 @@ const Reports = () => {
           margin: { left: 14, right: 14 },
         });
       }
+
+      const finalY = doc.lastAutoTable?.finalY || startY + 20;
+      await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
       renderPdfFooter(doc, { businessContext: ctx });
 

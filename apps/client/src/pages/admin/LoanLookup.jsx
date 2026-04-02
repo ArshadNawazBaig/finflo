@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
-import { renderPdfHeader, renderPdfFooter, toTitleCase } from '@/lib/pdfExportUtils';
+import { renderPdfHeader, renderPdfFooter, toTitleCase, renderPdfSignatures, getBusinessContext } from '@/lib/pdfExportUtils';
 import { formatCurrency } from '@/lib/utils';
 
 // Local formatAmount is kept for layouts that split the symbol and value
@@ -82,6 +82,9 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
     alternateRowStyles: { fillColor: [250, 250, 255] },
     margin: { left: 14, right: 14 },
   });
+
+  const finalY = doc.lastAutoTable?.finalY || startY + 20;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
   renderPdfFooter(doc, { businessContext: ctx });
 

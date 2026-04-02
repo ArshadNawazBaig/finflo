@@ -34,6 +34,8 @@ import {
   BookOpen,
   AlertTriangle,
   Landmark,
+  Fingerprint,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -634,6 +636,238 @@ const Settings = () => {
                               Adding a business logo will prioritize it over the
                               default FinFlo branding in all outgoing emails and
                               downloadable statements.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Business Stamp and CEO Signature */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-border/30 relative z-10">
+                          {/* Business Stamp */}
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground underline decoration-primary/30 decoration-2 underline-offset-8">
+                                Business Stamp
+                              </h4>
+                              {user.businessStamp && (
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      setLoading(true);
+                                      const { data } = await api.delete(
+                                        '/auth/delete-business-stamp',
+                                      );
+                                      if (data.success) {
+                                        setUser((prev) => ({
+                                          ...prev,
+                                          businessStamp: undefined,
+                                        }));
+                                        toast.success('Business stamp removed');
+                                      }
+                                    } catch (error) {
+                                      toast.error('Failed to remove stamp');
+                                    } finally {
+                                      setLoading(false);
+                                    }
+                                  }}
+                                  className="text-rose-500 hover:text-rose-600 transition-colors"
+                                  title="Delete Stamp"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                            <div
+                              onClick={() =>
+                                document
+                                  .getElementById('business-stamp-upload')
+                                  .click()
+                              }
+                              className={`relative group h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
+                                user.businessStamp
+                                  ? 'border-primary/20 hover:border-primary/40'
+                                  : 'border-border/50 hover:border-primary/30'
+                              }`}
+                            >
+                              {user.businessStamp ? (
+                                <>
+                                  <img
+                                    src={user.businessStamp}
+                                    alt="Business Stamp"
+                                    className="h-full w-full object-contain p-2"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <ArrowUpCircle className="text-white" />
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-center space-y-2">
+                                  <div className="p-3 rounded-xl bg-muted/20 inline-block">
+                                    <ShieldCheck className="text-muted-foreground/60" />
+                                  </div>
+                                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    Upload Stamp
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              id="business-stamp-upload"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast.error('Stamp must be less than 2MB');
+                                  return;
+                                }
+                                const formData = new FormData();
+                                formData.append('businessStamp', file);
+                                setLoading(true);
+                                try {
+                                  const { data } = await api.put(
+                                    '/auth/updatebusinessstamp',
+                                    formData,
+                                    {
+                                      headers: {
+                                        'Content-Type': 'multipart/form-data',
+                                      },
+                                    },
+                                  );
+                                  if (data.success) {
+                                    setUser((prev) => ({
+                                      ...prev,
+                                      businessStamp: data.businessStamp,
+                                    }));
+                                    toast.success('Business stamp updated');
+                                  }
+                                } catch (error) {
+                                  toast.error('Failed to update stamp');
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            />
+                            <p className="text-[9px] text-muted-foreground leading-relaxed">
+                              Verified business stamp for official documents.
+                            </p>
+                          </div>
+
+                          {/* CEO Signature */}
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground underline decoration-primary/30 decoration-2 underline-offset-8">
+                                CEO Signature
+                              </h4>
+                              {user.ceoSignature && (
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      setLoading(true);
+                                      const { data } = await api.delete(
+                                        '/auth/delete-ceo-signature',
+                                      );
+                                      if (data.success) {
+                                        setUser((prev) => ({
+                                          ...prev,
+                                          ceoSignature: undefined,
+                                        }));
+                                        toast.success(
+                                          'CEO signature removed',
+                                        );
+                                      }
+                                    } catch (error) {
+                                      toast.error('Failed to remove signature');
+                                    } finally {
+                                      setLoading(false);
+                                    }
+                                  }}
+                                  className="text-rose-500 hover:text-rose-600 transition-colors"
+                                  title="Delete Signature"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                            <div
+                              onClick={() =>
+                                document
+                                  .getElementById('ceo-signature-upload')
+                                  .click()
+                              }
+                              className={`relative group h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
+                                user.ceoSignature
+                                  ? 'border-primary/20 hover:border-primary/40'
+                                  : 'border-border/50 hover:border-primary/30'
+                              }`}
+                            >
+                              {user.ceoSignature ? (
+                                <>
+                                  <img
+                                    src={user.ceoSignature}
+                                    alt="CEO Signature"
+                                    className="h-full w-full object-contain p-2"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <ArrowUpCircle className="text-white" />
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-center space-y-2">
+                                  <div className="p-3 rounded-xl bg-muted/20 inline-block">
+                                    <Fingerprint className="text-muted-foreground/60" />
+                                  </div>
+                                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    Upload Signature
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              id="ceo-signature-upload"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                if (file.size > 2 * 1024 * 1024) {
+                                  toast.error(
+                                    'Signature must be less than 2MB',
+                                  );
+                                  return;
+                                }
+                                const formData = new FormData();
+                                formData.append('ceoSignature', file);
+                                setLoading(true);
+                                try {
+                                  const { data } = await api.put(
+                                    '/auth/updateceosignature',
+                                    formData,
+                                    {
+                                      headers: {
+                                        'Content-Type': 'multipart/form-data',
+                                      },
+                                    },
+                                  );
+                                  if (data.success) {
+                                    setUser((prev) => ({
+                                      ...prev,
+                                      ceoSignature: data.ceoSignature,
+                                    }));
+                                    toast.success('CEO signature updated');
+                                  }
+                                } catch (error) {
+                                  toast.error('Failed to update signature');
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            />
+                            <p className="text-[9px] text-muted-foreground leading-relaxed">
+                              Authorized signature for disbursements and
+                              reports.
                             </p>
                           </div>
                         </div>

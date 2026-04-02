@@ -25,10 +25,19 @@ export const getBusinessContext = () => {
       businessName: session.businessName || session.business?.businessName || 'FinFlo',
       businessLogo: session.businessLogo || session.business?.businessLogo || '',
       businessAddress: session.businessAddress || session.business?.businessAddress || '',
-      currency: session.currency || 'Rs.',
+      businessStamp: session.businessStamp || session.business?.businessStamp || '',
+      ceoSignature: session.ceoSignature || session.business?.ceoSignature || '',
+      currency: session.currency || session.business?.currency || 'Rs.',
     };
   } catch {
-    return { businessName: 'FinFlo', businessLogo: '', businessAddress: '', currency: 'Rs.' };
+    return {
+      businessName: 'FinFlo',
+      businessLogo: '',
+      businessAddress: '',
+      businessStamp: '',
+      ceoSignature: '',
+      currency: 'Rs.',
+    };
   }
 };
 
@@ -241,13 +250,67 @@ export const renderPdfFooter = (doc, { businessContext = {} } = {}) => {
     doc.setFontSize(5.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(180, 180, 200);
-    doc.text(
-      `Page ${i} of ${pageCount}  •  This is a computer-generated statement and does not require a signature.`,
-      pageWidth / 2,
-      pageHeight - 4,
-      { align: 'center' },
-    );
+
+    const hasSignature = businessContext.ceoSignature;
+    const disclaimer = hasSignature
+      ? `Page ${i} of ${pageCount}  •  This is a computer-generated statement authorized by ${businessName}.`
+      : `Page ${i} of ${pageCount}  •  This is a computer-generated statement and does not require a signature.`;
+
+    doc.text(disclaimer, pageWidth / 2, pageHeight - 4, { align: 'center' });
   }
+};
+
+// ─── Shared Signatures & Stamp block ────────────────────────────────────────
+// Renders the stamp and CEO signature at the bottom of the page
+export const renderPdfSignatures = async (doc, { startY, businessContext = {} } = {}) => {
+  const { businessStamp, ceoSignature } = {
+    ...getBusinessContext(),
+    ...businessContext,
+  };
+
+  if (!businessStamp && !ceoSignature) return startY;
+
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 14;
+
+  // Add some spacing
+  let currentY = Math.max(startY + 20, pageHeight - 60);
+
+  // If we're too close to the footer, add a new page
+  if (currentY > pageHeight - 40) {
+    doc.addPage();
+    currentY = 40;
+  }
+
+  // Draw lines for signature/stamp
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.2);
+
+  // CEO Signature (Right side)
+  if (ceoSignature) {
+    const sigBase64 = await loadImageAsBase64(ceoSignature);
+    if (sigBase64) {
+      doc.addImage(sigBase64, 'PNG', pageWidth - 64, currentY - 15, 50, 15);
+    }
+    doc.line(pageWidth - 64, currentY, pageWidth - margin, currentY);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(50, 50, 50);
+    doc.text('Authorized Signature (CEO)', pageWidth - 14, currentY + 5, {
+      align: 'right',
+    });
+  }
+
+  // Business Stamp (Left/Center-left side)
+  if (businessStamp) {
+    const stampBase64 = await loadImageAsBase64(businessStamp);
+    if (stampBase64) {
+      doc.addImage(stampBase64, 'PNG', margin, currentY - 20, 25, 25);
+    }
+  }
+
+  return currentY + 15;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -344,6 +407,9 @@ export const exportLoanStatement = async (
     doc.setTextColor(150);
     doc.text('No transaction records found.', 14, repaymentY + 10);
   }
+
+  const finalY = doc.lastAutoTable?.finalY || repaymentY + 15;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
   renderPdfFooter(doc, { businessContext: ctx });
 
@@ -472,6 +538,9 @@ export const exportMemberStatement = async (
     doc.text('No transaction records found.', 14, ledgerY + 10);
   }
 
+  const finalY = doc.lastAutoTable?.finalY || ledgerY + 15;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
+
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Member_Statement_${toTitleCase(member.name || 'User').replace(/\s+/g, '_')}.pdf`;
@@ -583,6 +652,10 @@ export const generateTransactionReceipt = async ({
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.text(formatCurrency(amount), pageWidth - 20, boxY + 13, { align: 'right' });
+
+  const finalY = doc.lastAutoTable?.finalY || boxY + 25;
+  // For receipts, we place signatures on the same page (A5 has limited space)
+  await renderPdfSignatures(doc, { startY: finalY - 5, businessContext: ctx });
 
   renderPdfFooter(doc, { businessContext: ctx });
 

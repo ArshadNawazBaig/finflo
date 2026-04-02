@@ -23,7 +23,7 @@ import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
-import { exportLoanStatement } from '@/lib/pdfExportUtils';
+import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { MemberTransactionsSkeleton } from '@/components/ui/PageSkeletons';
@@ -180,7 +180,7 @@ const MemberTransactions = () => {
 
     const { default: jsPDF } = await import('jspdf');
     await import('jspdf-autotable');
-    const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase } = await import('@/lib/pdfExportUtils');
+    const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
 
     const ctx = getBusinessContext();
     const doc = new jsPDF();
@@ -225,6 +225,9 @@ const MemberTransactions = () => {
       alternateRowStyles: { fillColor: [250, 250, 255] },
       margin: { left: 14, right: 14 },
     });
+
+    const finalY = doc.lastAutoTable?.finalY || startY + 20;
+    await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
     renderPdfFooter(doc, { businessContext: ctx });
 

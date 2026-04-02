@@ -26,6 +26,10 @@ const {
   googleRegister,
   uploadBusinessLogo,
   deleteBusinessLogo,
+  uploadBusinessStamp,
+  deleteBusinessStamp,
+  uploadCeoSignature,
+  deleteCeoSignature,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -61,6 +65,20 @@ router.put(
   uploadBusinessLogo,
 );
 router.delete('/delete-business-logo', protect, deleteBusinessLogo);
+router.put(
+  '/updatebusinessstamp',
+  protect,
+  upload.single('businessStamp'),
+  uploadBusinessStamp,
+);
+router.delete('/delete-business-stamp', protect, deleteBusinessStamp);
+router.put(
+  '/updateceosignature',
+  protect,
+  upload.single('ceoSignature'),
+  uploadCeoSignature,
+);
+router.delete('/delete-ceo-signature', protect, deleteCeoSignature);
 router.delete('/delete-account', protect, deleteAccount);
 
 // 2FA Routes
