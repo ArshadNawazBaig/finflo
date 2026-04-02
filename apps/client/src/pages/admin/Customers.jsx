@@ -47,6 +47,7 @@ const Customers = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const observerTarget = useRef(null);
+  const lastFetchRef = useRef('');
 
   const fetchBranches = async () => {
     try {
@@ -59,6 +60,20 @@ const Customers = () => {
 
   const fetchCustomers = useCallback(
     async (isAppend = false, pageNum = currentPage) => {
+      const pageToFetch = isAppend ? currentPage + 1 : pageNum;
+      const fetchParams = JSON.stringify({
+        searchTerm,
+        sortBy,
+        sortOrder,
+        limit,
+        selectedBranch,
+        pageToFetch,
+        isAppend,
+      });
+
+      if (lastFetchRef.current === fetchParams && !isAppend) return;
+      lastFetchRef.current = fetchParams;
+
       try {
         if (isAppend) {
           setIsFetchingMore(true);
@@ -66,7 +81,6 @@ const Customers = () => {
           setLoading(true);
         }
 
-        const pageToFetch = isAppend ? currentPage + 1 : pageNum;
         const branchParam = selectedBranch !== 'all' ? `&branchId=${selectedBranch}` : '';
         const { data } = await api.get(
           `/customers?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}${branchParam}`,
@@ -83,7 +97,6 @@ const Customers = () => {
           setCurrentPage(pageToFetch);
         } else {
           setCustomers(data.data || []);
-          setCurrentPage(pageNum);
         }
 
         setTotalEntries(data.totalEntries || 0);
@@ -91,12 +104,13 @@ const Customers = () => {
       } catch (error) {
         console.error('Failed to fetch customers', error);
         toast.error('Failed to load customers');
+        lastFetchRef.current = ''; // Allow retry on error
       } finally {
         setLoading(false);
         setIsFetchingMore(false);
       }
     },
-    [currentPage, limit, searchTerm, sortBy, sortOrder, selectedBranch],
+    [limit, searchTerm, sortBy, sortOrder, selectedBranch, currentPage],
   );
 
   const handleSort = (column) => {
@@ -114,18 +128,24 @@ const Customers = () => {
   }, []);
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchCustomers(false, 1);
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit, selectedBranch, fetchCustomers]);
+    // Reset page 1 on filter changes
+    if (currentPage !== 1 && (searchTerm || selectedBranch !== 'all' || sortBy !== 'createdAt')) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, selectedBranch, sortBy, sortOrder, limit]);
 
   useEffect(() => {
-    if (!isMobile) {
-      fetchCustomers(false, currentPage);
-    }
-  }, [currentPage, isMobile]);
+    // Consolidated Effect for Filter/Pagination Fetching
+    const delayDebounceFn = setTimeout(() => {
+      // In mobile, we only fetch initial page 1 or manual filter results
+      // Infinite scroll events handle themselves via observer + fetchCustomers(true)
+      if (!isMobile || currentPage === 1) {
+        fetchCustomers(false, currentPage);
+      }
+    }, searchTerm ? 400 : 0);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, sortBy, sortOrder, limit, selectedBranch, currentPage, isMobile, fetchCustomers]);
 
   useEffect(() => {
     if (!isMobile) return;

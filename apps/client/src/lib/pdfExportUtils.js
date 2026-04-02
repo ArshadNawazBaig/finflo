@@ -397,7 +397,7 @@ export const exportLoanStatement = async (
       body: repayments.map((rp) => [
         new Date(rp.date).toLocaleDateString(),
         rp.description || 'Loan Repayment',
-        formatCurrency(rp.amount),
+        `-${formatCurrency(rp.amount)}`,
         'Confirmed',
       ]),
       theme: 'grid',

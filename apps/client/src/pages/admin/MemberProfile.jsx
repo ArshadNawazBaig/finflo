@@ -924,13 +924,16 @@ const MemberProfile = () => {
       });
 
       const tableColumn = ['Date', 'Description', 'Type', 'Amount', 'Balance after'];
-      const tableRows = reportData.map((item) => [
-        new Date(item.date).toLocaleDateString(),
-        item.description,
-        item.type.toUpperCase(),
-        formatCurrency(item.amount),
-        formatCurrency(item.balanceAfter || 0),
-      ]);
+      const tableRows = reportData.map((item) => {
+        const isWithdrawal = item.type?.toLowerCase() === 'withdrawal';
+        return [
+          new Date(item.date).toLocaleDateString(),
+          item.description,
+          item.type.toUpperCase(),
+          `${isWithdrawal ? '-' : ''}${formatCurrency(item.amount)}`,
+          formatCurrency(item.balanceAfter || 0),
+        ];
+      });
 
       autoTable(doc, {
         head: [tableColumn],

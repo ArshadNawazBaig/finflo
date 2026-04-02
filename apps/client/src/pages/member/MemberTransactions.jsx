@@ -235,13 +235,16 @@ const MemberTransactions = () => {
       });
 
       const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
-      const tableRows = reportData.map((item) => [
-        new Date(item.date).toLocaleDateString(),
-        item.description,
-        item.category.toUpperCase(),
-        formatCurrency(item.amount),
-        item.type.toUpperCase(),
-      ]);
+      const tableRows = reportData.map((item) => {
+        const isOutflow = item.type === 'withdrawal' || item.category === 'repayment';
+        return [
+          new Date(item.date).toLocaleDateString(),
+          item.description,
+          item.category.toUpperCase(),
+          `${isOutflow ? '-' : ''}${formatCurrency(item.amount)}`,
+          item.type.toUpperCase(),
+        ];
+      });
 
       autoTable(doc, {
         head: [tableColumn],

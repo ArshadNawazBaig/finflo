@@ -39,9 +39,9 @@ export const exportCashFlowStatement = async (
     body: [
       ['Total Cash Inflow', formatCurrency(summary.inflow || 0)],
       ['Total Deposits', formatCurrency(summary.deposits || 0)],
-      ['Total Disbursements', formatCurrency(summary.outflow || 0)],
+      ['Total Disbursements', `-${formatCurrency(summary.outflow || 0)}`],
       ['Interest Profit', formatCurrency(summary.profit || 0)],
-      ['Operating Expenses', formatCurrency(summary.expenses || 0)],
+      ['Operating Expenses', `-${formatCurrency(summary.expenses || 0)}`],
       ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'grid',
@@ -71,7 +71,7 @@ export const exportCashFlowStatement = async (
         t.type === 'repayment' ? 'Loan Repayment' : 'Member Deposit',
         t.entityName || t.customer?.name || t.member?.name || 'N/A',
         t.reference || t.loan?.loanId || 'Deposit',
-        formatCurrency(t.amount),
+        `${t.type === 'repayment' ? '-' : ''}${formatCurrency(t.amount)}`,
       ]),
       theme: 'grid',
       headStyles: {

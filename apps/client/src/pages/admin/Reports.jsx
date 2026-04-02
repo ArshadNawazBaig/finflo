@@ -15,6 +15,13 @@ import {
   Eye,
   Loader2,
   FileSpreadsheet,
+  Activity,
+  Layers,
+  Landmark,
+  Banknote,
+  Save,
+  Clock,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   Dialog,

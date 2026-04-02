@@ -39,13 +39,11 @@ const Billing = () => {
 
   const observerTarget = useRef(null);
 
-
   useEffect(() => {
     const fetchBillingInfo = async () => {
       try {
         setLoading(true);
         const { data } = await api.get('/subscription');
-        console.log('Billing data:', data);
         setBillingData(data);
       } catch (error) {
         console.error('Failed to fetch billing info', error);
