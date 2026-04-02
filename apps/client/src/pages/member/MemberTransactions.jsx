@@ -180,7 +180,7 @@ const MemberTransactions = () => {
 
     const { default: jsPDF } = await import('jspdf');
     await import('jspdf-autotable');
-    const { renderPdfHeader, renderPdfFooter, getBusinessContext } = await import('@/lib/pdfExportUtils');
+    const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase } = await import('@/lib/pdfExportUtils');
 
     const ctx = getBusinessContext();
     const doc = new jsPDF();
@@ -189,7 +189,7 @@ const MemberTransactions = () => {
       businessContext: ctx,
       title: 'Financial Activity Statement',
       leftDetails: [
-        { label: 'Account Holder', value: member?.name || 'Valued Member' },
+        { label: 'Account Holder', value: toTitleCase(member?.name || 'Valued Member') },
         { label: 'Member ID', value: member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A' },
       ],
       rightDetails: [
@@ -213,7 +213,7 @@ const MemberTransactions = () => {
       startY,
       theme: 'grid',
       headStyles: {
-        fillColor: [79, 70, 229],
+        fillColor: [64, 53, 100],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 9,

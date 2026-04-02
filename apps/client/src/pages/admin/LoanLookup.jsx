@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
-import { renderPdfHeader, renderPdfFooter } from '@/lib/pdfExportUtils';
+import { renderPdfHeader, renderPdfFooter, toTitleCase } from '@/lib/pdfExportUtils';
 import { formatCurrency } from '@/lib/utils';
 
 // Local formatAmount is kept for layouts that split the symbol and value
@@ -46,7 +46,7 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
     businessContext: ctx,
     title: 'Loan Details Report',
     leftDetails: [
-      { label: 'Customer Name', value: customerName },
+      { label: 'Customer Name', value: toTitleCase(customerName) },
       { label: 'Loan ID', value: loan.loanId || loan._id.slice(-6).toUpperCase() },
       { label: 'Status', value: loan.status.toUpperCase() },
     ],
@@ -76,7 +76,7 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
     head: [['Description', 'Detail']],
     body: details,
     theme: 'grid',
-    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },

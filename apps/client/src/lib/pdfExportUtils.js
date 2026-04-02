@@ -2,6 +2,17 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
 
+// ─── Title Case Helper ──────────────────────────────────────────────────────
+// Converts "john doe" or "JOHN DOE" → "John Doe"
+export const toTitleCase = (str) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 // ─── Business Context Helper ────────────────────────────────────────────────
 // Reads business branding data from localStorage (user or member atom).
 export const getBusinessContext = () => {
@@ -253,7 +264,7 @@ export const exportLoanStatement = async (
   const ctx = businessContext || getBusinessContext();
   const doc = new jsPDF();
 
-  const customerName = loan.customer?.name || member?.name || 'Unknown';
+  const customerName = toTitleCase(loan.customer?.name || member?.name || 'Unknown');
   const customerContact = loan.customer?.phone || loan.customer?.email || member?.phone || 'N/A';
 
   const startY = await renderPdfHeader(doc, {
@@ -296,7 +307,7 @@ export const exportLoanStatement = async (
       ],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -321,7 +332,7 @@ export const exportLoanStatement = async (
         'Confirmed',
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
       styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: { 2: { halign: 'right' } },
       alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -371,7 +382,7 @@ export const exportMemberStatement = async (
     businessContext: ctx,
     title: 'Member Account Statement',
     leftDetails: [
-      { label: 'Member Name', value: member.name || 'Unknown' },
+      { label: 'Member Name', value: toTitleCase(member.name) || 'Unknown' },
       { label: 'Contact', value: member.phone || member.email || 'N/A' },
       { label: 'CNIC', value: member.cnic || 'N/A' },
       { label: 'Member ID', value: member.memberId || member._id?.slice(-6).toUpperCase() },
@@ -400,7 +411,7 @@ export const exportMemberStatement = async (
       ['Net Current Balance', formatCurrency(member.currentBalance || 0)],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -442,7 +453,7 @@ export const exportMemberStatement = async (
         formatCurrency(Math.abs(t.amount)),
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
       styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: { 3: { halign: 'right' } },
       alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -463,7 +474,7 @@ export const exportMemberStatement = async (
 
   renderPdfFooter(doc, { businessContext: ctx });
 
-  const fileName = `Member_Statement_${(member.name || 'User').replace(/\s+/g, '_')}.pdf`;
+  const fileName = `Member_Statement_${toTitleCase(member.name || 'User').replace(/\s+/g, '_')}.pdf`;
   doc.save(fileName);
 };
 
@@ -509,7 +520,7 @@ export const generateTransactionReceipt = async ({
     businessContext: ctx,
     title,
     leftDetails: [
-      { label: 'Account Holder', value: member?.name || 'N/A' },
+      { label: 'Account Holder', value: toTitleCase(member?.name) || 'N/A' },
       { label: 'CNIC', value: member?.cnic || 'N/A' },
     ],
     rightDetails: [
@@ -575,6 +586,6 @@ export const generateTransactionReceipt = async ({
 
   renderPdfFooter(doc, { businessContext: ctx });
 
-  const fileName = `Receipt_${refCode}_${(member?.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
+  const fileName = `Receipt_${refCode}_${toTitleCase(member?.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
   doc.save(fileName);
 };
