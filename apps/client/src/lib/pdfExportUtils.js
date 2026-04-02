@@ -642,26 +642,9 @@ export const generateTransactionReceipt = async ({
     margin: { left: 14, right: 14 },
   });
 
-  // ── Amount Highlight Box ──
-  const boxY = doc.lastAutoTable.finalY + 6;
-  const pageWidth = doc.internal.pageSize.width;
-  const isCredit = ['deposit', 'transfer_receive', 'profit', 'share_deposit'].includes(type);
-
-  doc.setFillColor(isCredit ? 16 : 239, isCredit ? 185 : 68, isCredit ? 129 : 68);
-  doc.roundedRect(14, boxY, pageWidth - 28, 18, 3, 3, 'F');
-
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(255, 255, 255);
-  doc.text(isCredit ? 'AMOUNT CREDITED' : 'AMOUNT DEBITED', 20, boxY + 7);
-
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text(formatCurrency(amount), pageWidth - 20, boxY + 13, { align: 'right' });
-
-  const finalY = doc.lastAutoTable?.finalY || boxY + 25;
+  const signatureStartY = doc.lastAutoTable?.finalY || 100;
   // For receipts, we place signatures on the same page (A5 has limited space)
-  await renderPdfSignatures(doc, { startY: finalY - 5, businessContext: ctx });
+  await renderPdfSignatures(doc, { startY: signatureStartY, businessContext: ctx });
 
   renderPdfFooter(doc, { businessContext: ctx });
 
