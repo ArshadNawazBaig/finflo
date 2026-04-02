@@ -88,6 +88,9 @@ const Settings = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [logoLoading, setLogoLoading] = useState(false);
+  const [stampLoading, setStampLoading] = useState(false);
+  const [signatureLoading, setSignatureLoading] = useState(false);
   const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
 
   // 2FA state
@@ -530,7 +533,7 @@ const Settings = () => {
                                   className="bg-white/20 hover:bg-white/40 backdrop-blur-md p-2 rounded-xl transition-all"
                                   title="Upload Logo"
                                 >
-                                  {loading ? (
+                                  {logoLoading ? (
                                     <Loader2
                                       size={16}
                                       className="text-white animate-spin"
@@ -543,11 +546,11 @@ const Settings = () => {
                                 {user.businessLogo && (
                                   <button
                                     type="button"
-                                    disabled={loading}
+                                    disabled={logoLoading}
                                     onClick={async (e) => {
                                       e.stopPropagation();
-                                      if (loading) return;
-                                      setLoading(true);
+                                      if (logoLoading) return;
+                                      setLogoLoading(true);
                                       try {
                                         const { data } = await api.delete(
                                           '/auth/delete-business-logo',
@@ -566,13 +569,22 @@ const Settings = () => {
                                           'Failed to delete business logo',
                                         );
                                       } finally {
-                                        setLoading(false);
+                                        setLogoLoading(false);
                                       }
                                     }}
-                                    className="bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all"
+                                    className={`bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all ${
+                                      logoLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
                                     title="Delete Logo"
                                   >
-                                    <Trash2 size={16} className="text-white" />
+                                    {logoLoading ? (
+                                      <Loader2
+                                        size={16}
+                                        className="text-white animate-spin"
+                                      />
+                                    ) : (
+                                      <Trash2 size={16} className="text-white" />
+                                    )}
                                   </button>
                                 )}
                               </div>
@@ -595,7 +607,7 @@ const Settings = () => {
                                 const formData = new FormData();
                                 formData.append('businessLogo', file);
 
-                                setLoading(true);
+                                setLogoLoading(true);
                                 try {
                                   const { data } = await api.put(
                                     '/auth/updatebusinesslogo',
@@ -618,7 +630,7 @@ const Settings = () => {
                                   console.error(error);
                                   toast.error('Failed to update business logo');
                                 } finally {
-                                  setLoading(false);
+                                  setLogoLoading(false);
                                 }
                               }}
                             />
@@ -650,9 +662,12 @@ const Settings = () => {
                               </h4>
                               {user.businessStamp && (
                                 <button
-                                  onClick={async () => {
+                                  disabled={stampLoading}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (stampLoading) return;
                                     try {
-                                      setLoading(true);
+                                      setStampLoading(true);
                                       const { data } = await api.delete(
                                         '/auth/delete-business-stamp',
                                       );
@@ -666,36 +681,50 @@ const Settings = () => {
                                     } catch (error) {
                                       toast.error('Failed to remove stamp');
                                     } finally {
-                                      setLoading(false);
+                                      setStampLoading(false);
                                     }
                                   }}
-                                  className="text-rose-500 hover:text-rose-600 transition-colors"
+                                  className={`text-rose-500 hover:text-rose-600 transition-colors ${
+                                    stampLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                  }`}
                                   title="Delete Stamp"
                                 >
-                                  <Trash2 size={16} />
+                                  {stampLoading ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                  ) : (
+                                    <Trash2 size={16} />
+                                  )}
                                 </button>
                               )}
                             </div>
                             <div
-                              onClick={() =>
+                              onClick={() => {
+                                if (stampLoading) return;
                                 document
                                   .getElementById('business-stamp-upload')
-                                  .click()
-                              }
-                              className={`relative group h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
+                                  .click();
+                              }}
+                              className={`relative group/stamp h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
                                 user.businessStamp
                                   ? 'border-primary/20 hover:border-primary/40'
                                   : 'border-border/50 hover:border-primary/30'
-                              }`}
+                              } ${stampLoading ? 'opacity-50 cursor-wait' : ''}`}
                             >
-                              {user.businessStamp ? (
+                              {stampLoading ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="animate-spin text-primary" />
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    Processing...
+                                  </span>
+                                </div>
+                              ) : user.businessStamp ? (
                                 <>
                                   <img
                                     src={user.businessStamp}
                                     alt="Business Stamp"
                                     className="h-full w-full object-contain p-2"
                                   />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/stamp:opacity-100 transition-opacity flex items-center justify-center">
                                     <ArrowUpCircle className="text-white" />
                                   </div>
                                 </>
@@ -724,7 +753,7 @@ const Settings = () => {
                                 }
                                 const formData = new FormData();
                                 formData.append('businessStamp', file);
-                                setLoading(true);
+                                setStampLoading(true);
                                 try {
                                   const { data } = await api.put(
                                     '/auth/updatebusinessstamp',
@@ -745,7 +774,7 @@ const Settings = () => {
                                 } catch (error) {
                                   toast.error('Failed to update stamp');
                                 } finally {
-                                  setLoading(false);
+                                  setStampLoading(false);
                                 }
                               }}
                             />
@@ -762,9 +791,12 @@ const Settings = () => {
                               </h4>
                               {user.ceoSignature && (
                                 <button
-                                  onClick={async () => {
+                                  disabled={signatureLoading}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (signatureLoading) return;
                                     try {
-                                      setLoading(true);
+                                      setSignatureLoading(true);
                                       const { data } = await api.delete(
                                         '/auth/delete-ceo-signature',
                                       );
@@ -780,36 +812,50 @@ const Settings = () => {
                                     } catch (error) {
                                       toast.error('Failed to remove signature');
                                     } finally {
-                                      setLoading(false);
+                                      setSignatureLoading(false);
                                     }
                                   }}
-                                  className="text-rose-500 hover:text-rose-600 transition-colors"
+                                  className={`text-rose-500 hover:text-rose-600 transition-colors ${
+                                    signatureLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                  }`}
                                   title="Delete Signature"
                                 >
-                                  <Trash2 size={16} />
+                                  {signatureLoading ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                  ) : (
+                                    <Trash2 size={16} />
+                                  )}
                                 </button>
                               )}
                             </div>
                             <div
-                              onClick={() =>
+                              onClick={() => {
+                                if (signatureLoading) return;
                                 document
                                   .getElementById('ceo-signature-upload')
-                                  .click()
-                              }
-                              className={`relative group h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
+                                  .click();
+                              }}
+                              className={`relative group/signature h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
                                 user.ceoSignature
                                   ? 'border-primary/20 hover:border-primary/40'
                                   : 'border-border/50 hover:border-primary/30'
-                              }`}
+                              } ${signatureLoading ? 'opacity-50 cursor-wait' : ''}`}
                             >
-                              {user.ceoSignature ? (
+                              {signatureLoading ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="animate-spin text-primary" />
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    Processing...
+                                  </span>
+                                </div>
+                              ) : user.ceoSignature ? (
                                 <>
                                   <img
                                     src={user.ceoSignature}
                                     alt="CEO Signature"
                                     className="h-full w-full object-contain p-2"
                                   />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/signature:opacity-100 transition-opacity flex items-center justify-center">
                                     <ArrowUpCircle className="text-white" />
                                   </div>
                                 </>
@@ -840,7 +886,7 @@ const Settings = () => {
                                 }
                                 const formData = new FormData();
                                 formData.append('ceoSignature', file);
-                                setLoading(true);
+                                setSignatureLoading(true);
                                 try {
                                   const { data } = await api.put(
                                     '/auth/updateceosignature',
@@ -861,7 +907,7 @@ const Settings = () => {
                                 } catch (error) {
                                   toast.error('Failed to update signature');
                                 } finally {
-                                  setLoading(false);
+                                  setSignatureLoading(false);
                                 }
                               }}
                             />
