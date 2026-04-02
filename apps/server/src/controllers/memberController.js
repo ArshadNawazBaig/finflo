@@ -723,18 +723,25 @@ const getMemberInvestments = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    const { startDate, endDate } = req.query;
+    const query = {
+      member: id,
+      user: userId,
+    };
+
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
     const [investments, total] = await Promise.all([
-      Investment.find({
-        member: id,
-        user: userId,
-      })
+      Investment.find(query)
         .sort({ date: -1 })
         .skip(skip)
         .limit(limit),
-      Investment.countDocuments({
-        member: id,
-        user: userId,
-      }),
+      Investment.countDocuments(query),
     ]);
 
     res.json({

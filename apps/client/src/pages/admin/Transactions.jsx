@@ -8,8 +8,10 @@ import {
   FileSpreadsheet,
   RotateCcw,
   AlertTriangle,
+  Loader2,
+  FileText,
 } from 'lucide-react';
-import { subMonths } from 'date-fns';
+import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,10 +57,11 @@ const Transactions = () => {
     to: new Date(),
   });
   const [summary, setSummary] = useState({
-    totalTransactions: 0,
     totalIncome: 0,
     totalExpense: 0,
   });
+  const [isExportingModal, setIsExportingModal] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
 
   // Reversal state
@@ -191,10 +195,11 @@ useEffect(() => {
         return;
       }
 
+      setIsExportingModal(true);
       const response = await api.get('/dashboard/download-statement', {
         params: {
-          startDate: dateRange.from.toISOString(),
-          endDate: dateRange.to.toISOString(),
+          startDate: startOfDay(dateRange.from).toISOString(),
+          endDate: endOfDay(dateRange.to).toISOString(),
           format: 'json',
         },
       });
@@ -206,9 +211,12 @@ useEffect(() => {
         'Global Ledger',
       );
       toast.success('Statement generated successfully');
+      setIsExportModalOpen(false);
     } catch (error) {
       console.error('Failed to download statement', error);
       toast.error('Failed to download statement');
+    } finally {
+      setIsExportingModal(false);
     }
   };
 
@@ -339,8 +347,7 @@ useEffect(() => {
                   variant="outline"
                   size="icon"
                   className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
-                  onClick={handleDownload}
-                  isLoading={loading}
+                  onClick={() => setIsExportModalOpen(true)}
                   title="Download Statement (PDF)"
                 >
                   <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
@@ -532,6 +539,77 @@ useEffect(() => {
                 Authorize Reversal
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Report Modal */}
+      <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2.5rem] border-border/50 shadow-2xl bg-background">
+          {/* Fixed Header */}
+          <div className="p-8 border-b bg-background z-10 shrink-0 relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <Download size={24} />
+              </div>
+              <div className="text-left">
+                <DialogTitle className="text-2xl font-black tracking-tight">Financial Statement</DialogTitle>
+                <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
+                  Select the date range for your cash flow analysis report.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
+            <div className="space-y-6">
+              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
+                  Select Report Period
+                </label>
+                <div className="flex justify-center">
+                  <DateRangePicker
+                    date={dateRange}
+                    setDate={setDateRange}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
+                  Note: Generating reports for long periods may take a few moments.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-8 border-t bg-background shrink-0 flex flex-col sm:flex-row gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsExportModalOpen(false)}
+              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-all"
+              disabled={isExportingModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gradient"
+              onClick={handleDownload}
+              disabled={isExportingModal}
+              className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
+            >
+              {isExportingModal ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileText size={16} className="mr-2" />
+                  Generate PDF
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

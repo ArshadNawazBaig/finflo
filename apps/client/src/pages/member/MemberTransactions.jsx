@@ -11,7 +11,7 @@ import {
   Download,
   TrendingUp,
 } from 'lucide-react';
-import { subMonths } from 'date-fns';
+import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,15 @@ import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Loader2 } from 'lucide-react';
 import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
@@ -54,6 +63,15 @@ const MemberTransactions = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
+
+  // Export Modal States
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExportingModal, setIsExportingModal] = useState(false);
+  const [reportDateRange, setReportDateRange] = useState({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
+
   useEffect(() => {
     setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
   }, [isMobile]);
@@ -176,63 +194,88 @@ const MemberTransactions = () => {
   }, [isFetchingMore, loading, currentPage, totalPages, fetchActivity]);
 
   const handleExportPDF = async () => {
-    if (!activity.length) return toast.error('No transactions to export');
+    try {
+      setIsExportingModal(true);
+      
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
 
-    const { default: jsPDF } = await import('jspdf');
-    await import('jspdf-autotable');
-    const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
+      // Fetch ALL transactions for the selected range (ignoring pagination)
+      const { data } = await api.get('/members/portal/activity', {
+        params: {
+          page: 1,
+          limit: 1000, // Fetch up to 1000 records for the report
+          startDate: startOfDay(reportDateRange.from).toISOString(),
+          endDate: endOfDay(reportDateRange.to).toISOString(),
+        }
+      });
 
-    const ctx = getBusinessContext();
-    const doc = new jsPDF();
+      const reportData = data.data || [];
+      if (!reportData.length) {
+        toast.error('No transactions found in this date range');
+        return;
+      }
 
-    const startY = await renderPdfHeader(doc, {
-      businessContext: ctx,
-      title: 'Financial Activity Statement',
-      leftDetails: [
-        { label: 'Account Holder', value: toTitleCase(member?.name || 'Valued Member') },
-        { label: 'Member ID', value: member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A' },
-      ],
-      rightDetails: [
-        { label: 'Statement Date', value: new Date().toLocaleDateString() },
-        { label: 'Total Records', value: activity.length.toString() },
-      ],
-    });
+      const ctx = getBusinessContext();
+      const doc = new jsPDF();
 
-    const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
-    const tableRows = activity.map((item) => [
-      new Date(item.date).toLocaleDateString(),
-      item.description,
-      item.category.toUpperCase(),
-      formatCurrency(item.amount),
-      item.type.toUpperCase(),
-    ]);
+      const startY = await renderPdfHeader(doc, {
+        businessContext: ctx,
+        title: 'Financial Activity Statement',
+        leftDetails: [
+          { label: 'Account Holder', value: toTitleCase(member?.name || 'Valued Member') },
+          { label: 'Member ID', value: member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A' },
+        ],
+        rightDetails: [
+          { label: 'Statement Date', value: new Date().toLocaleDateString() },
+          { label: 'Report Period', value: `${reportDateRange.from.toLocaleDateString()} - ${reportDateRange.to.toLocaleDateString()}` },
+          { label: 'Total Records', value: reportData.length.toString() },
+        ],
+      });
 
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [64, 53, 100],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 9,
-      },
-      styles: { fontSize: 9, cellPadding: 3 },
-      columnStyles: {
-        3: { halign: 'right' },
-      },
-      alternateRowStyles: { fillColor: [250, 250, 255] },
-      margin: { left: 14, right: 14 },
-    });
+      const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
+      const tableRows = reportData.map((item) => [
+        new Date(item.date).toLocaleDateString(),
+        item.description,
+        item.category.toUpperCase(),
+        formatCurrency(item.amount),
+        item.type.toUpperCase(),
+      ]);
 
-    const finalY = doc.lastAutoTable?.finalY || startY + 20;
-    await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [64, 53, 100],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9,
+        },
+        styles: { fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+          3: { halign: 'right' },
+        },
+        alternateRowStyles: { fillColor: [250, 250, 255] },
+        margin: { left: 14, right: 14 },
+      });
 
-    renderPdfFooter(doc, { businessContext: ctx });
+      const finalY = doc.lastAutoTable?.finalY || startY + 20;
+      await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
 
-    doc.save(`Activity_Statement_${new Date().getTime()}.pdf`);
-    toast.success('Statement downloaded successfully');
+      renderPdfFooter(doc, { businessContext: ctx });
+
+      doc.save(`Activity_Report_${new Date().getTime()}.pdf`);
+      toast.success('Report downloaded successfully');
+      setIsExportModalOpen(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to generate report');
+    } finally {
+      setIsExportingModal(false);
+    }
   };
 
   // Filtering and searching are now handled on the backend
@@ -371,7 +414,10 @@ const MemberTransactions = () => {
               ))}
               <div className="h-6 w-[1px] bg-border/50 mx-1 hidden md:block" />
               <Button
-                onClick={handleExportPDF}
+                onClick={() => {
+                  setReportDateRange(dateRange);
+                  setIsExportModalOpen(true);
+                }}
                 variant="outline"
                 size="sm"
                 className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap w-full sm:w-auto"
@@ -564,6 +610,73 @@ const MemberTransactions = () => {
           />
         )}
       </div>
+
+      {/* Export Report Modal */}
+      <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2.5rem] border-border/50 shadow-2xl bg-background">
+          {/* Fixed Header */}
+          <div className="p-8 border-b bg-background z-10 shrink-0 relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <Download size={24} />
+              </div>
+              <div className="text-left">
+                <DialogTitle className="text-2xl font-black tracking-tight">Export Statement</DialogTitle>
+                <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
+                  Select the date range for your transaction report.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
+            <div className="space-y-6">
+              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
+                  Select Report Period
+                </label>
+                <div className="flex justify-center">
+                  <DateRangePicker
+                    date={reportDateRange}
+                    setDate={setReportDateRange}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
+                  Note: Generating reports for long periods may take a few moments.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-8 border-t bg-background shrink-0 flex flex-col sm:flex-row gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsExportModalOpen(false)}
+              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              disabled={isExportingModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20"
+              disabled={isExportingModal}
+            >
+              {isExportingModal ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+                  Generating...
+                </>
+              ) : (
+                'Generate PDF'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

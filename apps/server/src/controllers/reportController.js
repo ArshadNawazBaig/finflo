@@ -8,6 +8,7 @@ const {
 
 const getReportStats = async (req, res) => {
   try {
+    const { startDate, endDate } = req.query;
     const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
     // Branch Segregation
@@ -16,8 +17,25 @@ const getReportStats = async (req, res) => {
       if (branchScope) query.branchId = req.user.branchId;
     }
 
+    // Apply date filter to the primary query
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
     // Exclude rejected loans from financial metrics
     const loanQuery = { ...query, status: { $ne: 'rejected' } };
+    
+    // For loans, the date field is usually startDate or createdAt
+    if (startDate && endDate) {
+      delete loanQuery.date; // Use specific loan date field
+      loanQuery.startDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
 
     // Aggregate monthly loans
     const monthlyLoans = await Loan.aggregate([

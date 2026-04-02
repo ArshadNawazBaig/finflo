@@ -18,7 +18,18 @@ import {
   ArrowUpCircle,
   Download,
   Loader2,
+  History,
 } from 'lucide-react';
+import { subMonths, startOfDay, endOfDay } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import api from '@/lib/axios';
 import { formatCurrency, cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -79,6 +90,12 @@ const LoanDetail = () => {
   const [isFetchingMoreInvestments, setIsFetchingMoreInvestments] =
     useState(false);
   const [isFetchingMoreSchedule, setIsFetchingMoreSchedule] = useState(false);
+  const [isExportingModal, setIsExportingModal] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [reportDateRange, setReportDateRange] = useState({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
 
   const itemsPerPage = 3;
   const itemsPerPageScheduleMobile = 2; // As requested
@@ -376,14 +393,24 @@ const LoanDetail = () => {
 
   const handleDownloadStatement = async () => {
     try {
-      setIsExporting(true);
-      await exportLoanStatement(loan, repayments, member);
+      setIsExportingModal(true);
+      const { exportLoanStatement } = await import('@/lib/pdfExportUtils');
+
+      // Filter repayments based on the selected date range
+      // Note: We use all available repayments for the loan
+      const filteredRepayments = repayments.filter((rp) => {
+        const rpDate = new Date(rp.date);
+        return rpDate >= startOfDay(reportDateRange.from) && rpDate <= endOfDay(reportDateRange.to);
+      });
+
+      await exportLoanStatement(loan, filteredRepayments, member);
       toast.success('Statement downloaded successfully');
+      setIsExportModalOpen(false);
     } catch (error) {
       console.error('PDF Export failed:', error);
       toast.error('Failed to generate statement');
     } finally {
-      setIsExporting(false);
+      setIsExportingModal(false);
     }
   };
 
@@ -453,15 +480,17 @@ const LoanDetail = () => {
           <Tooltip content="Download Loan Statement">
             <Button
               variant="gradient"
-              disabled={isExporting}
-              onClick={handleDownloadStatement}
+              isLoading={isExportingModal}
+              onClick={() => {
+                setReportDateRange({
+                  from: subMonths(new Date(), 1),
+                  to: new Date(),
+                });
+                setIsExportModalOpen(true);
+              }}
               className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
             >
-              {isExporting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Download size={16} />
-              )}
+              <Download size={16} />
               Statement
             </Button>
           </Tooltip>
@@ -1007,6 +1036,76 @@ const LoanDetail = () => {
           </div>
         </div>
       </div>
+      {/* Report Selection Modal */}
+      <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2.5rem] border-border/50 shadow-2xl bg-background">
+          {/* Fixed Header */}
+          <div className="p-8 border-b bg-background z-10 shrink-0 relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <Download size={24} />
+              </div>
+              <div className="text-left">
+                <DialogTitle className="text-2xl font-black tracking-tight">Loan Statement</DialogTitle>
+                <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
+                  Select a custom date range for the repayment history report.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
+            <div className="space-y-6">
+              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
+                  Select Report Period
+                </label>
+                <div className="flex justify-center">
+                  <DateRangePicker
+                    date={reportDateRange}
+                    setDate={setReportDateRange}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
+                  Note: The full amortization schedule will be included, but transaction history will be filtered by this range.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-8 border-t bg-background shrink-0 flex flex-col sm:flex-row gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsExportModalOpen(false)}
+              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              disabled={isExportingModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="gradient"
+              onClick={handleDownloadStatement}
+              disabled={isExportingModal}
+              className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
+            >
+              {isExportingModal ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileText size={16} className="mr-2" />
+                  Generate PDF
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
