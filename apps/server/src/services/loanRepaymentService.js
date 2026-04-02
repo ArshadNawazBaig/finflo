@@ -169,8 +169,9 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   await repayment.save({ session });
 
   // Deduct repayment from linked Member's balance (if member exists) atomically
+  let customer = null;
   try {
-    const customer = await Customer.findById(loan.customer);
+    customer = await Customer.findById(loan.customer);
     if (customer?.memberId) {
       const updatedMember = await Member.findByIdAndUpdate(
         customer.memberId,
