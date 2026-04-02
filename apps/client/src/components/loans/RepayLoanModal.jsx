@@ -220,10 +220,21 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const onSubmit = async (formData) => {
     setLoading(true);
     try {
+      // Append current local time to the selected date to prevent it defaulting to exactly midnight 
+      const selectedDateString = formData.date;
+      const now = new Date();
+      let isoDate = selectedDateString;
+      
+      if (selectedDateString && !selectedDateString.includes('T')) {
+        const d = new Date(selectedDateString);
+        d.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        isoDate = d.toISOString();
+      }
+
       await api.post('/repayments', {
         loanId: loan._id,
         amount: Number(formData.amount),
-        date: formData.date,
+        date: isoDate,
         notes: formData.notes,
         isSettlement,
       });

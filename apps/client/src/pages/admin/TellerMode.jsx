@@ -21,7 +21,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import Pagination from '@/components/ui/Pagination';
@@ -274,8 +274,8 @@ const TellerMode = () => {
       // Fetch ALL journal records for the selected date range 
       const { data } = await api.get('/ledger', {
         params: {
-          startDate: getISODate(selectedDate?.from || new Date()),
-          endDate: getISODate(selectedDate?.to || selectedDate?.from || new Date()),
+          startDate: startOfDay(selectedDate?.from || new Date()).toISOString(),
+          endDate: endOfDay(selectedDate?.to || selectedDate?.from || new Date()).toISOString(),
           page: 1,
           limit: 2000,
         },
@@ -312,10 +312,8 @@ const TellerMode = () => {
     try {
       const pageToFetch =
         pageOverride || (isAppend ? journalPage + 1 : journalPage);
-      const startDate = getISODate(selectedDate?.from || new Date());
-      const endDate = getISODate(
-        selectedDate?.to || selectedDate?.from || new Date(),
-      );
+      const startDate = startOfDay(selectedDate?.from || new Date()).toISOString();
+      const endDate = endOfDay(selectedDate?.to || selectedDate?.from || new Date()).toISOString();
 
       const { data } = await api.get('/ledger', {
         params: {
