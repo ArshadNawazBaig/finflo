@@ -59,7 +59,7 @@ const Customers = () => {
   };
 
   const fetchCustomers = useCallback(
-    async (isAppend = false, pageNum = currentPage) => {
+    async (isAppend = false, pageNum = currentPage, forceRefresh = false) => {
       const pageToFetch = isAppend ? currentPage + 1 : pageNum;
       const fetchParams = JSON.stringify({
         searchTerm,
@@ -71,6 +71,7 @@ const Customers = () => {
         isAppend,
       });
 
+      if (forceRefresh) lastFetchRef.current = '';
       if (lastFetchRef.current === fetchParams && !isAppend) return;
       lastFetchRef.current = fetchParams;
 
@@ -383,21 +384,21 @@ const Customers = () => {
       <AddCustomerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => fetchCustomers(false)}
+        onSuccess={() => fetchCustomers(false, 1, true)}
       />
 
       <EditCustomerModal
         isOpen={!!editCustomer}
         onClose={() => setEditCustomer(null)}
         customer={editCustomer}
-        onSuccess={() => fetchCustomers(false)}
+        onSuccess={() => fetchCustomers(false, 1, true)}
       />
 
       <ConvertToMemberModal
         isOpen={!!convertCustomer}
         onClose={() => setConvertCustomer(null)}
         customer={convertCustomer}
-        onSuccess={() => fetchCustomers(false)}
+        onSuccess={() => fetchCustomers(false, 1, true)}
       />
 
       <ConfirmActionModal
