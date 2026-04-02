@@ -24,6 +24,7 @@ import Tooltip from '@/components/ui/Tooltip';
 import MemberRepayModal from '@/components/member/MemberRepayModal';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const MemberLoanDetail = () => {
   const { id } = useParams();
@@ -34,6 +35,17 @@ const MemberLoanDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
   const [showPenaltyBanner, setShowPenaltyBanner] = useState(true);
+  const { settings } = useSystemSettings();
+
+  const lateFeeEnabled = settings?.lateFeeEnabled !== false;
+  const lateFeeType = settings?.lateFeeType || 'fixed';
+  const lateFeeRate = settings?.lateFeeRate ?? 500;
+  const gracePeriod = settings?.lateFeeGracePeriodDays ?? 3;
+
+  const dailyFee =
+    loan && lateFeeType === 'percentage'
+      ? Math.round((loan.emi * (lateFeeRate / 100)) / 30)
+      : Math.round(lateFeeRate / 30);
 
   useEffect(() => {
     const fetchLoanData = async () => {
@@ -296,6 +308,7 @@ const MemberLoanDetail = () => {
 
       {/* Repayment Warning Banner */}
       {showPenaltyBanner &&
+        lateFeeEnabled &&
         loan.status !== 'completed' &&
         loan.status !== 'rejected' && (
           <div className="bg-orange-500/10 border border-orange-500/20 rounded-[2rem] p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start relative overflow-hidden group">
@@ -323,13 +336,13 @@ const MemberLoanDetail = () => {
                 To maintain your credit profile and avoid system-generated
                 penalties, please ensure installments are paid within the{' '}
                 <span className="font-black text-orange-700 underline decoration-2 underline-offset-4">
-                  3-day grace period
+                  {gracePeriod}-day grace period
                 </span>{' '}
                 of your due date. A daily late fee of{' '}
                 <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center shadow-sm">
-                  {formatCurrency(Math.round((loan.emi * 0.02) / 30))}
+                  {formatCurrency(dailyFee)}
                 </span>{' '}
-                (2% monthly rate) will be applied automatically to all overdue
+                ({lateFeeType === 'percentage' ? `${lateFeeRate}%` : formatCurrency(lateFeeRate)} monthly rate) will be applied automatically to all overdue
                 payments.
               </p>
             </div>
