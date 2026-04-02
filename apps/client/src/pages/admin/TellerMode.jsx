@@ -82,6 +82,7 @@ const TellerMode = () => {
   });
   const [journalTxns, setJournalTxns] = useState([]);
   const [journalLoading, setJournalLoading] = useState(false);
+  const [isExportingJournal, setIsExportingJournal] = useState(false);
   const [isFetchingMoreJournal, setIsFetchingMoreJournal] = useState(false);
   const [journalStats, setJournalStats] = useState({
     cashIn: 0,
@@ -264,6 +265,36 @@ const TellerMode = () => {
       return date;
     }
   };
+
+  const handleExportJournalPDF = async () => {
+    try {
+      setIsExportingJournal(true);
+      const { exportJournalPDF } = await import('@/lib/pdfExportUtils');
+
+      // Fetch ALL journal records for the selected date range 
+      const { data } = await api.get('/ledger', {
+        params: {
+          startDate: getISODate(selectedDate?.from || new Date()),
+          endDate: getISODate(selectedDate?.to || selectedDate?.from || new Date()),
+          page: 1,
+          limit: 2000,
+        },
+      });
+
+      const success = await exportJournalPDF(data, selectedDate, user);
+      if (success) {
+        toast.success('Journal exported successfully!');
+      } else {
+        toast.error('No transactions found to export.');
+      }
+    } catch (error) {
+      console.error('Failed to export Journal PDF:', error);
+      toast.error('Failed to export journal.');
+    } finally {
+      setIsExportingJournal(false);
+    }
+  };
+
 
   const fetchJournal = async (
     isAppend = false,
@@ -1332,16 +1363,27 @@ const TellerMode = () => {
               </h3>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mr-2 hidden sm:block">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mr-1 hidden lg:block">
                 Select Date:
               </span>
               <DateRangePicker
                 date={selectedDate}
                 setDate={setSelectedDate}
                 disabled={!isAdmin}
-                className="w-[300px]"
+                className="w-full sm:w-auto"
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportJournalPDF}
+                isLoading={isExportingJournal}
+                disabled={journalTxns.length === 0}
+                className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all h-10 px-4 whitespace-nowrap w-full sm:w-auto mt-2 sm:mt-0"
+              >
+                <FileText size={14} />
+                Export PDF
+              </Button>
             </div>
           </div>
 
