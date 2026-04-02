@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema(
     businessName: { type: String, default: '' },
     profilePicture: { type: String, default: '' },
     businessLogo: { type: String, default: '' },
+    businessAddress: { type: String, default: '' },
     currency: { type: String, default: 'Rs.' },
     businessAbbreviation: {
       type: String,

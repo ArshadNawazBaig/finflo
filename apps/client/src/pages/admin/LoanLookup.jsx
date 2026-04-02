@@ -14,11 +14,14 @@ import api from '@/lib/axios';
 import { format } from 'date-fns';
 import { cn, formatCNIC } from '@/lib/utils';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
+import { renderPdfHeader, renderPdfFooter } from '@/lib/pdfExportUtils';
+import { formatCurrency } from '@/lib/utils';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
@@ -30,93 +33,58 @@ const formatAmount = (amount) => {
 };
 
 // Generate PDF for loan details
-const generateLoanPDF = (loan, customerName, businessName) => {
+const generateLoanPDF = async (loan, customerName, businessName) => {
   const doc = new jsPDF();
 
-  // Header
-  doc.setFillColor(59, 130, 246);
-  doc.rect(0, 0, 210, 40, 'F');
+  const ctx = {
+    businessName: businessName || 'FinFlo',
+    businessLogo: '',
+    businessAddress: '',
+  };
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont(undefined, 'bold');
-  doc.text('Loan Details', 105, 20, { align: 'center' });
-
-  doc.setFontSize(12);
-  doc.setFont(undefined, 'normal');
-  doc.text(businessName, 105, 30, { align: 'center' });
-
-  // Reset text color
-  doc.setTextColor(0, 0, 0);
-
-  // Customer Info
-  let yPos = 55;
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text('Customer Information', 20, yPos);
-
-  yPos += 10;
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'normal');
-  doc.text(`Name: ${customerName}`, 20, yPos);
-
-  yPos += 7;
-  doc.text(
-    `Loan ID: ${loan.loanId || loan._id.slice(-6).toUpperCase()}`,
-    20,
-    yPos,
-  );
-
-  // Loan Details
-  yPos += 15;
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text('Loan Information', 20, yPos);
-
-  yPos += 10;
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'normal');
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title: 'Loan Details Report',
+    leftDetails: [
+      { label: 'Customer Name', value: customerName },
+      { label: 'Loan ID', value: loan.loanId || loan._id.slice(-6).toUpperCase() },
+      { label: 'Status', value: loan.status.toUpperCase() },
+    ],
+    rightDetails: [
+      { label: 'Generated On', value: format(new Date(), 'MMMM dd, yyyy') },
+      { label: 'Interest Rate', value: `${loan.rate}%` },
+      { label: 'Duration', value: `${loan.duration} Months` },
+    ],
+  });
 
   const details = [
-    ['Status:', loan.status.toUpperCase()],
-    ['Principal Amount:', `loan.principal.toLocaleString()`],
-    ['Interest Rate:', `${loan.rate}%`],
-    ['Duration:', `${loan.duration} Months`],
-    ['Monthly EMI:', `loan.emi.toLocaleString()`],
-    ['Total Amount:', `loan.totalAmount.toLocaleString()`],
-    ['Start Date:', format(new Date(loan.startDate), 'MMMM dd, yyyy')],
+    ['Principal Amount', formatCurrency(loan.principal)],
+    ['Interest Rate', `${loan.rate}%`],
+    ['Duration', `${loan.duration} Months`],
+    ['Monthly EMI', formatCurrency(loan.emi)],
+    ['Total Amount', formatCurrency(loan.totalAmount)],
+    ['Start Date', format(new Date(loan.startDate), 'MMMM dd, yyyy')],
   ];
 
   if (loan.status === 'active') {
-    details.push([
-      'Remaining Amount:',
-      `loan.remainingAmount?.toLocaleString() || 'N/A'`,
-    ]);
-    details.push([
-      'Paid Amount:',
-      `loan.paidAmount?.toLocaleString() || 'N/A'`,
-    ]);
+    details.push(['Remaining Amount', formatCurrency(loan.remainingAmount || 0)]);
+    details.push(['Paid Amount', formatCurrency(loan.paidAmount || 0)]);
   }
 
-  details.forEach(([label, value]) => {
-    doc.setFont(undefined, 'bold');
-    doc.text(label, 20, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(value, 80, yPos);
-    yPos += 7;
+  autoTable(doc, {
+    startY,
+    head: [['Description', 'Detail']],
+    body: details,
+    theme: 'grid',
+    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
   });
 
-  // Footer
-  doc.setFontSize(9);
-  doc.setTextColor(128, 128, 128);
-  doc.text(
-    `Generated on ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`,
-    105,
-    280,
-    { align: 'center' },
-  );
+  renderPdfFooter(doc, { businessContext: ctx });
 
-  // Save
   doc.save(`Loan_${loan.loanId || loan._id.slice(-6)}_Details.pdf`);
 };
 

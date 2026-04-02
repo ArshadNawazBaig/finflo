@@ -11,8 +11,6 @@ import {
   Download,
   TrendingUp,
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 import { subMonths } from 'date-fns';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
@@ -177,50 +175,58 @@ const MemberTransactions = () => {
     return () => observer.disconnect();
   }, [isFetchingMore, loading, currentPage, totalPages, fetchActivity]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!activity.length) return toast.error('No transactions to export');
 
-    const doc = new jsPDF();
-    const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
-    const tableRows = [];
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    const { renderPdfHeader, renderPdfFooter, getBusinessContext } = await import('@/lib/pdfExportUtils');
 
-    activity.forEach((item) => {
-      const rowData = [
-        new Date(item.date).toLocaleDateString(),
-        item.description,
-        item.category.toUpperCase(),
-        formatCurrency(item.amount),
-        item.type.toUpperCase(),
-      ];
-      tableRows.push(rowData);
+    const ctx = getBusinessContext();
+    const doc = new jsPDF();
+
+    const startY = await renderPdfHeader(doc, {
+      businessContext: ctx,
+      title: 'Financial Activity Statement',
+      leftDetails: [
+        { label: 'Account Holder', value: member?.name || 'Valued Member' },
+        { label: 'Member ID', value: member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A' },
+      ],
+      rightDetails: [
+        { label: 'Statement Date', value: new Date().toLocaleDateString() },
+        { label: 'Total Records', value: activity.length.toString() },
+      ],
     });
 
-    // Header styling
-    doc.setFontSize(22);
-    doc.setTextColor(16, 185, 129); // Primary Emerald color
-    doc.text('FINFLO PORTAL', 14, 22);
-
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text('Financial Activity Statement', 14, 30);
-    doc.text(`Account Holder: ${member?.name || 'Valued Member'}`, 14, 38);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 44);
+    const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
+    const tableRows = activity.map((item) => [
+      new Date(item.date).toLocaleDateString(),
+      item.description,
+      item.category.toUpperCase(),
+      formatCurrency(item.amount),
+      item.type.toUpperCase(),
+    ]);
 
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
-      startY: 55,
+      startY,
       theme: 'grid',
       headStyles: {
-        fillColor: [16, 185, 129],
+        fillColor: [79, 70, 229],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+        fontSize: 9,
       },
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: {
         3: { halign: 'right' },
       },
+      alternateRowStyles: { fillColor: [250, 250, 255] },
+      margin: { left: 14, right: 14 },
     });
+
+    renderPdfFooter(doc, { businessContext: ctx });
 
     doc.save(`Activity_Statement_${new Date().getTime()}.pdf`);
     toast.success('Statement downloaded successfully');

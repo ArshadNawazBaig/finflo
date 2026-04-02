@@ -234,7 +234,7 @@ const loginUser = async (req, res) => {
         if (managedBranch) branchId = managedBranch._id;
 
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAbbreviation');
+          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAddress businessAbbreviation');
           if (owner) {
             user.plan = owner.plan;
             // Always use the owner's branding for staff/managers
@@ -268,6 +268,7 @@ const loginUser = async (req, res) => {
           branchId,
           businessName: user.businessName,
           businessLogo: user.businessLogo,
+          businessAddress: user.businessAddress,
           profilePicture: user.profilePicture,
           plan: user.plan,
           subscriptionStatus: user.subscriptionStatus,
@@ -285,6 +286,7 @@ const loginUser = async (req, res) => {
         branchId,
         businessName: user.businessName,
         businessLogo: user.businessLogo,
+        businessAddress: user.businessAddress,
         securityCode: user.securityCode,
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
@@ -327,7 +329,7 @@ const getMe = async (req, res) => {
         if (managedBranch) branchId = managedBranch._id;
 
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAbbreviation');
+          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAddress businessAbbreviation');
           if (owner) {
             user.plan = owner.plan;
             // Always use the owner's branding for staff/managers
@@ -351,6 +353,7 @@ const getMe = async (req, res) => {
         customerCount: user.customerCount,
         businessName: user.businessName,
         businessLogo: user.businessLogo,
+        businessAddress: user.businessAddress,
         securityCode: user.securityCode,
         businessAbbreviation: user.businessAbbreviation,
         profilePicture: user.profilePicture,
@@ -386,6 +389,7 @@ const updateDetails = async (req, res) => {
     name: req.body.name?.toLowerCase(),
     email: req.body.email?.toLowerCase(),
     businessName: req.body.businessName,
+    businessAddress: req.body.businessAddress,
     currency: req.body.currency,
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };

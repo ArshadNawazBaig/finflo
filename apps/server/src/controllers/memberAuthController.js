@@ -57,7 +57,7 @@ const loginMember = async (req, res) => {
       user: business._id,
     }).populate(
       'user',
-      'name businessName businessLogo securityCode plan subscriptionStatus',
+      'name businessName businessLogo businessAddress securityCode plan subscriptionStatus',
     );
 
     if (!member) {
@@ -418,7 +418,7 @@ const getMe = async (req, res) => {
     // req.member set by protectMember middleware
     const member = await Member.findById(req.member._id).populate(
       'user',
-      'name businessName businessLogo plan subscriptionStatus',
+      'name businessName businessLogo businessAddress plan subscriptionStatus',
     );
 
     if (member) {
@@ -429,6 +429,7 @@ const getMe = async (req, res) => {
         member.user?.subscriptionStatus || 'active';
       memberObj.businessLogo = member.user?.businessLogo;
       memberObj.businessName = member.user?.businessName;
+      memberObj.businessAddress = member.user?.businessAddress;
       res.json(memberObj);
     } else {
       res.status(404);

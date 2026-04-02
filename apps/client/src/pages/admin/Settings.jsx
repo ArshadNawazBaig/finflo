@@ -632,8 +632,57 @@ const Settings = () => {
                             </div>
                             <p className="text-[10px] text-muted-foreground max-w-xs mt-2 italic leading-relaxed">
                               Adding a business logo will prioritize it over the
-                              default FinFlo branding in all outgoing emails.
+                              default FinFlo branding in all outgoing emails and
+                              downloadable statements.
                             </p>
+                          </div>
+                        </div>
+
+                        {/* Business Address */}
+                        <div className="pt-6 border-t border-border/30 space-y-3 relative z-10">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
+                              Business Address
+                            </h4>
+                            <p className="text-[10px] text-muted-foreground">
+                              This address appears on all downloadable statements
+                              and receipts.
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input
+                              type="text"
+                              value={user.businessAddress || ''}
+                              onChange={(e) =>
+                                setUser((prev) => ({
+                                  ...prev,
+                                  businessAddress: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. 25 Estate Ave, Industrial Area, Karachi, Pakistan"
+                              className="flex-1 h-11 px-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium placeholder:text-muted-foreground/40"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-xl border-primary/20 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest h-11 px-6"
+                              onClick={async () => {
+                                try {
+                                  setLoading(true);
+                                  await api.put('/auth/updatedetails', {
+                                    businessAddress: user.businessAddress,
+                                  });
+                                  toast.success('Business address updated');
+                                } catch (error) {
+                                  toast.error('Failed to update address');
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                              isLoading={loading}
+                            >
+                              Save Address
+                            </Button>
                           </div>
                         </div>
                       </div>

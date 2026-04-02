@@ -2,67 +2,285 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
 
-/**
- * Generates a standardized PDF statement for a loan.
- * @param {Object} loan - The loan object data.
- * @param {Array} repayments - List of repayment records.
- * @param {Object} member - Current member/user data (applies for portal views).
- */
+// ─── Business Context Helper ────────────────────────────────────────────────
+// Reads business branding data from localStorage (user or member atom).
+export const getBusinessContext = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const member = JSON.parse(localStorage.getItem('member') || '{}');
+    const session = user && Object.keys(user).length > 0 ? user : member || {};
+
+    return {
+      businessName: session.businessName || session.business?.businessName || 'FinFlo',
+      businessLogo: session.businessLogo || session.business?.businessLogo || '',
+      businessAddress: session.businessAddress || session.business?.businessAddress || '',
+      currency: session.currency || 'Rs.',
+    };
+  } catch {
+    return { businessName: 'FinFlo', businessLogo: '', businessAddress: '', currency: 'Rs.' };
+  }
+};
+
+// ─── Load Image as Base64 ───────────────────────────────────────────────────
+const loadImageAsBase64 = (url) => {
+  return new Promise((resolve) => {
+    if (!url) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+};
+
+// ─── Shared PDF Header ──────────────────────────────────────────────────────
+// Matches the Meezan Bank statement reference design:
+// Logo (top-left) → Business Name below logo → Customer details left, Account details right
+// Returns the Y position to start content after the header.
+export const renderPdfHeader = async (doc, {
+  businessContext = {},
+  leftDetails = [],   // Array of { label, value } for left column (customer info)
+  rightDetails = [],  // Array of { label, value } for right column (account info)
+  title = '',         // Section title below header (e.g. "ACCOUNT SUMMARY")
+} = {}) => {
+  const pageWidth = doc.internal.pageSize.width;
+  const { businessName, businessLogo, businessAddress } = {
+    ...getBusinessContext(),
+    ...businessContext,
+  };
+
+  let currentY = 14;
+
+  // ── Logo (top-left) ──
+  const logoBase64 = await loadImageAsBase64(businessLogo);
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', 14, currentY, 24, 24);
+      currentY += 26;
+      // Business Name below logo
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      doc.text(businessName, 14, currentY);
+      currentY += 5;
+      // Tagline / Address below name (like "The Premier Islamic Bank")
+      if (businessAddress) {
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(100, 100, 100);
+        const addressLines = doc.splitTextToSize(businessAddress, 80);
+        doc.text(addressLines, 14, currentY);
+        currentY += addressLines.length * 3.5;
+      }
+    } catch {
+      // Fallback to text-only
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(40, 40, 40);
+      doc.text(businessName, 14, currentY + 6);
+      currentY += 12;
+      if (businessAddress) {
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(100, 100, 100);
+        doc.text(businessAddress, 14, currentY);
+        currentY += 5;
+      }
+    }
+  } else {
+    // No logo — render business name as large text header
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40, 40, 40);
+    doc.text(businessName, 14, currentY + 6);
+    currentY += 12;
+    if (businessAddress) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      doc.text(businessAddress, 14, currentY);
+      currentY += 5;
+    }
+  }
+
+  // ── Thin separator line below logo section ──
+  currentY += 4;
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.3);
+  doc.line(14, currentY, pageWidth - 14, currentY);
+  currentY += 6;
+
+  // ── Side-by-side: Customer Details (left) | Account Details (right) ──
+  if (leftDetails.length > 0 || rightDetails.length > 0) {
+    const rightLabelX = pageWidth / 2 + 5; // Where right-side labels start
+    const rightValueX = pageWidth - 14;     // Right-aligned values
+    const detailStartY = currentY;
+
+    // Left column — Customer name/address style (bold name, normal address lines)
+    if (leftDetails.length > 0) {
+      let lY = detailStartY;
+      leftDetails.forEach(({ label, value }, idx) => {
+        if (idx === 0) {
+          // First item is the name — render bold and larger
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          doc.text(String(value || 'N/A'), 14, lY);
+          lY += 5;
+        } else {
+          // Subsequent items — normal text like address lines
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(60, 60, 60);
+          doc.text(String(value || 'N/A'), 14, lY);
+          lY += 4.5;
+        }
+      });
+    }
+
+    // Right column — "LABEL:    VALUE" format with right-aligned values
+    if (rightDetails.length > 0) {
+      let rY = detailStartY;
+      rightDetails.forEach(({ label, value }) => {
+        // Label (bold)
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 30, 30);
+        doc.text(label.toUpperCase() + ':', rightLabelX, rY);
+
+        // Value (right-aligned)
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 30, 30);
+        doc.text(String(value || 'N/A'), rightValueX, rY, { align: 'right' });
+        rY += 5;
+      });
+    }
+
+    const leftHeight = leftDetails.length > 0 ? 5 + (leftDetails.length - 1) * 4.5 : 0;
+    const rightHeight = rightDetails.length * 5;
+    currentY = detailStartY + Math.max(leftHeight, rightHeight) + 6;
+  }
+
+  // ── Section Title (e.g. "ACCOUNT SUMMARY") ──
+  if (title) {
+    currentY += 2;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    doc.text(title.toUpperCase(), 14, currentY);
+
+    // Underline the title
+    const titleWidth = doc.getTextWidth(title.toUpperCase());
+    currentY += 1.5;
+    doc.setDrawColor(30, 30, 30);
+    doc.setLineWidth(0.5);
+    doc.line(14, currentY, 14 + titleWidth, currentY);
+    currentY += 6;
+  }
+
+  return currentY;
+};
+
+// ─── Shared PDF Footer ──────────────────────────────────────────────────────
+// Dark purple bar at the bottom with business name, address, and page numbers
+export const renderPdfFooter = (doc, { businessContext = {} } = {}) => {
+  const { businessName, businessAddress } = {
+    ...getBusinessContext(),
+    ...businessContext,
+  };
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const pageCount = doc.internal.getNumberOfPages();
+  const footerHeight = 22;
+
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+
+    // Dark purple footer band
+    doc.setFillColor(64, 53, 100);
+    doc.rect(0, pageHeight - footerHeight, pageWidth, footerHeight, 'F');
+
+    // Business Name (centered, bold, white)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text(businessName, pageWidth / 2, pageHeight - 15, { align: 'center' });
+
+    // Business Address (centered, normal, light)
+    if (businessAddress) {
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(220, 220, 230);
+      doc.text(businessAddress, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    }
+
+    // Page number + disclaimer (very small, light)
+    doc.setFontSize(5.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 180, 200);
+    doc.text(
+      `Page ${i} of ${pageCount}  •  This is a computer-generated statement and does not require a signature.`,
+      pageWidth / 2,
+      pageHeight - 4,
+      { align: 'center' },
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  EXPORT: Loan Statement
+// ═══════════════════════════════════════════════════════════════════════════════
 export const exportLoanStatement = async (
   loan,
   repayments = [],
   member = null,
+  businessContext = null,
 ) => {
   if (!loan) return;
 
+  const ctx = businessContext || getBusinessContext();
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.width;
 
-  // Header Logo/App Name
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(16, 185, 129); // Primary Emerald color
-  doc.text('FINFLO PORTAL', 14, 22);
+  const customerName = loan.customer?.name || member?.name || 'Unknown';
+  const customerContact = loan.customer?.phone || loan.customer?.email || member?.phone || 'N/A';
 
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    `Financial Statement Generated on: ${new Date().toLocaleString()}`,
-    14,
-    30,
-  );
-  doc.line(14, 35, pageWidth - 14, 35);
-
-  // Borrower & Loan Info Section
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0);
-  doc.text('Account Information', 14, 45);
-
-  const borrowerInfo = [
-    ['Borrower Name', loan.customer?.name || 'Unknown'],
-    ['Contact', loan.customer?.phone || loan.customer?.email || 'N/A'],
-    ['Loan ID', loan._id.slice(-6).toUpperCase()],
-    ['Status', loan.status.toUpperCase()],
-  ];
-
-  autoTable(doc, {
-    startY: 50,
-    body: borrowerInfo,
-    theme: 'plain',
-    styles: { fontSize: 10, cellPadding: 2 },
-    columnStyles: { 0: { fontStyle: 'bold', width: 40 } },
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title: 'Loan Account Statement',
+    leftDetails: [
+      { label: 'Borrower Name', value: customerName },
+      { label: 'Contact', value: customerContact },
+      { label: 'Loan ID', value: loan.loanId || loan._id?.slice(-6).toUpperCase() },
+      { label: 'Status', value: (loan.status || '').toUpperCase() },
+    ],
+    rightDetails: [
+      { label: 'Currency', value: ctx.currency || 'Rs.' },
+      { label: 'Statement Date', value: new Date().toLocaleDateString() },
+      { label: 'Start Date', value: new Date(loan.startDate || loan.createdAt).toLocaleDateString() },
+      { label: 'Duration', value: `${loan.duration} Months` },
+    ],
   });
 
-  // Loan Financial Summary
-  const currentY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(14);
+  // ── Financial Summary Table ──
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Loan Financial Summary', 14, currentY);
+  doc.setTextColor(0);
+  doc.text('Loan Financial Summary', 14, startY);
 
   autoTable(doc, {
-    startY: currentY + 5,
+    startY: startY + 4,
     head: [['Description', 'Detail']],
     body: [
       ['Principal Amount', formatCurrency(loan.principal)],
@@ -76,25 +294,25 @@ export const exportLoanStatement = async (
           loan.remainingAmount || loan.totalAmount - (loan.paidAmount || 0),
         ),
       ],
-      [
-        'Start Date',
-        new Date(loan.startDate || loan.createdAt).toLocaleDateString(),
-      ],
     ],
-    theme: 'striped',
-    headStyles: { fillColor: [79, 70, 229] }, // Indigo header
-    styles: { fontSize: 10 },
+    theme: 'grid',
+    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
   });
 
-  // Repayment Schedule/History
+  // ── Transaction History ──
   const repaymentY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(14);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0);
   doc.text('Transaction History', 14, repaymentY);
 
   if (repayments && repayments.length > 0) {
     autoTable(doc, {
-      startY: repaymentY + 5,
+      startY: repaymentY + 4,
       head: [['Date', 'Description', 'Amount', 'Status']],
       body: repayments.map((rp) => [
         new Date(rp.date).toLocaleDateString(),
@@ -103,97 +321,39 @@ export const exportLoanStatement = async (
         'Confirmed',
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129] }, // Emerald header
-      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: { 2: { halign: 'right' } },
+      alternateRowStyles: { fillColor: [250, 250, 255] },
+      margin: { left: 14, right: 14 },
     });
   } else {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', ' ');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(150);
-    doc.text('No transaction records found.', 14, repaymentY + 12);
+    doc.text('No transaction records found.', 14, repaymentY + 10);
   }
 
-  // Footer
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(
-      `Page ${i} of ${pageCount}`,
-      pageWidth - 25,
-      doc.internal.pageSize.height - 10,
-    );
-    doc.text(
-      'This is an electronically generated statement and does not require a signature.',
-      pageWidth / 2,
-      doc.internal.pageSize.height - 10,
-      { align: 'center' },
-    );
-  }
+  renderPdfFooter(doc, { businessContext: ctx });
 
-  const fileName = `Statement_${loan._id.slice(-6).toUpperCase()}_${(loan.customer?.name || 'Loan').replace(/\s+/g, '_')}.pdf`;
+  const fileName = `Statement_${(loan.loanId || loan._id?.slice(-6) || 'LOAN').toUpperCase()}_${(customerName).replace(/\s+/g, '_')}.pdf`;
   doc.save(fileName);
 };
 
-/**
- * Generates a standardized PDF statement for a member.
- * @param {Object} member - The member object data.
- * @param {Array} investments - List of investment records (deposits/withdrawals).
- * @param {Array} distributions - List of profit distribution records.
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+//  EXPORT: Member Statement
+// ═══════════════════════════════════════════════════════════════════════════════
 export const exportMemberStatement = async (
   member,
   investments = [],
   distributions = [],
+  businessContext = null,
 ) => {
   if (!member) return;
 
+  const ctx = businessContext || getBusinessContext();
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.width;
 
-  // Header Logo/App Name
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(16, 185, 129); // Primary Emerald color
-  doc.text('FINFLO PORTAL', 14, 22);
-
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    `Financial Statement Generated on: ${new Date().toLocaleString()}`,
-    14,
-    30,
-  );
-  doc.line(14, 35, pageWidth - 14, 35);
-
-  // Member Info Section
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0);
-  doc.text('Member Information', 14, 45);
-
-  const memberInfo = [
-    ['Name', member.name || 'Unknown'],
-    ['Contact', member.phone || member.email || 'N/A'],
-    ['Member ID', member.memberId || member._id.slice(-6).toUpperCase()],
-    [
-      'Joined',
-      new Date(member.joinDate || member.createdAt).toLocaleDateString(),
-    ],
-  ];
-
-  autoTable(doc, {
-    startY: 50,
-    body: memberInfo,
-    theme: 'plain',
-    styles: { fontSize: 10, cellPadding: 2 },
-    columnStyles: { 0: { fontStyle: 'bold', width: 40 } },
-  });
-
-  // Calculate Financials
   const totalDeposits = investments
     .filter((inv) => inv.type === 'deposit')
     .reduce((sum, inv) => sum + inv.amount, 0);
@@ -207,14 +367,31 @@ export const exportMemberStatement = async (
     0,
   );
 
-  // Financial Summary
-  const currentY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(14);
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title: 'Member Account Statement',
+    leftDetails: [
+      { label: 'Member Name', value: member.name || 'Unknown' },
+      { label: 'Contact', value: member.phone || member.email || 'N/A' },
+      { label: 'CNIC', value: member.cnic || 'N/A' },
+      { label: 'Member ID', value: member.memberId || member._id?.slice(-6).toUpperCase() },
+    ],
+    rightDetails: [
+      { label: 'Currency', value: ctx.currency || 'Rs.' },
+      { label: 'Statement Date', value: new Date().toLocaleDateString() },
+      { label: 'Joined', value: new Date(member.joinDate || member.createdAt).toLocaleDateString() },
+      { label: 'Account Type', value: 'Member Account' },
+    ],
+  });
+
+  // ── Financial Summary ──
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Financial Summary', 14, currentY);
+  doc.setTextColor(0);
+  doc.text('Financial Summary', 14, startY);
 
   autoTable(doc, {
-    startY: currentY + 5,
+    startY: startY + 4,
     head: [['Description', 'Amount']],
     body: [
       ['Total Capital Invested', formatCurrency(totalDeposits)],
@@ -222,38 +399,41 @@ export const exportMemberStatement = async (
       ['Total Profits Earned', formatCurrency(totalProfits)],
       ['Net Current Balance', formatCurrency(member.currentBalance || 0)],
     ],
-    theme: 'striped',
-    headStyles: { fillColor: [79, 70, 229] }, // Indigo header
-    styles: { fontSize: 10 },
+    theme: 'grid',
+    headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
   });
 
-  // Prepare combined transaction ledger
+  // ── Transaction Ledger ──
   const transactions = [
     ...investments.map((inv) => ({
       date: new Date(inv.date),
       type: inv.type === 'deposit' ? 'Capital Deposit' : 'Capital Withdrawal',
       description: inv.description || 'System Entry',
       amount: inv.type === 'withdrawal' ? -inv.amount : inv.amount,
-      color: inv.type === 'withdrawal' ? [239, 68, 68] : [59, 130, 246], // Red, Blue
+      color: inv.type === 'withdrawal' ? [239, 68, 68] : [59, 130, 246],
     })),
     ...distributions.map((dist) => ({
       date: new Date(dist.distributionDate || dist.createdAt),
       type: dist.type === 'share' ? 'Business Share Profit' : 'Regular Profit',
       description: dist.notes || 'Automated Distribution',
       amount: dist.amount,
-      color: [16, 185, 129], // Emerald
+      color: [16, 185, 129],
     })),
-  ].sort((a, b) => b.date - a.date); // Sort newest first
+  ].sort((a, b) => b.date - a.date);
 
-  // Transaction Ledger
   const ledgerY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(14);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0);
   doc.text('Transaction Ledger', 14, ledgerY);
 
   if (transactions.length > 0) {
     autoTable(doc, {
-      startY: ledgerY + 5,
+      startY: ledgerY + 4,
       head: [['Date', 'Type', 'Description', 'Amount']],
       body: transactions.map((t) => [
         t.date.toLocaleDateString(),
@@ -262,11 +442,12 @@ export const exportMemberStatement = async (
         formatCurrency(Math.abs(t.amount)),
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129] }, // Emerald header
-      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: { 3: { halign: 'right' } },
+      alternateRowStyles: { fillColor: [250, 250, 255] },
+      margin: { left: 14, right: 14 },
       didParseCell: function (data) {
-        // Color amount text based on type
         if (data.section === 'body' && data.column.index === 3) {
           data.cell.styles.textColor = transactions[data.row.index].color;
           data.cell.styles.fontStyle = 'bold';
@@ -274,50 +455,22 @@ export const exportMemberStatement = async (
       },
     });
   } else {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', ' ');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(150);
-    doc.text('No transaction records found.', 14, ledgerY + 12);
+    doc.text('No transaction records found.', 14, ledgerY + 10);
   }
 
-  // Footer
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(
-      `Page ${i} of ${pageCount}`,
-      pageWidth - 25,
-      doc.internal.pageSize.height - 10,
-    );
-    doc.text(
-      'This is an electronically generated statement and does not require a signature.',
-      pageWidth / 2,
-      doc.internal.pageSize.height - 10,
-      { align: 'center' },
-    );
-  }
+  renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Member_Statement_${(member.name || 'User').replace(/\s+/g, '_')}.pdf`;
   doc.save(fileName);
 };
 
-/**
- * Generates a professional PDF receipt/voucher for any financial transaction.
- * @param {Object} options - Receipt configuration.
- * @param {Object} options.member - Member object { name, email, phone, cnic, memberId, currentAccountNumber }.
- * @param {string} options.type - Transaction type: 'deposit', 'withdrawal', 'repayment', 'checkbook_fee', 'transfer_send', 'transfer_receive', 'late_fee', 'share_deposit', 'share_withdrawal'.
- * @param {number} options.amount - Transaction amount.
- * @param {string} [options.description] - Transaction description.
- * @param {Date|string} [options.date] - Transaction date.
- * @param {number} [options.balanceAfter] - Balance after transaction.
- * @param {string} [options.referenceId] - Transaction reference ID.
- * @param {string} [options.accountType] - 'current' or 'saving'.
- * @param {Object} [options.extra] - Extra fields to display (key-value pairs).
- * @param {string} [options.businessName] - Business/platform name.
- */
-export const generateTransactionReceipt = ({
+// ═══════════════════════════════════════════════════════════════════════════════
+//  EXPORT: Transaction Receipt
+// ═══════════════════════════════════════════════════════════════════════════════
+export const generateTransactionReceipt = async ({
   member,
   type,
   amount,
@@ -327,10 +480,11 @@ export const generateTransactionReceipt = ({
   referenceId = '',
   accountType = 'current',
   extra = {},
-  businessName = 'FinFlo',
+  businessName: _bn,
+  businessContext: _bc,
 }) => {
+  const ctx = _bc || getBusinessContext();
   const doc = new jsPDF({ format: 'a5' });
-  const pageWidth = doc.internal.pageSize.width;
   const txDate = new Date(date);
   const refCode = referenceId
     ? referenceId.toString().slice(-8).toUpperCase()
@@ -351,77 +505,27 @@ export const generateTransactionReceipt = ({
 
   const title = typeLabels[type] || 'Transaction Receipt';
 
-  // ── Header ─────────────────────────────────────────────────────────────
-  doc.setFillColor(79, 70, 229); // Indigo
-  doc.rect(0, 0, pageWidth, 32, 'F');
-
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text(businessName.toUpperCase(), 14, 14);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Official Transaction Receipt', 14, 22);
-
-  doc.setFontSize(8);
-  doc.text(`Ref: ${refCode}`, pageWidth - 14, 14, { align: 'right' });
-  doc.text(
-    txDate.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    pageWidth - 14,
-    22,
-    { align: 'right' },
-  );
-
-  // ── Title Bar ──────────────────────────────────────────────────────────
-  doc.setFillColor(245, 245, 255);
-  doc.rect(0, 32, pageWidth, 14, 'F');
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(79, 70, 229);
-  doc.text(title.toUpperCase(), pageWidth / 2, 41, { align: 'center' });
-
-  // ── Member Info ────────────────────────────────────────────────────────
-  let y = 56;
-  doc.setTextColor(0);
-
-  const memberInfo = [
-    ['Account Holder', member?.name || 'N/A'],
-    ['Account #', member?.currentAccountNumber || member?.memberId || 'N/A'],
-    ['CNIC', member?.cnic || 'N/A'],
-    ['Account Type', accountType === 'saving' ? 'Saving Account' : 'Current Account'],
-  ];
-
-  autoTable(doc, {
-    startY: y,
-    body: memberInfo,
-    theme: 'plain',
-    styles: { fontSize: 9, cellPadding: 2 },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 35, textColor: [100, 100, 100] },
-      1: { fontStyle: 'bold' },
-    },
-    margin: { left: 14, right: 14 },
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title,
+    leftDetails: [
+      { label: 'Account Holder', value: member?.name || 'N/A' },
+      { label: 'CNIC', value: member?.cnic || 'N/A' },
+    ],
+    rightDetails: [
+      { label: 'Account #', value: member?.currentAccountNumber || member?.memberId || 'N/A' },
+      { label: 'Account Type', value: accountType === 'saving' ? 'Saving Account' : 'Current Account' },
+    ],
   });
 
-  // ── Transaction Details ────────────────────────────────────────────────
-  y = doc.lastAutoTable.finalY + 8;
-  doc.setDrawColor(79, 70, 229);
-  doc.setLineWidth(0.5);
-  doc.line(14, y, pageWidth - 14, y);
-
-  y += 8;
+  // ── Transaction Details ──
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('Transaction Details', 14, y);
+  doc.setTextColor(0);
+  doc.text('Transaction Details', 14, startY);
 
   const txDetails = [
+    ['Reference', refCode],
     ['Transaction Type', title.replace(' Receipt', '')],
     ['Amount', formatCurrency(amount)],
     ['Date', txDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })],
@@ -435,65 +539,41 @@ export const generateTransactionReceipt = ({
     txDetails.push(['Balance After', formatCurrency(balanceAfter)]);
   }
 
-  // Add any extra fields
   Object.entries(extra).forEach(([key, value]) => {
     txDetails.push([key, String(value)]);
   });
 
   autoTable(doc, {
-    startY: y + 4,
+    startY: startY + 4,
     body: txDetails,
-    theme: 'striped',
+    theme: 'grid',
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 40 },
+      0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
       1: { fontStyle: 'bold', halign: 'right' },
     },
-    alternateRowStyles: { fillColor: [248, 248, 255] },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
     margin: { left: 14, right: 14 },
   });
 
-  // ── Amount Highlight Box ───────────────────────────────────────────────
-  y = doc.lastAutoTable.finalY + 8;
+  // ── Amount Highlight Box ──
+  const boxY = doc.lastAutoTable.finalY + 6;
+  const pageWidth = doc.internal.pageSize.width;
   const isCredit = ['deposit', 'transfer_receive', 'profit', 'share_deposit'].includes(type);
 
   doc.setFillColor(isCredit ? 16 : 239, isCredit ? 185 : 68, isCredit ? 129 : 68);
-  doc.roundedRect(14, y, pageWidth - 28, 20, 3, 3, 'F');
+  doc.roundedRect(14, boxY, pageWidth - 28, 18, 3, 3, 'F');
 
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(255, 255, 255);
-  doc.text(isCredit ? 'AMOUNT CREDITED' : 'AMOUNT DEBITED', 20, y + 8);
+  doc.text(isCredit ? 'AMOUNT CREDITED' : 'AMOUNT DEBITED', 20, boxY + 7);
 
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text(formatCurrency(amount), pageWidth - 20, y + 14, { align: 'right' });
+  doc.text(formatCurrency(amount), pageWidth - 20, boxY + 13, { align: 'right' });
 
-  // ── Footer ─────────────────────────────────────────────────────────────
-  const pageHeight = doc.internal.pageSize.height;
-
-  doc.setDrawColor(200);
-  doc.setLineWidth(0.3);
-  doc.line(14, pageHeight - 30, pageWidth - 14, pageHeight - 30);
-
-  doc.setFontSize(7);
-  doc.setTextColor(150);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    'This is a computer-generated receipt and does not require a physical signature.',
-    pageWidth / 2,
-    pageHeight - 22,
-    { align: 'center' },
-  );
-  doc.text(
-    `${businessName} • Generated on ${new Date().toLocaleString()}`,
-    pageWidth / 2,
-    pageHeight - 16,
-    { align: 'center' },
-  );
-  doc.text(`Reference: ${refCode}`, pageWidth / 2, pageHeight - 10, {
-    align: 'center',
-  });
+  renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Receipt_${refCode}_${(member?.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
   doc.save(fileName);
