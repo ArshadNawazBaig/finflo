@@ -3,7 +3,6 @@ const TermDeposit = require('../models/TermDeposit');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const FinancialTransaction = require('../models/FinancialTransaction');
-const SystemSettings = require('../models/SystemSettings');
 const { logActivity } = require('./activityLogController');
 
 /**
@@ -37,13 +36,16 @@ const createTermDeposit = async (req, res) => {
       });
     }
 
-    // Get profit rate from system settings
-    const settings = await SystemSettings.getSettings();
-    const rateConfig = (settings.termDepositRates || []).find(
+    // Get profit rate from the business owner's config
+    const User = require('../models/User');
+    const adminUser = await User.findById(req.user.effectiveOwnerId).select(
+      'termDepositRates termDepositEarlyBreakPenalty'
+    );
+    const rateConfig = (adminUser?.termDepositRates || []).find(
       (r) => r.duration === duration,
     );
-    const profitRate = rateConfig ? rateConfig.rate : 8; // Default 8%
-    const earlyBreakPenalty = settings.termDepositEarlyBreakPenalty || 50;
+    const profitRate = rateConfig ? rateConfig.rate : 0; // Default 0%
+    const earlyBreakPenalty = adminUser?.termDepositEarlyBreakPenalty || 0;
 
     // Calculate projected profit (simple interest)
     const projectedProfit = Math.round((principal * profitRate * duration) / (12 * 100));

@@ -119,20 +119,14 @@ const updateLoanConfiguration = async (req, res) => {
     const settings = await SystemSettings.getSettings();
     const oldSettings = settings.toObject();
 
-    const allowedFields = [
+    // Global fields still go to SystemSettings
+    const globalFields = [
       'defaultInterestRate',
       'defaultLoanTerm',
       'currency',
-      'checkbookFee',
-      'lateFeeEnabled',
-      'lateFeeType',
-      'lateFeeRate',
-      'lateFeeGracePeriodDays',
-      'termDepositRates',
-      'termDepositEarlyBreakPenalty'
     ];
 
-    allowedFields.forEach((field) => {
+    globalFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         settings[field] = req.body[field];
       }
@@ -140,6 +134,36 @@ const updateLoanConfiguration = async (req, res) => {
 
     settings.updatedBy = req.user._id;
     await settings.save();
+
+    // Per-business fields go to the User model
+    const perBusinessFields = [
+      'checkbookFee',
+      'lateFeeEnabled',
+      'lateFeeType',
+      'lateFeeRate',
+      'lateFeeGracePeriodDays',
+      'termDepositRates',
+      'termDepositEarlyBreakPenalty',
+    ];
+
+    const User = require('../models/User');
+    const adminId = req.user.effectiveOwnerId || req.user._id;
+    const updateObj = {};
+
+    perBusinessFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateObj[field] = req.body[field];
+      }
+    });
+
+    if (Object.keys(updateObj).length > 0) {
+      await User.findByIdAndUpdate(adminId, { $set: updateObj });
+    }
+
+    // Reload admin for response
+    const adminUser = await User.findById(adminId).select(
+      perBusinessFields.join(' ')
+    );
 
     await logActivity({
       userId: req.user._id,
@@ -151,7 +175,11 @@ const updateLoanConfiguration = async (req, res) => {
 
     res.json({
       message: 'Loan configuration updated successfully',
-      settings,
+      settings: {
+        ...settings.toObject(),
+        // Overlay per-business fields so the frontend gets a unified response
+        ...(adminUser ? adminUser.toObject() : {}),
+      },
     });
   } catch (error) {
     console.error('Error updating loan configuration:', error);
@@ -204,10 +232,83 @@ const testSmtpConnection = async (req, res) => {
   }
 };
 
+// Get per-business configuration (merged with global defaults)
+const getBusinessConfig = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const adminId = req.user.effectiveOwnerId || req.user._id;
+    const adminUser = await User.findById(adminId).select(
+      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays termDepositRates termDepositEarlyBreakPenalty'
+    );
+
+    if (!adminUser) {
+      return res.status(404).json({ message: 'Admin user not found' });
+    }
+
+    // Also return global defaults for context
+    const settings = await SystemSettings.getSettings();
+
+    res.json({
+      // Global fields
+      defaultInterestRate: settings.defaultInterestRate,
+      defaultLoanTerm: settings.defaultLoanTerm,
+      currency: settings.currency,
+      // Per-business fields (from User)
+      checkbookFee: adminUser.checkbookFee ?? 0,
+      lateFeeEnabled: adminUser.lateFeeEnabled ?? false,
+      lateFeeType: adminUser.lateFeeType || 'fixed',
+      lateFeeRate: adminUser.lateFeeRate ?? 0,
+      lateFeeGracePeriodDays: adminUser.lateFeeGracePeriodDays ?? 0,
+      termDepositRates: adminUser.termDepositRates || [],
+      termDepositEarlyBreakPenalty: adminUser.termDepositEarlyBreakPenalty ?? 0,
+    });
+  } catch (error) {
+    console.error('Error fetching business config:', error);
+    res.status(500).json({ message: 'Failed to fetch business configuration' });
+  }
+};
+
+// Get business config for member portal (resolves from member's business owner)
+const getMemberBusinessConfig = async (req, res) => {
+  try {
+    const User = require('../models/User');
+
+    // req.member is set by protectMember middleware
+    const ownerId = req.member?.user;
+    if (!ownerId) {
+      return res.status(400).json({ message: 'Member has no associated business' });
+    }
+
+    const adminUser = await User.findById(ownerId).select(
+      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays termDepositRates termDepositEarlyBreakPenalty currency'
+    );
+
+    if (!adminUser) {
+      return res.status(404).json({ message: 'Business owner not found' });
+    }
+
+    res.json({
+      currency: adminUser.currency || 'Rs.',
+      checkbookFee: adminUser.checkbookFee ?? 0,
+      lateFeeEnabled: adminUser.lateFeeEnabled ?? false,
+      lateFeeType: adminUser.lateFeeType || 'fixed',
+      lateFeeRate: adminUser.lateFeeRate ?? 0,
+      lateFeeGracePeriodDays: adminUser.lateFeeGracePeriodDays ?? 0,
+      termDepositRates: adminUser.termDepositRates || [],
+      termDepositEarlyBreakPenalty: adminUser.termDepositEarlyBreakPenalty ?? 0,
+    });
+  } catch (error) {
+    console.error('Error fetching member business config:', error);
+    res.status(500).json({ message: 'Failed to fetch business configuration' });
+  }
+};
+
 module.exports = {
   getSystemSettings,
   updateSystemSettings,
   updateLoanConfiguration,
+  getBusinessConfig,
+  getMemberBusinessConfig,
   resetToDefaults,
   testSmtpConnection,
 };

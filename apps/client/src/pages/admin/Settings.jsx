@@ -573,7 +573,9 @@ const Settings = () => {
                                       }
                                     }}
                                     className={`bg-rose-500/40 hover:bg-rose-500/60 backdrop-blur-md p-2 rounded-xl transition-all ${
-                                      logoLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                      logoLoading
+                                        ? 'opacity-50 cursor-not-allowed'
+                                        : ''
                                     }`}
                                     title="Delete Logo"
                                   >
@@ -583,7 +585,10 @@ const Settings = () => {
                                         className="text-white animate-spin"
                                       />
                                     ) : (
-                                      <Trash2 size={16} className="text-white" />
+                                      <Trash2
+                                        size={16}
+                                        className="text-white"
+                                      />
                                     )}
                                   </button>
                                 )}
@@ -685,12 +690,17 @@ const Settings = () => {
                                     }
                                   }}
                                   className={`text-rose-500 hover:text-rose-600 transition-colors ${
-                                    stampLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                    stampLoading
+                                      ? 'opacity-50 cursor-not-allowed'
+                                      : ''
                                   }`}
                                   title="Delete Stamp"
                                 >
                                   {stampLoading ? (
-                                    <Loader2 size={16} className="animate-spin" />
+                                    <Loader2
+                                      size={16}
+                                      className="animate-spin"
+                                    />
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
@@ -805,9 +815,7 @@ const Settings = () => {
                                           ...prev,
                                           ceoSignature: undefined,
                                         }));
-                                        toast.success(
-                                          'CEO signature removed',
-                                        );
+                                        toast.success('CEO signature removed');
                                       }
                                     } catch (error) {
                                       toast.error('Failed to remove signature');
@@ -816,12 +824,17 @@ const Settings = () => {
                                     }
                                   }}
                                   className={`text-rose-500 hover:text-rose-600 transition-colors ${
-                                    signatureLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                    signatureLoading
+                                      ? 'opacity-50 cursor-not-allowed'
+                                      : ''
                                   }`}
                                   title="Delete Signature"
                                 >
                                   {signatureLoading ? (
-                                    <Loader2 size={16} className="animate-spin" />
+                                    <Loader2
+                                      size={16}
+                                      className="animate-spin"
+                                    />
                                   ) : (
                                     <Trash2 size={16} />
                                   )}
@@ -925,8 +938,8 @@ const Settings = () => {
                               Business Address
                             </h4>
                             <p className="text-[10px] text-muted-foreground">
-                              This address appears on all downloadable statements
-                              and receipts.
+                              This address appears on all downloadable
+                              statements and receipts.
                             </p>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-3">
@@ -1515,7 +1528,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     try {
       const { data } = await api.put('/auth/updatedetails', formData);
       if (data.success) {
-        const existing = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+        const existing = JSON.parse(localStorage.getItem('user') || '{}') || {};
         const updatedUser = { ...existing, ...data.data };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -1691,11 +1704,12 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
                 {...register('savingProfitRate', {
                   min: { value: 0, message: 'Rate cannot be negative' },
                   max: { value: 100, message: 'Rate cannot exceed 100%' },
-                  setValueAs: (v) => v === '' ? 0 : parseFloat(v)
+                  setValueAs: (v) => (v === '' ? 0 : parseFloat(v)),
                 })}
               />
               <p className="px-1 text-[10px] text-muted-foreground font-medium">
-                Annual profit rate applied daily to all members' saving accounts.
+                Annual profit rate applied daily to all members' saving
+                accounts.
               </p>
               {errors.savingProfitRate && (
                 <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
@@ -1931,10 +1945,12 @@ const ConfigurationSection = ({ user }) => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/system-settings');
+      // Fetch per-business config (late fee, term deposit, checkbook from User model)
+      // and global config (interest rate, loan term from SystemSettings)
+      const { data } = await api.get('/system-settings/business-config');
       if (data) {
         setSettings({
-          defaultInterestRate: data.defaultInterestRate || 5,
+          defaultInterestRate: data.defaultInterestRate || 0,
           defaultLoanTerm: data.defaultLoanTerm || 12,
           currency: data.currency || 'Rs.',
           platformName: data.platformName || '',
@@ -1942,17 +1958,13 @@ const ConfigurationSection = ({ user }) => {
           supportEmail: data.supportEmail || '',
           maintenanceMode: data.maintenanceMode || false,
           estimatedMaintenanceTime: data.estimatedMaintenanceTime || '',
-          checkbookFee: data.checkbookFee ?? 250,
-          lateFeeEnabled: data.lateFeeEnabled ?? true,
+          checkbookFee: data.checkbookFee ?? 0,
+          lateFeeEnabled: data.lateFeeEnabled ?? false,
           lateFeeType: data.lateFeeType || 'fixed',
-          lateFeeRate: data.lateFeeRate ?? 500,
-          lateFeeGracePeriodDays: data.lateFeeGracePeriodDays ?? 3,
-          termDepositRates: data.termDepositRates || [
-            { duration: 6, rate: 8 },
-            { duration: 12, rate: 10 },
-            { duration: 24, rate: 12 },
-          ],
-          termDepositEarlyBreakPenalty: data.termDepositEarlyBreakPenalty ?? 50,
+          lateFeeRate: data.lateFeeRate ?? 0,
+          lateFeeGracePeriodDays: data.lateFeeGracePeriodDays ?? 0,
+          termDepositRates: data.termDepositRates || [],
+          termDepositEarlyBreakPenalty: data.termDepositEarlyBreakPenalty ?? 0,
           smtpConfig: data.smtpConfig || {
             host: '',
             port: 587,
@@ -1962,6 +1974,25 @@ const ConfigurationSection = ({ user }) => {
             fromName: '',
           },
         });
+      }
+
+      // For super admins, also fetch global system settings for platform branding/SMTP
+      if (user.role === 'super_admin') {
+        try {
+          const { data: globalData } = await api.get('/system-settings');
+          if (globalData) {
+            setSettings((prev) => ({
+              ...prev,
+              platformName: globalData.platformName || '',
+              platformDescription: globalData.platformDescription || '',
+              supportEmail: globalData.supportEmail || '',
+              maintenanceMode: globalData.maintenanceMode || false,
+              estimatedMaintenanceTime:
+                globalData.estimatedMaintenanceTime || '',
+              smtpConfig: globalData.smtpConfig || prev.smtpConfig,
+            }));
+          }
+        } catch (_) {}
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -2383,7 +2414,9 @@ const ConfigurationSection = ({ user }) => {
               Checkbook Configuration
             </h3>
             <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
-              Set the fee charged to members when a checkbook is issued. This amount is automatically deducted from the member's current account.
+              Set the fee charged to members when a checkbook is issued. This
+              amount is automatically deducted from the member's current
+              account.
             </p>
           </div>
 
@@ -2414,7 +2447,8 @@ const ConfigurationSection = ({ user }) => {
             </div>
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
-                * This fee is deducted from the member's current account balance when a checkbook is issued. Set to 0 for free checkbooks.
+                * This fee is deducted from the member's current account balance
+                when a checkbook is issued. Set to 0 for free checkbooks.
               </p>
             </div>
           </div>
@@ -2428,7 +2462,9 @@ const ConfigurationSection = ({ user }) => {
               Late Fee Configuration
             </h3>
             <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
-              Configure automatic penalties applied to overdue loan installments. Late fees are applied after the grace period expires.
+              Configure automatic penalties applied to overdue loan
+              installments. Late fees are applied after the grace period
+              expires.
             </p>
           </div>
 
@@ -2460,7 +2496,9 @@ const ConfigurationSection = ({ user }) => {
               <div className="flex gap-2 p-1 bg-white/50 dark:bg-slate-800/50 rounded-2xl">
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, lateFeeType: 'fixed' })}
+                  onClick={() =>
+                    setSettings({ ...settings, lateFeeType: 'fixed' })
+                  }
                   className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     settings.lateFeeType === 'fixed'
                       ? 'bg-rose-500 text-white shadow-lg'
@@ -2471,7 +2509,9 @@ const ConfigurationSection = ({ user }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, lateFeeType: 'percentage' })}
+                  onClick={() =>
+                    setSettings({ ...settings, lateFeeType: 'percentage' })
+                  }
                   className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     settings.lateFeeType === 'percentage'
                       ? 'bg-rose-500 text-white shadow-lg'
@@ -2485,11 +2525,15 @@ const ConfigurationSection = ({ user }) => {
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                {settings.lateFeeType === 'percentage' ? 'Fee Rate (%)' : 'Fee Amount'}
+                {settings.lateFeeType === 'percentage'
+                  ? 'Fee Rate (%)'
+                  : 'Fee Amount'}
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
-                  {settings.lateFeeType === 'percentage' ? '%' : (settings.currency || 'Rs.')}
+                  {settings.lateFeeType === 'percentage'
+                    ? '%'
+                    : settings.currency || 'Rs.'}
                 </span>
                 <input
                   type="number"
@@ -2529,7 +2573,8 @@ const ConfigurationSection = ({ user }) => {
             </div>
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
-                * Members will have this many days after their installment due date before a late fee is applied.
+                * Members will have this many days after their installment due
+                date before a late fee is applied.
               </p>
             </div>
           </div>
@@ -2543,7 +2588,8 @@ const ConfigurationSection = ({ user }) => {
               Term Deposit Configuration
             </h3>
             <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
-              Configure profit rate tiers for fixed-duration term deposits and the penalty applied for early withdrawal.
+              Configure profit rate tiers for fixed-duration term deposits and
+              the penalty applied for early withdrawal.
             </p>
           </div>
 
@@ -2555,9 +2601,13 @@ const ConfigurationSection = ({ user }) => {
               {(settings.termDepositRates || []).map((tier, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <div className="flex-1 space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Duration (Months)</label>
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Duration (Months)
+                    </label>
                     <input
-                      type="number" min="1" value={tier.duration}
+                      type="number"
+                      min="1"
+                      value={tier.duration}
                       onChange={(e) => {
                         const updated = [...settings.termDepositRates];
                         updated[idx].duration = parseInt(e.target.value) || 1;
@@ -2567,9 +2617,14 @@ const ConfigurationSection = ({ user }) => {
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Rate (% p.a.)</label>
+                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Rate (% p.a.)
+                    </label>
                     <input
-                      type="number" min="0" step="0.5" value={tier.rate}
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={tier.rate}
                       onChange={(e) => {
                         const updated = [...settings.termDepositRates];
                         updated[idx].rate = parseFloat(e.target.value) || 0;
@@ -2581,7 +2636,9 @@ const ConfigurationSection = ({ user }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      const updated = settings.termDepositRates.filter((_, i) => i !== idx);
+                      const updated = settings.termDepositRates.filter(
+                        (_, i) => i !== idx,
+                      );
                       setSettings({ ...settings, termDepositRates: updated });
                     }}
                     className="mt-5 p-2 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors"
@@ -2595,7 +2652,10 @@ const ConfigurationSection = ({ user }) => {
                 onClick={() => {
                   setSettings({
                     ...settings,
-                    termDepositRates: [...(settings.termDepositRates || []), { duration: 6, rate: 8 }],
+                    termDepositRates: [
+                      ...(settings.termDepositRates || []),
+                      { duration: 6, rate: 8 },
+                    ],
                   });
                 }}
                 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
@@ -2610,18 +2670,30 @@ const ConfigurationSection = ({ user }) => {
                   Early Break Penalty (% of Profit)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">%</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
+                    %
+                  </span>
                   <input
-                    type="number" min="0" max="100" step="5"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="5"
                     value={settings.termDepositEarlyBreakPenalty}
-                    onChange={(e) => setSettings({ ...settings, termDepositEarlyBreakPenalty: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        termDepositEarlyBreakPenalty:
+                          parseFloat(e.target.value) || 0,
+                      })
+                    }
                     className="w-full pl-10 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm font-medium"
                   />
                 </div>
               </div>
               <div className="flex items-end">
                 <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
-                  * When a member breaks a term deposit early, this percentage of accrued profit is deducted as a penalty.
+                  * When a member breaks a term deposit early, this percentage
+                  of accrued profit is deducted as a penalty.
                 </p>
               </div>
             </div>
@@ -2636,7 +2708,7 @@ const ConfigurationSection = ({ user }) => {
             className="h-11 px-8 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
             <Save size={14} className="mr-2" />
-            Apply Global Changes
+            Save Configuration
           </Button>
         </div>
       </form>

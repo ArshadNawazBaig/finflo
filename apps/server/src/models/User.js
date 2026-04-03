@@ -74,6 +74,29 @@ const userSchema = new mongoose.Schema(
     plan: { type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' },
     customerCount: { type: Number, default: 0 },
     savingProfitRate: { type: Number, default: 0, min: 0, max: 100 }, // Annual profit rate % for saving accounts
+
+    // ── Per-Business Configurations ──────────────────────────────────
+    // Checkbook
+    checkbookFee: { type: Number, default: 0, min: 0 },
+
+    // Late Fee / Penalty
+    lateFeeEnabled: { type: Boolean, default: false },
+    lateFeeType: { type: String, enum: ['fixed', 'percentage'], default: 'fixed' },
+    lateFeeRate: { type: Number, default: 0, min: 0 },
+    lateFeeGracePeriodDays: { type: Number, default: 0, min: 0 },
+
+    // Term Deposit
+    termDepositRates: {
+      type: [
+        {
+          duration: { type: Number, required: true },
+          rate: { type: Number, required: true },
+        },
+      ],
+      default: [],
+    },
+    termDepositEarlyBreakPenalty: { type: Number, default: 0, min: 0, max: 100 },
+
     nextBillingDate: { type: Date },
     paymentMethods: [
       {

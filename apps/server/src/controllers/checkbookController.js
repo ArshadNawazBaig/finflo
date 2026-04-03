@@ -3,7 +3,6 @@ const Checkbook = require('../models/Checkbook');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const FinancialTransaction = require('../models/FinancialTransaction');
-const SystemSettings = require('../models/SystemSettings');
 const Notification = require('../models/Notification');
 const { logActivity } = require('./activityLogController');
 const {
@@ -32,9 +31,10 @@ const issueCheckbook = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
 
-    // Fetch checkbook fee from system settings
-    const settings = await SystemSettings.getSettings();
-    const fee = settings.checkbookFee || 250;
+    // Fetch checkbook fee from the business owner's config
+    const User = require('../models/User');
+    const adminUser = await User.findById(userId).select('checkbookFee');
+    const fee = adminUser?.checkbookFee || 0;
 
     // Fetch member
     const member = await Member.findOne({

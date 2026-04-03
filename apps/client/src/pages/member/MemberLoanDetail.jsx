@@ -36,7 +36,6 @@ import Tooltip from '@/components/ui/Tooltip';
 import MemberRepayModal from '@/components/member/MemberRepayModal';
 
 import { Skeleton } from '@/components/ui/skeleton';
-import useSystemSettings from '@/hooks/useSystemSettings';
 
 const MemberLoanDetail = () => {
   const { id } = useParams();
@@ -53,12 +52,25 @@ const MemberLoanDetail = () => {
     from: subMonths(new Date(), 3), // 3 months default for member
     to: new Date(),
   });
-  const { settings } = useSystemSettings();
+  const [businessConfig, setBusinessConfig] = useState(null);
 
-  const lateFeeEnabled = settings?.lateFeeEnabled !== false;
-  const lateFeeType = settings?.lateFeeType || 'fixed';
-  const lateFeeRate = settings?.lateFeeRate ?? 500;
-  const gracePeriod = settings?.lateFeeGracePeriodDays ?? 3;
+  // Fetch per-business config from the member's business owner
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const { data } = await api.get('/system-settings/member-business-config');
+        setBusinessConfig(data);
+      } catch (err) {
+        console.error('Failed to fetch business config:', err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const lateFeeEnabled = businessConfig?.lateFeeEnabled === true;
+  const lateFeeType = businessConfig?.lateFeeType || 'fixed';
+  const lateFeeRate = businessConfig?.lateFeeRate ?? 0;
+  const gracePeriod = businessConfig?.lateFeeGracePeriodDays ?? 0;
 
   const dailyFee =
     loan && lateFeeType === 'percentage'

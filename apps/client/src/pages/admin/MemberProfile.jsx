@@ -338,7 +338,7 @@ const MemberProfile = () => {
         api.get(`/members/${id}/investments?page=1&limit=${itemsPerPage}`),
         api.get(`/members/${id}/profits`),
         api.get(`/term-deposits/${id}`),
-        api.get(`/system-settings`),
+        api.get(`/system-settings/business-config`),
       ]);
       setMember(memberRes.data);
       setTermDeposits(tdRes.data || []);
