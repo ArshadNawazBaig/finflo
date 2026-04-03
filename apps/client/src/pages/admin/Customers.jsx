@@ -82,7 +82,8 @@ const Customers = () => {
           setLoading(true);
         }
 
-        const branchParam = selectedBranch !== 'all' ? `&branchId=${selectedBranch}` : '';
+        const branchParam =
+          selectedBranch !== 'all' ? `&branchId=${selectedBranch}` : '';
         const { data } = await api.get(
           `/customers?page=${pageToFetch}&limit=${limit}&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}${branchParam}`,
         );
@@ -130,23 +131,38 @@ const Customers = () => {
 
   useEffect(() => {
     // Reset page 1 on filter changes
-    if (currentPage !== 1 && (searchTerm || selectedBranch !== 'all' || sortBy !== 'createdAt')) {
+    if (
+      currentPage !== 1 &&
+      (searchTerm || selectedBranch !== 'all' || sortBy !== 'createdAt')
+    ) {
       setCurrentPage(1);
     }
   }, [searchTerm, selectedBranch, sortBy, sortOrder, limit]);
 
   useEffect(() => {
     // Consolidated Effect for Filter/Pagination Fetching
-    const delayDebounceFn = setTimeout(() => {
-      // In mobile, we only fetch initial page 1 or manual filter results
-      // Infinite scroll events handle themselves via observer + fetchCustomers(true)
-      if (!isMobile || currentPage === 1) {
-        fetchCustomers(false, currentPage);
-      }
-    }, searchTerm ? 400 : 0);
+    const delayDebounceFn = setTimeout(
+      () => {
+        // In mobile, we only fetch initial page 1 or manual filter results
+        // Infinite scroll events handle themselves via observer + fetchCustomers(true)
+        if (!isMobile || currentPage === 1) {
+          fetchCustomers(false, currentPage);
+        }
+      },
+      searchTerm ? 400 : 0,
+    );
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, sortBy, sortOrder, limit, selectedBranch, currentPage, isMobile, fetchCustomers]);
+  }, [
+    searchTerm,
+    sortBy,
+    sortOrder,
+    limit,
+    selectedBranch,
+    currentPage,
+    isMobile,
+    fetchCustomers,
+  ]);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -213,20 +229,20 @@ const Customers = () => {
   const handleDownloadData = () => {
     // Basic CSV implementation
     const headers = ['Name', 'Email', 'Phone', 'Onboarded', 'Status'];
-    const rows = customers.map(c => [
+    const rows = customers.map((c) => [
       c.name,
       c.email,
       c.phone,
       new Date(c.createdAt).toLocaleDateString(),
-      c.isMember ? 'Member' : 'Prospect'
+      c.isMember ? 'Member' : 'Prospect',
     ]);
-    
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+
+    const csvContent = [headers, ...rows].map((e) => e.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "customers_registry.csv");
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'customers_registry.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -301,7 +317,7 @@ const Customers = () => {
             >
               <RefreshCw
                 className={cn(
-                  'relative w-4 h-4 text-primary group-hover:rotate-180 transition-transform duration-700'
+                  'relative w-4 h-4 text-primary group-hover:rotate-180 transition-transform duration-700',
                 )}
               />
             </Button>
@@ -356,7 +372,7 @@ const Customers = () => {
           )}
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden min-h-[400px]">
+        <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
           <CustomerTable
             data={customers}
             pagination={{
