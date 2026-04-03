@@ -58,7 +58,9 @@ const MemberLoanDetail = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const { data } = await api.get('/system-settings/member-business-config');
+        const { data } = await api.get(
+          '/system-settings/member-business-config',
+        );
         setBusinessConfig(data);
       } catch (err) {
         console.error('Failed to fetch business config:', err);
@@ -136,7 +138,10 @@ const MemberLoanDetail = () => {
 
       const filteredRepayments = allRepayments.filter((rp) => {
         const rpDate = new Date(rp.date);
-        return rpDate >= startOfDay(reportDateRange.from) && rpDate <= endOfDay(reportDateRange.to);
+        return (
+          rpDate >= startOfDay(reportDateRange.from) &&
+          rpDate <= endOfDay(reportDateRange.to)
+        );
       });
 
       await exportLoanStatement(loan, filteredRepayments);
@@ -400,7 +405,11 @@ const MemberLoanDetail = () => {
                 <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center shadow-sm">
                   {formatCurrency(dailyFee)}
                 </span>{' '}
-                ({lateFeeType === 'percentage' ? `${lateFeeRate}%` : formatCurrency(lateFeeRate)} monthly rate) will be applied automatically to all overdue
+                (
+                {lateFeeType === 'percentage'
+                  ? `${lateFeeRate}%`
+                  : formatCurrency(lateFeeRate)}{' '}
+                monthly rate) will be applied automatically to all overdue
                 payments.
               </p>
             </div>
@@ -477,7 +486,9 @@ const MemberLoanDetail = () => {
                 <Download size={24} />
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">Loan Statement</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight">
+                  Loan Statement
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
                   Select a customized period for your loan repayment statement.
                 </DialogDescription>
@@ -488,7 +499,7 @@ const MemberLoanDetail = () => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
             <div className="space-y-6">
-              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+              <div className="">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
                   Select Report Period
                 </label>
@@ -500,7 +511,8 @@ const MemberLoanDetail = () => {
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
-                  Note: The full amortization schedule will be included, but transaction history will be filtered by this range.
+                  Note: The full amortization schedule will be included, but
+                  transaction history will be filtered by this range.
                 </p>
               </div>
             </div>

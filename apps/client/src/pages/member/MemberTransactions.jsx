@@ -32,7 +32,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
-import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from '@/lib/pdfExportUtils';
+import {
+  renderPdfHeader,
+  renderPdfFooter,
+  getBusinessContext,
+  toTitleCase,
+  renderPdfSignatures,
+} from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { MemberTransactionsSkeleton } from '@/components/ui/PageSkeletons';
@@ -196,10 +202,16 @@ const MemberTransactions = () => {
   const handleExportPDF = async () => {
     try {
       setIsExportingModal(true);
-      
+
       const { default: jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
-      const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
+      const {
+        renderPdfHeader,
+        renderPdfFooter,
+        getBusinessContext,
+        toTitleCase,
+        renderPdfSignatures,
+      } = await import('@/lib/pdfExportUtils');
 
       // Fetch ALL transactions for the selected range (ignoring pagination)
       const { data } = await api.get('/members/portal/activity', {
@@ -208,7 +220,7 @@ const MemberTransactions = () => {
           limit: 1000, // Fetch up to 1000 records for the report
           startDate: startOfDay(reportDateRange.from).toISOString(),
           endDate: endOfDay(reportDateRange.to).toISOString(),
-        }
+        },
       });
 
       const reportData = data.data || [];
@@ -224,19 +236,30 @@ const MemberTransactions = () => {
         businessContext: ctx,
         title: 'Financial Activity Statement',
         leftDetails: [
-          { label: 'Account Holder', value: toTitleCase(member?.name || 'Valued Member') },
-          { label: 'Member ID', value: member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A' },
+          {
+            label: 'Account Holder',
+            value: toTitleCase(member?.name || 'Valued Member'),
+          },
+          {
+            label: 'Member ID',
+            value:
+              member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A',
+          },
         ],
         rightDetails: [
           { label: 'Statement Date', value: new Date().toLocaleDateString() },
-          { label: 'Report Period', value: `${reportDateRange.from.toLocaleDateString()} - ${reportDateRange.to.toLocaleDateString()}` },
+          {
+            label: 'Report Period',
+            value: `${reportDateRange.from.toLocaleDateString()} - ${reportDateRange.to.toLocaleDateString()}`,
+          },
           { label: 'Total Records', value: reportData.length.toString() },
         ],
       });
 
       const tableColumn = ['Date', 'Description', 'Category', 'Amount', 'Type'];
       const tableRows = reportData.map((item) => {
-        const isOutflow = item.type === 'withdrawal' || item.category === 'repayment';
+        const isOutflow =
+          item.type === 'withdrawal' || item.category === 'repayment';
         return [
           new Date(item.date).toLocaleDateString(),
           item.description,
@@ -624,7 +647,9 @@ const MemberTransactions = () => {
                 <Download size={24} />
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">Export Statement</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight">
+                  Export Statement
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
                   Select the date range for your transaction report.
                 </DialogDescription>
@@ -635,7 +660,7 @@ const MemberTransactions = () => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
             <div className="space-y-6">
-              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+              <div className="">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
                   Select Report Period
                 </label>
@@ -647,7 +672,8 @@ const MemberTransactions = () => {
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
-                  Note: Generating reports for long periods may take a few moments.
+                  Note: Generating reports for long periods may take a few
+                  moments.
                 </p>
               </div>
             </div>

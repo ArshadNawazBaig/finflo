@@ -400,7 +400,10 @@ const LoanDetail = () => {
       // Note: We use all available repayments for the loan
       const filteredRepayments = repayments.filter((rp) => {
         const rpDate = new Date(rp.date);
-        return rpDate >= startOfDay(reportDateRange.from) && rpDate <= endOfDay(reportDateRange.to);
+        return (
+          rpDate >= startOfDay(reportDateRange.from) &&
+          rpDate <= endOfDay(reportDateRange.to)
+        );
       });
 
       await exportLoanStatement(loan, filteredRepayments, member);
@@ -577,12 +580,14 @@ const LoanDetail = () => {
                     )}
                   >
                     <div className="flex items-center gap-5">
-                      <div className={cn(
-                        'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
-                        rp.status === 'Reversed'
-                          ? 'bg-orange-500/10 text-orange-500'
-                          : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white',
-                      )}>
+                      <div
+                        className={cn(
+                          'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
+                          rp.status === 'Reversed'
+                            ? 'bg-orange-500/10 text-orange-500'
+                            : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white',
+                        )}
+                      >
                         <CheckCircle2 size={22} />
                       </div>
                       <div>
@@ -596,12 +601,14 @@ const LoanDetail = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={cn(
-                        'text-lg font-black',
-                        rp.status === 'Reversed'
-                          ? 'text-muted-foreground line-through'
-                          : 'text-emerald-600',
-                      )}>
+                      <div
+                        className={cn(
+                          'text-lg font-black',
+                          rp.status === 'Reversed'
+                            ? 'text-muted-foreground line-through'
+                            : 'text-emerald-600',
+                        )}
+                      >
                         +{formatCurrency(rp.amount)}
                       </div>
                       {rp.status && (
@@ -1046,7 +1053,9 @@ const LoanDetail = () => {
                 <Download size={24} />
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">Loan Statement</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight">
+                  Loan Statement
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
                   Select a custom date range for the repayment history report.
                 </DialogDescription>
@@ -1057,7 +1066,7 @@ const LoanDetail = () => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
             <div className="space-y-6">
-              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+              <div className="">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
                   Select Report Period
                 </label>
@@ -1069,7 +1078,8 @@ const LoanDetail = () => {
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
-                  Note: The full amortization schedule will be included, but transaction history will be filtered by this range.
+                  Note: The full amortization schedule will be included, but
+                  transaction history will be filtered by this range.
                 </p>
               </div>
             </div>

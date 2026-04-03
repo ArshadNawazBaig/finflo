@@ -62,7 +62,7 @@ const Transactions = () => {
   });
   const [isExportingModal, setIsExportingModal] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
 
   // Reversal state
   const [reversalTarget, setReversalTarget] = useState(null);
@@ -72,7 +72,7 @@ const Transactions = () => {
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
 
-useEffect(() => {
+  useEffect(() => {
     setLimit(isMobile ? MOBILE_PAGE_LIMIT : DESKTOP_PAGE_LIMIT);
     setCurrentPage(1);
   }, [isMobile]);
@@ -271,7 +271,9 @@ useEffect(() => {
       fetchTransactions(false);
     } catch (error) {
       console.error('Reverse Error:', error);
-      toast.error(error.response?.data?.message || 'Failed to reverse transaction');
+      toast.error(
+        error.response?.data?.message || 'Failed to reverse transaction',
+      );
     } finally {
       setIsReversing(false);
     }
@@ -459,19 +461,25 @@ useEffect(() => {
                   </Label>
                   <div className="bg-muted/30 rounded-2xl border border-border/20 overflow-hidden divide-y divide-border/20">
                     <div className="flex items-center justify-between p-4">
-                      <span className="text-xs text-muted-foreground font-medium">Amount</span>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Amount
+                      </span>
                       <span className="font-black text-lg tabular-nums text-orange-600">
                         {formatCurrency(reversalTarget.amount)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-4">
-                      <span className="text-xs text-muted-foreground font-medium">Category</span>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Category
+                      </span>
                       <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 text-[10px] font-black uppercase tracking-widest">
                         {reversalTarget.category?.replace(/_/g, ' ')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-4">
-                      <span className="text-xs text-muted-foreground font-medium">Related To</span>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Related To
+                      </span>
                       <span className="font-bold text-sm capitalize">
                         {reversalTarget.customer?.name ||
                           reversalTarget.member?.name ||
@@ -479,12 +487,16 @@ useEffect(() => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between p-4">
-                      <span className="text-xs text-muted-foreground font-medium">Type</span>
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        reversalTarget.type === 'income'
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600'
-                      }`}>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Type
+                      </span>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          reversalTarget.type === 'income'
+                            ? 'bg-emerald-500/10 text-emerald-600'
+                            : 'bg-rose-500/10 text-rose-600'
+                        }`}
+                      >
                         {reversalTarget.type}
                       </span>
                     </div>
@@ -493,9 +505,13 @@ useEffect(() => {
 
                 {/* Warning */}
                 <div className="flex items-start gap-3 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20">
-                  <AlertTriangle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+                  <AlertTriangle
+                    size={18}
+                    className="text-orange-500 shrink-0 mt-0.5"
+                  />
                   <p className="text-xs text-orange-700 dark:text-orange-400 font-medium leading-relaxed">
-                    This will undo all financial effects and create a counter-entry in the ledger. This action cannot be undone.
+                    This will undo all financial effects and create a
+                    counter-entry in the ledger. This action cannot be undone.
                   </p>
                 </div>
 
@@ -530,7 +546,9 @@ useEffect(() => {
                 Cancel
               </Button>
               <Button
-                disabled={!reversalReason.trim() || reversalReason.trim().length < 3}
+                disabled={
+                  !reversalReason.trim() || reversalReason.trim().length < 3
+                }
                 isLoading={isReversing}
                 onClick={handleReverseTransaction}
                 className="flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] bg-orange-600 hover:bg-orange-700 shadow-lg shadow-orange-500/20 transform transition-all active:scale-95 order-1 sm:order-2 gap-2"
@@ -553,7 +571,9 @@ useEffect(() => {
                 <Download size={24} />
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">Financial Statement</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight">
+                  Financial Statement
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
                   Select the date range for your cash flow analysis report.
                 </DialogDescription>
@@ -564,7 +584,7 @@ useEffect(() => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
             <div className="space-y-6">
-              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+              <div className="">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
                   Select Report Period
                 </label>
@@ -576,7 +596,8 @@ useEffect(() => {
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
-                  Note: Generating reports for long periods may take a few moments.
+                  Note: Generating reports for long periods may take a few
+                  moments.
                 </p>
               </div>
             </div>

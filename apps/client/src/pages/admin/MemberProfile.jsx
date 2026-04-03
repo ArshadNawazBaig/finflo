@@ -54,7 +54,10 @@ import Tooltip from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
-import { exportMemberStatement, generateTransactionReceipt } from '@/lib/pdfExportUtils';
+import {
+  exportMemberStatement,
+  generateTransactionReceipt,
+} from '@/lib/pdfExportUtils';
 import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -101,7 +104,7 @@ const MemberProfile = () => {
   const [isInvestmentsLoading, setIsInvestmentsLoading] = useState(false);
   const [isLoansLoading, setIsLoansLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  
+
   // Export Modal States
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExportingModal, setIsExportingModal] = useState(false);
@@ -333,13 +336,14 @@ const MemberProfile = () => {
   const fetchMemberData = useCallback(async () => {
     try {
       setLoading(true);
-      const [memberRes, investmentsRes, profitsRes, tdRes, settingsRes] = await Promise.all([
-        api.get(`/members/${id}`),
-        api.get(`/members/${id}/investments?page=1&limit=${itemsPerPage}`),
-        api.get(`/members/${id}/profits`),
-        api.get(`/term-deposits/${id}`),
-        api.get(`/system-settings/business-config`),
-      ]);
+      const [memberRes, investmentsRes, profitsRes, tdRes, settingsRes] =
+        await Promise.all([
+          api.get(`/members/${id}`),
+          api.get(`/members/${id}/investments?page=1&limit=${itemsPerPage}`),
+          api.get(`/members/${id}/profits`),
+          api.get(`/term-deposits/${id}`),
+          api.get(`/system-settings/business-config`),
+        ]);
       setMember(memberRes.data);
       setTermDeposits(tdRes.data || []);
       setSystemSettings(settingsRes.data || null);
@@ -658,8 +662,10 @@ const MemberProfile = () => {
         amount: parseFloat(amount),
         description,
         accountType: investAccountType,
-        applyDeduction: investmentType === 'deposit' && !isSaving ? applyDeduction : false,
-        repaymentType: investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
+        applyDeduction:
+          investmentType === 'deposit' && !isSaving ? applyDeduction : false,
+        repaymentType:
+          investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
       });
       const accountLabel = isSaving ? 'Saving' : 'Current';
       toast.success(
@@ -815,9 +821,7 @@ const MemberProfile = () => {
       fetchMemberData();
       fetchCheckbooks(1);
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || 'Failed to issue checkbook',
-      );
+      toast.error(error.response?.data?.message || 'Failed to issue checkbook');
     } finally {
       setIsIssuingCheckbook(false);
     }
@@ -884,10 +888,16 @@ const MemberProfile = () => {
   const handleDownloadReport = async () => {
     try {
       setIsExportingModal(true);
-      
+
       const { default: jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
-      const { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } = await import('@/lib/pdfExportUtils');
+      const {
+        renderPdfHeader,
+        renderPdfFooter,
+        getBusinessContext,
+        toTitleCase,
+        renderPdfSignatures,
+      } = await import('@/lib/pdfExportUtils');
 
       // Fetch ALL transactions for the member within the selected range (ignoring pagination)
       const { data } = await api.get(`/members/${id}/investments`, {
@@ -896,12 +906,14 @@ const MemberProfile = () => {
           limit: 1000, // Fetch up to 1000 records for the report
           startDate: startOfDay(reportDateRange.from).toISOString(),
           endDate: endOfDay(reportDateRange.to).toISOString(),
-        }
+        },
       });
 
       const reportData = data.investments || [];
       if (!reportData.length) {
-        toast.error('No transactions found for this member in the selected date range');
+        toast.error(
+          'No transactions found for this member in the selected date range',
+        );
         return;
       }
 
@@ -912,18 +924,33 @@ const MemberProfile = () => {
         businessContext: ctx,
         title: 'Member Activity Statement',
         leftDetails: [
-          { label: 'Account Holder', value: toTitleCase(member?.name || 'Valued Member') },
-          { label: 'Member ID', value: member?.memberId || id?.slice(-6).toUpperCase() || 'N/A' },
+          {
+            label: 'Account Holder',
+            value: toTitleCase(member?.name || 'Valued Member'),
+          },
+          {
+            label: 'Member ID',
+            value: member?.memberId || id?.slice(-6).toUpperCase() || 'N/A',
+          },
           { label: 'CNIC', value: member?.cnic || 'N/A' },
         ],
         rightDetails: [
           { label: 'Statement Date', value: new Date().toLocaleDateString() },
-          { label: 'Report Period', value: `${reportDateRange.from.toLocaleDateString()} - ${reportDateRange.to.toLocaleDateString()}` },
+          {
+            label: 'Report Period',
+            value: `${reportDateRange.from.toLocaleDateString()} - ${reportDateRange.to.toLocaleDateString()}`,
+          },
           { label: 'Currency', value: ctx.currency },
         ],
       });
 
-      const tableColumn = ['Date', 'Description', 'Type', 'Amount', 'Balance after'];
+      const tableColumn = [
+        'Date',
+        'Description',
+        'Type',
+        'Amount',
+        'Balance after',
+      ];
       const tableRows = reportData.map((item) => {
         const isWithdrawal = item.type?.toLowerCase() === 'withdrawal';
         return [
@@ -960,7 +987,9 @@ const MemberProfile = () => {
 
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(`Member_Report_${member.name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+      doc.save(
+        `Member_Report_${member.name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
+      );
       toast.success('Member statement downloaded successfully');
       setIsExportModalOpen(false);
     } catch (error) {
@@ -989,21 +1018,30 @@ const MemberProfile = () => {
       setTdNotes('');
       fetchMemberData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create term deposit');
+      toast.error(
+        error.response?.data?.message || 'Failed to create term deposit',
+      );
     } finally {
       setIsSubmittingTD(false);
     }
   };
 
   const handleBreakTermDeposit = async (tdId) => {
-    if (!window.confirm('Are you sure you want to break this term deposit early? A penalty will be applied to the profit.')) return;
+    if (
+      !window.confirm(
+        'Are you sure you want to break this term deposit early? A penalty will be applied to the profit.',
+      )
+    )
+      return;
     try {
       setIsBreakingTD(tdId);
       const { data } = await api.post(`/term-deposits/${tdId}/break`);
       toast.success(data.message || 'Term deposit broken safely');
       fetchMemberData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to break term deposit');
+      toast.error(
+        error.response?.data?.message || 'Failed to break term deposit',
+      );
     } finally {
       setIsBreakingTD(null);
     }
@@ -1016,7 +1054,9 @@ const MemberProfile = () => {
       toast.success(data.message || 'Term deposit matured');
       fetchMemberData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to mature term deposit');
+      toast.error(
+        error.response?.data?.message || 'Failed to mature term deposit',
+      );
     } finally {
       setIsMaturingTD(null);
     }
@@ -1069,8 +1109,8 @@ const MemberProfile = () => {
           </div>
         }
       >
-        <div className="flex flex-col items-end gap-3">
-          <div className="flex flex-wrap items-center gap-2 justify-end">
+        <div className="flex flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
             <Tooltip content="Edit Member Details">
               <Button
                 variant="ghost"
@@ -1128,7 +1168,7 @@ const MemberProfile = () => {
             </Tooltip>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 justify-end">
+          <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
             <Button
               onClick={() => {
                 setInvestmentType('deposit');
@@ -1161,7 +1201,7 @@ const MemberProfile = () => {
       </PageHeader>
 
       {/* Stats Row */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 lg:grid-cols-5">
         <StatsCard
           title="Current Account"
           amount={formatCurrency(member.currentBalance || 0)}
@@ -1232,7 +1272,7 @@ const MemberProfile = () => {
                         ? 'P2P Fund Transfer'
                         : showCheckbookForm
                           ? 'Issue Checkbook'
-                        : 'Fund Movement'}
+                          : 'Fund Movement'}
                 </h3>
                 <button
                   onClick={() => {
@@ -1789,8 +1829,12 @@ const MemberProfile = () => {
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                      The checkbook fee will be automatically deducted from the member's <strong>current account</strong>. 
-                      Current balance: <strong className="text-primary">{formatCurrency(member.currentBalance || 0)}</strong>
+                      The checkbook fee will be automatically deducted from the
+                      member's <strong>current account</strong>. Current
+                      balance:{' '}
+                      <strong className="text-primary">
+                        {formatCurrency(member.currentBalance || 0)}
+                      </strong>
                     </p>
                   </div>
 
@@ -1837,7 +1881,9 @@ const MemberProfile = () => {
                       variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
-                      {!isIssuingCheckbook && <BookOpen size={16} className="mr-2" />}
+                      {!isIssuingCheckbook && (
+                        <BookOpen size={16} className="mr-2" />
+                      )}
                       Issue Checkbook
                     </Button>
                   </div>
@@ -1925,7 +1971,8 @@ const MemberProfile = () => {
                     </div>
                   </div>
 
-                  {investmentType === 'deposit' && investAccountType === 'current' &&
+                  {investmentType === 'deposit' &&
+                    investAccountType === 'current' &&
                     loans.some((l) => l.status === 'active') && (
                       <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4 animate-in slide-in-from-top-4 duration-500">
                         <div className="flex items-center justify-between">
@@ -2138,7 +2185,7 @@ const MemberProfile = () => {
                 investments.map((inv) => (
                   <div
                     key={inv._id}
-                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group gap-4 sm:gap-0"
                   >
                     <div className="flex items-center gap-5">
                       <div
@@ -2160,7 +2207,7 @@ const MemberProfile = () => {
                         <div className="text-sm font-black tracking-tight capitalize">
                           {inv.description || inv.type}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap md:flex-nowrap">
                           <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
                             <Calendar size={10} />
                             {new Date(inv.date).toLocaleDateString()}
@@ -2234,7 +2281,7 @@ const MemberProfile = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right flex items-center gap-3">
+                    <div className="text-right flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/10">
                       <Tooltip content="Download Receipt">
                         <button
                           onClick={() =>
@@ -2327,7 +2374,7 @@ const MemberProfile = () => {
                 loans.map((loan) => (
                   <div
                     key={loan._id}
-                    className="flex items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group gap-4 sm:gap-0"
                   >
                     <div className="flex items-center gap-5">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all">
@@ -2355,9 +2402,9 @@ const MemberProfile = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-base font-black text-red-500">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-t-0 border-border/10">
+                      <div className="text-left sm:text-right">
+                        <div className="text-base font-black text-rose-500">
                           {formatCurrency(loan.remainingAmount)}
                         </div>
                         <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
@@ -2366,7 +2413,7 @@ const MemberProfile = () => {
                       </div>
                       <button
                         onClick={() => navigate(`/loans/${loan._id}`)}
-                        className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="p-3 bg-primary/20 text-primary rounded-xl hover:bg-primary hover:text-primary-foreground transition-all shrink-0"
                       >
                         <ChevronRight size={18} />
                       </button>
@@ -2388,7 +2435,7 @@ const MemberProfile = () => {
           {(member.customer?.nominee?.name ||
             member.customer?.nominee?.cnic ||
             member.customer?.nominee?.relation) && (
-            <div className="bg-white dark:bg-slate-900 border border-amber-500/30 p-8 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6 mt-8">
+            <div className="bg-white dark:bg-slate-900 border border-amber-500/30 p-5 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6 mt-8">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-black tracking-tighter">
                   Nominee Details
@@ -2431,7 +2478,7 @@ const MemberProfile = () => {
                       href={member.customer.nominee.cnicImage}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block relative h-48 w-full md:w-1/2 rounded-2xl border border-border/50 bg-white dark:bg-slate-800 overflow-hidden group/nom-cnic shadow-sm hover:border-amber-500/50 transition-colors"
+                      className="block relative h-48 w-full md:w-3/4 rounded-2xl border border-border/50 bg-white dark:bg-slate-800 overflow-hidden group/nom-cnic shadow-sm hover:border-amber-500/50 transition-colors"
                     >
                       <img
                         src={member.customer.nominee.cnicImage}
@@ -2467,41 +2514,93 @@ const MemberProfile = () => {
                 onClick={() => setShowTermDepositForm(!showTermDepositForm)}
                 className="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
               >
-                {showTermDepositForm ? <X size={14} /> : <ArrowUpCircle size={14} />} 
+                {showTermDepositForm ? (
+                  <X size={14} />
+                ) : (
+                  <ArrowUpCircle size={14} />
+                )}
                 {showTermDepositForm ? ' Cancel' : ' New Deposit'}
               </button>
             </div>
 
             {/* Create Form */}
             {showTermDepositForm && (
-              <form onSubmit={handleCreateTermDeposit} className="p-6 rounded-2xl border-2 border-emerald-500/20 bg-emerald-500/5 animate-in zoom-in-95 duration-300 space-y-4">
+              <form
+                onSubmit={handleCreateTermDeposit}
+                className="p-6 rounded-2xl border-2 border-emerald-500/20 bg-emerald-500/5 animate-in zoom-in-95 duration-300 space-y-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Principal Amount</label>
-                    <input type="number" required min="1" value={tdPrincipal} onChange={e => setTdPrincipal(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="Enter amount..." />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Principal Amount
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={tdPrincipal}
+                      onChange={(e) => setTdPrincipal(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                      placeholder="Enter amount..."
+                    />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Duration & Rate</label>
-                    <select required value={tdDuration} onChange={e => setTdDuration(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer">
-                      {(systemSettings?.termDepositRates || []).map(r => (
-                        <option key={r.duration} value={r.duration}>{r.duration} Months @ {r.rate}% p.a.</option>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Duration & Rate
+                    </label>
+                    <select
+                      required
+                      value={tdDuration}
+                      onChange={(e) => setTdDuration(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                    >
+                      {(systemSettings?.termDepositRates || []).map((r) => (
+                        <option key={r.duration} value={r.duration}>
+                          {r.duration} Months @ {r.rate}% p.a.
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Source Account</label>
-                    <select required value={tdSourceAccount} onChange={e => setTdSourceAccount(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer">
-                      <option value="current">Current ({formatCurrency(member.currentBalance)})</option>
-                      <option value="saving">Saving ({formatCurrency(member.savingBalance)})</option>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Source Account
+                    </label>
+                    <select
+                      required
+                      value={tdSourceAccount}
+                      onChange={(e) => setTdSourceAccount(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="current">
+                        Current ({formatCurrency(member.currentBalance)})
+                      </option>
+                      <option value="saving">
+                        Saving ({formatCurrency(member.savingBalance)})
+                      </option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Internal Notes (Optional)</label>
-                    <input type="text" value={tdNotes} onChange={e => setTdNotes(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="e.g. Special request" />
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Internal Notes (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={tdNotes}
+                      onChange={(e) => setTdNotes(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                      placeholder="e.g. Special request"
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                  <Button type="submit" isLoading={isSubmittingTD} variant="gradient" className="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20 px-8">Lock Funds</Button>
+                  <Button
+                    type="submit"
+                    isLoading={isSubmittingTD}
+                    variant="gradient"
+                    className="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20 px-8"
+                  >
+                    Lock Funds
+                  </Button>
                 </div>
               </form>
             )}
@@ -2509,42 +2608,77 @@ const MemberProfile = () => {
             {/* List */}
             <div className="space-y-3">
               {termDeposits.length === 0 ? (
-                 <div className="text-center py-10 border-2 border-dashed border-border/50 rounded-2xl">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">No term deposits</p>
-                 </div>
+                <div className="text-center py-10 border-2 border-dashed border-border/50 rounded-2xl">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                    No term deposits
+                  </p>
+                </div>
               ) : (
-                termDeposits.map(td => (
-                  <div key={td._id} className={`p-4 sm:p-5 rounded-2xl border ${td.status === 'active' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border/50 bg-muted/20'} flex flex-col sm:flex-row sm:items-center justify-between gap-4 group`}>
+                termDeposits.map((td) => (
+                  <div
+                    key={td._id}
+                    className={`p-4 sm:p-5 rounded-2xl border ${td.status === 'active' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border/50 bg-muted/20'} flex flex-col sm:flex-row sm:items-center justify-between gap-4 group`}
+                  >
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs ${td.status === 'active' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs ${td.status === 'active' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-muted text-muted-foreground'}`}
+                      >
                         {td.duration}M
                       </div>
                       <div>
-                        <div className="text-sm font-black tracking-tight">{formatCurrency(td.principal)}</div>
+                        <div className="text-sm font-black tracking-tight">
+                          {formatCurrency(td.principal)}
+                        </div>
                         <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                          {td.depositNumber} • {td.profitRate}% p.a. • {new Date(td.maturityDate).toLocaleDateString()}
+                          {td.depositNumber} • {td.profitRate}% p.a. •{' '}
+                          {new Date(td.maturityDate).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 justify-between sm:justify-end">
                       <div className="text-right">
-                        <div className={`text-sm font-black ${td.status === 'active' ? 'text-emerald-600' : 'text-muted-foreground'}`}>{td.status === 'active' ? formatCurrency(td.projectedProfit) : formatCurrency(td.actualProfit)}</div>
+                        <div
+                          className={`text-sm font-black ${td.status === 'active' ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                        >
+                          {td.status === 'active'
+                            ? formatCurrency(td.projectedProfit)
+                            : formatCurrency(td.actualProfit)}
+                        </div>
                         <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                          {td.status === 'active' ? 'Proj. Profit' : 'Actual Profit'}
+                          {td.status === 'active'
+                            ? 'Proj. Profit'
+                            : 'Actual Profit'}
                         </div>
                       </div>
-                      
+
                       {td.status === 'active' ? (
                         <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           {new Date() >= new Date(td.maturityDate) ? (
-                            <Button size="sm" isLoading={isMaturingTD === td._id} onClick={() => handleMatureTermDeposit(td._id)} className="bg-emerald-600 text-white h-8 text-[10px] font-black uppercase tracking-wider rounded-lg px-4 hover:bg-emerald-700">Mature</Button>
+                            <Button
+                              size="sm"
+                              isLoading={isMaturingTD === td._id}
+                              onClick={() => handleMatureTermDeposit(td._id)}
+                              className="bg-emerald-600 text-white h-8 text-[10px] font-black uppercase tracking-wider rounded-lg px-4 hover:bg-emerald-700"
+                            >
+                              Mature
+                            </Button>
                           ) : (
-                            <Button size="sm" isLoading={isBreakingTD === td._id} onClick={() => handleBreakTermDeposit(td._id)} variant="outline" className="h-8 border-rose-500/30 text-rose-600 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-wider rounded-lg px-4">Break (Pen: {td.earlyBreakPenaltyRate}%)</Button>
+                            <Button
+                              size="sm"
+                              isLoading={isBreakingTD === td._id}
+                              onClick={() => handleBreakTermDeposit(td._id)}
+                              variant="outline"
+                              className="h-8 border-rose-500/30 text-rose-600 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-wider rounded-lg px-4"
+                            >
+                              Break (Pen: {td.earlyBreakPenaltyRate}%)
+                            </Button>
                           )}
                         </div>
                       ) : (
-                        <div className="px-3 py-1 rounded-lg bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-wider">{td.status}</div>
+                        <div className="px-3 py-1 rounded-lg bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-wider">
+                          {td.status}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -2977,11 +3111,21 @@ const MemberProfile = () => {
                             Checkbook #
                           </div>
                         </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Leaves</th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Fee</th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Status</th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">Date</th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3">Actions</th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
+                          Leaves
+                        </th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
+                          Fee
+                        </th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
+                          Status
+                        </th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
+                          Date
+                        </th>
+                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
@@ -3022,11 +3166,14 @@ const MemberProfile = () => {
                           </td>
                           <td className="py-3 pr-4">
                             <span className="text-[10px] font-medium text-muted-foreground">
-                              {new Date(cb.createdAt).toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                              })}
+                              {new Date(cb.createdAt).toLocaleDateString(
+                                'en-GB',
+                                {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                },
+                              )}
                             </span>
                           </td>
                           <td className="py-3">
@@ -3037,9 +3184,7 @@ const MemberProfile = () => {
                                     onClick={() =>
                                       handleCancelCheckbook(cb._id, true)
                                     }
-                                    disabled={
-                                      isCancellingCheckbook === cb._id
-                                    }
+                                    disabled={isCancellingCheckbook === cb._id}
                                     className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors disabled:opacity-50"
                                   >
                                     {isCancellingCheckbook === cb._id ? (
@@ -3057,9 +3202,7 @@ const MemberProfile = () => {
                                     onClick={() =>
                                       handleCancelCheckbook(cb._id, false)
                                     }
-                                    disabled={
-                                      isCancellingCheckbook === cb._id
-                                    }
+                                    disabled={isCancellingCheckbook === cb._id}
                                     className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors disabled:opacity-50"
                                   >
                                     <XCircle size={12} />
@@ -3364,9 +3507,12 @@ const MemberProfile = () => {
                 <Download size={24} />
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">Member Statement</DialogTitle>
+                <DialogTitle className="text-2xl font-black tracking-tight">
+                  Member Statement
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
-                  Select a custom date range for {member?.name}&apos;s activity report.
+                  Select a custom date range for {member?.name}&apos;s activity
+                  report.
                 </DialogDescription>
               </div>
             </div>
@@ -3375,7 +3521,7 @@ const MemberProfile = () => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
             <div className="space-y-6">
-              <div className="bg-background/50 p-6 rounded-[2rem] border border-border/50 shadow-sm">
+              <div className="">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 block text-center">
                   Select Report Period
                 </label>
@@ -3387,7 +3533,8 @@ const MemberProfile = () => {
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">
-                  Note: Generating reports for long periods may take a few moments.
+                  Note: Generating reports for long periods may take a few
+                  moments.
                 </p>
               </div>
             </div>
