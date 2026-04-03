@@ -17,7 +17,7 @@ import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAtom } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom } from '@/atoms';
+import { notificationsAtom, unreadNotificationsCountAtom, userAtom } from '@/atoms';
 
 const Navbar = ({ onMenuClick }) => {
   const { theme, setTheme } = useTheme();
@@ -25,6 +25,7 @@ const Navbar = ({ onMenuClick }) => {
 
   const [notifications, setNotifications] = useAtom(notificationsAtom);
   const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
+  const [, setGlobalUser] = useAtom(userAtom);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -80,7 +81,7 @@ const Navbar = ({ onMenuClick }) => {
   };
   const handleLogout = () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('user');
+    setGlobalUser(null);
     toast.success('Logged out successfully');
     navigate('/login');
   };

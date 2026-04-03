@@ -101,6 +101,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
