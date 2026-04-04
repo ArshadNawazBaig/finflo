@@ -93,6 +93,7 @@ const TellerMode = () => {
   const [journalLimit, setJournalLimit] = useState(5);
   const [journalTotalPages, setJournalTotalPages] = useState(0);
   const [journalTotalEntries, setJournalTotalEntries] = useState(0);
+  const [journalPriorBalance, setJournalPriorBalance] = useState(0);
   const isMobile = useIsMobile();
   const observerTarget = useRef(null);
   const recentTxnsObserverTarget = useRef(null);
@@ -340,6 +341,7 @@ const TellerMode = () => {
 
       setJournalTotalPages(data.totalPages || 0);
       setJournalTotalEntries(data.totalEntries || 0);
+      setJournalPriorBalance(data.priorPageBalance || 0);
 
       // Stats should represent the whole range, but here we just use what we have or rethink if stats should be paginated
       // For now, keep the stats calculation based on the fetched chunk or request a separate summary if the API supports it
@@ -1509,7 +1511,7 @@ const TellerMode = () => {
                          {(() => {
                            // 1. Reverse the transactions to compute the running total chronologically
                            const journalWithBalances = [];
-                           let runningSum = 0;
+                           let runningSum = journalPriorBalance;
 
                            [...journalTxns]
                              .reverse()

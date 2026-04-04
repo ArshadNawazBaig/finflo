@@ -94,9 +94,16 @@ const getLedger = async (req, res) => {
       .limit(limit);
 
     // Calculate full summary ignoring pagination but respecting search/date filters
+    // Also include 'date' so we can sort chronologically for running total computation
     const allMatching =
-      await FinancialTransaction.find(query).select('type category amount');
+      await FinancialTransaction.find(query).select('type category amount date');
     
+    const isIncome = (t) => {
+      const type = (t.type || '').toLowerCase();
+      const cat = (t.category || '').toLowerCase();
+      return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+    };
+
     const summary = allMatching.reduce((acc, t) => {
       const type = (t.type || '').toLowerCase();
       const cat = (t.category || '').toLowerCase();
@@ -110,12 +117,34 @@ const getLedger = async (req, res) => {
       return acc;
     }, { totalIncome: 0, totalExpense: 0, totalTransactions: totalEntries });
 
+    // Calculate priorPageBalance: the cumulative running total of all transactions
+    // that are chronologically BEFORE this page's transactions.
+    // Sort all matching transactions chronologically (ascending by date).
+    allMatching.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // For descending sort (newest first): older txns are on later pages.
+    //   The chronologically-prior count = totalEntries - skip - limit
+    // For ascending sort (oldest first): older txns are on earlier pages.
+    //   The chronologically-prior count = skip
+    const currentPageSize = Math.min(limit, Math.max(0, totalEntries - skip));
+    const chronoPriorCount = sortOrder === -1
+      ? Math.max(0, totalEntries - skip - currentPageSize)
+      : skip;
+
+    let priorPageBalance = 0;
+    for (let i = 0; i < chronoPriorCount && i < allMatching.length; i++) {
+      const t = allMatching[i];
+      const amt = t.amount || 0;
+      priorPageBalance += isIncome(t) ? amt : -amt;
+    }
+
     res.json({
       data: transactions,
       totalEntries,
       totalPages: Math.ceil(totalEntries / limit),
       currentPage: page,
       summary,
+      priorPageBalance,
     });
   } catch (error) {
     console.error('Ledger Error:', error);
