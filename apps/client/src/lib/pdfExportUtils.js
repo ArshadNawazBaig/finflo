@@ -711,21 +711,50 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
   doc.setTextColor(0);
   doc.text('Detailed Transaction Statement', 14, tableY);
 
-  const tableColumn = ['Date & Time', 'Member', 'Category', 'Notes', 'Amount'];
-  const tableRows = reportData.map((txn) => {
-    const isIn =
-      txn.type === 'income' ||
-      (txn.category || '').includes('repayment') ||
-      (txn.category || '').includes('deposit');
+  const tableColumn = ['Date & Time', 'Member', 'Category', 'Notes', 'Debit', 'Credit', 'Balance'];
+  let cumulativeBalance = 0;
+  const tableRows = [...reportData]
+    .reverse()
+    .map((txn) => {
+      const isIn =
+        txn.type === 'income' ||
+        (txn.category || '').includes('repayment') ||
+        (txn.category || '').includes('deposit');
 
-    return [
-      format(new Date(txn.date), 'MMM dd, yyyy p'),
-      txn.member?.name || '—',
-      (txn.category || '').replace(/_/g, ' ').toUpperCase(),
-      txn.description || txn.notes || '—',
-      `${isIn ? '+' : '-'}${formatCurrency(txn.amount)}`,
-    ];
-  });
+      cumulativeBalance += txn.amount * (isIn ? 1 : -1);
+
+      return [
+        format(new Date(txn.date), 'MMM dd, yyyy p'),
+        txn.member?.name || '—',
+        (txn.category || '').replace(/_/g, ' ').toUpperCase(),
+        txn.description || txn.notes || '—',
+        !isIn ? `-${formatCurrency(txn.amount)}` : '—',
+        isIn ? `+${formatCurrency(txn.amount)}` : '—',
+        formatCurrency(cumulativeBalance),
+      ];
+    })
+    .reverse();
+
+  // ── Total Summary Row ──
+  tableRows.push([
+    {
+      content: 'TOTAL SUMMARY',
+      colSpan: 4,
+      styles: { halign: 'right', fontStyle: 'bold', fillColor: [245, 245, 250] },
+    },
+    {
+      content: `-${formatCurrency(cashOut)}`,
+      styles: { halign: 'right', fontStyle: 'bold', textColor: [225, 29, 72] },
+    },
+    {
+      content: `+${formatCurrency(cashIn)}`,
+      styles: { halign: 'right', fontStyle: 'bold', textColor: [16, 185, 129] },
+    },
+    {
+      content: formatCurrency(netPosition),
+      styles: { halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 250] },
+    },
+  ]);
 
   autoTable(doc, {
     startY: tableY + 4,
@@ -736,6 +765,8 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: {
       4: { halign: 'right', fontStyle: 'bold' },
+      5: { halign: 'right', fontStyle: 'bold' },
+      6: { halign: 'right', fontStyle: 'bold' },
     },
     alternateRowStyles: { fillColor: [250, 250, 255] },
     margin: { left: 14, right: 14 },

@@ -1495,74 +1495,139 @@ const TellerMode = () => {
                             Notes
                           </th>
                           <th className="pb-4 pt-2 px-2 text-right underline decoration-primary/30 decoration-2 underline-offset-8">
-                            Amount
+                            Debit
+                          </th>
+                          <th className="pb-4 pt-2 px-2 text-right underline decoration-primary/30 decoration-2 underline-offset-8">
+                            Credit
+                          </th>
+                          <th className="pb-4 pt-2 px-2 text-right underline decoration-primary/30 decoration-2 underline-offset-8">
+                            Running Total
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/30">
-                        {journalTxns.map((txn, i) => {
-                          const isIn =
-                            txn.type === 'income' ||
-                            (txn.category || '').includes('repayment') ||
-                            (txn.category || '').includes('deposit');
-                          return (
-                            <tr
-                              key={txn._id || i}
-                              className="group hover:bg-muted/5 transition-colors"
-                            >
-                              <td className="py-5 px-2">
-                                <div className="flex items-center gap-2">
-                                  <Clock
-                                    size={12}
-                                    className="text-muted-foreground"
-                                  />
-                                  <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
-                                    {format(new Date(txn.date), 'MMM d, p')}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-5 px-2">
-                                <div className="flex items-center gap-2">
-                                  {txn.member ? (
-                                    <>
-                                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
-                                        {txn.member.name
-                                          ?.charAt(0)
-                                          .toUpperCase()}
-                                      </div>
-                                      <p className="text-sm font-black capitalize truncate max-w-[120px]">
-                                        {txn.member.name}
-                                      </p>
-                                    </>
-                                  ) : (
-                                    <span className="text-xs font-bold text-muted-foreground">
-                                      —
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="py-5 px-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-2 py-1 rounded-lg bg-muted/40 whitespace-nowrap">
-                                  {txn.category?.replace(/_/g, ' ')}
-                                </span>
-                              </td>
-                              <td className="py-5 px-2 max-w-[200px]">
-                                <p className="text-xs text-muted-foreground truncate italic">
-                                  {txn.description || txn.notes || '—'}
-                                </p>
-                              </td>
-                              <td className="py-5 px-2 text-right">
-                                <p
-                                  className={`text-sm font-black ${isIn ? 'text-emerald-500' : 'text-rose-500'}`}
-                                >
-                                  {isIn ? '+' : '-'}
-                                  {formatCurrency(txn.amount)}
-                                </p>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                         {(() => {
+                           // 1. Reverse the transactions to compute the running total chronologically
+                           const journalWithBalances = [];
+                           let runningSum = 0;
+
+                           [...journalTxns]
+                             .reverse()
+                             .forEach((txn) => {
+                               const isIn =
+                                 txn.type === 'income' ||
+                                 (txn.category || '').includes('repayment') ||
+                                 (txn.category || '').includes('deposit');
+                               
+                               runningSum += txn.amount * (isIn ? 1 : -1);
+                               journalWithBalances.push({
+                                 ...txn,
+                                 computedBalance: runningSum,
+                               });
+                             });
+
+                           // 2. Reverse back to descending order for the UI
+                           return journalWithBalances
+                             .reverse()
+                             .map((txn, i) => {
+                               const isIn =
+                                 txn.type === 'income' ||
+                                 (txn.category || '').includes('repayment') ||
+                                 (txn.category || '').includes('deposit');
+
+                               return (
+                                 <tr
+                                   key={txn._id || i}
+                                   className="group hover:bg-muted/5 transition-colors"
+                                 >
+                                   <td className="py-5 px-2">
+                                     <div className="flex items-center gap-2">
+                                       <Clock
+                                         size={12}
+                                         className="text-muted-foreground"
+                                       />
+                                       <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                                         {format(new Date(txn.date), 'MMM d, p')}
+                                       </span>
+                                     </div>
+                                   </td>
+                                   <td className="py-5 px-2">
+                                     <div className="flex items-center gap-2">
+                                       {txn.member ? (
+                                         <>
+                                           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
+                                             {txn.member.name
+                                               ?.charAt(0)
+                                               .toUpperCase()}
+                                           </div>
+                                           <p className="text-sm font-black capitalize truncate max-w-[120px]">
+                                             {txn.member.name}
+                                           </p>
+                                         </>
+                                       ) : (
+                                         <span className="text-xs font-bold text-muted-foreground">
+                                           —
+                                         </span>
+                                       )}
+                                     </div>
+                                   </td>
+                                   <td className="py-5 px-2">
+                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-2 py-1 rounded-lg bg-muted/40 whitespace-nowrap">
+                                       {txn.category?.replace(/_/g, ' ')}
+                                     </span>
+                                   </td>
+                                   <td className="py-5 px-2 max-w-[200px]">
+                                     <p className="text-xs text-muted-foreground truncate italic">
+                                       {txn.description || txn.notes || '—'}
+                                     </p>
+                                   </td>
+                                   <td className="py-5 px-2 text-right">
+                                     {!isIn ? (
+                                       <p className="text-sm font-black text-rose-500">
+                                         -{formatCurrency(txn.amount)}
+                                       </p>
+                                     ) : (
+                                       <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                                     )}
+                                   </td>
+                                   <td className="py-5 px-2 text-right">
+                                     {isIn ? (
+                                       <p className="text-sm font-black text-emerald-500">
+                                         +{formatCurrency(txn.amount)}
+                                       </p>
+                                     ) : (
+                                       <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                                     )}
+                                   </td>
+                                   <td className="py-5 px-2 text-right">
+                                     <p className="text-xs font-black text-muted-foreground">
+                                       {formatCurrency(txn.computedBalance)}
+                                     </p>
+                                   </td>
+                                 </tr>
+                               );
+                             });
+                         })()}
                       </tbody>
+                      <tfoot>
+                        <tr className="bg-muted/20 font-black border-t-2 border-border/50">
+                          <td
+                            colSpan={4}
+                            className="py-5 px-4 text-right text-[10px] uppercase tracking-widest text-muted-foreground/60"
+                          >
+                            Total Journal Summary
+                          </td>
+                          <td className="py-5 px-2 text-right text-sm text-rose-500">
+                            -{formatCurrency(journalStats.cashOut)}
+                          </td>
+                          <td className="py-5 px-2 text-right text-sm text-emerald-500">
+                            +{formatCurrency(journalStats.cashIn)}
+                          </td>
+                          <td className="py-5 px-2 text-right text-sm font-black text-primary bg-primary/5">
+                            {formatCurrency(journalStats.net)}
+                          </td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
 
