@@ -1074,7 +1074,7 @@ const LoanDetail = () => {
                   <DateRangePicker
                     date={reportDateRange}
                     setDate={setReportDateRange}
-                    className="w-full"
+                    className=""
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">

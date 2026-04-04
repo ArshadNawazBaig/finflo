@@ -149,6 +149,11 @@ const TransactionTable = ({
                         )}
                         {transaction.category.replace('_', ' ')}
                       </span>
+                      {transaction.description && (
+                        <span className="text-[10px] text-muted-foreground/60 font-medium truncate max-w-[180px] block">
+                          {transaction.description}
+                        </span>
+                      )}
                       {transaction.category === 'salary' &&
                         transaction.referenceId && (
                           <Link
@@ -205,7 +210,7 @@ const TransactionTable = ({
                     </div>
                   </td>
                   <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
-                    {transaction.description || transaction.notes || '-'}
+                    {transaction.notes || '-'}
                   </td>
                   {onReverse && (
                     <td className="py-4 px-4 text-center">

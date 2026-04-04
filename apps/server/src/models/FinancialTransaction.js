@@ -70,6 +70,9 @@ const financialTransactionSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    notes: {
+      type: String,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',

@@ -19,6 +19,8 @@ import {
   Calendar,
   FileText,
   ChevronRight,
+  BadgeDollarSign,
+  ShieldCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfDay, endOfDay } from 'date-fns';
@@ -58,6 +60,10 @@ const TellerMode = () => {
   const [accountType, setAccountType] = useState('current'); // 'current' | 'saving'
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [applyDeduction, setApplyDeduction] = useState(false);
+  const [repaymentType, setRepaymentType] = useState('installment');
+  const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] = useState(null);
+  const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] = useState(false);
 
   // ── Recent Transactions ───────────────────────
   const [recentTxns, setRecentTxns] = useState([]);
@@ -439,8 +445,14 @@ const TellerMode = () => {
     try {
       await api.post(`/members/${member._id}/invest`, {
         amount: parseFloat(amount),
-        description: description || `POS cash deposit`,
+        notes: description || undefined,
         accountType,
+        applyDeduction:
+          accountType === 'current' ? applyDeduction : false,
+        repaymentType:
+          accountType === 'current' && applyDeduction
+            ? repaymentType
+            : undefined,
       });
       toast.success(
         `${formatCurrency(parseFloat(amount))} deposited to ${member.name}'s ${accountType} account`,
@@ -460,7 +472,7 @@ const TellerMode = () => {
     try {
       await api.post(`/members/${member._id}/withdraw`, {
         amount: parseFloat(amount),
-        description: description || `POS cash withdrawal`,
+        notes: description || undefined,
         accountType,
       });
       toast.success(
@@ -520,8 +532,128 @@ const TellerMode = () => {
     setAmount('');
     setDescription('');
     setSelectedLoan(null);
+    setApplyDeduction(false);
+    setRepaymentType('installment');
     setTimeout(() => searchRef.current?.focus(), 100);
   };
+
+  // ── Loan Auto-Deduction Helpers ────────────────
+  const tellerActiveLoan = activeLoans.find(
+    (l) => l.status === 'active' || l.status === 'overdue',
+  );
+
+  const getSettlementDetails = (loan) => {
+    if (!loan)
+      return { amount: 0, monthsElapsed: 0, interest: 0, isEarly: false };
+    const start = new Date(loan.startDate);
+    const now = new Date();
+    let fullMonths =
+      now.getFullYear() * 12 +
+      now.getMonth() -
+      (start.getFullYear() * 12 + start.getMonth());
+    if (now.getDate() < start.getDate()) fullMonths -= 1;
+    fullMonths = Math.max(0, fullMonths);
+
+    const lastAnniversary = new Date(start);
+    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
+    const diffTime = Math.abs(now - lastAnniversary);
+    const daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (fullMonths >= loan.duration) {
+      return {
+        amount: Math.round(loan.remainingAmount),
+        monthsElapsed: loan.duration,
+        interest: Math.round(loan.totalAmount - loan.principal),
+        isEarly: false,
+      };
+    }
+
+    let adjustedInterest = 0;
+    let adjustedPrincipal = loan.principal;
+
+    if (loan.interestType === 'simple' || !loan.interestType) {
+      const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      const calculatedInterest =
+        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
+      adjustedInterest = Math.round(
+        Math.max(monthlyInterest, calculatedInterest),
+      );
+    } else if (loan.interestType === 'emi') {
+      const monthlyRate = loan.rate / 12 / 100;
+      const r = monthlyRate;
+      const P = loan.principal;
+      const E = loan.emi;
+      const m = fullMonths;
+      adjustedPrincipal =
+        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
+      adjustedPrincipal = Math.max(0, Math.round(adjustedPrincipal));
+      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
+      adjustedInterest = Math.round(dailyInterest * daysIntoMonth);
+    }
+
+    const adjustedTotal = adjustedPrincipal + adjustedInterest;
+    return {
+      amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
+      adjustedPrincipal: Math.round(adjustedPrincipal),
+      adjustedInterest: Math.round(adjustedInterest),
+      monthsElapsed: fullMonths,
+      daysIntoMonth,
+      isEarly: true,
+    };
+  };
+
+  const tellerSettlementDetails = tellerActiveLoan
+    ? getSettlementDetails(tellerActiveLoan)
+    : null;
+
+  const getAutoDeductionDailyDetails = () => {
+    if (!tellerActiveLoan)
+      return { daysPassed: 0, interestForDays: 0, adjustedAmount: 0 };
+    const refDate =
+      lastActiveLoanPaymentDate || new Date(tellerActiveLoan.startDate);
+    const now = new Date();
+    let diff = now.getTime() - refDate.getTime();
+    if (diff < 0) diff = 0;
+    const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const monthlyInterest =
+      (tellerActiveLoan.principal * tellerActiveLoan.rate) / 1200;
+    const dailyInterest = monthlyInterest / 30;
+    const interestForDays = Math.round(dailyInterest * daysPassed);
+    const principalPerInstallment = Math.round(
+      tellerActiveLoan.principal / (tellerActiveLoan.duration || 1),
+    );
+    const adjustedAmount = principalPerInstallment + interestForDays;
+    return { daysPassed, interestForDays, adjustedAmount };
+  };
+
+  const autoDeductionDaily = getAutoDeductionDailyDetails();
+
+  // Fetch last repayment date for active loan
+  useEffect(() => {
+    if (!tellerActiveLoan?._id) return;
+    setIsFetchingActiveLoanPayment(true);
+    api
+      .get(
+        `/repayments?loanId=${tellerActiveLoan._id}&limit=1&sortBy=date&sortOrder=desc`,
+      )
+      .then(({ data }) => {
+        const reps = data?.data || [];
+        if (reps.length > 0) {
+          setLastActiveLoanPaymentDate(new Date(reps[0].date));
+        } else {
+          setLastActiveLoanPaymentDate(
+            new Date(tellerActiveLoan.startDate),
+          );
+        }
+      })
+      .catch(() =>
+        setLastActiveLoanPaymentDate(
+          new Date(tellerActiveLoan.startDate),
+        ),
+      )
+      .finally(() => setIsFetchingActiveLoanPayment(false));
+  }, [tellerActiveLoan?._id]);
 
   const submitAction = (e) => {
     e.preventDefault();
@@ -627,7 +759,7 @@ const TellerMode = () => {
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* ── Left Column: Member Search & Info (4 cols) ── */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
-            <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] backdrop-blur-xl relative group">
+            <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] backdrop-blur-xl relative z-10 group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-focus-within:opacity-30 transition-opacity">
                 <Search size={40} className="text-primary" />
               </div>
@@ -923,6 +1055,8 @@ const TellerMode = () => {
                             setDescription('');
                             setSelectedLoan(null);
                             setAccountType('current');
+                            setApplyDeduction(false);
+                            setRepaymentType('installment');
                             setTimeout(() => amountRef.current?.focus(), 200);
                           }}
                           className={`group p-5 rounded-[2rem] border-2 transition-all duration-500 flex items-center gap-4 relative overflow-hidden ${
@@ -1104,6 +1238,208 @@ const TellerMode = () => {
                                 className="w-full px-5 py-4 rounded-2xl bg-muted/20 border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-xs font-medium resize-none"
                               />
                             </div>
+
+                            {/* Loan Auto-Deduction */}
+                            {activeAction === 'deposit' &&
+                              accountType === 'current' &&
+                              activeLoans.some(
+                                (l) =>
+                                  l.status === 'active' ||
+                                  l.status === 'overdue',
+                              ) && (
+                                <div className="p-5 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4 animate-in slide-in-from-top-4 duration-500">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                                        <BadgeDollarSign size={20} />
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-black tracking-tight">
+                                          Loan Auto-Deduction
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground font-medium">
+                                          Auto-repay active loan from this
+                                          deposit.
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setApplyDeduction(!applyDeduction)
+                                      }
+                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                                        applyDeduction
+                                          ? 'bg-indigo-600'
+                                          : 'bg-muted'
+                                      }`}
+                                    >
+                                      <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                                          applyDeduction
+                                            ? 'translate-x-6'
+                                            : 'translate-x-1'
+                                        }`}
+                                      />
+                                    </button>
+                                  </div>
+
+                                  {applyDeduction && tellerActiveLoan && (
+                                    <div className="space-y-4 pt-2">
+                                      {/* Loan Quick Info */}
+                                      <div className="grid grid-cols-2 gap-4 px-2">
+                                        <div className="space-y-1">
+                                          <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
+                                            Current Remaining
+                                          </p>
+                                          <p className="text-xs font-black text-indigo-700">
+                                            {formatCurrency(
+                                              tellerActiveLoan.remainingAmount,
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div className="space-y-1 text-right">
+                                          <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
+                                            Loan Type
+                                          </p>
+                                          <p className="text-[10px] font-black uppercase text-indigo-700">
+                                            {tellerActiveLoan.interestType ||
+                                              'Simple'}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setRepaymentType('installment')
+                                          }
+                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                            repaymentType === 'installment'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              : 'border-border/50 hover:bg-muted'
+                                          }`}
+                                        >
+                                          <div className="relative z-10">
+                                            <div className="flex items-center gap-1.5 mb-0.5">
+                                              <p className="text-[10px] font-black uppercase tracking-widest">
+                                                EMI
+                                              </p>
+                                              {!isFetchingActiveLoanPayment && (
+                                                <span className="text-[8px] font-black uppercase bg-indigo-500/20 text-indigo-600 px-1 py-0.5 rounded-full">
+                                                  {autoDeductionDaily.daysPassed}
+                                                  d
+                                                </span>
+                                              )}
+                                            </div>
+                                            <p className="text-[11px] font-black mt-0.5">
+                                              {isFetchingActiveLoanPayment
+                                                ? '...'
+                                                : formatCurrency(
+                                                    autoDeductionDaily.adjustedAmount,
+                                                  )}
+                                            </p>
+                                            {!isFetchingActiveLoanPayment && (
+                                              <p className="text-[8px] font-medium text-indigo-600/70 mt-0.5">
+                                                incl.{' '}
+                                                {formatCurrency(
+                                                  autoDeductionDaily.interestForDays,
+                                                )}{' '}
+                                                interest
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <Clock size={24} />
+                                          </div>
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setRepaymentType('settlement')
+                                          }
+                                          className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${
+                                            repaymentType === 'settlement'
+                                              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700'
+                                              : 'border-border/50 hover:bg-muted'
+                                          }`}
+                                        >
+                                          <div className="relative z-10">
+                                            <p className="text-[10px] font-black uppercase tracking-widest">
+                                              SETTLE
+                                            </p>
+                                            <p className="text-[11px] font-black mt-0.5">
+                                              {tellerSettlementDetails
+                                                ? formatCurrency(
+                                                    tellerSettlementDetails.amount,
+                                                  )
+                                                : 'Calculating...'}
+                                            </p>
+                                          </div>
+                                          <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <ShieldCheck size={24} />
+                                          </div>
+                                        </button>
+                                      </div>
+
+                                      {/* Impact Analysis */}
+                                      {amount && (
+                                        <div className="mx-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600">
+                                              Auto-Deduction Amount
+                                            </span>
+                                            <span className="text-xs font-black text-indigo-700">
+                                              {repaymentType === 'installment'
+                                                ? formatCurrency(
+                                                    Math.min(
+                                                      parseFloat(amount) || 0,
+                                                      tellerActiveLoan.emi,
+                                                    ),
+                                                  )
+                                                : formatCurrency(
+                                                    Math.min(
+                                                      parseFloat(amount) || 0,
+                                                      tellerSettlementDetails?.amount ||
+                                                        0,
+                                                    ),
+                                                  )}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between mt-1 pt-1 border-t border-indigo-500/10">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600/60">
+                                              Member Wallet Credit
+                                            </span>
+                                            <span className="text-xs font-black text-indigo-700/60">
+                                              {formatCurrency(
+                                                Math.max(
+                                                  0,
+                                                  (parseFloat(amount) || 0) -
+                                                    (repaymentType ===
+                                                    'installment'
+                                                      ? Math.min(
+                                                          parseFloat(amount) ||
+                                                            0,
+                                                          tellerActiveLoan.emi,
+                                                        )
+                                                      : Math.min(
+                                                          parseFloat(amount) ||
+                                                            0,
+                                                          tellerSettlementDetails?.amount ||
+                                                            0,
+                                                        )),
+                                                ),
+                                              )}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                           </div>
 
                           <div className="space-y-6">
@@ -1229,6 +1565,11 @@ const TellerMode = () => {
                                       txn.category?.replace('_', ' ') ||
                                       'Transaction'}
                                   </p>
+                                  {txn.notes && (
+                                    <p className="text-[10px] text-muted-foreground/60 font-medium mt-0.5 truncate max-w-[180px] italic">
+                                      {txn.notes}
+                                    </p>
+                                  )}
                                   <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-1">
                                     {format(
                                       new Date(txn.date || txn.createdAt),
@@ -1580,8 +1921,13 @@ const TellerMode = () => {
                                    </td>
                                    <td className="py-5 px-2 max-w-[200px]">
                                      <p className="text-xs text-muted-foreground truncate italic">
-                                       {txn.description || txn.notes || '—'}
+                                       {txn.description || txn.category?.replace(/_/g, ' ') || '—'}
                                      </p>
+                                     {txn.notes && (
+                                       <p className="text-[10px] text-muted-foreground/50 truncate mt-0.5">
+                                         {txn.notes}
+                                       </p>
+                                     )}
                                    </td>
                                    <td className="py-5 px-2 text-right">
                                      {!isIn ? (

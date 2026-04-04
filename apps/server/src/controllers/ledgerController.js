@@ -78,6 +78,7 @@ const getLedger = async (req, res) => {
 
       query.$or = [
         { description: { $regex: search, $options: 'i' } },
+        { notes: { $regex: search, $options: 'i' } },
         { customer: { $in: matchingCustomers.map((c) => c._id) } },
         { member: { $in: matchingMembers.map((m) => m._id) } },
       ];

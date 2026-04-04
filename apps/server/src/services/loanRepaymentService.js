@@ -201,6 +201,21 @@ const processRepayment = async (loan, amount, req, options = {}) => {
           ],
           { session },
         );
+
+        // Record withdrawal in Financial Ledger so it appears in the journal
+        const withdrawalTx = new FinancialTransaction({
+          user: updatedMember.user,
+          branchId: loan.branchId || updatedMember.branchId,
+          type: 'expense',
+          category: 'withdrawal',
+          amount: repaymentAmount,
+          date: new Date(date),
+          description: `Loan auto-deduction from wallet – #${loan._id.toString().slice(-6).toUpperCase()}${isEarlySettlement ? ' (Settlement)' : ''}`,
+          member: updatedMember._id,
+          customer: loan.customer._id || loan.customer,
+          loan: loan._id,
+        });
+        await withdrawalTx.save({ session });
       }
     }
   } catch (balanceError) {

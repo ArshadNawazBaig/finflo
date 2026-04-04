@@ -660,7 +660,7 @@ const MemberProfile = () => {
       const isSaving = investAccountType === 'saving';
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
-        description,
+        notes: description || undefined,
         accountType: investAccountType,
         applyDeduction:
           investmentType === 'deposit' && !isSaving ? applyDeduction : false,
@@ -3529,7 +3529,7 @@ const MemberProfile = () => {
                   <DateRangePicker
                     date={reportDateRange}
                     setDate={setReportDateRange}
-                    className="w-full"
+                    className=""
                   />
                 </div>
                 <p className="text-[9px] text-center text-muted-foreground mt-4 leading-relaxed font-medium">

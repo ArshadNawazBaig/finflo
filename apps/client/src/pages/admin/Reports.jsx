@@ -2011,7 +2011,7 @@ const Reports = () => {
                   <DateRangePicker
                     date={reportDateRange}
                     setDate={setReportDateRange}
-                    className="w-full"
+                    className=""
                   />
                 </div>
               </div>

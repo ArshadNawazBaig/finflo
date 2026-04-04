@@ -51,6 +51,11 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
                 {transaction.referenceId.name}
               </Link>
             )}
+            {transaction.description && (
+              <span className="text-[10px] text-muted-foreground/70 font-medium truncate max-w-[200px] block">
+                {transaction.description}
+              </span>
+            )}
             <span className="text-[10px] text-muted-foreground font-medium">
               {format(new Date(transaction.date), 'MMM d, yyyy • hh:mm a')}
             </span>
@@ -134,10 +139,10 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
         )}
       </div>
 
-      {(transaction.description || transaction.notes) && (
+      {transaction.notes && (
         <div className="mt-4 pt-3 border-t border-border/30">
           <p className="text-[11px] text-muted-foreground/80 font-medium ">
-            "{transaction.description || transaction.notes}"
+            "{transaction.notes}"
           </p>
         </div>
       )}

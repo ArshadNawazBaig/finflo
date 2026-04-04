@@ -764,10 +764,14 @@ const addInvestment = async (req, res) => {
     const {
       amount,
       description,
+      notes: userNotes,
       applyDeduction = true,
       repaymentType = 'settlement',
       accountType = 'current', // 'current' or 'saving'
     } = req.body;
+
+    const isSaving = accountType === 'saving';
+    const systemDescription = isSaving ? 'Saving account deposit' : 'Investment deposit';
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid investment amount' });
@@ -778,7 +782,7 @@ const addInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    const isSaving = accountType === 'saving';
+
 
     const balanceBefore = isSaving ? member.savingBalance : member.currentBalance;
     const investedBefore = isSaving ? member.totalSavingDeposited : member.totalInvested;
@@ -808,7 +812,7 @@ const addInvestment = async (req, res) => {
       type: 'deposit',
       amount,
       accountType,
-      description: description || (isSaving ? 'Saving account deposit' : 'Investment deposit'),
+      description: description || systemDescription,
       balanceAfter,
     });
 
@@ -820,7 +824,8 @@ const addInvestment = async (req, res) => {
       category: isSaving ? 'saving_deposit' : 'investment',
       amount,
       date: new Date(),
-      description: description || (isSaving ? 'Saving account deposit' : 'Investment deposit'),
+      description: description || systemDescription,
+      notes: userNotes || undefined,
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
@@ -953,7 +958,7 @@ const withdrawInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description, accountType = 'current' } = req.body;
+    const { amount, description, notes: userNotes, accountType = 'current' } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid withdrawal amount' });
@@ -965,6 +970,7 @@ const withdrawInvestment = async (req, res) => {
     }
 
     const isSaving = accountType === 'saving';
+    const systemDescription = isSaving ? 'Saving account withdrawal' : 'Investment withdrawal';
     const availableBalance = isSaving ? member.savingBalance : member.currentBalance;
 
     if (availableBalance < amount) {
@@ -1001,7 +1007,7 @@ const withdrawInvestment = async (req, res) => {
       type: 'withdrawal',
       amount,
       accountType,
-      description: description || (isSaving ? 'Saving account withdrawal' : 'Investment withdrawal'),
+      description: description || systemDescription,
       balanceAfter,
     });
 
@@ -1013,7 +1019,8 @@ const withdrawInvestment = async (req, res) => {
       category: isSaving ? 'saving_withdrawal' : 'withdrawal',
       amount,
       date: new Date(),
-      description: description || (isSaving ? 'Saving account withdrawal' : 'Investment withdrawal'),
+      description: description || systemDescription,
+      notes: userNotes || undefined,
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
