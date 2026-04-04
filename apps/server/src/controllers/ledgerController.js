@@ -4,6 +4,7 @@ const Member = require('../models/Member');
 const Repayment = require('../models/Repayment');
 const Investment = require('../models/Investment');
 const Loan = require('../models/Loan');
+const CashOpening = require('../models/CashOpening');
 const { logActivity } = require('./activityLogController');
 
 // @desc    Get all financial transactions (Unified Ledger)
@@ -23,6 +24,7 @@ const getLedger = async (req, res) => {
       category,
       member,
       customer,
+      paymentMethod,
       sortBy = 'date',
       sortOrder: sortOrderQuery,
     } = req.query;
@@ -51,6 +53,12 @@ const getLedger = async (req, res) => {
 
     if (type) query.type = type;
     if (category) query.category = category;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+
+    // Always exclude cash_opening entries from ledger
+    if (!category) {
+      query.category = { $ne: 'cash_opening' };
+    }
     
     if (member) {
       const memberDoc = await Member.findById(member).select('customer');
@@ -184,6 +192,7 @@ const exportLedgerExcel = async (req, res) => {
 
     if (type) query.type = type;
     if (category) query.category = category;
+    if (!category) query.category = { $ne: 'cash_opening' };
 
     if (search) {
       const { Customer, Member } = require('../models');
@@ -446,8 +455,134 @@ const reverseTransaction = async (req, res) => {
   }
 };
 
+// @desc    Set daily cash opening balance
+// @route   POST /api/ledger/cash-opening
+// @access  Private (Admin/Manager)
+const setCashOpening = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { amount, date: dateStr, denominations } = req.body;
+
+    if (amount == null || amount < 0) {
+      return res.status(400).json({ message: 'Invalid opening cash amount' });
+    }
+
+    // Normalize to start of day
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    // Upsert: create or update for this user + day
+    const updateFields = { amount };
+    if (denominations) updateFields.denominations = denominations;
+
+    const opening = await CashOpening.findOneAndUpdate(
+      { user: userId, date: dayStart },
+      updateFields,
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    res.status(200).json({ message: 'Cash opening set', opening });
+  } catch (error) {
+    console.error('Set Cash Opening Error:', error);
+    res.status(500).json({ message: 'Failed to set cash opening' });
+  }
+};
+
+// @desc    Get cash summary for a given date
+// @route   GET /api/ledger/cash-summary
+// @access  Private
+const getCashSummary = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { date: dateStr } = req.query;
+
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(targetDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    // Get cash opening from separate model
+    const openingDoc = await CashOpening.findOne({ user: userId, date: dayStart });
+    const openingCash = openingDoc?.amount || 0;
+
+    // Get all cash transactions for this day (real transactions only)
+    const cashTxns = await FinancialTransaction.find({
+      user: userId,
+      date: { $gte: dayStart, $lte: dayEnd },
+      paymentMethod: 'cash',
+      category: { $ne: 'cash_opening' },
+      status: 'Completed',
+    }).select('type category amount');
+
+    const isIncome = (t) => {
+      const type = (t.type || '').toLowerCase();
+      const cat = (t.category || '').toLowerCase();
+      return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+    };
+
+    let cashIn = 0;
+    let cashOut = 0;
+    cashTxns.forEach((t) => {
+      if (isIncome(t)) {
+        cashIn += t.amount || 0;
+      } else {
+        cashOut += t.amount || 0;
+      }
+    });
+
+    const closingCash = openingCash + cashIn - cashOut;
+
+    res.json({
+      date: dayStart.toISOString().split('T')[0],
+      openingCash,
+      cashIn,
+      cashOut,
+      closingCash,
+      hasOpening: !!openingDoc,
+      totalTransactions: cashTxns.length,
+      denominations: openingDoc?.denominations || { d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0 },
+    });
+  } catch (error) {
+    console.error('Cash Summary Error:', error);
+    res.status(500).json({ message: 'Failed to get cash summary' });
+  }
+};
+
+// @desc    Save denomination count for the day
+// @route   POST /api/ledger/cash-denominations
+// @access  Private
+const saveDenominations = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { denominations } = req.body;
+
+    if (!denominations) {
+      return res.status(400).json({ message: 'Denominations data is required' });
+    }
+
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
+    const opening = await CashOpening.findOneAndUpdate(
+      { user: userId, date: dayStart },
+      { denominations },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    res.status(200).json({ message: 'Denominations saved', opening });
+  } catch (error) {
+    console.error('Save Denominations Error:', error);
+    res.status(500).json({ message: 'Failed to save denominations' });
+  }
+};
+
 module.exports = {
   getLedger,
   exportLedgerExcel,
   reverseTransaction,
+  setCashOpening,
+  getCashSummary,
+  saveDenominations,
 };

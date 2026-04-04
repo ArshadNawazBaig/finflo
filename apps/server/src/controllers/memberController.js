@@ -768,6 +768,7 @@ const addInvestment = async (req, res) => {
       applyDeduction = true,
       repaymentType = 'settlement',
       accountType = 'current', // 'current' or 'saving'
+      paymentMethod = 'cash', // 'cash' or 'online'
     } = req.body;
 
     const isSaving = accountType === 'saving';
@@ -826,6 +827,7 @@ const addInvestment = async (req, res) => {
       date: new Date(),
       description: description || systemDescription,
       notes: userNotes || undefined,
+      paymentMethod,
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
@@ -958,7 +960,7 @@ const withdrawInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description, notes: userNotes, accountType = 'current' } = req.body;
+    const { amount, description, notes: userNotes, accountType = 'current', paymentMethod = 'cash' } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid withdrawal amount' });
@@ -1021,6 +1023,7 @@ const withdrawInvestment = async (req, res) => {
       date: new Date(),
       description: description || systemDescription,
       notes: userNotes || undefined,
+      paymentMethod,
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',

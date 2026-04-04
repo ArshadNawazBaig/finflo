@@ -37,6 +37,7 @@ const financialTransactionSchema = new mongoose.Schema(
         'checkbook_fee',
         'late_fee',
         'term_deposit',
+        'cash_opening',
       ],
       required: true,
     },
@@ -72,6 +73,11 @@ const financialTransactionSchema = new mongoose.Schema(
     },
     notes: {
       type: String,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['cash', 'online'],
+      default: 'cash',
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,

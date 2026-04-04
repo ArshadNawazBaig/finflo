@@ -33,6 +33,7 @@ import {
   Hash,
   FileText,
   History,
+  CreditCard,
 } from 'lucide-react';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import {
@@ -116,6 +117,7 @@ const MemberProfile = () => {
   const [showProfitRateForm, setShowProfitRateForm] = useState(false);
   const [investmentType, setInvestmentType] = useState('deposit');
   const [investAccountType, setInvestAccountType] = useState('current');
+  const [investPaymentMethod, setInvestPaymentMethod] = useState('cash'); // 'cash' | 'online'
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
@@ -662,6 +664,7 @@ const MemberProfile = () => {
         amount: parseFloat(amount),
         notes: description || undefined,
         accountType: investAccountType,
+        paymentMethod: investPaymentMethod,
         applyDeduction:
           investmentType === 'deposit' && !isSaving ? applyDeduction : false,
         repaymentType:
@@ -673,6 +676,7 @@ const MemberProfile = () => {
       );
       setAmount('');
       setDescription('');
+      setInvestPaymentMethod('cash');
       setShowInvestmentForm(false);
       fetchMemberData();
     } catch (error) {
@@ -1937,6 +1941,32 @@ const MemberProfile = () => {
                         }`}
                       >
                         Saving
+                      </button>
+                    </div>
+                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
+                      <button
+                        type="button"
+                        onClick={() => setInvestPaymentMethod('cash')}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${
+                          investPaymentMethod === 'cash'
+                            ? 'bg-emerald-500 text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <Wallet size={12} />
+                        Cash
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInvestPaymentMethod('online')}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${
+                          investPaymentMethod === 'online'
+                            ? 'bg-blue-500 text-white shadow-lg'
+                            : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <CreditCard size={12} />
+                        Online
                       </button>
                     </div>
                   </div>

@@ -21,6 +21,10 @@ import {
   ChevronRight,
   BadgeDollarSign,
   ShieldCheck,
+  HandCoins,
+  Globe,
+  Lock,
+  Plus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfDay, endOfDay } from 'date-fns';
@@ -64,6 +68,7 @@ const TellerMode = () => {
   const [repaymentType, setRepaymentType] = useState('installment');
   const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] = useState(null);
   const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'online'
 
   // ── Recent Transactions ───────────────────────
   const [recentTxns, setRecentTxns] = useState([]);
@@ -81,7 +86,7 @@ const TellerMode = () => {
   });
 
   // ── Journal State ─────────────────────────────
-  const [viewMode, setViewMode] = useState('pos'); // 'pos' | 'journal'
+  const [viewMode, setViewMode] = useState('pos'); // 'pos' | 'journal' | 'cashbook'
   const [selectedDate, setSelectedDate] = useState({
     from: new Date(),
     to: new Date(),
@@ -104,6 +109,33 @@ const TellerMode = () => {
   const observerTarget = useRef(null);
   const recentTxnsObserverTarget = useRef(null);
   const skipNextEffect = useRef(false);
+
+  // ── Cash in Hand State ─────────────────────────
+  const [cashSummary, setCashSummary] = useState({
+    openingCash: 0,
+    cashIn: 0,
+    cashOut: 0,
+    closingCash: 0,
+    hasOpening: false,
+    totalTransactions: 0,
+  });
+  const [cashSummaryLoading, setCashSummaryLoading] = useState(false);
+  const [cashOpeningInput, setCashOpeningInput] = useState('');
+  const [isSettingOpening, setIsSettingOpening] = useState(false);
+  const [cashTxns, setCashTxns] = useState([]);
+  const [cashTxnsLoading, setCashTxnsLoading] = useState(false);
+  const [cashTxnsPage, setCashTxnsPage] = useState(1);
+  const [cashTxnsLimit, setCashTxnsLimit] = useState(10);
+  const [cashTxnsTotalPages, setCashTxnsTotalPages] = useState(0);
+  const [cashTxnsTotalEntries, setCashTxnsTotalEntries] = useState(0);
+
+  // Denomination tracking
+  const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10];
+  const [denomCounts, setDenomCounts] = useState({
+    d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0,
+  });
+  const [isSavingDenoms, setIsSavingDenoms] = useState(false);
+  const denomTotal = DENOMINATIONS.reduce((sum, d) => sum + d * (denomCounts[`d${d}`] || 0), 0);
 
   const [user] = useState(() =>
     JSON.parse(localStorage.getItem('user') || '{}'),
@@ -447,6 +479,7 @@ const TellerMode = () => {
         amount: parseFloat(amount),
         notes: description || undefined,
         accountType,
+        paymentMethod,
         applyDeduction:
           accountType === 'current' ? applyDeduction : false,
         repaymentType:
@@ -474,6 +507,7 @@ const TellerMode = () => {
         amount: parseFloat(amount),
         notes: description || undefined,
         accountType,
+        paymentMethod,
       });
       toast.success(
         `${formatCurrency(parseFloat(amount))} withdrawn from ${member.name}'s ${accountType} account`,
@@ -520,7 +554,10 @@ const TellerMode = () => {
     }
     // Refresh session stats
     fetchSessionStats();
+    // Refresh cash summary if on cashbook
+    if (viewMode === 'cashbook') fetchCashSummary();
     // Focus search for next customer
+    setPaymentMethod('cash');
     setTimeout(() => searchRef.current?.focus(), 300);
   };
 
@@ -534,8 +571,91 @@ const TellerMode = () => {
     setSelectedLoan(null);
     setApplyDeduction(false);
     setRepaymentType('installment');
+    setPaymentMethod('cash');
     setTimeout(() => searchRef.current?.focus(), 100);
   };
+
+  // ── Cash in Hand Functions ────────────────────
+  const fetchCashSummary = async () => {
+    setCashSummaryLoading(true);
+    try {
+      const { data } = await api.get('/ledger/cash-summary');
+      setCashSummary(data);
+      if (data.hasOpening) {
+        setCashOpeningInput(String(data.openingCash));
+      }
+      // Load saved denominations
+      if (data.denominations) {
+        setDenomCounts(data.denominations);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setCashSummaryLoading(false);
+    }
+  };
+
+  const fetchCashTxns = async (page = 1) => {
+    setCashTxnsLoading(true);
+    try {
+      const today = new Date();
+      const { data } = await api.get('/ledger', {
+        params: {
+          startDate: startOfDay(today).toISOString(),
+          endDate: endOfDay(today).toISOString(),
+          paymentMethod: 'cash',
+          page,
+          limit: cashTxnsLimit,
+        },
+      });
+      // Filter out cash_opening entries from the display list
+      const txns = (data?.data || []).filter(t => t.category !== 'cash_opening');
+      setCashTxns(txns);
+      setCashTxnsTotalPages(data.totalPages || 0);
+      setCashTxnsTotalEntries(data.totalEntries || 0);
+      setCashTxnsPage(page);
+    } catch {
+      setCashTxns([]);
+    } finally {
+      setCashTxnsLoading(false);
+    }
+  };
+
+  const handleSetCashOpening = async () => {
+    const amt = parseFloat(cashOpeningInput);
+    if (isNaN(amt) || amt < 0) return toast.error('Enter a valid amount');
+    setIsSettingOpening(true);
+    try {
+      await api.post('/ledger/cash-opening', { amount: amt });
+      toast.success('Cash opening set successfully');
+      fetchCashSummary();
+      fetchCashTxns(1);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to set cash opening');
+    } finally {
+      setIsSettingOpening(false);
+    }
+  };
+
+  const handleSaveDenominations = async () => {
+    setIsSavingDenoms(true);
+    try {
+      await api.post('/ledger/cash-denominations', { denominations: denomCounts });
+      toast.success('Denomination count saved');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save denominations');
+    } finally {
+      setIsSavingDenoms(false);
+    }
+  };
+
+  // Fetch cash data when switching to cashbook tab
+  useEffect(() => {
+    if (viewMode === 'cashbook') {
+      fetchCashSummary();
+      fetchCashTxns(1);
+    }
+  }, [viewMode, cashTxnsLimit]);
 
   // ── Loan Auto-Deduction Helpers ────────────────
   const tellerActiveLoan = activeLoans.find(
@@ -728,7 +848,7 @@ const TellerMode = () => {
         </div>
 
         {/* ── View Switcher ────────────────────────── */}
-        <div className="flex bg-muted/40 p-1.5 rounded-2xl w-full max-w-xs shrink-0">
+        <div className="flex bg-muted/40 p-1.5 rounded-2xl w-full max-w-md shrink-0">
           <button
             onClick={() => setViewMode('pos')}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
@@ -750,6 +870,17 @@ const TellerMode = () => {
           >
             <FileText size={12} />
             Journal
+          </button>
+          <button
+            onClick={() => setViewMode('cashbook')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+              viewMode === 'cashbook'
+                ? 'bg-card text-emerald-600 shadow-lg shadow-black/5'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            <HandCoins size={12} />
+            Cash in Hand
           </button>
         </div>
       </div>
@@ -1168,6 +1299,41 @@ const TellerMode = () => {
                                       {type}
                                     </button>
                                   ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Payment Method Selector */}
+                            {activeAction !== 'loan-pay' && (
+                              <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                  Payment Method
+                                </label>
+                                <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('cash')}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                      paymentMethod === 'cash'
+                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                    }`}
+                                  >
+                                    <HandCoins size={14} />
+                                    Cash
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('online')}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                      paymentMethod === 'online'
+                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                    }`}
+                                  >
+                                    <Globe size={14} />
+                                    Online
+                                  </button>
                                 </div>
                               </div>
                             )}
@@ -2016,6 +2182,413 @@ const TellerMode = () => {
                 {formatCurrency(journalStats.net)}
               </h4>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cash in Hand View ─────────────────────── */}
+      {viewMode === 'cashbook' && (
+        <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Cash Opening Card */}
+          <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                  <HandCoins size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black tracking-tight">
+                    Cash in Hand
+                  </h3>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
+                    {new Date().toLocaleDateString('en-PK', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Opening Cash Input */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
+                    Rs.
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={cashOpeningInput}
+                    onChange={(e) => setCashOpeningInput(e.target.value)}
+                    placeholder="Opening cash..."
+                    disabled={cashSummary.hasOpening && !isAdmin}
+                    className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                      cashSummary.hasOpening
+                        ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
+                        : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
+                    }`}
+                  />
+                  {cashSummary.hasOpening && (
+                    <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50" />
+                  )}
+                </div>
+                <Button
+                  onClick={handleSetCashOpening}
+                  disabled={isSettingOpening || !cashOpeningInput}
+                  isLoading={isSettingOpening}
+                  className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
+                >
+                  {!isSettingOpening && (
+                    <>
+                      {cashSummary.hasOpening ? (
+                        <RefreshCw size={14} className="mr-1.5" />
+                      ) : (
+                        <Plus size={14} className="mr-1.5" />
+                      )}
+                      {cashSummary.hasOpening ? 'Update' : 'Set'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Cash Summary Cards */}
+          {cashSummaryLoading ? (
+            <TellerStatsSkeleton />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                {
+                  label: 'Opening Cash',
+                  value: cashSummary.openingCash,
+                  color: 'amber',
+                  icon: Wallet,
+                },
+                {
+                  label: 'Cash In',
+                  value: cashSummary.cashIn,
+                  color: 'emerald',
+                  icon: ArrowDownCircle,
+                },
+                {
+                  label: 'Cash Out',
+                  value: cashSummary.cashOut,
+                  color: 'rose',
+                  icon: ArrowUpCircle,
+                },
+                {
+                  label: 'Closing Cash',
+                  value: cashSummary.closingCash,
+                  color: 'indigo',
+                  icon: HandCoins,
+                },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className="p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12">
+                    <stat.icon size={80} />
+                  </div>
+                  <div
+                    className={`w-10 h-10 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-500 flex items-center justify-center mb-4 shadow-sm`}
+                  >
+                    <stat.icon size={20} />
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">
+                    {stat.label}
+                  </p>
+                  <p className={`text-xl sm:text-2xl font-black tracking-tighter ${
+                    stat.label === 'Closing Cash'
+                      ? stat.value >= 0
+                        ? 'text-emerald-600'
+                        : 'text-rose-600'
+                      : ''
+                  }`}>
+                    {formatCurrency(stat.value)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Cash Transactions Log */}
+          <div className="py-4 px-1 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] md:bg-card md:border md:border-border/50 md:shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <Banknote size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest">
+                    Today's Cash Transactions
+                  </h3>
+                  <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-0.5">
+                    {cashTxnsTotalEntries} cash transaction{cashTxnsTotalEntries !== 1 ? 's' : ''} today
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => { fetchCashSummary(); fetchCashTxns(cashTxnsPage); }}
+                className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground/50 hover:text-primary transition-all"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
+
+            {cashTxnsLoading ? (
+              <TellerJournalSkeleton />
+            ) : cashTxns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center gap-4 border-2 border-dashed border-border/50 rounded-[2rem]">
+                <HandCoins size={40} className="text-muted-foreground/20" />
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-widest">
+                    No Cash Transactions Yet
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cash transactions processed today will appear here.
+                  </p>
+                </div>
+              </div>
+            ) : isMobile ? (
+              <div className="space-y-4">
+                {cashTxns.map((txn) => (
+                  <TransactionCard key={txn._id} transaction={txn} />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 text-left">
+                        <th className="pb-4 pt-2 px-2">Date & Time</th>
+                        <th className="pb-4 pt-2 px-2">Member</th>
+                        <th className="pb-4 pt-2 px-2">Category</th>
+                        <th className="pb-4 pt-2 px-2">Notes</th>
+                        <th className="pb-4 pt-2 px-2 text-right">Debit</th>
+                        <th className="pb-4 pt-2 px-2 text-right">Credit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {cashTxns.map((txn, i) => {
+                        const isIn =
+                          txn.type === 'income' ||
+                          (txn.category || '').includes('repayment') ||
+                          (txn.category || '').includes('deposit');
+                        return (
+                          <tr
+                            key={txn._id || i}
+                            className="group hover:bg-muted/5 transition-colors"
+                          >
+                            <td className="py-5 px-2">
+                              <div className="flex items-center gap-2">
+                                <Clock size={12} className="text-muted-foreground" />
+                                <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                                  {format(new Date(txn.date), 'MMM d, p')}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-5 px-2">
+                              <div className="flex items-center gap-2">
+                                {txn.member ? (
+                                  <>
+                                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
+                                      {txn.member.name?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <p className="text-sm font-black capitalize truncate max-w-[120px]">
+                                      {txn.member.name}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <span className="text-xs font-bold text-muted-foreground">—</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-5 px-2">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-2 py-1 rounded-lg bg-muted/40 whitespace-nowrap">
+                                {txn.category?.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="py-5 px-2 max-w-[200px]">
+                              <p className="text-xs text-muted-foreground truncate italic">
+                                {txn.description || txn.category?.replace(/_/g, ' ') || '—'}
+                              </p>
+                            </td>
+                            <td className="py-5 px-2 text-right">
+                              {!isIn ? (
+                                <p className="text-sm font-black text-rose-500">
+                                  -{formatCurrency(txn.amount)}
+                                </p>
+                              ) : (
+                                <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                              )}
+                            </td>
+                            <td className="py-5 px-2 text-right">
+                              {isIn ? (
+                                <p className="text-sm font-black text-emerald-500">
+                                  +{formatCurrency(txn.amount)}
+                                </p>
+                              ) : (
+                                <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {cashTxnsTotalPages > 1 && (
+                  <div className="pt-6 border-t border-border/30">
+                    <Pagination
+                      currentPage={cashTxnsPage}
+                      totalPages={cashTxnsTotalPages}
+                      totalEntries={cashTxnsTotalEntries}
+                      limit={cashTxnsLimit}
+                      onPageChange={(p) => fetchCashTxns(p)}
+                      onLimitChange={(newLimit) => {
+                        setCashTxnsLimit(newLimit);
+                        setCashTxnsPage(1);
+                        fetchCashTxns(1);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Denomination Counter */}
+          <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                  <Banknote size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black tracking-tight">Denomination Counter</h3>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
+                    Count physical currency notes
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleSaveDenominations}
+                disabled={isSavingDenoms}
+                isLoading={isSavingDenoms}
+                className="h-10 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
+              >
+                {!isSavingDenoms && 'Save Count'}
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+              {DENOMINATIONS.map((d) => {
+                const key = `d${d}`;
+                const count = denomCounts[key] || 0;
+                const subtotal = d * count;
+                return (
+                  <div
+                    key={d}
+                    className="p-4 rounded-2xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-black text-amber-600 group-hover:text-amber-500 transition-colors">
+                        ₨{d.toLocaleString()}
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      value={count || ''}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setDenomCounts((prev) => ({ ...prev, [key]: val }));
+                      }}
+                      placeholder="0"
+                      className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background text-center text-lg font-black focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
+                    />
+                    <p className="text-center mt-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                      = {formatCurrency(subtotal)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Denomination Total & Reconciliation */}
+            <div className="mt-6 pt-6 border-t border-border/30">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                    Cash Count Total
+                  </p>
+                  <p className="text-2xl font-black tracking-tighter">
+                    {formatCurrency(denomTotal)}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                      Expected (Closing)
+                    </p>
+                    <p className="text-lg font-black">
+                      {formatCurrency(cashSummary.closingCash)}
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                      Difference
+                    </p>
+                    {(() => {
+                      const diff = denomTotal - cashSummary.closingCash;
+                      const isMatch = Math.abs(diff) < 1;
+                      return (
+                        <div className="flex items-center gap-2 justify-center">
+                          <p className={`text-lg font-black ${
+                            isMatch ? 'text-emerald-600' : 'text-rose-600'
+                          }`}>
+                            {isMatch ? '✓ Match' : (diff > 0 ? '+' : '') + formatCurrency(diff)}
+                          </p>
+                          {!isMatch && (
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                              diff > 0
+                                ? 'bg-blue-500/10 text-blue-600'
+                                : 'bg-rose-500/10 text-rose-600'
+                            }`}>
+                              {diff > 0 ? 'Excess' : 'Short'}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Closing Cash Summary */}
+          <div className="p-6 rounded-[2rem] bg-gradient-to-r from-emerald-500/5 to-indigo-500/5 border border-emerald-500/20 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+              Closing Cash Balance for Today
+            </p>
+            <h4
+              className={`text-2xl font-black ${cashSummary.closingCash >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+            >
+              {formatCurrency(cashSummary.closingCash)}
+            </h4>
+            <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-2">
+              Opening {formatCurrency(cashSummary.openingCash)} + In {formatCurrency(cashSummary.cashIn)} − Out {formatCurrency(cashSummary.cashOut)}
+            </p>
           </div>
         </div>
       )}
