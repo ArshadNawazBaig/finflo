@@ -103,7 +103,7 @@ const SuperAdminSidebar = ({ isExpanded, isMobile, onClose }) => {
           className={cn(
             'flex items-center w-full transition-all duration-300',
             !isMobile && 'h-16',
-            isLayoutExpanded ? 'px-1' : 'justify-center px-0',
+            isLayoutExpanded ? 'px-5' : 'justify-center px-0',
           )}
         >
           <Link to="/super-admin" className="flex items-center">
