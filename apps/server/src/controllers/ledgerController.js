@@ -503,11 +503,60 @@ const getCashSummary = async (req, res) => {
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    // Get cash opening from separate model
+    // Get cash opening from separate model for the target date
     const openingDoc = await CashOpening.findOne({ user: userId, date: dayStart });
-    const openingCash = openingDoc?.amount || 0;
 
-    // Get all cash transactions for this day (real transactions only)
+    let openingCash = 0;
+    let isCarriedForward = false;
+
+    if (openingDoc) {
+      // Manual opening exists for this day
+      openingCash = openingDoc.amount || 0;
+    } else {
+      // No manual opening — carry forward from the most recent prior CashOpening
+      const priorOpening = await CashOpening.findOne({
+        user: userId,
+        date: { $lt: dayStart },
+      }).sort({ date: -1 });
+
+      if (priorOpening) {
+        // Compute closing from the prior opening day through the day before target
+        const priorDayStart = new Date(priorOpening.date);
+        priorDayStart.setHours(0, 0, 0, 0);
+        const priorDayEnd = new Date(dayStart);
+        priorDayEnd.setMilliseconds(-1); // end of previous day (23:59:59.999)
+
+        const interimTxns = await FinancialTransaction.find({
+          user: userId,
+          date: { $gte: priorDayStart, $lte: priorDayEnd },
+          paymentMethod: 'cash',
+          category: { $ne: 'cash_opening' },
+          status: 'Completed',
+        }).select('type category amount');
+
+        const isIncomeHelper = (t) => {
+          const type = (t.type || '').toLowerCase();
+          const cat = (t.category || '').toLowerCase();
+          return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+        };
+
+        let interimIn = 0;
+        let interimOut = 0;
+        interimTxns.forEach((t) => {
+          if (isIncomeHelper(t)) {
+            interimIn += t.amount || 0;
+          } else {
+            interimOut += t.amount || 0;
+          }
+        });
+
+        openingCash = (priorOpening.amount || 0) + interimIn - interimOut;
+        isCarriedForward = true;
+      }
+      // If no prior opening at all, openingCash stays 0
+    }
+
+    // Get all cash transactions for the target day (real transactions only)
     const cashTxns = await FinancialTransaction.find({
       user: userId,
       date: { $gte: dayStart, $lte: dayEnd },
@@ -541,6 +590,7 @@ const getCashSummary = async (req, res) => {
       cashOut,
       closingCash,
       hasOpening: !!openingDoc,
+      isCarriedForward,
       totalTransactions: cashTxns.length,
       denominations: openingDoc?.denominations || { d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0 },
     });

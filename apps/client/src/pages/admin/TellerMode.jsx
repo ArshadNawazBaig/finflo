@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Calendar,
   FileText,
+  ChevronLeft,
   ChevronRight,
   BadgeDollarSign,
   ShieldCheck,
@@ -27,7 +28,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfDay, endOfDay, addDays, isToday, isFuture } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import Pagination from '@/components/ui/Pagination';
@@ -111,12 +112,14 @@ const TellerMode = () => {
   const skipNextEffect = useRef(false);
 
   // ── Cash in Hand State ─────────────────────────
+  const [cashbookDate, setCashbookDate] = useState(new Date());
   const [cashSummary, setCashSummary] = useState({
     openingCash: 0,
     cashIn: 0,
     cashOut: 0,
     closingCash: 0,
     hasOpening: false,
+    isCarriedForward: false,
     totalTransactions: 0,
   });
   const [cashSummaryLoading, setCashSummaryLoading] = useState(false);
@@ -128,6 +131,7 @@ const TellerMode = () => {
   const [cashTxnsLimit, setCashTxnsLimit] = useState(10);
   const [cashTxnsTotalPages, setCashTxnsTotalPages] = useState(0);
   const [cashTxnsTotalEntries, setCashTxnsTotalEntries] = useState(0);
+  const isCashbookToday = isToday(cashbookDate);
 
   // Denomination tracking
   const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10];
@@ -576,13 +580,17 @@ const TellerMode = () => {
   };
 
   // ── Cash in Hand Functions ────────────────────
-  const fetchCashSummary = async () => {
+  const fetchCashSummary = async (dateOverride) => {
     setCashSummaryLoading(true);
     try {
-      const { data } = await api.get('/ledger/cash-summary');
+      const targetDate = dateOverride || cashbookDate;
+      const dateParam = format(targetDate, 'yyyy-MM-dd');
+      const { data } = await api.get('/ledger/cash-summary', { params: { date: dateParam } });
       setCashSummary(data);
-      if (data.hasOpening) {
+      if (data.hasOpening || data.isCarriedForward) {
         setCashOpeningInput(String(data.openingCash));
+      } else {
+        setCashOpeningInput('');
       }
       // Load saved denominations
       if (data.denominations) {
@@ -595,14 +603,14 @@ const TellerMode = () => {
     }
   };
 
-  const fetchCashTxns = async (page = 1) => {
+  const fetchCashTxns = async (page = 1, dateOverride) => {
     setCashTxnsLoading(true);
     try {
-      const today = new Date();
+      const targetDate = dateOverride || cashbookDate;
       const { data } = await api.get('/ledger', {
         params: {
-          startDate: startOfDay(today).toISOString(),
-          endDate: endOfDay(today).toISOString(),
+          startDate: startOfDay(targetDate).toISOString(),
+          endDate: endOfDay(targetDate).toISOString(),
           paymentMethod: 'cash',
           page,
           limit: cashTxnsLimit,
@@ -649,13 +657,13 @@ const TellerMode = () => {
     }
   };
 
-  // Fetch cash data when switching to cashbook tab
+  // Fetch cash data when switching to cashbook tab or changing date
   useEffect(() => {
     if (viewMode === 'cashbook') {
-      fetchCashSummary();
-      fetchCashTxns(1);
+      fetchCashSummary(cashbookDate);
+      fetchCashTxns(1, cashbookDate);
     }
-  }, [viewMode, cashTxnsLimit]);
+  }, [viewMode, cashTxnsLimit, cashbookDate]);
 
   // ── Loan Auto-Deduction Helpers ────────────────
   const tellerActiveLoan = activeLoans.find(
@@ -2189,6 +2197,56 @@ const TellerMode = () => {
       {/* ── Cash in Hand View ─────────────────────── */}
       {viewMode === 'cashbook' && (
         <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Date Navigation Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-[2.5rem] bg-card border border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <Calendar size={18} />
+              </div>
+              <h3 className="text-lg font-black tracking-tight">
+                Cash in Hand
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCashbookDate(prev => addDays(prev, -1))}
+                className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                title="Previous Day"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <DateRangePicker
+                date={{ from: cashbookDate, to: cashbookDate }}
+                setDate={(val) => {
+                  if (val?.from) {
+                    setCashbookDate(val.from);
+                  }
+                }}
+                className="w-auto"
+              />
+              <button
+                onClick={() => {
+                  const next = addDays(cashbookDate, 1);
+                  if (!isFuture(next) || isToday(next)) setCashbookDate(next);
+                }}
+                disabled={isToday(cashbookDate)}
+                className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Next Day"
+              >
+                <ChevronRight size={18} />
+              </button>
+              {!isCashbookToday && (
+                <button
+                  onClick={() => setCashbookDate(new Date())}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all"
+                >
+                  Today
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Cash Opening Card */}
           <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2197,11 +2255,18 @@ const TellerMode = () => {
                   <HandCoins size={28} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black tracking-tight">
-                    Cash in Hand
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black tracking-tight">
+                      {isCashbookToday ? 'Cash in Hand' : 'Cash in Hand (Historical)'}
+                    </h3>
+                    {cashSummary.isCarriedForward && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest text-amber-600 animate-in fade-in duration-300">
+                        Carried Forward
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-                    {new Date().toLocaleDateString('en-PK', {
+                    {cashbookDate.toLocaleDateString('en-PK', {
                       weekday: 'long',
                       month: 'long',
                       day: 'numeric',
@@ -2211,47 +2276,56 @@ const TellerMode = () => {
                 </div>
               </div>
 
-              {/* Opening Cash Input */}
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:flex-initial">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
-                    Rs.
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={cashOpeningInput}
-                    onChange={(e) => setCashOpeningInput(e.target.value)}
-                    placeholder="Opening cash..."
-                    disabled={cashSummary.hasOpening && !isAdmin}
-                    className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
-                      cashSummary.hasOpening
-                        ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
-                        : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
-                    }`}
-                  />
-                  {cashSummary.hasOpening && (
-                    <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50" />
-                  )}
+              {/* Opening Cash Input — only editable for today */}
+              {isCashbookToday ? (
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-initial">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
+                      Rs.
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={cashOpeningInput}
+                      onChange={(e) => setCashOpeningInput(e.target.value)}
+                      placeholder="Opening cash..."
+                      disabled={cashSummary.hasOpening && !isAdmin}
+                      className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                        cashSummary.hasOpening
+                          ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
+                          : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
+                      }`}
+                    />
+                    {cashSummary.hasOpening && (
+                      <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50" />
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleSetCashOpening}
+                    disabled={isSettingOpening || !cashOpeningInput}
+                    isLoading={isSettingOpening}
+                    className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
+                  >
+                    {!isSettingOpening && (
+                      <>
+                        {cashSummary.hasOpening ? (
+                          <RefreshCw size={14} className="mr-1.5" />
+                        ) : (
+                          <Plus size={14} className="mr-1.5" />
+                        )}
+                        {cashSummary.hasOpening ? 'Update' : 'Set'}
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleSetCashOpening}
-                  disabled={isSettingOpening || !cashOpeningInput}
-                  isLoading={isSettingOpening}
-                  className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
-                >
-                  {!isSettingOpening && (
-                    <>
-                      {cashSummary.hasOpening ? (
-                        <RefreshCw size={14} className="mr-1.5" />
-                      ) : (
-                        <Plus size={14} className="mr-1.5" />
-                      )}
-                      {cashSummary.hasOpening ? 'Update' : 'Set'}
-                    </>
-                  )}
-                </Button>
-              </div>
+              ) : (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-muted/30 border border-border/50">
+                  <Lock size={14} className="text-muted-foreground/40" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                    Read-only (past date)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -2324,15 +2398,15 @@ const TellerMode = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-widest">
-                    Today's Cash Transactions
+                    {isCashbookToday ? "Today's" : format(cashbookDate, 'MMM d')} Cash Transactions
                   </h3>
                   <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-0.5">
-                    {cashTxnsTotalEntries} cash transaction{cashTxnsTotalEntries !== 1 ? 's' : ''} today
+                    {cashTxnsTotalEntries} cash transaction{cashTxnsTotalEntries !== 1 ? 's' : ''}{isCashbookToday ? ' today' : ''}
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => { fetchCashSummary(); fetchCashTxns(cashTxnsPage); }}
+                onClick={() => { fetchCashSummary(cashbookDate); fetchCashTxns(cashTxnsPage, cashbookDate); }}
                 className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground/50 hover:text-primary transition-all"
               >
                 <RefreshCw size={16} />
@@ -2465,7 +2539,7 @@ const TellerMode = () => {
           </div>
 
           {/* Denomination Counter */}
-          <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
+          <div className={`p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] ${!isCashbookToday ? 'opacity-60' : ''}`}>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
@@ -2474,18 +2548,20 @@ const TellerMode = () => {
                 <div>
                   <h3 className="text-lg font-black tracking-tight">Denomination Counter</h3>
                   <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-                    Count physical currency notes
+                    {isCashbookToday ? 'Count physical currency notes' : 'View only — historical date'}
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={handleSaveDenominations}
-                disabled={isSavingDenoms}
-                isLoading={isSavingDenoms}
-                className="h-10 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
-              >
-                {!isSavingDenoms && 'Save Count'}
-              </Button>
+              {isCashbookToday && (
+                <Button
+                  onClick={handleSaveDenominations}
+                  disabled={isSavingDenoms}
+                  isLoading={isSavingDenoms}
+                  className="h-10 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
+                >
+                  {!isSavingDenoms && 'Save Count'}
+                </Button>
+              )}
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
@@ -2512,7 +2588,8 @@ const TellerMode = () => {
                         setDenomCounts((prev) => ({ ...prev, [key]: val }));
                       }}
                       placeholder="0"
-                      className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background text-center text-lg font-black focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
+                      disabled={!isCashbookToday}
+                      className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background text-center text-lg font-black focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-center mt-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">
                       = {formatCurrency(subtotal)}
@@ -2579,7 +2656,7 @@ const TellerMode = () => {
           {/* Closing Cash Summary */}
           <div className="p-6 rounded-[2rem] bg-gradient-to-r from-emerald-500/5 to-indigo-500/5 border border-emerald-500/20 text-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-              Closing Cash Balance for Today
+              Closing Cash Balance for {isCashbookToday ? 'Today' : format(cashbookDate, 'MMM d, yyyy')}
             </p>
             <h4
               className={`text-2xl font-black ${cashSummary.closingCash >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
@@ -2587,7 +2664,7 @@ const TellerMode = () => {
               {formatCurrency(cashSummary.closingCash)}
             </h4>
             <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-2">
-              Opening {formatCurrency(cashSummary.openingCash)} + In {formatCurrency(cashSummary.cashIn)} − Out {formatCurrency(cashSummary.cashOut)}
+              Opening {formatCurrency(cashSummary.openingCash)}{cashSummary.isCarriedForward ? ' (C/F)' : ''} + In {formatCurrency(cashSummary.cashIn)} − Out {formatCurrency(cashSummary.cashOut)}
             </p>
           </div>
         </div>
