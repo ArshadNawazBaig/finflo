@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
 import { Globe, Users, Activity, Award } from 'lucide-react';
 import Logo from '@/components/Logo';
-import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import { getAppUrl, getLandingUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+
+// On finflo.org, app routes need to cross-domain to app.finflo.org
+const FooterLink = ({ to, children, isAppRoute = false, ...props }) => {
+  if (isAppRoute && IS_LANDING_DOMAIN && !IS_DEV) {
+    return <a href={getAppUrl(to)} {...props}>{children}</a>;
+  }
+  return <Link to={to} {...props}>{children}</Link>;
+};
 
 const Footer = () => {
   return (
@@ -17,42 +25,34 @@ const Footer = () => {
           </p>
           <div className="flex gap-4">
             {[
-              { Icon: Globe, link: '#architecture' },
-              { Icon: Users, link: '/join' },
-              { Icon: Activity, link: '/documentation/api' },
-              { Icon: Award, link: '/privacy' },
-            ].map(({ Icon, link }, i) => {
-              const IsExternal = link.startsWith('http');
-              const IsAnchor = link.startsWith('#');
+              { Icon: Globe, link: '#architecture', isApp: false },
+              { Icon: Users, link: '/join', isApp: true },
+              { Icon: Activity, link: '/documentation/api', isApp: false },
+              { Icon: Award, link: '/privacy', isApp: false },
+            ].map(({ Icon, link, isApp }, i) => {
+              const isAnchor = link.startsWith('#');
 
-              if (IsAnchor) {
+              if (isAnchor) {
                 return (
                   <a
                     key={i}
                     href={link}
                     className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
                   >
-                    <Icon
-                      size={20}
-                      strokeWidth={2.5}
-                      className="group-hover:scale-110 transition-transform"
-                    />
+                    <Icon size={20} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
                   </a>
                 );
               }
 
               return (
-                <Link
+                <FooterLink
                   key={i}
                   to={link}
+                  isAppRoute={isApp}
                   className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
                 >
-                  <Icon
-                    size={20}
-                    strokeWidth={2.5}
-                    className="group-hover:scale-110 transition-transform"
-                  />
-                </Link>
+                  <Icon size={20} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
+                </FooterLink>
               );
             })}
           </div>
@@ -115,18 +115,16 @@ const Footer = () => {
                 ].includes(item);
 
                 if (path) {
-                  if (IS_LANDING_DOMAIN && !IS_DEV && isAppLink) {
-                    return null; // Hide app links on landing domain
-                  }
                   return (
                     <li key={j} className="w-fit">
-                      <Link
+                      <FooterLink
                         to={path}
+                        isAppRoute={isAppLink}
                         className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
                       >
                         {item}
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-                      </Link>
+                      </FooterLink>
                     </li>
                   );
                 }

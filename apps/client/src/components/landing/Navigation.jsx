@@ -123,7 +123,6 @@ const Navigation = ({
                   </AppLink>
                 </>
               ) : (
-                (!IS_LANDING_DOMAIN || IS_DEV) && (
                 <>
                   <div className="relative" ref={loginMenuRef}>
                     <button
@@ -255,7 +254,6 @@ const Navigation = ({
                     </AnimatePresence>
                   </div>
                 </>
-                )
               )}
             </div>
             <button
@@ -334,9 +332,7 @@ const Navigation = ({
                 </>
               ) : (
                 <>
-                  {(!IS_LANDING_DOMAIN || IS_DEV) && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                         <AppLink
                           to="/register"
                           onClick={() => setIsMenuOpen(false)}
@@ -368,8 +364,6 @@ const Navigation = ({
                           Login as Member
                         </AppLink>
                       </div>
-                    </>
-                  )}
                 </>
               )}
             </div>
