@@ -6,56 +6,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-    dedupe: ['react', 'react-dom'],
-  },
-  optimizeDeps: {
-    include: ['html5-qrcode', 'qrcode.react'],
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['lucide-react', 'framer-motion'],
-        },
-      },
-    },
-    chunkSizeWarningLimit: 1000,
-  },
-  server: {
-    port: 5174,
-    host: true,
-    allowedHosts: [
-      'client-production-aea57.up.railway.app',
-      'finflo-production.up.railway.app',
-      'app.finflo.org',
-    ],
-    hmr: true,
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:5001',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/uploads': {
-        target: 'http://127.0.0.1:5001',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/socket.io': {
-        target: 'http://127.0.0.1:5001',
-        changeOrigin: true,
-        secure: false,
-        ws: true, // proxy WebSocket connections for Socket.io
-      },
-    },
+// Custom plugin to handle malformed URIs
+function uriSanitizer() {
+  return {
+    name: 'uri-sanitizer',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         try {
@@ -87,6 +41,64 @@ export default defineConfig({
           }
         }
       });
+    },
+  };
+}
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react(), uriSanitizer()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['html5-qrcode', 'qrcode.react'],
+    exclude: ['Dockerfile'],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['lucide-react', 'framer-motion'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
+  server: {
+    port: 5174,
+    host: true,
+    allowedHosts: [
+      'client-production-aea57.up.railway.app',
+      'finflo-production.up.railway.app',
+      'app.finflo.org',
+    ],
+    hmr: true,
+    fs: {
+      // Deny access to non-source files to prevent Vite from parsing them
+      deny: ['Dockerfile', 'nginx.conf', '.env', '.env.*'],
+    },
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true,
+        secure: false,
+        ws: true, // proxy WebSocket connections for Socket.io
+      },
     },
   },
 });
