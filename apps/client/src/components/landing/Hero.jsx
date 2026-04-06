@@ -40,7 +40,15 @@ const Hero = () => {
               transition={{ delay: 0.4, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start"
             >
-              {(!IS_LANDING_DOMAIN || IS_DEV) && (
+              {(IS_LANDING_DOMAIN && !IS_DEV) ? (
+                <a
+                  href={getAppUrl('/register')}
+                  className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
+                >
+                  Start Evolution Now
+                  <ArrowRight size={16} />
+                </a>
+              ) : (
                 <Link
                   to="/register"
                   className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
@@ -49,12 +57,21 @@ const Hero = () => {
                   <ArrowRight size={16} />
                 </Link>
               )}
-              <Link
-                to="/documentation"
-                className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
-              >
-                Read Technical Docs
-              </Link>
+              {(IS_LANDING_DOMAIN && !IS_DEV) ? (
+                <a
+                  href={getAppUrl('/documentation')}
+                  className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
+                >
+                  Read Technical Docs
+                </a>
+              ) : (
+                <Link
+                  to="/documentation"
+                  className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
+                >
+                  Read Technical Docs
+                </Link>
+              )}
             </motion.div>
 
             <motion.div
