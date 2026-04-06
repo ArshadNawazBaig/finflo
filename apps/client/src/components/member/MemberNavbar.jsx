@@ -11,6 +11,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
+import { getLandingUrl, IS_APP_DOMAIN, IS_DEV } from '@/lib/constants';
 import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
@@ -116,6 +117,17 @@ const MemberNavbar = ({ onMenuClick }) => {
                 <AlignLeft className="w-5 h-5" />
               </button>
             </Tooltip>
+
+            {/* Back to Corporate Landing — visible only on app.finflo.org */}
+            {(IS_APP_DOMAIN || IS_DEV) && (
+              <a
+                href={IS_DEV ? '/' : getLandingUrl('/')}
+                className="hidden lg:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group shrink-0"
+              >
+                <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+                Corporate Landing
+              </a>
+            )}
 
             <div className="flex-1 max-w-md hidden md:block">
               <GlobalSearch isMember={true} />

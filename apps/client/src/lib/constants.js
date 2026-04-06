@@ -32,5 +32,5 @@ export const getAppUrl = (path = '') => {
 export const getLandingUrl = (path = '') => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   if (IS_DEV) return cleanPath;
-  return `https://${LANDING_DOMAIN}${cleanPath}`;
+  return `https://www.${LANDING_DOMAIN}${cleanPath}`;
 };

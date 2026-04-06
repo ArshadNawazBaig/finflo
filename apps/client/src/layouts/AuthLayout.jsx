@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
+import { getLandingUrl, IS_DEV } from '@/lib/constants';
 
 const AuthLayout = ({
   children,
@@ -29,12 +30,12 @@ const AuthLayout = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Link
-              to="/"
+            <a
+              href={IS_DEV ? '/' : getLandingUrl('/')}
               className="relative z-10 flex items-center hover:scale-[1.01] transition-transform"
             >
               <Logo showText={true} innerTextColor="white" />
-            </Link>
+            </a>
           </motion.div>
         )}
 
@@ -127,12 +128,12 @@ const AuthLayout = ({
             >
               {showLogo && (
                 <div className="lg:hidden mb-12 flex justify-center">
-                  <Link
-                    to="/"
+                  <a
+                    href={IS_DEV ? '/' : getLandingUrl('/')}
                     className="inline-block hover:scale-[1.02] transition-transform active:scale-95"
                   >
                     <Logo showText={true} className="h-9" />
-                  </Link>
+                  </a>
                 </div>
               )}
               <div className="space-y-3 text-center">
@@ -163,8 +164,8 @@ const AuthLayout = ({
                 transition={{ delay: 0.2, duration: 0.6 }}
                 className="pt-10 border-t border-border/50 mt-12"
               >
-                <Link
-                  to="/"
+                <a
+                  href={IS_DEV ? '/' : getLandingUrl('/')}
                   className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:text-primary transition-all duration-300 group"
                 >
                   <ArrowLeft
@@ -172,7 +173,7 @@ const AuthLayout = ({
                     className="group-hover:-translate-x-1 transition-transform"
                   />
                   Back to Corporate Landing
-                </Link>
+                </a>
               </motion.div>
             )}
           </div>
