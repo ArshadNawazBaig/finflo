@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAtomValue } from 'jotai';
 import { userAtom } from '@/atoms';
@@ -36,6 +36,17 @@ const NotFound = lazy(() => import('@/pages/static/NotFound'));
 
 import { DomainRedirect } from '@/lib/routeUtils';
 
+// On app.finflo.org, root redirects to /login (or /dashboard if authenticated)
+const AppRootRedirect = () => {
+  const user = useAtomValue(userAtom);
+  if (user) {
+    return user.role === 'super_admin'
+      ? <Navigate to="/super-admin" replace />
+      : <Navigate to="/dashboard" replace />;
+  }
+  return <Navigate to="/login" replace />;
+};
+
 const PageLoader = () => <SplashScreen />;
 
 function App() {
@@ -69,7 +80,8 @@ function App() {
             ) : (
               <>
                 {/* On App Domain, / redirects to login or dashboard */}
-                <Route path="/" element={<Landing />} />
+                {/* In dev mode, show landing at / for convenience */}
+                <Route path="/" element={IS_DEV ? <Landing /> : <AppRootRedirect />} />
 
                 {/* Shared Top-level Routes */}
                 <Route path="/loan-lookup" element={<LoanLookup />} />

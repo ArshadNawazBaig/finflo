@@ -76,6 +76,8 @@ export default defineConfig({
       'client-production-aea57.up.railway.app',
       'finflo-production.up.railway.app',
       'app.finflo.org',
+      'finflo.org',
+      'www.finflo.org',
     ],
     hmr: true,
     fs: {
