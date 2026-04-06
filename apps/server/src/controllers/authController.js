@@ -234,13 +234,16 @@ const loginUser = async (req, res) => {
         if (managedBranch) branchId = managedBranch._id;
 
         if (user.ownerId) {
-          const owner = await User.findById(user.ownerId).select('plan businessName businessLogo businessAddress businessAbbreviation');
+          const owner = await User.findById(user.ownerId).select(
+            'plan businessName businessLogo businessAddress businessAbbreviation',
+          );
           if (owner) {
             user.plan = owner.plan;
             // Always use the owner's branding for staff/managers
             if (owner.businessName) user.businessName = owner.businessName;
             if (owner.businessLogo) user.businessLogo = owner.businessLogo;
-            if (owner.businessAbbreviation) user.businessAbbreviation = owner.businessAbbreviation;
+            if (owner.businessAbbreviation)
+              user.businessAbbreviation = owner.businessAbbreviation;
           }
         }
       }
