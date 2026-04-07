@@ -26,7 +26,7 @@ const Navbar = ({ onMenuClick }) => {
 
   const [notifications, setNotifications] = useAtom(notificationsAtom);
   const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
-  const [, setGlobalUser] = useAtom(userAtom);
+  const [user, setGlobalUser] = useAtom(userAtom);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -87,18 +87,6 @@ const Navbar = ({ onMenuClick }) => {
     navigate('/login');
   };
 
-  const [user, setUser] = useState(() =>
-    (JSON.parse(localStorage.getItem('user') || '{}') || {}),
-  );
-
-  useEffect(() => {
-    const handleUserUpdate = () => {
-      setUser((JSON.parse(localStorage.getItem('user') || '{}') || {}));
-    };
-
-    window.addEventListener('userUpdated', handleUserUpdate);
-    return () => window.removeEventListener('userUpdated', handleUserUpdate);
-  }, []);
 
   const userInitials = user.name
     ? user.name
