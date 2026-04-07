@@ -62,8 +62,37 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
+          // Core React runtime — always needed
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['lucide-react', 'framer-motion'],
+          // UI primitives loaded on most pages
+          'vendor-ui': ['lucide-react', '@headlessui/react'],
+          // Radix primitives
+          'vendor-radix': [
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-label',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-tooltip',
+          ],
+          // Animation — only dashboard/landing
+          'vendor-motion': ['framer-motion'],
+          // Charts — only Reports/Dashboard
+          'vendor-charts': ['recharts'],
+          // PDF export — only triggered on demand
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+          // 3D / Three.js — only landing page scenes
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          // Realtime — only chat/notifications
+          'vendor-socket': ['socket.io-client'],
+          // Form utilities
+          'vendor-forms': ['react-hook-form'],
+          // Date utilities
+          'vendor-dates': ['date-fns', 'react-day-picker'],
+          // State management
+          'vendor-state': ['jotai'],
         },
       },
     },

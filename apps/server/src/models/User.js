@@ -46,6 +46,13 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
+    // Cached branch manager status — updated when branch manager is assigned/removed.
+    // Avoids a Branch.findOne() on every authenticated request for staff users.
+    managedBranchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+      default: null,
+    },
     businessName: { type: String, default: '' },
     profilePicture: { type: String, default: '' },
     businessLogo: { type: String, default: '' },

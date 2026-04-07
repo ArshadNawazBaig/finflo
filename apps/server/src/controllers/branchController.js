@@ -71,7 +71,12 @@ const createBranch = async (req, res) => {
     });
 
     if (managerId) {
-      await User.findByIdAndUpdate(managerId, { branchId: branch._id });
+      // Store both branchId (member of) and managedBranchId (managed by) on the User
+      // so the auth middleware can derive isManager without a DB query.
+      await User.findByIdAndUpdate(managerId, {
+        branchId: branch._id,
+        managedBranchId: branch._id,
+      });
       try {
         const Notification = require('../models/Notification');
         await new Notification({
@@ -212,15 +217,18 @@ const updateBranch = async (req, res) => {
       managerId !== undefined &&
       currentManagerId !== (newManagerId?.toString() || null)
     ) {
-      // Remove branchId from old manager if they existed
+      // Remove branchId and managedBranchId from old manager if they existed
       if (currentManagerId) {
         await User.findByIdAndUpdate(currentManagerId, {
-          $unset: { branchId: 1 },
+          $unset: { branchId: 1, managedBranchId: 1 },
         });
       }
-      // Add branchId to new manager if they exist
+      // Add branchId and managedBranchId to new manager if they exist
       if (newManagerId) {
-        await User.findByIdAndUpdate(newManagerId, { branchId: branch._id });
+        await User.findByIdAndUpdate(newManagerId, {
+          branchId: branch._id,
+          managedBranchId: branch._id,
+        });
         try {
           const Notification = require('../models/Notification');
           await new Notification({

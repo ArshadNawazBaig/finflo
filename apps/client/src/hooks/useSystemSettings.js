@@ -1,24 +1,44 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 
+// Module-level cache shared across all hook instances — avoids blocking
+// the entire app on every cold load with a new DB round-trip.
+let _cachedSettings = null;
+let _cacheExpiresAt = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 const useSystemSettings = () => {
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState(() => {
+    // Immediately seed from cache if fresh — prevents spinner on nav
+    if (_cachedSettings && Date.now() < _cacheExpiresAt) {
+      return _cachedSettings;
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(() => {
+    // If cache is warm, we don't need to show loader at all
+    return !(_cachedSettings && Date.now() < _cacheExpiresAt);
+  });
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Cache is still fresh — no fetch needed
+    if (_cachedSettings && Date.now() < _cacheExpiresAt) {
+      return;
+    }
+
     const fetchSettings = async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
       try {
         setLoading(true);
-        console.log('[useSystemSettings] Fetching system settings...');
-        const { data } = await api.get(`/system-settings?t=${Date.now()}`, {
+        const { data } = await api.get('/system-settings', {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
-        console.log('[useSystemSettings] System settings loaded:', !!data);
+        _cachedSettings = data;
+        _cacheExpiresAt = Date.now() + CACHE_TTL_MS;
         setSettings(data);
       } catch (err) {
         if (err.name === 'AbortError' || err.code === 'ECONNABORTED') {

@@ -41,30 +41,6 @@ const getDashboardStats = async (req, res) => {
     const { start: currentStart, end: currentEnd } = getMonthDates(0);
     const { start: prevStart, end: prevEnd } = getMonthDates(1);
 
-    // Self-healing: Link orphan loans/repayments to branch if missing
-    // This resolves discrepancies where global admin sees more profit than branch view
-    try {
-      const orphans = await Loan.find({
-        ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
-        branchId: { $exists: false },
-      }).populate('customer', 'branchId');
-
-      if (orphans.length > 0) {
-        for (const loan of orphans) {
-          if (loan.customer?.branchId) {
-            await Loan.findByIdAndUpdate(loan._id, {
-              branchId: loan.customer.branchId,
-            });
-            await Repayment.updateMany(
-              { loan: loan._id, branchId: { $exists: false } },
-              { branchId: loan.customer.branchId },
-            );
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Self-healing failed:', e);
-    }
 
     // 1. Repayment & Profit Aggregation
     const repaymentStats = await Repayment.aggregate([

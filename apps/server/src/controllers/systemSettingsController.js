@@ -51,6 +51,7 @@ const updateSystemSettings = async (req, res) => {
 
     settings.updatedBy = req.user._id;
     await settings.save();
+    SystemSettings.invalidateCache(); // Clear model-level cache
     invalidateSettingsCache(); // Clear SMTP/settings cache immediately
 
     // Log activity
@@ -92,6 +93,7 @@ const resetToDefaults = async (req, res) => {
     const newSettings = await SystemSettings.create({
       updatedBy: req.user._id,
     });
+    SystemSettings.invalidateCache(); // Clear model-level cache
     invalidateSettingsCache(); // Clear SMTP/settings cache immediately
 
     // Log activity

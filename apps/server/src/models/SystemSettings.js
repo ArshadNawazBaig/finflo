@@ -247,13 +247,32 @@ const systemSettingsSchema = new mongoose.Schema(
   },
 );
 
+// Module-level cache — one DB query per minute maximum across all callers
+let _settingsCache = null;
+let _settingsCacheExpiresAt = 0;
+const SETTINGS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
 // Ensure only one settings document exists
 systemSettingsSchema.statics.getSettings = async function () {
+  // Return cached value immediately if still fresh
+  if (_settingsCache && Date.now() < _settingsCacheExpiresAt) {
+    return _settingsCache;
+  }
+
   let settings = await this.findOne();
   if (!settings) {
     settings = await this.create({});
   }
+
+  _settingsCache = settings;
+  _settingsCacheExpiresAt = Date.now() + SETTINGS_CACHE_TTL_MS;
   return settings;
+};
+
+// Call this whenever settings are mutated so cache is immediately invalidated
+systemSettingsSchema.statics.invalidateCache = function () {
+  _settingsCache = null;
+  _settingsCacheExpiresAt = 0;
 };
 
 module.exports = mongoose.model('SystemSettings', systemSettingsSchema);

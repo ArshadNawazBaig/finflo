@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const Branch = require('../models/Branch');
 
 const protect = async (req, res, next) => {
   let token;
@@ -30,11 +29,12 @@ const protect = async (req, res, next) => {
       // Use centralized permission logic from model
       req.user.permissions = req.user.getPermissions();
 
-      // Check if this staff member is a branch manager
+      // Branch manager status is stored on the User document (managedBranchId field).
+      // This avoids a Branch.findOne() DB query on every single request for staff users.
       if (req.user.role === 'staff') {
-        const managedBranch = await Branch.findOne({ manager: req.user._id });
-        req.user.isManager = !!managedBranch;
-        req.user.managedBranchId = managedBranch ? managedBranch._id : null;
+        const cachedManagedBranchId = req.user.managedBranchId || null;
+        req.user.isManager = !!cachedManagedBranchId;
+        req.user.managedBranchId = cachedManagedBranchId;
       } else {
         req.user.isManager = false;
         req.user.managedBranchId = null;
