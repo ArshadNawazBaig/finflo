@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sun, Moon, ChevronRight, X, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -142,57 +141,59 @@ const Navigation = ({
                         )}
                       />
                     </button>
-                    <AnimatePresence>
-                      {isLoginMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl"
-                        >
-                          <div className="p-2">
-                            <AppLink
-                              to="/login"
-                              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
-                              onClick={() => setIsLoginMenuOpen(false)}
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                <ChevronRight size={14} />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-black uppercase tracking-wider">
-                                  As Business
-                                </span>
-                                <span className="text-[10px] text-slate-500">
-                                  Access admin portal
-                                </span>
-                              </div>
-                            </AppLink>
-                            <AppLink
-                              to="/member/login"
-                              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
-                              onClick={() => setIsLoginMenuOpen(false)}
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                <ChevronRight size={14} />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-black uppercase tracking-wider">
-                                  As Member
-                                </span>
-                                <span className="text-[10px] text-slate-500">
-                                  Access member portal
-                                </span>
-                              </div>
-                            </AppLink>
-                          </div>
-                        </motion.div>
+                    <div
+                      className={cn(
+                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl',
+                        'transition-all duration-150 origin-top-right',
+                        isLoginMenuOpen
+                          ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
                       )}
-                    </AnimatePresence>
+                    >
+                      <div className="p-2">
+                        <AppLink
+                          to="/login"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+                          onClick={() => setIsLoginMenuOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            <ChevronRight size={14} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-wider">
+                              As Business
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Access admin portal
+                            </span>
+                          </div>
+                        </AppLink>
+                        <AppLink
+                          to="/member/login"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+                          onClick={() => setIsLoginMenuOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <ChevronRight size={14} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-wider">
+                              As Member
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Access member portal
+                            </span>
+                          </div>
+                        </AppLink>
+                      </div>
+                    </div>
                   </div>
                   <div className="relative" ref={joinMenuRef}>
                     <button
-                      onClick={() => setIsJoinMenuOpen(!isJoinMenuOpen)}
+                      onClick={() => {
+                        setIsJoinMenuOpen(!isJoinMenuOpen);
+                        setIsLoginMenuOpen(false);
+                      }}
                       className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
                     >
                       Join
@@ -205,53 +206,52 @@ const Navigation = ({
                         )}
                       />
                     </button>
-                    <AnimatePresence>
-                      {isJoinMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl"
-                        >
-                          <div className="p-2">
-                            <AppLink
-                              to="/register"
-                              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
-                              onClick={() => setIsJoinMenuOpen(false)}
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                <ChevronRight size={14} />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-black uppercase tracking-wider">
-                                  As Business
-                                </span>
-                                <span className="text-[10px] text-slate-500">
-                                  Register your company
-                                </span>
-                              </div>
-                            </AppLink>
-                            <AppLink
-                              to="/join"
-                              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
-                              onClick={() => setIsJoinMenuOpen(false)}
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                <ChevronRight size={14} />
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-black uppercase tracking-wider">
-                                  As Member
-                                </span>
-                                <span className="text-[10px] text-slate-500">
-                                  Join a business group
-                                </span>
-                              </div>
-                            </AppLink>
-                          </div>
-                        </motion.div>
+                    <div
+                      className={cn(
+                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl',
+                        'transition-all duration-150 origin-top-right',
+                        isJoinMenuOpen
+                          ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
                       )}
-                    </AnimatePresence>
+                    >
+                      <div className="p-2">
+                        <AppLink
+                          to="/register"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+                          onClick={() => setIsJoinMenuOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            <ChevronRight size={14} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-wider">
+                              As Business
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Register your company
+                            </span>
+                          </div>
+                        </AppLink>
+                        <AppLink
+                          to="/join"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+                          onClick={() => setIsJoinMenuOpen(false)}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <ChevronRight size={14} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-black uppercase tracking-wider">
+                              As Member
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Join a business group
+                            </span>
+                          </div>
+                        </AppLink>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
@@ -266,15 +266,14 @@ const Navigation = ({
         </div>
       </nav>
 
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[150] bg-white dark:bg-slate-950 lg:hidden flex flex-col p-8"
-          >
+      <div
+        className={cn(
+          'fixed inset-0 z-[150] bg-white dark:bg-slate-950 lg:hidden flex flex-col p-8',
+          'transition-transform duration-[250ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
+          isMenuOpen ? 'translate-x-0' : 'translate-x-full',
+        )}
+        aria-hidden={!isMenuOpen}
+      >
             <div className="flex justify-end mb-12">
               <button
                 onClick={() => setIsMenuOpen(false)}
@@ -367,9 +366,7 @@ const Navigation = ({
                 </>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </>
   );
 };
