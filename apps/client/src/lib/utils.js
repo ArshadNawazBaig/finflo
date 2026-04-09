@@ -88,6 +88,14 @@ export const formatCurrency = (num) => {
   }
   return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
+export const formatFullCurrency = (num) => {
+  const symbol = getCurrencySymbol();
+  if (num === undefined || num === null) return `${symbol}0`;
+  num = Math.round(num);
+  const isNegative = num < 0;
+  const absNum = Math.abs(num);
+  return `${isNegative ? '-' : ''}${symbol}${absNum.toLocaleString()}`;
+};
 export const formatCompactValue = (num) => {
   if (num === undefined || num === null) return '0';
   num = Math.round(num);

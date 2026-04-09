@@ -64,7 +64,7 @@ import {
   Cell,
 } from 'recharts';
 import api from '@/lib/axios';
-import { formatCurrency, formatCompactValue, cn } from '@/lib/utils';
+import { formatFullCurrency as formatCurrency, formatCurrency as formatCompactCurrency, formatCompactValue, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
@@ -955,7 +955,7 @@ const Reports = () => {
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <StatsCard
                 title="Total Volume"
-                amount={formatCurrency(summary.totalVolume)}
+                amount={formatCompactCurrency(summary.totalVolume)}
                 percentage={parseFloat(summary.totalVolumeChange)}
                 icon={<DollarSign size={20} />}
                 color="bg-primary shadow-primary/20"
