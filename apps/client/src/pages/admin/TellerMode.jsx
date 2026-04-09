@@ -29,8 +29,22 @@ import {
   Download,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, startOfDay, endOfDay, addDays, isToday, isFuture } from 'date-fns';
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  addDays,
+  isToday,
+  isFuture,
+} from 'date-fns';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import Pagination from '@/components/ui/Pagination';
 import TransactionCard from '@/components/payments/TransactionCard';
@@ -68,8 +82,10 @@ const TellerMode = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [applyDeduction, setApplyDeduction] = useState(false);
   const [repaymentType, setRepaymentType] = useState('installment');
-  const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] = useState(null);
-  const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] = useState(false);
+  const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] =
+    useState(null);
+  const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] =
+    useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'online'
 
   // ── Recent Transactions ───────────────────────
@@ -135,14 +151,27 @@ const TellerMode = () => {
   const [cashTxnsTotalPages, setCashTxnsTotalPages] = useState(0);
   const [cashTxnsTotalEntries, setCashTxnsTotalEntries] = useState(0);
   const isCashbookToday = isToday(cashbookDate);
+  const [showDenomModal, setShowDenomModal] = useState(false);
 
   // Denomination tracking
   const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1];
   const [denomCounts, setDenomCounts] = useState({
-    d1: 0, d2: 0, d5: 0, d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0,
+    d1: 0,
+    d2: 0,
+    d5: 0,
+    d10: 0,
+    d20: 0,
+    d50: 0,
+    d100: 0,
+    d500: 0,
+    d1000: 0,
+    d5000: 0,
   });
   const [isSavingDenoms, setIsSavingDenoms] = useState(false);
-  const denomTotal = DENOMINATIONS.reduce((sum, d) => sum + d * (denomCounts[`d${d}`] || 0), 0);
+  const denomTotal = DENOMINATIONS.reduce(
+    (sum, d) => sum + d * (denomCounts[`d${d}`] || 0),
+    0,
+  );
 
   const [user] = useState(() =>
     JSON.parse(localStorage.getItem('user') || '{}'),
@@ -317,11 +346,13 @@ const TellerMode = () => {
       setIsExportingJournal(true);
       const { exportJournalPDF } = await import('@/lib/pdfExportUtils');
 
-      // Fetch ALL journal records for the selected date range 
+      // Fetch ALL journal records for the selected date range
       const { data } = await api.get('/ledger', {
         params: {
           startDate: startOfDay(selectedDate?.from || new Date()).toISOString(),
-          endDate: endOfDay(selectedDate?.to || selectedDate?.from || new Date()).toISOString(),
+          endDate: endOfDay(
+            selectedDate?.to || selectedDate?.from || new Date(),
+          ).toISOString(),
           page: 1,
           limit: 2000,
         },
@@ -379,18 +410,33 @@ const TellerMode = () => {
         businessContext: ctx,
         title: 'Member Activity Statement',
         leftDetails: [
-          { label: 'Account Holder', value: toTitleCase(member.name || 'Member') },
-          { label: 'Member ID', value: member.memberId || member._id?.slice(-6).toUpperCase() },
+          {
+            label: 'Account Holder',
+            value: toTitleCase(member.name || 'Member'),
+          },
+          {
+            label: 'Member ID',
+            value: member.memberId || member._id?.slice(-6).toUpperCase(),
+          },
           { label: 'CNIC', value: member.cnic || 'N/A' },
         ],
         rightDetails: [
           { label: 'Statement Date', value: new Date().toLocaleDateString() },
-          { label: 'Current Balance', value: formatCurrency(member.currentBalance || 0) },
+          {
+            label: 'Current Balance',
+            value: formatCurrency(member.currentBalance || 0),
+          },
           { label: 'Currency', value: ctx.currency },
         ],
       });
 
-      const tableColumn = ['Date', 'Description', 'Type', 'Amount', 'Balance After'];
+      const tableColumn = [
+        'Date',
+        'Description',
+        'Type',
+        'Amount',
+        'Balance After',
+      ];
       const tableRows = reportData.map((item) => {
         const isWithdrawal = item.type?.toLowerCase() === 'expense';
         return [
@@ -462,7 +508,9 @@ const TellerMode = () => {
         },
       });
 
-      const reportData = (data?.data || []).filter(t => t.category !== 'cash_opening');
+      const reportData = (data?.data || []).filter(
+        (t) => t.category !== 'cash_opening',
+      );
 
       const ctx = getBusinessContext();
       const doc = new jsPDF();
@@ -498,7 +546,12 @@ const TellerMode = () => {
           ['Total Transactions', String(cashTxnsTotalEntries)],
         ],
         theme: 'grid',
-        headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        headStyles: {
+          fillColor: [64, 53, 100],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9,
+        },
         styles: { fontSize: 9, cellPadding: 4 },
         columnStyles: {
           0: { fontStyle: 'bold', textColor: [100, 100, 100] },
@@ -517,7 +570,10 @@ const TellerMode = () => {
         doc.text('Cash Transaction Details', 14, tableY);
 
         const tableRows = reportData.map((txn) => {
-          const isIn = txn.type === 'income' || (txn.category || '').includes('deposit') || (txn.category || '').includes('repayment');
+          const isIn =
+            txn.type === 'income' ||
+            (txn.category || '').includes('deposit') ||
+            (txn.category || '').includes('repayment');
           return [
             format(new Date(txn.date || txn.createdAt), 'hh:mm a'),
             txn.member?.name || '\u2014',
@@ -530,10 +586,24 @@ const TellerMode = () => {
 
         autoTable(doc, {
           startY: tableY + 4,
-          head: [['Time', 'Member', 'Category', 'Description', 'Cash Out', 'Cash In']],
+          head: [
+            [
+              'Time',
+              'Member',
+              'Category',
+              'Description',
+              'Cash Out',
+              'Cash In',
+            ],
+          ],
           body: tableRows,
           theme: 'grid',
-          headStyles: { fillColor: [64, 53, 100], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+          headStyles: {
+            fillColor: [64, 53, 100],
+            textColor: 255,
+            fontStyle: 'bold',
+            fontSize: 9,
+          },
           styles: { fontSize: 8, cellPadding: 3 },
           columnStyles: {
             4: { halign: 'right', fontStyle: 'bold' },
@@ -558,7 +628,6 @@ const TellerMode = () => {
     }
   };
 
-
   const fetchJournal = async (
     isAppend = false,
     pageOverride,
@@ -575,8 +644,12 @@ const TellerMode = () => {
     try {
       const pageToFetch =
         pageOverride || (isAppend ? journalPage + 1 : journalPage);
-      const startDate = startOfDay(selectedDate?.from || new Date()).toISOString();
-      const endDate = endOfDay(selectedDate?.to || selectedDate?.from || new Date()).toISOString();
+      const startDate = startOfDay(
+        selectedDate?.from || new Date(),
+      ).toISOString();
+      const endDate = endOfDay(
+        selectedDate?.to || selectedDate?.from || new Date(),
+      ).toISOString();
 
       const { data } = await api.get('/ledger', {
         params: {
@@ -704,8 +777,7 @@ const TellerMode = () => {
         notes: description || undefined,
         accountType,
         paymentMethod,
-        applyDeduction:
-          accountType === 'current' ? applyDeduction : false,
+        applyDeduction: accountType === 'current' ? applyDeduction : false,
         repaymentType:
           accountType === 'current' && applyDeduction
             ? repaymentType
@@ -805,7 +877,9 @@ const TellerMode = () => {
     try {
       const targetDate = dateOverride || cashbookDate;
       const dateParam = format(targetDate, 'yyyy-MM-dd');
-      const { data } = await api.get('/ledger/cash-summary', { params: { date: dateParam } });
+      const { data } = await api.get('/ledger/cash-summary', {
+        params: { date: dateParam },
+      });
       setCashSummary(data);
       if (data.hasOpening || data.isCarriedForward) {
         setCashOpeningInput(String(data.openingCash));
@@ -837,7 +911,9 @@ const TellerMode = () => {
         },
       });
       // Filter out cash_opening entries from the display list
-      const txns = (data?.data || []).filter(t => t.category !== 'cash_opening');
+      const txns = (data?.data || []).filter(
+        (t) => t.category !== 'cash_opening',
+      );
       setCashTxns(txns);
       setCashTxnsTotalPages(data.totalPages || 0);
       setCashTxnsTotalEntries(data.totalEntries || 0);
@@ -868,10 +944,14 @@ const TellerMode = () => {
   const handleSaveDenominations = async () => {
     setIsSavingDenoms(true);
     try {
-      await api.post('/ledger/cash-denominations', { denominations: denomCounts });
+      await api.post('/ledger/cash-denominations', {
+        denominations: denomCounts,
+      });
       toast.success('Denomination count saved');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save denominations');
+      toast.error(
+        err.response?.data?.message || 'Failed to save denominations',
+      );
     } finally {
       setIsSavingDenoms(false);
     }
@@ -990,15 +1070,11 @@ const TellerMode = () => {
         if (reps.length > 0) {
           setLastActiveLoanPaymentDate(new Date(reps[0].date));
         } else {
-          setLastActiveLoanPaymentDate(
-            new Date(tellerActiveLoan.startDate),
-          );
+          setLastActiveLoanPaymentDate(new Date(tellerActiveLoan.startDate));
         }
       })
       .catch(() =>
-        setLastActiveLoanPaymentDate(
-          new Date(tellerActiveLoan.startDate),
-        ),
+        setLastActiveLoanPaymentDate(new Date(tellerActiveLoan.startDate)),
       )
       .finally(() => setIsFetchingActiveLoanPayment(false));
   }, [tellerActiveLoan?._id]);
@@ -1722,7 +1798,9 @@ const TellerMode = () => {
                                               </p>
                                               {!isFetchingActiveLoanPayment && (
                                                 <span className="text-[8px] font-black uppercase bg-indigo-500/20 text-indigo-600 px-1 py-0.5 rounded-full">
-                                                  {autoDeductionDaily.daysPassed}
+                                                  {
+                                                    autoDeductionDaily.daysPassed
+                                                  }
                                                   d
                                                 </span>
                                               )}
@@ -1987,7 +2065,9 @@ const TellerMode = () => {
                                 <div className="text-right">
                                   <p
                                     className={`text-sm font-black ${
-                                      isIn ? 'text-emerald-500' : 'text-rose-500'
+                                      isIn
+                                        ? 'text-emerald-500'
+                                        : 'text-rose-500'
                                     }`}
                                   >
                                     {isIn ? '+' : '-'}
@@ -2001,16 +2081,22 @@ const TellerMode = () => {
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
-                                      const { generateTransactionReceipt } = await import('@/lib/pdfExportUtils');
+                                      const { generateTransactionReceipt } =
+                                        await import('@/lib/pdfExportUtils');
                                       await generateTransactionReceipt({
                                         member,
-                                        type: txn.category || txn.type || 'transaction',
+                                        type:
+                                          txn.category ||
+                                          txn.type ||
+                                          'transaction',
                                         amount: txn.amount,
-                                        description: txn.description || txn.notes || '',
+                                        description:
+                                          txn.description || txn.notes || '',
                                         date: txn.date || txn.createdAt,
                                         balanceAfter: txn.balanceAfter,
                                         referenceId: txn._id,
-                                        accountType: txn.accountType || 'current',
+                                        accountType:
+                                          txn.accountType || 'current',
                                       });
                                       toast.success('Receipt downloaded');
                                     } catch (err) {
@@ -2041,34 +2127,34 @@ const TellerMode = () => {
                     {!recentTxnsLoading && (
                       <div className="mt-8">
                         {!isMobile && recentTxnsTotalPages > 1 && (
-                        <div className="pt-6 border-t border-border/30">
-                          <Pagination
-                            currentPage={recentTxnsPage}
-                            totalPages={recentTxnsTotalPages}
-                            totalEntries={recentTxnsTotalEntries}
-                            limit={recentTxnsLimit}
-                            onPageChange={(p) =>
-                              fetchRecentTxns(member._id, p, false)
-                            }
-                            onLimitChange={(newLimit) => {
-                              setRecentTxnsLimit(newLimit);
-                              setRecentTxnsPage(1);
-                              fetchRecentTxns(member._id, 1, false, newLimit);
-                            }}
-                          />
-                        </div>
-                      )}
+                          <div className="pt-6 border-t border-border/30">
+                            <Pagination
+                              currentPage={recentTxnsPage}
+                              totalPages={recentTxnsTotalPages}
+                              totalEntries={recentTxnsTotalEntries}
+                              limit={recentTxnsLimit}
+                              onPageChange={(p) =>
+                                fetchRecentTxns(member._id, p, false)
+                              }
+                              onLimitChange={(newLimit) => {
+                                setRecentTxnsLimit(newLimit);
+                                setRecentTxnsPage(1);
+                                fetchRecentTxns(member._id, 1, false, newLimit);
+                              }}
+                            />
+                          </div>
+                        )}
 
-                      {isMobile && recentTxnsTotalPages > 1 && (
-                        <div ref={recentTxnsObserverTarget} className="py-2">
-                          <InfiniteLoader
-                            isFetchingMore={isFetchingMoreRecent}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        {isMobile && recentTxnsTotalPages > 1 && (
+                          <div ref={recentTxnsObserverTarget} className="py-2">
+                            <InfiniteLoader
+                              isFetchingMore={isFetchingMoreRecent}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               ) : (
                 /* Landing State when no member selected */
@@ -2282,113 +2368,115 @@ const TellerMode = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/30">
-                         {(() => {
-                           // 1. Reverse the transactions to compute the running total chronologically
-                           const journalWithBalances = [];
-                           let runningSum = journalPriorBalance;
+                        {(() => {
+                          // 1. Reverse the transactions to compute the running total chronologically
+                          const journalWithBalances = [];
+                          let runningSum = journalPriorBalance;
 
-                           [...journalTxns]
-                             .reverse()
-                             .forEach((txn) => {
-                               const isIn =
-                                 txn.type === 'income' ||
-                                 (txn.category || '').includes('repayment') ||
-                                 (txn.category || '').includes('deposit');
-                               
-                               runningSum += txn.amount * (isIn ? 1 : -1);
-                               journalWithBalances.push({
-                                 ...txn,
-                                 computedBalance: runningSum,
-                               });
-                             });
+                          [...journalTxns].reverse().forEach((txn) => {
+                            const isIn =
+                              txn.type === 'income' ||
+                              (txn.category || '').includes('repayment') ||
+                              (txn.category || '').includes('deposit');
 
-                           // 2. Reverse back to descending order for the UI
-                           return journalWithBalances
-                             .reverse()
-                             .map((txn, i) => {
-                               const isIn =
-                                 txn.type === 'income' ||
-                                 (txn.category || '').includes('repayment') ||
-                                 (txn.category || '').includes('deposit');
+                            runningSum += txn.amount * (isIn ? 1 : -1);
+                            journalWithBalances.push({
+                              ...txn,
+                              computedBalance: runningSum,
+                            });
+                          });
 
-                               return (
-                                 <tr
-                                   key={txn._id || i}
-                                   className="group hover:bg-muted/5 transition-colors"
-                                 >
-                                   <td className="py-5 px-2">
-                                     <div className="flex items-center gap-2">
-                                       <Clock
-                                         size={12}
-                                         className="text-muted-foreground"
-                                       />
-                                       <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
-                                         {format(new Date(txn.date), 'MMM d, p')}
-                                       </span>
-                                     </div>
-                                   </td>
-                                   <td className="py-5 px-2">
-                                     <div className="flex items-center gap-2">
-                                       {txn.member ? (
-                                         <>
-                                           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
-                                             {txn.member.name
-                                               ?.charAt(0)
-                                               .toUpperCase()}
-                                           </div>
-                                           <p className="text-sm font-black capitalize truncate max-w-[120px]">
-                                             {txn.member.name}
-                                           </p>
-                                         </>
-                                       ) : (
-                                         <span className="text-xs font-bold text-muted-foreground">
-                                           —
-                                         </span>
-                                       )}
-                                     </div>
-                                   </td>
-                                   <td className="py-5 px-2">
-                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-2 py-1 rounded-lg bg-muted/40 whitespace-nowrap">
-                                       {txn.category?.replace(/_/g, ' ')}
-                                     </span>
-                                   </td>
-                                   <td className="py-5 px-2 max-w-[200px]">
-                                     <p className="text-xs text-muted-foreground truncate italic">
-                                       {txn.description || txn.category?.replace(/_/g, ' ') || '—'}
-                                     </p>
-                                     {txn.notes && (
-                                       <p className="text-[10px] text-muted-foreground/50 truncate mt-0.5">
-                                         {txn.notes}
-                                       </p>
-                                     )}
-                                   </td>
-                                   <td className="py-5 px-2 text-right">
-                                     {!isIn ? (
-                                       <p className="text-sm font-black text-rose-500">
-                                         -{formatCurrency(txn.amount)}
-                                       </p>
-                                     ) : (
-                                       <span className="text-xs font-bold text-muted-foreground/30">—</span>
-                                     )}
-                                   </td>
-                                   <td className="py-5 px-2 text-right">
-                                     {isIn ? (
-                                       <p className="text-sm font-black text-emerald-500">
-                                         +{formatCurrency(txn.amount)}
-                                       </p>
-                                     ) : (
-                                       <span className="text-xs font-bold text-muted-foreground/30">—</span>
-                                     )}
-                                   </td>
-                                   <td className="py-5 px-2 text-right">
-                                     <p className="text-xs font-black text-muted-foreground">
-                                       {formatCurrency(txn.computedBalance)}
-                                     </p>
-                                   </td>
-                                 </tr>
-                               );
-                             });
-                         })()}
+                          // 2. Reverse back to descending order for the UI
+                          return journalWithBalances.reverse().map((txn, i) => {
+                            const isIn =
+                              txn.type === 'income' ||
+                              (txn.category || '').includes('repayment') ||
+                              (txn.category || '').includes('deposit');
+
+                            return (
+                              <tr
+                                key={txn._id || i}
+                                className="group hover:bg-muted/5 transition-colors"
+                              >
+                                <td className="py-5 px-2">
+                                  <div className="flex items-center gap-2">
+                                    <Clock
+                                      size={12}
+                                      className="text-muted-foreground"
+                                    />
+                                    <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                                      {format(new Date(txn.date), 'MMM d, p')}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-5 px-2">
+                                  <div className="flex items-center gap-2">
+                                    {txn.member ? (
+                                      <>
+                                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
+                                          {txn.member.name
+                                            ?.charAt(0)
+                                            .toUpperCase()}
+                                        </div>
+                                        <p className="text-sm font-black capitalize truncate max-w-[120px]">
+                                          {txn.member.name}
+                                        </p>
+                                      </>
+                                    ) : (
+                                      <span className="text-xs font-bold text-muted-foreground">
+                                        —
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-5 px-2">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-2 py-1 rounded-lg bg-muted/40 whitespace-nowrap">
+                                    {txn.category?.replace(/_/g, ' ')}
+                                  </span>
+                                </td>
+                                <td className="py-5 px-2 max-w-[200px]">
+                                  <p className="text-xs text-muted-foreground truncate italic">
+                                    {txn.description ||
+                                      txn.category?.replace(/_/g, ' ') ||
+                                      '—'}
+                                  </p>
+                                  {txn.notes && (
+                                    <p className="text-[10px] text-muted-foreground/50 truncate mt-0.5">
+                                      {txn.notes}
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="py-5 px-2 text-right">
+                                  {!isIn ? (
+                                    <p className="text-sm font-black text-rose-500">
+                                      -{formatCurrency(txn.amount)}
+                                    </p>
+                                  ) : (
+                                    <span className="text-xs font-bold text-muted-foreground/30">
+                                      —
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-5 px-2 text-right">
+                                  {isIn ? (
+                                    <p className="text-sm font-black text-emerald-500">
+                                      +{formatCurrency(txn.amount)}
+                                    </p>
+                                  ) : (
+                                    <span className="text-xs font-bold text-muted-foreground/30">
+                                      —
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-5 px-2 text-right">
+                                  <p className="text-xs font-black text-muted-foreground">
+                                    {formatCurrency(txn.computedBalance)}
+                                  </p>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
                       </tbody>
                       <tfoot>
                         <tr className="bg-muted/20 font-black border-t-2 border-border/50">
@@ -2469,7 +2557,7 @@ const TellerMode = () => {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setCashbookDate(prev => addDays(prev, -1))}
+                onClick={() => setCashbookDate((prev) => addDays(prev, -1))}
                 className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                 title="Previous Day"
               >
@@ -2516,7 +2604,9 @@ const TellerMode = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-black tracking-tight">
-                      {isCashbookToday ? 'Cash in Hand' : 'Cash in Hand (Historical)'}
+                      {isCashbookToday
+                        ? 'Cash in Hand'
+                        : 'Cash in Hand (Historical)'}
                     </h3>
                     {cashSummary.isCarriedForward && (
                       <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest text-amber-600 animate-in fade-in duration-300">
@@ -2534,57 +2624,74 @@ const TellerMode = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Opening Cash Input — only editable for today */}
-              {isCashbookToday ? (
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:flex-initial">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
-                      Rs.
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={cashOpeningInput}
-                      onChange={(e) => setCashOpeningInput(e.target.value)}
-                      placeholder="Opening cash..."
-                      disabled={cashSummary.hasOpening && !isAdmin}
-                      className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
-                        cashSummary.hasOpening
-                          ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
-                          : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
-                      }`}
-                    />
-                    {cashSummary.hasOpening && (
-                      <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50" />
-                    )}
+              <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                {/* Opening Cash Input — only editable for today */}
+                {isCashbookToday ? (
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-initial">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/30">
+                        Rs.
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={cashOpeningInput}
+                        onChange={(e) => setCashOpeningInput(e.target.value)}
+                        placeholder="Opening cash..."
+                        disabled={cashSummary.hasOpening && !isAdmin}
+                        className={`w-full sm:w-48 pl-12 pr-4 py-3 rounded-2xl border text-sm font-black transition-all ${
+                          cashSummary.hasOpening
+                            ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700'
+                            : 'bg-muted/30 border-border/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
+                        }`}
+                      />
+                      {cashSummary.hasOpening && (
+                        <Lock
+                          size={12}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500/50"
+                        />
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleSetCashOpening}
+                      disabled={isSettingOpening || !cashOpeningInput}
+                      isLoading={isSettingOpening}
+                      className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
+                    >
+                      {!isSettingOpening && (
+                        <>
+                          {cashSummary.hasOpening ? (
+                            <RefreshCw size={14} className="mr-1.5" />
+                          ) : (
+                            <Plus size={14} className="mr-1.5" />
+                          )}
+                          {cashSummary.hasOpening ? 'Update' : 'Set'}
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleSetCashOpening}
-                    disabled={isSettingOpening || !cashOpeningInput}
-                    isLoading={isSettingOpening}
-                    className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
-                  >
-                    {!isSettingOpening && (
-                      <>
-                        {cashSummary.hasOpening ? (
-                          <RefreshCw size={14} className="mr-1.5" />
-                        ) : (
-                          <Plus size={14} className="mr-1.5" />
-                        )}
-                        {cashSummary.hasOpening ? 'Update' : 'Set'}
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-muted/30 border border-border/50">
-                  <Lock size={14} className="text-muted-foreground/40" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                    Read-only (past date)
-                  </span>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-muted/30 border border-border/50">
+                    <Lock size={14} className="text-muted-foreground/40" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                      Read-only (past date)
+                    </span>
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => setShowDenomModal(true)}
+                  className="h-12 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-amber-500/25 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
+                >
+                  <Banknote size={20} />
+                  Count Cash Counter
+                  {denomTotal > 0 && (
+                    <span className="ml-1 px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-black">
+                      {formatCurrency(denomTotal)}
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -2634,13 +2741,15 @@ const TellerMode = () => {
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">
                     {stat.label}
                   </p>
-                  <p className={`text-xl sm:text-2xl font-black tracking-tighter ${
-                    stat.label === 'Closing Cash'
-                      ? stat.value >= 0
-                        ? 'text-emerald-600'
-                        : 'text-rose-600'
-                      : ''
-                  }`}>
+                  <p
+                    className={`text-xl sm:text-2xl font-black tracking-tighter ${
+                      stat.label === 'Closing Cash'
+                        ? stat.value >= 0
+                          ? 'text-emerald-600'
+                          : 'text-rose-600'
+                        : ''
+                    }`}
+                  >
                     {formatCurrency(stat.value)}
                   </p>
                 </div>
@@ -2657,10 +2766,15 @@ const TellerMode = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-widest">
-                    {isCashbookToday ? "Today's" : format(cashbookDate, 'MMM d')} Cash Transactions
+                    {isCashbookToday
+                      ? "Today's"
+                      : format(cashbookDate, 'MMM d')}{' '}
+                    Cash Transactions
                   </h3>
                   <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-0.5">
-                    {cashTxnsTotalEntries} cash transaction{cashTxnsTotalEntries !== 1 ? 's' : ''}{isCashbookToday ? ' today' : ''}
+                    {cashTxnsTotalEntries} cash transaction
+                    {cashTxnsTotalEntries !== 1 ? 's' : ''}
+                    {isCashbookToday ? ' today' : ''}
                   </p>
                 </div>
               </div>
@@ -2677,7 +2791,10 @@ const TellerMode = () => {
                   PDF
                 </Button>
                 <button
-                  onClick={() => { fetchCashSummary(cashbookDate); fetchCashTxns(cashTxnsPage, cashbookDate); }}
+                  onClick={() => {
+                    fetchCashSummary(cashbookDate);
+                    fetchCashTxns(cashTxnsPage, cashbookDate);
+                  }}
                   className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground/50 hover:text-primary transition-all"
                 >
                   <RefreshCw size={16} />
@@ -2732,7 +2849,10 @@ const TellerMode = () => {
                           >
                             <td className="py-5 px-2">
                               <div className="flex items-center gap-2">
-                                <Clock size={12} className="text-muted-foreground" />
+                                <Clock
+                                  size={12}
+                                  className="text-muted-foreground"
+                                />
                                 <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
                                   {format(new Date(txn.date), 'MMM d, p')}
                                 </span>
@@ -2750,7 +2870,9 @@ const TellerMode = () => {
                                     </p>
                                   </>
                                 ) : (
-                                  <span className="text-xs font-bold text-muted-foreground">—</span>
+                                  <span className="text-xs font-bold text-muted-foreground">
+                                    —
+                                  </span>
                                 )}
                               </div>
                             </td>
@@ -2761,7 +2883,9 @@ const TellerMode = () => {
                             </td>
                             <td className="py-5 px-2 max-w-[200px]">
                               <p className="text-xs text-muted-foreground truncate italic">
-                                {txn.description || txn.category?.replace(/_/g, ' ') || '—'}
+                                {txn.description ||
+                                  txn.category?.replace(/_/g, ' ') ||
+                                  '—'}
                               </p>
                             </td>
                             <td className="py-5 px-2 text-right">
@@ -2770,7 +2894,9 @@ const TellerMode = () => {
                                   -{formatCurrency(txn.amount)}
                                 </p>
                               ) : (
-                                <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                                <span className="text-xs font-bold text-muted-foreground/30">
+                                  —
+                                </span>
                               )}
                             </td>
                             <td className="py-5 px-2 text-right">
@@ -2779,7 +2905,9 @@ const TellerMode = () => {
                                   +{formatCurrency(txn.amount)}
                                 </p>
                               ) : (
-                                <span className="text-xs font-bold text-muted-foreground/30">—</span>
+                                <span className="text-xs font-bold text-muted-foreground/30">
+                                  —
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -2810,125 +2938,186 @@ const TellerMode = () => {
             )}
           </div>
 
-          {/* Denomination Counter */}
-          <div className={`p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] ${!isCashbookToday ? 'opacity-60' : ''}`}>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-                  <Banknote size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black tracking-tight">Denomination Counter</h3>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
-                    {isCashbookToday ? 'Count physical currency notes' : 'View only — historical date'}
-                  </p>
-                </div>
-              </div>
-              {isCashbookToday && (
-                <Button
-                  onClick={handleSaveDenominations}
-                  disabled={isSavingDenoms}
-                  isLoading={isSavingDenoms}
-                  className="h-10 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
-                >
-                  {!isSavingDenoms && 'Save Count'}
-                </Button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
-              {DENOMINATIONS.map((d) => {
-                const key = `d${d}`;
-                const count = denomCounts[key] || 0;
-                const subtotal = d * count;
-                return (
-                  <div
-                    key={d}
-                    className="p-4 rounded-2xl bg-muted/30 border border-border/50 hover:border-amber-500/30 transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-lg font-black text-amber-600 group-hover:text-amber-500 transition-colors">
-                        ₨{d.toLocaleString()}
-                      </span>
-                    </div>
-                    <input
-                      type="number"
-                      min="0"
-                      value={count || ''}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
-                        setDenomCounts((prev) => ({ ...prev, [key]: val }));
-                      }}
-                      placeholder="0"
-                      disabled={!isCashbookToday}
-                      className="w-full px-3 py-2.5 rounded-xl border border-border/50 bg-background text-center text-lg font-black focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    <p className="text-center mt-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">
-                      = {formatCurrency(subtotal)}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Denomination Total & Reconciliation */}
-            <div className="mt-6 pt-6 border-t border-border/30">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-center sm:text-left">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                    Cash Count Total
-                  </p>
-                  <p className="text-2xl font-black tracking-tighter">
-                    {formatCurrency(denomTotal)}
-                  </p>
-                </div>
-
+          {/* Denomination Counter Modal */}
+          <Dialog open={showDenomModal} onOpenChange={setShowDenomModal}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] p-0 gap-0">
+              <DialogHeader className="p-6 pb-4 border-b border-border/40">
                 <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                      Expected (Closing)
-                    </p>
-                    <p className="text-lg font-black">
-                      {formatCurrency(cashSummary.closingCash)}
-                    </p>
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                    <Banknote size={24} />
                   </div>
-
-                  <div className="text-center">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                      Difference
-                    </p>
-                    {(() => {
-                      const diff = denomTotal - cashSummary.closingCash;
-                      const isMatch = Math.abs(diff) < 1;
-                      return (
-                        <div className="flex items-center gap-2 justify-center">
-                          <p className={`text-lg font-black ${
-                            isMatch ? 'text-emerald-600' : 'text-rose-600'
-                          }`}>
-                            {isMatch ? '✓ Match' : (diff > 0 ? '+' : '') + formatCurrency(diff)}
-                          </p>
-                          {!isMatch && (
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                              diff > 0
-                                ? 'bg-blue-500/10 text-blue-600'
-                                : 'bg-rose-500/10 text-rose-600'
-                            }`}>
-                              {diff > 0 ? 'Excess' : 'Short'}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })()}
+                  <div>
+                    <DialogTitle className="text-xl font-black tracking-tight">
+                      Denomination Counter
+                    </DialogTitle>
+                    <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-1">
+                      {isCashbookToday
+                        ? 'Count physical currency notes & coins'
+                        : 'View only — historical date'}
+                    </DialogDescription>
                   </div>
                 </div>
+              </DialogHeader>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                {/* Notes Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2">
+                  {DENOMINATIONS.map((d) => {
+                    const key = `d${d}`;
+                    const count = denomCounts[key] || 0;
+                    const subtotal = d * count;
+                    return (
+                      <div
+                        key={d}
+                        className="p-2 rounded-xl bg-muted/20 border border-border/40 hover:border-amber-500/30 transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-black text-amber-600">
+                            ₨{d.toLocaleString()}
+                          </span>
+                          <span className="text-[8px] font-black text-muted-foreground/40 tracking-wider">
+                            {formatCurrency(subtotal)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() =>
+                              setDenomCounts((prev) => ({
+                                ...prev,
+                                [key]: Math.max(0, (prev[key] || 0) - 1),
+                              }))
+                            }
+                            disabled={!isCashbookToday || count === 0}
+                            className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 flex items-center justify-center font-black text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={count || ''}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 0;
+                              setDenomCounts((prev) => ({
+                                ...prev,
+                                [key]: val,
+                              }));
+                            }}
+                            placeholder="0"
+                            disabled={!isCashbookToday}
+                            className="w-full min-w-0 h-7 px-1 rounded-lg border border-border/50 bg-background text-center text-sm font-black focus:border-amber-500 focus:ring-1 focus:ring-amber-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <button
+                            onClick={() =>
+                              setDenomCounts((prev) => ({
+                                ...prev,
+                                [key]: (prev[key] || 0) + 1,
+                              }))
+                            }
+                            disabled={!isCashbookToday}
+                            className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 flex items-center justify-center font-black text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Reconciliation Summary */}
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/5 to-orange-500/5 border border-amber-500/15">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                        Cash Count
+                      </p>
+                      <p className="text-xl font-black tracking-tighter">
+                        {formatCurrency(denomTotal)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                        Expected
+                      </p>
+                      <p className="text-xl font-black tracking-tighter">
+                        {formatCurrency(cashSummary.closingCash)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                        Difference
+                      </p>
+                      {(() => {
+                        const diff = denomTotal - cashSummary.closingCash;
+                        const isMatch = Math.abs(diff) < 1;
+                        return (
+                          <div>
+                            <p
+                              className={`text-xl font-black tracking-tighter ${
+                                isMatch ? 'text-emerald-600' : 'text-rose-600'
+                              }`}
+                            >
+                              {isMatch
+                                ? '✓ Match'
+                                : (diff > 0 ? '+' : '') + formatCurrency(diff)}
+                            </p>
+                            {!isMatch && (
+                              <span
+                                className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full mt-1 inline-block ${
+                                  diff > 0
+                                    ? 'bg-blue-500/10 text-blue-600'
+                                    : 'bg-rose-500/10 text-rose-600'
+                                }`}
+                              >
+                                {diff > 0 ? 'Excess' : 'Short'}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {isCashbookToday && (
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDenomCounts(
+                          Object.fromEntries(
+                            DENOMINATIONS.map((d) => [`d${d}`, 0]),
+                          ),
+                        );
+                      }}
+                      className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                    >
+                      Reset All
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        await handleSaveDenominations();
+                        setShowDenomModal(false);
+                      }}
+                      disabled={isSavingDenoms}
+                      isLoading={isSavingDenoms}
+                      className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
+                    >
+                      {!isSavingDenoms && 'Save & Close'}
+                    </Button>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Closing Cash Summary */}
           <div className="p-6 rounded-[2rem] bg-gradient-to-r from-emerald-500/5 to-indigo-500/5 border border-emerald-500/20 text-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-              Closing Cash Balance for {isCashbookToday ? 'Today' : format(cashbookDate, 'MMM d, yyyy')}
+              Closing Cash Balance for{' '}
+              {isCashbookToday ? 'Today' : format(cashbookDate, 'MMM d, yyyy')}
             </p>
             <h4
               className={`text-2xl font-black ${cashSummary.closingCash >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
@@ -2936,7 +3125,10 @@ const TellerMode = () => {
               {formatCurrency(cashSummary.closingCash)}
             </h4>
             <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-2">
-              Opening {formatCurrency(cashSummary.openingCash)}{cashSummary.isCarriedForward ? ' (C/F)' : ''} + In {formatCurrency(cashSummary.cashIn)} − Out {formatCurrency(cashSummary.cashOut)}
+              Opening {formatCurrency(cashSummary.openingCash)}
+              {cashSummary.isCarriedForward ? ' (C/F)' : ''} + In{' '}
+              {formatCurrency(cashSummary.cashIn)} − Out{' '}
+              {formatCurrency(cashSummary.cashOut)}
             </p>
           </div>
         </div>

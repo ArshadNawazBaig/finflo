@@ -162,23 +162,25 @@ const getReportStats = async (req, res) => {
 
     // ── Portfolio Overview Metrics ──────────────────────────────
     const Member = require('../models/Member');
+    const Branch = require('../models/Branch');
     const memberQuery = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
       if (branchScope) memberQuery.branchId = branchScope;
     }
 
-    const allMembers = await Member.find(memberQuery).select('status');
+    const allMembers = await Member.find(memberQuery).select('status branchId');
     const totalMembers = allMembers.length;
     const activeMembers = allMembers.filter(m => m.status === 'Active').length;
     const inactiveMembers = allMembers.filter(m => m.status === 'Inactive').length;
 
     // Loan status breakdown
-    const allLoansForOverview = await Loan.find({
+    const loanOverviewQuery = {
       ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
       ...(req.user.role === 'staff' && req.user.branchId ? { branchId: req.user.branchId } : {}),
       status: { $ne: 'rejected' },
-    });
+    };
+    const allLoansForOverview = await Loan.find(loanOverviewQuery);
 
     const activeLoans = allLoansForOverview.filter(l => l.status === 'active');
     const overdueLoans = allLoansForOverview.filter(l => l.status === 'overdue');
@@ -198,6 +200,67 @@ const getReportStats = async (req, res) => {
     const defaultedCustomerIds = new Set(
       defaultedLoans.map(l => l.customer?.toString()).filter(Boolean)
     );
+
+    // ── Per-Branch Breakdown ──────────────────────────────
+    const branchQuery = req.user.isSuperAdmin ? {} : { owner: req.user.effectiveOwnerId };
+    const branches = await Branch.find(branchQuery).select('name');
+
+    const branchBreakdown = branches.map((branch) => {
+      const branchIdStr = branch._id.toString();
+      const branchMembers = allMembers.filter(m => m.branchId?.toString() === branchIdStr);
+      const branchLoans = allLoansForOverview.filter(l => l.branchId?.toString() === branchIdStr);
+
+      const bActive = branchLoans.filter(l => l.status === 'active');
+      const bOverdue = branchLoans.filter(l => l.status === 'overdue');
+      const bDefaulted = branchLoans.filter(l => l.status === 'defaulted');
+      const bCompleted = branchLoans.filter(l => l.status === 'completed');
+      const bPending = branchLoans.filter(l => l.status === 'pending');
+
+      const bDefaulterIds = new Set(
+        bDefaulted.map(l => l.customer?.toString()).filter(Boolean)
+      );
+
+      return {
+        branchId: branch._id,
+        branchName: branch.name,
+        members: {
+          total: branchMembers.length,
+          active: branchMembers.filter(m => m.status === 'Active').length,
+          inactive: branchMembers.filter(m => m.status === 'Inactive').length,
+          defaulters: bDefaulterIds.size,
+        },
+        loans: {
+          total: branchLoans.length,
+          active: bActive.length,
+          activeLoanAmount: bActive.reduce((s, l) => s + (l.principal || 0), 0),
+          activeOutstanding: bActive.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          overdue: bOverdue.length,
+          overdueAmount: bOverdue.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          defaulted: bDefaulted.length,
+          defaultedAmount: bDefaulted.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          completed: bCompleted.length,
+          completedAmount: bCompleted.reduce((s, l) => s + (l.principal || 0), 0),
+          pending: bPending.length,
+        },
+        financials: {
+          totalOutstanding: branchLoans.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+          totalLateFees: branchLoans.reduce((s, l) => s + (l.lateFeeAmount || 0), 0),
+          // totalRepaid will be added from the overall allRepayments filtered by branch
+          totalRepaid: 0, // populated below
+        },
+      };
+    });
+
+    // Populate per-branch repaid amounts
+    const allRepaymentsForBranch = await Repayment.find(
+      req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }
+    ).select('amount branchId');
+    branchBreakdown.forEach((bb) => {
+      const branchReps = allRepaymentsForBranch.filter(
+        r => r.branchId?.toString() === bb.branchId.toString()
+      );
+      bb.financials.totalRepaid = branchReps.reduce((s, r) => s + (r.amount || 0), 0);
+    });
 
     res.json({
       summary: {
@@ -235,6 +298,7 @@ const getReportStats = async (req, res) => {
           totalLateFees,
           totalRepaid,
         },
+        branchBreakdown,
       },
       charts: {
         monthlyLoans:

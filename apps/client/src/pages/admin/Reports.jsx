@@ -26,6 +26,7 @@ import {
   Users,
   AlertTriangle,
   CheckCircle2,
+  Building2,
 } from 'lucide-react';
 import {
   Dialog,
@@ -88,6 +89,7 @@ const Reports = () => {
     growthChange: '0%',
   });
   const [portfolioOverview, setPortfolioOverview] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState('all');
   const [loading, setLoading] = useState(true);
 
   // Regulatory State
@@ -1017,217 +1019,262 @@ const Reports = () => {
               ))}
             </div>
           ) : portfolioOverview ? (
-            <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-              {/* Member Overview Card */}
-              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-                <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-black tracking-tight">
-                        Member Overview
-                      </CardTitle>
-                      <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                        Total member base breakdown
-                      </CardDescription>
-                    </div>
-                    <div className="bg-primary/5 p-2.5 rounded-xl">
-                      <Users className="w-5 h-5 text-primary" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-black tracking-tighter">
-                      {portfolioOverview.members.total}
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Total Members
-                    </span>
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-bold">Active</span>
-                      </div>
-                      <span className="text-sm font-black text-emerald-600">
-                        {portfolioOverview.members.active}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-500/5 border border-slate-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-slate-400" />
-                        <span className="text-xs font-bold">Inactive</span>
-                      </div>
-                      <span className="text-sm font-black text-slate-500">
-                        {portfolioOverview.members.inactive}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                        <span className="text-xs font-bold">Defaulters</span>
-                      </div>
-                      <span className="text-sm font-black text-rose-600">
-                        {portfolioOverview.members.defaulters}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Loan Breakdown Card */}
-              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-                <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-black tracking-tight">
-                        Loan Portfolio
-                      </CardTitle>
-                      <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                        Status breakdown of all loans
-                      </CardDescription>
-                    </div>
-                    <div className="bg-indigo-500/5 p-2.5 rounded-xl">
-                      <FileText className="w-5 h-5 text-indigo-500" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-black tracking-tighter">
-                      {portfolioOverview.loans.total}
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Total Loans
-                    </span>
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-bold">Active</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-emerald-600">
-                          {portfolioOverview.loans.active}
-                        </span>
-                        <p className="text-[9px] text-muted-foreground font-medium">
-                          {formatCurrency(portfolioOverview.loans.activeLoanAmount)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                        <span className="text-xs font-bold">Overdue</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-amber-600">
-                          {portfolioOverview.loans.overdue}
-                        </span>
-                        <p className="text-[9px] text-muted-foreground font-medium">
-                          {formatCurrency(portfolioOverview.loans.overdueAmount)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                        <span className="text-xs font-bold">Defaulted</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-rose-600">
-                          {portfolioOverview.loans.defaulted}
-                        </span>
-                        <p className="text-[9px] text-muted-foreground font-medium">
-                          {formatCurrency(portfolioOverview.loans.defaultedAmount)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        <span className="text-xs font-bold">Completed</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-blue-600">
-                          {portfolioOverview.loans.completed}
-                        </span>
-                        <p className="text-[9px] text-muted-foreground font-medium">
-                          {formatCurrency(portfolioOverview.loans.completedAmount)}
-                        </p>
-                      </div>
-                    </div>
-                    {portfolioOverview.loans.pending > 0 && (
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-purple-500" />
-                          <span className="text-xs font-bold">Pending</span>
-                        </div>
-                        <span className="text-sm font-black text-purple-600">
-                          {portfolioOverview.loans.pending}
-                        </span>
-                      </div>
+            <div className="space-y-5">
+              {/* Branch Selector */}
+              {portfolioOverview.branchBreakdown?.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setSelectedBranch('all')}
+                    className={cn(
+                      'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
+                      selectedBranch === 'all'
+                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                        : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary'
                     )}
-                  </div>
-                </CardContent>
-              </Card>
+                  >
+                    <Building2 size={12} className="inline mr-1.5 -mt-0.5" />
+                    All Branches
+                  </button>
+                  {portfolioOverview.branchBreakdown.map((b) => (
+                    <button
+                      key={b.branchId}
+                      onClick={() => setSelectedBranch(b.branchId)}
+                      className={cn(
+                        'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
+                        selectedBranch === b.branchId
+                          ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                          : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary'
+                      )}
+                    >
+                      {b.branchName}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-              {/* Financial Health Card */}
-              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-                <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-black tracking-tight">
-                        Financial Health
-                      </CardTitle>
-                      <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                        Key financial indicators
-                      </CardDescription>
-                    </div>
-                    <div className="bg-emerald-500/5 p-2.5 rounded-xl">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                    </div>
+              {(() => {
+                // Resolve data for the selected branch
+                const branchData = selectedBranch === 'all'
+                  ? portfolioOverview
+                  : portfolioOverview.branchBreakdown?.find(
+                      (b) => b.branchId === selectedBranch
+                    ) || portfolioOverview;
+
+                return (
+                  <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+                    {/* Member Overview Card */}
+                    <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                      <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-black tracking-tight">
+                              Member Overview
+                            </CardTitle>
+                            <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
+                              {selectedBranch === 'all' ? 'Total member base breakdown' : `${branchData.branchName || 'Branch'} members`}
+                            </CardDescription>
+                          </div>
+                          <div className="bg-primary/5 p-2.5 rounded-xl">
+                            <Users className="w-5 h-5 text-primary" />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-3xl font-black tracking-tighter">
+                            {branchData.members.total}
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Total Members
+                          </span>
+                        </div>
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="text-xs font-bold">Active</span>
+                            </div>
+                            <span className="text-sm font-black text-emerald-600">
+                              {branchData.members.active}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-slate-400" />
+                              <span className="text-xs font-bold">Inactive</span>
+                            </div>
+                            <span className="text-sm font-black text-slate-500">
+                              {branchData.members.inactive}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                              <span className="text-xs font-bold">Defaulters</span>
+                            </div>
+                            <span className="text-sm font-black text-rose-600">
+                              {branchData.members.defaulters}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Loan Breakdown Card */}
+                    <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                      <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-black tracking-tight">
+                              Loan Portfolio
+                            </CardTitle>
+                            <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
+                              {selectedBranch === 'all' ? 'Status breakdown of all loans' : `${branchData.branchName || 'Branch'} loans`}
+                            </CardDescription>
+                          </div>
+                          <div className="bg-indigo-500/5 p-2.5 rounded-xl">
+                            <FileText className="w-5 h-5 text-indigo-500" />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-3xl font-black tracking-tighter">
+                            {branchData.loans.total}
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Total Loans
+                          </span>
+                        </div>
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="text-xs font-bold">Active</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-emerald-600">
+                                {branchData.loans.active}
+                              </span>
+                              <p className="text-[9px] text-muted-foreground font-medium">
+                                {formatCurrency(branchData.loans.activeLoanAmount)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-amber-500" />
+                              <span className="text-xs font-bold">Overdue</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-amber-600">
+                                {branchData.loans.overdue}
+                              </span>
+                              <p className="text-[9px] text-muted-foreground font-medium">
+                                {formatCurrency(branchData.loans.overdueAmount)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                              <span className="text-xs font-bold">Defaulted</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-rose-600">
+                                {branchData.loans.defaulted}
+                              </span>
+                              <p className="text-[9px] text-muted-foreground font-medium">
+                                {formatCurrency(branchData.loans.defaultedAmount)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-blue-500" />
+                              <span className="text-xs font-bold">Completed</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-blue-600">
+                                {branchData.loans.completed}
+                              </span>
+                              <p className="text-[9px] text-muted-foreground font-medium">
+                                {formatCurrency(branchData.loans.completedAmount)}
+                              </p>
+                            </div>
+                          </div>
+                          {branchData.loans.pending > 0 && (
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                                <span className="text-xs font-bold">Pending</span>
+                              </div>
+                              <span className="text-sm font-black text-purple-600">
+                                {branchData.loans.pending}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Financial Health Card */}
+                    <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                      <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-black tracking-tight">
+                              Financial Health
+                            </CardTitle>
+                            <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
+                              {selectedBranch === 'all' ? 'Key financial indicators' : `${branchData.branchName || 'Branch'} financials`}
+                            </CardDescription>
+                          </div>
+                          <div className="bg-emerald-500/5 p-2.5 rounded-xl">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 space-y-4">
+                        <div className="space-y-3">
+                          <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-primary/70 mb-1">
+                              Total Outstanding
+                            </p>
+                            <p className="text-2xl font-black tracking-tight text-primary">
+                              {formatCurrency(branchData.financials.totalOutstanding)}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600/70 mb-1">
+                              Total Recovered
+                            </p>
+                            <p className="text-2xl font-black tracking-tight text-emerald-600">
+                              {formatCurrency(branchData.financials.totalRepaid)}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-rose-600/70 mb-1">
+                              Late Fees Accrued
+                            </p>
+                            <p className="text-xl font-black tracking-tight text-rose-600">
+                              {formatCurrency(branchData.financials.totalLateFees)}
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-amber-600/70 mb-1">
+                              Active Outstanding
+                            </p>
+                            <p className="text-xl font-black tracking-tight text-amber-600">
+                              {formatCurrency(branchData.loans.activeOutstanding)}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 space-y-4">
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-primary/70 mb-1">
-                        Total Outstanding
-                      </p>
-                      <p className="text-2xl font-black tracking-tight text-primary">
-                        {formatCurrency(portfolioOverview.financials.totalOutstanding)}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600/70 mb-1">
-                        Total Recovered
-                      </p>
-                      <p className="text-2xl font-black tracking-tight text-emerald-600">
-                        {formatCurrency(portfolioOverview.financials.totalRepaid)}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-rose-600/70 mb-1">
-                        Late Fees Accrued
-                      </p>
-                      <p className="text-xl font-black tracking-tight text-rose-600">
-                        {formatCurrency(portfolioOverview.financials.totalLateFees)}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-amber-600/70 mb-1">
-                        Active Outstanding
-                      </p>
-                      <p className="text-xl font-black tracking-tight text-amber-600">
-                        {formatCurrency(portfolioOverview.loans.activeOutstanding)}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                );
+              })()}
             </div>
           ) : null}
 
