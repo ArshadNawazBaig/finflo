@@ -393,15 +393,15 @@ const MemberLoanDetail = () => {
             </div>
             <div className="space-y-2 text-center sm:text-left relative z-10">
               <h4 className="text-lg font-black tracking-tight text-orange-700">
-                Late Payment Protection Notice
+                Post-Tenure Late Payment Notice
               </h4>
               <p className="text-sm text-orange-600/80 font-medium leading-relaxed max-w-2xl">
-                To maintain your credit profile and avoid system-generated
-                penalties, please ensure installments are paid within the{' '}
+                Late fees are applied only <strong>after your full loan tenure ends</strong>.
+                If your loan is not fully repaid by the end of the{' '}
                 <span className="font-black text-orange-700 underline decoration-2 underline-offset-4">
-                  {gracePeriod}-day grace period
-                </span>{' '}
-                of your due date. A daily late fee of{' '}
+                  {loan.duration}-month loan period
+                </span>
+                , a daily late fee of{' '}
                 <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center shadow-sm">
                   {formatCurrency(dailyFee)}
                 </span>{' '}
@@ -409,8 +409,12 @@ const MemberLoanDetail = () => {
                 {lateFeeType === 'percentage'
                   ? `${lateFeeRate}%`
                   : formatCurrency(lateFeeRate)}{' '}
-                monthly rate) will be applied automatically to all overdue
-                payments.
+                monthly rate) will accrue on the outstanding balance after a{' '}
+                <span className="font-black text-orange-700">
+                  {gracePeriod}-day grace period
+                </span>
+                . Continued non-payment may result in the loan being marked as
+                defaulted.
               </p>
             </div>
           </div>

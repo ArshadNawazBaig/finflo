@@ -91,6 +91,7 @@ const userSchema = new mongoose.Schema(
     lateFeeType: { type: String, enum: ['fixed', 'percentage'], default: 'fixed' },
     lateFeeRate: { type: Number, default: 0, min: 0 },
     lateFeeGracePeriodDays: { type: Number, default: 0, min: 0 },
+    loanDefaultThresholdMonths: { type: Number, default: 3, min: 1, max: 24 },
 
     // Term Deposit
     termDepositRates: {

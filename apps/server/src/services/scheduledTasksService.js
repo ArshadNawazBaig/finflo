@@ -166,11 +166,21 @@ const runLateFeeAccrual = async () => {
       });
 
       for (const loan of overdueLoans) {
-        const nextDue = getNextDueDate(loan);
-        if (!nextDue) continue;
+        // ── Only accrue late fees AFTER the full loan tenure has expired ──
+        const startDate = new Date(loan.startDate);
+        const tenureEndDate = new Date(startDate);
+        tenureEndDate.setMonth(tenureEndDate.getMonth() + loan.duration);
 
-        const daysLate = daysBetween(nextDue, today);
-        if (daysLate <= config.gracePeriodDays) continue;
+        // If we haven't passed the loan tenure end date, skip
+        if (today <= tenureEndDate) continue;
+
+        // If the loan is fully paid, skip
+        if (loan.remainingAmount <= 0) continue;
+
+        // Check grace period after tenure end
+        const graceDeadline = new Date(tenureEndDate);
+        graceDeadline.setDate(graceDeadline.getDate() + config.gracePeriodDays);
+        if (today <= graceDeadline) continue;
 
         // Calculate daily fee based on configured type
         let dailyFee;
@@ -588,13 +598,169 @@ const runMonthlySavingProfitDistribution = async () => {
   }
 };
 
+// ─── Job 7: Loan Default Detection ───────────────────────────────────────────
+/**
+ * Runs daily at 01:30.
+ * Automatically marks overdue loans as 'defaulted' when they exceed the
+ * admin's configured threshold (months after tenure end).
+ * Consequences: member account freeze, trust rating drop, notifications.
+ */
+const runLoanDefaultDetection = async () => {
+  console.log('[CRON] runLoanDefaultDetection: starting...');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  try {
+    const User = require('../models/User');
+    const Member = require('../models/Member');
+    const { logActivity } = require('../controllers/activityLogController');
+
+    const adminUsers = await User.find({ role: 'admin', isActive: true }).select(
+      '_id loanDefaultThresholdMonths'
+    );
+
+    let totalDefaulted = 0;
+
+    for (const admin of adminUsers) {
+      const thresholdMonths = admin.loanDefaultThresholdMonths ?? 3;
+
+      // Find overdue loans (not yet defaulted) for this business
+      const overdueLoans = await Loan.find({
+        user: admin._id,
+        status: 'overdue',
+      }).populate('customer', 'name email memberId isMember');
+
+      for (const loan of overdueLoans) {
+        try {
+          // Calculate the loan's tenure end date
+          const startDate = new Date(loan.startDate);
+          const tenureEndDate = new Date(startDate);
+          tenureEndDate.setMonth(tenureEndDate.getMonth() + loan.duration);
+
+          // Calculate the default deadline: tenure end + threshold months
+          const defaultDeadline = new Date(tenureEndDate);
+          defaultDeadline.setMonth(defaultDeadline.getMonth() + thresholdMonths);
+
+          // If we haven't passed the default deadline, skip
+          if (today <= defaultDeadline) continue;
+
+          // If the loan is fully paid, skip (shouldn't be overdue, but safe guard)
+          if (loan.remainingAmount <= 0) continue;
+
+          // ── Mark the loan as defaulted ──
+          await Loan.findByIdAndUpdate(loan._id, {
+            status: 'defaulted',
+            defaultedAt: new Date(),
+            defaultReason: `Auto-defaulted: ${thresholdMonths} month(s) past tenure end with outstanding balance of ${loan.remainingAmount}`,
+          });
+
+          totalDefaulted++;
+
+          // ── Freeze member account if applicable ──
+          if (loan.customer?.isMember && loan.customer.memberId) {
+            await Member.findByIdAndUpdate(loan.customer.memberId, {
+              status: 'Inactive',
+            });
+          }
+
+          // ── Notify member ──
+          if (loan.customer?.isMember && loan.customer.memberId) {
+            try {
+              await createTransactionNotification({
+                recipientId: loan.customer.memberId,
+                title: '🚨 Loan Defaulted',
+                message: `Your loan #${loan._id.toString().slice(-6).toUpperCase()} has been marked as defaulted due to non-payment ${thresholdMonths} month(s) after the loan period ended. Your account has been frozen. Please contact admin immediately.`,
+                type: 'error',
+                branchId: loan.branchId,
+                action: 'loan_defaulted',
+                metadata: { loanId: loan._id, link: '/member/loans' },
+              });
+            } catch (notifErr) {
+              console.error('[CRON] Default notification error (member):', notifErr.message);
+            }
+          }
+
+          // ── Notify admin ──
+          try {
+            await Notification.create({
+              recipient: admin._id,
+              recipientModel: 'User',
+              title: '🚨 Loan Auto-Defaulted',
+              message: `Loan #${loan._id.toString().slice(-6).toUpperCase()} for ${loan.customer?.name || 'Unknown'} has been automatically defaulted after ${thresholdMonths} month(s) past tenure. Outstanding: ${loan.remainingAmount}.`,
+              type: 'error',
+              action: 'loan_auto_defaulted',
+            });
+          } catch (notifErr) {
+            console.error('[CRON] Default notification error (admin):', notifErr.message);
+          }
+
+          // ── Notify grantors if they exist ──
+          try {
+            const fullLoan = await Loan.findById(loan._id).select('grantor1 grantor2');
+            const grantorIds = [fullLoan.grantor1, fullLoan.grantor2].filter(Boolean);
+            for (const grantorId of grantorIds) {
+              await createTransactionNotification({
+                recipientId: grantorId,
+                title: '⚠️ Guaranteed Loan Defaulted',
+                message: `A loan you guaranteed (#${loan._id.toString().slice(-6).toUpperCase()}) for ${loan.customer?.name || 'Unknown'} has been defaulted. Outstanding: ${loan.remainingAmount}.`,
+                type: 'warning',
+                branchId: loan.branchId,
+                action: 'grantor_loan_defaulted',
+                metadata: { loanId: loan._id, link: '/member/grantor-requests' },
+              });
+            }
+          } catch (grantorErr) {
+            console.error('[CRON] Grantor default notification error:', grantorErr.message);
+          }
+
+          // ── Log activity ──
+          try {
+            await logActivity({
+              userId: admin._id,
+              action: 'loan_auto_defaulted',
+              category: 'loan',
+              details: `Loan #${loan._id.toString().slice(-6).toUpperCase()} for ${loan.customer?.name || 'Unknown'} auto-defaulted after ${thresholdMonths} month(s) past tenure. Outstanding: ${loan.remainingAmount}`,
+              metadata: { loanId: loan._id, remainingAmount: loan.remainingAmount },
+            });
+          } catch (logErr) {
+            console.error('[CRON] Default activity log error:', logErr.message);
+          }
+
+          // ── Drop trust rating ──
+          if (loan.customer?._id) {
+            try {
+              const customer = await Customer.findById(loan.customer._id);
+              if (customer) {
+                const newRating = Math.max(0, (customer.trustRating || 5) - 3.0);
+                await Customer.findByIdAndUpdate(customer._id, {
+                  trustRating: Math.round(newRating * 10) / 10,
+                });
+              }
+            } catch (ratingErr) {
+              console.error('[CRON] Trust rating update error:', ratingErr.message);
+            }
+          }
+        } catch (loanErr) {
+          console.error(`[CRON] Error defaulting loan ${loan._id}:`, loanErr.message);
+        }
+      }
+    }
+
+    console.log(
+      `[CRON] runLoanDefaultDetection: ${totalDefaulted} loan(s) auto-defaulted.`,
+    );
+  } catch (err) {
+    console.error('[CRON] runLoanDefaultDetection ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
   // Job 1: Mark overdue loans daily at 00:05
   cron.schedule('5 0 * * *', runOverdueDowngrade, { timezone: 'Asia/Karachi' });
 
-  // Job 2: Apply late fees daily at 01:00
+  // Job 2: Apply late fees daily at 01:00 (only after tenure expiry)
   cron.schedule('0 1 * * *', runLateFeeAccrual, { timezone: 'Asia/Karachi' });
 
   // Job 3: Send repayment reminders daily at 09:00
@@ -617,7 +783,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 6 jobs registered.');
+  // Job 7: Loan default detection daily at 01:30
+  cron.schedule('30 1 * * *', runLoanDefaultDetection, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 7 jobs registered.');
 };
 
 module.exports = {
@@ -629,4 +800,5 @@ module.exports = {
   runTrustRatingRecalc,
   runSavingProfitAccrual,
   runMonthlySavingProfitDistribution,
+  runLoanDefaultDetection,
 };

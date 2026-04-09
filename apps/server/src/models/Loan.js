@@ -33,6 +33,8 @@ const loanSchema = new mongoose.Schema(
     lateFeeAmount: { type: Number, default: 0 },
     lateFeeAppliedAt: { type: Date },
     overdueAt: { type: Date },
+    defaultedAt: { type: Date },
+    defaultReason: { type: String },
     paidAmount: { type: Number, default: 0 },
     remainingAmount: { type: Number, required: true },
     interestType: {

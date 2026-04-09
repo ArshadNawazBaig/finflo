@@ -1925,6 +1925,7 @@ const ConfigurationSection = ({ user }) => {
       { duration: 24, rate: 12 },
     ],
     termDepositEarlyBreakPenalty: 50,
+    loanDefaultThresholdMonths: 3,
     smtpConfig: {
       host: '',
       port: 587,
@@ -1965,6 +1966,7 @@ const ConfigurationSection = ({ user }) => {
           lateFeeGracePeriodDays: data.lateFeeGracePeriodDays ?? 0,
           termDepositRates: data.termDepositRates || [],
           termDepositEarlyBreakPenalty: data.termDepositEarlyBreakPenalty ?? 0,
+          loanDefaultThresholdMonths: data.loanDefaultThresholdMonths ?? 3,
           smtpConfig: data.smtpConfig || {
             host: '',
             port: 587,
@@ -2462,9 +2464,9 @@ const ConfigurationSection = ({ user }) => {
               Late Fee Configuration
             </h3>
             <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
-              Configure automatic penalties applied to overdue loan
-              installments. Late fees are applied after the grace period
-              expires.
+              Configure automatic penalties applied to loans after the full loan
+              tenure expires. Late fees are only applied once the loan period
+              ends and the borrower has an outstanding balance.
             </p>
           </div>
 
@@ -2573,9 +2575,44 @@ const ConfigurationSection = ({ user }) => {
             </div>
             <div className="flex items-end">
               <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
-                * Members will have this many days after their installment due
-                date before a late fee is applied.
+                * After the full loan tenure ends, members will have this many
+                days before late fees start accruing on the outstanding balance.
               </p>
+            </div>
+
+            <div className="md:col-span-2 pt-4 border-t border-rose-500/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Loan Default Threshold (Months After Tenure)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    step="1"
+                    value={settings.loanDefaultThresholdMonths}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        loanDefaultThresholdMonths:
+                          parseInt(e.target.value) || 3,
+                      })
+                    }
+                    className="w-full px-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all text-sm font-medium"
+                    placeholder="3"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
+                    * If a loan remains unpaid for this many months after the
+                    tenure ends, it will be automatically marked as{' '}
+                    <span className="text-rose-500 font-black">defaulted</span>.
+                    The member's account will be frozen and their trust rating
+                    will drop significantly.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

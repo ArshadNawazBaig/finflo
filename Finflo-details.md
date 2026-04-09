@@ -45,15 +45,34 @@ The system features a robust, automated loan engine designed to mitigate risk an
 
 ## 4. Penalty (Late Fee) Structure
 
-To ensure the health of the lending ecosystem, FinFlo automatically enforces penalties on delinquent loans.
+To ensure the health of the lending ecosystem, FinFlo automatically enforces penalties on delinquent loans **after the full loan tenure expires**.
 
-### Late Fee Accrual
-- If a member's Current Account lacks sufficient funds to cover the monthly loan installment on the due date, the system identifies the loan as delinquent.
-- A Late Fee (Penalty) is then automatically calculated and added to the member's outstanding debt.
-- This automated process runs daily, ensuring that past-due amounts are consistently penalized according to the platform's configured late fee parameters until the debt is settled.
+### Post-Tenure Late Fee Accrual
+- Late fees are **not** applied during the loan period. Members are free to manage their installment schedule during the tenure.
+- Once the full loan tenure has expired (e.g., after 12 months for a 12-month loan) and there is still an outstanding balance, the system identifies the loan as delinquent.
+- After a configurable grace period (in days), a Late Fee (Penalty) is automatically calculated and added to the member's outstanding debt.
+- This automated process runs daily, ensuring that post-tenure amounts are consistently penalized according to the platform's configured late fee parameters until the debt is settled.
+
+---
+
+## 5. Loan Defaulter Mechanism
+
+FinFlo provides an automated loan default detection system to protect the lending ecosystem from chronic non-payment.
+
+### Auto-Default Detection
+- If a loan remains unpaid for a configurable number of months **after the loan tenure expires** (default: 3 months), it is automatically marked as **defaulted**.
+- When a loan is defaulted:
+  - The borrower's member account is frozen (set to Inactive).
+  - The borrower's trust rating drops significantly (-3.0 points).
+  - Both the borrower and the admin are notified via in-app notifications.
+  - If grantors (guarantors) were assigned, they are also notified.
+  - The event is logged in the activity log for audit purposes.
+
+### Configuration
+- The **Loan Default Threshold** (months after tenure) is configurable per-business from the admin Settings dashboard.
 
 ---
 
 ## Summary for Potential Clients
 
-FinFlo provides a comprehensive, automated financial operating system. By strictly separating operational funds (Current Account) from investment funds (Saving Account), the platform offers a distinct value proposition to its members. The administrative burden is heavily reduced through the automated calculation and distribution of both daily savings profits and monthly loan penalties, making FinFlo an ideal, scalable engine for next-generation digital lending and wealth management.
+FinFlo provides a comprehensive, automated financial operating system. By strictly separating operational funds (Current Account) from investment funds (Saving Account), the platform offers a distinct value proposition to its members. The administrative burden is heavily reduced through the automated calculation and distribution of daily savings profits, post-tenure loan penalties, and intelligent loan default detection, making FinFlo an ideal, scalable engine for next-generation digital lending and wealth management.

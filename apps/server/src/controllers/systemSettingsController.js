@@ -144,6 +144,7 @@ const updateLoanConfiguration = async (req, res) => {
       'lateFeeType',
       'lateFeeRate',
       'lateFeeGracePeriodDays',
+      'loanDefaultThresholdMonths',
       'termDepositRates',
       'termDepositEarlyBreakPenalty',
     ];
@@ -240,7 +241,7 @@ const getBusinessConfig = async (req, res) => {
     const User = require('../models/User');
     const adminId = req.user.effectiveOwnerId || req.user._id;
     const adminUser = await User.findById(adminId).select(
-      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays termDepositRates termDepositEarlyBreakPenalty'
+      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty'
     );
 
     if (!adminUser) {
@@ -261,6 +262,7 @@ const getBusinessConfig = async (req, res) => {
       lateFeeType: adminUser.lateFeeType || 'fixed',
       lateFeeRate: adminUser.lateFeeRate ?? 0,
       lateFeeGracePeriodDays: adminUser.lateFeeGracePeriodDays ?? 0,
+      loanDefaultThresholdMonths: adminUser.loanDefaultThresholdMonths ?? 3,
       termDepositRates: adminUser.termDepositRates || [],
       termDepositEarlyBreakPenalty: adminUser.termDepositEarlyBreakPenalty ?? 0,
     });
@@ -282,7 +284,7 @@ const getMemberBusinessConfig = async (req, res) => {
     }
 
     const adminUser = await User.findById(ownerId).select(
-      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays termDepositRates termDepositEarlyBreakPenalty currency'
+      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty currency'
     );
 
     if (!adminUser) {
@@ -296,6 +298,7 @@ const getMemberBusinessConfig = async (req, res) => {
       lateFeeType: adminUser.lateFeeType || 'fixed',
       lateFeeRate: adminUser.lateFeeRate ?? 0,
       lateFeeGracePeriodDays: adminUser.lateFeeGracePeriodDays ?? 0,
+      loanDefaultThresholdMonths: adminUser.loanDefaultThresholdMonths ?? 3,
       termDepositRates: adminUser.termDepositRates || [],
       termDepositEarlyBreakPenalty: adminUser.termDepositEarlyBreakPenalty ?? 0,
     });

@@ -58,42 +58,31 @@ const applyLateFees = async (req) => {
 
     for (const loan of loans) {
       try {
-        // Calculate how many installments should have been paid by now
+        // ── Only apply penalties AFTER the full loan tenure has expired ──
         const startDate = new Date(loan.startDate);
-        let monthsElapsed =
-          now.getFullYear() * 12 +
-          now.getMonth() -
-          (startDate.getFullYear() * 12 + startDate.getMonth());
+        const tenureEndDate = new Date(startDate);
+        tenureEndDate.setMonth(tenureEndDate.getMonth() + loan.duration);
 
-        if (now.getDate() < startDate.getDate()) {
-          monthsElapsed -= 1;
-        }
-        monthsElapsed = Math.max(0, monthsElapsed);
-
-        // Expected total paid by now (installments * EMI)
-        const expectedInstallments = Math.min(monthsElapsed, loan.duration);
-        const expectedPaid = expectedInstallments * loan.emi;
-
-        // Check if the member is behind on payments
-        if (loan.paidAmount >= expectedPaid) {
-          continue; // On track, no late fee
+        // If we haven't passed the loan tenure end date yet, skip
+        if (now <= tenureEndDate) {
+          continue;
         }
 
-        // Calculate the due date for the next expected installment
-        const missedInstallment = Math.floor(loan.paidAmount / loan.emi) + 1;
-        const dueDate = new Date(startDate);
-        dueDate.setMonth(dueDate.getMonth() + missedInstallment);
+        // If the loan is fully paid, skip
+        if (loan.remainingAmount <= 0) {
+          continue;
+        }
 
-        // Add grace period
-        const graceDeadline = new Date(dueDate);
+        // Add grace period after tenure end
+        const graceDeadline = new Date(tenureEndDate);
         graceDeadline.setDate(graceDeadline.getDate() + lateFeeGracePeriodDays);
 
-        // Only apply if we're past the grace period
+        // Only apply if we're past the grace period after tenure end
         if (now <= graceDeadline) {
           continue;
         }
 
-        // Check if late fee was already applied for this overdue period (within same month)
+        // Check if late fee was already applied this month (prevent double-charging)
         if (loan.lateFeeAppliedAt) {
           const lastApplied = new Date(loan.lateFeeAppliedAt);
           const sameMonth =
@@ -210,7 +199,7 @@ const applyLateFees = async (req) => {
           loanId: loan._id,
           customer: loan.customer?.name,
           feeAmount,
-          missedInstallment,
+          reason: 'post_tenure',
         });
       } catch (err) {
         console.error(`Error applying late fee to loan ${loan._id}:`, err);
