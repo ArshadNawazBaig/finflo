@@ -80,7 +80,12 @@ export const formatCurrency = (num) => {
   num = Math.round(num);
   const isNegative = num < 0;
   const absNum = Math.abs(num);
-  const formatted = absNum.toLocaleString();
+  let formatted;
+  if (absNum >= 1000000) {
+    formatted = (absNum / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  } else {
+    formatted = absNum.toLocaleString();
+  }
   return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
 export const formatCompactValue = (num) => {

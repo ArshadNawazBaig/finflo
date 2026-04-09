@@ -738,7 +738,8 @@ const getBranchSummary = async (req, res) => {
       },
     ]);
 
-    const branches = await Branch.find(query);
+    const branchQuery = req.user.isSuperAdmin ? {} : { owner: req.user.effectiveOwnerId };
+    const branches = await Branch.find(branchQuery);
 
     const branchSummaries = branches.map((branch) => {
       const branchIdStr = branch._id.toString();
