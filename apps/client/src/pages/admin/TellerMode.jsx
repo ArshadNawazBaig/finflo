@@ -137,9 +137,9 @@ const TellerMode = () => {
   const isCashbookToday = isToday(cashbookDate);
 
   // Denomination tracking
-  const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10];
+  const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1];
   const [denomCounts, setDenomCounts] = useState({
-    d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0,
+    d1: 0, d2: 0, d5: 0, d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0,
   });
   const [isSavingDenoms, setIsSavingDenoms] = useState(false);
   const denomTotal = DENOMINATIONS.reduce((sum, d) => sum + d * (denomCounts[`d${d}`] || 0), 0);
