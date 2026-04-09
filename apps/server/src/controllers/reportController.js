@@ -160,6 +160,45 @@ const getReportStats = async (req, res) => {
       prevMonthRevenue,
     );
 
+    // ── Portfolio Overview Metrics ──────────────────────────────
+    const Member = require('../models/Member');
+    const memberQuery = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) memberQuery.branchId = branchScope;
+    }
+
+    const allMembers = await Member.find(memberQuery).select('status');
+    const totalMembers = allMembers.length;
+    const activeMembers = allMembers.filter(m => m.status === 'Active').length;
+    const inactiveMembers = allMembers.filter(m => m.status === 'Inactive').length;
+
+    // Loan status breakdown
+    const allLoansForOverview = await Loan.find({
+      ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
+      ...(req.user.role === 'staff' && req.user.branchId ? { branchId: req.user.branchId } : {}),
+      status: { $ne: 'rejected' },
+    });
+
+    const activeLoans = allLoansForOverview.filter(l => l.status === 'active');
+    const overdueLoans = allLoansForOverview.filter(l => l.status === 'overdue');
+    const defaultedLoans = allLoansForOverview.filter(l => l.status === 'defaulted');
+    const completedLoans = allLoansForOverview.filter(l => l.status === 'completed');
+    const pendingLoans = allLoansForOverview.filter(l => l.status === 'pending');
+
+    const activeLoanAmount = activeLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
+    const activeOutstanding = activeLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
+    const overdueAmount = overdueLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
+    const defaultedAmount = defaultedLoans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
+    const completedAmount = completedLoans.reduce((sum, l) => sum + (l.principal || 0), 0);
+    const totalOutstanding = allLoansForOverview.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
+    const totalLateFees = allLoansForOverview.reduce((sum, l) => sum + (l.lateFeeAmount || 0), 0);
+
+    // Defaulter members: unique customers with defaulted loans
+    const defaultedCustomerIds = new Set(
+      defaultedLoans.map(l => l.customer?.toString()).filter(Boolean)
+    );
+
     res.json({
       summary: {
         totalVolume,
@@ -170,6 +209,32 @@ const getReportStats = async (req, res) => {
         collectionRateChange: collectionChange,
         growth: `${revenueGrowth}%`,
         growthChange: revenueGrowth,
+      },
+      portfolioOverview: {
+        members: {
+          total: totalMembers,
+          active: activeMembers,
+          inactive: inactiveMembers,
+          defaulters: defaultedCustomerIds.size,
+        },
+        loans: {
+          total: allLoansForOverview.length,
+          active: activeLoans.length,
+          activeLoanAmount,
+          activeOutstanding,
+          overdue: overdueLoans.length,
+          overdueAmount,
+          defaulted: defaultedLoans.length,
+          defaultedAmount,
+          completed: completedLoans.length,
+          completedAmount,
+          pending: pendingLoans.length,
+        },
+        financials: {
+          totalOutstanding,
+          totalLateFees,
+          totalRepaid,
+        },
       },
       charts: {
         monthlyLoans:

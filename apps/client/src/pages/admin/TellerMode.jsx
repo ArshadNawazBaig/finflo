@@ -26,6 +26,7 @@ import {
   Globe,
   Lock,
   Plus,
+  Download,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfDay, endOfDay, addDays, isToday, isFuture } from 'date-fns';
@@ -95,6 +96,7 @@ const TellerMode = () => {
   const [journalTxns, setJournalTxns] = useState([]);
   const [journalLoading, setJournalLoading] = useState(false);
   const [isExportingJournal, setIsExportingJournal] = useState(false);
+  const [isExportingMemberPdf, setIsExportingMemberPdf] = useState(false);
   const [isFetchingMoreJournal, setIsFetchingMoreJournal] = useState(false);
   const [journalStats, setJournalStats] = useState({
     cashIn: 0,
@@ -335,6 +337,103 @@ const TellerMode = () => {
       toast.error('Failed to export journal.');
     } finally {
       setIsExportingJournal(false);
+    }
+  };
+
+  const handleExportMemberPDF = async () => {
+    if (!member) return;
+    try {
+      setIsExportingMemberPdf(true);
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
+      const {
+        renderPdfHeader,
+        renderPdfFooter,
+        getBusinessContext,
+        toTitleCase,
+        renderPdfSignatures,
+      } = await import('@/lib/pdfExportUtils');
+
+      // Fetch ALL transactions for this member
+      const { data } = await api.get('/ledger', {
+        params: {
+          member: member._id,
+          limit: 2000,
+          page: 1,
+          sortBy: 'date',
+          sortOrder: 'desc',
+        },
+      });
+
+      const reportData = data?.data || [];
+      if (!reportData.length) {
+        toast.error('No transactions found for this member');
+        return;
+      }
+
+      const ctx = getBusinessContext();
+      const doc = new jsPDF();
+
+      const startY = await renderPdfHeader(doc, {
+        businessContext: ctx,
+        title: 'Member Activity Statement',
+        leftDetails: [
+          { label: 'Account Holder', value: toTitleCase(member.name || 'Member') },
+          { label: 'Member ID', value: member.memberId || member._id?.slice(-6).toUpperCase() },
+          { label: 'CNIC', value: member.cnic || 'N/A' },
+        ],
+        rightDetails: [
+          { label: 'Statement Date', value: new Date().toLocaleDateString() },
+          { label: 'Current Balance', value: formatCurrency(member.currentBalance || 0) },
+          { label: 'Currency', value: ctx.currency },
+        ],
+      });
+
+      const tableColumn = ['Date', 'Description', 'Type', 'Amount', 'Balance After'];
+      const tableRows = reportData.map((item) => {
+        const isWithdrawal = item.type?.toLowerCase() === 'expense';
+        return [
+          format(new Date(item.date || item.createdAt), 'MMM dd, yyyy'),
+          item.description || item.category?.replace(/_/g, ' ') || '—',
+          (item.category || item.type || '').replace(/_/g, ' ').toUpperCase(),
+          `${isWithdrawal ? '-' : '+'}${formatCurrency(item.amount)}`,
+          item.balanceAfter != null ? formatCurrency(item.balanceAfter) : '—',
+        ];
+      });
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [64, 53, 100],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 9,
+        },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: {
+          3: { halign: 'right' },
+          4: { halign: 'right' },
+        },
+        alternateRowStyles: { fillColor: [250, 250, 255] },
+        margin: { left: 14, right: 14 },
+      });
+
+      const finalY = doc.lastAutoTable?.finalY || startY + 20;
+      await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
+      renderPdfFooter(doc, { businessContext: ctx });
+
+      doc.save(
+        `Member_Statement_${(member.name || 'Member').replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`,
+      );
+      toast.success('Member statement downloaded successfully');
+    } catch (error) {
+      console.error('Member PDF Export Error:', error);
+      toast.error('Failed to generate member statement');
+    } finally {
+      setIsExportingMemberPdf(false);
     }
   };
 
@@ -1700,6 +1799,17 @@ const TellerMode = () => {
                           </p>
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportMemberPDF}
+                        isLoading={isExportingMemberPdf}
+                        disabled={recentTxns.length === 0}
+                        className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all h-9 px-4"
+                      >
+                        <Download size={14} />
+                        PDF
+                      </Button>
                     </div>
 
                     <div className="space-y-3">
@@ -1752,18 +1862,46 @@ const TellerMode = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p
-                                  className={`text-sm font-black ${
-                                    isIn ? 'text-emerald-500' : 'text-rose-500'
-                                  }`}
+                              <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                  <p
+                                    className={`text-sm font-black ${
+                                      isIn ? 'text-emerald-500' : 'text-rose-500'
+                                    }`}
+                                  >
+                                    {isIn ? '+' : '-'}
+                                    {formatCurrency(txn.amount)}
+                                  </p>
+                                  <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest mt-0.5">
+                                    Completed
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const { generateTransactionReceipt } = await import('@/lib/pdfExportUtils');
+                                      await generateTransactionReceipt({
+                                        member,
+                                        type: txn.category || txn.type || 'transaction',
+                                        amount: txn.amount,
+                                        description: txn.description || txn.notes || '',
+                                        date: txn.date || txn.createdAt,
+                                        balanceAfter: txn.balanceAfter,
+                                        referenceId: txn._id,
+                                        accountType: txn.accountType || 'current',
+                                      });
+                                      toast.success('Receipt downloaded');
+                                    } catch (err) {
+                                      console.error(err);
+                                      toast.error('Failed to generate receipt');
+                                    }
+                                  }}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                                  title="Download Receipt"
                                 >
-                                  {isIn ? '+' : '-'}
-                                  {formatCurrency(txn.amount)}
-                                </p>
-                                <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest mt-0.5">
-                                  Completed
-                                </p>
+                                  <Download size={14} />
+                                </button>
                               </div>
                             </motion.div>
                           );
