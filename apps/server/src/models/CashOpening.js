@@ -27,6 +27,10 @@ const cashOpeningSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    description: {
+      type: String,
+      default: '',
+    },
     denominations: {
       d10: { type: Number, default: 0 },
       d20: { type: Number, default: 0 },
@@ -40,7 +44,12 @@ const cashOpeningSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// One opening per user per day
-cashOpeningSchema.index({ user: 1, date: 1 }, { unique: true });
+// One opening per user + branch per day
+cashOpeningSchema.index({ user: 1, branchId: 1, date: 1 }, { unique: true });
 
-module.exports = mongoose.model('CashOpening', cashOpeningSchema);
+const CashOpening = mongoose.model('CashOpening', cashOpeningSchema);
+
+// Drop the old user+date unique index if it exists (migration)
+CashOpening.collection.dropIndex('user_1_date_1').catch(() => {});
+
+module.exports = CashOpening;

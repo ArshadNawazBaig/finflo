@@ -461,23 +461,28 @@ const reverseTransaction = async (req, res) => {
 const setCashOpening = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { amount, date: dateStr, denominations } = req.body;
+    const { amount, date: dateStr, denominations, branchId: bodyBranchId, description } = req.body;
 
     if (amount == null || amount < 0) {
       return res.status(400).json({ message: 'Invalid opening cash amount' });
     }
+
+    // Determine branch: staff auto-scoped, admin can pass branchId
+    const branchId = bodyBranchId || req.user.managedBranchId || req.user.branchId || null;
 
     // Normalize to start of day
     const targetDate = dateStr ? new Date(dateStr) : new Date();
     const dayStart = new Date(targetDate);
     dayStart.setHours(0, 0, 0, 0);
 
-    // Upsert: create or update for this user + day
+    // Upsert: create or update for this user + branch + day
     const updateFields = { amount };
     if (denominations) updateFields.denominations = denominations;
+    if (branchId) updateFields.branchId = branchId;
+    if (description !== undefined) updateFields.description = description;
 
     const opening = await CashOpening.findOneAndUpdate(
-      { user: userId, date: dayStart },
+      { user: userId, branchId: branchId || null, date: dayStart },
       updateFields,
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
@@ -495,7 +500,10 @@ const setCashOpening = async (req, res) => {
 const getCashSummary = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { date: dateStr } = req.query;
+    const { date: dateStr, branchId: queryBranchId } = req.query;
+
+    // Determine branch scope
+    const branchId = queryBranchId || req.user.managedBranchId || req.user.branchId || null;
 
     const targetDate = dateStr ? new Date(dateStr) : new Date();
     const dayStart = new Date(targetDate);
@@ -503,8 +511,13 @@ const getCashSummary = async (req, res) => {
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 
+    // Build branch filter for CashOpening queries
+    const openingFilter = { user: userId, date: dayStart };
+    if (branchId) openingFilter.branchId = branchId;
+    else openingFilter.$or = [{ branchId: null }, { branchId: { $exists: false } }];
+
     // Get cash opening from separate model for the target date
-    const openingDoc = await CashOpening.findOne({ user: userId, date: dayStart });
+    const openingDoc = await CashOpening.findOne(openingFilter);
 
     let openingCash = 0;
     let isCarriedForward = false;
@@ -514,10 +527,11 @@ const getCashSummary = async (req, res) => {
       openingCash = openingDoc.amount || 0;
     } else {
       // No manual opening — carry forward from the most recent prior CashOpening
-      const priorOpening = await CashOpening.findOne({
-        user: userId,
-        date: { $lt: dayStart },
-      }).sort({ date: -1 });
+      const priorFilter = { user: userId, date: { $lt: dayStart } };
+      if (branchId) priorFilter.branchId = branchId;
+      else priorFilter.$or = [{ branchId: null }, { branchId: { $exists: false } }];
+
+      const priorOpening = await CashOpening.findOne(priorFilter).sort({ date: -1 });
 
       if (priorOpening) {
         // Compute closing from the prior opening day through the day before target
@@ -526,13 +540,16 @@ const getCashSummary = async (req, res) => {
         const priorDayEnd = new Date(dayStart);
         priorDayEnd.setMilliseconds(-1); // end of previous day (23:59:59.999)
 
-        const interimTxns = await FinancialTransaction.find({
+        const txnFilter = {
           user: userId,
           date: { $gte: priorDayStart, $lte: priorDayEnd },
           paymentMethod: 'cash',
           category: { $ne: 'cash_opening' },
           status: 'Completed',
-        }).select('type category amount');
+        };
+        if (branchId) txnFilter.branchId = branchId;
+
+        const interimTxns = await FinancialTransaction.find(txnFilter).select('type category amount');
 
         const isIncomeHelper = (t) => {
           const type = (t.type || '').toLowerCase();
@@ -557,13 +574,16 @@ const getCashSummary = async (req, res) => {
     }
 
     // Get all cash transactions for the target day (real transactions only)
-    const cashTxns = await FinancialTransaction.find({
+    const dayTxnFilter = {
       user: userId,
       date: { $gte: dayStart, $lte: dayEnd },
       paymentMethod: 'cash',
       category: { $ne: 'cash_opening' },
       status: 'Completed',
-    }).select('type category amount');
+    };
+    if (branchId) dayTxnFilter.branchId = branchId;
+
+    const cashTxns = await FinancialTransaction.find(dayTxnFilter).select('type category amount');
 
     const isIncome = (t) => {
       const type = (t.type || '').toLowerCase();
@@ -591,8 +611,10 @@ const getCashSummary = async (req, res) => {
       closingCash,
       hasOpening: !!openingDoc,
       isCarriedForward,
+      description: openingDoc?.description || '',
       totalTransactions: cashTxns.length,
       denominations: openingDoc?.denominations || { d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0 },
+      branchId: branchId || null,
     });
   } catch (error) {
     console.error('Cash Summary Error:', error);
@@ -606,18 +628,21 @@ const getCashSummary = async (req, res) => {
 const saveDenominations = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
-    const { denominations } = req.body;
+    const { denominations, branchId: bodyBranchId } = req.body;
 
     if (!denominations) {
       return res.status(400).json({ message: 'Denominations data is required' });
     }
 
+    // Determine branch scope
+    const branchId = bodyBranchId || req.user.managedBranchId || req.user.branchId || null;
+
     const dayStart = new Date();
     dayStart.setHours(0, 0, 0, 0);
 
     const opening = await CashOpening.findOneAndUpdate(
-      { user: userId, date: dayStart },
-      { denominations },
+      { user: userId, branchId: branchId || null, date: dayStart },
+      { denominations, ...(branchId ? { branchId } : {}) },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 

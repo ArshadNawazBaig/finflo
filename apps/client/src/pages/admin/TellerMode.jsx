@@ -29,6 +29,7 @@ import {
   Plus,
   Download,
   FileBadge,
+  Building2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -146,6 +147,8 @@ const TellerMode = () => {
   });
   const [cashSummaryLoading, setCashSummaryLoading] = useState(false);
   const [cashOpeningInput, setCashOpeningInput] = useState('');
+  const [cashOpeningDescription, setCashOpeningDescription] = useState('');
+  const [showCashOpeningModal, setShowCashOpeningModal] = useState(false);
   const [isSettingOpening, setIsSettingOpening] = useState(false);
   const [cashTxns, setCashTxns] = useState([]);
   const [cashTxnsLoading, setCashTxnsLoading] = useState(false);
@@ -155,6 +158,10 @@ const TellerMode = () => {
   const [cashTxnsTotalEntries, setCashTxnsTotalEntries] = useState(0);
   const isCashbookToday = isToday(cashbookDate);
   const [showDenomModal, setShowDenomModal] = useState(false);
+
+  // ── Branch Dropdown State ──────────────────────
+  const [branches, setBranches] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
 
   // Denomination tracking
   const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1];
@@ -875,19 +882,38 @@ const TellerMode = () => {
   };
 
   // ── Cash in Hand Functions ────────────────────
+
+  // Resolve current branchId for cash APIs
+  const cashBranchId = isAdmin ? selectedBranchId || '' : (user?.managedBranchId || user?.branchId || '');
+
+  // Fetch branches for admin dropdown
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/branches').then(({ data }) => {
+        const list = data?.data || data || [];
+        setBranches(list);
+        if (list.length > 0 && !selectedBranchId) {
+          setSelectedBranchId(list[0]._id);
+        }
+      }).catch(() => {});
+    }
+  }, [isAdmin]);
+
   const fetchCashSummary = async (dateOverride) => {
     setCashSummaryLoading(true);
     try {
       const targetDate = dateOverride || cashbookDate;
       const dateParam = format(targetDate, 'yyyy-MM-dd');
-      const { data } = await api.get('/ledger/cash-summary', {
-        params: { date: dateParam },
-      });
+      const params = { date: dateParam };
+      if (cashBranchId) params.branchId = cashBranchId;
+      const { data } = await api.get('/ledger/cash-summary', { params });
       setCashSummary(data);
       if (data.hasOpening || data.isCarriedForward) {
         setCashOpeningInput(String(data.openingCash));
+        setCashOpeningDescription(data.description || '');
       } else {
         setCashOpeningInput('');
+        setCashOpeningDescription('');
       }
       // Load saved denominations
       if (data.denominations) {
@@ -933,10 +959,13 @@ const TellerMode = () => {
     if (isNaN(amt) || amt < 0) return toast.error('Enter a valid amount');
     setIsSettingOpening(true);
     try {
-      await api.post('/ledger/cash-opening', { amount: amt });
+      const body = { amount: amt, description: cashOpeningDescription };
+      if (cashBranchId) body.branchId = cashBranchId;
+      await api.post('/ledger/cash-opening', body);
       toast.success('Cash opening set successfully');
       fetchCashSummary();
       fetchCashTxns(1);
+      setShowCashOpeningModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to set cash opening');
     } finally {
@@ -947,9 +976,9 @@ const TellerMode = () => {
   const handleSaveDenominations = async () => {
     setIsSavingDenoms(true);
     try {
-      await api.post('/ledger/cash-denominations', {
-        denominations: denomCounts,
-      });
+      const body = { denominations: denomCounts };
+      if (cashBranchId) body.branchId = cashBranchId;
+      await api.post('/ledger/cash-denominations', body);
       toast.success('Denomination count saved');
     } catch (err) {
       toast.error(
@@ -960,13 +989,13 @@ const TellerMode = () => {
     }
   };
 
-  // Fetch cash data when switching to cashbook tab or changing date
+  // Fetch cash data when switching to cashbook tab, changing date, or changing branch
   useEffect(() => {
     if (viewMode === 'cashbook') {
       fetchCashSummary(cashbookDate);
       fetchCashTxns(1, cashbookDate);
     }
-  }, [viewMode, cashTxnsLimit, cashbookDate]);
+  }, [viewMode, cashTxnsLimit, cashbookDate, cashBranchId]);
 
   // ── Loan Auto-Deduction Helpers ────────────────
   const tellerActiveLoan = activeLoans.find(
@@ -2655,6 +2684,31 @@ const TellerMode = () => {
               <h3 className="text-lg font-black tracking-tight">
                 Cash in Hand
               </h3>
+              {/* Branch Selector */}
+              {isAdmin && branches.length > 0 && (
+                <div className="relative ml-2">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/10">
+                    <Building2 size={14} className="text-primary/60" />
+                    <select
+                      value={selectedBranchId}
+                      onChange={(e) => setSelectedBranchId(e.target.value)}
+                      className="bg-transparent text-xs font-black text-primary outline-none cursor-pointer appearance-none pr-4"
+                    >
+                      {branches.map((b) => (
+                        <option key={b._id} value={b._id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={12} className="text-primary/40 absolute right-3 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+              {!isAdmin && user?.branchName && (
+                <span className="ml-2 px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest">
+                  {user.branchName}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -2755,7 +2809,7 @@ const TellerMode = () => {
                       )}
                     </div>
                     <Button
-                      onClick={handleSetCashOpening}
+                      onClick={() => setShowCashOpeningModal(true)}
                       disabled={isSettingOpening || !cashOpeningInput}
                       isLoading={isSettingOpening}
                       className="h-12 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 shrink-0"
@@ -3211,6 +3265,84 @@ const TellerMode = () => {
                     </Button>
                   </div>
                 )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Cash Opening Setup Modal */}
+          <Dialog
+            open={showCashOpeningModal}
+            onOpenChange={setShowCashOpeningModal}
+          >
+            <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-card border-border/50 rounded-3xl">
+              {/* Header */}
+              <div className="relative p-6 pb-4 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-b border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
+                    <HandCoins size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black tracking-tight">
+                      {cashSummary.hasOpening ? 'Update' : 'Set'} Cash in Hand
+                    </h3>
+                    <p className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1">
+                      {format(cashbookDate, 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
+                    Amount
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-emerald-500 font-bold text-sm">
+                        Rs.
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      value={cashOpeningInput}
+                      disabled
+                      className="w-full h-12 pl-12 pr-4 rounded-xl border border-border/50 bg-muted/30 text-emerald-600 font-black tracking-tight focus:outline-none cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block pl-1">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={cashOpeningDescription}
+                    onChange={(e) => setCashOpeningDescription(e.target.value)}
+                    placeholder="Enter reason for update or additional notes..."
+                    rows={3}
+                    className="w-full p-4 rounded-xl border border-border/50 bg-background text-sm resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCashOpeningModal(false)}
+                    className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSetCashOpening}
+                    disabled={isSettingOpening}
+                    isLoading={isSettingOpening}
+                    className="flex-[2] h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20"
+                  >
+                    {!isSettingOpening && `Confirm ${cashSummary.hasOpening ? 'Update' : 'Set'}`}
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
