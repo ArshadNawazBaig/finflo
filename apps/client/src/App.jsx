@@ -33,6 +33,7 @@ const SelfRegister = lazy(() => import('@/pages/auth/SelfRegister'));
 const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 const NotFound = lazy(() => import('@/pages/static/NotFound'));
+const FaqPage = lazy(() => import('@/pages/static/FaqPage'));
 
 import { DomainRedirect } from '@/lib/routeUtils';
 
@@ -88,6 +89,7 @@ function App() {
                 <Route path="/join/:code?" element={<SelfRegister />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/faq" element={<FaqPage />} />
                 <Route path="/documentation" element={<Documentation />} />
                 <Route path="/documentation/api" element={<ApiDocumentation />} />
 

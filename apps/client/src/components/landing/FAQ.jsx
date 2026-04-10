@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Plus, Minus, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useSystemSettings from '@/hooks/useSystemSettings';
@@ -144,14 +145,14 @@ const FAQ = ({ onContactClick }) => {
         >
           <h4 className="text-2xl font-black mb-2">Still have questions?</h4>
           <p className="text-white/80 font-medium mb-6">
-            Our dedicated support team is ready to help you scale.
+            Find all the answers you need in our comprehensive FAQ section.
           </p>
-          <button
-            onClick={onContactClick}
+          <Link
+            to="/faq"
             className="inline-block px-8 py-4 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform"
           >
-            Contact Enterprise Support
-          </button>
+            Go To FAQ
+          </Link>
         </motion.div>
       </div>
     </section>
