@@ -32,7 +32,23 @@ const protect = async (req, res, next) => {
       // Branch manager status is stored on the User document (managedBranchId field).
       // This avoids a Branch.findOne() DB query on every single request for staff users.
       if (req.user.role === 'staff') {
-        const cachedManagedBranchId = req.user.managedBranchId || null;
+        let cachedManagedBranchId = req.user.managedBranchId || null;
+
+        // Self-healing: if managedBranchId was never cached, check the Branch collection once
+        // and persist it so future requests are fast.
+        if (!cachedManagedBranchId) {
+          const Branch = require('../models/Branch');
+          const managedBranch = await Branch.findOne({ manager: req.user._id }).select('_id').lean();
+          if (managedBranch) {
+            cachedManagedBranchId = managedBranch._id;
+            // Cache it on the User document so this lookup doesn't repeat
+            User.findByIdAndUpdate(req.user._id, {
+              managedBranchId: managedBranch._id,
+              branchId: req.user.branchId || managedBranch._id,
+            }).exec();
+          }
+        }
+
         req.user.isManager = !!cachedManagedBranchId;
         req.user.managedBranchId = cachedManagedBranchId;
       } else {
@@ -70,7 +86,7 @@ const admin = (req, res, next) => {
   ) {
     next();
   } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
+    res.status(403).json({ message: 'Not authorized as an admin' });
   }
 };
 
@@ -83,7 +99,7 @@ const staffOrAdmin = (req, res, next) => {
   ) {
     next();
   } else {
-    res.status(401).json({
+    res.status(403).json({
       message: 'Not authorized. Only staff or admin accounts allowed.',
     });
   }

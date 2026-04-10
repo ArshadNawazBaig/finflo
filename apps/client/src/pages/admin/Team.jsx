@@ -194,7 +194,7 @@ const Team = () => {
         title="Team Management"
         description="Add and manage your staff members who can create loans and manage customers."
       >
-        {user.role === 'admin' && (
+        {(user.role === 'admin' || user.isManager) && (
           <Button
             onClick={handleAddStaff}
             variant="gradient"

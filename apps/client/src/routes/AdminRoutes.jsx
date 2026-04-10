@@ -52,7 +52,7 @@ const AdminRoutes = () => (
       <Route path="/dashboard" element={<Dashboard />} />
 
       {/* Permission Based Routes */}
-      <Route element={<RequirePermissions permissions={['view_all', 'manage_members']} any />}>
+      <Route element={<RequirePermissions permissions={['view_all', 'manage_members', 'manage_roles']} any />}>
         <Route path="/customers" element={<Customers />} />
         <Route path="/members" element={<Members />} />
         <Route path="/members/:id" element={<MemberProfile />} />

@@ -39,20 +39,21 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
   });
 
   useEffect(() => {
+    if (!isOpen) return;
     const fetchData = async () => {
       try {
-        const [branchRes, roleRes] = await Promise.all([
+        const [branchRes, roleRes] = await Promise.allSettled([
           api.get('/branches'),
           api.get('/roles'),
         ]);
-        setBranches(branchRes.data);
-        setRoles(roleRes.data);
+        if (branchRes.status === 'fulfilled') setBranches(branchRes.value.data);
+        if (roleRes.status === 'fulfilled') setRoles(roleRes.value.data);
       } catch (error) {
         console.error('Failed to fetch initial data', error);
       }
     };
     fetchData();
-  }, []);
+  }, [isOpen]);
 
   const onSubmit = async (formData) => {
     const emailValidation = validateEmail(formData.email);

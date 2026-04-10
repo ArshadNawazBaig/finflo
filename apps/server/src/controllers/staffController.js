@@ -25,11 +25,11 @@ const createStaff = async (req, res) => {
       password,
       role: 'staff',
       roleRef: roleRef || null,
-      ownerId: req.user._id, // Linked to the Admin who created them
-      branchId: branchId || null,
+      ownerId: req.user.effectiveOwnerId, // Use admin owner for org linkage
+      branchId: branchId || (req.user.isManager ? req.user.managedBranchId : null),
       businessName: req.user.businessName, // Inherit business name
       securityCode: req.user.securityCode, // Shared security code
-      isVerified: true, // Staff created by admin are implicitly verified
+      isVerified: true, // Staff created by admin/manager are implicitly verified
       mustChangePassword: true,
     });
 

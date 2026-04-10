@@ -28,20 +28,21 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
   } = useForm();
 
   useEffect(() => {
+    if (!isOpen) return;
     const fetchData = async () => {
       try {
-        const [branchRes, roleRes] = await Promise.all([
+        const [branchRes, roleRes] = await Promise.allSettled([
           api.get('/branches'),
           api.get('/roles'),
         ]);
-        setBranches(branchRes.data);
-        setRoles(roleRes.data);
+        if (branchRes.status === 'fulfilled') setBranches(branchRes.value.data);
+        if (roleRes.status === 'fulfilled') setRoles(roleRes.value.data);
       } catch (error) {
         console.error('Failed to fetch initial data', error);
       }
     };
     fetchData();
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (staff) {
