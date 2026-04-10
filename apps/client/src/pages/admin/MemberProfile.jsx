@@ -2527,6 +2527,110 @@ const MemberProfile = () => {
             </div>
           )}
 
+          {/* Guarantors Details Card */}
+          {member.guarantors?.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 border border-blue-500/30 p-5 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6 mt-8">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black tracking-tighter flex items-center gap-2">
+                  <ShieldCheck size={20} className="text-blue-500" />
+                  Guarantors
+                </h3>
+                <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
+                  {member.guarantors.length} {member.guarantors.length === 1 ? 'Guarantor' : 'Guarantors'}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {member.guarantors.map((g) => (
+                  <div
+                    key={g._id}
+                    onClick={() => navigate(`/members/${g._id}`)}
+                    className="flex items-center justify-between p-4 rounded-2xl border border-border/30 bg-muted/20 hover:bg-blue-500/5 hover:border-blue-500/30 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 font-black text-sm">
+                        {(g.name || '?')[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
+                          {g.name || 'Unknown'}
+                        </div>
+                        <div className="text-xs font-mono text-muted-foreground">
+                          {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        g.status === 'approved'
+                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          : g.status === 'rejected'
+                            ? 'bg-red-500/10 text-red-600 border border-red-500/20'
+                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                      }`}>
+                        {g.status || 'pending'}
+                      </span>
+                      <ChevronRight size={16} className="text-muted-foreground/40 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Acting as Guarantor Card */}
+          {member.actingAsGrantor?.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 border border-purple-500/30 p-5 sm:p-10 rounded-[2.5rem] shadow-sm space-y-6 mt-8">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black tracking-tighter flex items-center gap-2">
+                  <FileBadge size={20} className="text-purple-500" />
+                  Acting as Guarantor
+                </h3>
+                <div className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 text-[10px] font-black uppercase tracking-widest">
+                  {member.actingAsGrantor.length} {member.actingAsGrantor.length === 1 ? 'Loan' : 'Loans'}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {member.actingAsGrantor.map((g) => (
+                  <div
+                    key={g.loanId}
+                    onClick={() => navigate(`/loans/${g.loanId}`)}
+                    className="flex items-center justify-between p-4 rounded-2xl border border-border/30 bg-muted/20 hover:bg-purple-500/5 hover:border-purple-500/30 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-600 font-black text-sm">
+                        {(g.customerName || '?')[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
+                          {g.customerName}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          Loan: {formatCurrency(g.loanAmount)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        g.loanStatus === 'active'
+                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          : g.loanStatus === 'completed'
+                            ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
+                            : g.loanStatus === 'defaulted'
+                              ? 'bg-red-500/10 text-red-600 border border-red-500/20'
+                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                      }`}>
+                        {g.loanStatus}
+                      </span>
+                      <ChevronRight size={16} className="text-muted-foreground/40 group-hover:text-purple-500 transition-colors" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── Term Deposits Section ─────────────────────────────── */}
           <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-emerald-500/20 shadow-sm space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 mt-8">
             {/* Header */}

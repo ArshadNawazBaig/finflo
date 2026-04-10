@@ -27,6 +27,7 @@ import {
   Lock,
   Plus,
   Download,
+  FileBadge,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -59,7 +60,7 @@ import {
 } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCNIC } from '@/lib/utils';
 
 const TellerMode = () => {
   // ── Search State ──────────────────────────────
@@ -1393,6 +1394,89 @@ const TellerMode = () => {
                         <span className="text-sm font-black text-indigo-600">
                           {activeLoans.length}
                         </span>
+                      </div>
+                    )}
+
+                    {/* Guarantors Section */}
+                    {member.guarantors?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2 px-1">
+                          <ShieldCheck size={12} className="text-blue-500" />
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500/70">
+                            Guarantors ({member.guarantors.length})
+                          </span>
+                        </div>
+                        {member.guarantors.map((g) => (
+                          <div
+                            key={g._id}
+                            className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/30 transition-all cursor-pointer group"
+                            onClick={() => selectMember(g._id)}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 font-black text-[10px] shrink-0">
+                                {(g.name || '?')[0]?.toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-xs font-black capitalize truncate group-hover:text-blue-600 transition-colors">
+                                  {g.name || 'Unknown'}
+                                </div>
+                                <div className="text-[10px] font-mono text-muted-foreground/60 truncate">
+                                  {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
+                                </div>
+                              </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
+                              g.status === 'approved'
+                                ? 'bg-emerald-500/10 text-emerald-600'
+                                : g.status === 'rejected'
+                                  ? 'bg-red-500/10 text-red-600'
+                                  : 'bg-amber-500/10 text-amber-600'
+                            }`}>
+                              {g.status || 'pending'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Acting as Guarantor Section */}
+                    {member.actingAsGrantor?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2 px-1">
+                          <FileBadge size={12} className="text-purple-500" />
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-500/70">
+                            Guarantor For ({member.actingAsGrantor.length})
+                          </span>
+                        </div>
+                        {member.actingAsGrantor.map((g) => (
+                          <div
+                            key={g.loanId}
+                            className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 hover:border-purple-500/30 transition-all"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 font-black text-[10px] shrink-0">
+                                {(g.customerName || '?')[0]?.toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-xs font-black capitalize truncate">
+                                  {g.customerName}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground/60">
+                                  {formatCurrency(g.loanAmount)}
+                                </div>
+                              </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
+                              g.loanStatus === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-600'
+                                : g.loanStatus === 'completed'
+                                  ? 'bg-blue-500/10 text-blue-600'
+                                  : 'bg-red-500/10 text-red-600'
+                            }`}>
+                              {g.loanStatus}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

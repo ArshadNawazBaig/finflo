@@ -346,7 +346,79 @@ const getMemberById = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    res.json(member);
+    const memberObj = member.toObject();
+
+    // Fetch guarantor data in parallel
+    const customerId = member.customer?._id || member.customer;
+    const [loansWithGrantors, loansAsGrantor] = await Promise.all([
+      // 1. Loans of this member's customer that have grantors assigned
+      customerId
+        ? Loan.find({
+            customer: customerId,
+            $or: [
+              { grantor1: { $ne: null } },
+              { grantor2: { $ne: null } },
+            ],
+          })
+            .select('grantor1 grantor1Status grantor2 grantor2Status principal status')
+            .populate('grantor1', 'name cnic')
+            .populate('grantor2', 'name cnic')
+            .lean()
+        : [],
+      // 2. Loans where this member is a grantor for someone else
+      Loan.find({
+        $or: [{ grantor1: id }, { grantor2: id }],
+      })
+        .select('customer grantor1 grantor1Status grantor2 grantor2Status principal status')
+        .populate('customer', 'name')
+        .lean(),
+    ]);
+
+    // Extract unique guarantors for this member's loans
+    const guarantors = [];
+    const seenGrantorIds = new Set();
+    for (const loan of loansWithGrantors) {
+      if (loan.grantor1 && !seenGrantorIds.has(loan.grantor1._id.toString())) {
+        seenGrantorIds.add(loan.grantor1._id.toString());
+        guarantors.push({
+          _id: loan.grantor1._id,
+          name: loan.grantor1.name,
+          cnic: loan.grantor1.cnic,
+          status: loan.grantor1Status,
+          loanAmount: loan.principal,
+          loanStatus: loan.status,
+        });
+      }
+      if (loan.grantor2 && !seenGrantorIds.has(loan.grantor2._id.toString())) {
+        seenGrantorIds.add(loan.grantor2._id.toString());
+        guarantors.push({
+          _id: loan.grantor2._id,
+          name: loan.grantor2.name,
+          cnic: loan.grantor2.cnic,
+          status: loan.grantor2Status,
+          loanAmount: loan.principal,
+          loanStatus: loan.status,
+        });
+      }
+    }
+
+    // Extract loans where this member is acting as guarantor
+    const actingAsGrantor = loansAsGrantor.map((loan) => {
+      const isGrantor1 = loan.grantor1?.toString() === id || loan.grantor1?._id?.toString() === id;
+      return {
+        loanId: loan._id,
+        customerName: loan.customer?.name || 'Unknown',
+        customerId: loan.customer?._id,
+        status: isGrantor1 ? loan.grantor1Status : loan.grantor2Status,
+        loanAmount: loan.principal,
+        loanStatus: loan.status,
+      };
+    });
+
+    memberObj.guarantors = guarantors;
+    memberObj.actingAsGrantor = actingAsGrantor;
+
+    res.json(memberObj);
   } catch (error) {
     console.error('Get Member Error:', error);
     res.status(500).json({ message: 'Failed to fetch member' });
