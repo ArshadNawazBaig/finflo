@@ -81,7 +81,7 @@ const StatsCard = ({
             {title}
           </p>
           <div className="flex flex-col">
-            <h3 className="text-2xl sm:text-xl font-black tracking-tight text-foreground tabular-nums capitalize">
+            <h3 className="text-2xl sm:text-lg font-black tracking-tight text-foreground tabular-nums capitalize">
               {amount}
             </h3>
             {subtitle && (

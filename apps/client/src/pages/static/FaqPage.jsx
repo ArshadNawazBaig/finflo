@@ -26,10 +26,12 @@ import {
   Code
 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import ContactModal from '@/components/landing/ContactModal';
 
 const FaqPage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [activeSection, setActiveSection] = useState(0);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -196,14 +198,13 @@ const FaqPage = () => {
               Return Home
             </span>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
-              <HelpCircle className="w-5 h-5 text-emerald-500" />
-            </div>
-            <span className="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-200">
-              Need more help? Contact Support
-            </span>
-          </div>
+          <button
+            onClick={() => setIsContactModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 hover:bg-primary dark:hover:bg-primary text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white rounded-xl shadow-sm border border-slate-200 dark:border-white/10 hover:border-primary dark:hover:border-primary transition-all font-bold text-sm group"
+          >
+            <HelpCircle className="w-4 h-4 text-primary group-hover:text-white transition-colors" />
+            <span className="hidden sm:inline">Contact Support</span>
+          </button>
         </div>
       </nav>
 
@@ -323,6 +324,12 @@ const FaqPage = () => {
           </p>
         </div>
       </footer>
+
+      {/* Contact Enterprise Modal */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };
