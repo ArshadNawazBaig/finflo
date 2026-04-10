@@ -1408,7 +1408,7 @@ const TellerMode = () => {
                             Guarantors ({member.guarantors.length})
                           </span>
                         </div>
-                        {member.guarantors.slice(0, 3).map((g) => (
+                        {member.guarantors.slice(0, 2).map((g) => (
                           <div
                             key={g._id}
                             className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 hover:border-blue-500/30 transition-all cursor-pointer group"
@@ -1438,7 +1438,7 @@ const TellerMode = () => {
                             </span>
                           </div>
                         ))}
-                        {member.guarantors.length > 3 && (
+                        {member.guarantors.length > 2 && (
                           <button
                             onClick={() => navigate(`/members/${member._id}/guarantors`)}
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 transition-colors"
@@ -1458,7 +1458,7 @@ const TellerMode = () => {
                             Guarantor For ({member.actingAsGrantor.length})
                           </span>
                         </div>
-                        {member.actingAsGrantor.slice(0, 3).map((g) => (
+                        {member.actingAsGrantor.slice(0, 2).map((g) => (
                           <div
                             key={g.loanId}
                             className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 hover:border-purple-500/30 transition-all"
@@ -1487,7 +1487,7 @@ const TellerMode = () => {
                             </span>
                           </div>
                         ))}
-                        {member.actingAsGrantor.length > 3 && (
+                        {member.actingAsGrantor.length > 2 && (
                           <button
                             onClick={() => navigate(`/members/${member._id}/guarantors`)}
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 transition-colors"

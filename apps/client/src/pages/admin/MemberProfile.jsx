@@ -2541,7 +2541,7 @@ const MemberProfile = () => {
               </div>
 
               <div className="space-y-3">
-                {member.guarantors.slice(0, 3).map((g) => (
+                {member.guarantors.slice(0, 2).map((g) => (
                   <div
                     key={g._id}
                     onClick={() => navigate(`/members/${g._id}`)}
@@ -2575,7 +2575,7 @@ const MemberProfile = () => {
                   </div>
                 ))}
               </div>
-              {member.guarantors.length > 3 && (
+              {member.guarantors.length > 2 && (
                 <button
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 border border-blue-500/10 transition-all"
@@ -2600,7 +2600,7 @@ const MemberProfile = () => {
               </div>
 
               <div className="space-y-3">
-                {member.actingAsGrantor.slice(0, 3).map((g) => (
+                {member.actingAsGrantor.slice(0, 2).map((g) => (
                   <div
                     key={g.loanId}
                     onClick={() => navigate(`/loans/${g.loanId}`)}
@@ -2636,7 +2636,7 @@ const MemberProfile = () => {
                   </div>
                 ))}
               </div>
-              {member.actingAsGrantor.length > 3 && (
+              {member.actingAsGrantor.length > 2 && (
                 <button
                   onClick={() => navigate(`/members/${id}/guarantors`)}
                   className="w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 border border-purple-500/10 transition-all"
