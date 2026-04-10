@@ -31,6 +31,7 @@ const Settings = withSkeleton(() => import('@/pages/admin/Settings'), SettingsPa
 const Billing = withSkeleton(() => import('@/pages/billing/Billing'), SettingsPageSkeleton);
 const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), CardsPageSkeleton);
 const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), ProfilePageSkeleton);
+const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), CardsPageSkeleton);
 const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), ProfilePageSkeleton);
 const Support = withSkeleton(() => import('@/pages/admin/Support'), CardsPageSkeleton);
 const Notifications = withSkeleton(() => import('@/pages/admin/Notifications'), RegistryPageSkeleton);
@@ -56,6 +57,7 @@ const AdminRoutes = () => (
         <Route path="/customers" element={<Customers />} />
         <Route path="/members" element={<Members />} />
         <Route path="/members/:id" element={<MemberProfile />} />
+        <Route path="/members/:id/guarantors" element={<MemberGuarantors />} />
         <Route path="/customers/:id" element={<CustomerProfile />} />
         <Route path="/team" element={<Team />} />
         <Route path="/team/:id" element={<StaffProfile />} />
