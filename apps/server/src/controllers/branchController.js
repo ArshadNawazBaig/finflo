@@ -598,7 +598,7 @@ const getBranchFinancials = async (req, res) => {
 // @access  Private (Admin or Branch Manager)
 const addBranchExpense = async (req, res) => {
   try {
-    const { amount, category, description, date, staffId } = req.body;
+    const { amount, category, description, date, staffId, paymentMethod } = req.body;
     const branchId = req.params.id;
 
     // Manager can only add expenses to their own branch
@@ -618,6 +618,7 @@ const addBranchExpense = async (req, res) => {
       amount,
       description,
       date: date || new Date(),
+      paymentMethod: paymentMethod || 'cash',
     };
 
     // If it's a salary expense and staffId is provided, link it

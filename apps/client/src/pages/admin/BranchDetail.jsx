@@ -17,6 +17,8 @@ import {
   Coins,
   Download,
   ExternalLink,
+  HandCoins,
+  Globe,
 } from 'lucide-react';
 import {
   Select,
@@ -66,6 +68,7 @@ const BranchDetail = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [expenseData, setExpenseData] = useState({
     staffId: '',
+    paymentMethod: 'cash',
   });
   const [isAddingExpense, setIsAddingExpense] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -540,6 +543,7 @@ const BranchDetail = () => {
         category: 'rent',
         description: '',
         staffId: '',
+        paymentMethod: 'cash',
       });
 
       // Reset 'to' dates to now to ensure the new expense is included in filters
@@ -1338,6 +1342,42 @@ const BranchDetail = () => {
                     placeholder="0.00"
                     className="pl-20 h-16 sm:h-20 rounded-2xl border-border/40 focus-visible:ring-red-500/20 focus-visible:border-red-500 bg-muted/30 font-black text-2xl sm:text-4xl tracking-tighter transition-all"
                   />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Payment Channel
+                </Label>
+                <div className="flex gap-3 p-1.5 bg-muted/30 rounded-2xl border border-border/20">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpenseData({ ...expenseData, paymentMethod: 'cash' })
+                    }
+                    className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
+                      expenseData.paymentMethod === 'cash'
+                        ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 scale-[1.02]'
+                        : 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <HandCoins size={14} />
+                    Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpenseData({ ...expenseData, paymentMethod: 'online' })
+                    }
+                    className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
+                      expenseData.paymentMethod === 'online'
+                        ? 'bg-blue-500 text-white shadow-xl shadow-blue-500/20 scale-[1.02]'
+                        : 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <Globe size={14} />
+                    Online
+                  </button>
                 </div>
               </div>
 
