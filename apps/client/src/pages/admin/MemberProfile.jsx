@@ -1421,6 +1421,8 @@ const MemberProfile = () => {
                         onChange={(e) =>
                           setEditForm({ ...editForm, address: e.target.value })
                         }
+                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        placeholder="Enter complete address..."
                       />
                     </div>
 
