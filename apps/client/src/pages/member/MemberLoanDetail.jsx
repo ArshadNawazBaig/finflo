@@ -34,12 +34,13 @@ import { toast } from 'sonner';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import MemberRepayModal from '@/components/member/MemberRepayModal';
-
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MemberLoanDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 1024px)');
   const [loan, setLoan] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [truePrincipalPaid, setTruePrincipalPaid] = useState(0);
@@ -456,6 +457,7 @@ const MemberLoanDetail = () => {
       <AmortizationSchedule
         schedule={schedule}
         paidInstallmentsCount={paidInstallments}
+        isMobile={isMobile}
       />
 
       {/* Helpful Hint */}
