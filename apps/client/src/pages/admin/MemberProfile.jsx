@@ -63,6 +63,7 @@ import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const MemberProfileSkeleton = () => (
   <div className="space-y-8 animate-pulse">
@@ -217,6 +218,10 @@ const MemberProfile = () => {
   const [systemSettings, setSystemSettings] = useState(null);
   const [isBreakingTD, setIsBreakingTD] = useState(null);
   const [isMaturingTD, setIsMaturingTD] = useState(null);
+
+  // Transaction Confirm Modal State
+  const [showTxnConfirm, setShowTxnConfirm] = useState(false);
+  const [pendingTxnType, setPendingTxnType] = useState(null); // 'investment' | 'transfer'
 
   const getSettlementDetails = (loan) => {
     if (!loan)
@@ -656,6 +661,14 @@ const MemberProfile = () => {
 
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
+    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter a valid amount');
+    setPendingTxnType('investment');
+    setShowTxnConfirm(true);
+  };
+
+  const executeInvestment = async () => {
+    setShowTxnConfirm(false);
+    setPendingTxnType(null);
     try {
       setIsSubmittingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
@@ -710,7 +723,13 @@ const MemberProfile = () => {
       toast.error('Recipient and amount are required');
       return;
     }
+    setPendingTxnType('transfer');
+    setShowTxnConfirm(true);
+  };
 
+  const executeTransfer = async () => {
+    setShowTxnConfirm(false);
+    setPendingTxnType(null);
     setIsTransferring(true);
     try {
       await api.post('/members/admin/transfer', {
@@ -3744,6 +3763,34 @@ const MemberProfile = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Transaction Confirmation Modal */}
+      <TransactionConfirmModal
+        isOpen={showTxnConfirm}
+        onClose={() => { setShowTxnConfirm(false); setPendingTxnType(null); }}
+        onConfirm={pendingTxnType === 'investment' ? executeInvestment : executeTransfer}
+        loading={pendingTxnType === 'investment' ? isSubmittingInvestment : isTransferring}
+        type={
+          pendingTxnType === 'transfer' ? 'transfer'
+            : investmentType === 'deposit' ? 'credit' : 'debit'
+        }
+        amount={parseFloat(pendingTxnType === 'transfer' ? transferAmount : amount) || 0}
+        details={
+          pendingTxnType === 'transfer'
+            ? [
+                { label: 'From', value: capitalize(member?.name || '') },
+                { label: 'To', value: transferRecipientName || recipientIdentifier },
+                { label: 'Account', value: transferAccountType === 'saving' ? 'Saving' : 'Current' },
+              ]
+            : [
+                { label: 'Member', value: capitalize(member?.name || '') },
+                { label: 'Type', value: investmentType === 'deposit' ? 'Deposit' : 'Withdrawal' },
+                { label: 'Account', value: investAccountType === 'saving' ? 'Saving' : 'Current' },
+                { label: 'Method', value: investPaymentMethod === 'cash' ? 'Cash' : investPaymentMethod === 'bank' ? 'Bank' : 'Online' },
+              ]
+        }
+        description={pendingTxnType === 'transfer' ? transferDescription : description || undefined}
+      />
     </div>
   );
 };

@@ -22,7 +22,8 @@ import {
   Loader2,
   AlertTriangle,
 } from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, capitalize } from '@/lib/utils';
+import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import { Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 
 const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
@@ -33,6 +34,8 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [lastPaymentDate, setLastPaymentDate] = useState(null);
   const [truePrincipalPaid, setTruePrincipalPaid] = useState(0);
   const [isFetchingLastPayment, setIsFetchingLastPayment] = useState(false);
+  const [showTxnConfirm, setShowTxnConfirm] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState(null);
 
   const {
     register,
@@ -218,9 +221,16 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   };
 
   const onSubmit = async (formData) => {
+    setPendingFormData(formData);
+    setShowTxnConfirm(true);
+  };
+
+  const executeRepayment = async () => {
+    setShowTxnConfirm(false);
+    const formData = pendingFormData;
+    if (!formData) return;
     setLoading(true);
     try {
-      // Append current local time to the selected date to prevent it defaulting to exactly midnight 
       const selectedDateString = formData.date;
       const now = new Date();
       let isoDate = selectedDateString;
@@ -252,6 +262,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         notes: '',
       });
       setIsSettlement(false);
+      setPendingFormData(null);
     } catch (error) {
       toast.error(
         error.response?.data?.message || 'Failed to record repayment',
@@ -262,7 +273,8 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+    <Dialog open={isOpen && !showTxnConfirm} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
         <div className="p-6 border-b bg-background z-10">
@@ -585,6 +597,24 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Transaction Confirmation */}
+    <TransactionConfirmModal
+      isOpen={showTxnConfirm}
+      onClose={() => { setShowTxnConfirm(false); setPendingFormData(null); }}
+      onConfirm={executeRepayment}
+      loading={loading}
+      type="loan-payment"
+      amount={Number(pendingFormData?.amount || amount) || 0}
+      details={[
+        { label: 'Borrower', value: capitalize(loan?.customer?.name || '') },
+        { label: 'Loan #', value: loan?.loanNumber || loan?._id?.slice(-6) || '' },
+        { label: 'Type', value: isSettlement ? 'Full Settlement' : 'Installment' },
+        { label: 'Outstanding', value: formatCurrency(loan?.remainingAmount || 0) },
+      ]}
+      description={pendingFormData?.notes || undefined}
+    />
+    </>
   );
 };
 

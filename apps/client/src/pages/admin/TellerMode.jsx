@@ -62,7 +62,8 @@ import {
 } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, formatCNIC } from '@/lib/utils';
+import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
+import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const TellerMode = () => {
   const navigate = useNavigate();
@@ -133,6 +134,10 @@ const TellerMode = () => {
   const observerTarget = useRef(null);
   const recentTxnsObserverTarget = useRef(null);
   const skipNextEffect = useRef(false);
+
+  // ── Transaction Confirm Modal State ────────────
+  const [showTxnConfirm, setShowTxnConfirm] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'deposit' | 'withdraw' | 'loan-pay'
 
   // ── Cash in Hand State ─────────────────────────
   const [cashbookDate, setCashbookDate] = useState(new Date());
@@ -1118,9 +1123,38 @@ const TellerMode = () => {
 
   const submitAction = (e) => {
     e.preventDefault();
-    if (activeAction === 'deposit') handleDeposit();
-    else if (activeAction === 'withdraw') handleWithdraw();
-    else if (activeAction === 'loan-pay') handleLoanPayment();
+    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter a valid amount');
+    if (activeAction === 'loan-pay' && !selectedLoan) return toast.error('Select a loan first');
+    setPendingAction(activeAction);
+    setShowTxnConfirm(true);
+  };
+
+  const executeConfirmedAction = () => {
+    setShowTxnConfirm(false);
+    if (pendingAction === 'deposit') handleDeposit();
+    else if (pendingAction === 'withdraw') handleWithdraw();
+    else if (pendingAction === 'loan-pay') handleLoanPayment();
+    setPendingAction(null);
+  };
+
+  const getTxnConfirmType = () => {
+    if (pendingAction === 'deposit') return 'credit';
+    if (pendingAction === 'withdraw') return 'debit';
+    if (pendingAction === 'loan-pay') return 'loan-payment';
+    return 'custom';
+  };
+
+  const getTxnConfirmDetails = () => {
+    const details = [];
+    if (member) details.push({ label: 'Member', value: capitalize(member.name) });
+    if (pendingAction !== 'loan-pay') {
+      details.push({ label: 'Account', value: accountType === 'saving' ? 'Saving Account' : 'Current Account' });
+    }
+    if (selectedLoan && pendingAction === 'loan-pay') {
+      details.push({ label: 'Loan', value: `#${selectedLoan.loanNumber || selectedLoan._id?.slice(-6)}` });
+    }
+    details.push({ label: 'Method', value: paymentMethod === 'cash' ? 'Cash' : paymentMethod === 'bank' ? 'Bank Transfer' : 'Online' });
+    return details;
   };
 
   const actionConfig = {
@@ -3387,6 +3421,18 @@ const TellerMode = () => {
 
       {/* ── POS Specific Views (Retired in Sidebar) ───────────────────── */}
       {/* Handled in the split-layout above */}
+
+      {/* ── Transaction Confirmation Modal ─────────────────────────────── */}
+      <TransactionConfirmModal
+        isOpen={showTxnConfirm}
+        onClose={() => { setShowTxnConfirm(false); setPendingAction(null); }}
+        onConfirm={executeConfirmedAction}
+        loading={isProcessing}
+        type={getTxnConfirmType()}
+        amount={parseFloat(amount) || 0}
+        details={getTxnConfirmDetails()}
+        description={description || undefined}
+      />
     </div>
   );
 };

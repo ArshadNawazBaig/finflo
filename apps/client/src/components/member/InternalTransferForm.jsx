@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { formatCurrency, capitalize } from '@/lib/utils';
+import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const InternalTransferForm = ({ member, onSuccess }) => {
   const [recipient, setRecipient] = useState('');
@@ -14,6 +16,7 @@ const InternalTransferForm = ({ member, onSuccess }) => {
   const [lookupData, setLookupData] = useState(null);
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showTxnConfirm, setShowTxnConfirm] = useState(false);
 
   // Lookup internal recipient
   useEffect(() => {
@@ -57,7 +60,11 @@ const InternalTransferForm = ({ member, onSuccess }) => {
     const availableBalance = accountType === 'current' ? member?.currentBalance : member?.savingBalance;
     if (amount > availableBalance)
       return toast.error(`Insufficient ${accountType} funds`);
+    setShowTxnConfirm(true);
+  };
 
+  const executeTransfer = async () => {
+    setShowTxnConfirm(false);
     setLoading(true);
     try {
       await api.post('/members/portal/transfer', {
@@ -80,6 +87,7 @@ const InternalTransferForm = ({ member, onSuccess }) => {
   };
 
   return (
+    <>
     <form onSubmit={handleTransfer} className="space-y-6 relative z-10 w-full">
       <div>
         <h3 className="text-2xl font-black tracking-tighter">Send to Member</h3>
@@ -212,6 +220,23 @@ const InternalTransferForm = ({ member, onSuccess }) => {
         {!loading && <ArrowRight size={16} />}
       </Button>
     </form>
+
+    {/* Transaction Confirmation */}
+    <TransactionConfirmModal
+      isOpen={showTxnConfirm}
+      onClose={() => setShowTxnConfirm(false)}
+      onConfirm={executeTransfer}
+      loading={loading}
+      type="transfer"
+      amount={parseFloat(amount) || 0}
+      details={[
+        { label: 'To', value: capitalize(lookupData?.name || '') },
+        { label: 'Account', value: accountType === 'saving' ? 'Saving' : 'Current' },
+        { label: 'Recipient ID', value: lookupData?.memberId || '' },
+      ]}
+      description={note || undefined}
+    />
+    </>
   );
 };
 

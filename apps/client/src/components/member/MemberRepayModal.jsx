@@ -20,7 +20,8 @@ import {
   ArrowDownCircle,
   Calendar,
 } from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency, cn, capitalize } from '@/lib/utils';
+import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const [formData, setFormData] = useState({
     notes: '',
   });
+  const [showTxnConfirm, setShowTxnConfirm] = useState(false);
 
   const businessName = member?.user?.businessName || 'FinFlo';
 
@@ -198,6 +200,12 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       toast.error('Insufficient balance to make this repayment');
       return;
     }
+    setShowTxnConfirm(true);
+  };
+
+  const executeRepayment = async () => {
+    setShowTxnConfirm(false);
+    const paymentAmount = Number(formData.amount);
 
     setLoading(true);
     try {
@@ -240,243 +248,275 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
   const isInsufficient = Number(formData.amount) > memberBalance;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] !p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
-          <DialogHeader className="mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
-                <Wallet className="w-8 h-8" />
+    <>
+      <Dialog open={isOpen && !showTxnConfirm} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] !p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
+            <DialogHeader className="mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
+                  <Wallet className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <DialogTitle className="text-2xl font-black tracking-tight">
+                    {isSettlement ? 'Early Settlement' : 'Repay Loan'}
+                  </DialogTitle>
+                  <DialogDescription className="text-sm font-medium">
+                    {isSettlement
+                      ? 'Pay off your loan today with adjusted interest.'
+                      : `Select an amount to pay from your ${businessName} Balance.`}
+                  </DialogDescription>
+                </div>
               </div>
-              <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">
-                  {isSettlement ? 'Early Settlement' : 'Repay Loan'}
-                </DialogTitle>
-                <DialogDescription className="text-sm font-medium">
-                  {isSettlement
-                    ? 'Pay off your loan today with adjusted interest.'
-                    : `Select an amount to pay from your ${businessName} Balance.`}
-                </DialogDescription>
+            </DialogHeader>
+
+            {/* Balance & Loan Info Row */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                  Available
+                </p>
+                <p className="text-sm font-black text-primary truncate">
+                  {fetchingBalance ? (
+                    <Loader2 className="w-3 h-3 animate-spin inline" />
+                  ) : (
+                    formatCurrency(memberBalance)
+                  )}
+                </p>
+              </div>
+              <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
+                  {isSettlement ? 'Settlement' : 'Outstanding'}
+                </p>
+                <p
+                  className={`text-sm font-black truncate ${isSettlement ? 'text-blue-600' : 'text-rose-600'}`}
+                >
+                  {formatCurrency(
+                    isSettlement ? settlementAmount : loan.remainingAmount,
+                  )}
+                </p>
               </div>
             </div>
-          </DialogHeader>
 
-          {/* Balance & Loan Info Row */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                Available
-              </p>
-              <p className="text-sm font-black text-primary truncate">
-                {fetchingBalance ? (
-                  <Loader2 className="w-3 h-3 animate-spin inline" />
-                ) : (
-                  formatCurrency(memberBalance)
-                )}
-              </p>
-            </div>
-            <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm text-right">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                {isSettlement ? 'Settlement' : 'Outstanding'}
-              </p>
-              <p
-                className={`text-sm font-black truncate ${isSettlement ? 'text-blue-600' : 'text-rose-600'}`}
-              >
-                {formatCurrency(
-                  isSettlement ? settlementAmount : loan.remainingAmount,
-                )}
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Quick Option: Monthly Installment */}
-            {loan.emi > 0 && !isSettlement && dailyInstallment && (
-              <div
-                onClick={() =>
-                  !isFetchingLastPayment &&
-                  setFormData({
-                    ...formData,
-                    amount: dailyInstallment.adjustedAmount.toString(),
-                  })
-                }
-                className={cn(
-                  'p-4 rounded-3xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
-                  Number(formData.amount) === dailyInstallment.adjustedAmount
-                    ? 'bg-primary/10 border-primary shadow-sm'
-                    : 'bg-muted/30 border-border/40 hover:border-primary/50',
-                  isFetchingLastPayment && 'opacity-60 pointer-events-none',
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'p-2 rounded-xl transition-colors',
-                      Number(formData.amount) ===
-                        dailyInstallment.adjustedAmount
-                        ? 'bg-primary/20 text-primary'
-                        : 'bg-background text-muted-foreground group-hover:text-primary',
-                    )}
-                  >
-                    {isFetchingLastPayment ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Calendar size={16} />
-                    )}
-                  </div>
-                  <div className="space-y-0.5 text-left">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        Monthly Installment
-                      </p>
-                      {!isFetchingLastPayment && (
-                        <span className="text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                          {dailyInstallment.daysPassed}d
-                        </span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Quick Option: Monthly Installment */}
+              {loan.emi > 0 && !isSettlement && dailyInstallment && (
+                <div
+                  onClick={() =>
+                    !isFetchingLastPayment &&
+                    setFormData({
+                      ...formData,
+                      amount: dailyInstallment.adjustedAmount.toString(),
+                    })
+                  }
+                  className={cn(
+                    'p-4 rounded-3xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
+                    Number(formData.amount) === dailyInstallment.adjustedAmount
+                      ? 'bg-primary/10 border-primary shadow-sm'
+                      : 'bg-muted/30 border-border/40 hover:border-primary/50',
+                    isFetchingLastPayment && 'opacity-60 pointer-events-none',
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        'p-2 rounded-xl transition-colors',
+                        Number(formData.amount) ===
+                          dailyInstallment.adjustedAmount
+                          ? 'bg-primary/20 text-primary'
+                          : 'bg-background text-muted-foreground group-hover:text-primary',
+                      )}
+                    >
+                      {isFetchingLastPayment ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Calendar size={16} />
                       )}
                     </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <p className="text-sm font-black text-foreground">
-                        {isFetchingLastPayment
-                          ? '...'
-                          : formatCurrency(dailyInstallment.adjustedAmount)}
-                      </p>
-                      {!isFetchingLastPayment && (
-                        <p className="text-[9px] font-bold text-muted-foreground">
-                          incl.{' '}
-                          {formatCurrency(dailyInstallment.interestForDays)}{' '}
-                          interest
+                    <div className="space-y-0.5 text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Monthly Installment
                         </p>
-                      )}
+                        {!isFetchingLastPayment && (
+                          <span className="text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                            {dailyInstallment.daysPassed}d
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <p className="text-sm font-black text-foreground">
+                          {isFetchingLastPayment
+                            ? '...'
+                            : formatCurrency(dailyInstallment.adjustedAmount)}
+                        </p>
+                        {!isFetchingLastPayment && (
+                          <p className="text-[9px] font-bold text-muted-foreground">
+                            incl.{' '}
+                            {formatCurrency(dailyInstallment.interestForDays)}{' '}
+                            interest
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {Number(formData.amount) ===
-                  dailyInstallment.adjustedAmount && (
-                  <CheckCircle2 size={20} className="text-primary" />
-                )}
-              </div>
-            )}
-
-            {/* Settlement Toggle Block */}
-            <div
-              className={`p-4 rounded-3xl border transition-all duration-300 ${isSettlement ? 'bg-blue-500/10 border-blue-500/20' : 'bg-muted/40 border-border/40'}`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label
-                    htmlFor="m-isSettlement"
-                    className="text-xs font-black uppercase tracking-widest cursor-pointer"
-                  >
-                    Early Settlement
-                  </Label>
-                  <p className="text-[10px] text-muted-foreground font-bold">
-                    Interest recalculation to close loan
-                  </p>
-                </div>
-                <input
-                  id="m-isSettlement"
-                  type="checkbox"
-                  checked={isSettlement}
-                  onChange={(e) => handleSettlementToggle(e.target.checked)}
-                  className="w-5 h-5 rounded-lg border-border/50 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
-                />
-              </div>
-
-              {isSettlement && (
-                <div className="mt-4 p-3 bg-blue-500/5 rounded-2xl space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
-                    <span>Annual Rate</span>
-                    <span>{loan.rate}%</span>
-                  </div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
-                    <span>Original Term</span>
-                    <span>{loan.duration} Months</span>
-                  </div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
-                    <span>Days Active</span>
-                    <span>{details.daysElapsed} Days</span>
-                  </div>
-                  <div className="pt-2 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
-                    <span>Adjusted Interest</span>
-                    <span>+ {formatCurrency(details.interest)}</span>
-                  </div>
+                  {Number(formData.amount) ===
+                    dailyInstallment.adjustedAmount && (
+                    <CheckCircle2 size={20} className="text-primary" />
+                  )}
                 </div>
               )}
-            </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="m-amount"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                >
-                  Payment Amount
-                </Label>
-                <div className="relative group">
-                  <div
-                    className={`absolute left-5 top-1/2 -translate-y-1/2 group-focus-within:scale-110 transition-transform ${isSettlement ? 'text-blue-600' : 'text-primary'}`}
-                  >
-                    <DollarSign size={20} strokeWidth={3} />
+              {/* Settlement Toggle Block */}
+              <div
+                className={`p-4 rounded-3xl border transition-all duration-300 ${isSettlement ? 'bg-blue-500/10 border-blue-500/20' : 'bg-muted/40 border-border/40'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label
+                      htmlFor="m-isSettlement"
+                      className="text-xs font-black uppercase tracking-widest cursor-pointer"
+                    >
+                      Early Settlement
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground font-bold">
+                      Interest recalculation to close loan
+                    </p>
                   </div>
-                  <Input
-                    id="m-amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, amount: e.target.value })
-                    }
-                    className={`h-16 pl-14 pr-6 rounded-2xl border-none bg-muted/50 text-xl font-black focus:ring-2 transition-all placeholder:text-muted-foreground/30 ${isSettlement ? 'focus:ring-blue-500/20 text-blue-600' : 'focus:ring-primary/20'}`}
-                    max={isSettlement ? settlementAmount : loan.remainingAmount}
-                    required
+                  <input
+                    id="m-isSettlement"
+                    type="checkbox"
+                    checked={isSettlement}
+                    onChange={(e) => handleSettlementToggle(e.target.checked)}
+                    className="w-5 h-5 rounded-lg border-border/50 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
                   />
                 </div>
+
+                {isSettlement && (
+                  <div className="mt-4 p-3 bg-blue-500/5 rounded-2xl space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                      <span>Annual Rate</span>
+                      <span>{loan.rate}%</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                      <span>Original Term</span>
+                      <span>{loan.duration} Months</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                      <span>Days Active</span>
+                      <span>{details.daysElapsed} Days</span>
+                    </div>
+                    <div className="pt-2 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
+                      <span>Adjusted Interest</span>
+                      <span>+ {formatCurrency(details.interest)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {isInsufficient && (
-                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3">
-                  <AlertTriangle className="text-rose-600 shrink-0" size={18} />
-                  <p className="text-xs font-bold text-rose-600">
-                    Sufficient balance not available.
-                  </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="m-amount"
+                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+                  >
+                    Payment Amount
+                  </Label>
+                  <div className="relative group">
+                    <div
+                      className={`absolute left-5 top-1/2 -translate-y-1/2 group-focus-within:scale-110 transition-transform ${isSettlement ? 'text-blue-600' : 'text-primary'}`}
+                    >
+                      <DollarSign size={20} strokeWidth={3} />
+                    </div>
+                    <Input
+                      id="m-amount"
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.amount}
+                      onChange={(e) =>
+                        setFormData({ ...formData, amount: e.target.value })
+                      }
+                      className={`h-16 pl-14 pr-6 rounded-2xl border-none bg-muted/50 text-xl font-black focus:ring-2 transition-all placeholder:text-muted-foreground/30 ${isSettlement ? 'focus:ring-blue-500/20 text-blue-600' : 'focus:ring-primary/20'}`}
+                      max={
+                        isSettlement ? settlementAmount : loan.remainingAmount
+                      }
+                      required
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex gap-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all active:scale-95"
-              >
-                Cancel
-              </button>
-              <Button
-                type="submit"
-                isLoading={loading}
-                disabled={isInvalid || isInsufficient}
-                variant={isSettlement ? 'gradient' : 'gradient'}
-                className={`flex-[2] h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 group overflow-hidden ${isSettlement ? 'shadow-blue-500/20' : 'shadow-primary/20'}`}
-              >
-                <div className="flex items-center gap-2">
-                  {isSettlement ? (
-                    <ArrowDownCircle size={18} strokeWidth={3} />
-                  ) : (
-                    <CheckCircle2 size={18} strokeWidth={3} />
-                  )}
-                  {isSettlement ? 'Settle Now' : 'Pay Back'}
-                </div>
-              </Button>
-            </div>
-          </form>
+                {isInsufficient && (
+                  <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3">
+                    <AlertTriangle
+                      className="text-rose-600 shrink-0"
+                      size={18}
+                    />
+                    <p className="text-xs font-bold text-rose-600">
+                      Sufficient balance not available.
+                    </p>
+                  </div>
+                )}
+              </div>
 
-          <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
-            TRANSACTION SECURED BY {businessName.toUpperCase()} 3D-PROTOCOL
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <Button
+                  type="submit"
+                  isLoading={loading}
+                  disabled={isInvalid || isInsufficient}
+                  variant={isSettlement ? 'gradient' : 'gradient'}
+                  className={`flex-[2] h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 group overflow-hidden ${isSettlement ? 'shadow-blue-500/20' : 'shadow-primary/20'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    {isSettlement ? (
+                      <ArrowDownCircle size={18} strokeWidth={3} />
+                    ) : (
+                      <CheckCircle2 size={18} strokeWidth={3} />
+                    )}
+                    {isSettlement ? 'Settle Now' : 'Pay Back'}
+                  </div>
+                </Button>
+              </div>
+            </form>
+
+            <p className="mt-8 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide">
+              TRANSACTION SECURED BY {businessName.toUpperCase()} 3D-PROTOCOL
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Confirmation */}
+      <TransactionConfirmModal
+        isOpen={showTxnConfirm}
+        onClose={() => setShowTxnConfirm(false)}
+        onConfirm={executeRepayment}
+        loading={loading}
+        type="loan-payment"
+        amount={Number(formData.amount) || 0}
+        details={[
+          {
+            label: 'Loan',
+            value: `#${loan?.loanNumber || loan?._id?.slice(-6) || ''}`,
+          },
+          {
+            label: 'Type',
+            value: isSettlement ? 'Full Settlement' : 'Installment',
+          },
+          {
+            label: 'Outstanding',
+            value: formatCurrency(loan?.remainingAmount || 0),
+          },
+        ]}
+        description={formData.notes || undefined}
+      />
+    </>
   );
 };
 
