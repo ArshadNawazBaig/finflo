@@ -8,7 +8,7 @@ import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { memberOnboardingSteps } from '@/config/onboardingSteps';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import api from '@/lib/axios';
@@ -20,6 +20,9 @@ const MemberLayout = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const [member, setMember] = useAtom(memberAtom);
+
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const fetchData = async () => {
     try {
@@ -48,6 +51,20 @@ const MemberLayout = () => {
       setIsSidebarExpanded(false);
     }
   }, [location, isMobile]);
+
+  const handleScroll = (e) => {
+    if (!isMobile) return;
+    const currentScrollY = e.target.scrollTop;
+    
+    if (Math.abs(currentScrollY - lastScrollY.current) > 10) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsNavVisible(false); // scrolling down
+      } else {
+        setIsNavVisible(true); // scrolling up
+      }
+      lastScrollY.current = currentScrollY;
+    }
+  };
 
   return (
     <SocketProvider userType="member">
@@ -79,8 +96,10 @@ const MemberLayout = () => {
           <MemberNavbar
             onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
             isSidebarExpanded={isSidebarExpanded}
+            isVisible={isNavVisible}
           />
           <div
+            onScroll={handleScroll}
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
               isMobile ? 'pt-28' : 'p-4 md:p-8',
@@ -99,7 +118,7 @@ const MemberLayout = () => {
         </div>
 
         {/* Mobile-First Navigation */}
-        <MemberBottomNav />
+        <MemberBottomNav isVisible={isNavVisible} />
         <InstallPrompt />
         <OnboardingGuide
           steps={memberOnboardingSteps}
