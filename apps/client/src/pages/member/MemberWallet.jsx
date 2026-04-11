@@ -164,7 +164,7 @@ const MemberWallet = () => {
                     'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
                     activeAccount === 'current'
                       ? 'bg-zinc-950 text-white shadow-md'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5',
                   )}
                 >
                   Current
@@ -175,7 +175,7 @@ const MemberWallet = () => {
                     'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
                     activeAccount === 'saving'
                       ? 'bg-primary text-white shadow-md shadow-primary/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5',
                   )}
                 >
                   Saving
@@ -186,7 +186,7 @@ const MemberWallet = () => {
                     'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
                     activeAccount === 'loan'
                       ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5',
                   )}
                 >
                   Loan
@@ -201,7 +201,7 @@ const MemberWallet = () => {
                     ? 'bg-zinc-950 hover:shadow-zinc-500/20'
                     : activeAccount === 'saving'
                       ? 'bg-primary hover:shadow-primary/30'
-                      : 'bg-amber-500 hover:shadow-amber-500/30'
+                      : 'bg-amber-500 hover:shadow-amber-500/30',
                 )}
               >
                 {/* Card Hologram & Design */}
@@ -215,7 +215,7 @@ const MemberWallet = () => {
                       ? 'bg-primary/30'
                       : activeAccount === 'saving'
                         ? 'bg-white/20'
-                        : 'bg-white/20'
+                        : 'bg-white/20',
                   )}
                 />
                 <div className="absolute top-10 right-10 w-16 h-12 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md flex items-center justify-center">
@@ -231,7 +231,8 @@ const MemberWallet = () => {
                       <CreditCard className="text-white w-5 h-5" />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">
-                      {member?.user?.businessName || 'FinFlo'} {activeAccount === 'loan' ? 'Credit' : 'Platinum'}
+                      {member?.user?.businessName || 'FinFlo'}{' '}
+                      {activeAccount === 'loan' ? 'Credit' : 'Platinum'}
                     </span>
                   </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 ml-1 hover:opacity-100 transition-opacity">
@@ -264,7 +265,7 @@ const MemberWallet = () => {
                         ? member?.currentAccountNumber || 'CUR-XXXXX'
                         : activeAccount === 'saving'
                           ? member?.savingAccountNumber || 'SAV-XXXXX'
-                          : member?.loanAccountNumber || 'LON-XXXXX'}
+                          : member?.loanAccountNumber || 'LON-L-XXXXX'}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">

@@ -130,9 +130,11 @@ memberSchema.pre('save', async function () {
     const abbr = user?.businessAbbreviation || '';
     const count = (user?.customerCount || 0) + 100001;
 
-    // Helper to generate 13-digit number: [ABBR]-[COUNT][RANDOM]
+    // Helper to generate account number: [ABBR]-[TYPE_INITIAL]-[COUNT][RANDOM] e.g. MLO-S-100001xxx
     const generateAcc = (prefix) => {
-      const base = `${abbr || prefix}-${count}`;
+      const typeInitial = String(prefix).charAt(0).toUpperCase();
+      const prefixStr = abbr ? `${abbr.toUpperCase()}-${typeInitial}` : prefix.toUpperCase();
+      const base = `${prefixStr}-${count}`;
       const remaining = 13 - base.length;
       let randomDigits = '';
       if (remaining > 0) {

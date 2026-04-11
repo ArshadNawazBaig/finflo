@@ -11,11 +11,15 @@ import { Loader2, Upload, X, Trash2, UserCircle } from 'lucide-react';
 import SignaturePad from '@/components/ui/SignaturePad';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCNIC, validateEmail } from '@/lib/utils';
+import {
+  formatCNIC,
+  validateEmail,
+  generateDynamicAccountNumber,
+} from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
-  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [branches, setBranches] = useState([]);
@@ -88,11 +92,13 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   if (!customer) return null;
 
   const generateAccountNumber = (type = 'savingAccountNumber') => {
-    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
-    for (let i = 0; i < 14; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const prefix =
+      type === 'savingAccountNumber'
+        ? 'SAV'
+        : type === 'currentAccountNumber'
+          ? 'CUR'
+          : 'LON';
+    const result = generateDynamicAccountNumber(user, prefix);
     if (type === 'savingAccountNumber') setSavingAccountNumber(result);
     else if (type === 'currentAccountNumber') setCurrentAccountNumber(result);
     else setLoanAccountNumber(result);
@@ -207,7 +213,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </DialogTitle>
                 <DialogDescription className="text-sm font-medium">
                   Modify details for{' '}
-                  <span className="font-bold text-primary">
+                  <span className="font-bold text-primary capitalize">
                     {customer?.name}
                   </span>
                 </DialogDescription>

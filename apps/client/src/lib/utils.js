@@ -227,9 +227,12 @@ export const copyToClipboard = async (text) => {
  * Format: [ABBR]-[100000+count][RANDOM]
  */
 export const generateDynamicAccountNumber = (user, type = 'SAV') => {
-  // Use the user's business abbreviation or fallback to the specific type (SAV/CUR)
-  // For staff/managers, authController now always populates user.businessAbbreviation
-  const abbr = (user?.businessAbbreviation || type).toUpperCase();
+  const typeInitial = String(type).charAt(0).toUpperCase();
+  // Format: [ABBR]-[TYPE_INITIAL]-[COUNT][RANDOM] e.g. MLO-S-100001xxx
+  const abbr = user?.businessAbbreviation
+    ? `${user.businessAbbreviation.toUpperCase()}-${typeInitial}`
+    : type.toUpperCase();
+
   const count = (user?.customerCount || 0) + 100001;
   const base = `${abbr}-${count}`;
   const remaining = 13 - base.length;
