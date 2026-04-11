@@ -74,8 +74,8 @@ const MemberBottomNav = ({ isVisible = true }) => {
               className={cn(
                 'relative flex items-center justify-center transition-all duration-500 rounded-full overflow-hidden',
                 isActive
-                  ? 'bg-primary text-primary-foreground px-4 py-2 shadow-lg shadow-primary/30'
-                  : 'text-muted-foreground/50 hover:text-muted-foreground p-2 text-center w-11',
+                  ? 'bg-primary text-primary-foreground px-6 py-3 shadow-lg shadow-primary/30'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground p-3.5',
               )}
             >
               <motion.div
@@ -102,7 +102,7 @@ const MemberBottomNav = ({ isVisible = true }) => {
                       animate={{ opacity: 1, width: 'auto', x: 0 }}
                       exit={{ opacity: 0, width: 0, x: -10 }}
                       transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-                      className="text-[11px] font-bold tracking-tight whitespace-nowrap overflow-hidden"
+                      className="text-xs font-bold tracking-tight whitespace-nowrap overflow-hidden"
                     >
                       {item.label}
                     </motion.span>
