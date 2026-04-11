@@ -73,8 +73,8 @@ class ErrorBoundary extends Component {
 
               {/* Typography */}
               <div className="space-y-4 mb-12">
-                <h1 className="text-5xl font-black tracking-tighter text-white bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500">
-                  ANOMALY_DETECTED
+                <h1 className="text-2xl md:text-5xl font-black tracking-tighter text-white bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500">
+                  ANOMALY DETECTED
                 </h1>
                 <h2 className="text-xl font-bold tracking-widest text-indigo-400 uppercase">
                   System State Compromised
