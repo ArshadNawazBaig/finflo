@@ -55,7 +55,7 @@ const MemberLayout = () => {
   const handleScroll = (e) => {
     if (!isMobile) return;
     const currentScrollY = e.target.scrollTop;
-    
+
     if (Math.abs(currentScrollY - lastScrollY.current) > 10) {
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setIsNavVisible(false); // scrolling down
@@ -102,7 +102,7 @@ const MemberLayout = () => {
             onScroll={handleScroll}
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
-              isMobile ? 'pt-28' : 'p-4 md:p-8',
+              isMobile ? 'pt-36' : 'p-4 md:p-8',
             )}
           >
             <div
