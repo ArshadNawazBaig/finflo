@@ -1413,15 +1413,27 @@ const TellerMode = () => {
                       {[
                         {
                           label: 'Current Account',
+                          subLabel: member.currentAccountNumber,
                           value: member.currentBalance,
                           icon: Wallet,
                           color: 'emerald',
                         },
                         {
                           label: 'Saving Account',
+                          subLabel: member.savingAccountNumber,
                           value: member.savingBalance,
                           icon: CreditCard,
                           color: 'primary',
+                        },
+                        {
+                          label: 'Loan Account',
+                          subLabel: member.loanAccountNumber,
+                          value: activeLoans.reduce(
+                            (sum, l) => sum + (l.remainingAmount || 0),
+                            0,
+                          ),
+                          icon: Building2,
+                          color: 'indigo',
                         },
                         {
                           label: 'Business Share',
@@ -1440,9 +1452,16 @@ const TellerMode = () => {
                             >
                               <card.icon size={16} />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-                              {card.label}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
+                                {card.label}
+                              </span>
+                              {card.subLabel && (
+                                <span className="text-[9px] font-bold text-muted-foreground/40 font-mono">
+                                  {card.subLabel}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm font-black tracking-tight">
                             {formatCurrency(card.value || 0)}
@@ -1450,22 +1469,6 @@ const TellerMode = () => {
                         </div>
                       ))}
                     </div>
-
-                    {activeLoans.length > 0 && (
-                      <div className="mt-3 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shadow-sm">
-                            <RefreshCw size={16} />
-                          </div>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500/80">
-                            Active Loans
-                          </span>
-                        </div>
-                        <span className="text-sm font-black text-indigo-600">
-                          {activeLoans.length}
-                        </span>
-                      </div>
-                    )}
 
                     {/* Guarantors Section */}
                     {member.guarantors?.length > 0 && (
