@@ -884,18 +884,23 @@ const TellerMode = () => {
   // ── Cash in Hand Functions ────────────────────
 
   // Resolve current branchId for cash APIs
-  const cashBranchId = isAdmin ? selectedBranchId || '' : (user?.managedBranchId || user?.branchId || '');
+  const cashBranchId = isAdmin
+    ? selectedBranchId || ''
+    : user?.managedBranchId || user?.branchId || '';
 
   // Fetch branches for admin dropdown
   useEffect(() => {
     if (isAdmin) {
-      api.get('/branches').then(({ data }) => {
-        const list = data?.data || data || [];
-        setBranches(list);
-        if (list.length > 0 && !selectedBranchId) {
-          setSelectedBranchId(list[0]._id);
-        }
-      }).catch(() => {});
+      api
+        .get('/branches')
+        .then(({ data }) => {
+          const list = data?.data || data || [];
+          setBranches(list);
+          if (list.length > 0 && !selectedBranchId) {
+            setSelectedBranchId(list[0]._id);
+          }
+        })
+        .catch(() => {});
     }
   }, [isAdmin]);
 
@@ -1456,20 +1461,24 @@ const TellerMode = () => {
                                 </div>
                               </div>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
-                              g.status === 'approved'
-                                ? 'bg-emerald-500/10 text-emerald-600'
-                                : g.status === 'rejected'
-                                  ? 'bg-red-500/10 text-red-600'
-                                  : 'bg-amber-500/10 text-amber-600'
-                            }`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
+                                g.status === 'approved'
+                                  ? 'bg-emerald-500/10 text-emerald-600'
+                                  : g.status === 'rejected'
+                                    ? 'bg-red-500/10 text-red-600'
+                                    : 'bg-amber-500/10 text-amber-600'
+                              }`}
+                            >
                               {g.status || 'pending'}
                             </span>
                           </div>
                         ))}
                         {member.guarantors.length > 2 && (
                           <button
-                            onClick={() => navigate(`/members/${member._id}/guarantors`)}
+                            onClick={() =>
+                              navigate(`/members/${member._id}/guarantors`)
+                            }
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/5 transition-colors"
                           >
                             Show All ({member.guarantors.length})
@@ -1505,20 +1514,24 @@ const TellerMode = () => {
                                 </div>
                               </div>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
-                              g.loanStatus === 'active'
-                                ? 'bg-emerald-500/10 text-emerald-600'
-                                : g.loanStatus === 'completed'
-                                  ? 'bg-blue-500/10 text-blue-600'
-                                  : 'bg-red-500/10 text-red-600'
-                            }`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider shrink-0 ${
+                                g.loanStatus === 'active'
+                                  ? 'bg-emerald-500/10 text-emerald-600'
+                                  : g.loanStatus === 'completed'
+                                    ? 'bg-blue-500/10 text-blue-600'
+                                    : 'bg-red-500/10 text-red-600'
+                              }`}
+                            >
                               {g.loanStatus}
                             </span>
                           </div>
                         ))}
                         {member.actingAsGrantor.length > 2 && (
                           <button
-                            onClick={() => navigate(`/members/${member._id}/guarantors`)}
+                            onClick={() =>
+                              navigate(`/members/${member._id}/guarantors`)
+                            }
                             className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-purple-500 hover:bg-purple-500/5 transition-colors"
                           >
                             Show All ({member.actingAsGrantor.length})
@@ -2161,7 +2174,7 @@ const TellerMode = () => {
                             >
                               <div className="flex items-center gap-4">
                                 <div
-                                  className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${
+                                  className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center shadow-sm ${
                                     isIn
                                       ? 'bg-emerald-500/10 text-emerald-500'
                                       : 'bg-rose-500/10 text-rose-500'
@@ -2700,7 +2713,10 @@ const TellerMode = () => {
                         </option>
                       ))}
                     </select>
-                    <ChevronDown size={12} className="text-primary/40 absolute right-3 pointer-events-none" />
+                    <ChevronDown
+                      size={12}
+                      className="text-primary/40 absolute right-3 pointer-events-none"
+                    />
                   </div>
                 </div>
               )}
@@ -3340,7 +3356,8 @@ const TellerMode = () => {
                     isLoading={isSettingOpening}
                     className="flex-[2] h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20"
                   >
-                    {!isSettingOpening && `Confirm ${cashSummary.hasOpening ? 'Update' : 'Set'}`}
+                    {!isSettingOpening &&
+                      `Confirm ${cashSummary.hasOpening ? 'Update' : 'Set'}`}
                   </Button>
                 </div>
               </div>

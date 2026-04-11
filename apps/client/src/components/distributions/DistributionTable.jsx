@@ -40,8 +40,10 @@ const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
                     <div className="flex items-center gap-3">
                       <div
                         className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs",
-                          dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" : "bg-primary/10 text-primary"
+                          'min-w-10 min-h-10 rounded-xl flex items-center justify-center font-black text-xs',
+                          dist.type === 'share'
+                            ? 'bg-indigo-500/10 text-indigo-500'
+                            : 'bg-primary/10 text-primary',
                         )}
                       >
                         {dist.member?.name?.[0]?.toUpperCase() || 'M'}
@@ -70,13 +72,19 @@ const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
                   <td className="px-8 py-5">
                     <span
                       className={cn(
-                        "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-                        dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" :
-                          dist.type === 'saving' ? "bg-teal-500/10 text-teal-600" :
-                            "bg-emerald-500/10 text-emerald-500"
+                        'inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+                        dist.type === 'share'
+                          ? 'bg-indigo-500/10 text-indigo-500'
+                          : dist.type === 'saving'
+                            ? 'bg-teal-500/10 text-teal-600'
+                            : 'bg-emerald-500/10 text-emerald-500',
                       )}
                     >
-                      {dist.type === 'share' ? 'Business Share' : dist.type === 'saving' ? 'Saving Profit' : 'Regular'}
+                      {dist.type === 'share'
+                        ? 'Business Share'
+                        : dist.type === 'saving'
+                          ? 'Saving Profit'
+                          : 'Regular'}
                     </span>
                   </td>
                   <td className="px-8 py-5">
@@ -94,17 +102,21 @@ const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
                     <div
                       className={cn(
                         'text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md inline-flex items-center gap-1.5 border leading-none',
-                        dist.status === 'Completed' && 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
-                        dist.status === 'Pending' && 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-                        dist.status === 'Failed' && 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        dist.status === 'Completed' &&
+                          'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                        dist.status === 'Pending' &&
+                          'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                        dist.status === 'Failed' &&
+                          'bg-rose-500/10 text-rose-600 border-rose-500/20',
                       )}
                     >
                       <span
                         className={cn(
                           'w-1 h-1 rounded-full',
                           dist.status === 'Completed' && 'bg-emerald-500',
-                          dist.status === 'Pending' && 'bg-amber-500 animate-pulse',
-                          dist.status === 'Failed' && 'bg-rose-500'
+                          dist.status === 'Pending' &&
+                            'bg-amber-500 animate-pulse',
+                          dist.status === 'Failed' && 'bg-rose-500',
                         )}
                       />
                       {dist.status || 'Completed'}
@@ -114,7 +126,10 @@ const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-8 py-12 text-center text-muted-foreground">
+                <td
+                  colSpan={6}
+                  className="px-8 py-12 text-center text-muted-foreground"
+                >
                   {!loading && (
                     <div className="flex flex-col items-center justify-center opacity-30">
                       <History size={48} className="mb-4" />

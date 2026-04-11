@@ -554,7 +554,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-2xl border border-transparent hover:border-border/50 active:scale-95"
+            className="flex-1 min-h-12 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-2xl border border-transparent hover:border-border/50 active:scale-95"
           >
             Cancel
           </button>
@@ -563,7 +563,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             type="submit"
             isLoading={loading}
             variant="gradient"
-            className="flex-[2] h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20 active:scale-[0.98] transition-all"
+            className="flex-[2] min-h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20 active:scale-[0.98] transition-all"
           >
             Submit Request
           </Button>

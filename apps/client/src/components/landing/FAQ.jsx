@@ -54,7 +54,7 @@ const FAQItem = ({ question, answer, isOpen, onClick, index }) => {
         <div className="flex items-center gap-4">
           <div
             className={cn(
-              'w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-500',
+              'min-w-10 min-h-10 rounded-xl flex items-center justify-center transition-colors duration-500',
               isOpen ? 'bg-primary text-white' : 'bg-primary/10 text-primary',
             )}
           >

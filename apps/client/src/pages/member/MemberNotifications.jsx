@@ -22,7 +22,11 @@ import EmptyState from '@/components/ui/EmptyState';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAtom, useAtomValue } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom, memberAtom } from '@/atoms';
+import {
+  notificationsAtom,
+  unreadNotificationsCountAtom,
+  memberAtom,
+} from '@/atoms';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -112,8 +116,8 @@ const MemberNotifications = () => {
   );
 
   useEffect(() => {
-    fetchNotifications(pagination.page);
-  }, [limit, search, sortBy, pagination.page, fetchNotifications]);
+    fetchNotifications(1, false);
+  }, [limit, search, sortBy, fetchNotifications]);
 
   // Intersection Observer for Infinite Scroll (Mobile)
   useEffect(() => {
@@ -221,7 +225,9 @@ const MemberNotifications = () => {
         setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
         // Refetch if page is now empty
         if (notifications.length === 1 && pagination.page > 1) {
-          setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
+          const newPage = pagination.page - 1;
+          setPagination((prev) => ({ ...prev, page: newPage }));
+          fetchNotifications(newPage, false);
         }
       }
     } catch (error) {
@@ -268,7 +274,7 @@ const MemberNotifications = () => {
             title="Notifications"
             description="Stay updated with your account activity and alerts"
           />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
             {unreadCount > 0 && (
               <Button
                 onClick={handleMarkAllAsRead}
@@ -579,9 +585,10 @@ const MemberNotifications = () => {
                   totalPages={pagination.pages}
                   totalEntries={pagination.total}
                   limit={limit}
-                  onPageChange={(page) =>
-                    setPagination((prev) => ({ ...prev, page }))
-                  }
+                  onPageChange={(page) => {
+                    setPagination((prev) => ({ ...prev, page }));
+                    fetchNotifications(page, false);
+                  }}
                   onLimitChange={(newLimit) => {
                     setLimit(newLimit);
                     setPagination((prev) => ({ ...prev, page: 1 }));

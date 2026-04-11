@@ -179,7 +179,7 @@ const MemberWallet = () => {
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 ml-1">
                   Current Account Balance
                 </p>
-                <h2 className="text-5xl md:text-7xl font-black tracking-tighter drop-shadow-sm">
+                <h2 className="text-2xl md:text-4xl font-black tracking-tighter drop-shadow-sm">
                   {formatCurrency(member?.currentBalance || 0)}
                 </h2>
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-4 ml-1">
@@ -229,11 +229,12 @@ const MemberWallet = () => {
                   Saving Account
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black tracking-tighter">
+                  <h3 className="text-lg font-black tracking-tighter">
                     {formatCurrency(member?.savingBalance || 0)}
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-full">
-                    <TrendingUp size={10} /> Profit: {formatCurrency(member?.totalSavingProfit || 0)}
+                    <TrendingUp size={10} /> Profit:{' '}
+                    {formatCurrency(member?.totalSavingProfit || 0)}
                   </div>
                 </div>
               </div>
@@ -246,7 +247,7 @@ const MemberWallet = () => {
                   Total Invested
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black tracking-tighter">
+                  <h3 className="text-lg font-black tracking-tighter">
                     {formatCurrency(member?.totalInvested || 0)}
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
@@ -263,7 +264,7 @@ const MemberWallet = () => {
                   Total Withdrawn
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black tracking-tighter">
+                  <h3 className="text-lg font-black tracking-tighter">
                     {formatCurrency(member?.totalWithdrawn || 0)}
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
@@ -276,7 +277,7 @@ const MemberWallet = () => {
 
           {/* Recent Activity Ledger */}
           <div className="bg-card rounded-[3rem] border border-border/50 shadow-sm overflow-hidden animate-in fade-in duration-700 delay-300">
-            <div className="p-8 border-b border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-8 border-b border-border/50 flex sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-primary/5 rounded-2xl border border-primary/10">
                   <Activity size={20} className="text-primary" />

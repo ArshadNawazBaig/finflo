@@ -135,14 +135,6 @@ const MemberGrantorRequests = () => {
           title="Grantor Approvals"
           description="Manage loan requests where you are assigned as a grantor."
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest"
-          onClick={() => navigate('/member/dashboard')}
-        >
-          <ArrowLeft size={14} /> Back
-        </Button>
       </div>
 
       {/* Pending Requests Section */}
@@ -178,7 +170,7 @@ const MemberGrantorRequests = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
+                      <div className="min-w-12 min-h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
                         {loan.customer?.name?.charAt(0) || '#'}
                       </div>
                       <div>
@@ -288,7 +280,7 @@ const MemberGrantorRequests = () => {
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center ${
                         myStatus === 'approved'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-rose-500/10 text-rose-600'

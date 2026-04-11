@@ -138,7 +138,7 @@ const MemberTransfer = () => {
             <p className="text-[10px] font-black uppercase tracking-widest text-primary">
               Available Balance
             </p>
-            <h2 className="text-4xl font-black tracking-tighter text-foreground">
+            <h2 className="text-xl font-black tracking-tighter text-foreground">
               {formatCurrency(member?.currentBalance || 0)}
             </h2>
             <div className="h-px bg-border/50 w-full my-4!" />

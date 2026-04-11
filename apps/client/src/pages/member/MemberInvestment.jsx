@@ -400,7 +400,7 @@ const MemberInvestment = () => {
         )}
       </div>
 
-      {isMobile && (
+      {/* {isMobile && (
         <div className="fixed bottom-24 right-6 z-50">
           <div className="relative group">
             <Button
@@ -416,7 +416,7 @@ const MemberInvestment = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <MemberDepositModal
         isOpen={isDepositModalOpen}

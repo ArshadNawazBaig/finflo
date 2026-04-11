@@ -172,14 +172,14 @@ const InstallPrompt = () => {
                       {canInstall ? (
                         <button
                           onClick={handleInstall}
-                          className="flex-1 bg-primary text-primary-foreground h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.01] active:scale-95 transition-all outline-none"
+                          className="flex-1 bg-primary text-primary-foreground min-h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.01] active:scale-95 transition-all outline-none"
                         >
                           Install Now
                         </button>
                       ) : (
                         <button
                           onClick={handleInstall}
-                          className="flex-1 bg-primary text-primary-foreground h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all outline-none"
+                          className="flex-1 bg-primary text-primary-foreground min-h-10 rounded-xl font-bold uppercase tracking-wider text-[9px] shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all outline-none"
                         >
                           Ready to Use
                         </button>

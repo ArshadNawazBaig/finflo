@@ -157,14 +157,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
         <div
           className={cn(
             'w-full transition-all duration-300',
-            isMobile ? 'pt-16 pb-6 px-4' : 'border-b border-border/50',
+            isMobile ? 'pt-16 pb-6 px-1' : 'border-b border-border/50',
           )}
         >
           <div
             className={cn(
               'flex items-center w-full transition-all duration-300',
               !isMobile && 'h-16',
-              isLayoutExpanded ? 'px-5' : 'justify-center px-0',
+              isLayoutExpanded ? 'px-0' : 'justify-center px-0',
             )}
           >
             <Link to="/member/dashboard" className="flex items-center">
@@ -178,7 +178,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
           className={cn(
             'flex-1 flex flex-col gap-2 w-full scrollbar-hide py-2 transition-all duration-300 relative no-scrollbar scrollbar-none',
             isLayoutExpanded
-              ? 'px-4 overflow-y-auto'
+              ? 'px-0 overflow-y-auto'
               : 'items-center px-0 overflow-x-hidden',
           )}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

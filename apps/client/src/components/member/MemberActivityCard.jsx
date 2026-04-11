@@ -79,7 +79,7 @@ const MemberActivityCard = ({ activity }) => {
         <div className="flex items-center gap-4">
           <div
             className={cn(
-              'h-12 w-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110',
+              'min-h-12 min-w-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110',
               style.bg,
             )}
           >
@@ -96,30 +96,6 @@ const MemberActivityCard = ({ activity }) => {
                     ? 'Activity Deposit'
                     : 'Activity Withdrawal')}
               </span>
-              {activity.status && (
-                <div
-                  className={cn(
-                    'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
-                    activity.status === 'Completed' &&
-                      'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
-                    activity.status === 'Pending' &&
-                      'bg-amber-500/10 text-amber-600 border-amber-500/20',
-                    activity.status === 'Failed' &&
-                      'bg-rose-500/10 text-rose-600 border-rose-500/20',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'w-1 h-1 rounded-full',
-                      activity.status === 'Completed' && 'bg-emerald-500',
-                      activity.status === 'Pending' &&
-                        'bg-amber-500 animate-pulse',
-                      activity.status === 'Failed' && 'bg-rose-500',
-                    )}
-                  />
-                  {activity.status}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -181,6 +157,33 @@ const MemberActivityCard = ({ activity }) => {
                 : activity.metadata?.recipientName ||
                   activity.description?.replace(/transfer to /i, '')}
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-[11px] text-primary">Status</span>
+        {activity.status && (
+          <div
+            className={cn(
+              'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
+              activity.status === 'Completed' &&
+                'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+              activity.status === 'Pending' &&
+                'bg-amber-500/10 text-amber-600 border-amber-500/20',
+              activity.status === 'Failed' &&
+                'bg-rose-500/10 text-rose-600 border-rose-500/20',
+            )}
+          >
+            <span
+              className={cn(
+                'w-1 h-1 rounded-full',
+                activity.status === 'Completed' && 'bg-emerald-500',
+                activity.status === 'Pending' && 'bg-amber-500 animate-pulse',
+                activity.status === 'Failed' && 'bg-rose-500',
+              )}
+            />
+            {activity.status}
           </div>
         )}
       </div>

@@ -1,9 +1,4 @@
-import {
-  TrendingUp,
-  TrendingDown,
-  CreditCard,
-  Landmark,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, CreditCard, Landmark } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 const WealthInsights = ({ member, loans = [], goals = [] }) => {
@@ -96,7 +91,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
                 Estimated Net Worth
               </p>
               <p
-                className={`text-2xl font-black tracking-tighter ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
+                className={`text-lg font-black tracking-tighter ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}
               >
                 {formatCurrency(netWorth)}
               </p>
@@ -116,7 +111,7 @@ const WealthInsights = ({ member, loans = [], goals = [] }) => {
                 </div>
               </div>
               <div>
-                <p className="text-3xl font-black tracking-tighter mb-1">
+                <p className="text-xl font-black tracking-tighter mb-1">
                   {stat.value}
                 </p>
                 <div className="flex items-center gap-2">

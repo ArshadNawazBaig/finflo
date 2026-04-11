@@ -2,13 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { useNavigate } from 'react-router-dom';
-import {
-  FileText,
-  Plus,
-  ArrowRight,
-  Download,
-  Search,
-} from 'lucide-react';
+import { FileText, Plus, ArrowRight, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
@@ -61,7 +55,9 @@ const MemberLoans = () => {
         const { data: response } = await api.get(
           `/loans/my-loans?page=${pageToFetch}&limit=${limit}&status=${filter === 'all' ? '' : filter}&search=${search}`,
           {
-            headers: { /* Auth header handled by browser cookies */ },
+            headers: {
+              /* Auth header handled by browser cookies */
+            },
           },
         );
 
@@ -201,11 +197,11 @@ const MemberLoans = () => {
 
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
+                      <div className="min-w-12 min-h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
                         #
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg tracking-tight">
+                        <h4 className="font-bold text-md tracking-tight">
                           ID: {loan._id.slice(-6).toUpperCase()}
                         </h4>
                         <p className="text-xs font-medium text-muted-foreground">
@@ -217,7 +213,7 @@ const MemberLoans = () => {
                       </div>
                     </div>
                     <span
-                      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                      className={`px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
                         loan.status === 'active'
                           ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                           : loan.status === 'pending'
@@ -236,7 +232,7 @@ const MemberLoans = () => {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         Principal
                       </p>
-                      <p className="text-xl font-black tracking-tighter">
+                      <p className="text-sm font-black tracking-tighter">
                         {formatCurrency(loan.principal)}
                       </p>
                     </div>
@@ -244,7 +240,7 @@ const MemberLoans = () => {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         Term
                       </p>
-                      <p className="text-lg font-bold">
+                      <p className="text-sm font-bold">
                         {loan.duration} Months
                       </p>
                     </div>

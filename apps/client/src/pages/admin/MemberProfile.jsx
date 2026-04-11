@@ -2536,7 +2536,8 @@ const MemberProfile = () => {
                   Guarantors
                 </h3>
                 <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                  {member.guarantors.length} {member.guarantors.length === 1 ? 'Guarantor' : 'Guarantors'}
+                  {member.guarantors.length}{' '}
+                  {member.guarantors.length === 1 ? 'Guarantor' : 'Guarantors'}
                 </div>
               </div>
 
@@ -2561,16 +2562,21 @@ const MemberProfile = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        g.status === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                          : g.status === 'rejected'
-                            ? 'bg-red-500/10 text-red-600 border border-red-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          g.status === 'approved'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : g.status === 'rejected'
+                              ? 'bg-red-500/10 text-red-600 border border-red-500/20'
+                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                        }`}
+                      >
                         {g.status || 'pending'}
                       </span>
-                      <ChevronRight size={16} className="text-muted-foreground/40 group-hover:text-blue-500 transition-colors" />
+                      <ChevronRight
+                        size={16}
+                        className="text-muted-foreground/40 group-hover:text-blue-500 transition-colors"
+                      />
                     </div>
                   </div>
                 ))}
@@ -2595,7 +2601,8 @@ const MemberProfile = () => {
                   Acting as Guarantor
                 </h3>
                 <div className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 text-[10px] font-black uppercase tracking-widest">
-                  {member.actingAsGrantor.length} {member.actingAsGrantor.length === 1 ? 'Loan' : 'Loans'}
+                  {member.actingAsGrantor.length}{' '}
+                  {member.actingAsGrantor.length === 1 ? 'Loan' : 'Loans'}
                 </div>
               </div>
 
@@ -2620,18 +2627,23 @@ const MemberProfile = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        g.loanStatus === 'active'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                          : g.loanStatus === 'completed'
-                            ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
-                            : g.loanStatus === 'defaulted'
-                              ? 'bg-red-500/10 text-red-600 border border-red-500/20'
-                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          g.loanStatus === 'active'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : g.loanStatus === 'completed'
+                              ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
+                              : g.loanStatus === 'defaulted'
+                                ? 'bg-red-500/10 text-red-600 border border-red-500/20'
+                                : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                        }`}
+                      >
                         {g.loanStatus}
                       </span>
-                      <ChevronRight size={16} className="text-muted-foreground/40 group-hover:text-purple-500 transition-colors" />
+                      <ChevronRight
+                        size={16}
+                        className="text-muted-foreground/40 group-hover:text-purple-500 transition-colors"
+                      />
                     </div>
                   </div>
                 ))}
@@ -3132,7 +3144,7 @@ const MemberProfile = () => {
                       >
                         <div className="flex items-center gap-4">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${isCredit ? 'bg-violet-500/10' : 'bg-rose-500/10'} ${color}`}
+                            className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center ${isCredit ? 'bg-violet-500/10' : 'bg-rose-500/10'} ${color}`}
                           >
                             {isCredit ? (
                               <ArrowUpCircle size={18} />

@@ -11,8 +11,10 @@ const DistributionCard = ({ dist, innerRef }) => {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs",
-              dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" : "bg-primary/10 text-primary"
+              'min-w-10 min-h-10 rounded-xl flex items-center justify-center font-black text-xs',
+              dist.type === 'share'
+                ? 'bg-indigo-500/10 text-indigo-500'
+                : 'bg-primary/10 text-primary',
             )}
           >
             {dist.member?.name?.[0]?.toUpperCase() || 'M'}
@@ -30,20 +32,29 @@ const DistributionCard = ({ dist, innerRef }) => {
         <div className="flex flex-col items-end gap-2">
           <span
             className={cn(
-              "inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-              dist.type === 'share' ? "bg-indigo-500/10 text-indigo-500" :
-                dist.type === 'saving' ? "bg-teal-500/10 text-teal-600" :
-                  "bg-emerald-500/10 text-emerald-500"
+              'inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+              dist.type === 'share'
+                ? 'bg-indigo-500/10 text-indigo-500'
+                : dist.type === 'saving'
+                  ? 'bg-teal-500/10 text-teal-600'
+                  : 'bg-emerald-500/10 text-emerald-500',
             )}
           >
-            {dist.type === 'share' ? 'Share' : dist.type === 'saving' ? 'Saving' : 'Regular'}
+            {dist.type === 'share'
+              ? 'Share'
+              : dist.type === 'saving'
+                ? 'Saving'
+                : 'Regular'}
           </span>
           <div
             className={cn(
               'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none',
-              dist.status === 'Completed' && 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
-              dist.status === 'Pending' && 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-              dist.status === 'Failed' && 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+              dist.status === 'Completed' &&
+                'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+              dist.status === 'Pending' &&
+                'bg-amber-500/10 text-amber-600 border-amber-500/20',
+              dist.status === 'Failed' &&
+                'bg-rose-500/10 text-rose-600 border-rose-500/20',
             )}
           >
             {dist.status || 'Completed'}
