@@ -32,19 +32,9 @@ const MemberBottomNav = () => {
       path: '/member/dashboard',
     },
     {
-      icon: <History size={20} />,
-      label: 'Ledger',
-      path: '/member/transactions',
-    },
-    {
       icon: <WalletMinimal size={20} />,
       label: 'Wallet',
       path: '/member/wallet',
-    },
-    {
-      icon: <TrendingUp size={20} />,
-      label: 'Assets',
-      path: '/member/investments',
     },
     {
       icon: <Send size={20} />,
@@ -56,7 +46,6 @@ const MemberBottomNav = () => {
       label: 'Chat',
       path: '/member/chat',
     },
-    { icon: <FileText size={20} />, label: 'Loans', path: '/member/loans' },
     {
       icon: <Settings2 size={20} />,
       label: 'More',
