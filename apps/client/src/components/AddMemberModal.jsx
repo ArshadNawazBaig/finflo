@@ -22,6 +22,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [savingAccountNumber, setSavingAccountNumber] = useState('');
   const [currentAccountNumber, setCurrentAccountNumber] = useState('');
+  const [loanAccountNumber, setLoanAccountNumber] = useState('');
 
   const {
     register,
@@ -50,10 +51,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const generateAccountNumber = (type = 'savingAccountNumber') => {
-    const prefix = type === 'savingAccountNumber' ? 'SAV' : 'CUR';
+    const prefix = type === 'savingAccountNumber' ? 'SAV' : type === 'currentAccountNumber' ? 'CUR' : 'LON';
     const result = generateDynamicAccountNumber(user, prefix);
     if (type === 'savingAccountNumber') setSavingAccountNumber(result);
-    else setCurrentAccountNumber(result);
+    else if (type === 'currentAccountNumber') setCurrentAccountNumber(result);
+    else setLoanAccountNumber(result);
   };
 
   const onSubmit = async (formData) => {
@@ -76,12 +78,14 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         profitRate: parseFloat(formData.profitRate) || 0,
         savingAccountNumber: savingAccountNumber || undefined,
         currentAccountNumber: currentAccountNumber || undefined,
+        loanAccountNumber: loanAccountNumber || undefined,
       });
       onSuccess();
       onClose();
       reset();
       setSavingAccountNumber('');
       setCurrentAccountNumber('');
+      setLoanAccountNumber('');
     } catch (err) {
       setError('root', {
         message: err.response?.data?.message || 'Failed to add member',
@@ -258,6 +262,30 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                         type="button"
                         onClick={() =>
                           generateAccountNumber('currentAccountNumber')
+                        }
+                        className="rounded-2xl px-3 py-2 text-[10px] h-9"
+                      >
+                        Gen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Loan Account
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={loanAccountNumber}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-2 rounded-2xl border border-border/50 bg-background/50 text-xs font-black font-mono focus:outline-none"
+                    />
+                    {!loanAccountNumber && (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          generateAccountNumber('loanAccountNumber')
                         }
                         className="rounded-2xl px-3 py-2 text-[10px] h-9"
                       >

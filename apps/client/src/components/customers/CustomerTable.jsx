@@ -158,8 +158,25 @@ const CustomerTable = ({
                         <Copy size={8} />
                       </button>
                     )}
+                    {customer.loanAccountNumber && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(
+                            customer.loanAccountNumber,
+                          );
+                          toast.success('Loan account copied');
+                        }}
+                        className="group/acc flex items-center gap-1.5 font-black text-[9px] uppercase tracking-tighter bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                        title={customer.loanAccountNumber}
+                      >
+                        LON
+                        <Copy size={8} />
+                      </button>
+                    )}
                     {!customer.savingAccountNumber &&
-                      !customer.currentAccountNumber && (
+                      !customer.currentAccountNumber &&
+                      !customer.loanAccountNumber && (
                         <span className="text-muted-foreground text-[10px] opacity-50">
                           No Link
                         </span>

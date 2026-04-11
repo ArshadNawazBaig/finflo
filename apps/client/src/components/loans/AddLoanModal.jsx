@@ -429,12 +429,13 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     if (
                       selected &&
                       !selected.savingAccountNumber &&
-                      !selected.currentAccountNumber
+                      !selected.currentAccountNumber &&
+                      !selected.loanAccountNumber
                     ) {
                       return (
                         <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-tighter animate-pulse px-1">
                           ⚠️ This customer has no account number
-                          (Saving/Current). Assignment blocked.
+                          (Saving/Current/Loan). Assignment blocked.
                         </p>
                       );
                     }
@@ -788,7 +789,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 return (
                   cust &&
                   !cust.savingAccountNumber &&
-                  !cust.currentAccountNumber
+                  !cust.currentAccountNumber &&
+                  !cust.loanAccountNumber
                 );
               })()
             }

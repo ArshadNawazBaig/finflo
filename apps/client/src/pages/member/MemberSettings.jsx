@@ -433,6 +433,25 @@ const ProfileSection = ({
               {member.role || 'MEMBER'}
             </span>
           </div>
+          {(member.savingAccountNumber || member.currentAccountNumber || member.loanAccountNumber) && (
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+              {member.savingAccountNumber && (
+                <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter font-mono">
+                  SAV: {member.savingAccountNumber}
+                </span>
+              )}
+              {member.currentAccountNumber && (
+                <span className="bg-indigo-500/10 text-indigo-500 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter font-mono">
+                  CUR: {member.currentAccountNumber}
+                </span>
+              )}
+              {member.loanAccountNumber && (
+                <span className="bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter font-mono">
+                  LON: {member.loanAccountNumber}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>

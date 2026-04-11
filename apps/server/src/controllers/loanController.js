@@ -204,11 +204,12 @@ const createLoan = async (req, res) => {
     if (
       !customer.accountNumber &&
       !customer.savingAccountNumber &&
-      !customer.currentAccountNumber
+      !customer.currentAccountNumber &&
+      !customer.loanAccountNumber
     ) {
       return res.status(400).json({
         message:
-          'Customer does not have an account number. Please assign a Saving or Current account before issuing a loan.',
+          'Customer does not have an account number. Please assign a Saving, Current, or Loan account before issuing a loan.',
       });
     }
 
@@ -435,7 +436,8 @@ const requestLoan = async (req, res) => {
     if (
       !customer.accountNumber &&
       !customer.savingAccountNumber &&
-      !customer.currentAccountNumber
+      !customer.currentAccountNumber &&
+      !customer.loanAccountNumber
     ) {
       return res.status(400).json({
         message:
@@ -839,6 +841,7 @@ const getLoans = async (req, res) => {
           { cnic: { $regex: search, $options: 'i' } },
           { savingAccountNumber: { $regex: search, $options: 'i' } },
           { currentAccountNumber: { $regex: search, $options: 'i' } },
+          { loanAccountNumber: { $regex: search, $options: 'i' } },
         ],
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);

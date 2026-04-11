@@ -175,8 +175,25 @@ const MemberTable = ({
                         <Copy size={8} />
                       </button>
                     )}
+                    {member.loanAccountNumber && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(
+                            member.loanAccountNumber,
+                          );
+                          toast.success('Loan account copied');
+                        }}
+                        className="group/acc flex items-center gap-1.5 font-black text-[9px] uppercase tracking-tighter bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                        title={member.loanAccountNumber}
+                      >
+                        LON
+                        <Copy size={8} />
+                      </button>
+                    )}
                     {!member.savingAccountNumber &&
-                      !member.currentAccountNumber && (
+                      !member.currentAccountNumber &&
+                      !member.loanAccountNumber && (
                         <span className="text-muted-foreground text-[10px] opacity-50">
                           None
                         </span>

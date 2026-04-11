@@ -25,6 +25,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
   const [signature, setSignature] = useState('');
   const [savingAccountNumber, setSavingAccountNumber] = useState('');
   const [currentAccountNumber, setCurrentAccountNumber] = useState('');
+  const [loanAccountNumber, setLoanAccountNumber] = useState('');
   const [nominee, setNominee] = useState({
     name: '',
     cnic: '',
@@ -70,6 +71,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
       });
       setSavingAccountNumber(customer.savingAccountNumber || '');
       setCurrentAccountNumber(customer.currentAccountNumber || '');
+      setLoanAccountNumber(customer.loanAccountNumber || '');
       setSignature(customer.signature || '');
       setNominee({
         name: customer.nominee?.name || '',
@@ -92,9 +94,10 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     if (type === 'savingAccountNumber') setSavingAccountNumber(result);
-    else setCurrentAccountNumber(result);
+    else if (type === 'currentAccountNumber') setCurrentAccountNumber(result);
+    else setLoanAccountNumber(result);
     toast.success(
-      `${type === 'savingAccountNumber' ? 'Saving' : 'Current'} number generated`,
+      `${type === 'savingAccountNumber' ? 'Saving' : type === 'currentAccountNumber' ? 'Current' : 'Loan'} number generated`,
     );
   };
 
@@ -159,6 +162,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         email: formData.email.trim().toLowerCase(),
         savingAccountNumber,
         currentAccountNumber,
+        loanAccountNumber,
         signature,
         nominee,
       };
@@ -404,6 +408,33 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         type="button"
                         onClick={() =>
                           generateAccountNumber('currentAccountNumber')
+                        }
+                        className="rounded-2xl px-4 py-3"
+                      >
+                        Gen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-3xl bg-muted/30 border border-border/50">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Loan Account
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={loanAccountNumber}
+                      placeholder="Gen ->"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
+                    />
+                    {!loanAccountNumber && (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          generateAccountNumber('loanAccountNumber')
                         }
                         className="rounded-2xl px-4 py-3"
                       >

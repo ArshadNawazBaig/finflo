@@ -3538,6 +3538,15 @@ const MemberProfile = () => {
                     {member.currentAccountNumber || 'Not Assigned'}
                   </span>
                 </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Wallet size={10} className="text-amber-500" />
+                    Loan Account
+                  </span>
+                  <span className="text-sm font-black font-mono text-amber-500">
+                    {member.loanAccountNumber || 'Not Assigned'}
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

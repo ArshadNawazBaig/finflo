@@ -52,6 +52,7 @@ const customerSchema = new mongoose.Schema(
     },
     savingAccountNumber: { type: String, sparse: true },
     currentAccountNumber: { type: String, sparse: true },
+    loanAccountNumber: { type: String, sparse: true },
     documents: [
       {
         name: { type: String },
@@ -112,6 +113,9 @@ customerSchema.pre('save', async function () {
     }
     if (!this.currentAccountNumber) {
       this.currentAccountNumber = generateAcc('CUR');
+    }
+    if (!this.loanAccountNumber) {
+      this.loanAccountNumber = generateAcc('LON');
     }
   }
 });

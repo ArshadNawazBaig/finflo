@@ -45,6 +45,7 @@ const MemberWallet = () => {
   const navigate = useNavigate();
 
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [activeAccount, setActiveAccount] = useState('current');
 
   const observerTarget = useRef(null);
   const isInitialMount = useRef(true);
@@ -153,68 +154,138 @@ const MemberWallet = () => {
         <>
           {/* Dashboard Metrics Header */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-            {/* Credit Card Hero */}
-            <div className="lg:col-span-2 relative overflow-hidden bg-zinc-950 text-white p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between min-h-[320px] group transition-all duration-500 hover:shadow-primary/20">
-              {/* Card Hologram & Design */}
-              <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-                <Wallet className="w-80 h-80 text-white" />
-              </div>
-              <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
-              <div className="absolute top-10 right-10 w-16 h-12 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md flex items-center justify-center">
-                <div className="w-10 h-7 bg-white/20 rounded-md overflow-hidden relative">
-                  <div className="absolute top-0 bottom-0 left-1/4 right-1/4 border-x border-white/20" />
-                  <div className="absolute left-0 right-0 top-1/4 bottom-1/4 border-y border-white/20" />
-                </div>
+            {/* Main Account Area */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              {/* Account Tabs */}
+              <div className="flex flex-wrap items-center gap-2 bg-muted/40 p-1.5 rounded-[1.25rem] w-fit border border-border/50">
+                <button
+                  onClick={() => setActiveAccount('current')}
+                  className={cn(
+                    'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
+                    activeAccount === 'current'
+                      ? 'bg-zinc-950 text-white shadow-md'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                  )}
+                >
+                  Current
+                </button>
+                <button
+                  onClick={() => setActiveAccount('saving')}
+                  className={cn(
+                    'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
+                    activeAccount === 'saving'
+                      ? 'bg-primary text-white shadow-md shadow-primary/20'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                  )}
+                >
+                  Saving
+                </button>
+                <button
+                  onClick={() => setActiveAccount('loan')}
+                  className={cn(
+                    'px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all',
+                    activeAccount === 'loan'
+                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                  )}
+                >
+                  Loan
+                </button>
               </div>
 
-              <div className="relative z-10 space-y-1">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-primary/20 p-2 rounded-lg backdrop-blur-md border border-primary/20">
-                    <CreditCard className="text-primary w-5 h-5" />
+              {/* Credit Card Hero */}
+              <div
+                className={cn(
+                  'relative overflow-hidden text-white p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between flex-1 min-h-[320px] md:min-h-0 group transition-all duration-500',
+                  activeAccount === 'current'
+                    ? 'bg-zinc-950 hover:shadow-zinc-500/20'
+                    : activeAccount === 'saving'
+                      ? 'bg-primary hover:shadow-primary/30'
+                      : 'bg-amber-500 hover:shadow-amber-500/30'
+                )}
+              >
+                {/* Card Hologram & Design */}
+                <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+                  <Wallet className="w-80 h-80 text-white" />
+                </div>
+                <div
+                  className={cn(
+                    'absolute -left-20 -bottom-20 w-64 h-64 blur-[100px] rounded-full pointer-events-none transition-colors duration-500',
+                    activeAccount === 'current'
+                      ? 'bg-primary/30'
+                      : activeAccount === 'saving'
+                        ? 'bg-white/20'
+                        : 'bg-white/20'
+                  )}
+                />
+                <div className="absolute top-10 right-10 w-16 h-12 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md flex items-center justify-center">
+                  <div className="w-10 h-7 bg-white/20 rounded-md overflow-hidden relative">
+                    <div className="absolute top-0 bottom-0 left-1/4 right-1/4 border-x border-white/20" />
+                    <div className="absolute left-0 right-0 top-1/4 bottom-1/4 border-y border-white/20" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
-                    {member?.user?.businessName || 'FinFlo'} Platinum
-                  </span>
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 ml-1">
-                  Current Account Balance
-                </p>
-                <h2 className="text-2xl md:text-4xl font-black tracking-tighter drop-shadow-sm">
-                  {formatCurrency(member?.currentBalance || 0)}
-                </h2>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-4 ml-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  Account Active
-                </div>
-              </div>
 
-              <div className="relative z-10 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6 mt-8">
-                <div className="hidden sm:block">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">
-                    {member?.user?.businessName || 'FinFlo'} ID
-                  </p>
-                  <p className="text-sm font-mono tracking-widest opacity-90">
-                    {member?.memberId || '···· ···· ····'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                  <div className="relative group flex-1 sm:flex-none">
-                    <Button
-                      disabled
-                      className="w-full h-14 px-8 rounded-2xl bg-white/50 text-zinc-900/40 text-xs font-black uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-white/10"
-                    >
-                      <QrCode size={18} /> Add Funds
-                    </Button>
-                    <div className="absolute -top-2 -right-2 bg-primary text-white text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg shadow-primary/20 animate-bounce">
-                      Coming Soon
+                <div className="relative z-10 space-y-1">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md border border-white/20">
+                      <CreditCard className="text-white w-5 h-5" />
                     </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">
+                      {member?.user?.businessName || 'FinFlo'} {activeAccount === 'loan' ? 'Credit' : 'Platinum'}
+                    </span>
                   </div>
-                  <Button
-                    onClick={() => navigate('/member/transfer')}
-                    className="flex-1 sm:flex-none h-14 px-8 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-black uppercase tracking-widest transition-all backdrop-blur-md hover:-translate-y-1 active:scale-95 flex items-center gap-3"
-                  >
-                    <Send size={16} /> Transfer
-                  </Button>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 ml-1 hover:opacity-100 transition-opacity">
+                    {activeAccount === 'current'
+                      ? 'Current Account Balance'
+                      : activeAccount === 'saving'
+                        ? 'Saving Account Balance'
+                        : 'Available Credit Limit'}
+                  </p>
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter drop-shadow-sm">
+                    {activeAccount === 'current'
+                      ? formatCurrency(member?.currentBalance || 0)
+                      : activeAccount === 'saving'
+                        ? formatCurrency(member?.savingBalance || 0)
+                        : formatCurrency(member?.creditLimit || 0)}
+                  </h2>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-300 mt-4 ml-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Account Active
+                  </div>
+                </div>
+
+                <div className="relative z-10 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6 mt-8">
+                  <div className="flex-1 w-full sm:w-auto text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">
+                      Account Number
+                    </p>
+                    <p className="text-sm sm:text-base font-mono font-bold tracking-widest opacity-90 drop-shadow-md">
+                      {activeAccount === 'current'
+                        ? member?.currentAccountNumber || 'CUR-XXXXX'
+                        : activeAccount === 'saving'
+                          ? member?.savingAccountNumber || 'SAV-XXXXX'
+                          : member?.loanAccountNumber || 'LON-XXXXX'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                    <div className="relative group flex-1 sm:flex-none">
+                      <Button
+                        disabled
+                        className="w-full h-14 px-8 rounded-2xl bg-white/50 text-zinc-900/40 text-xs font-black uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-white/10"
+                      >
+                        <QrCode size={18} /> Add Funds
+                      </Button>
+                      <div className="absolute -top-2 -right-2 bg-white text-zinc-900 text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg animate-bounce">
+                        Coming Soon
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate('/member/transfer')}
+                      className="flex-1 sm:flex-none h-14 px-8 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-black uppercase tracking-widest transition-all backdrop-blur-md hover:-translate-y-1 active:scale-95 flex items-center gap-3"
+                    >
+                      <Send size={16} /> Transfer
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
