@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAtom, useSetAtom } from 'jotai';
 import {
@@ -29,6 +29,9 @@ const DashboardLayout = () => {
   const setSubscription = useSetAtom(subscriptionAtom);
   const [user, setUser] = useAtom(userAtom);
   const setPendingCount = useSetAtom(pendingMembersCountAtom);
+
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   // Fetch latest user data and subscription
   const fetchData = async () => {
@@ -79,6 +82,20 @@ const DashboardLayout = () => {
     }
   }, [location, isMobile]);
 
+  const handleScroll = (e) => {
+    if (!isMobile) return;
+    const currentScrollY = e.target.scrollTop;
+    
+    if (Math.abs(currentScrollY - lastScrollY.current) > 10) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsNavVisible(false); // scrolling down
+      } else {
+        setIsNavVisible(true); // scrolling up
+      }
+      lastScrollY.current = currentScrollY;
+    }
+  };
+
   return (
     <SocketProvider userType="user">
       <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
@@ -109,8 +126,10 @@ const DashboardLayout = () => {
           <Navbar
             onMenuClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
             isSidebarExpanded={isSidebarExpanded}
+            isVisible={isNavVisible}
           />
           <div
+            onScroll={handleScroll}
             className={cn(
               'flex-1 overflow-y-auto w-full transition-all duration-500',
               isMobile ? 'pt-36 px-4' : 'p-4 md:p-8',
@@ -130,7 +149,7 @@ const DashboardLayout = () => {
         </div>
 
         {/* Mobile-First Navigation */}
-        <MobileBottomNav />
+        <MobileBottomNav isVisible={isNavVisible} />
         <InstallPrompt />
         <OnboardingGuide
           steps={adminOnboardingSteps}
