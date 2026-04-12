@@ -70,6 +70,12 @@ export default {
       },
       boxShadow: {
         xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        DEFAULT: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        md: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        lg: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        xl: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        '2xl': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       },
     },
   },
