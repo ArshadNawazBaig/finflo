@@ -63,12 +63,12 @@ const StatsCard = ({
                 {isPositive ? (
                   <div className="flex items-center gap-1">
                     <TrendingUp size={12} />
-                    {Math.abs(percentage)}%
+                    {Number(Math.abs(percentage)).toFixed(2)}%
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
                     <TrendingDown size={12} />
-                    {Math.abs(percentage)}%
+                    {Number(Math.abs(percentage)).toFixed(2)}%
                   </div>
                 )}
               </div>
