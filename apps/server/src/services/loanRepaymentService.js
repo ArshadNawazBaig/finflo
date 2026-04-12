@@ -20,6 +20,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     date = new Date(),
     notes = 'Automatic deduction from deposit',
     isAutoValue = true,
+    deductFromWallet = true,
     allowEarlySettlement = true,
     session = null,
     paymentMethod = 'cash',
@@ -169,11 +170,13 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
   await repayment.save({ session });
 
-  // Deduct repayment from linked Member's balance (if member exists) atomically
+  // Deduct repayment from linked Member's balance ONLY for auto-deductions or member-initiated payments
+  // (e.g. deposit → auto loan deduction, or member portal self-pay). Manual teller payments
+  // are direct cash collections and should NOT reduce the member's wallet balance.
   let customer = null;
   try {
     customer = await Customer.findById(loan.customer);
-    if (customer?.memberId) {
+    if (deductFromWallet && customer?.memberId) {
       const updatedMember = await Member.findByIdAndUpdate(
         customer.memberId,
         {

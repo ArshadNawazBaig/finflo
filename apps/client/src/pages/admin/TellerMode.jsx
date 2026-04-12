@@ -1859,7 +1859,7 @@ const TellerMode = () => {
                                             {formatCurrency(
                                               loan.remainingAmount,
                                             )}{' '}
-                                            • {loan.duration}mo
+                                            • {loan.duration}mo{loan.rate !== undefined ? ` • ${loan.rate}%` : ''}
                                           </p>
                                         </div>
                                         {selectedLoan?._id === loan._id && (

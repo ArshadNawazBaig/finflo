@@ -993,6 +993,7 @@ const addRepayment = async (req, res) => {
       {
         date,
         isAutoValue: false,
+        deductFromWallet: false,
         notes: notes || '',
         allowEarlySettlement: true,
         paymentMethod,
