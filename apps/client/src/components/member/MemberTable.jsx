@@ -53,15 +53,7 @@ const MemberTable = ({
                   {renderSortIcon('name')}
                 </div>
               </th>
-              <th
-                className="py-4 px-4 font-medium text-sm text-muted-foreground text-right text-nowrap cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => onSort('currentBalance')}
-              >
-                <div className="flex items-center justify-end gap-1">
-                  Total Invested
-                  {renderSortIcon('currentBalance')}
-                </div>
-              </th>
+
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-center text-nowrap">
                 Accounts
               </th>
@@ -138,9 +130,7 @@ const MemberTable = ({
                     </Link>
                   </div>
                 </td>
-                <td className="py-4 px-4 text-right font-medium">
-                  {formatCurrency(member.currentBalance || 0)}
-                </td>
+
                 <td className="py-4 px-4 text-center">
                   <div className="flex items-center justify-center gap-2">
                     {member.savingAccountNumber && (
