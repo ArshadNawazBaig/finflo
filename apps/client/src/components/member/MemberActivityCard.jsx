@@ -9,10 +9,12 @@ import {
   PieChart,
   Target,
   FileText,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
 
-const MemberActivityCard = ({ activity }) => {
+const MemberActivityCard = ({ activity, member }) => {
   const balanceAfter = activity.metadata?.balanceAfter || activity.balanceAfter;
 
   // Determine display style based on category AND type
@@ -163,29 +165,48 @@ const MemberActivityCard = ({ activity }) => {
 
       <div className="flex items-center justify-between">
         <span className="font-bold text-[11px] text-primary">Status</span>
-        {activity.status && (
-          <div
-            className={cn(
-              'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
-              activity.status === 'Completed' &&
-                'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
-              activity.status === 'Pending' &&
-                'bg-amber-500/10 text-amber-600 border-amber-500/20',
-              activity.status === 'Failed' &&
-                'bg-rose-500/10 text-rose-600 border-rose-500/20',
-            )}
-          >
-            <span
+        <div className="flex items-center gap-2">
+          {activity.status && (
+            <div
               className={cn(
-                'w-1 h-1 rounded-full',
-                activity.status === 'Completed' && 'bg-emerald-500',
-                activity.status === 'Pending' && 'bg-amber-500 animate-pulse',
-                activity.status === 'Failed' && 'bg-rose-500',
+                'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1 border leading-none transition-all',
+                activity.status === 'Completed' &&
+                  'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                activity.status === 'Pending' &&
+                  'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                activity.status === 'Failed' &&
+                  'bg-rose-500/10 text-rose-600 border-rose-500/20',
               )}
-            />
-            {activity.status}
-          </div>
-        )}
+            >
+              <span
+                className={cn(
+                  'w-1 h-1 rounded-full',
+                  activity.status === 'Completed' && 'bg-emerald-500',
+                  activity.status === 'Pending' && 'bg-amber-500 animate-pulse',
+                  activity.status === 'Failed' && 'bg-rose-500',
+                )}
+              />
+              {activity.status}
+            </div>
+          )}
+          <button
+            onClick={() =>
+              generateTransactionReceipt({
+                member,
+                type: activity.type,
+                amount: activity.amount,
+                description: activity.description,
+                date: activity.date,
+                balanceAfter: activity.metadata?.balanceAfter,
+                referenceId: activity._id,
+                accountType: 'current',
+              })
+            }
+            className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all active:scale-95"
+          >
+            <Download size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -38,6 +38,7 @@ import {
   getBusinessContext,
   toTitleCase,
   renderPdfSignatures,
+  generateTransactionReceipt,
 } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
@@ -470,7 +471,7 @@ const MemberTransactions = () => {
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 gap-4">
                 {displayActivity.map((item) => (
-                  <MemberActivityCard key={item._id} activity={item} />
+                  <MemberActivityCard key={item._id} activity={item} member={member} />
                 ))}
               </div>
 
@@ -591,29 +592,25 @@ const MemberTransactions = () => {
                       </p>
                     )}
                   </div>
-                  {(item.category === 'repayment' ||
-                    item.category === 'goal') && (
-                    <Tooltip content="Export Statement">
-                      <button
-                        onClick={() => {
-                          exportLoanStatement(
-                            {
-                              ...item,
-                              principal: item.amount,
-                              totalAmount: item.amount,
-                              status: 'confirmed',
-                              customer: member,
-                            },
-                            [],
-                            member,
-                          );
-                        }}
-                        className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100"
-                      >
-                        <Download size={16} />
-                      </button>
-                    </Tooltip>
-                  )}
+                  <Tooltip content="Download Receipt">
+                    <button
+                      onClick={() =>
+                        generateTransactionReceipt({
+                          member,
+                          type: item.type,
+                          amount: item.amount,
+                          description: item.description,
+                          date: item.date,
+                          balanceAfter: item.metadata?.balanceAfter,
+                          referenceId: item._id,
+                          accountType: 'current',
+                        })
+                      }
+                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100"
+                    >
+                      <Download size={16} />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             ))

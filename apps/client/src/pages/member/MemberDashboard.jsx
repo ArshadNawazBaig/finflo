@@ -3,17 +3,12 @@ import { useAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Wallet,
-  TrendingUp,
   FileText,
   Plus,
-  PieChart,
   Target,
   ArrowRight,
   Download,
   Send,
-  ShieldCheck,
-  BadgeDollarSign,
 } from 'lucide-react';
 import {
   BarChart,
@@ -25,11 +20,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
-import StatsCard from '@/components/StatsCard';
 import PageHeader from '@/components/PageHeader';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
-import WealthInsights from '@/components/savings/WealthInsights';
+import MemberGradeCard from '@/components/member/MemberGradeCard';
+import FinancialHealthCard from '@/components/member/FinancialHealthCard';
 import SavingGoalsList from '@/components/savings/SavingGoalsList';
 import CreateSavingGoalModal from '@/components/savings/CreateSavingGoalModal';
 import ContributeGoalModal from '@/components/savings/ContributeGoalModal';
@@ -171,7 +166,6 @@ const MemberDashboard = () => {
     fetchDashboardData();
   }, [limit]);
 
-
   useEffect(() => {
     if (!isMobile || !observerTarget.current) return;
     const observer = new IntersectionObserver(
@@ -272,46 +266,14 @@ const MemberDashboard = () => {
         <MemberDashboardSkeleton />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            <StatsCard
-              title="Current Account"
-              amount={formatCurrency(member?.currentBalance || 0)}
-              icon={<Wallet size={20} />}
-              color={
-                member?.currentBalance < 0
-                  ? 'bg-rose-500 shadow-rose-500/20'
-                  : 'bg-primary shadow-primary/20'
-              }
-            />
-            <StatsCard
-              title="Saving Account"
-              amount={formatCurrency(member?.savingBalance || 0)}
-              icon={<BadgeDollarSign size={20} />}
-              color="bg-teal-500 shadow-teal-500/20"
-            />
-            <StatsCard
-              title="Credit Limit"
-              amount={formatCurrency(member?.creditLimit || 0)}
-              icon={<ShieldCheck size={20} />}
-              color="bg-amber-500 shadow-amber-500/20"
-            />
-            <StatsCard
-              title="Total Invested"
-              amount={formatCurrency(member?.totalInvested || 0)}
-              icon={<TrendingUp size={20} />}
-              color="bg-emerald-500 shadow-emerald-500/20"
-            />
-            <StatsCard
-              title="Saving Profit"
-              amount={formatCurrency(member?.totalSavingProfit || 0)}
-              icon={<PieChart size={20} />}
-              color="bg-blue-500 shadow-blue-500/20"
-            />
-            <StatsCard
-              title="Active Loans"
-              amount={activeLoansCount}
-              icon={<FileText size={20} />}
-              color="bg-slate-500 shadow-slate-500/20"
+          {/* Member Grade & Financial Health */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            {member?.memberGrade && (
+              <MemberGradeCard memberGrade={member.memberGrade} />
+            )}
+            <FinancialHealthCard
+              member={member}
+              activeLoansCount={activeLoansCount}
             />
           </div>
 
@@ -342,9 +304,7 @@ const MemberDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <WealthInsights member={member} loans={loans} goals={goals} />
-
-              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8 mt-8">
+              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter">

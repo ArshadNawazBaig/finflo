@@ -455,6 +455,24 @@ const getMe = async (req, res) => {
             status: activeLoan.status,
           };
         }
+
+        // Fetch member grade from the most recent loan with riskDetails
+        const gradedLoan = await Loan.findOne({
+          customer: member.customer,
+          user: member.user._id,
+          'riskDetails.grade': { $exists: true },
+        })
+          .sort({ createdAt: -1 })
+          .select('riskDetails');
+
+        if (gradedLoan?.riskDetails) {
+          memberObj.memberGrade = {
+            grade: gradedLoan.riskDetails.grade,
+            score: gradedLoan.riskDetails.score,
+            suggestion: gradedLoan.riskDetails.suggestion,
+            factors: gradedLoan.riskDetails.factors || [],
+          };
+        }
       }
 
       res.json(memberObj);
