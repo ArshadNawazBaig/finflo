@@ -240,19 +240,35 @@ const MemberWallet = () => {
                       ? 'Current Account Balance'
                       : activeAccount === 'saving'
                         ? 'Saving Account Balance'
-                        : 'Available Credit Limit'}
+                        : member?.activeLoan
+                          ? 'Outstanding Balance'
+                          : 'Available Credit Limit'}
                   </p>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter drop-shadow-sm">
                     {activeAccount === 'current'
                       ? formatCurrency(member?.currentBalance || 0)
                       : activeAccount === 'saving'
                         ? formatCurrency(member?.savingBalance || 0)
-                        : formatCurrency(member?.creditLimit || 0)}
+                        : member?.activeLoan
+                          ? formatCurrency(member.activeLoan.remainingAmount || 0)
+                          : formatCurrency(member?.creditLimit || 0)}
                   </h2>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-300 mt-4 ml-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Account Active
-                  </div>
+                  {activeAccount === 'loan' && member?.activeLoan ? (
+                    <div className="flex items-center gap-4 mt-4 ml-1">
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-200">
+                        <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
+                        EMI: {formatCurrency(member.activeLoan.emi || 0)}
+                      </div>
+                      <div className="text-[10px] font-black uppercase tracking-widest opacity-70">
+                        Paid: {formatCurrency(member.activeLoan.paidAmount || 0)} / {formatCurrency(member.activeLoan.totalAmount || 0)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-300 mt-4 ml-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Account Active
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative z-10 flex flex-col sm:flex-row items-end sm:items-center justify-between gap-6 mt-8">

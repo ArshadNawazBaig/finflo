@@ -417,6 +417,7 @@ const googleRegister = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const User = require('../models/User');
+    const Loan = require('../models/Loan');
     // req.member set by protectMember middleware
     const member = await Member.findById(req.member._id).populate(
       'user',
@@ -434,6 +435,28 @@ const getMe = async (req, res) => {
       memberObj.ceoSignature = member.user?.ceoSignature;
       memberObj.businessName = member.user?.businessName;
       memberObj.businessAddress = member.user?.businessAddress;
+
+      // Fetch active/overdue loan for this member (via linked customer)
+      if (member.customer) {
+        const activeLoan = await Loan.findOne({
+          customer: member.customer,
+          user: member.user._id,
+          status: { $in: ['active', 'overdue'] },
+        }).sort({ createdAt: -1 });
+
+        if (activeLoan) {
+          memberObj.activeLoan = {
+            _id: activeLoan._id,
+            remainingAmount: activeLoan.remainingAmount,
+            totalAmount: activeLoan.totalAmount,
+            principal: activeLoan.principal,
+            paidAmount: activeLoan.paidAmount,
+            emi: activeLoan.emi,
+            status: activeLoan.status,
+          };
+        }
+      }
+
       res.json(memberObj);
     } else {
       res.status(404);
