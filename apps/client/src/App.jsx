@@ -1,8 +1,8 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAtomValue } from 'jotai';
-import { userAtom } from '@/atoms';
+import { userAtom, memberAtom } from '@/atoms';
 
 import SplashScreen from '@/components/ui/SplashScreen';
 import FloatingSettings from '@/components/landing/FloatingSettings';
@@ -53,7 +53,25 @@ const PageLoader = () => <SplashScreen />;
 function App() {
   const { settings, loading } = useSystemSettings();
   const user = useAtomValue(userAtom);
+  const member = useAtomValue(memberAtom);
   const isSuperAdmin = user?.role === 'super_admin';
+
+  // Synchronize auth state to a parent domain cookie so the cross-domain landing page can read it
+  useEffect(() => {
+    if (!IS_DEV) {
+      if (user) {
+        document.cookie = `finflo_business_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
+      } else {
+        document.cookie = `finflo_business_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
+      }
+      
+      if (member) {
+        document.cookie = `finflo_member_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
+      } else {
+        document.cookie = `finflo_member_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
+      }
+    }
+  }, [user, member]);
 
   if (loading) return <PageLoader />;
 

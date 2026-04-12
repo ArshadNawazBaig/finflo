@@ -31,6 +31,11 @@ const Navigation = ({
     const loggedInMember = memberRaw && memberRaw !== 'null' ? JSON.parse(memberRaw) : {};
     isBusinessLoggedIn = Object.keys(loggedInUser).length > 0;
     isMemberLoggedIn = Object.keys(loggedInMember).length > 0;
+  } else {
+    // Cross-domain (finflo.org landing page) — localStorage is not shared.
+    // We check for the cookie that we sync from app.finflo.org
+    isBusinessLoggedIn = document.cookie.includes('finflo_business_auth=true');
+    isMemberLoggedIn = document.cookie.includes('finflo_member_auth=true');
   }
 
   const isLoggedIn = isBusinessLoggedIn || isMemberLoggedIn;
@@ -137,15 +142,6 @@ const Navigation = ({
                 </>
               ) : (
                 <>
-                  {isCrossDomain && (
-                    <AppLink
-                      to="/dashboard"
-                      className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
-                    >
-                      Dashboard
-                      <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                    </AppLink>
-                  )}
                   <div className="relative" ref={loginMenuRef}>
                     <button
                       onClick={() => {
@@ -354,15 +350,6 @@ const Navigation = ({
                 </>
               ) : (
                 <>
-                  {isCrossDomain && (
-                    <AppLink
-                      to="/dashboard"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block w-full py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px] mb-3"
-                    >
-                      Go to Dashboard
-                    </AppLink>
-                  )}
                   <div className="grid grid-cols-2 gap-3">
                         <AppLink
                           to="/register"
