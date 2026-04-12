@@ -92,6 +92,7 @@ const TellerMode = () => {
   const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] =
     useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'online'
+  const [deductFromWallet, setDeductFromWallet] = useState(false);
 
   // ── Recent Transactions ───────────────────────
   const [recentTxns, setRecentTxns] = useState([]);
@@ -841,6 +842,7 @@ const TellerMode = () => {
         loanId: selectedLoan._id,
         amount: parseFloat(amount),
         paymentMethod,
+        deductFromWallet,
         notes: description || 'POS loan payment',
       });
       toast.success(
@@ -869,6 +871,7 @@ const TellerMode = () => {
     if (viewMode === 'cashbook') fetchCashSummary();
     // Focus search for next customer
     setPaymentMethod('cash');
+    setDeductFromWallet(false);
     setTimeout(() => searchRef.current?.focus(), 300);
   };
 
@@ -883,6 +886,7 @@ const TellerMode = () => {
     setApplyDeduction(false);
     setRepaymentType('installment');
     setPaymentMethod('cash');
+    setDeductFromWallet(false);
     setTimeout(() => searchRef.current?.focus(), 100);
   };
 
@@ -1796,9 +1800,12 @@ const TellerMode = () => {
                                 <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
                                   <button
                                     type="button"
+                                    disabled={deductFromWallet}
                                     onClick={() => setPaymentMethod('cash')}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                      paymentMethod === 'cash'
+                                      deductFromWallet
+                                        ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50'
+                                        : paymentMethod === 'cash'
                                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                     }`}
@@ -1808,9 +1815,12 @@ const TellerMode = () => {
                                   </button>
                                   <button
                                     type="button"
+                                    disabled={deductFromWallet}
                                     onClick={() => setPaymentMethod('online')}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                      paymentMethod === 'online'
+                                      deductFromWallet
+                                        ? 'opacity-60 cursor-not-allowed bg-blue-500/50 text-white'
+                                        : paymentMethod === 'online'
                                         ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                     }`}
@@ -1871,6 +1881,37 @@ const TellerMode = () => {
                                     ))}
                                   </div>
                                 )}
+                              </div>
+                            )}
+
+                            {/* Deduct from Wallet Toggle */}
+                            {activeAction === 'loan-pay' && (
+                              <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 mb-6">
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-indigo-700">
+                                    Deduct from Wallet
+                                  </p>
+                                  <p className="text-[9px] font-bold text-indigo-700/60">
+                                    Pay using member's current balance
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const nextState = !deductFromWallet;
+                                    setDeductFromWallet(nextState);
+                                    if (nextState) setPaymentMethod('online');
+                                  }}
+                                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                                    deductFromWallet ? 'bg-indigo-600' : 'bg-muted border border-border/50'
+                                  }`}
+                                >
+                                  <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 shadow-sm ${
+                                      deductFromWallet ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                                  />
+                                </button>
                               </div>
                             )}
 

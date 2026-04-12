@@ -963,9 +963,8 @@ const getLoanById = async (req, res) => {
   }
 };
 
-// Add Repayment
 const addRepayment = async (req, res) => {
-  const { loanId, amount, date, notes, isSettlement, paymentMethod = 'cash' } = req.body;
+  const { loanId, amount, date, notes, isSettlement, paymentMethod = 'cash', deductFromWallet = false } = req.body;
   try {
     const loan = await Loan.findById(loanId).populate('customer');
     if (
@@ -993,7 +992,7 @@ const addRepayment = async (req, res) => {
       {
         date,
         isAutoValue: false,
-        deductFromWallet: false,
+        deductFromWallet,
         notes: notes || '',
         allowEarlySettlement: true,
         paymentMethod,
