@@ -94,7 +94,6 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
     };
   }, [member, activeLoansCount]);
 
-  const isMobile = useMediaQuery('(max-width: 768px)');
   const StatusIcon = metrics.statusIcon;
 
   const indicators = [
@@ -170,7 +169,7 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
           </div>
           <Tooltip
             content="Summary of your overall financial position."
-            position={isMobile ? 'left' : 'top'}
+            position="left"
           >
             <div className="p-2 rounded-full cursor-help hover:bg-muted/50 transition-colors">
               <Info size={14} className="text-muted-foreground" />

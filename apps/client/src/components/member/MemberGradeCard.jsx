@@ -88,7 +88,6 @@ const MemberGradeCard = ({ memberGrade }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const animationRef = useRef(null);
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const score = memberGrade?.score ?? 0;
   const grade = memberGrade?.grade ?? 'C';
@@ -212,7 +211,7 @@ const MemberGradeCard = ({ memberGrade }) => {
           </div>
           <Tooltip
             content="Based on your repayment history and trust rating."
-            position={isMobile ? 'left' : 'top'}
+            position="left"
           >
             <div className="p-2 rounded-full cursor-help hover:bg-muted/50 transition-colors">
               <Info size={14} className="text-muted-foreground" />
