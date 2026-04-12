@@ -78,7 +78,12 @@ const MemberSettings = () => {
     fetchMemberData();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/member-auth/logout');
+    } catch (e) {
+      // Ignore — proceed with client-side cleanup regardless
+    }
     setMember(null);
     window.location.href = '/member/login';
   };

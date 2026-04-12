@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom } from 'jotai';
 import { notificationsAtom, unreadNotificationsCountAtom, memberAtom } from '@/atoms';
 
 const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
@@ -25,6 +25,8 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
 
   const [notifications, setNotifications] = useAtom(notificationsAtom);
   const [unreadCount, setUnreadCount] = useAtom(unreadNotificationsCountAtom);
+  const [_member, setMember] = useAtom(memberAtom);
+  const member = _member || {};
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -79,14 +81,18 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('member');
-    localStorage.removeItem('member');
+  const handleLogout = async () => {
+    try {
+      await api.post('/member-auth/logout');
+    } catch (e) {
+      // Ignore — proceed with client-side cleanup regardless
+    }
+    setMember(null);
     toast.success('Logged out successfully');
-    navigate('/member/login');
+    window.location.href = '/member/login';
   };
 
-  const member = useAtomValue(memberAtom) || {};
+
 
   const memberInitials = member.name
     ? member.name

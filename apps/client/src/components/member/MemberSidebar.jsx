@@ -27,6 +27,7 @@ import {
 } from '@/atoms';
 import { cn, capitalize } from '@/lib/utils';
 import Logo from '@/components/Logo';
+import api from '@/lib/axios';
 
 import {
   Tooltip,
@@ -108,7 +109,12 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/member-auth/logout');
+    } catch (e) {
+      // Ignore — proceed with client-side cleanup regardless
+    }
     setMember(null);
     window.location.href = '/member/login';
   };
