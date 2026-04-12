@@ -840,8 +840,8 @@ const TellerMode = () => {
       await api.post('/repayments', {
         loanId: selectedLoan._id,
         amount: parseFloat(amount),
-        paymentMethod: 'cash',
-        notes: description || 'POS cash loan payment',
+        paymentMethod,
+        notes: description || 'POS loan payment',
       });
       toast.success(
         `${formatCurrency(parseFloat(amount))} loan repayment recorded for ${member.name}`,
@@ -1789,7 +1789,6 @@ const TellerMode = () => {
                             )}
 
                             {/* Payment Method Selector */}
-                            {activeAction !== 'loan-pay' && (
                               <div className="space-y-3">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
                                   Payment Method
@@ -1821,7 +1820,6 @@ const TellerMode = () => {
                                   </button>
                                 </div>
                               </div>
-                            )}
 
                             {/* Loan Selector */}
                             {activeAction === 'loan-pay' && (

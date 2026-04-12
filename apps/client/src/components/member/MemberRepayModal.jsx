@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   ArrowDownCircle,
   Calendar,
+  HandCoins,
+  Globe,
 } from 'lucide-react';
 import { formatCurrency, cn, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
@@ -36,6 +38,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
     notes: '',
   });
   const [showTxnConfirm, setShowTxnConfirm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('online');
 
   const businessName = member?.user?.businessName || 'FinFlo';
 
@@ -216,6 +219,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           amount: paymentAmount,
           isSettlement,
           notes: formData.notes,
+          paymentMethod,
         },
         {
           headers: {
@@ -414,6 +418,39 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 )}
               </div>
 
+              {/* Payment Method Selector */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
+                  Payment Method
+                </label>
+                <div className="flex gap-2 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      paymentMethod === 'cash'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <HandCoins size={14} />
+                    Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('online')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      paymentMethod === 'online'
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <Globe size={14} />
+                    Online
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label
@@ -508,6 +545,10 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           {
             label: 'Type',
             value: isSettlement ? 'Full Settlement' : 'Installment',
+          },
+          {
+            label: 'Method',
+            value: paymentMethod === 'cash' ? 'Cash' : 'Online',
           },
           {
             label: 'Outstanding',

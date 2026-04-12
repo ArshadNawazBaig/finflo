@@ -965,7 +965,7 @@ const getLoanById = async (req, res) => {
 
 // Add Repayment
 const addRepayment = async (req, res) => {
-  const { loanId, amount, date, notes, isSettlement } = req.body;
+  const { loanId, amount, date, notes, isSettlement, paymentMethod = 'cash' } = req.body;
   try {
     const loan = await Loan.findById(loanId).populate('customer');
     if (
@@ -995,6 +995,7 @@ const addRepayment = async (req, res) => {
         isAutoValue: false,
         notes: notes || '',
         allowEarlySettlement: true,
+        paymentMethod,
       },
     );
 
@@ -1544,6 +1545,7 @@ const approveLoan = async (req, res) => {
       loan: loan._id,
       referenceId: loan._id,
       referenceModel: 'Loan',
+      paymentMethod: 'online',
     });
     await financialTx.save();
 
@@ -1957,6 +1959,7 @@ const memberRepayLoan = async (req, res) => {
         isAutoValue: false,
         allowEarlySettlement: isSettlementRequest,
         session,
+        paymentMethod: req.body.paymentMethod || 'online',
       },
     );
 
@@ -2076,6 +2079,7 @@ const bulkApproveLoans = async (req, res) => {
           loan: loan._id,
           referenceId: loan._id,
           referenceModel: 'Loan',
+          paymentMethod: 'online',
         });
         await financialTx.save();
 

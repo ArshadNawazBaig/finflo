@@ -22,6 +22,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     isAutoValue = true,
     allowEarlySettlement = true,
     session = null,
+    paymentMethod = 'cash',
   } = options;
 
   let repaymentAmount = Number(amount);
@@ -214,6 +215,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
           member: updatedMember._id,
           customer: loan.customer._id || loan.customer,
           loan: loan._id,
+          paymentMethod,
         });
         await withdrawalTx.save({ session });
       }
@@ -304,6 +306,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     loan: loan._id,
     referenceId: repayment._id,
     referenceModel: 'Repayment',
+    paymentMethod,
   });
   await financialTx.save({ session });
 
