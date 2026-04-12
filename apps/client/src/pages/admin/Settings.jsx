@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
@@ -2050,9 +2051,26 @@ const ConfigurationSection = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 animate-pulse mb-40 sm:mb-0 space-y-8">
+        <div className="space-y-2 mb-8">
+          <Skeleton className="h-6 w-48 rounded" />
+          <Skeleton className="h-3 w-64 rounded" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+        </div>
+        <div className="space-y-6 pt-4 border-t border-border/20">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32 rounded" />
+            <Skeleton className="h-3 w-48 rounded" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-white/5">
+            <Skeleton className="h-12 w-full rounded-2xl" />
+            <Skeleton className="h-12 w-full rounded-2xl" />
+          </div>
+        </div>
+      </section>
     );
   }
 
