@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
   const metrics = useMemo(() => {
@@ -93,6 +94,7 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
     };
   }, [member, activeLoansCount]);
 
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const StatusIcon = metrics.statusIcon;
 
   const indicators = [
@@ -166,7 +168,10 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
               </div>
             </div>
           </div>
-          <Tooltip content="Summary of your overall financial position.">
+          <Tooltip
+            content="Summary of your overall financial position."
+            position={isMobile ? 'left' : 'top'}
+          >
             <div className="p-2 rounded-full cursor-help hover:bg-muted/50 transition-colors">
               <Info size={14} className="text-muted-foreground" />
             </div>

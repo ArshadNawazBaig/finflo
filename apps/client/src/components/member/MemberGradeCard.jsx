@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const GRADE_CONFIG = {
   'A+': { label: 'Outstanding', tier: 'elite' },
@@ -87,6 +88,7 @@ const MemberGradeCard = ({ memberGrade }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const animationRef = useRef(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const score = memberGrade?.score ?? 0;
   const grade = memberGrade?.grade ?? 'C';
@@ -208,7 +210,10 @@ const MemberGradeCard = ({ memberGrade }) => {
               </div>
             </div>
           </div>
-          <Tooltip content="Based on your repayment history and trust rating.">
+          <Tooltip
+            content="Based on your repayment history and trust rating."
+            position={isMobile ? 'left' : 'top'}
+          >
             <div className="p-2 rounded-full cursor-help hover:bg-muted/50 transition-colors">
               <Info size={14} className="text-muted-foreground" />
             </div>
