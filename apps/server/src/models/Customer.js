@@ -89,7 +89,7 @@ customerSchema.index({ user: 1, cnic: 1 }, { unique: true });
 
 // Generate account numbers if missing
 customerSchema.pre('save', async function () {
-  if (!this.savingAccountNumber || !this.currentAccountNumber) {
+  if (!this.savingAccountNumber || !this.currentAccountNumber || !this.loanAccountNumber) {
     const User = mongoose.model('User');
     const user = await User.findById(this.user);
     const abbr = user?.businessAbbreviation || '';

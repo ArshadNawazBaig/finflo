@@ -124,7 +124,7 @@ memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
 // Hash password before saving
 memberSchema.pre('save', async function () {
   // Generate account numbers if missing
-  if (!this.savingAccountNumber || !this.currentAccountNumber) {
+  if (!this.savingAccountNumber || !this.currentAccountNumber || !this.loanAccountNumber) {
     const User = mongoose.model('User');
     const user = await User.findById(this.user);
     const abbr = user?.businessAbbreviation || '';

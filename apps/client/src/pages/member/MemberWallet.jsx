@@ -262,9 +262,9 @@ const MemberWallet = () => {
                     </p>
                     <p className="text-sm sm:text-base font-mono font-bold tracking-widest opacity-90 drop-shadow-md">
                       {activeAccount === 'current'
-                        ? member?.currentAccountNumber || 'CUR-XXXXX'
+                        ? member?.currentAccountNumber || 'CUR-C-XXXXX'
                         : activeAccount === 'saving'
-                          ? member?.savingAccountNumber || 'SAV-XXXXX'
+                          ? member?.savingAccountNumber || 'SAV-S-XXXXX'
                           : member?.loanAccountNumber || 'LON-L-XXXXX'}
                     </p>
                   </div>

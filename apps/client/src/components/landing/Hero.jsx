@@ -29,8 +29,8 @@ const Hero = () => {
               </h1>
               <p className="text-base text-slate-600 dark:text-slate-400 font-medium max-w-lg leading-relaxed">
                 The world's most sophisticated lending operating system. Now
-                powered by **Atomic Idempotent Operations** for 100% financial
-                integrity and full **White-Label Custom Branding**.
+                powered by <strong className="text-slate-900 dark:text-white">Atomic Idempotent Operations</strong> for 100% financial
+                integrity and full <strong className="text-slate-900 dark:text-white">White-Label Custom Branding</strong>.
               </p>
             </motion.div>
 

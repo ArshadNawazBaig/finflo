@@ -13,8 +13,7 @@ import Navigation from '@/components/landing/Navigation';
 import SEO from '@/components/SEO';
 import ContactModal from '@/components/landing/ContactModal';
 
-// Lazy load sections for performance
-const Hero = lazy(() => import('@/components/landing/Hero'));
+import Hero from '@/components/landing/Hero';
 const Features = lazy(() => import('@/components/landing/Features'));
 const Stats = lazy(() => import('@/components/landing/Stats'));
 const Testimonials = lazy(() => import('@/components/landing/Testimonials'));
@@ -138,8 +137,9 @@ const Landing = () => {
         setTheme={setTheme}
       />
 
+      <Hero />
+
       <Suspense fallback={<SectionLoader />}>
-        <Hero />
         <Features features={features} />
         <Stats />
         <Workbench />
