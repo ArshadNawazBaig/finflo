@@ -115,7 +115,11 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
     } catch (e) {
       // Ignore — proceed with client-side cleanup regardless
     }
-    setMember(null);
+    // Clear localStorage directly instead of via setMember(null) to avoid a
+    // React re-render race.  setMember triggers a synchronous re-render that
+    // tries to lazy-load the MemberLogin page while window.location.href is
+    // already tearing the page down, causing "Importing a module script failed".
+    localStorage.removeItem('member');
     window.location.href = '/member/login';
   };
 

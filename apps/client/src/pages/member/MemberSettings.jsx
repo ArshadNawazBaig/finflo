@@ -84,7 +84,9 @@ const MemberSettings = () => {
     } catch (e) {
       // Ignore — proceed with client-side cleanup regardless
     }
-    setMember(null);
+    // Clear localStorage directly to avoid a React re-render race —
+    // see MemberSidebar.jsx for the full explanation.
+    localStorage.removeItem('member');
     window.location.href = '/member/login';
   };
 
