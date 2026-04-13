@@ -920,115 +920,146 @@ export const ChatSkeleton = () => (
 
 export const MemberDashboardSkeleton = () => {
   return (
-    <div className="space-y-10 animate-pulse pb-20">
-      <PageHeaderSkeleton />
-      {/* ── Stat Cards: 1-col mobile / 2-col sm / 3-col lg ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div
-            key={i}
-            className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-muted/40" />
-              <Skeleton className="h-6 w-12 rounded-full" />
+    <div className="space-y-10 animate-pulse">
+      {/* Member Grade & Financial Health */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+        {/* Member Grade Card Skeleton */}
+        <div className="group relative rounded-[2rem] bg-card p-6 sm:p-8 border shrink-0 shadow-xs h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl" />
+                <div>
+                  <Skeleton className="h-3 w-16 sm:w-20 rounded mb-1.5" />
+                  <Skeleton className="h-4 w-24 sm:w-32 rounded" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-8 rounded-full" />
             </div>
-            <div className="space-y-3">
-              <Skeleton className="h-3 w-20 rounded" />
-              <Skeleton className="h-9 w-32 rounded-lg" />
-              <Skeleton className="h-3 w-24 rounded" />
+
+            {/* Gauge + Score */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-1">
+                  <Skeleton className="h-16 w-24 sm:h-20 sm:w-32 rounded" />
+                  <Skeleton className="h-4 w-8 rounded" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <Skeleton className="h-[130px] w-[130px] sm:h-[140px] sm:w-[140px] rounded-full shrink-0" />
+            </div>
+
+            {/* Bottom Section */}
+            <div className="mt-6 space-y-4">
+              <Skeleton className="h-2 w-full rounded-full" />
+              <Skeleton className="h-6 w-28 rounded-lg" />
+              <Skeleton className="h-8 w-full rounded-xl" />
             </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* ── Action Buttons ─────────────────────────────────── */}
-      <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
-        <Skeleton className="h-12 w-40 rounded-2xl" />
-        <Skeleton className="h-12 w-40 rounded-2xl" />
-        <Skeleton className="h-12 w-36 rounded-2xl" />
-      </div>
-
-      {/* ── Main layout: single-col on mobile / 3-col on lg ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left col (spans 2 on lg) */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* FinFlo Insights */}
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-36 rounded" />
-                <Skeleton className="h-3 w-52 rounded" />
+        {/* Financial Health Card Skeleton */}
+        <div className="group relative rounded-[2rem] bg-card p-6 sm:p-8 border border-border/50 shadow-xs h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl" />
+                <div>
+                  <Skeleton className="h-3 w-20 sm:w-24 rounded mb-1.5" />
+                  <Skeleton className="h-4 w-24 sm:w-32 rounded" />
+                </div>
               </div>
-              <div className="h-10 w-10 rounded-2xl bg-muted/40" />
+              <Skeleton className="h-8 w-8 rounded-full" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+            {/* Net Worth */}
+            <div className="mb-6 space-y-2">
+              <Skeleton className="h-3 w-32 rounded" />
+              <Skeleton className="h-10 w-48 sm:h-12 sm:w-56 rounded" />
+              <div className="flex items-center gap-4 mt-2">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className="h-3 w-24 rounded" />
+              </div>
+            </div>
+
+            {/* Indicator Bars */}
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-3 w-20 rounded" />
-                  <Skeleton className="h-7 w-28 rounded" />
+                <div key={i}>
+                  <div className="flex justify-between mb-1.5">
+                    <Skeleton className="h-3 w-20 rounded" />
+                    <Skeleton className="h-3 w-8 rounded" />
+                  </div>
                   <Skeleton className="h-2 w-full rounded-full" />
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Cash Flow chart */}
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-28 rounded" />
-                <Skeleton className="h-3 w-48 rounded" />
-              </div>
-              <div className="h-10 w-10 rounded-2xl bg-muted/40" />
+            {/* Summary Row */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Skeleton className="h-6 w-24 rounded-full" />
+              <Skeleton className="h-6 w-28 rounded-full" />
             </div>
-            <div className="h-[240px] sm:h-[300px] flex items-end gap-2 sm:gap-3 px-2">
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 items-center justify-center sm:justify-start">
+        <Skeleton className="h-12 w-full sm:w-40 rounded-2xl" />
+        <Skeleton className="h-12 w-full sm:w-44 rounded-2xl" />
+        <Skeleton className="h-12 w-full sm:w-36 rounded-2xl" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Cash Flow */}
+          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32 rounded" />
+                <Skeleton className="h-3 w-48 rounded hidden sm:block" />
+              </div>
+              <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />
+            </div>
+            <div className="h-[300px] w-full flex items-end gap-2 sm:gap-4 lg:gap-8 px-2 sm:px-4">
               {[60, 85, 45, 92, 70, 55].map((h, i) => (
-                <div
-                  key={i}
-                  className="flex-1 flex flex-col items-center gap-2"
-                >
-                  <div
-                    className="w-full bg-muted/40 rounded-t-xl"
-                    style={{ height: `${h}%` }}
-                  />
-                  <Skeleton className="h-3 w-6 sm:w-8 rounded" />
+                <div key={i} className="flex-1 flex justify-center gap-1 sm:gap-2 h-full items-end pb-6 relative">
+                  <div className="w-1/2 sm:w-8 bg-emerald-500/20 rounded-t-[10px]" style={{ height: `${h}%` }} />
+                  <div className="w-1/2 sm:w-8 bg-rose-500/20 rounded-t-[10px]" style={{ height: `${h * 0.7}%` }} />
+                  <Skeleton className="absolute bottom-0 h-3 w-8 sm:w-12 rounded" />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Loan Requests */}
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+          {/* My Loan Requests */}
+          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="space-y-2">
-                <Skeleton className="h-5 w-40 rounded" />
+                <Skeleton className="h-6 w-40 rounded" />
                 <Skeleton className="h-3 w-52 rounded hidden sm:block" />
               </div>
-              <div className="flex gap-3">
-                <Skeleton className="h-8 w-20 rounded-full" />
-                <Skeleton className="h-8 w-28 rounded-full" />
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-16 rounded-full" />
+                <Skeleton className="h-12 w-36 rounded-2xl" />
               </div>
             </div>
+
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="p-5 sm:p-6 rounded-[2rem] border border-border/50 bg-muted/10"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 space-y-2 min-w-0">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <Skeleton className="h-5 w-28 sm:w-32 rounded" />
-                        <Skeleton className="h-5 w-16 rounded-full" />
+              {[1, 2].map((i) => (
+                <div key={i} className="p-6 rounded-[2rem] border border-border/50 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Skeleton className="h-5 w-32 rounded" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
                       </div>
-                      <Skeleton className="h-3 w-36 sm:w-44 rounded" />
-                      <Skeleton className="h-2 w-full rounded-full mt-2" />
+                      <Skeleton className="h-3 w-48 rounded" />
                     </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <Skeleton className="h-8 w-8 rounded-xl" />
-                      <Skeleton className="h-4 w-4 rounded" />
-                    </div>
+                    <Skeleton className="h-10 w-10 rounded-xl" />
                   </div>
                 </div>
               ))}
@@ -1036,36 +1067,39 @@ export const MemberDashboardSkeleton = () => {
           </div>
         </div>
 
-        {/* Right col: Saving Goals — full width on mobile, sidebar on lg */}
+        {/* Saving Goals */}
         <div className="lg:col-span-1">
-          <div className="bg-card p-6 sm:p-8 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-28 rounded" />
-                <Skeleton className="h-3 w-36 rounded" />
-              </div>
-              <Skeleton className="h-9 w-9 rounded-xl" />
-            </div>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-[1.5rem] border border-border/40 space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-28 rounded" />
-                      <Skeleton className="h-3 w-20 rounded" />
-                    </div>
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                  </div>
-                  <Skeleton className="h-2 w-full rounded-full" />
-                  <div className="flex justify-between">
-                    <Skeleton className="h-3 w-16 rounded" />
-                    <Skeleton className="h-3 w-16 rounded" />
-                  </div>
+          <div className="sticky top-10">
+            <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm h-full space-y-8">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-32 rounded" />
+                  <Skeleton className="h-3 w-40 rounded hidden sm:block" />
                 </div>
-              ))}
+                <Skeleton className="h-10 w-28 rounded-full" />
+              </div>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-5 rounded-[1.5rem] border border-border/40 space-y-3 bg-muted/10">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-28 rounded" />
+                        <Skeleton className="h-3 w-20 rounded" />
+                        <div className="flex gap-2 pt-1">
+                           <Skeleton className="h-5 w-16 rounded-full" />
+                           <Skeleton className="h-5 w-16 rounded-full" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded-full mt-2" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-24 rounded" />
+                      <Skeleton className="h-3 w-16 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

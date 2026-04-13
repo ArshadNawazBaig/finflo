@@ -428,13 +428,13 @@ const MemberDashboard = () => {
                                 {formatCurrency(loan.principal)}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-end gap-2 pt-4 sm:pt-0 border-t sm:border-transparent border-border/10 mt-2 sm:mt-0">
                               <Button
                                 onClick={() =>
                                   handleGrantorStatus(loan._id, 'approved')
                                 }
                                 variant="outline"
-                                className="rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
+                                className="flex-1 sm:flex-none rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
                               >
                                 Approve
                               </Button>
@@ -443,7 +443,7 @@ const MemberDashboard = () => {
                                   handleGrantorStatus(loan._id, 'rejected')
                                 }
                                 variant="outline"
-                                className="rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
+                                className="flex-1 sm:flex-none rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
                               >
                                 Reject
                               </Button>
@@ -495,15 +495,15 @@ const MemberDashboard = () => {
                             key={loan._id}
                             className="p-6 rounded-[2rem] border border-border/50 bg-card/60 backdrop-blur-sm transition-all"
                           >
-                            <div className="flex items-center justify-between flex-wrap gap-4 opacity-75">
+                            <div className="flex flex-col sm:flex-row justify-between gap-4">
                               <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-1">
-                                  <h4 className="font-bold text-base capitalize">
+                                <div className="flex items-start sm:items-center justify-between sm:justify-start gap-3 mb-2">
+                                  <h4 className="font-bold text-lg capitalize leading-tight">
                                     {loan.customer?.name} -{' '}
                                     {formatCurrency(loan.principal)}
                                   </h4>
                                   <span
-                                    className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                       myStatus === 'approved'
                                         ? 'bg-emerald-500/10 text-emerald-600'
                                         : 'bg-rose-500/10 text-rose-600'
@@ -512,7 +512,7 @@ const MemberDashboard = () => {
                                     {myStatus}
                                   </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium">
+                                <p className="text-sm text-muted-foreground font-medium">
                                   Duration: {loan.duration} months | Loan
                                   Status: {capitalize(loan.status)}
                                 </p>
@@ -567,14 +567,14 @@ const MemberDashboard = () => {
                         onClick={() => navigate(`/member/loans/${loan._id}`)}
                         className="p-6 rounded-[2rem] border border-border/50 hover:bg-muted/30 transition-all group cursor-pointer"
                       >
-                        <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-bold text-lg">
+                            <div className="flex items-start sm:items-center justify-between sm:justify-start gap-3 mb-2">
+                              <h4 className="font-bold text-lg leading-tight">
                                 {formatCurrency(loan.principal)} Loan
                               </h4>
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                className={`shrink-0 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                                   loan.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-600'
                                     : loan.status === 'pending'
@@ -662,7 +662,7 @@ const MemberDashboard = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-border/10">
                             <UITooltip content="Download Statement">
                               <button
                                 onClick={(e) => {
@@ -679,7 +679,7 @@ const MemberDashboard = () => {
                               </button>
                             </UITooltip>
                             <ArrowRight
-                              className="text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all"
+                              className="text-muted-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-4 sm:group-hover:translate-x-0 transition-all"
                               size={20}
                             />
                           </div>
