@@ -574,7 +574,7 @@ const MemberDashboard = () => {
                                 {formatCurrency(loan.principal)} Loan
                               </h4>
                               <span
-                                className={`shrink-0 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                className={`shrink-0 px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
                                   loan.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-600'
                                     : loan.status === 'pending'
