@@ -204,13 +204,15 @@ const MemberLoanDetail = () => {
   if (loading) {
     return (
       <div className="space-y-10 animate-in fade-in duration-500 pb-20">
-        <div className="flex items-center gap-4">
-          <Skeleton className="w-10 h-10 rounded-2xl" />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-8 w-48 rounded-xl" />
-            <Skeleton className="h-4 w-64 rounded-lg" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4 w-full">
+            <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-8 w-48 rounded" />
+              <Skeleton className="h-3 w-64 rounded hidden sm:block" />
+            </div>
           </div>
-          <Skeleton className="h-12 w-32 rounded-2xl hidden sm:block" />
+          <Skeleton className="h-12 w-full sm:w-32 rounded-2xl shrink-0" />
         </div>
 
         {/* Progress Skeleton */}
@@ -251,44 +253,31 @@ const MemberLoanDetail = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
-      <div className="flex items-center gap-4">
+      <PageHeader
+        title={
+          <>
+            Loan <span className="text-primary ">Intelligence</span>
+          </>
+        }
+        description={`Tracking #${loan._id.toString().slice(-6).toUpperCase()} - Issued on ${new Date(loan.startDate).toLocaleDateString()}`}
+        onBack={() => navigate(-1)}
+      >
         <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-2xl bg-card hover:bg-muted border border-border/50"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            setReportDateRange({
+              from: subMonths(new Date(), 3),
+              to: new Date(),
+            });
+            setIsExportModalOpen(true);
+          }}
+          variant="default"
+          className="w-full sm:w-auto rounded-2xl gap-2 text-xs font-black uppercase tracking-widest px-6 py-6"
+          isLoading={isExportingModal}
         >
-          <ArrowLeft size={20} />
+          <Download size={18} />
+          <span className="inline">Export PDF</span>
         </Button>
-        <div className="flex-1 flex items-center justify-between">
-          <PageHeader
-            title={
-              <>
-                Loan <span className="text-primary ">Intelligence</span>
-              </>
-            }
-            description={`Tracking #${loan._id.toString().slice(-6).toUpperCase()} - Issued on ${new Date(loan.startDate).toLocaleDateString()}`}
-            compact
-          />
-          <Tooltip content="Download Full Statement">
-            <Button
-              onClick={() => {
-                setReportDateRange({
-                  from: subMonths(new Date(), 3),
-                  to: new Date(),
-                });
-                setIsExportModalOpen(true);
-              }}
-              variant="outline"
-              className="rounded-2xl gap-2 text-xs font-black uppercase tracking-widest px-6 py-6 border-primary/20 hover:bg-primary/5 text-primary transition-all duration-300"
-              isLoading={isExportingModal}
-            >
-              <Download size={18} />
-              <span className="hidden sm:inline">Export PDF</span>
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
+      </PageHeader>
 
       {/* Progress Overview */}
       <div className="bg-card rounded-[3rem] p-8 sm:p-12 border border-border/50 shadow-sm overflow-hidden relative">
@@ -330,7 +319,7 @@ const MemberLoanDetail = () => {
                 <Button
                   onClick={() => setIsRepayModalOpen(true)}
                   variant="gradient"
-                  className="rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20"
+                  className="w-full sm:w-auto rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20"
                 >
                   <DollarSign size={14} strokeWidth={3} />
                   Repay Now
@@ -397,8 +386,9 @@ const MemberLoanDetail = () => {
                 Post-Tenure Late Payment Notice
               </h4>
               <p className="text-sm text-orange-600/80 font-medium leading-relaxed max-w-2xl">
-                Late fees are applied only <strong>after your full loan tenure ends</strong>.
-                If your loan is not fully repaid by the end of the{' '}
+                Late fees are applied only{' '}
+                <strong>after your full loan tenure ends</strong>. If your loan
+                is not fully repaid by the end of the{' '}
                 <span className="font-black text-orange-700 underline decoration-2 underline-offset-4">
                   {loan.duration}-month loan period
                 </span>
