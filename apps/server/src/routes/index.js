@@ -34,6 +34,7 @@ const routes = [
   ['/checkbooks', './checkbookRoutes'],
   ['/ocr', './ocrRoutes'],
   ['/term-deposits', './termDepositRoutes'],
+  ['/expense-categories', './expenseCategoryRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

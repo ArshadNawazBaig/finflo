@@ -503,17 +503,6 @@ const getBranchFinancials = async (req, res) => {
         FinancialTransaction.find({
           ...allTimeBranchQuery,
           type: 'expense',
-          category: {
-            $in: [
-              'rent',
-              'salary',
-              'utilities',
-              'marketing',
-              'maintenance',
-              'fee',
-              'other',
-            ],
-          },
         }).select('amount'),
       ]);
 

@@ -56,6 +56,7 @@ import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import TableSearch from '@/components/ui/TableSearch';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { SearchableCombobox } from '@/components/ui/searchable-combobox';
 
 const BranchDetail = () => {
   const { id } = useParams();
@@ -111,6 +112,8 @@ const BranchDetail = () => {
     to: new Date(),
   });
   const [expenseCategory, setExpenseCategory] = useState('all');
+  const [classificationPool, setClassificationPool] = useState([]);
+  const [isFetchingCategories, setIsFetchingCategories] = useState(false);
 
   const expenseObserverTarget = useRef(null);
   const ledgerObserverTarget = useRef(null);
@@ -136,7 +139,7 @@ const BranchDetail = () => {
   const [expenseSortBy, setExpenseSortBy] = useState('date');
   const [expenseSortOrder, setExpenseSortOrder] = useState('desc');
 
-  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
 
   useEffect(() => {
     // Set smaller limits for mobile infinite scroll
@@ -407,16 +410,37 @@ const BranchDetail = () => {
     }
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      setIsFetchingCategories(true);
+      const { data } = await api.get('/expense-categories');
+      setClassificationPool(
+        data.map((cat) => ({
+          value: cat.name,
+          label: cat.name.charAt(0).toUpperCase() + cat.name.slice(1),
+          deletable: !cat.isSystem,
+          id: cat._id,
+        })),
+      );
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      toast.error('Failed to load classification pool');
+    } finally {
+      setIsFetchingCategories(false);
+    }
+  }, []);
+
   // Initial Mount
   useEffect(() => {
     if (!initialFetchDone.current) {
       fetchBranch();
       fetchStaff();
+      fetchCategories();
       // Pre-fetch ledger/stats immediately for a seamless overview experience
       fetchLedger(false);
       initialFetchDone.current = true;
     }
-  }, [fetchBranch, fetchStaff, fetchLedger]);
+  }, [fetchBranch, fetchStaff, fetchCategories, fetchLedger]);
 
   // Date Range Trigger for Analytics
   useEffect(() => {
@@ -575,6 +599,46 @@ const BranchDetail = () => {
       toast.error('Failed to update branch manager');
     } finally {
       setIsUpdatingManager(false);
+    }
+  };
+
+  const handleCreateCategory = async (name) => {
+    try {
+      const { data } = await api.post('/expense-categories', { name });
+      setClassificationPool((prev) => [
+        ...prev,
+        {
+          value: data.name,
+          label: data.name.charAt(0).toUpperCase() + data.name.slice(1),
+          deletable: true,
+          id: data._id,
+        },
+      ]);
+      setExpenseData((prev) => ({ ...prev, category: data.name }));
+      toast.success(`Category "${name}" added to the pool`);
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to add category';
+      toast.error(message);
+    }
+  };
+
+  const handleDeleteCategory = async (value) => {
+    try {
+      const categoryToDelete = classificationPool.find(
+        (cat) => cat.value === value,
+      );
+      if (!categoryToDelete || !categoryToDelete.id) return;
+
+      await api.delete(`/expense-categories/${categoryToDelete.id}`);
+      setClassificationPool((prev) => prev.filter((cat) => cat.value !== value));
+
+      if (expenseData.category === value) {
+        setExpenseData((prev) => ({ ...prev, category: 'other' }));
+      }
+
+      toast.success('Category removed from the pool');
+    } catch (error) {
+      toast.error('Failed to remove category');
     }
   };
 
@@ -879,48 +943,15 @@ const BranchDetail = () => {
                           >
                             All Categories
                           </SelectItem>
-                          <SelectItem
-                            value="rent"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-blue-600"
-                          >
-                            Rent
-                          </SelectItem>
-                          <SelectItem
-                            value="salary"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-emerald-600"
-                          >
-                            Salary
-                          </SelectItem>
-                          <SelectItem
-                            value="utilities"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-orange-600"
-                          >
-                            Utilities
-                          </SelectItem>
-                          <SelectItem
-                            value="marketing"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-purple-600"
-                          >
-                            Marketing
-                          </SelectItem>
-                          <SelectItem
-                            value="maintenance"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-amber-600"
-                          >
-                            Maintenance
-                          </SelectItem>
-                          <SelectItem
-                            value="expense"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-red-600"
-                          >
-                            Expenses
-                          </SelectItem>
-                          <SelectItem
-                            value="other"
-                            className="rounded-xl text-xs font-bold uppercase tracking-widest text-muted-foreground"
-                          >
-                            Other
-                          </SelectItem>
+                          {classificationPool.map((cat) => (
+                            <SelectItem
+                              key={cat.value}
+                              value={cat.value}
+                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            >
+                              {cat.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1107,6 +1138,19 @@ const BranchDetail = () => {
                           >
                             Fees
                           </SelectItem>
+                          <div className="h-px bg-border/20 my-2" />
+                          <div className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                            Expense Categories
+                          </div>
+                          {classificationPool.map((cat) => (
+                            <SelectItem
+                              key={cat.value}
+                              value={cat.value}
+                              className="rounded-xl text-xs font-bold uppercase tracking-widest"
+                            >
+                              {cat.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1367,7 +1411,10 @@ const BranchDetail = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      setExpenseData({ ...expenseData, paymentMethod: 'online' })
+                      setExpenseData({
+                        ...expenseData,
+                        paymentMethod: 'online',
+                      })
                     }
                     className={`flex-1 flex items-center justify-center gap-2 h-12 sm:h-14 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${
                       expenseData.paymentMethod === 'online'
@@ -1385,25 +1432,24 @@ const BranchDetail = () => {
                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
                   Classification Pool
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    'rent',
-                    'salary',
-                    'utilities',
-                    'marketing',
-                    'maintenance',
-                    'other',
-                  ].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() =>
-                        setExpenseData({ ...expenseData, category: cat })
+                <div className="w-full relative">
+                  <SearchableCombobox
+                    options={classificationPool}
+                    value={expenseData.category}
+                    onChange={(val) => {
+                      if (!classificationPool.some((opt) => opt.value === val)) {
+                        handleCreateCategory(val);
+                      } else {
+                        setExpenseData({ ...expenseData, category: val });
                       }
-                      className={`h-12 sm:h-14 rounded-2xl text-[10px] sm:text-[11px] font-black uppercase tracking-widest border-2 transition-all duration-500 flex items-center justify-center ${expenseData.category === cat ? 'bg-red-500 text-white border-red-500 shadow-xl shadow-red-500/20 scale-[1.03]' : 'bg-transparent border-border/40 text-muted-foreground/60 hover:border-red-500/30 hover:text-red-500'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                    }}
+                    onDelete={handleDeleteCategory}
+                    placeholder="Select Classification Pool..."
+                    searchPlaceholder="Search expense categories..."
+                    allowCustom={true}
+                    disabled={isFetchingCategories}
+                    className="h-16 rounded-2xl bg-muted/30 border-border/40 font-bold text-sm"
+                  />
                 </div>
               </div>
 
@@ -1419,20 +1465,23 @@ const BranchDetail = () => {
                     }
                   >
                     <SelectTrigger className="h-14 rounded-2xl bg-muted/20 border-border/40 font-bold text-sm">
-                      <SelectValue placeholder="Select Staff Member" />
+                      <SelectValue
+                        placeholder="Select Staff Member"
+                        className="capitalize"
+                      />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/40">
+                    <SelectContent className="rounded-2xl border-border/40 text-left">
                       {staff.map((member) => (
                         <SelectItem
                           key={member._id}
                           value={member._id}
                           className="rounded-xl"
                         >
-                          <div className="flex flex-col py-1">
-                            <span className="font-bold text-sm">
+                          <div className="flex flex-col py-1 text-left">
+                            <span className="font-bold text-sm capitalize">
                               {member.name}
                             </span>
-                            <span className="text-[10px] uppercase text-muted-foreground tracking-widest font-black">
+                            <span className="text-[10px] text-muted-foreground tracking-widest font-black">
                               {member.email}
                             </span>
                           </div>
