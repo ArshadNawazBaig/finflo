@@ -1,6 +1,13 @@
 const Member = require('../models/Member');
 const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Accept tokens from both Web and Android native OAuth clients
+const googleAllowedAudiences = [
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_ANDROID_CLIENT_ID,
+].filter(Boolean);
+
 const jwt = require('jsonwebtoken');
 const { logActivity } = require('./activityLogController');
 const { authenticator } = require('otplib');
@@ -177,7 +184,7 @@ const googleLogin = async (req, res) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken: googleToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: googleAllowedAudiences,
     });
     const payload = ticket.getPayload();
     const { email, name, sub: googleId, picture: profilePicture } = payload;
@@ -289,7 +296,7 @@ const googleRegister = async (req, res) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken: googleToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: googleAllowedAudiences,
     });
     const payload = ticket.getPayload();
     const { email, name, sub: googleId, picture: profilePicture } = payload;
