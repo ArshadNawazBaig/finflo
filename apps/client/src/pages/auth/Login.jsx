@@ -160,12 +160,14 @@ const Login = () => {
     setLoading(true);
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-      console.log('Initializing GoogleAuth with explicit clientId and scopes...');
+      console.log('Initializing GoogleAuth for native sign-in...');
+      // Android's requestIdToken() requires the WEB client ID, not the Android client ID
       await GoogleAuth.initialize({
-        clientId: import.meta.env.VITE_GOOGLE_ANDROID_CLIENT_ID,
-        scopes: 'profile,email'
+        clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID,
+        scopes: ['profile', 'email'],
       });
       const googleUser = await GoogleAuth.signIn();
+      console.log('Native sign-in success, sending idToken to server...');
       const { data: responseData } = await api.post('/auth/google-login', {
         googleToken: googleUser.authentication.idToken,
       });

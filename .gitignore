@@ -32,3 +32,4 @@ Thumbs.db
 
 # OCR Models
 *.traineddata
+*.apk

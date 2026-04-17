@@ -151,9 +151,10 @@ const MemberLogin = () => {
     setLoading(true);
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+      // Android's requestIdToken() requires the WEB client ID, not the Android client ID
       await GoogleAuth.initialize({
-        clientId: import.meta.env.VITE_GOOGLE_ANDROID_CLIENT_ID,
-        scopes: 'profile,email'
+        clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID,
+        scopes: ['profile', 'email'],
       });
       const googleUser = await GoogleAuth.signIn();
       const { data: responseData } = await api.post(
