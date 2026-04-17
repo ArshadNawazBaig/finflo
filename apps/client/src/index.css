@@ -81,6 +81,14 @@
   body,
   #root {
     @apply h-full w-full bg-background text-foreground font-sans;
+    font-weight: 400;
+  }
+  /* Cap font-black (900) down to bold (700) for a lighter feel */
+  .font-black {
+    font-weight: 700 !important;
+  }
+  .font-extrabold {
+    font-weight: 600 !important;
   }
   body {
     font-feature-settings:
