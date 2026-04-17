@@ -89,6 +89,14 @@
     /* Prevent Radix UI from adding padding-right to body */
     padding-right: 0 !important;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
   button {
     box-shadow: none !important;
     outline: none !important;
