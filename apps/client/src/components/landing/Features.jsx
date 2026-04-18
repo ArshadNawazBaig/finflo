@@ -46,7 +46,7 @@ const Features = ({ features }) => {
               <h4 className="text-xl font-black mb-3 tracking-tight dark:text-white">
                 {feature.title}
               </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
                 {feature.description}
               </p>
               <button
