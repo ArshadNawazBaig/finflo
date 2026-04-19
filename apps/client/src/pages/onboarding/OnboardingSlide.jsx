@@ -144,45 +144,91 @@ const DashboardIllustration = ({ from, to, accent }) => (
         <stop offset="0%" stopColor={from} />
         <stop offset="100%" stopColor={to} />
       </linearGradient>
+      <linearGradient id="dash-g2" x1="100%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.6" />
+        <stop offset="100%" stopColor={from} stopOpacity="0.3" />
+      </linearGradient>
     </defs>
-    <motion.circle cx="140" cy="140" r="110" fill={from} opacity="0.08"
-      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.8 }} />
-    {/* Dashboard window */}
-    <motion.rect x="50" y="65" width="180" height="160" rx="16" fill="url(#dash-g)"
-      initial={{ y: 30, opacity: 0 }} animate={{ y: 65, opacity: 1 }}
+    {/* Background glow */}
+    <motion.circle cx="140" cy="140" r="120" fill="url(#dash-g2)"
+      initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 0.12 }}
+      transition={{ duration: 1 }} />
+    {/* Pulsing outer ring */}
+    <motion.circle cx="140" cy="140" r="100" stroke={accent} strokeWidth="1.5" fill="none" opacity="0.12"
+      animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.06, 0.12] }}
+      transition={{ duration: 3, repeat: Infinity }} />
+    {/* Orbit ring */}
+    <motion.circle cx="140" cy="140" r="80" stroke={from} strokeWidth="1" fill="none" opacity="0.15"
+      strokeDasharray="6 8"
+      initial={{ opacity: 0 }} animate={{ opacity: 0.15 }}
+      transition={{ delay: 0.3 }} />
+    {/* Central hub */}
+    <motion.circle cx="140" cy="140" r="38" fill="url(#dash-g)"
+      initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.7, delay: 0.2, type: 'spring' }} />
-    {/* Title bar */}
-    <motion.rect x="50" y="65" width="180" height="30" rx="16" fill={accent} opacity="0.3"
-      initial={{ opacity: 0 }} animate={{ opacity: 0.3 }}
-      transition={{ delay: 0.5 }} />
-    {/* Traffic lights */}
-    <motion.circle cx="70" cy="80" r="4" fill="#ef4444" opacity="0.7"
+    <motion.circle cx="140" cy="140" r="28" fill={accent} opacity="0.2"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 0.4, type: 'spring' }} />
+    {/* Hub icon - grid */}
+    <motion.rect x="130" y="130" width="8" height="8" rx="2" fill="white" opacity="0.7"
       initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.6 }} />
-    <motion.circle cx="84" cy="80" r="4" fill="#eab308" opacity="0.7"
+    <motion.rect x="142" y="130" width="8" height="8" rx="2" fill="white" opacity="0.5"
+      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.65 }} />
+    <motion.rect x="130" y="142" width="8" height="8" rx="2" fill="white" opacity="0.5"
       initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.7 }} />
-    <motion.circle cx="98" cy="80" r="4" fill="#22c55e" opacity="0.7"
-      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8 }} />
-    {/* Chart bars */}
-    <motion.rect x="75" y="170" width="20" height="40" rx="4" fill="white" opacity="0.2"
-      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-      transition={{ delay: 0.9, duration: 0.5 }} style={{ transformOrigin: 'bottom' }} />
-    <motion.rect x="105" y="145" width="20" height="65" rx="4" fill="white" opacity="0.3"
-      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-      transition={{ delay: 1.0, duration: 0.5 }} style={{ transformOrigin: 'bottom' }} />
-    <motion.rect x="135" y="125" width="20" height="85" rx="4" fill={accent} opacity="0.5"
-      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-      transition={{ delay: 1.1, duration: 0.5 }} style={{ transformOrigin: 'bottom' }} />
-    <motion.rect x="165" y="155" width="20" height="55" rx="4" fill="white" opacity="0.25"
-      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-      transition={{ delay: 1.2, duration: 0.5 }} style={{ transformOrigin: 'bottom' }} />
-    <motion.rect x="195" y="135" width="20" height="75" rx="4" fill="white" opacity="0.2"
-      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
-      transition={{ delay: 1.3, duration: 0.5 }} style={{ transformOrigin: 'bottom' }} />
-    {/* Trend line */}
-    <motion.path d="M85 165L115 140L145 120L175 150L205 130"
-      stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.5"
+    <motion.rect x="142" y="142" width="8" height="8" rx="2" fill="white" opacity="0.7"
+      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.75 }} />
+    {/* Connecting lines to orbiting nodes */}
+    {[[140, 60], [220, 140], [140, 220], [60, 140]].map(([cx, cy], i) => (
+      <motion.line key={`line-${i}`} x1="140" y1="140" x2={cx} y2={cy}
+        stroke={accent} strokeWidth="1.5" opacity="0.15"
+        initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 0.15 }}
+        transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }} />
+    ))}
+    {/* Orbiting node - Members (top) */}
+    <motion.circle cx="140" cy="60" r="22" fill="url(#dash-g)" opacity="0.9"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 0.9, type: 'spring' }} />
+    <motion.path d="M134 58a6 6 0 1 1 12 0M130 68c0-5.5 4.5-8 10-8s10 2.5 10 8"
+      stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"
       initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-      transition={{ delay: 1.5, duration: 0.8 }} />
+      transition={{ delay: 1.1, duration: 0.5 }} />
+    {/* Orbiting node - Loans (right) */}
+    <motion.circle cx="220" cy="140" r="22" fill="url(#dash-g)" opacity="0.9"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 1.0, type: 'spring' }} />
+    <motion.text x="220" y="145" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" opacity="0.7"
+      initial={{ opacity: 0 }} animate={{ opacity: 0.7 }}
+      transition={{ delay: 1.2 }}>$</motion.text>
+    {/* Orbiting node - Branches (bottom) */}
+    <motion.circle cx="140" cy="220" r="22" fill="url(#dash-g)" opacity="0.9"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 1.1, type: 'spring' }} />
+    <motion.rect x="131" y="212" width="18" height="16" rx="3" fill="white" opacity="0.6"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 1.3, type: 'spring' }} />
+    <motion.rect x="135" y="216" width="10" height="2" rx="1" fill={from} opacity="0.6"
+      initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} transition={{ delay: 1.4 }} />
+    <motion.rect x="135" y="221" width="7" height="2" rx="1" fill={from} opacity="0.4"
+      initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} transition={{ delay: 1.45 }} />
+    {/* Orbiting node - Reports (left) */}
+    <motion.circle cx="60" cy="140" r="22" fill="url(#dash-g)" opacity="0.9"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 1.2, type: 'spring' }} />
+    <motion.path d="M53 133v14M57 133v14M61 133v14M65 133v14"
+      stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"
+      initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
+      transition={{ delay: 1.4, duration: 0.4 }} style={{ transformOrigin: 'bottom' }} />
+    {/* Sparkle accents */}
+    <motion.circle cx="190" cy="75" r="3" fill={accent} opacity="0.5"
+      animate={{ opacity: [0.3, 0.8, 0.3], scale: [0.8, 1.2, 0.8] }}
+      transition={{ duration: 2, repeat: Infinity }} />
+    <motion.circle cx="85" cy="85" r="4" fill={accent} opacity="0.4"
+      animate={{ opacity: [0.2, 0.7, 0.2], scale: [0.9, 1.3, 0.9] }}
+      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }} />
+    <motion.circle cx="195" cy="200" r="3" fill={from} opacity="0.4"
+      animate={{ opacity: [0.2, 0.6, 0.2] }}
+      transition={{ duration: 3, repeat: Infinity, delay: 1 }} />
   </svg>
 );
 
@@ -301,6 +347,67 @@ const ScaleIllustration = ({ from, to, accent }) => (
   </svg>
 );
 
+const NotificationsIllustration = ({ from, to, accent }) => (
+  <svg viewBox="0 0 280 280" fill="none" className="w-full h-full">
+    <defs>
+      <linearGradient id="notif-g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor={from} />
+        <stop offset="100%" stopColor={to} />
+      </linearGradient>
+    </defs>
+    <motion.circle cx="140" cy="140" r="110" fill={from} opacity="0.08"
+      initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.8 }} />
+    {/* Pulse rings */}
+    <motion.circle cx="140" cy="130" r="70" stroke={accent} strokeWidth="2" fill="none" opacity="0.15"
+      animate={{ scale: [1, 1.4], opacity: [0.15, 0] }}
+      transition={{ duration: 2, repeat: Infinity }} />
+    <motion.circle cx="140" cy="130" r="50" stroke={from} strokeWidth="2" fill="none" opacity="0.2"
+      animate={{ scale: [1, 1.5], opacity: [0.2, 0] }}
+      transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} />
+    {/* Bell body */}
+    <motion.path d="M140 75C118 75 100 93 100 115V145L90 165H190L180 145V115C180 93 162 75 140 75Z"
+      fill="url(#notif-g)"
+      initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.7, delay: 0.3, type: 'spring' }} />
+    {/* Bell clapper */}
+    <motion.circle cx="140" cy="178" r="12" fill="url(#notif-g)"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 0.6, type: 'spring' }} />
+    {/* Bell inner highlight */}
+    <motion.path d="M115 115C115 101 126 90 140 90C154 90 165 101 165 115V140H115V115Z"
+      fill={accent} opacity="0.2"
+      initial={{ opacity: 0 }} animate={{ opacity: 0.2 }}
+      transition={{ delay: 0.5 }} />
+    {/* Notification badge */}
+    <motion.circle cx="175" cy="85" r="18" fill="#ef4444"
+      initial={{ scale: 0 }} animate={{ scale: 1 }}
+      transition={{ delay: 0.8, type: 'spring', stiffness: 300 }} />
+    <motion.text x="175" y="91" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+      transition={{ delay: 1.0 }}>3</motion.text>
+    {/* Message lines floating */}
+    <motion.rect x="60" y="200" width="50" height="8" rx="4" fill={from} opacity="0.3"
+      initial={{ x: -20, opacity: 0 }} animate={{ x: 60, opacity: 0.3 }}
+      transition={{ delay: 1.0, type: 'spring' }} />
+    <motion.rect x="65" y="215" width="35" height="6" rx="3" fill={accent} opacity="0.2"
+      initial={{ x: -20, opacity: 0 }} animate={{ x: 65, opacity: 0.2 }}
+      transition={{ delay: 1.1, type: 'spring' }} />
+    <motion.rect x="170" y="200" width="50" height="8" rx="4" fill={from} opacity="0.3"
+      initial={{ x: 280, opacity: 0 }} animate={{ x: 170, opacity: 0.3 }}
+      transition={{ delay: 1.2, type: 'spring' }} />
+    <motion.rect x="175" y="215" width="35" height="6" rx="3" fill={accent} opacity="0.2"
+      initial={{ x: 280, opacity: 0 }} animate={{ x: 175, opacity: 0.2 }}
+      transition={{ delay: 1.3, type: 'spring' }} />
+    {/* Sparkle particles */}
+    <motion.circle cx="90" cy="70" r="3" fill={accent}
+      animate={{ opacity: [0.2, 0.8, 0.2], scale: [0.8, 1.2, 0.8] }}
+      transition={{ duration: 2, repeat: Infinity }} />
+    <motion.circle cx="210" cy="60" r="4" fill={accent}
+      animate={{ opacity: [0.3, 0.9, 0.3], scale: [0.9, 1.3, 0.9] }}
+      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }} />
+  </svg>
+);
+
 export const illustrations = {
   wallet: WalletIllustration,
   transfer: TransferIllustration,
@@ -308,6 +415,7 @@ export const illustrations = {
   dashboard: DashboardIllustration,
   analytics: AnalyticsIllustration,
   scale: ScaleIllustration,
+  notifications: NotificationsIllustration,
 };
 
 const OnboardingSlide = ({ slide, isActive }) => {

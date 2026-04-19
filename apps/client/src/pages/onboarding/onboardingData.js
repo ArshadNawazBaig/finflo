@@ -31,6 +31,30 @@ export const memberSlides = [
   },
   {
     id: 'member-3',
+    icon: 'analytics',
+    title: 'Smart',
+    titleAccent: 'Analytics',
+    description:
+      'Visualize your spending patterns, track investment growth, and get intelligent insights into your financial health.',
+    gradientFrom: '#f59e0b',
+    gradientTo: '#d97706',
+    accentColor: '#fbbf24',
+    bgGlow: 'from-amber-500/20 via-yellow-500/15 to-orange-500/10',
+  },
+  {
+    id: 'member-4',
+    icon: 'notifications',
+    title: 'Stay',
+    titleAccent: 'Informed',
+    description:
+      'Never miss a payment deadline or important update. Smart notifications keep you on top of your financial commitments.',
+    gradientFrom: '#0ea5e9',
+    gradientTo: '#0284c7',
+    accentColor: '#38bdf8',
+    bgGlow: 'from-sky-500/20 via-blue-500/15 to-cyan-500/10',
+  },
+  {
+    id: 'member-5',
     icon: 'security',
     title: 'Bank-Grade',
     titleAccent: 'Security',
@@ -70,14 +94,38 @@ export const businessSlides = [
   },
   {
     id: 'business-3',
+    icon: 'transfer',
+    title: 'Seamless',
+    titleAccent: 'Operations',
+    description:
+      'Process deposits, withdrawals, loan disbursements, and repayments with a streamlined teller experience.',
+    gradientFrom: '#10b981',
+    gradientTo: '#059669',
+    accentColor: '#34d399',
+    bgGlow: 'from-emerald-500/20 via-teal-500/15 to-green-500/10',
+  },
+  {
+    id: 'business-4',
+    icon: 'notifications',
+    title: 'Real-Time',
+    titleAccent: 'Monitoring',
+    description:
+      'Track every transaction as it happens. Automated alerts for overdue payments, branch performance, and compliance.',
+    gradientFrom: '#0ea5e9',
+    gradientTo: '#0284c7',
+    accentColor: '#38bdf8',
+    bgGlow: 'from-sky-500/20 via-blue-500/15 to-cyan-500/10',
+  },
+  {
+    id: 'business-5',
     icon: 'scale',
     title: 'Scale Your',
     titleAccent: 'Operations',
     description:
       'From a single branch to enterprise, FinFlo grows with your business. Multi-branch support, team management, and more.',
-    gradientFrom: '#0ea5e9',
-    gradientTo: '#0284c7',
-    accentColor: '#38bdf8',
-    bgGlow: 'from-sky-500/20 via-blue-500/15 to-cyan-500/10',
+    gradientFrom: '#f43f5e',
+    gradientTo: '#ec4899',
+    accentColor: '#fb7185',
+    bgGlow: 'from-rose-500/20 via-pink-500/15 to-red-500/10',
   },
 ];

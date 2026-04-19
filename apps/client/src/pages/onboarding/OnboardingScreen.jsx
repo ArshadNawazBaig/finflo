@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronRight, Sun, Moon } from 'lucide-react';
 import OnboardingSlide from './OnboardingSlide';
 import { memberSlides, businessSlides } from './onboardingData';
 import { APP_MODE } from '@/lib/constants';
-import Logo from '@/components/Logo';
+import { useTheme } from '@/context/ThemeContext';
 
 const SWIPE_THRESHOLD = 50;
 
@@ -14,6 +14,7 @@ const OnboardingScreen = ({ onComplete }) => {
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const isDragging = useRef(false);
+  const { theme, setTheme } = useTheme();
 
   const slides = APP_MODE === 'member' ? memberSlides : businessSlides;
   const isLastSlide = currentIndex === slides.length - 1;
@@ -106,6 +107,7 @@ const OnboardingScreen = ({ onComplete }) => {
   }, [goToNext, goToPrev]);
 
   const currentSlide = slides[currentIndex];
+  const isDark = theme === 'dark';
 
   // Slide animation variants
   const slideVariants = {
@@ -131,44 +133,64 @@ const OnboardingScreen = ({ onComplete }) => {
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
     >
-      {/* Dynamic background glow */}
+      {/* Dynamic background glow — covers full screen including header */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           key={`glow-1-${currentIndex}`}
-          className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full blur-[120px]"
+          className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full blur-[140px]"
           style={{ backgroundColor: currentSlide.gradientFrom }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 0.1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+        />
+        <motion.div
+          key={`glow-2-${currentIndex}`}
+          className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full blur-[140px]"
+          style={{ backgroundColor: currentSlide.gradientTo }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 0.08, scale: 1 }}
           transition={{ duration: 0.8 }}
         />
         <motion.div
-          key={`glow-2-${currentIndex}`}
-          className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full blur-[120px]"
+          key={`glow-3-${currentIndex}`}
+          className="absolute top-[5%] right-[10%] w-[40%] h-[30%] rounded-full blur-[100px]"
           style={{ backgroundColor: currentSlide.gradientTo }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 0.06, scale: 1 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
         />
       </div>
 
-      {/* Header: Logo + Skip */}
+      {/* Header: Theme Toggle + Step Counter — positioned over slide area */}
       <motion.div
-        className="relative z-20 flex items-center justify-between px-6 pt-14 pb-4"
+        className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 pt-14 pb-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <div className="scale-[0.85] origin-left">
-          <Logo showText={true} />
-        </div>
-        {!isLastSlide && (
-          <button
-            onClick={skipOnboarding}
-            className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-full hover:bg-muted/50"
+        {/* Theme Toggle */}
+        <button
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          className="p-2.5 rounded-2xl hover:bg-muted/30 transition-all active:scale-95"
+          aria-label="Toggle theme"
+        >
+          <motion.div
+            initial={false}
+            animate={{ rotate: isDark ? 180 : 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
-            Skip
-          </button>
-        )}
+            {isDark ? (
+              <Moon size={18} className="text-muted-foreground" />
+            ) : (
+              <Sun size={18} className="text-muted-foreground" />
+            )}
+          </motion.div>
+        </button>
+
+        {/* Step indicator */}
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+          {currentIndex + 1} / {slides.length}
+        </div>
       </motion.div>
 
       {/* Slide Area */}
@@ -191,13 +213,13 @@ const OnboardingScreen = ({ onComplete }) => {
 
       {/* Bottom Controls */}
       <motion.div
-        className="relative z-20 px-8 pb-12 pt-4 space-y-8"
+        className="relative z-20 px-8 pb-12 pt-4 space-y-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
         {/* Dot Indicators */}
-        <div className="flex items-center justify-center gap-2.5">
+        <div className="flex items-center justify-center gap-2">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -219,38 +241,52 @@ const OnboardingScreen = ({ onComplete }) => {
           ))}
         </div>
 
-        {/* CTA Button */}
-        <motion.button
-          onClick={isLastSlide ? completeOnboarding : goToNext}
-          className="w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] text-white flex items-center justify-center gap-3 group relative overflow-hidden shadow-lg"
-          style={{
-            background: `linear-gradient(135deg, ${currentSlide.gradientFrom}, ${currentSlide.gradientTo})`,
-            boxShadow: `0 8px 32px ${currentSlide.gradientFrom}33`,
-          }}
-          whileTap={{ scale: 0.98 }}
-          whileHover={{ scale: 1.01 }}
-        >
-          {/* Shimmer effect */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-            animate={{ x: ['-200%', '200%'] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-          />
-          <span className="relative z-10">
-            {isLastSlide ? 'Get Started' : 'Continue'}
-          </span>
-          <motion.div
-            className="relative z-10"
-            animate={isLastSlide ? { x: [0, 4, 0] } : {}}
-            transition={{ duration: 1.5, repeat: Infinity }}
+        {/* CTA Buttons - Continue + Skip side by side */}
+        <div className="flex items-center gap-3">
+          {/* Continue / Get Started Button - fills remaining space */}
+          <motion.button
+            onClick={isLastSlide ? completeOnboarding : goToNext}
+            className="flex-1 h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] text-white flex items-center justify-center gap-3 group relative overflow-hidden shadow-lg"
+            style={{
+              background: `linear-gradient(135deg, ${currentSlide.gradientFrom}, ${currentSlide.gradientTo})`,
+              boxShadow: `0 8px 32px ${currentSlide.gradientFrom}33`,
+            }}
+            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
           >
-            {isLastSlide ? (
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            ) : (
-              <ChevronRight size={16} />
-            )}
-          </motion.div>
-        </motion.button>
+            {/* Shimmer effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              animate={{ x: ['-200%', '200%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            />
+            <span className="relative z-10">
+              {isLastSlide ? 'Get Started' : 'Continue'}
+            </span>
+            <motion.div
+              className="relative z-10"
+              animate={isLastSlide ? { x: [0, 4, 0] } : {}}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              {isLastSlide ? (
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </motion.div>
+          </motion.button>
+
+          {/* Skip Button - compact, on the right */}
+          {!isLastSlide && (
+            <motion.button
+              onClick={skipOnboarding}
+              className="h-14 px-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] text-muted-foreground border border-border/50 bg-card/50 backdrop-blur-sm hover:bg-muted/50 transition-all shrink-0"
+              whileTap={{ scale: 0.97 }}
+            >
+              Skip
+            </motion.button>
+          )}
+        </div>
 
         {/* Mode indicator */}
         <p className="text-center text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/40">
