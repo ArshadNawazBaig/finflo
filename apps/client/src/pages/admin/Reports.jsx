@@ -68,6 +68,7 @@ import { formatFullCurrency as formatCurrency, formatCurrency as formatCompactCu
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
+import { savePdf, saveFile } from '@/lib/nativeDownload';
 
 const Reports = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
@@ -467,7 +468,8 @@ const Reports = () => {
 
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(
+      await savePdf(
+        doc,
         `${type === 'trial' ? 'Trial_Balance' : 'Profit_Loss'}_${new Date().toISOString().split('T')[0]}.pdf`,
       );
       toast.success('Report downloaded successfully');
@@ -512,21 +514,16 @@ const Reports = () => {
         },
       });
 
-      const csvContent =
-        'data:text/csv;charset=utf-8,Month,Value\n' +
+      const csvString =
+        'Month,Value\n' +
         reportData.charts.monthlyLoans
           .map((e) => `${e.name},${e.value}`)
           .join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute(
-        'download',
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      await saveFile(
+        blob,
         `loan_performance_${format(reportDateRange.from, 'yyyyMMdd')}_${format(reportDateRange.to, 'yyyyMMdd')}.csv`,
       );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
       setIsExportModalOpen(false);
       toast.success('CSV Exported successfully');
     } catch (error) {
@@ -667,7 +664,7 @@ const Reports = () => {
       await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(`Executive_Summary_${format(new Date(), 'yyyyMMdd')}.pdf`);
+      await savePdf(doc, `Executive_Summary_${format(new Date(), 'yyyyMMdd')}.pdf`);
       toast.success('Executive summary generated successfully');
       setIsExportModalOpen(false);
     } catch (error) {
@@ -2401,7 +2398,9 @@ const Reports = () => {
                       });
                       renderPdfFooter(doc, { businessContext: ctx });
 
-                      doc.save(
+                      const { savePdf: savePdfFn } = await import('@/lib/nativeDownload');
+                      await savePdfFn(
+                        doc,
                         `Balance_Sheet_${new Date().toISOString().split('T')[0]}.pdf`,
                       );
                       toast.success('Balance Sheet PDF downloaded');

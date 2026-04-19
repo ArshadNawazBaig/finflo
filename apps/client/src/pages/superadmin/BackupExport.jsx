@@ -13,6 +13,7 @@ import {
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
+import { saveFile } from '@/lib/nativeDownload';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,18 +54,11 @@ const BackupExport = () => {
         responseType: 'blob',
       });
 
-      // Create download link
-      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute(
-        'download',
+      // Save using native-compatible method
+      await saveFile(
+        new Blob([response.data]),
         `${type}_${Date.now()}.${format === 'csv' ? 'csv' : 'json'}`,
       );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
 
       toast.success(`${label} exported successfully`);
     } catch (error) {

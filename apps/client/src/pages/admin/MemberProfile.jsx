@@ -59,6 +59,7 @@ import {
   exportMemberStatement,
   generateTransactionReceipt,
 } from '@/lib/pdfExportUtils';
+import { savePdf } from '@/lib/nativeDownload';
 import SignaturePad from '@/components/ui/SignaturePad';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -1010,7 +1011,8 @@ const MemberProfile = () => {
 
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(
+      await savePdf(
+        doc,
         `Member_Report_${member.name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
       );
       toast.success('Member statement downloaded successfully');

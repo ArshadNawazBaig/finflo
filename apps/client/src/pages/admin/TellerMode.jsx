@@ -488,7 +488,9 @@ const TellerMode = () => {
       await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(
+      const { savePdf } = await import('@/lib/nativeDownload');
+      await savePdf(
+        doc,
         `Member_Statement_${(member.name || 'Member').replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`,
       );
       toast.success('Member statement downloaded successfully');
@@ -634,7 +636,8 @@ const TellerMode = () => {
       await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(`Cashbook_${format(cashbookDate, 'yyyyMMdd')}.pdf`);
+      const { savePdf } = await import('@/lib/nativeDownload');
+      await savePdf(doc, `Cashbook_${format(cashbookDate, 'yyyyMMdd')}.pdf`);
       toast.success('Cashbook report downloaded');
     } catch (error) {
       console.error('Cashbook PDF Error:', error);

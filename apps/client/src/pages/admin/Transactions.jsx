@@ -25,6 +25,7 @@ import PageHeader from '@/components/PageHeader';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { saveFile } from '@/lib/nativeDownload';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -235,16 +236,10 @@ const Transactions = () => {
         responseType: 'blob',
       });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute(
-        'download',
+      await saveFile(
+        new Blob([response.data]),
         `transactions_export_${new Date().getTime()}.xlsx`,
       );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
       toast.success('Excel export completed');
     } catch (error) {
       console.error('Failed to export to Excel', error);

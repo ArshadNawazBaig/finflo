@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
 import { renderPdfHeader, renderPdfFooter, toTitleCase, renderPdfSignatures, getBusinessContext } from '@/lib/pdfExportUtils';
 import { formatCurrency } from '@/lib/utils';
+import { savePdf } from '@/lib/nativeDownload';
 
 // Local formatAmount is kept for layouts that split the symbol and value
 const formatAmount = (amount) => {
@@ -88,7 +89,7 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
 
   renderPdfFooter(doc, { businessContext: ctx });
 
-  doc.save(`Loan_${loan.loanId || loan._id.slice(-6)}_Details.pdf`);
+  await savePdf(doc, `Loan_${loan.loanId || loan._id.slice(-6)}_Details.pdf`);
 };
 
 const LoanLookup = () => {

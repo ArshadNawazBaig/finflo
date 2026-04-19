@@ -294,7 +294,8 @@ const MemberTransactions = () => {
 
       renderPdfFooter(doc, { businessContext: ctx });
 
-      doc.save(`Activity_Report_${new Date().getTime()}.pdf`);
+      const { savePdf } = await import('@/lib/nativeDownload');
+      await savePdf(doc, `Activity_Report_${new Date().getTime()}.pdf`);
       toast.success('Report downloaded successfully');
       setIsExportModalOpen(false);
     } catch (error) {

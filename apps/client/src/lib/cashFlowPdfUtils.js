@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
 import { format } from 'date-fns';
 import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from './pdfExportUtils';
+import { savePdf } from './nativeDownload';
 
 export const exportCashFlowStatement = async (
   data = {},
@@ -98,5 +99,5 @@ export const exportCashFlowStatement = async (
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `FinFlo_Statement_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`;
-  doc.save(fileName);
+  await savePdf(doc, fileName);
 };

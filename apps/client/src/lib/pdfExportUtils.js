@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
+import { savePdf } from './nativeDownload';
 
 // ─── Title Case Helper ──────────────────────────────────────────────────────
 // Converts "john doe" or "JOHN DOE" → "John Doe"
@@ -420,7 +421,7 @@ export const exportLoanStatement = async (
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Statement_${(loan.loanId || loan._id?.slice(-6) || 'LOAN').toUpperCase()}_${(customerName).replace(/\s+/g, '_')}.pdf`;
-  doc.save(fileName);
+  await savePdf(doc, fileName);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -550,7 +551,7 @@ export const exportMemberStatement = async (
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Member_Statement_${toTitleCase(member.name || 'User').replace(/\s+/g, '_')}.pdf`;
-  doc.save(fileName);
+  await savePdf(doc, fileName);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -649,7 +650,7 @@ export const generateTransactionReceipt = async ({
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Receipt_${refCode}_${toTitleCase(member?.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
-  doc.save(fileName);
+  await savePdf(doc, fileName);
 };
 
 // ─── Export Journal PDF ──────────────────────────────────────────────────────
@@ -779,7 +780,7 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
   renderPdfFooter(doc, { businessContext: ctx });
 
   const fileName = `Journal_Report_${format(selectedDate.from, 'yyyyMMdd')}.pdf`;
-  doc.save(fileName);
+  await savePdf(doc, fileName);
   return true;
 };
 

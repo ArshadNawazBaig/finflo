@@ -11,6 +11,7 @@ import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
+import { saveFile } from '@/lib/nativeDownload';
 import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
@@ -226,7 +227,7 @@ const Customers = () => {
     }
   };
 
-  const handleDownloadData = () => {
+  const handleDownloadData = async () => {
     // Basic CSV implementation
     const headers = ['Name', 'Email', 'Phone', 'Onboarded', 'Status'];
     const rows = customers.map((c) => [
@@ -239,14 +240,7 @@ const Customers = () => {
 
     const csvContent = [headers, ...rows].map((e) => e.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'customers_registry.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await saveFile(blob, 'customers_registry.csv');
   };
 
   if (loading && customers.length === 0) {
