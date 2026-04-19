@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
-import { getLandingUrl, IS_DEV } from '@/lib/constants';
+import { getLandingUrl, IS_DEV, IS_NATIVE } from '@/lib/constants';
 
 const AuthLayout = ({
   children,
@@ -157,7 +157,7 @@ const AuthLayout = ({
               {children}
             </motion.div>
 
-            {backToLanding && (
+            {backToLanding && !IS_NATIVE && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

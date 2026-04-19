@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAtomValue } from 'jotai';
@@ -12,6 +12,8 @@ import {
   IS_LANDING_DOMAIN,
   IS_APP_DOMAIN,
   IS_DEV,
+  IS_NATIVE,
+  APP_MODE,
 } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
 
@@ -34,12 +36,32 @@ const LoanLookup = lazy(() => import('@/pages/admin/LoanLookup'));
 const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 const NotFound = lazy(() => import('@/pages/static/NotFound'));
 const FaqPage = lazy(() => import('@/pages/static/FaqPage'));
+const OnboardingScreen = lazy(() => import('@/pages/onboarding/OnboardingScreen'));
 
 import { DomainRedirect } from '@/lib/routeUtils';
 
 // On app.finflo.org, root redirects to /login (or /dashboard if authenticated)
 const AppRootRedirect = () => {
   const user = useAtomValue(userAtom);
+  const member = useAtomValue(memberAtom);
+
+  // On native, redirect based on APP_MODE and auth state
+  if (IS_NATIVE) {
+    if (APP_MODE === 'member') {
+      return member
+        ? <Navigate to="/member/dashboard" replace />
+        : <Navigate to="/member/login" replace />;
+    }
+    // Business mode
+    if (user) {
+      return user.role === 'super_admin'
+        ? <Navigate to="/super-admin" replace />
+        : <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/login" replace />;
+  }
+
+  // Web behavior
   if (user) {
     return user.role === 'super_admin'
       ? <Navigate to="/super-admin" replace />
@@ -55,6 +77,12 @@ function App() {
   const user = useAtomValue(userAtom);
   const member = useAtomValue(memberAtom);
   const isSuperAdmin = user?.role === 'super_admin';
+
+  // On native platforms, check if onboarding has been completed
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (!IS_NATIVE) return false;
+    return !localStorage.getItem('onboarding_complete');
+  });
 
   // Synchronize auth state to a parent domain cookie so the cross-domain landing page can read it
   useEffect(() => {
@@ -93,23 +121,39 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Suspense fallback={<PageLoader />}>
+          {/* Native onboarding: show before any routing on first launch */}
+          {showOnboarding ? (
+            <Routes>
+              <Route path="*" element={<OnboardingScreen onComplete={() => setShowOnboarding(false)} />} />
+            </Routes>
+          ) : (
           <Routes>
             {settings?.maintenanceMode && !isSuperAdmin ? (
               <Route path="*" element={<Maintenance />} />
             ) : (
               <>
                 {/* On App Domain, / redirects to login or dashboard */}
-                {/* In dev mode, show landing at / for convenience */}
-                <Route path="/" element={IS_DEV ? <Landing /> : <AppRootRedirect />} />
+                {/* In dev mode, show landing at / for convenience (unless native) */}
+                <Route path="/" element={IS_DEV && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
 
-                {/* Shared Top-level Routes */}
-                <Route path="/loan-lookup" element={<LoanLookup />} />
+                {/* Shared Top-level Routes — hidden on native APKs */}
+                {!IS_NATIVE && (
+                  <>
+                    <Route path="/loan-lookup" element={<LoanLookup />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/faq" element={<FaqPage />} />
+                    <Route path="/documentation" element={<Documentation />} />
+                    <Route path="/documentation/api" element={<ApiDocumentation />} />
+                  </>
+                )}
+
                 <Route path="/join/:code?" element={<SelfRegister />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/faq" element={<FaqPage />} />
-                <Route path="/documentation" element={<Documentation />} />
-                <Route path="/documentation/api" element={<ApiDocumentation />} />
+
+                {/* Dev-only: preview onboarding screens in browser */}
+                {IS_DEV && (
+                  <Route path="/onboarding" element={<OnboardingScreen onComplete={() => window.history.back()} />} />
+                )}
 
                 {/* Auth Routes */}
                 {AuthRoutes()}
@@ -124,9 +168,10 @@ function App() {
               </>
             )}
           </Routes>
+          )}
         </Suspense>
         <Toaster position="top-right" richColors />
-        <FloatingSettings />
+        {!IS_NATIVE && <FloatingSettings />}
       </Router>
     </ErrorBoundary>
   );

@@ -1,6 +1,6 @@
 {
-  "appId": "com.finflo.business",
-  "appName": "FinFlo Business",
+  "appId": "com.finflo.member",
+  "appName": "FinFlo Member",
   "webDir": "dist",
   "server": {
     "allowNavigation": ["loan-master-client.vercel.app"]

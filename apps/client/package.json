@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:member": "VITE_APP_MODE=member vite",
+    "dev:business": "VITE_APP_MODE=business vite",
     "build": "vite build",
+    "build:member": "VITE_APP_MODE=member vite build && cp capacitor.config.member.json capacitor.config.json",
+    "build:business": "VITE_APP_MODE=business vite build && cp capacitor.config.business.json capacitor.config.json",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

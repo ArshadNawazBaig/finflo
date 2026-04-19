@@ -23,6 +23,20 @@ export const IS_DEV =
   hostname === '127.0.0.1' ||
   hostname.includes('.local');
 
+// Native platform detection (Capacitor Android/iOS)
+export const IS_NATIVE = (() => {
+  try {
+    const platform = window.Capacitor?.getPlatform?.();
+    return platform === 'android' || platform === 'ios';
+  } catch {
+    return false;
+  }
+})();
+
+// App mode: 'member' or 'business' — set via VITE_APP_MODE at build time
+// Defaults to 'business' for backward compatibility
+export const APP_MODE = import.meta.env.VITE_APP_MODE || 'business';
+
 export const getAppUrl = (path = '') => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   if (IS_DEV) return cleanPath;

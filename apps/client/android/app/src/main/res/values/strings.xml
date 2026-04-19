@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">FinFlo</string>
-    <string name="title_activity_main">FinFlo</string>
     <string name="package_name">com.loanapp.management</string>
     <string name="custom_url_scheme">com.loanapp.management</string>
     <string name="server_client_id">52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com</string>
