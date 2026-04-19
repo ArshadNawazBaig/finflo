@@ -55,7 +55,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
           {loan.status}
         </span>
       </div>
-// ... (lines 58-92)
+
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="space-y-0.5">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
@@ -70,7 +70,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
             Term
           </span>
           <div className="font-bold text-xs bg-muted/50 inline-block px-1.5 py-0.5 rounded-md">
-            {loan.termMonths || 'N/A'} Mo
+            {loan.duration || 'N/A'} Mo
           </div>
         </div>
         <div className="col-span-2 space-y-1.5">

@@ -111,9 +111,13 @@ const AuthLayout = ({
 
       {/* ─── Form Side ───────────────────────────────────────── */}
       <div className="flex flex-col items-center justify-start lg:justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background min-h-screen overflow-y-auto overflow-x-hidden">
-        {/* Decorative elements for the form side background */}
-        <div className="absolute top-0 -left-10 w-72 lg:w-96 h-72 lg:h-96 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute bottom-0 -right-10 w-72 lg:w-96 h-72 lg:h-96 bg-emerald-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        {/* Decorative elements — static on native to prevent WebView flickering */}
+        {!IS_NATIVE && (
+          <>
+            <div className="absolute top-0 -left-10 w-72 lg:w-96 h-72 lg:h-96 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+            <div className="absolute bottom-0 -right-10 w-72 lg:w-96 h-72 lg:h-96 bg-emerald-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+          </>
+        )}
 
         <div className="w-full max-w-lg lg:max-w-md relative z-10 py-8 lg:py-0">
           <div className="glass lg:bg-transparent dark:glass-dark lg:dark:bg-transparent border lg:border-none border-border/50 shadow-2xl lg:shadow-none shadow-black/5 rounded-[2.5rem] p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
