@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useAtomValue } from 'jotai';
 import { userAtom, memberAtom } from '@/atoms';
 
@@ -8,6 +8,7 @@ const Logo = ({
   custom = false,
   innerTextColor = '',
 }) => {
+  const gradientId = useId().replace(/:/g, '');
   const user = useAtomValue(userAtom);
   const member = useAtomValue(memberAtom);
 
@@ -55,7 +56,7 @@ const Logo = ({
           >
             <defs>
               <linearGradient
-                id="logo-gradient-refined"
+                id={gradientId}
                 x1="0%"
                 y1="0%"
                 x2="100%"
@@ -72,14 +73,14 @@ const Logo = ({
               cx="20"
               cy="20"
               r="14"
-              fill="url(#logo-gradient-refined)"
+              fill={`url(#${gradientId})`}
               className="opacity-[0.04] dark:opacity-[0.08] blur-[8px]"
             />
 
             {/* Enlarged Pulse Wave Line */}
             <path
               d="M6 28C6 28 10 10 20 10C30 10 34 20 25 20C16 20 10 30 20 30C30 30 34 20 34 20"
-              stroke="url(#logo-gradient-refined)"
+              stroke={`url(#${gradientId})`}
               strokeWidth="4.5"
               strokeLinecap="round"
               className="drop-shadow-[0_0_12px_rgba(139,92,246,0.2)]"
