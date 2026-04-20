@@ -160,14 +160,16 @@ const Login = () => {
     setLoading(true);
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-      console.log('Initializing GoogleAuth for native sign-in...');
+      console.log('[GoogleAuth] Initializing with clientId:', import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID);
       // Android's requestIdToken() requires the WEB client ID, not the Android client ID
       await GoogleAuth.initialize({
         clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID,
         scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
       });
+      console.log('[GoogleAuth] Initialization successful, calling signIn...');
       const googleUser = await GoogleAuth.signIn();
-      console.log('Native sign-in success, sending idToken to server...');
+      console.log('[GoogleAuth] Sign-in success, idToken present:', !!googleUser?.authentication?.idToken);
       const { data: responseData } = await api.post('/auth/google-login', {
         googleToken: googleUser.authentication.idToken,
       });
@@ -200,15 +202,17 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      console.error('Native Google Sign-In error:', err);
-      if (err.name === 'Error' && err.message === 'User cancelled login') {
+      console.error('[GoogleAuth] Native Sign-In error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      if (err?.message?.includes('canceled') || err?.message?.includes('cancelled') || err?.message === 'User cancelled login') {
+        setLoading(false);
         return;
       }
+      const errorDetail = err?.message || err?.errorMessage || JSON.stringify(err);
       setError('root', {
-        message: err.response?.data?.message || 'Native Google authentication failed',
+        message: err.response?.data?.message || `Google sign-in failed: ${errorDetail}`,
       });
     } finally {
-      console.log('Native Google Sign-In finished');
+      console.log('[GoogleAuth] Native Sign-In finished');
       setLoading(false);
     }
   };

@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "52862721923",
+    "project_id": "finflo-app",
+    "storage_bucket": "finflo-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52862721923:android:placeholder_member",
+        "android_client_info": {
+          "package_name": "com.finflo.member"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "52862721923-trb17t10u5ni99aimh6s4j42eldukmrj.apps.googleusercontent.com",
+          "client_type": 1
+        },
+        {
+          "client_id": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52862721923:android:placeholder_business",
+        "android_client_info": {
+          "package_name": "com.finflo.business"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "52862721923-trb17t10u5ni99aimh6s4j42eldukmrj.apps.googleusercontent.com",
+          "client_type": 1
+        },
+        {
+          "client_id": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

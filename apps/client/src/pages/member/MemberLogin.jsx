@@ -151,12 +151,16 @@ const MemberLogin = () => {
     setLoading(true);
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+      console.log('[GoogleAuth] Member: Initializing with clientId:', import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID);
       // Android's requestIdToken() requires the WEB client ID, not the Android client ID
       await GoogleAuth.initialize({
         clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID,
         scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
       });
+      console.log('[GoogleAuth] Member: Initialization successful, calling signIn...');
       const googleUser = await GoogleAuth.signIn();
+      console.log('[GoogleAuth] Member: Sign-in success, idToken present:', !!googleUser?.authentication?.idToken);
       const { data: responseData } = await api.post(
         '/member-auth/google-login',
         {
@@ -167,7 +171,9 @@ const MemberLogin = () => {
 
       handleLoginSuccess(responseData);
     } catch (err) {
-      if (err.name === 'Error' && err.message === 'User cancelled login') {
+      console.error('[GoogleAuth] Member Sign-In error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      if (err?.message?.includes('canceled') || err?.message?.includes('cancelled') || err?.message === 'User cancelled login') {
+        setLoading(false);
         return;
       }
       
@@ -177,9 +183,10 @@ const MemberLogin = () => {
       ) {
         setGoogleAuthData(err.response.data);
       } else {
+        const errorDetail = err?.message || err?.errorMessage || JSON.stringify(err);
         setError('root', {
           message:
-            err.response?.data?.message || 'Native Google authentication failed',
+            err.response?.data?.message || `Google sign-in failed: ${errorDetail}`,
         });
       }
     } finally {

@@ -92,12 +92,16 @@ const Register = () => {
     setLoading(true);
     try {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+      console.log('[GoogleAuth] Register: Initializing with clientId:', import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID);
       // Android's requestIdToken() requires the WEB client ID, not the Android client ID
       await GoogleAuth.initialize({
         clientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID,
         scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
       });
+      console.log('[GoogleAuth] Register: Initialization successful, calling signIn...');
       const googleUser = await GoogleAuth.signIn();
+      console.log('[GoogleAuth] Register: Sign-in success, idToken present:', !!googleUser?.authentication?.idToken);
       const { data } = await api.post(
         '/auth/google-register', {
         googleToken: googleUser.authentication.idToken,
@@ -109,11 +113,14 @@ const Register = () => {
       toast.success(data.message || 'Registration successful!');
       navigate('/dashboard');
     } catch (err) {
-      if (err.name === 'Error' && err.message === 'User cancelled login') {
+      console.error('[GoogleAuth] Register error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      if (err?.message?.includes('canceled') || err?.message?.includes('cancelled') || err?.message === 'User cancelled login') {
+        setLoading(false);
         return;
       }
+      const errorDetail = err?.message || err?.errorMessage || JSON.stringify(err);
       setError('root', {
-        message: err.response?.data?.message || 'Native Google registration failed',
+        message: err.response?.data?.message || `Google sign-up failed: ${errorDetail}`,
       });
     } finally {
       setLoading(false);
