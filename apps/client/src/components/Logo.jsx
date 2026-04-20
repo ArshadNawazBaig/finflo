@@ -12,11 +12,12 @@ const Logo = ({
   const user = useAtomValue(userAtom);
   const member = useAtomValue(memberAtom);
 
-  const session = user && Object.keys(user).length > 0
-    ? user
-    : member && Object.keys(member).length > 0
-    ? member
-    : {};
+  const session =
+    user && Object.keys(user).length > 0
+      ? user
+      : member && Object.keys(member).length > 0
+        ? member
+        : {};
 
   const isProPlan =
     (session?.plan === 'Pro' || session?.adminPlan === 'Pro') &&
@@ -45,7 +46,7 @@ const Logo = ({
           <img
             src={logoUrl}
             alt="Logo"
-            className="w-10 h-10 object-contain rounded-xl"
+            className="w-10 h-10 object-contain rounded-xl border"
           />
         ) : (
           <svg
