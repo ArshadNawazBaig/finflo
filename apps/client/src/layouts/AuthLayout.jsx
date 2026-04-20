@@ -114,22 +114,17 @@ const AuthLayout = ({
         {/* Decorative elements — static on native to prevent WebView flickering */}
         {!IS_NATIVE && (
           <>
-            <div className="absolute top-0 -left-10 w-72 lg:w-96 h-72 lg:h-96 bg-primary/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-            <div className="absolute bottom-0 -right-10 w-72 lg:w-96 h-72 lg:h-96 bg-emerald-500/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+            <div className="absolute top-0 -left-10 w-72 lg:w-96 h-72 lg:h-96 bg-primary/5 rounded-full filter blur-3xl animate-blob pointer-events-none" />
+            <div className="absolute bottom-0 -right-10 w-72 lg:w-96 h-72 lg:h-96 bg-emerald-500/5 rounded-full filter blur-3xl animate-blob animation-delay-2000 pointer-events-none" />
           </>
         )}
 
         <div className="w-full max-w-lg lg:max-w-md relative z-10 py-8 lg:py-0">
-          <div className="glass lg:bg-transparent dark:glass-dark lg:dark:bg-transparent border lg:border-none border-border/50 shadow-2xl lg:shadow-none shadow-black/5 rounded-[2.5rem] p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
+          <div className="bg-white/80 dark:bg-slate-900/80 lg:bg-transparent lg:dark:bg-transparent border lg:border-none border-border/50 shadow-2xl lg:shadow-none shadow-black/5 rounded-[2.5rem] p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
             {/* Top accent line - only on mobile */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent lg:hidden" />
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6 animate-in fade-in duration-500">
               {showLogo && (
                 <div className="lg:hidden mb-12 flex justify-center">
                   <a
@@ -150,24 +145,14 @@ const AuthLayout = ({
                   </p>
                 )}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              className="mt-10"
-            >
+            <div className="mt-10 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
               {children}
-            </motion.div>
+            </div>
 
             {backToLanding && !IS_NATIVE && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="pt-10 border-t border-border/50 mt-12"
-              >
+              <div className="pt-10 border-t border-border/50 mt-12 animate-in fade-in duration-500 delay-200">
                 <a
                   href={IS_DEV ? '/' : getLandingUrl('/')}
                   className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:text-primary transition-all duration-300 group"
@@ -178,7 +163,7 @@ const AuthLayout = ({
                   />
                   Back to Corporate Landing
                 </a>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

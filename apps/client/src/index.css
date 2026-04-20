@@ -170,7 +170,11 @@
 
 @layer utilities {
   .animate-blob {
-    animation: blob 7s infinite;
+    animation: blob 10s ease-in-out infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
   }
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
@@ -194,17 +198,15 @@
 }
 
 @keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
   33% {
-    transform: translate(30px, -50px) scale(1.1);
+    transform: translate3d(15px, -25px, 0) scale(1.03);
   }
   66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
+    transform: translate3d(-10px, 10px, 0) scale(0.97);
   }
 }
 
