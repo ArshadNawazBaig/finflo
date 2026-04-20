@@ -59,7 +59,7 @@ const corsOptions = {
   ],
   exposedHeaders: ['set-cookie'],
   credentials: true,
-  preflightContinue: false,
+  preflightContinue: true,
   optionsSuccessStatus: 204,
 };
 

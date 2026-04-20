@@ -9,13 +9,12 @@ try {
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const express = require('express');
-const cors = require('cors');
 const http = require('http');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const { initFinanceFlow } = require('./services/reminderService');
 const { initScheduledTasks } = require('./services/scheduledTasksService');
-const { corsMiddleware, corsOptions, helmetMiddleware, apiLimiter, authLimiter } = require('./config/security');
+const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter } = require('./config/security');
 const setupStandardMiddleware = require('./middleware/standard');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket/socketHandler');
@@ -31,9 +30,14 @@ app.use(
 );
 
 // CORS must be first — handle preflight (OPTIONS) before any other middleware
-// Express 5 requires explicit OPTIONS route for preflight
-app.options('{*path}', cors(corsOptions));
 app.use(corsMiddleware);
+// Terminate preflight requests immediately after CORS headers are set
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Modular Middleware Setup
 setupStandardMiddleware(app);
