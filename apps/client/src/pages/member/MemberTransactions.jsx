@@ -448,7 +448,7 @@ const MemberTransactions = () => {
                 }}
                 variant="outline"
                 size="sm"
-                className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap w-full sm:w-auto"
+                className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 min-h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap w-full sm:w-auto"
               >
                 <Download size={14} />
                 Export PDF
@@ -472,7 +472,11 @@ const MemberTransactions = () => {
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 gap-4">
                 {displayActivity.map((item) => (
-                  <MemberActivityCard key={item._id} activity={item} member={member} />
+                  <MemberActivityCard
+                    key={item._id}
+                    activity={item}
+                    member={member}
+                  />
                 ))}
               </div>
 
@@ -682,14 +686,14 @@ const MemberTransactions = () => {
             <Button
               variant="outline"
               onClick={() => setIsExportModalOpen(false)}
-              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              className="flex-1 rounded-[1.25rem] min-h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
               disabled={isExportingModal}
             >
               Cancel
             </Button>
             <Button
               onClick={handleExportPDF}
-              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20"
+              className="flex-1 rounded-[1.25rem] min-h-14 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20"
               disabled={isExportingModal}
             >
               {isExportingModal ? (

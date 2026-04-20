@@ -1130,8 +1130,10 @@ const TellerMode = () => {
 
   const submitAction = (e) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter a valid amount');
-    if (activeAction === 'loan-pay' && !selectedLoan) return toast.error('Select a loan first');
+    if (!amount || parseFloat(amount) <= 0)
+      return toast.error('Enter a valid amount');
+    if (activeAction === 'loan-pay' && !selectedLoan)
+      return toast.error('Select a loan first');
     setPendingAction(activeAction);
     setShowTxnConfirm(true);
   };
@@ -1153,14 +1155,29 @@ const TellerMode = () => {
 
   const getTxnConfirmDetails = () => {
     const details = [];
-    if (member) details.push({ label: 'Member', value: capitalize(member.name) });
+    if (member)
+      details.push({ label: 'Member', value: capitalize(member.name) });
     if (pendingAction !== 'loan-pay') {
-      details.push({ label: 'Account', value: accountType === 'saving' ? 'Saving Account' : 'Current Account' });
+      details.push({
+        label: 'Account',
+        value: accountType === 'saving' ? 'Saving Account' : 'Current Account',
+      });
     }
     if (selectedLoan && pendingAction === 'loan-pay') {
-      details.push({ label: 'Loan', value: `#${selectedLoan.loanNumber || selectedLoan._id?.slice(-6)}` });
+      details.push({
+        label: 'Loan',
+        value: `#${selectedLoan.loanNumber || selectedLoan._id?.slice(-6)}`,
+      });
     }
-    details.push({ label: 'Method', value: paymentMethod === 'cash' ? 'Cash' : paymentMethod === 'bank' ? 'Bank Transfer' : 'Online' });
+    details.push({
+      label: 'Method',
+      value:
+        paymentMethod === 'cash'
+          ? 'Cash'
+          : paymentMethod === 'bank'
+            ? 'Bank Transfer'
+            : 'Online',
+    });
     return details;
   };
 
@@ -1796,43 +1813,43 @@ const TellerMode = () => {
                             )}
 
                             {/* Payment Method Selector */}
-                              <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                  Payment Method
-                                </label>
-                                <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
-                                  <button
-                                    type="button"
-                                    disabled={deductFromWallet}
-                                    onClick={() => setPaymentMethod('cash')}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                      deductFromWallet
-                                        ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50'
-                                        : paymentMethod === 'cash'
+                            <div className="space-y-3">
+                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                Payment Method
+                              </label>
+                              <div className="flex gap-2 p-1.5 bg-muted/40 rounded-[1.5rem] border border-border/50">
+                                <button
+                                  type="button"
+                                  disabled={deductFromWallet}
+                                  onClick={() => setPaymentMethod('cash')}
+                                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    deductFromWallet
+                                      ? 'opacity-50 cursor-not-allowed bg-muted/20 text-muted-foreground/50'
+                                      : paymentMethod === 'cash'
                                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                    }`}
-                                  >
-                                    <HandCoins size={14} />
-                                    Cash
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={deductFromWallet}
-                                    onClick={() => setPaymentMethod('online')}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                      deductFromWallet
-                                        ? 'opacity-60 cursor-not-allowed bg-blue-500/50 text-white'
-                                        : paymentMethod === 'online'
+                                  }`}
+                                >
+                                  <HandCoins size={14} />
+                                  Cash
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={deductFromWallet}
+                                  onClick={() => setPaymentMethod('online')}
+                                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    deductFromWallet
+                                      ? 'opacity-60 cursor-not-allowed bg-blue-500/50 text-white'
+                                      : paymentMethod === 'online'
                                         ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                    }`}
-                                  >
-                                    <Globe size={14} />
-                                    Online
-                                  </button>
-                                </div>
+                                  }`}
+                                >
+                                  <Globe size={14} />
+                                  Online
+                                </button>
                               </div>
+                            </div>
 
                             {/* Loan Selector */}
                             {activeAction === 'loan-pay' && (
@@ -1872,7 +1889,10 @@ const TellerMode = () => {
                                             {formatCurrency(
                                               loan.remainingAmount,
                                             )}{' '}
-                                            • {loan.duration}mo{loan.rate !== undefined ? ` • ${loan.rate}%` : ''}
+                                            • {loan.duration}mo
+                                            {loan.rate !== undefined
+                                              ? ` • ${loan.rate}%`
+                                              : ''}
                                           </p>
                                         </div>
                                         {selectedLoan?._id === loan._id && (
@@ -1906,12 +1926,16 @@ const TellerMode = () => {
                                     if (nextState) setPaymentMethod('online');
                                   }}
                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
-                                    deductFromWallet ? 'bg-indigo-600' : 'bg-muted border border-border/50'
+                                    deductFromWallet
+                                      ? 'bg-indigo-600'
+                                      : 'bg-muted border border-border/50'
                                   }`}
                                 >
                                   <span
                                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 shadow-sm ${
-                                      deductFromWallet ? 'translate-x-6' : 'translate-x-1'
+                                      deductFromWallet
+                                        ? 'translate-x-6'
+                                        : 'translate-x-1'
                                     }`}
                                   />
                                 </button>
@@ -2462,7 +2486,7 @@ const TellerMode = () => {
                 onClick={handleExportJournalPDF}
                 isLoading={isExportingJournal}
                 disabled={journalTxns.length === 0}
-                className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all h-10 px-4 whitespace-nowrap w-full sm:w-auto mt-2 sm:mt-0"
+                className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all min-h-10 px-4 whitespace-nowrap w-full sm:w-auto mt-2 sm:mt-0"
               >
                 <FileText size={14} />
                 Export PDF
@@ -3470,7 +3494,10 @@ const TellerMode = () => {
       {/* ── Transaction Confirmation Modal ─────────────────────────────── */}
       <TransactionConfirmModal
         isOpen={showTxnConfirm}
-        onClose={() => { setShowTxnConfirm(false); setPendingAction(null); }}
+        onClose={() => {
+          setShowTxnConfirm(false);
+          setPendingAction(null);
+        }}
         onConfirm={executeConfirmedAction}
         loading={isProcessing}
         type={getTxnConfirmType()}

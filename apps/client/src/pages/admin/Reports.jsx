@@ -64,7 +64,12 @@ import {
   Cell,
 } from 'recharts';
 import api from '@/lib/axios';
-import { formatFullCurrency as formatCurrency, formatCurrency as formatCompactCurrency, formatCompactValue, cn } from '@/lib/utils';
+import {
+  formatFullCurrency as formatCurrency,
+  formatCurrency as formatCompactCurrency,
+  formatCompactValue,
+  cn,
+} from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
@@ -643,15 +648,36 @@ const Reports = () => {
             ['Defaulter Members', String(pdfPortfolio.members.defaulters)],
             ['', ''],
             ['Total Loans', String(pdfPortfolio.loans.total)],
-            ['Active Loans', `${pdfPortfolio.loans.active} (${formatCurrency(pdfPortfolio.loans.activeLoanAmount)})`],
-            ['Overdue Loans', `${pdfPortfolio.loans.overdue} (${formatCurrency(pdfPortfolio.loans.overdueAmount)})`],
-            ['Defaulted Loans', `${pdfPortfolio.loans.defaulted} (${formatCurrency(pdfPortfolio.loans.defaultedAmount)})`],
-            ['Completed Loans', `${pdfPortfolio.loans.completed} (${formatCurrency(pdfPortfolio.loans.completedAmount)})`],
+            [
+              'Active Loans',
+              `${pdfPortfolio.loans.active} (${formatCurrency(pdfPortfolio.loans.activeLoanAmount)})`,
+            ],
+            [
+              'Overdue Loans',
+              `${pdfPortfolio.loans.overdue} (${formatCurrency(pdfPortfolio.loans.overdueAmount)})`,
+            ],
+            [
+              'Defaulted Loans',
+              `${pdfPortfolio.loans.defaulted} (${formatCurrency(pdfPortfolio.loans.defaultedAmount)})`,
+            ],
+            [
+              'Completed Loans',
+              `${pdfPortfolio.loans.completed} (${formatCurrency(pdfPortfolio.loans.completedAmount)})`,
+            ],
             ['Pending Loans', String(pdfPortfolio.loans.pending)],
             ['', ''],
-            ['Total Outstanding', formatCurrency(pdfPortfolio.financials.totalOutstanding)],
-            ['Total Recovered', formatCurrency(pdfPortfolio.financials.totalRepaid)],
-            ['Late Fees Accrued', formatCurrency(pdfPortfolio.financials.totalLateFees)],
+            [
+              'Total Outstanding',
+              formatCurrency(pdfPortfolio.financials.totalOutstanding),
+            ],
+            [
+              'Total Recovered',
+              formatCurrency(pdfPortfolio.financials.totalRepaid),
+            ],
+            [
+              'Late Fees Accrued',
+              formatCurrency(pdfPortfolio.financials.totalLateFees),
+            ],
           ],
           theme: 'grid',
           headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255] },
@@ -664,7 +690,10 @@ const Reports = () => {
       await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
       renderPdfFooter(doc, { businessContext: ctx });
 
-      await savePdf(doc, `Executive_Summary_${format(new Date(), 'yyyyMMdd')}.pdf`);
+      await savePdf(
+        doc,
+        `Executive_Summary_${format(new Date(), 'yyyyMMdd')}.pdf`,
+      );
       toast.success('Executive summary generated successfully');
       setIsExportModalOpen(false);
     } catch (error) {
@@ -1005,10 +1034,7 @@ const Reports = () => {
                     </div>
                     <div className="space-y-2.5">
                       {[0, 1, 2, 3].map((j) => (
-                        <Skeleton
-                          key={j}
-                          className="h-12 w-full rounded-xl"
-                        />
+                        <Skeleton key={j} className="h-12 w-full rounded-xl" />
                       ))}
                     </div>
                   </CardContent>
@@ -1026,7 +1052,7 @@ const Reports = () => {
                       'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
                       selectedBranch === 'all'
                         ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                        : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary'
+                        : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary',
                     )}
                   >
                     <Building2 size={12} className="inline mr-1.5 -mt-0.5" />
@@ -1040,7 +1066,7 @@ const Reports = () => {
                         'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border',
                         selectedBranch === b.branchId
                           ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                          : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary'
+                          : 'bg-card border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary',
                       )}
                     >
                       {b.branchName}
@@ -1051,11 +1077,12 @@ const Reports = () => {
 
               {(() => {
                 // Resolve data for the selected branch
-                const branchData = selectedBranch === 'all'
-                  ? portfolioOverview
-                  : portfolioOverview.branchBreakdown?.find(
-                      (b) => b.branchId === selectedBranch
-                    ) || portfolioOverview;
+                const branchData =
+                  selectedBranch === 'all'
+                    ? portfolioOverview
+                    : portfolioOverview.branchBreakdown?.find(
+                        (b) => b.branchId === selectedBranch,
+                      ) || portfolioOverview;
 
                 return (
                   <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
@@ -1068,7 +1095,9 @@ const Reports = () => {
                               Member Overview
                             </CardTitle>
                             <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                              {selectedBranch === 'all' ? 'Total member base breakdown' : `${branchData.branchName || 'Branch'} members`}
+                              {selectedBranch === 'all'
+                                ? 'Total member base breakdown'
+                                : `${branchData.branchName || 'Branch'} members`}
                             </CardDescription>
                           </div>
                           <div className="bg-primary/5 p-2.5 rounded-xl">
@@ -1098,7 +1127,9 @@ const Reports = () => {
                           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-500/5 border border-slate-500/10">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-slate-400" />
-                              <span className="text-xs font-bold">Inactive</span>
+                              <span className="text-xs font-bold">
+                                Inactive
+                              </span>
                             </div>
                             <span className="text-sm font-black text-slate-500">
                               {branchData.members.inactive}
@@ -1107,7 +1138,9 @@ const Reports = () => {
                           <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                              <span className="text-xs font-bold">Defaulters</span>
+                              <span className="text-xs font-bold">
+                                Defaulters
+                              </span>
                             </div>
                             <span className="text-sm font-black text-rose-600">
                               {branchData.members.defaulters}
@@ -1126,7 +1159,9 @@ const Reports = () => {
                               Loan Portfolio
                             </CardTitle>
                             <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                              {selectedBranch === 'all' ? 'Status breakdown of all loans' : `${branchData.branchName || 'Branch'} loans`}
+                              {selectedBranch === 'all'
+                                ? 'Status breakdown of all loans'
+                                : `${branchData.branchName || 'Branch'} loans`}
                             </CardDescription>
                           </div>
                           <div className="bg-indigo-500/5 p-2.5 rounded-xl">
@@ -1154,7 +1189,9 @@ const Reports = () => {
                                 {branchData.loans.active}
                               </span>
                               <p className="text-[9px] text-muted-foreground font-medium">
-                                {formatCurrency(branchData.loans.activeLoanAmount)}
+                                {formatCurrency(
+                                  branchData.loans.activeLoanAmount,
+                                )}
                               </p>
                             </div>
                           </div>
@@ -1175,28 +1212,36 @@ const Reports = () => {
                           <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                              <span className="text-xs font-bold">Defaulted</span>
+                              <span className="text-xs font-bold">
+                                Defaulted
+                              </span>
                             </div>
                             <div className="text-right">
                               <span className="text-sm font-black text-rose-600">
                                 {branchData.loans.defaulted}
                               </span>
                               <p className="text-[9px] text-muted-foreground font-medium">
-                                {formatCurrency(branchData.loans.defaultedAmount)}
+                                {formatCurrency(
+                                  branchData.loans.defaultedAmount,
+                                )}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-blue-500" />
-                              <span className="text-xs font-bold">Completed</span>
+                              <span className="text-xs font-bold">
+                                Completed
+                              </span>
                             </div>
                             <div className="text-right">
                               <span className="text-sm font-black text-blue-600">
                                 {branchData.loans.completed}
                               </span>
                               <p className="text-[9px] text-muted-foreground font-medium">
-                                {formatCurrency(branchData.loans.completedAmount)}
+                                {formatCurrency(
+                                  branchData.loans.completedAmount,
+                                )}
                               </p>
                             </div>
                           </div>
@@ -1204,7 +1249,9 @@ const Reports = () => {
                             <div className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-purple-500" />
-                                <span className="text-xs font-bold">Pending</span>
+                                <span className="text-xs font-bold">
+                                  Pending
+                                </span>
                               </div>
                               <span className="text-sm font-black text-purple-600">
                                 {branchData.loans.pending}
@@ -1224,7 +1271,9 @@ const Reports = () => {
                               Financial Health
                             </CardTitle>
                             <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                              {selectedBranch === 'all' ? 'Key financial indicators' : `${branchData.branchName || 'Branch'} financials`}
+                              {selectedBranch === 'all'
+                                ? 'Key financial indicators'
+                                : `${branchData.branchName || 'Branch'} financials`}
                             </CardDescription>
                           </div>
                           <div className="bg-emerald-500/5 p-2.5 rounded-xl">
@@ -1239,7 +1288,9 @@ const Reports = () => {
                               Total Outstanding
                             </p>
                             <p className="text-2xl font-black tracking-tight text-primary">
-                              {formatCurrency(branchData.financials.totalOutstanding)}
+                              {formatCurrency(
+                                branchData.financials.totalOutstanding,
+                              )}
                             </p>
                           </div>
                           <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
@@ -1247,7 +1298,9 @@ const Reports = () => {
                               Total Recovered
                             </p>
                             <p className="text-2xl font-black tracking-tight text-emerald-600">
-                              {formatCurrency(branchData.financials.totalRepaid)}
+                              {formatCurrency(
+                                branchData.financials.totalRepaid,
+                              )}
                             </p>
                           </div>
                           <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10">
@@ -1255,7 +1308,9 @@ const Reports = () => {
                               Late Fees Accrued
                             </p>
                             <p className="text-xl font-black tracking-tight text-rose-600">
-                              {formatCurrency(branchData.financials.totalLateFees)}
+                              {formatCurrency(
+                                branchData.financials.totalLateFees,
+                              )}
                             </p>
                           </div>
                           <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
@@ -1263,7 +1318,9 @@ const Reports = () => {
                               Active Outstanding
                             </p>
                             <p className="text-xl font-black tracking-tight text-amber-600">
-                              {formatCurrency(branchData.loans.activeOutstanding)}
+                              {formatCurrency(
+                                branchData.loans.activeOutstanding,
+                              )}
                             </p>
                           </div>
                         </div>
@@ -2398,7 +2455,8 @@ const Reports = () => {
                       });
                       renderPdfFooter(doc, { businessContext: ctx });
 
-                      const { savePdf: savePdfFn } = await import('@/lib/nativeDownload');
+                      const { savePdf: savePdfFn } =
+                        await import('@/lib/nativeDownload');
                       await savePdfFn(
                         doc,
                         `Balance_Sheet_${new Date().toISOString().split('T')[0]}.pdf`,
@@ -2415,7 +2473,7 @@ const Reports = () => {
                 }}
                 variant="outline"
                 disabled={!balanceSheet || isExporting}
-                className="rounded-full text-[10px] font-black uppercase tracking-widest px-4 h-9"
+                className="rounded-full text-[10px] font-black uppercase tracking-widest px-4 min-h-9"
               >
                 {isExporting ? (
                   <Loader2 size={12} className="animate-spin mr-1" />
@@ -2649,9 +2707,11 @@ const Reports = () => {
                         Less: Profit Distributed
                       </td>
                       <td className="p-3 pr-6 text-right font-mono text-rose-500">
-                        ({formatCurrency(
+                        (
+                        {formatCurrency(
                           balanceSheet.equity?.profitDistributed || 0,
-                        )})
+                        )}
+                        )
                       </td>
                     </tr>
                     <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
@@ -2659,9 +2719,11 @@ const Reports = () => {
                         Less: Operating Expenses
                       </td>
                       <td className="p-3 pr-6 text-right font-mono text-rose-500">
-                        ({formatCurrency(
+                        (
+                        {formatCurrency(
                           balanceSheet.equity?.operatingExpenses || 0,
-                        )})
+                        )}
+                        )
                       </td>
                     </tr>
                     <tr className="border-b border-border/30 bg-indigo-500/5">
@@ -2679,9 +2741,7 @@ const Reports = () => {
                         Total Equity
                       </td>
                       <td className="p-4 pr-6 text-right font-mono text-indigo-700 dark:text-indigo-400">
-                        {formatCurrency(
-                          balanceSheet.equity?.totalEquity || 0,
-                        )}
+                        {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
                       </td>
                     </tr>
 

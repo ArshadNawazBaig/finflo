@@ -662,7 +662,8 @@ const MemberProfile = () => {
 
   const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter a valid amount');
+    if (!amount || parseFloat(amount) <= 0)
+      return toast.error('Enter a valid amount');
     setPendingTxnType('investment');
     setShowTxnConfirm(true);
   };
@@ -3739,7 +3740,7 @@ const MemberProfile = () => {
             <Button
               variant="outline"
               onClick={() => setIsExportModalOpen(false)}
-              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              className="flex-1 rounded-[1.25rem] min-h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
               disabled={isExportingModal}
             >
               Cancel
@@ -3748,7 +3749,7 @@ const MemberProfile = () => {
               variant="gradient"
               onClick={handleDownloadReport}
               disabled={isExportingModal}
-              className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
+              className="flex-1 min-h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
             >
               {isExportingModal ? (
                 <>
@@ -3769,29 +3770,70 @@ const MemberProfile = () => {
       {/* Transaction Confirmation Modal */}
       <TransactionConfirmModal
         isOpen={showTxnConfirm}
-        onClose={() => { setShowTxnConfirm(false); setPendingTxnType(null); }}
-        onConfirm={pendingTxnType === 'investment' ? executeInvestment : executeTransfer}
-        loading={pendingTxnType === 'investment' ? isSubmittingInvestment : isTransferring}
-        type={
-          pendingTxnType === 'transfer' ? 'transfer'
-            : investmentType === 'deposit' ? 'credit' : 'debit'
+        onClose={() => {
+          setShowTxnConfirm(false);
+          setPendingTxnType(null);
+        }}
+        onConfirm={
+          pendingTxnType === 'investment' ? executeInvestment : executeTransfer
         }
-        amount={parseFloat(pendingTxnType === 'transfer' ? transferAmount : amount) || 0}
+        loading={
+          pendingTxnType === 'investment'
+            ? isSubmittingInvestment
+            : isTransferring
+        }
+        type={
+          pendingTxnType === 'transfer'
+            ? 'transfer'
+            : investmentType === 'deposit'
+              ? 'credit'
+              : 'debit'
+        }
+        amount={
+          parseFloat(pendingTxnType === 'transfer' ? transferAmount : amount) ||
+          0
+        }
         details={
           pendingTxnType === 'transfer'
             ? [
                 { label: 'From', value: capitalize(member?.name || '') },
-                { label: 'To', value: transferRecipientName || recipientIdentifier },
-                { label: 'Account', value: transferAccountType === 'saving' ? 'Saving' : 'Current' },
+                {
+                  label: 'To',
+                  value: transferRecipientName || recipientIdentifier,
+                },
+                {
+                  label: 'Account',
+                  value:
+                    transferAccountType === 'saving' ? 'Saving' : 'Current',
+                },
               ]
             : [
                 { label: 'Member', value: capitalize(member?.name || '') },
-                { label: 'Type', value: investmentType === 'deposit' ? 'Deposit' : 'Withdrawal' },
-                { label: 'Account', value: investAccountType === 'saving' ? 'Saving' : 'Current' },
-                { label: 'Method', value: investPaymentMethod === 'cash' ? 'Cash' : investPaymentMethod === 'bank' ? 'Bank' : 'Online' },
+                {
+                  label: 'Type',
+                  value:
+                    investmentType === 'deposit' ? 'Deposit' : 'Withdrawal',
+                },
+                {
+                  label: 'Account',
+                  value: investAccountType === 'saving' ? 'Saving' : 'Current',
+                },
+                {
+                  label: 'Method',
+                  value:
+                    investPaymentMethod === 'cash'
+                      ? 'Cash'
+                      : investPaymentMethod === 'bank'
+                        ? 'Bank'
+                        : 'Online',
+                },
               ]
         }
-        description={pendingTxnType === 'transfer' ? transferDescription : description || undefined}
+        description={
+          pendingTxnType === 'transfer'
+            ? transferDescription
+            : description || undefined
+        }
       />
     </div>
   );

@@ -519,7 +519,7 @@ const MemberLoanDetail = () => {
             <Button
               variant="outline"
               onClick={() => setIsExportModalOpen(false)}
-              className="flex-1 rounded-[1.25rem] h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              className="flex-1 rounded-[1.25rem] min-h-14 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
               disabled={isExportingModal}
             >
               Cancel
@@ -528,7 +528,7 @@ const MemberLoanDetail = () => {
               variant="gradient"
               onClick={handleDownloadReport}
               disabled={isExportingModal}
-              className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
+              className="flex-1 min-h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
             >
               {isExportingModal ? (
                 <>

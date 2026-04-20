@@ -116,7 +116,7 @@ const ConfirmActionModal = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 h-14 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-[1.25rem] border border-transparent hover:border-border/50 active:scale-95 disabled:opacity-50"
+            className="flex-1 min-h-14 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-[1.25rem] border border-transparent hover:border-border/50 active:scale-95 disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -124,7 +124,7 @@ const ConfirmActionModal = ({
             onClick={onConfirm}
             isLoading={loading}
             className={cn(
-              'flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all active:scale-95',
+              'flex-1 min-h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all active:scale-95',
               styles.btnBg,
             )}
           >
