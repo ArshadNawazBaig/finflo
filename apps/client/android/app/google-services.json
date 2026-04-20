@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:52862721923:android:placeholder_member",
+        "mobilesdk_app_id": "1:52862721923:android:member0000000000000",
         "android_client_info": {
           "package_name": "com.finflo.member"
         }
@@ -22,7 +22,11 @@
           "client_type": 3
         }
       ],
-      "api_key": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyPlaceholderKeyForBuild000000000"
+        }
+      ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
@@ -36,7 +40,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:52862721923:android:placeholder_business",
+        "mobilesdk_app_id": "1:52862721923:android:business000000000000",
         "android_client_info": {
           "package_name": "com.finflo.business"
         }
@@ -51,7 +55,11 @@
           "client_type": 3
         }
       ],
-      "api_key": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyPlaceholderKeyForBuild000000000"
+        }
+      ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
