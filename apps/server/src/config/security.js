@@ -23,8 +23,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (origin && process.env.NODE_ENV !== 'production')
-      console.log(`CORS request from: ${origin} | Allowed: ${productionUrl}`);
+    console.log(`[CORS] origin=${origin || 'none'} method=preflight-check`);
 
     const isAllowed =
       !origin ||
@@ -54,10 +53,14 @@ const corsOptions = {
     'Accept',
     'Cookie',
     'cookie',
+    'Sec-Ch-Ua',
+    'Sec-Ch-Ua-Mobile',
+    'Sec-Ch-Ua-Platform',
   ],
   exposedHeaders: ['set-cookie'],
   credentials: true,
-  optionsSuccessStatus: 200,
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 const helmetOptions = {
@@ -116,6 +119,7 @@ const authLimiter = rateLimit({
 
 module.exports = {
   corsMiddleware: cors(corsOptions),
+  corsOptions,
   helmetMiddleware: helmet(helmetOptions),
   apiLimiter,
   authLimiter,
