@@ -31,7 +31,18 @@ app.use(
 
 // Modular Middleware Setup
 setupStandardMiddleware(app);
+
+// CORS must be first — handle preflight (OPTIONS) before any other middleware
 app.use(corsMiddleware);
+// Explicit preflight handler for Express 5 compatibility
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
+
 app.use(helmetMiddleware);
 
 // Security: Sanitize inputs against NoSQL injection & HTTP param pollution
