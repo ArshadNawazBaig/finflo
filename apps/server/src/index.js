@@ -29,19 +29,11 @@ app.use(
   require('./routes/webhookRoutes'),
 );
 
-// Modular Middleware Setup
-setupStandardMiddleware(app);
-
 // CORS must be first — handle preflight (OPTIONS) before any other middleware
 app.use(corsMiddleware);
-// Explicit preflight handler for Express 5 compatibility
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-    return;
-  }
-  next();
-});
+
+// Modular Middleware Setup
+setupStandardMiddleware(app);
 
 app.use(helmetMiddleware);
 
