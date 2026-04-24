@@ -74,9 +74,10 @@ const MobileBottomNav = ({ isVisible = true }) => {
   return (
     <div
       className={cn(
-        'lg:hidden fixed bottom-6 left-0 right-0 z-[100] px-4 pointer-events-none mb-safe-area-inset-bottom transition-all duration-500 ease-[cubic-bezier(0.3,1,0.2,1)]',
+        'lg:hidden fixed left-0 right-0 z-[100] px-4 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.3,1,0.2,1)]',
         !isVisible && 'translate-y-[150%] opacity-0'
       )}
+      style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 12px))' }}
     >
       <nav className="w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] flex items-center justify-around p-1.5 pointer-events-auto relative overflow-hidden group">
         {navItems.map((item) => {
