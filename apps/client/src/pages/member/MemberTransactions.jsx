@@ -36,6 +36,7 @@ import {
   renderPdfHeader,
   renderPdfFooter,
   getBusinessContext,
+  getMemberContext,
   toTitleCase,
   renderPdfSignatures,
   generateTransactionReceipt,
@@ -231,6 +232,7 @@ const MemberTransactions = () => {
       }
 
       const ctx = getBusinessContext();
+      const mCtx = getMemberContext(member);
       const doc = new jsPDF();
 
       const startY = await renderPdfHeader(doc, {
@@ -239,12 +241,11 @@ const MemberTransactions = () => {
         leftDetails: [
           {
             label: 'Account Holder',
-            value: toTitleCase(member?.name || 'Valued Member'),
+            value: toTitleCase(mCtx.name || 'Valued Member'),
           },
           {
             label: 'Member ID',
-            value:
-              member?.memberId || member?._id?.slice(-6).toUpperCase() || 'N/A',
+            value: mCtx.memberId || '\u2014',
           },
         ],
         rightDetails: [

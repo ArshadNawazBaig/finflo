@@ -70,7 +70,7 @@ export const exportCashFlowStatement = async (
       body: repayments.map((t) => [
         format(new Date(t.date), 'MMM dd, yyyy'),
         t.type === 'repayment' ? 'Loan Repayment' : 'Member Deposit',
-        t.entityName || t.customer?.name || t.member?.name || 'N/A',
+        t.entityName || t.customer?.name || t.member?.name || '\u2014',
         t.reference || t.loan?.loanId || 'Deposit',
         `${t.type === 'repayment' ? '-' : ''}${formatCurrency(t.amount)}`,
       ]),

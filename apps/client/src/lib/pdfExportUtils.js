@@ -42,6 +42,40 @@ export const getBusinessContext = () => {
   }
 };
 
+// ─── Member Context Helper ──────────────────────────────────────────────────
+// Reads member details from localStorage as a fallback when the passed member
+// object is missing fields (e.g. during mobile PDF downloads where the member
+// atom may only contain login-response fields).
+export const getMemberContext = (passedMember = null) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('member') || '{}');
+    // Merge: passed member takes priority, then stored atom data
+    const m = { ...stored, ...passedMember };
+    return {
+      name: m.name || m.customer?.name || '',
+      cnic: m.cnic || m.customer?.cnic || '',
+      phone: m.phone || m.customer?.phone || '',
+      email: m.email || m.customer?.email || '',
+      memberId: m.memberId || m._id?.slice?.(-6)?.toUpperCase?.() || '',
+      currentAccountNumber: m.currentAccountNumber || m.customer?.currentAccountNumber || '',
+      savingAccountNumber: m.savingAccountNumber || m.customer?.savingAccountNumber || '',
+      currentBalance: m.currentBalance ?? 0,
+    };
+  } catch {
+    const m = passedMember || {};
+    return {
+      name: m.name || '',
+      cnic: m.cnic || '',
+      phone: m.phone || '',
+      email: m.email || '',
+      memberId: m.memberId || m._id?.slice?.(-6)?.toUpperCase?.() || '',
+      currentAccountNumber: m.currentAccountNumber || '',
+      savingAccountNumber: m.savingAccountNumber || '',
+      currentBalance: m.currentBalance ?? 0,
+    };
+  }
+};
+
 // ─── Load Image as Base64 ───────────────────────────────────────────────────
 const loadImageAsBase64 = (url) => {
   return new Promise((resolve) => {
@@ -157,14 +191,14 @@ export const renderPdfHeader = async (doc, {
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(30, 30, 30);
-          doc.text(String(value || 'N/A'), 14, lY);
+          doc.text(String(value || '—'), 14, lY);
           lY += 5;
         } else {
           // Subsequent items — normal text like address lines
           doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(60, 60, 60);
-          doc.text(String(value || 'N/A'), 14, lY);
+          doc.text(String(value || '—'), 14, lY);
           lY += 4.5;
         }
       });
@@ -184,7 +218,7 @@ export const renderPdfHeader = async (doc, {
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(30, 30, 30);
-        doc.text(String(value || 'N/A'), rightValueX, rY, { align: 'right' });
+        doc.text(String(value || '—'), rightValueX, rY, { align: 'right' });
         rY += 5;
       });
     }
@@ -332,10 +366,11 @@ export const exportLoanStatement = async (
   if (!loan) return;
 
   const ctx = businessContext || getBusinessContext();
+  const mCtx = getMemberContext(member);
   const doc = new jsPDF();
 
-  const customerName = toTitleCase(loan.customer?.name || member?.name || 'Unknown');
-  const customerContact = loan.customer?.phone || loan.customer?.email || member?.phone || 'N/A';
+  const customerName = toTitleCase(loan.customer?.name || mCtx.name || 'Valued Customer');
+  const customerContact = loan.customer?.phone || loan.customer?.email || mCtx.phone || mCtx.email || '—';
 
   const startY = await renderPdfHeader(doc, {
     businessContext: ctx,
@@ -436,6 +471,7 @@ export const exportMemberStatement = async (
   if (!member) return;
 
   const ctx = businessContext || getBusinessContext();
+  const mCtx = getMemberContext(member);
   const doc = new jsPDF();
 
   const totalDeposits = investments
@@ -455,10 +491,10 @@ export const exportMemberStatement = async (
     businessContext: ctx,
     title: 'Member Account Statement',
     leftDetails: [
-      { label: 'Member Name', value: toTitleCase(member.name) || 'Unknown' },
-      { label: 'Contact', value: member.phone || member.email || 'N/A' },
-      { label: 'CNIC', value: member.cnic || 'N/A' },
-      { label: 'Member ID', value: member.memberId || member._id?.slice(-6).toUpperCase() },
+      { label: 'Member Name', value: toTitleCase(mCtx.name) || 'Valued Member' },
+      { label: 'Contact', value: mCtx.phone || mCtx.email || '—' },
+      { label: 'CNIC', value: mCtx.cnic || '—' },
+      { label: 'Member ID', value: mCtx.memberId || member._id?.slice(-6).toUpperCase() },
     ],
     rightDetails: [
       { label: 'Currency', value: ctx.currency || 'Rs.' },
@@ -571,6 +607,7 @@ export const generateTransactionReceipt = async ({
   businessContext: _bc,
 }) => {
   const ctx = _bc || getBusinessContext();
+  const mCtx = getMemberContext(member);
   const doc = new jsPDF({ format: 'a5' });
   const txDate = new Date(date);
   const refCode = referenceId
@@ -596,11 +633,11 @@ export const generateTransactionReceipt = async ({
     businessContext: ctx,
     title,
     leftDetails: [
-      { label: 'Account Holder', value: toTitleCase(member?.name) || 'N/A' },
-      { label: 'CNIC', value: member?.cnic || 'N/A' },
+      { label: 'Account Holder', value: toTitleCase(mCtx.name) || 'Valued Member' },
+      { label: 'CNIC', value: mCtx.cnic || mCtx.phone || mCtx.email || '—' },
     ],
     rightDetails: [
-      { label: 'Account #', value: member?.currentAccountNumber || member?.memberId || 'N/A' },
+      { label: 'Account #', value: mCtx.currentAccountNumber || mCtx.memberId || '—' },
       { label: 'Account Type', value: accountType === 'saving' ? 'Saving Account' : 'Current Account' },
     ],
   });
@@ -649,7 +686,7 @@ export const generateTransactionReceipt = async ({
 
   renderPdfFooter(doc, { businessContext: ctx });
 
-  const fileName = `Receipt_${refCode}_${toTitleCase(member?.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
+  const fileName = `Receipt_${refCode}_${toTitleCase(mCtx.name || 'TXN').replace(/\s+/g, '_')}.pdf`;
   await savePdf(doc, fileName);
 };
 

@@ -1,6 +1,6 @@
 {
-  "appId": "com.finflo.business",
-  "appName": "FinFlo Business",
+  "appId": "com.finflo.member",
+  "appName": "FinFlo Member",
   "webDir": "dist",
   "server": {
     "allowNavigation": ["loan-master-client.vercel.app"]
@@ -12,7 +12,7 @@
     "GoogleAuth": {
       "forceCodeForRefreshToken": true,
       "clientId": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
-      "androidClientId": "52862721923-2d2tpriitmri5s8orj7vrpek5mgp4uef.apps.googleusercontent.com"
+      "androidClientId": "52862721923-trb17t10u5ni99aimh6s4j42eldukmrj.apps.googleusercontent.com"
     }
   }
 }
