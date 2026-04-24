@@ -72,6 +72,8 @@ const AppRootRedirect = () => {
 
 const PageLoader = () => <SplashScreen />;
 
+import { TooltipProvider } from '@radix-ui/react-tooltip';
+
 function App() {
   const { settings, loading } = useSystemSettings();
   const user = useAtomValue(userAtom);
@@ -108,10 +110,12 @@ function App() {
     return (
       <ErrorBoundary>
         <Router>
-          <Suspense fallback={<PageLoader />}>
-            <LandingRoutes DomainRedirect={DomainRedirect} />
-          </Suspense>
-          <Toaster position="top-right" richColors />
+          <TooltipProvider>
+            <Suspense fallback={<PageLoader />}>
+              <LandingRoutes DomainRedirect={DomainRedirect} />
+            </Suspense>
+            <Toaster position="top-right" richColors />
+          </TooltipProvider>
         </Router>
       </ErrorBoundary>
     );
@@ -120,58 +124,60 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <Suspense fallback={<PageLoader />}>
-          {/* Native onboarding: show before any routing on first launch */}
-          {showOnboarding ? (
-            <Routes>
-              <Route path="*" element={<OnboardingScreen onComplete={() => setShowOnboarding(false)} />} />
-            </Routes>
-          ) : (
-          <Routes>
-            {settings?.maintenanceMode && !isSuperAdmin ? (
-              <Route path="*" element={<Maintenance />} />
+        <TooltipProvider>
+          <Suspense fallback={<PageLoader />}>
+            {/* Native onboarding: show before any routing on first launch */}
+            {showOnboarding ? (
+              <Routes>
+                <Route path="*" element={<OnboardingScreen onComplete={() => setShowOnboarding(false)} />} />
+              </Routes>
             ) : (
-              <>
-                {/* On App Domain, / redirects to login or dashboard */}
-                {/* In dev mode, show landing at / for convenience (unless native) */}
-                <Route path="/" element={IS_DEV && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
+            <Routes>
+              {settings?.maintenanceMode && !isSuperAdmin ? (
+                <Route path="*" element={<Maintenance />} />
+              ) : (
+                <>
+                  {/* On App Domain, / redirects to login or dashboard */}
+                  {/* In dev mode, show landing at / for convenience (unless native) */}
+                  <Route path="/" element={IS_DEV && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
 
-                {/* Shared Top-level Routes — hidden on native APKs */}
-                {!IS_NATIVE && (
-                  <>
-                    <Route path="/loan-lookup" element={<LoanLookup />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/terms" element={<TermsOfService />} />
-                    <Route path="/faq" element={<FaqPage />} />
-                    <Route path="/documentation" element={<Documentation />} />
-                    <Route path="/documentation/api" element={<ApiDocumentation />} />
-                  </>
-                )}
+                  {/* Shared Top-level Routes — hidden on native APKs */}
+                  {!IS_NATIVE && (
+                    <>
+                      <Route path="/loan-lookup" element={<LoanLookup />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/faq" element={<FaqPage />} />
+                      <Route path="/documentation" element={<Documentation />} />
+                      <Route path="/documentation/api" element={<ApiDocumentation />} />
+                    </>
+                  )}
 
-                <Route path="/join/:code?" element={<SelfRegister />} />
+                  <Route path="/join/:code?" element={<SelfRegister />} />
 
-                {/* Dev-only: preview onboarding screens in browser */}
-                {IS_DEV && (
-                  <Route path="/onboarding" element={<OnboardingScreen onComplete={() => window.history.back()} />} />
-                )}
+                  {/* Dev-only: preview onboarding screens in browser */}
+                  {IS_DEV && (
+                    <Route path="/onboarding" element={<OnboardingScreen onComplete={() => window.history.back()} />} />
+                  )}
 
-                {/* Auth Routes */}
-                {AuthRoutes()}
+                  {/* Auth Routes */}
+                  {AuthRoutes()}
 
-                {/* Feature Routes */}
-                {AdminRoutes()}
-                {SuperAdminRoutes()}
-                {MemberRoutes()}
+                  {/* Feature Routes */}
+                  {AdminRoutes()}
+                  {SuperAdminRoutes()}
+                  {MemberRoutes()}
 
-                {/* Catch All - 404 */}
-                <Route path="*" element={<NotFound />} />
-              </>
+                  {/* Catch All - 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </>
+              )}
+            </Routes>
             )}
-          </Routes>
-          )}
-        </Suspense>
-        <Toaster position="top-right" richColors />
-        {!IS_NATIVE && <FloatingSettings />}
+          </Suspense>
+          <Toaster position="top-right" richColors />
+          {!IS_NATIVE && <FloatingSettings />}
+        </TooltipProvider>
       </Router>
     </ErrorBoundary>
   );
