@@ -18,7 +18,11 @@ import { cn, capitalize, getSafeNotificationLink } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import GlobalSearch from '@/components/GlobalSearch';
 import { useAtom } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom, userAtom } from '@/atoms';
+import {
+  notificationsAtom,
+  unreadNotificationsCountAtom,
+  userAtom,
+} from '@/atoms';
 
 const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
   const { theme, setTheme } = useTheme();
@@ -87,7 +91,6 @@ const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
     navigate('/login');
   };
 
-
   const userInitials = user.name
     ? user.name
         .split(' ')
@@ -106,7 +109,8 @@ const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
             'flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.3,1,0.2,1)] w-full',
             // Mobile: Floating Pill
             'fixed top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)] z-[100] lg:relative lg:top-0 lg:left-0 lg:translate-x-0 lg:w-full lg:max-w-none lg:bg-transparent lg:border-0 lg:shadow-none lg:px-0 lg:py-0',
-            !isVisible && 'max-lg:-translate-y-[150%] max-lg:opacity-0 max-lg:pointer-events-none'
+            !isVisible &&
+              'max-lg:-translate-y-[150%] max-lg:opacity-0 max-lg:pointer-events-none',
           )}
         >
           {/* Left Side - Menu & Search (Desktop) */}
@@ -126,7 +130,9 @@ const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                 href={IS_DEV ? '/' : getLandingUrl('/')}
                 className="hidden lg:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group shrink-0"
               >
-                <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+                <span className="group-hover:-translate-x-0.5 transition-transform">
+                  ←
+                </span>
                 Corporate Landing
               </a>
             )}
@@ -342,9 +348,7 @@ const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                   )}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold leading-none">
-                      {capitalize(
-                        user.name || 'User',
-                      )}
+                      {capitalize(user.name || 'User')}
                     </span>
                     <ChevronDown
                       className={cn(
@@ -378,9 +382,7 @@ const Navbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
                   {/* User Info Header */}
                   <div className="p-4 border-b border-border/50 bg-muted/30">
                     <p className="font-bold text-sm truncate">
-                      {capitalize(
-                        user.name || 'User',
-                      )}
+                      {capitalize(user.name || 'User')}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user.email}

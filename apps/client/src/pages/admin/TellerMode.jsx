@@ -1220,22 +1220,22 @@ const TellerMode = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-card/30 backdrop-blur-md border border-border/50 p-6 rounded-[2.5rem]">
         <div className="flex items-center gap-5">
           <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-primary/40 overflow-hidden">
+            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 overflow-hidden">
               <Zap size={32} className="relative z-10" />
             </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-background rounded-full animate-pulse shadow-lg shadow-emerald-500/20" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-background rounded-full animate-pulse shadow-sm" />
           </div>
           <div className="text-left">
-            <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               Teller POS
             </h1>
             <div className="flex items-center gap-3 mt-1.5">
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[9px] font-black uppercase tracking-wider text-primary">
-                <User size={8} />
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <User size={10} />
                 Session Active
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/5 border border-indigo-500/10 text-[9px] font-black uppercase tracking-wider text-indigo-500">
-                <Clock size={8} />
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <Clock size={10} />
                 {new Date().toLocaleDateString('en-PK', {
                   weekday: 'short',
                   month: 'short',
