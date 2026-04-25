@@ -104,7 +104,7 @@ const GlobalSearch = ({ isMember = false, isCompact = false }) => {
           }}
           onFocus={() => setIsOpen(true)}
           className={cn(
-            'w-full pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all text-sm',
+            'w-full pl-10 pr-10 py-2 bg-accent/30 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-accent/50 transition-all !text-[14px]',
             isCompact && 'pl-8 pr-4 py-1.5 rounded-full text-xs',
           )}
         />

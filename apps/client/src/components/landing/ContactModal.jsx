@@ -19,7 +19,9 @@ const ContactModal = ({ isOpen, onClose }) => {
 
     try {
       await api.post('/public/contact', formData);
-      toast.success('Message received! Our enterprise team will contact you soon.');
+      toast.success(
+        'Message received! Our enterprise team will contact you soon.',
+      );
       setFormData({ name: '', email: '', message: '' });
       onClose();
     } catch (error) {
@@ -54,7 +56,7 @@ const ContactModal = ({ isOpen, onClose }) => {
               <div className="p-8 pb-4 flex justify-between items-start">
                 <div className="space-y-1">
                   <h3 className="text-3xl font-black tracking-tighter dark:text-white">
-                    Contact <span className="text-primary italic">Enterprise.</span>
+                    Contact <span className="text-primary">Enterprise.</span>
                   </h3>
                   <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
                     Infrastructure & Scale Support
@@ -85,7 +87,9 @@ const ContactModal = ({ isOpen, onClose }) => {
                         type="text"
                         placeholder="John Doe"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:border-primary/50 transition-all dark:text-white"
                       />
                     </div>
@@ -105,7 +109,9 @@ const ContactModal = ({ isOpen, onClose }) => {
                         type="email"
                         placeholder="john@company.com"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:border-primary/50 transition-all dark:text-white"
                       />
                     </div>
@@ -125,7 +131,9 @@ const ContactModal = ({ isOpen, onClose }) => {
                         rows={4}
                         placeholder="How can we help your institution scale?"
                         value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, message: e.target.value })
+                        }
                         className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium outline-none focus:border-primary/50 transition-all dark:text-white resize-none"
                       />
                     </div>

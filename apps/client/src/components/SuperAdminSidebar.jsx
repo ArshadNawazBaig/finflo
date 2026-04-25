@@ -302,7 +302,7 @@ const NavItem = ({ to, icon, active, label, isExpanded, badge }) => (
 
     <span
       className={cn(
-        'transition-all duration-500 origin-left font-display text-[12px] font-semibold tracking-wide',
+        'transition-all duration-500 origin-left font-display text-[12px] font-black tracking-wide',
         isExpanded
           ? 'opacity-100 translate-x-0'
           : 'opacity-0 -translate-x-4 w-0 hidden',

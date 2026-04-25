@@ -449,7 +449,7 @@ const NavItem = ({
 
       <span
         className={cn(
-          'transition-all duration-500 origin-left font-display text-[13px] font-semibold tracking-wide',
+          'transition-all duration-500 origin-left font-display text-[13px] font-black tracking-wide',
           isExpanded
             ? 'opacity-100 translate-x-0'
             : 'opacity-0 -translate-x-4 w-0 hidden',
