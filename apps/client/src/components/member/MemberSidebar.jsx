@@ -40,7 +40,7 @@ const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
   return (
     <div className="px-4 pt-2 pb-2.5">
-      <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">
+      <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
         {label}
       </span>
     </div>
@@ -386,10 +386,10 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
 
               {isLayoutExpanded && (
                 <div className="flex flex-col items-start overflow-hidden">
-                  <span className="text-xs font-black tracking-tight truncate w-full text-left bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <span className="font-display text-[13px] font-bold tracking-tight truncate w-full text-left bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                     {capitalize(memberName)}
                   </span>
-                  <span className="text-[9px] font-black tracking-wide text-muted-foreground/60 truncate w-full text-left capitalize">
+                  <span className="font-display text-[11px] font-semibold tracking-wide text-muted-foreground/60 truncate w-full text-left capitalize">
                     {memberRole}
                   </span>
                 </div>
@@ -449,7 +449,7 @@ const NavItem = ({
 
       <span
         className={cn(
-          'transition-all duration-500 origin-left text-[12px] font-bold',
+          'transition-all duration-500 origin-left font-display text-[13px] font-semibold tracking-wide',
           isExpanded
             ? 'opacity-100 translate-x-0'
             : 'opacity-0 -translate-x-4 w-0 hidden',
