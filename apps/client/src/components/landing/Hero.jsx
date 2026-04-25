@@ -265,7 +265,7 @@ const Hero = () => {
               </h1>
               <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 font-normal max-w-xl leading-relaxed">
                 Enterprise-grade infrastructure to automate lending, manage
-                risk, and scale multi-branch operations — all from one platform.
+                risk, and scale multi-branch operations all from one platform.
               </p>
             </motion.div>
 
@@ -349,30 +349,6 @@ const Hero = () => {
                 delay={1.15}
                 color="amber"
               />
-            </motion.div>
-
-            {/* Trust Logos / Social Proof */}
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col gap-4 pt-2"
-            >
-              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
-                Trusted by leading institutions
-              </p>
-              <div className="flex items-center gap-8 sm:gap-10 opacity-40 dark:opacity-30 hover:opacity-60 dark:hover:opacity-50 transition-opacity duration-500">
-                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-                  NORTHSPEX
-                </span>
-                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-                  CALIBREON
-                </span>
-                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-                  MICRO LOANS
-                </span>
-                <span className="hidden sm:inline text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-                  APEX FUND
-                </span>
-              </div>
             </motion.div>
           </motion.div>
 

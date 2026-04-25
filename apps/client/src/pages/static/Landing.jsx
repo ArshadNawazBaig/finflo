@@ -14,6 +14,7 @@ import SEO from '@/components/SEO';
 import ContactModal from '@/components/landing/ContactModal';
 
 import Hero from '@/components/landing/Hero';
+const TrustedBy = lazy(() => import('@/components/landing/TrustedBy'));
 const Features = lazy(() => import('@/components/landing/Features'));
 const Stats = lazy(() => import('@/components/landing/Stats'));
 const Testimonials = lazy(() => import('@/components/landing/Testimonials'));
@@ -134,6 +135,7 @@ const Landing = () => {
       <Hero />
 
       <Suspense fallback={<SectionLoader />}>
+        <TrustedBy />
         <Features features={features} />
         <Stats />
         <Workbench />

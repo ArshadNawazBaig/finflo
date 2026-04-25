@@ -117,7 +117,7 @@ const Features = ({ features }) => {
                       <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
                         {feature.title}
                       </h3>
-                      <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
+                      <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed line-clamp-2">
                         {feature.description}
                       </p>
                     </div>
