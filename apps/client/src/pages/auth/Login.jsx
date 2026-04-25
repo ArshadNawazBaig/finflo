@@ -264,8 +264,8 @@ const Login = () => {
               {otpError}
             </div>
           )}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               Authenticator Code
             </label>
             <div className="relative group">
@@ -282,15 +282,14 @@ const Login = () => {
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                 required
                 autoFocus
-                className="w-full h-12 pl-11 pr-4 rounded-2xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium tracking-widest text-center"
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium tracking-widest text-center"
               />
             </div>
           </div>
           <Button
             type="submit"
             disabled={loading || otpCode.length < 6}
-            variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative"
+            className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative"
           >
             <span
               className={cn(
@@ -314,7 +313,7 @@ const Login = () => {
               setOtpCode('');
               setOtpError('');
             }}
-            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             ← Back to Login
           </button>
@@ -328,9 +327,9 @@ const Login = () => {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="email"
             >
               Email Address
@@ -343,7 +342,7 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -360,17 +359,17 @@ const Login = () => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center ml-1">
               <label
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                className="text-xs font-semibold text-slate-500 dark:text-slate-400"
                 htmlFor="password"
               >
                 Security Password
               </label>
               <Link
                 to="/forgot-password"
-                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 Forgot?
               </Link>
@@ -395,8 +394,7 @@ const Login = () => {
           <Button
             type="submit"
             disabled={loading}
-            variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative flex items-center justify-center"
+            className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
           >
             <span
               className={cn(
@@ -455,7 +453,7 @@ const Login = () => {
                           fill="#EA4335"
                         />
                       </svg>
-                      <span className="text-[11px] font-black uppercase tracking-widest text-foreground group-hover:text-primary transition-colors">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
                         Sign in with Google
                       </span>
                     </Button>
@@ -480,11 +478,11 @@ const Login = () => {
           </div>
 
           <div className="text-center pt-4">
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
               New to the platform?{' '}
               <Link
                 to="/register"
-                className="text-primary font-black hover:underline transition-all"
+                className="text-primary font-semibold hover:text-primary/80 transition-colors"
               >
                 Create Account
               </Link>

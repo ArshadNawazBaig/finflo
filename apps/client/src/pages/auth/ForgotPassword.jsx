@@ -62,9 +62,9 @@ const ForgotPassword = () => {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="email"
             >
               Email Address
@@ -77,7 +77,7 @@ const ForgotPassword = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -98,8 +98,7 @@ const ForgotPassword = () => {
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
-              className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
+              className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
             >
               <span
                 className={cn(
@@ -126,7 +125,7 @@ const ForgotPassword = () => {
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
+              className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               <ArrowLeft className="w-3 h-3" /> Back to Login
             </Link>
@@ -138,7 +137,7 @@ const ForgotPassword = () => {
         <div className="mt-8 text-center">
           <Link
             to="/login"
-            className="inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+            className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-3 h-3" /> Back to Sign In
           </Link>

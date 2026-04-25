@@ -79,9 +79,9 @@ const ResetPassword = () => {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="password"
             >
               New Password
@@ -107,9 +107,9 @@ const ResetPassword = () => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="confirmPassword"
             >
               Confirm Password
@@ -137,8 +137,7 @@ const ResetPassword = () => {
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
-              className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
+              className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
             >
               <span
                 className={cn(
@@ -166,7 +165,7 @@ const ResetPassword = () => {
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
+              className="inline-flex items-center justify-center gap-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               <ArrowLeft className="w-3 h-3" /> Back to Login
             </Link>

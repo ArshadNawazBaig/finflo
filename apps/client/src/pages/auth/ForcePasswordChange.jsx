@@ -98,16 +98,16 @@ const ForcePasswordChange = ({ isMember = false }) => {
         )}
 
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center ml-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 Security Code (from Email)
               </label>
               <button
                 type="button"
                 onClick={handleSendCode}
                 disabled={sendingCode}
-                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 disabled:opacity-50 transition-all"
+                className="text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50 transition-all"
               >
                 {sendingCode ? 'Sending...' : 'Send/Resend Code'}
               </button>
@@ -123,7 +123,7 @@ const ForcePasswordChange = ({ isMember = false }) => {
                 type="text"
                 placeholder="000000"
                 maxLength={6}
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-bold tracking-[0.2em] text-center"
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-bold tracking-[0.2em] text-center"
                 {...register('code', {
                   required: 'Security code is required',
                   minLength: { value: 6, message: 'Code must be 6 digits' },
@@ -146,8 +146,8 @@ const ForcePasswordChange = ({ isMember = false }) => {
 
           <hr className="border-border/50" />
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               New Password
             </label>
             <PasswordInput
@@ -173,8 +173,8 @@ const ForcePasswordChange = ({ isMember = false }) => {
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               Confirm New Password
             </label>
             <PasswordInput
@@ -202,8 +202,7 @@ const ForcePasswordChange = ({ isMember = false }) => {
         <Button
           type="submit"
           disabled={loading}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative overflow-hidden flex items-center justify-center"
+          className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
         >
           <span
             className={cn(

@@ -88,9 +88,9 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="code"
           >
             Verification Code
@@ -107,7 +107,7 @@ const VerifyEmail = () => {
               type="text"
               placeholder="123456"
               maxLength={6}
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-center text-xl font-black tracking-[0.5em]"
+              className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-center text-xl font-bold tracking-[0.5em]"
               {...register('code', {
                 required: 'Verification code is required',
                 minLength: { value: 6, message: 'Code must be 6 digits' },
@@ -129,8 +129,7 @@ const VerifyEmail = () => {
         <Button
           type="submit"
           disabled={isSubmitting}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
+          className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
         >
           <span
             className={cn(
@@ -153,7 +152,7 @@ const VerifyEmail = () => {
             type="button"
             onClick={handleResend}
             disabled={resending}
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 mx-auto disabled:opacity-50"
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 mx-auto disabled:opacity-50"
           >
             {resending ? (
               <Loader2 className="w-3 h-3 animate-spin" />
@@ -163,11 +162,11 @@ const VerifyEmail = () => {
             Resend Verification Code
           </button>
 
-          <p className="text-xs text-muted-foreground font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Entered wrong email?{' '}
             <Link
               to="/register"
-              className="text-primary font-black hover:underline transition-all"
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
             >
               Change Email
             </Link>

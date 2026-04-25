@@ -141,9 +141,9 @@ const Register = () => {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="name"
           >
             Full Name
@@ -156,7 +156,7 @@ const Register = () => {
               id="name"
               type="text"
               placeholder="John Doe"
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+              className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
               {...register('name', { required: 'Full name is required' })}
             />
           </div>
@@ -167,9 +167,9 @@ const Register = () => {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="email"
           >
             Email Address
@@ -182,7 +182,7 @@ const Register = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+              className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
               {...register('email', {
                 required: 'Email is required',
                 pattern: {
@@ -199,9 +199,9 @@ const Register = () => {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="password"
           >
             Security Password
@@ -230,8 +230,7 @@ const Register = () => {
         <Button
           type="submit"
           disabled={loading}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[11px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
+          className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
         >
           <span
             className={cn(
@@ -292,7 +291,7 @@ const Register = () => {
                           fill="#EA4335"
                         />
                       </svg>
-                      <span className="text-[11px] font-black uppercase tracking-widest text-foreground group-hover:text-primary transition-colors">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
                         Sign up with Google
                       </span>
                     </Button>
@@ -316,11 +315,11 @@ const Register = () => {
         </div>
 
         <div className="text-center pt-4">
-          <p className="text-sm text-muted-foreground font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Already have an account?{' '}
             <Link
               to="/login"
-              className="text-primary font-black hover:underline transition-all"
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
             >
               Sign In
             </Link>

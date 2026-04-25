@@ -304,8 +304,8 @@ const SelfRegister = () => {
       badge="Member Access Request"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
             Organization Security Code
           </label>
           <div className="relative group">
@@ -318,7 +318,7 @@ const SelfRegister = () => {
             <input
               type="text"
               placeholder="e.g. A1B2C3"
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
+              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest placeholder:normal-case placeholder:font-sans placeholder:tracking-normal placeholder:font-normal"
               {...register('securityCode', {
                 required: 'Security code is required.',
               })}
@@ -333,8 +333,8 @@ const SelfRegister = () => {
 
         {/* ... remaining form fields ... */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               Full Name
             </label>
             <div className="relative group">
@@ -347,7 +347,7 @@ const SelfRegister = () => {
               <input
                 type="text"
                 placeholder="John Doe"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('name', { required: 'Name is required' })}
               />
             </div>
@@ -358,8 +358,8 @@ const SelfRegister = () => {
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               CNIC / ID
             </label>
             <div className="relative group">
@@ -372,7 +372,7 @@ const SelfRegister = () => {
               <input
                 type="text"
                 placeholder="xxxxx-xxxxxxx-x"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('cnic', {
                   required: 'CNIC is required',
                   onChange: (e) => {
@@ -391,8 +391,8 @@ const SelfRegister = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               Phone Number
             </label>
             <div className="relative group">
@@ -405,7 +405,7 @@ const SelfRegister = () => {
               <input
                 type="tel"
                 placeholder="0300 0000000"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('phone', { required: 'Phone is required' })}
               />
             </div>
@@ -416,8 +416,8 @@ const SelfRegister = () => {
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
               Email Address
             </label>
             <div className="relative group">
@@ -430,7 +430,7 @@ const SelfRegister = () => {
               <input
                 type="email"
                 placeholder="mail@example.com"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   validate: (value) => {
@@ -448,8 +448,8 @@ const SelfRegister = () => {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
             Security Password
           </label>
           <PasswordInput
@@ -479,8 +479,7 @@ const SelfRegister = () => {
         <Button
           type="submit"
           disabled={isSubmitting}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10 flex items-center justify-center"
+          className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center mt-4"
         >
           <span className="flex items-center justify-center gap-2 transition-all duration-300">
             {isSubmitting ? (
@@ -500,11 +499,11 @@ const SelfRegister = () => {
 
       <div className="pt-6 border-t border-border space-y-4">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Already have an account?{' '}
             <Link
               to={`/member/login?code=${currentSecurityCode?.toUpperCase() || ''}`}
-              className="text-primary font-black hover:underline transition-all"
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
             >
               Sign In
             </Link>
