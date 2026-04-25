@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Quote, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 const reviews = [
   {
@@ -118,9 +118,9 @@ const Testimonials = () => {
 
   const variants = {
     enter: (direction) => ({
-      x: direction > 0 ? 1000 : -1000,
+      x: direction > 0 ? 300 : -300,
       opacity: 0,
-      scale: 0.5,
+      scale: 0.96,
     }),
     center: {
       zIndex: 1,
@@ -130,34 +130,42 @@ const Testimonials = () => {
     },
     exit: (direction) => ({
       zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
+      x: direction < 0 ? 300 : -300,
       opacity: 0,
-      scale: 0.5,
+      scale: 0.96,
     }),
   };
 
+  const review = reviews[currentIndex];
+
   return (
-    <section className="py-24 bg-white dark:bg-[#020617] relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-[100px]" />
-      </div>
+    <section className="py-28 lg:py-36 bg-slate-50/50 dark:bg-white/[0.01] relative overflow-hidden">
+      {/* Background accents */}
+      <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-violet-500/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16 space-y-5"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
             Trusted Voices
-          </h2>
-          <h3 className="text-4xl lg:text-[3.5rem] font-black tracking-tighter leading-none dark:text-white">
-            What our Users <br />
-            <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500">
-              Are Saying.
+          </p>
+          <h2 className="text-4xl lg:text-[3.5rem] font-extrabold tracking-[-0.035em] leading-[0.95] text-slate-900 dark:text-white">
+            What our users{' '}
+            <span className="text-gradient-primary">
+              are saying
             </span>
-          </h3>
-        </div>
+          </h2>
+        </motion.div>
 
-        <div className="relative max-w-4xl mx-auto h-[400px] flex items-center justify-center">
+        {/* Testimonial card */}
+        <div className="relative max-w-3xl mx-auto min-h-[340px] flex items-center justify-center">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={currentIndex}
@@ -167,43 +175,54 @@ const Testimonials = () => {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: 'spring', stiffness: 300, damping: 30 },
+                x: { type: 'spring', stiffness: 350, damping: 35 },
                 opacity: { duration: 0.2 },
+                scale: { duration: 0.3 },
               }}
               className="absolute w-full px-4"
             >
-              <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-xl backdrop-blur-sm relative">
-                <Quote className="absolute top-8 left-8 w-12 h-12 text-primary/10 rotate-180" />
+              <div className="relative bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-8 md:p-12 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-sm">
+                {/* Quote icon */}
+                <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10 rotate-180" />
 
                 <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-primary to-indigo-500">
+                  {/* Avatar */}
+                  <div className="w-16 h-16 rounded-full ring-2 ring-slate-100 dark:ring-white/10 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 overflow-hidden">
                     <img
-                      src={reviews[currentIndex].image}
-                      alt={reviews[currentIndex].name}
-                      className="w-full h-full rounded-full object-cover border-4 border-white dark:border-slate-900"
+                      src={review.image}
+                      alt={review.name}
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-center gap-1">
-                      {[...Array(reviews[currentIndex].rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-4 h-4 text-amber-500 fill-amber-500"
-                        />
-                      ))}
-                    </div>
-                    <p className="text-lg md:text-xl font-medium text-slate-700 dark:text-slate-300 leading-relaxed max-w-2xl">
-                      "{reviews[currentIndex].content}"
-                    </p>
+                  {/* Stars */}
+                  <div className="flex gap-0.5">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 text-amber-400 fill-amber-400"
+                      />
+                    ))}
+                    {[...Array(5 - review.rating)].map((_, i) => (
+                      <Star
+                        key={`empty-${i}`}
+                        className="w-4 h-4 text-slate-200 dark:text-slate-700"
+                      />
+                    ))}
                   </div>
 
-                  <div>
-                    <h4 className="text-lg font-black dark:text-white">
-                      {reviews[currentIndex].name}
+                  {/* Quote */}
+                  <p className="text-lg md:text-xl font-normal text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+                    "{review.content}"
+                  </p>
+
+                  {/* Author */}
+                  <div className="space-y-1">
+                    <h4 className="text-base font-semibold text-slate-900 dark:text-white">
+                      {review.name}
                     </h4>
-                    <p className="text-xs font-bold uppercase tracking-widest text-primary">
-                      {reviews[currentIndex].role}
+                    <p className="text-sm font-normal text-slate-400">
+                      {review.role}
                     </p>
                   </div>
                 </div>
@@ -211,22 +230,24 @@ const Testimonials = () => {
             </motion.div>
           </AnimatePresence>
 
+          {/* Navigation arrows */}
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 w-12 h-12 rounded-full bg-white dark:bg-white/10 shadow-lg flex items-center justify-center text-slate-900 dark:text-white hover:scale-110 transition-transform z-20"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 w-12 h-12 rounded-full bg-white dark:bg-white/10 shadow-lg flex items-center justify-center text-slate-900 dark:text-white hover:scale-110 transition-transform z-20"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex justify-center gap-2 mt-8">
+        {/* Dot indicators */}
+        <div className="flex justify-center gap-1.5 mt-10">
           {reviews.map((_, idx) => (
             <button
               key={idx}
@@ -234,10 +255,10 @@ const Testimonials = () => {
                 setDirection(idx > currentIndex ? 1 : -1);
                 setCurrentIndex(idx);
               }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-all duration-300 ${
                 idx === currentIndex
-                  ? 'w-8 bg-primary'
-                  : 'bg-slate-300 dark:bg-white/20 hover:bg-primary/50'
+                  ? 'w-6 bg-primary'
+                  : 'w-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20'
               }`}
             />
           ))}

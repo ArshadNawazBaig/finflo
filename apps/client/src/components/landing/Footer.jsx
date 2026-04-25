@@ -1,153 +1,189 @@
 import { Link } from 'react-router-dom';
 import { Globe, Users, Activity, Award } from 'lucide-react';
 import Logo from '@/components/Logo';
-import { getAppUrl, getLandingUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
+import {
+  getAppUrl,
+  getLandingUrl,
+  IS_LANDING_DOMAIN,
+  IS_DEV,
+} from '@/lib/constants';
 
 // On finflo.org, app routes need to cross-domain to app.finflo.org
 const FooterLink = ({ to, children, isAppRoute = false, ...props }) => {
   if (isAppRoute && IS_LANDING_DOMAIN && !IS_DEV) {
-    return <a href={getAppUrl(to)} {...props}>{children}</a>;
+    return (
+      <a href={getAppUrl(to)} {...props}>
+        {children}
+      </a>
+    );
   }
-  return <Link to={to} {...props}>{children}</Link>;
+  return (
+    <Link to={to} {...props}>
+      {children}
+    </Link>
+  );
 };
 
 const Footer = () => {
   return (
-    <footer className="py-24 bg-white dark:bg-[#020617] border-t border-slate-200 dark:border-white/5 px-6 relative z-10">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-16">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center gap-3">
-            <Logo showText={true} className="h-12" />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-sm">
-            The foundational operating layer for modern financial institutions.
-            Precision-engineered for global capital flow.
-          </p>
-          <div className="flex gap-4">
-            {[
-              { Icon: Globe, link: '#architecture', isApp: false },
-              { Icon: Users, link: '/join', isApp: true },
-              { Icon: Activity, link: '/documentation/api', isApp: false },
-              { Icon: Award, link: '/privacy', isApp: false },
-            ].map(({ Icon, link, isApp }, i) => {
-              const isAnchor = link.startsWith('#');
+    <footer className="pt-10 pb-8 lg:pt-16 bg-white dark:bg-[#020617] border-t border-slate-100 dark:border-white/[0.04] px-6 relative z-10">
+      <div className="max-w-7xl mx-auto">
+        {/* Main grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-16">
+          {/* Brand column */}
+          <div className="lg:col-span-2 space-y-6">
+            <Link
+              to="/"
+              className="inline-block hover:opacity-80 transition-opacity"
+            >
+              <Logo showText={true} className="h-10" />
+            </Link>
+            <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-sm">
+              The foundational operating layer for modern financial
+              institutions. Precision-engineered for global capital flow.
+            </p>
+            <div className="flex gap-2.5">
+              {[
+                { Icon: Globe, link: '#architecture', isApp: false },
+                { Icon: Users, link: '/join', isApp: true },
+                { Icon: Activity, link: '/documentation/api', isApp: false },
+                { Icon: Award, link: '/privacy', isApp: false },
+              ].map(({ Icon, link, isApp }, i) => {
+                const isAnchor = link.startsWith('#');
 
-              if (isAnchor) {
-                return (
-                  <a
-                    key={i}
-                    href={link}
-                    className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
-                  >
-                    <Icon size={20} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
-                  </a>
-                );
-              }
-
-              return (
-                <FooterLink
-                  key={i}
-                  to={link}
-                  isAppRoute={isApp}
-                  className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer group"
-                >
-                  <Icon size={20} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
-                </FooterLink>
-              );
-            })}
-          </div>
-        </div>
-
-        {[
-          {
-            title: 'Ecosystem',
-            items: [
-              'Ledger Core',
-              'Neural Underwriting',
-              'Neural Risks',
-              'API Gateway',
-            ],
-          },
-          {
-            title: 'Company',
-            items: [
-              // 'Nexus Infrastructure',
-              'Global Policy',
-              'Terms of Service',
-              // 'Security Layer',
-              // 'Partnerships',
-            ],
-          },
-          {
-            title: 'Support',
-            items: [
-              'Documentation',
-              'API Reference',
-              'Loan Lookup Portal',
-              'Member Console',
-              // 'Network Status',
-              // 'Careers',
-            ],
-          },
-        ].map((col, i) => (
-          <div key={i}>
-            <h5 className="text-[10px] font-black uppercase tracking-[0.4em] mb-10 text-slate-900 dark:text-slate-200">
-              {col.title}
-            </h5>
-            <ul className="space-y-6">
-              {col.items.map((item, j) => {
-                const linkMap = {
-                  'Ledger Core': '/documentation#architecture',
-                  'Neural Underwriting': '/documentation#architecture',
-                  'Neural Risks': '/documentation#architecture',
-                  'API Gateway': '/documentation/api',
-                  'Global Policy': '/privacy',
-                  'Terms of Service': '/terms',
-                  'Loan Lookup Portal': '/loan-lookup',
-                  'Member Console': '/member/login',
-                  Documentation: '/documentation',
-                  'API Reference': '/documentation/api',
-                };
-                const path = linkMap[item];
-                const isAppLink = [
-                  'Member Console',
-                  'Loan Lookup Portal',
-                ].includes(item);
-
-                if (path) {
+                if (isAnchor) {
                   return (
-                    <li key={j} className="w-fit">
-                      <FooterLink
-                        to={path}
-                        isAppRoute={isAppLink}
-                        className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group block"
-                      >
-                        {item}
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-                      </FooterLink>
-                    </li>
+                    <a
+                      key={i}
+                      href={link}
+                      className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/20 dark:hover:border-primary/20 transition-all group"
+                    >
+                      <Icon
+                        size={17}
+                        strokeWidth={2}
+                        className="group-hover:scale-110 transition-transform"
+                      />
+                    </a>
                   );
                 }
 
                 return (
-                  <li
-                    key={j}
-                    className="text-sm font-black text-slate-500 hover:text-primary transition-colors cursor-pointer relative group w-fit"
+                  <FooterLink
+                    key={i}
+                    to={link}
+                    isAppRoute={isApp}
+                    className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/20 dark:hover:border-primary/20 transition-all group"
                   >
-                    {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-                  </li>
+                    <Icon
+                      size={17}
+                      strokeWidth={2}
+                      className="group-hover:scale-110 transition-transform"
+                    />
+                  </FooterLink>
                 );
               })}
-            </ul>
+            </div>
           </div>
-        ))}
-      </div>
-      <div className="max-w-7xl mx-auto mt-32 pt-12 border-t border-slate-200 dark:border-white/5 text-center">
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.6em] opacity-60">
-          © 2026 FINFLO INFRASTRUCTURE. OPERATING AT GLOBAL SCALE. ALL DATA
-          CRYPTOGRAPHICALLY SECURED.
-        </p>
+
+          {/* Link columns */}
+          {[
+            {
+              title: 'Ecosystem',
+              items: [
+                'Ledger Core',
+                'Neural Underwriting',
+                'Neural Risks',
+                'API Gateway',
+              ],
+            },
+            {
+              title: 'Company',
+              items: ['Global Policy', 'Terms of Service'],
+            },
+            {
+              title: 'Support',
+              items: [
+                'Documentation',
+                'API Reference',
+                'Loan Lookup Portal',
+                'Member Console',
+              ],
+            },
+          ].map((col, i) => (
+            <div key={i}>
+              <h5 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-8 text-slate-900 dark:text-slate-200">
+                {col.title}
+              </h5>
+              <ul className="space-y-4">
+                {col.items.map((item, j) => {
+                  const linkMap = {
+                    'Ledger Core': '/documentation#architecture',
+                    'Neural Underwriting': '/documentation#architecture',
+                    'Neural Risks': '/documentation#architecture',
+                    'API Gateway': '/documentation/api',
+                    'Global Policy': '/privacy',
+                    'Terms of Service': '/terms',
+                    'Loan Lookup Portal': '/loan-lookup',
+                    'Member Console': '/member/login',
+                    Documentation: '/documentation',
+                    'API Reference': '/documentation/api',
+                  };
+                  const path = linkMap[item];
+                  const isAppLink = [
+                    'Member Console',
+                    'Loan Lookup Portal',
+                  ].includes(item);
+
+                  if (path) {
+                    return (
+                      <li key={j} className="w-fit">
+                        <FooterLink
+                          to={path}
+                          isAppRoute={isAppLink}
+                          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium relative group block"
+                        >
+                          {item}
+                          <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
+                        </FooterLink>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li
+                      key={j}
+                      className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer font-medium relative group w-fit block"
+                    >
+                      {item}
+                      <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-20 pt-8 border-t border-slate-100 dark:border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+            © 2026 Finflo. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <Link
+              to="/privacy"
+              className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors font-normal"
+            >
+              Privacy
+            </Link>
+            <Link
+              to="/terms"
+              className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors font-normal"
+            >
+              Terms
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

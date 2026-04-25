@@ -28,8 +28,8 @@ import Footer from '@/components/landing/Footer';
 
 // Lightweight Loading Fallback
 const SectionLoader = () => (
-  <div className="h-96 w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900/10">
-    <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+  <div className="h-64 w-full flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
   </div>
 );
 
@@ -110,10 +110,10 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-foreground selection:bg-primary/20 overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-white dark:bg-[#020617] text-foreground selection:bg-primary/20 overflow-x-hidden font-sans">
       <SEO
-        title="Scale Your Lending Empire"
-        description="finflo - The ultimate cloud-native finance management system for global financial institutions. Automate lending, risk, and multi-branch operations."
+        title="FinFlo — The Operating System for Lending"
+        description="Enterprise-grade infrastructure to automate lending, manage risk, and scale multi-branch operations. Trusted by leading financial institutions worldwide."
         keywords="finflo, banking operating system, lending automation, credit risk scoring, multi-branch banking, financial infrastructure, white-label banking, fintech, financial software, loan management, digital banking"
         canonical="/"
       />
@@ -122,12 +122,6 @@ const Landing = () => {
       <script type="application/ld+json">
         {JSON.stringify(structuredData)}
       </script>
-
-      {/* Dynamic Background Elements */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-500/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-indigo-500/10 dark:bg-indigo-600/5 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
-      </div>
 
       <Navigation
         scrollY={scrollY}

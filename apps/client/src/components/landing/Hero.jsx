@@ -1,109 +1,399 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  useSpring,
+  AnimatePresence,
+} from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  Play,
+  Globe,
+  TrendingUp,
+  Shield,
+  Zap,
+  ChevronRight,
+} from 'lucide-react';
 import LoanCalculator from './LoanCalculator';
 import { getAppUrl, IS_LANDING_DOMAIN, IS_DEV } from '@/lib/constants';
 
-const Hero = () => {
+// Animated counter component
+const AnimatedCounter = ({
+  target,
+  suffix = '',
+  prefix = '',
+  duration = 2,
+}) => {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          let start = 0;
+          const end = target;
+          const incrementTime = (duration * 1000) / end;
+          const step = Math.max(1, Math.floor(end / 60));
+
+          const timer = setInterval(() => {
+            start += step;
+            if (start >= end) {
+              setCount(end);
+              clearInterval(timer);
+            } else {
+              setCount(start);
+            }
+          }, incrementTime * step);
+
+          return () => clearInterval(timer);
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration, hasAnimated]);
+
   return (
-    <section className="relative min-h-screen flex items-center py-36 lg:py-0 px-6 overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full lg:pt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          <div className="lg:col-span-7 space-y-8 text-left flex flex-col items-start">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-4"
-            >
-              <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em]">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
+    <span ref={ref}>
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
+    </span>
+  );
+};
+
+// Floating metric card
+const MetricCard = ({ icon: Icon, label, value, delay, color }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ delay, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+    className="group relative"
+  >
+    <div
+      className={`
+      relative overflow-hidden rounded-2xl
+      bg-white/60 dark:bg-white/[0.04] backdrop-blur-2xl
+      border border-white/80 dark:border-white/[0.06]
+      px-3 py-3 
+      shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)]
+      dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)]
+      hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)]
+      dark:hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]
+      transition-all duration-500 hover:-translate-y-0.5
+    `}
+    >
+      {/* Subtle shimmer on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[200%] duration-1000" />
+
+      <div className="flex items-center gap-2.5">
+        <div
+          className={`
+          w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+          ${color === 'blue' ? 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/15 dark:text-blue-400' : ''}
+          ${color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/15 dark:text-emerald-400' : ''}
+          ${color === 'violet' ? 'bg-violet-500/10 text-violet-500 dark:bg-violet-500/15 dark:text-violet-400' : ''}
+          ${color === 'amber' ? 'bg-amber-500/10 text-amber-500 dark:bg-amber-500/15 dark:text-amber-400' : ''}
+        `}
+        >
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] leading-none mb-1">
+            {label}
+          </p>
+          <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+            {value}
+          </p>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
+// Animated gradient orb
+const GradientOrb = ({ className, delay = 0 }) => (
+  <motion.div
+    className={`absolute rounded-full blur-[100px] opacity-30 dark:opacity-20 ${className}`}
+    animate={{
+      scale: [1, 1.2, 1],
+      x: [0, 30, -20, 0],
+      y: [0, -20, 10, 0],
+    }}
+    transition={{
+      duration: 20,
+      repeat: Infinity,
+      delay,
+      ease: 'easeInOut',
+    }}
+  />
+);
+
+const Hero = () => {
+  const [activeWord, setActiveWord] = useState(0);
+  const words = ['Lending', 'Banking', 'Finance'];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveWord((prev) => (prev + 1) % words.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Stagger animation orchestration
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+    },
+  };
+
+  return (
+    <section className="relative min-h-screen flex items-center pt-32 pb-20 lg:pt-0 lg:pb-0 px-6 overflow-hidden">
+      {/* === PREMIUM BACKGROUND SYSTEM === */}
+
+      {/* Gradient mesh */}
+      <div className="absolute inset-0 z-0">
+        <GradientOrb
+          className="w-[600px] h-[600px] bg-indigo-400 dark:bg-indigo-600 top-[-10%] left-[-5%]"
+          delay={0}
+        />
+        <GradientOrb
+          className="w-[500px] h-[500px] bg-violet-400 dark:bg-violet-600 top-[20%] right-[-10%]"
+          delay={5}
+        />
+        <GradientOrb
+          className="w-[400px] h-[400px] bg-cyan-300 dark:bg-cyan-600 bottom-[0%] left-[30%]"
+          delay={10}
+        />
+      </div>
+
+      {/* Subtle dot grid overlay */}
+      <div
+        className="absolute inset-0 z-[1] opacity-[0.03] dark:opacity-[0.04]"
+        style={{
+          backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      {/* Top gradient fade (for nav blend) */}
+      <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-slate-50 dark:from-[#020617] to-transparent z-[2]" />
+
+      {/* === MAIN CONTENT === */}
+      <div className="max-w-7xl mx-auto w-full relative z-10 lg:pt-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-10 items-center">
+          {/* LEFT COLUMN — Content */}
+          <motion.div
+            className="lg:col-span-7 space-y-10 text-left flex flex-col items-start"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Eyebrow / Announcement Badge */}
+            <motion.div variants={itemVariants}>
+              <div className="inline-flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 rounded-full bg-white/70 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] backdrop-blur-xl shadow-sm">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                  </span>
+                  New
                 </span>
-                Banking Engine 3.0: Atomic & Redundant
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Atomic Engine 3.0 is live
+                </span>
+                <ChevronRight size={12} className="text-slate-400" />
               </div>
-              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter leading-[0.9] text-slate-900 dark:text-white">
-                Scale Your <br />
-                <span className="text-primary italic">Lending Empire.</span>
+            </motion.div>
+
+            {/* Hero Headline */}
+            <motion.div variants={itemVariants} className="space-y-5">
+              <h1 className="text-[3.2rem] sm:text-6xl md:text-7xl lg:text-[5.2rem] font-extrabold tracking-[-0.035em] leading-[0.92] text-slate-900 dark:text-white">
+                The operating <br className="hidden sm:block" />
+                system for <br className="hidden sm:block" />
+                <span className="relative inline-block">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={activeWord}
+                      initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      exit={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className="text-gradient-primary"
+                    >
+                      {words[activeWord]}
+                    </motion.span>
+                  </AnimatePresence>
+                  {/* Underline accent */}
+                  <svg
+                    className="absolute -bottom-2 left-0 w-full"
+                    viewBox="0 0 200 8"
+                    fill="none"
+                  >
+                    <motion.path
+                      d="M2 5.5C20 2.5 60 1 100 3.5C140 6 180 4 198 2"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 0.4 }}
+                      transition={{ delay: 1, duration: 1, ease: 'easeOut' }}
+                    />
+                  </svg>
+                </span>
               </h1>
-              <p className="text-base text-slate-600 dark:text-slate-400 font-medium max-w-lg leading-relaxed">
-                The world's most sophisticated lending operating system. Now
-                powered by <strong className="text-slate-900 dark:text-white">Atomic Idempotent Operations</strong> for 100% financial
-                integrity and full <strong className="text-slate-900 dark:text-white">White-Label Custom Branding</strong>.
+              <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 font-normal max-w-xl leading-relaxed">
+                Enterprise-grade infrastructure to automate lending, manage
+                risk, and scale multi-branch operations — all from one platform.
               </p>
             </motion.div>
 
+            {/* CTA Buttons */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-start"
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto"
             >
-              {(IS_LANDING_DOMAIN && !IS_DEV) ? (
+              {IS_LANDING_DOMAIN && !IS_DEV ? (
                 <a
                   href={getAppUrl('/register')}
-                  className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
+                  className="group relative inline-flex items-center justify-center gap-2.5 bg-primary text-white px-8 py-4 rounded-[14px] font-semibold text-sm shadow-[0_1px_2px_rgba(0,0,0,0.05),0_16px_40px_-8px_rgba(var(--primary),0.35)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_20px_50px_-10px_rgba(var(--primary),0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
                 >
-                  Start Evolution Now
-                  <ArrowRight size={16} />
+                  Get started free
+                  <ArrowRight
+                    size={16}
+                    className="group-hover:translate-x-1 transition-transform duration-300"
+                  />
                 </a>
               ) : (
                 <Link
                   to="/register"
-                  className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-black uppercase tracking-widest shadow-[0_20px_40px_-10px_rgba(var(--primary),0.4)] hover:shadow-[0_25px_50px_-12px_rgba(var(--primary),0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 active:scale-95 text-xs"
+                  className="group relative inline-flex items-center justify-center gap-2.5 bg-primary text-white px-8 py-4 rounded-[14px] font-semibold text-sm shadow-[0_1px_2px_rgba(0,0,0,0.05),0_16px_40px_-8px_rgba(var(--primary),0.35)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_20px_50px_-10px_rgba(var(--primary),0.45)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
                 >
-                  Start Evolution Now
-                  <ArrowRight size={16} />
+                  Get started free
+                  <ArrowRight
+                    size={16}
+                    className="group-hover:translate-x-1 transition-transform duration-300"
+                  />
                 </Link>
               )}
-              {(IS_LANDING_DOMAIN && !IS_DEV) ? (
+              {IS_LANDING_DOMAIN && !IS_DEV ? (
                 <a
                   href={getAppUrl('/documentation')}
-                  className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
+                  className="group inline-flex items-center justify-center gap-2.5 bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 px-8 py-4 rounded-[14px] font-semibold text-sm shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-white/15 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 backdrop-blur-xl"
                 >
-                  Read Technical Docs
+                  <Play size={14} className="text-primary" />
+                  View documentation
                 </a>
               ) : (
                 <Link
                   to="/documentation"
-                  className="bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all active:scale-95 text-xs shadow-lg dark:text-white flex items-center justify-center"
+                  className="group inline-flex items-center justify-center gap-2.5 bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 px-8 py-4 rounded-[14px] font-semibold text-sm shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-white/15 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 backdrop-blur-xl"
                 >
-                  Read Technical Docs
+                  <Play size={14} className="text-primary" />
+                  View documentation
                 </Link>
               )}
             </motion.div>
 
+            {/* Metrics Row */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="flex items-center justify-center md:justify-start gap-6 pt-6 opacity-60 grayscale hover:grayscale-0 transition-all w-full"
+              variants={itemVariants}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl"
             >
-              <div className="flex flex-col items-center text-center md:text-left md:items-start">
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-3">
-                  Our Subsidiaries
+              <MetricCard
+                icon={Globe}
+                label="Uptime"
+                value="99.99%"
+                delay={0.7}
+                color="blue"
+              />
+              <MetricCard
+                icon={TrendingUp}
+                label="Processed"
+                value="$2.4B+"
+                delay={0.85}
+                color="emerald"
+              />
+              <MetricCard
+                icon={Shield}
+                label="Security"
+                value="Bank-Grade"
+                delay={1.0}
+                color="violet"
+              />
+              <MetricCard
+                icon={Zap}
+                label="Latency"
+                value="<50ms"
+                delay={1.15}
+                color="amber"
+              />
+            </motion.div>
+
+            {/* Trust Logos / Social Proof */}
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col gap-4 pt-2"
+            >
+              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                Trusted by leading institutions
+              </p>
+              <div className="flex items-center gap-8 sm:gap-10 opacity-40 dark:opacity-30 hover:opacity-60 dark:hover:opacity-50 transition-opacity duration-500">
+                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                  NORTHSPEX
                 </span>
-                <div className="flex gap-12 items-center overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
-                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white uppercase">
-                    NORTHSPEX
-                  </span>
-                  <span className="text-lg font-black italic tracking-tighter text-slate-900 dark:text-white uppercase">
-                    CALIBREON
-                  </span>
-                  <span className="text-lg font-black italic text-slate-900 dark:text-white uppercase">
-                    MICRO LOANS.
-                  </span>
-                </div>
+                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                  CALIBREON
+                </span>
+                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                  MICRO LOANS
+                </span>
+                <span className="hidden sm:inline text-base font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
+                  APEX FUND
+                </span>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
 
+          {/* RIGHT COLUMN — Loan Calculator */}
           <div className="lg:col-span-5 relative w-full flex items-center justify-center">
+            {/* Decorative ring behind calculator */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <motion.div
+                className="w-[120%] h-[120%] rounded-full border border-slate-200/30 dark:border-white/[0.03]"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 1.5, ease: 'easeOut' }}
+              />
+            </div>
             <LoanCalculator />
           </div>
         </div>
       </div>
+
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 dark:from-[#020617] to-transparent z-[2]" />
     </section>
   );
 };

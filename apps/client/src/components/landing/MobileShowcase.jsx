@@ -1,57 +1,109 @@
 import { motion } from 'framer-motion';
-import { Smartphone, Activity } from 'lucide-react';
+import { Smartphone, Activity, Wifi, Bell } from 'lucide-react';
+
+const capabilities = [
+  {
+    icon: Smartphone,
+    title: 'Native Performance',
+    description: 'Buttery-smooth 60fps on every device',
+    color: 'text-primary bg-primary/10',
+  },
+  {
+    icon: Activity,
+    title: 'Real-Time Sync',
+    description: 'Live WebSocket-driven updates',
+    color: 'text-emerald-500 bg-emerald-500/10',
+  },
+  {
+    icon: Wifi,
+    title: 'Offline Ready',
+    description: 'Full functionality without connection',
+    color: 'text-violet-500 bg-violet-500/10',
+  },
+  {
+    icon: Bell,
+    title: 'Push Alerts',
+    description: 'Instant notification delivery',
+    color: 'text-amber-500 bg-amber-500/10',
+  },
+];
 
 const MobileShowcase = () => {
   return (
-    <section className="py-24 px-6 bg-slate-50 dark:bg-[#04081d] relative">
+    <section className="py-28 lg:py-36 px-6 bg-white dark:bg-[#020617] relative overflow-hidden">
+      {/* Background accent */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/[0.04] rounded-full blur-[120px] pointer-events-none" />
+
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="relative group">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-indigo-500/10 rounded-full blur-[100px]" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+          {/* Phone mockup */}
+          <div className="relative group order-2 lg:order-1">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-primary/[0.06] rounded-full blur-[80px] group-hover:bg-primary/[0.1] transition-colors duration-700" />
             <motion.div
-              initial={{ opacity: 0, rotateY: 20 }}
-              whileInView={{ opacity: 1, rotateY: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="relative z-10"
             >
               <img
                 src="https://res.cloudinary.com/dzfcf4sqf/image/upload/q_auto/f_auto/v1775537326/Group_7_rmltxb.png"
                 alt="Mobile Analytics"
                 loading="lazy"
-                className="w-full max-w-[320px] mx-auto rotate-[-5deg] hover:rotate-0 transition-transform duration-700"
+                className="w-full max-w-[300px] mx-auto transition-transform duration-700 group-hover:scale-[1.03]"
               />
             </motion.div>
           </div>
-          <div className="space-y-8">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">
-              Seamless Mobility
-            </h2>
-            <h3 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none dark:text-white">
-              The Member <br />{' '}
-              <span className="italic text-indigo-500">Ecosystem.</span>
-            </h3>
-            <p className="text-lg text-slate-500 font-medium leading-relaxed">
-              Financial autonomy for every borrower and investor. Our mobile
-              portal delivers real-time portfolio tracking, P2P fund transfers,
-              and sub-second loan requests with high-performance infinite scroll
-              for an uninterrupted experience.
-            </p>
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
-                <Smartphone className="w-6 h-6 text-primary mb-3" />
-                <p className="font-black text-xs uppercase tracking-widest dark:text-white">
-                  Native Performance
-                </p>
-              </div>
-              <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
-                <Activity className="w-6 h-6 text-emerald-500 mb-3" />
-                <p className="font-black text-xs uppercase tracking-widest dark:text-white">
-                  Real-Time Sync
-                </p>
-              </div>
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8 order-1 lg:order-2"
+          >
+            <div className="space-y-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+                Seamless Mobility
+              </p>
+              <h2 className="text-4xl lg:text-[3.5rem] font-extrabold tracking-[-0.035em] leading-[0.95] text-slate-900 dark:text-white">
+                The member{' '}
+                <span className="text-gradient-primary">
+                  ecosystem
+                </span>
+              </h2>
+              <p className="text-lg text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-lg">
+                Financial autonomy for every borrower and investor. Real-time
+                portfolio tracking, P2P fund transfers, and sub-second loan
+                requests with infinite scroll.
+              </p>
             </div>
-          </div>
+
+            {/* Capability cards */}
+            <div className="grid grid-cols-2 gap-3">
+              {capabilities.map((cap, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.08, duration: 0.5 }}
+                  className="group/card p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05] hover:border-slate-200 dark:hover:border-white/[0.1] hover:shadow-sm transition-all duration-300"
+                >
+                  <div className={`w-8 h-8 rounded-lg ${cap.color} flex items-center justify-center mb-3`}>
+                    <cap.icon size={15} strokeWidth={2.5} />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5">
+                    {cap.title}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+                    {cap.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

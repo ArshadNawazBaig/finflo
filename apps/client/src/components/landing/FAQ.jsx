@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Plus, Minus, HelpCircle } from 'lucide-react';
+import { Plus, Minus, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import useSystemSettings from '@/hooks/useSystemSettings';
 
@@ -36,61 +36,63 @@ const faqData = [
 const FAQItem = ({ question, answer, isOpen, onClick, index }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className={cn(
-        'group mb-4 rounded-3xl border transition-all duration-500 overflow-hidden',
-        isOpen
-          ? 'bg-white dark:bg-slate-900 border-primary shadow-[0_20px_50px_rgba(99,102,241,0.1)]'
-          : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-white/5 hover:border-primary/30',
-      )}
+      transition={{ delay: index * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      <button
-        onClick={onClick}
-        className="w-full flex items-center justify-between p-6 md:p-8 text-left"
+      <div
+        className={cn(
+          'rounded-xl border transition-all duration-300 overflow-hidden',
+          isOpen
+            ? 'bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.08] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]'
+            : 'bg-transparent border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08]',
+        )}
       >
-        <div className="flex items-center gap-4">
-          <div
+        <button
+          onClick={onClick}
+          className="w-full flex items-center justify-between p-5 md:p-6 text-left gap-4"
+        >
+          <span
             className={cn(
-              'min-w-10 min-h-10 rounded-xl flex items-center justify-center transition-colors duration-500',
-              isOpen ? 'bg-primary text-white' : 'bg-primary/10 text-primary',
+              'text-base md:text-[17px] font-medium tracking-tight transition-colors',
+              isOpen
+                ? 'text-slate-900 dark:text-white'
+                : 'text-slate-600 dark:text-slate-300',
             )}
           >
-            <HelpCircle size={20} />
-          </div>
-          <span className="text-lg md:text-xl font-black tracking-tight dark:text-white">
             {question}
           </span>
-        </div>
-        <div
-          className={cn(
-            'w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 transition-transform duration-500',
-            isOpen && 'rotate-180 bg-primary/20 text-primary',
-          )}
-        >
-          {isOpen ? <Minus size={16} /> : <Plus size={16} />}
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+          <div
+            className={cn(
+              'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300',
+              isOpen
+                ? 'bg-primary/10 text-primary rotate-0'
+                : 'bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500',
+            )}
           >
-            <div className="px-6 md:px-8 pb-8 pt-0">
-              <div className="h-px w-full bg-slate-100 dark:bg-white/5 mb-6" />
-              <p className="text-base md:text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-3xl">
-                {answer}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {isOpen ? <Minus size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="px-5 md:px-6 pb-5 md:pb-6 pt-0">
+                <div className="h-px w-full bg-slate-100 dark:bg-white/[0.04] mb-4" />
+                <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
+                  {answer}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
@@ -103,28 +105,38 @@ const FAQ = ({ onContactClick }) => {
   return (
     <section
       id="faq"
-      className="py-24 bg-white dark:bg-slate-900/10 px-6 relative overflow-hidden"
+      className="py-28 lg:py-36 bg-slate-50/50 dark:bg-white/[0.01] px-6 relative overflow-hidden"
     >
-      {/* Decorative Orbs */}
-      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 translate-x-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background accents */}
+      <div className="absolute top-1/3 left-0 w-[300px] h-[300px] bg-primary/[0.03] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-0 w-[300px] h-[300px] bg-violet-500/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">
+      <div className="max-w-3xl mx-auto relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16 space-y-5"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
             Support Center
+          </p>
+          <h2 className="text-4xl lg:text-[3.5rem] font-extrabold tracking-[-0.035em] leading-[0.95] text-slate-900 dark:text-white">
+            Frequently asked{' '}
+            <span className="text-gradient-primary">
+              questions
+            </span>
           </h2>
-          <h3 className="text-4xl lg:text-[4rem] leading-[0.9] font-black tracking-tighter dark:text-white">
-            Commonly{' '}
-            <span className="text-primary italic">Asked Questions.</span>
-          </h3>
-          <p className="text-base text-slate-500 font-medium max-w-lg mx-auto">
+          <p className="text-lg text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-lg mx-auto">
             Everything you need to know about the platform and how we ensure
             your institution's success.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="space-y-4">
+        {/* FAQ Items */}
+        <div className="space-y-3">
           {faqData.map((faq, index) => (
             <FAQItem
               key={index}
@@ -137,22 +149,31 @@ const FAQ = ({ onContactClick }) => {
           ))}
         </div>
 
+        {/* Bottom CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 p-8 rounded-[3rem] bg-gradient-to-br from-primary to-indigo-600 text-white text-center shadow-2xl shadow-primary/20"
+          className="mt-14 p-8 rounded-2xl bg-slate-900 dark:bg-white/[0.03] border border-slate-800 dark:border-white/[0.06] text-center relative overflow-hidden"
         >
-          <h4 className="text-2xl font-black mb-2">Still have questions?</h4>
-          <p className="text-white/80 font-medium mb-6">
-            Find all the answers you need in our comprehensive FAQ section.
-          </p>
-          <Link
-            to="/faq"
-            className="inline-block px-8 py-4 bg-white text-primary rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform"
-          >
-            Go To FAQ
-          </Link>
+          {/* Subtle gradient */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.1),transparent_70%)]" />
+
+          <div className="relative z-10 space-y-4">
+            <h3 className="text-xl font-semibold text-white">
+              Still have questions?
+            </h3>
+            <p className="text-slate-400 font-normal text-[15px]">
+              Our team is ready to help you get started.
+            </p>
+            <Link
+              to="/faq"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-xl font-medium text-sm hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 group"
+            >
+              View all FAQs
+              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
         </motion.div>
       </div>
     </section>

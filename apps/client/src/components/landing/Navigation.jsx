@@ -82,15 +82,15 @@ const Navigation = ({
           isMobile
             ? 'top-12 px-4'
             : scrollY > 30
-              ? 'top-0 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 shadow-xl'
-              : 'top-0 py-8',
+              ? 'top-0 py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+              : 'top-0 py-6',
         )}
       >
         <div
           className={cn(
             'transition-all duration-500 flex items-center justify-between w-full max-w-7xl mx-auto px-6 sm:px-4 xl:px-2 2xl:px-0',
             isMobile &&
-              'w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-4 shadow-[0_8px_32px_rgba(0,0,0,0.15)]',
+              'w-[92%] max-w-sm mx-auto bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border border-slate-200/60 dark:border-white/[0.06] rounded-full py-1.5 px-4 shadow-[0_4px_20px_rgba(0,0,0,0.08)]',
           )}
         >
           <Link
@@ -103,15 +103,15 @@ const Navigation = ({
             />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-8">
             {['Architecture', 'The Workbench', 'Scale'].map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-[12px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-primary transition-all relative group"
+                className="text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group"
               >
                 {item}
-                <span className="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+                <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
               </a>
             ))}
           </div>
@@ -119,22 +119,22 @@ const Navigation = ({
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-200/50 dark:bg-white/5 hover:bg-primary/10 transition-colors text-slate-600 dark:text-slate-400"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors text-slate-500 dark:text-slate-400"
             >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
             <div className="hidden sm:flex items-center gap-3">
               {isLoggedIn ? (
                 <>
                   <AppLink
                     to={isBusinessLoggedIn ? "/dashboard" : "/member/dashboard"}
-                    className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors"
+                    className="text-[13px] font-medium px-4 py-2 hover:text-primary transition-colors"
                   >
                     Dashboard
                   </AppLink>
                   <AppLink
                     to={isBusinessLoggedIn ? "/join" : "/register"}
-                    className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
+                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
                   >
                     {isBusinessLoggedIn ? "Member Console" : "Business Console"}
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -148,7 +148,7 @@ const Navigation = ({
                         setIsLoginMenuOpen(!isLoginMenuOpen);
                         setIsJoinMenuOpen(false);
                       }}
-                      className="text-[12px] font-black uppercase tracking-widest px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
+                      className="text-[13px] font-medium px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
                     >
                       Login
                       <ChevronRight
@@ -162,7 +162,7 @@ const Navigation = ({
                     </button>
                     <div
                       className={cn(
-                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl',
+                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] rounded-xl shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-[110] backdrop-blur-xl',
                         'transition-all duration-150 origin-top-right',
                         isLoginMenuOpen
                           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
@@ -213,7 +213,7 @@ const Navigation = ({
                         setIsJoinMenuOpen(!isJoinMenuOpen);
                         setIsLoginMenuOpen(false);
                       }}
-                      className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-[12px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105 transition-all active:scale-95 flex items-center gap-2 group"
+                      className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
                     >
                       Join
                       <ChevronRight
@@ -227,7 +227,7 @@ const Navigation = ({
                     </button>
                     <div
                       className={cn(
-                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[110] backdrop-blur-xl',
+                        'absolute right-0 mt-2 w-56 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] rounded-xl shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] overflow-hidden z-[110] backdrop-blur-xl',
                         'transition-all duration-150 origin-top-right',
                         isJoinMenuOpen
                           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
