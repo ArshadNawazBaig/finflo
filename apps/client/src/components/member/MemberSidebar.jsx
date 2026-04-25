@@ -138,7 +138,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
     'h-screen h-[100dvh] flex flex-col items-center bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[50] transition-[transform,width,padding] duration-300 ease-in-out z-[101]',
     // Mobile specific classes
     isMobile
-      ? `w-3/5 items-start px-4 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
+      ? `w-full items-start px-4 transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : // Desktop specific classes
         isExpanded
         ? 'w-64 items-start'

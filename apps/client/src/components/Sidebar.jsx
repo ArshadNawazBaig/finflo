@@ -117,7 +117,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
   const sidebarClasses = cn(
     'h-screen h-[100dvh] flex flex-col items-center bg-card/95 backdrop-blur-xl border-r border-border/50 fixed top-0 left-0 z-[101] transition-[transform,width,padding] duration-300 ease-in-out',
     isMobile
-      ? `w-3/5 items-start transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
+      ? `w-full items-start transform ${isExpanded ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`
       : isExpanded
         ? 'w-64 items-start'
         : 'w-[70px] items-center',
