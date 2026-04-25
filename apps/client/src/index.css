@@ -82,6 +82,7 @@
   #root {
     @apply h-full w-full bg-background text-foreground font-sans;
     font-weight: 400;
+    scroll-behavior: smooth;
   }
   /* Cap font-black (900) down to bold (700) for a lighter feel */
   .font-black {
@@ -204,7 +205,8 @@
 }
 
 @keyframes hero-shimmer {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
@@ -287,6 +289,12 @@
   color: white !important;
 }
 
-.recharts-wrapper { outline: none !important; }
-.recharts-wrapper:focus { outline: none !important; }
-.recharts-surface { outline: none !important; }
+.recharts-wrapper {
+  outline: none !important;
+}
+.recharts-wrapper:focus {
+  outline: none !important;
+}
+.recharts-surface {
+  outline: none !important;
+}
