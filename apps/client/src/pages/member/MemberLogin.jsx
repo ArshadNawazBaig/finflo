@@ -275,7 +275,7 @@ const MemberLogin = () => {
                 onChange={(e) => setOtpCode(e.target.value)}
                 required
                 autoFocus
-                className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-mono tracking-[0.5em] text-center"
+                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-mono tracking-[0.5em] text-center"
               />
             </div>
           </div>
@@ -284,8 +284,7 @@ const MemberLogin = () => {
             type="submit"
             isLoading={loading}
             disabled={otpCode.length !== 6}
-            variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative shadow-lg shadow-primary/10 flex items-center justify-center"
+            className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center"
           >
             Verify Code{' '}
             <ArrowRight
@@ -301,7 +300,7 @@ const MemberLogin = () => {
               setOtpCode('');
               setOtpError('');
             }}
-            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             disabled={loading}
           >
             Use different account
@@ -374,9 +373,9 @@ const MemberLogin = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="cnic"
             >
               CNIC Number
@@ -392,7 +391,7 @@ const MemberLogin = () => {
                 id="cnic"
                 type="text"
                 placeholder="12345-1234567-1"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('cnic', {
                   required: 'CNIC is required',
                   onChange: (e) => {
@@ -420,9 +419,12 @@ const MemberLogin = () => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">
+              Authenticator Code
+            </label>
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="phone"
             >
               Phone Number
@@ -438,7 +440,7 @@ const MemberLogin = () => {
                 id="phone"
                 type="tel"
                 placeholder="0300-1234567"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('phone', {
                   required: 'Phone number is required',
                 })}
@@ -454,8 +456,7 @@ const MemberLogin = () => {
           <Button
             type="submit"
             isLoading={loading}
-            variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest mt-4"
+            className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all mt-4"
           >
             Complete Registration
           </Button>
@@ -466,7 +467,7 @@ const MemberLogin = () => {
               setGoogleAuthData(null);
               setGoogleToken(null);
             }}
-            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mt-4"
+            className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors mt-4"
           >
             Cancel
           </button>
@@ -490,9 +491,9 @@ const MemberLogin = () => {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="securityCode"
           >
             Business Security Code
@@ -509,7 +510,7 @@ const MemberLogin = () => {
               type="text"
               placeholder="e.g. ABC123"
               maxLength={6}
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
               {...register('securityCode', {
                 required: 'Business security code is required',
                 onChange: (e) => {
@@ -525,9 +526,9 @@ const MemberLogin = () => {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
             htmlFor="email"
           >
             Email Address
@@ -543,7 +544,7 @@ const MemberLogin = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
               {...register('email', {
                 required: 'Email is required',
                 pattern: {
@@ -560,17 +561,17 @@ const MemberLogin = () => {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex justify-between items-center ml-1">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400"
               htmlFor="password"
             >
               Password
             </label>
             <Link
               to="/member/forgot-password"
-              className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity"
+              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               Recovery
             </Link>
@@ -599,8 +600,7 @@ const MemberLogin = () => {
         <Button
           type="submit"
           isLoading={loading}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10 flex items-center justify-center"
+          className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all group relative flex items-center justify-center mt-4"
         >
           Sign In to Portal
           <ArrowRight
@@ -663,7 +663,7 @@ const MemberLogin = () => {
                         fill="#EA4335"
                       />
                     </svg>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-foreground group-hover:text-primary transition-colors">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">
                       Sign in with Google
                     </span>
                   </Button>
@@ -684,11 +684,11 @@ const MemberLogin = () => {
         </div>
 
         <div className="text-center pt-4">
-          <p className="text-sm text-muted-foreground font-medium flex items-center justify-center gap-1.5">
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-1.5">
             Not a member yet?
             <Link
               to={`/join`}
-              className="text-primary hover:text-primary/80 font-bold transition-colors"
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
             >
               Sign up here.
             </Link>

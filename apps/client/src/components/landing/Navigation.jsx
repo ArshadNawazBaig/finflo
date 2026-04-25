@@ -1,6 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Sun, Moon, ChevronRight, X, Menu, LayoutDashboard } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  ChevronRight,
+  X,
+  Menu,
+  LayoutDashboard,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Logo from '@/components/Logo';
@@ -28,7 +35,8 @@ const Navigation = ({
     // Same-origin (dev mode or app domain) — localStorage is accessible
     const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}') || {};
     const memberRaw = localStorage.getItem('member');
-    const loggedInMember = memberRaw && memberRaw !== 'null' ? JSON.parse(memberRaw) : {};
+    const loggedInMember =
+      memberRaw && memberRaw !== 'null' ? JSON.parse(memberRaw) : {};
     isBusinessLoggedIn = Object.keys(loggedInUser).length > 0;
     isMemberLoggedIn = Object.keys(loggedInMember).length > 0;
   } else {
@@ -108,7 +116,7 @@ const Navigation = ({
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group"
+                className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group uppercase tracking-wider"
               >
                 {item}
                 <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
@@ -127,16 +135,16 @@ const Navigation = ({
               {isLoggedIn ? (
                 <>
                   <AppLink
-                    to={isBusinessLoggedIn ? "/dashboard" : "/member/dashboard"}
-                    className="text-[13px] font-medium px-4 py-2 hover:text-primary transition-colors"
+                    to={isBusinessLoggedIn ? '/dashboard' : '/member/dashboard'}
+                    className="text-[13px] font-semibold px-4 py-2 hover:text-primary transition-colors"
                   >
                     Dashboard
                   </AppLink>
                   <AppLink
-                    to={isBusinessLoggedIn ? "/join" : "/register"}
-                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
+                    to={isBusinessLoggedIn ? '/join' : '/register'}
+                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
                   >
-                    {isBusinessLoggedIn ? "Member Console" : "Business Console"}
+                    {isBusinessLoggedIn ? 'Member Console' : 'Business Console'}
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </AppLink>
                 </>
@@ -148,7 +156,7 @@ const Navigation = ({
                         setIsLoginMenuOpen(!isLoginMenuOpen);
                         setIsJoinMenuOpen(false);
                       }}
-                      className="text-[13px] font-medium px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
+                      className="text-[13px] font-semibold px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
                     >
                       Login
                       <ChevronRight
@@ -166,7 +174,7 @@ const Navigation = ({
                         'transition-all duration-150 origin-top-right',
                         isLoginMenuOpen
                           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none',
                       )}
                     >
                       <div className="p-2">
@@ -179,7 +187,7 @@ const Navigation = ({
                             <ChevronRight size={14} />
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-wider">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider">
                               As Business
                             </span>
                             <span className="text-[10px] text-slate-500">
@@ -196,7 +204,7 @@ const Navigation = ({
                             <ChevronRight size={14} />
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-wider">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider">
                               As Member
                             </span>
                             <span className="text-[10px] text-slate-500">
@@ -213,7 +221,7 @@ const Navigation = ({
                         setIsJoinMenuOpen(!isJoinMenuOpen);
                         setIsLoginMenuOpen(false);
                       }}
-                      className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-medium shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
+                      className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
                     >
                       Join
                       <ChevronRight
@@ -231,7 +239,7 @@ const Navigation = ({
                         'transition-all duration-150 origin-top-right',
                         isJoinMenuOpen
                           ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+                          : 'opacity-0 scale-95 -translate-y-1 pointer-events-none',
                       )}
                     >
                       <div className="p-2">
@@ -244,7 +252,7 @@ const Navigation = ({
                             <ChevronRight size={14} />
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-wider">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider">
                               As Business
                             </span>
                             <span className="text-[10px] text-slate-500">
@@ -261,7 +269,7 @@ const Navigation = ({
                             <ChevronRight size={14} />
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase tracking-wider">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider">
                               As Member
                             </span>
                             <span className="text-[10px] text-slate-500">
@@ -293,98 +301,98 @@ const Navigation = ({
         )}
         aria-hidden={!isMenuOpen}
       >
-            <div className="flex justify-end mb-12">
-              <button
+        <div className="flex justify-end mb-12">
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-8">
+          {['Architecture', 'The Workbench', 'Scale'].map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase().replace(' ', '-')}`}
+              onClick={() => setIsMenuOpen(false)}
+              className="text-5xl font-black tracking-tighter"
+            >
+              {item}
+            </a>
+          ))}
+        </div>
+        <div className="mt-auto space-y-4">
+          {isBusinessLoggedIn ? (
+            <>
+              <AppLink
+                to="/join"
                 onClick={() => setIsMenuOpen(false)}
-                className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center"
+                className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
               >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="flex flex-col gap-8">
-              {['Architecture', 'The Workbench', 'Scale'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(' ', '-')}`}
+                Member Console
+              </AppLink>
+              <AppLink
+                to="/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
+              >
+                Go to Dashboard
+              </AppLink>
+            </>
+          ) : isMemberLoggedIn ? (
+            <>
+              <AppLink
+                to="/register"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
+              >
+                Business Console
+              </AppLink>
+              <AppLink
+                to="/member/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
+              >
+                Go to Dashboard
+              </AppLink>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <AppLink
+                  to="/register"
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-5xl font-black tracking-tighter"
+                  className="py-4 bg-slate-100 dark:bg-white/5 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
                 >
-                  {item}
-                </a>
-              ))}
-            </div>
-            <div className="mt-auto space-y-4">
-              {isBusinessLoggedIn ? (
-                <>
-                  <AppLink
-                    to="/join"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
-                  >
-                    Member Console
-                  </AppLink>
-                  <AppLink
-                    to="/dashboard"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
-                  >
-                    Go to Dashboard
-                  </AppLink>
-                </>
-              ) : isMemberLoggedIn ? (
-                <>
-                  <AppLink
-                    to="/register"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full py-5 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-primary/20"
-                  >
-                    Business Console
-                  </AppLink>
-                  <AppLink
-                    to="/member/dashboard"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full py-5 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-sm"
-                  >
-                    Go to Dashboard
-                  </AppLink>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                        <AppLink
-                          to="/register"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="py-4 bg-slate-100 dark:bg-white/5 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                        >
-                          Join as Business
-                        </AppLink>
-                        <AppLink
-                          to="/join"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="py-4 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
-                        >
-                          Join as Member
-                        </AppLink>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <AppLink
-                          to="/login"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                        >
-                          Login as Business
-                        </AppLink>
-                        <AppLink
-                          to="/member/login"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
-                        >
-                          Login as Member
-                        </AppLink>
-                      </div>
-                </>
-              )}
-            </div>
+                  Join as Business
+                </AppLink>
+                <AppLink
+                  to="/join"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="py-4 bg-primary text-primary-foreground text-center rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+                >
+                  Join as Member
+                </AppLink>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <AppLink
+                  to="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                >
+                  Login as Business
+                </AppLink>
+                <AppLink
+                  to="/member/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="py-4 border border-slate-200 dark:border-white/10 text-center rounded-2xl font-black uppercase tracking-widest text-[10px]"
+                >
+                  Login as Member
+                </AppLink>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </>
   );

@@ -164,8 +164,7 @@ const SelfRegister = () => {
                       `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
                     )
                   }
-                  variant="gradient"
-                  className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
+                  className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all"
                 >
                   Go to Login
                 </Button>
@@ -221,8 +220,7 @@ const SelfRegister = () => {
                       `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
                     )
                   }
-                  variant="outline"
-                  className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
+                  className="h-12 w-full rounded-xl bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 active:translate-y-0 transition-all"
                 >
                   Back to Login
                 </Button>
@@ -278,8 +276,7 @@ const SelfRegister = () => {
                     `/member/login?code=${currentSecurityCode?.toUpperCase()}`,
                   )
                 }
-                variant="gradient"
-                className="w-full h-12 rounded-full font-black text-[11px] uppercase tracking-widest"
+                className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all"
               >
                 Return to Login
               </Button>

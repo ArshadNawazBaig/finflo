@@ -48,9 +48,9 @@ const MemberForgotPassword = () => {
     >
       {!submitted ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="securityCode"
             >
               Business Security Code
@@ -67,7 +67,7 @@ const MemberForgotPassword = () => {
                 type="text"
                 placeholder="e.g. ABC123"
                 maxLength={6}
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-emerald-500/50 focus:bg-background transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none text-sm font-mono font-bold uppercase tracking-widest"
                 {...register('securityCode', {
                   required: 'Business security code is required',
                   onChange: (e) => {
@@ -83,9 +83,9 @@ const MemberForgotPassword = () => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
               htmlFor="email"
             >
               Email Address
@@ -101,7 +101,7 @@ const MemberForgotPassword = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/20 border border-border focus:border-primary/50 focus:bg-background transition-all outline-none text-sm font-medium"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-sm font-medium"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: {
@@ -121,8 +121,7 @@ const MemberForgotPassword = () => {
           <Button
             type="submit"
             isLoading={loading}
-            variant="gradient"
-            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group mt-4 overflow-hidden relative shadow-lg shadow-primary/10"
+            className="h-12 w-full rounded-xl bg-primary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:shadow-primary/30 active:translate-y-0 transition-all flex items-center justify-center mt-4"
           >
             Send Reset Link
             <ArrowRight
@@ -134,7 +133,7 @@ const MemberForgotPassword = () => {
           <div className="text-center pt-2">
             <Link
               to="/member/login"
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors duration-200"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
             >
               <ArrowLeft size={12} />
               Back to Login
@@ -151,15 +150,14 @@ const MemberForgotPassword = () => {
           </div>
           <Button
             onClick={() => setSubmitted(false)}
-            variant="outline"
-            className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest border-border/50 hover:bg-muted/50"
+            className="h-12 w-full rounded-xl bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 active:translate-y-0 transition-all"
           >
             Try Another Email
           </Button>
           <div className="text-center">
             <Link
               to="/member/login"
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft size={12} />
               Back to Login
