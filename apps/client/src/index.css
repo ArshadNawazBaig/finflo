@@ -286,3 +286,7 @@
 .day-range-start button {
   color: white !important;
 }
+
+.recharts-wrapper { outline: none !important; }
+.recharts-wrapper:focus { outline: none !important; }
+.recharts-surface { outline: none !important; }

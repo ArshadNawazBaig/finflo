@@ -51,9 +51,9 @@ const LoanCalculator = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0.01, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.3 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
       className="w-full max-w-sm mx-auto lg:ml-auto"
     >
       <div className="relative group">

@@ -324,11 +324,12 @@ const MemberDashboard = () => {
                     />
                   </Link>
                 </div>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[300px] w-full outline-none focus:outline-none">
+                  <ResponsiveContainer width="100%" height="100%" className="outline-none focus:outline-none">
                     <BarChart
                       data={getChartData()}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      style={{ outline: 'none' }}
                     >
                       <CartesianGrid
                         strokeDasharray="3 3"
