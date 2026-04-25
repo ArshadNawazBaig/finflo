@@ -57,8 +57,6 @@ const LoanCalculator = () => {
       className="w-full max-w-sm mx-auto lg:ml-auto"
     >
       <div className="relative group">
-        {/* Decorative glow */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-violet-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
         <div className="relative bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-slate-200/80 dark:border-white/[0.06] p-5 lg:p-6 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.15)] overflow-hidden">
           {/* Top Header */}
