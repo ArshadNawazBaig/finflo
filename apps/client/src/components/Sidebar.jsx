@@ -25,7 +25,7 @@ const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded || !label) return null;
   return (
     <div className="px-4 pt-2 pb-2.5">
-      <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
+      <span className="font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
         {label}
       </span>
     </div>
@@ -238,7 +238,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                 >
                   <ChevronDown size={18} className="animate-bounce" />
                   {isLayoutExpanded && (
-                    <span className="text-[12px] font-bold">See more</span>
+                    <span className="text-[12px] font-black">See more</span>
                   )}
                 </button>
               </TooltipTrigger>

@@ -23,7 +23,7 @@ const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
   return (
     <div className="px-4 pt-2 pb-2.5">
-      <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
+      <span className="font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
         {label}
       </span>
     </div>

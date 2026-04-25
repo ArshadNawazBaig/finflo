@@ -40,7 +40,7 @@ const CategoryHeader = ({ label, isExpanded }) => {
   if (!isExpanded) return null;
   return (
     <div className="px-4 pt-2 pb-2.5">
-      <span className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
+      <span className="font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
         {label}
       </span>
     </div>
@@ -309,7 +309,7 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
                     <ChevronDown size={18} className="animate-bounce" />
                   </div>
                   {isLayoutExpanded && (
-                    <span className="text-[12px] font-bold opacity-100 translate-x-0 transition-all duration-500">
+                    <span className="text-[12px] font-black opacity-100 translate-x-0 transition-all duration-500">
                       See more
                     </span>
                   )}
@@ -449,7 +449,7 @@ const NavItem = ({
 
       <span
         className={cn(
-          'transition-all duration-500 origin-left font-display text-[13px] font-black tracking-wide',
+          'transition-all duration-500 origin-left font-display text-[12px] font-black tracking-wide',
           isExpanded
             ? 'opacity-100 translate-x-0'
             : 'opacity-0 -translate-x-4 w-0 hidden',
