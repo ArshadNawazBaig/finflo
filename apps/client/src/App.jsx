@@ -115,6 +115,7 @@ function App() {
               <LandingRoutes DomainRedirect={DomainRedirect} />
             </Suspense>
             <Toaster position="top-right" richColors />
+            {!IS_NATIVE && <FloatingSettings />}
           </TooltipProvider>
         </Router>
       </ErrorBoundary>
