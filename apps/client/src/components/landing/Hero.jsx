@@ -118,22 +118,49 @@ const MetricCard = ({ icon: Icon, label, value, delay, color }) => (
   </motion.div>
 );
 
-// Animated gradient orb
-const GradientOrb = ({ className, delay = 0 }) => (
-  <motion.div
-    className={`absolute rounded-full blur-[100px] opacity-30 dark:opacity-20 ${className}`}
-    animate={{
-      scale: [1, 1.2, 1],
-      x: [0, 30, -20, 0],
-      y: [0, -20, 10, 0],
-    }}
-    transition={{
-      duration: 20,
-      repeat: Infinity,
-      delay,
-      ease: 'easeInOut',
-    }}
-  />
+// Minimalist geometric sweep lines
+const GeometricSweeps = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    {/* Fixed background geometric stripes */}
+    <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]" 
+         style={{ backgroundImage: 'repeating-linear-gradient(45deg, currentColor 0, currentColor 1px, transparent 1px, transparent 40px)' }} />
+    
+    {/* Sweeping diagonal line 1 */}
+    <motion.div
+      className="absolute w-[200%] h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+      style={{ top: '0%', left: '-50%', transformOrigin: 'center' }}
+      animate={{ 
+        rotate: [35, 35],
+        y: ['-100vh', '150vh'],
+        opacity: [0, 1, 0]
+      }}
+      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+    />
+    
+    {/* Sweeping diagonal line 2 */}
+    <motion.div
+      className="absolute w-[200%] h-[1px] bg-gradient-to-r from-transparent via-violet-500/50 to-transparent shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+      style={{ top: '0%', left: '-50%', transformOrigin: 'center' }}
+      animate={{ 
+        rotate: [35, 35],
+        y: ['-100vh', '150vh'],
+        opacity: [0, 1, 0]
+      }}
+      transition={{ duration: 14, repeat: Infinity, ease: "linear", delay: 4 }}
+    />
+
+    {/* Sweeping reverse diagonal line */}
+    <motion.div
+      className="absolute w-[200%] h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+      style={{ top: '0%', left: '-50%', transformOrigin: 'center' }}
+      animate={{ 
+        rotate: [-35, -35],
+        y: ['150vh', '-100vh'],
+        opacity: [0, 1, 0]
+      }}
+      transition={{ duration: 18, repeat: Infinity, ease: "linear", delay: 2 }}
+    />
+  </div>
 );
 
 const Hero = () => {
@@ -172,21 +199,7 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center pt-32 pb-20 lg:pt-0 lg:pb-0 px-6 overflow-hidden">
       {/* === PREMIUM BACKGROUND SYSTEM === */}
 
-      {/* Gradient mesh */}
-      <div className="absolute inset-0 z-0">
-        <GradientOrb
-          className="w-[600px] h-[600px] bg-indigo-400 dark:bg-indigo-600 top-[-10%] left-[-5%]"
-          delay={0}
-        />
-        <GradientOrb
-          className="w-[500px] h-[500px] bg-violet-400 dark:bg-violet-600 top-[20%] right-[-10%]"
-          delay={5}
-        />
-        <GradientOrb
-          className="w-[400px] h-[400px] bg-cyan-300 dark:bg-cyan-600 bottom-[0%] left-[30%]"
-          delay={10}
-        />
-      </div>
+      <GeometricSweeps />
 
       {/* Subtle dot grid overlay */}
       <div
