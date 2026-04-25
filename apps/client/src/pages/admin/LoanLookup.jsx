@@ -155,10 +155,10 @@ const LoanLookup = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-6 rounded-2xl shadow-xs">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-black tracking-tight capitalize">
+                <h2 className="text-3xl font-black tracking-tighter capitalize">
                   {result.customer.name}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase tracking-widest border border-blue-500/20">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
                   Verified Holder
                 </span>
               </div>
@@ -187,153 +187,134 @@ const LoanLookup = () => {
               result.loans.map((loan) => (
                 <Card
                   key={loan._id}
-                  className="group hover:-translate-y-1 transition-all duration-300 border-white/20 dark:border-white/5 overflow-hidden relative flex flex-col bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl shadow-xs hover:shadow-md"
+                  className="group hover:-translate-y-1 transition-all duration-300 border-slate-200 dark:border-white/10 overflow-hidden relative flex flex-col bg-white dark:bg-slate-950/50 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-black/5"
                 >
-                  <div
-                    className={cn(
-                      'absolute top-0 left-0 w-1.5 h-full transition-colors',
-                      loan.status === 'active'
-                        ? 'bg-emerald-500'
-                        : loan.status === 'completed'
-                          ? 'bg-blue-500'
-                          : loan.status === 'rejected'
-                            ? 'bg-red-500'
-                            : 'bg-yellow-500',
-                    )}
-                  />
-                  <CardHeader className="pb-3 pt-6 px-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          Loan Identity
+                  <CardHeader className="pb-0 pt-8 px-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          Loan Protocol
                         </p>
-                        <CardTitle className="text-xl font-black font-mono mt-1">
+                        <CardTitle className="text-2xl font-black font-mono text-slate-900 dark:text-white">
                           #{loan.loanId || loan._id.slice(-6).toUpperCase()}
                         </CardTitle>
                       </div>
                       <div
                         className={cn(
-                          'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest',
+                          'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm',
                           loan.status === 'active'
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/50 dark:bg-emerald-500/10 dark:border-emerald-500/20'
                             : loan.status === 'completed'
-                              ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                              ? 'bg-blue-50 text-blue-600 border border-blue-200/50 dark:bg-blue-500/10 dark:border-blue-500/20'
                               : loan.status === 'rejected'
-                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20',
+                                ? 'bg-red-50 text-red-600 border border-red-200/50 dark:bg-red-500/10 dark:border-red-500/20'
+                                : 'bg-amber-50 text-amber-600 border border-amber-200/50 dark:bg-amber-500/10 dark:border-amber-500/20',
                         )}
                       >
                         {loan.status}
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5 px-6 pb-6 flex-1 flex flex-col text-sm">
-                    <div className="flex items-end justify-between border-b border-border/50 pb-6">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
+                  <CardContent className="space-y-8 px-8 pb-8 flex-1 flex flex-col">
+                    {/* Hero Numbers */}
+                    <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-6 border border-slate-100 dark:border-white/5">
+                      <div className="flex items-end justify-between mb-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           Principal Amount
                         </p>
-                        <div className="text-2xl font-black text-primary tracking-tighter flex items-baseline gap-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          Rate
+                        </p>
+                      </div>
+                      <div className="flex items-baseline justify-between">
+                        <div className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">
+                          <span className="text-xl text-slate-400 mr-1">$</span>
                           {formatAmount(loan.principal)}
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">
-                          Interest Rate
-                        </p>
-                        <div className="text-xl font-black text-blue-500 tracking-tight">
+                        <div className="text-2xl font-black text-primary tracking-tight">
                           {loan.rate}%
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs">
-                      <div>
-                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+                          Total Payable
+                        </p>
+                        <p className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
+                          {formatAmount(loan.totalAmount)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+                          Monthly EMI
+                        </p>
+                        <p className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
+                          {formatAmount(loan.emi)}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
                           Duration
                         </p>
-                        <p className="font-bold text-sm tracking-tight">
+                        <p className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
                           {loan.duration}{' '}
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-xs text-slate-400 font-medium tracking-normal">
                             Months
                           </span>
                         </p>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
                           Start Date
                         </p>
-                        <p className="font-bold text-sm tracking-tight">
+                        <p className="font-bold text-base tracking-tight text-slate-900 dark:text-white">
                           {format(new Date(loan.startDate), 'MMM dd, yyyy')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
-                          Monthly EMI
-                        </p>
-                        <p className="font-bold text-sm tracking-tight">
-                          {formatAmount(loan.emi)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-[0.15em] mb-1">
-                          Total Value
-                        </p>
-                        <p className="font-bold text-sm tracking-tight text-primary">
-                          {formatAmount(loan.totalAmount)}
                         </p>
                       </div>
                     </div>
 
+                    {/* Progress (if active) */}
                     {loan.status === 'active' && (
-                      <div className="pt-4 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                            <span className="text-muted-foreground">
-                              Repayment Lifecycle
-                            </span>
-                            <span className="text-primary">
-                              {Math.round(
-                                (loan.paidAmount / loan.totalAmount) * 100,
-                              )}
-                              %
-                            </span>
-                          </div>
-                          <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden border border-border/50">
-                            <div
-                              className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-1000"
-                              style={{
-                                width: `${Math.round((loan.paidAmount / loan.totalAmount) * 100)}%`,
-                              }}
-                            />
-                          </div>
+                      <div className="pt-2">
+                        <div className="flex justify-between items-end mb-3">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            Repayment Progress
+                          </span>
+                          <span className="text-sm font-black text-emerald-500">
+                            {Math.round(
+                              (loan.paidAmount / loan.totalAmount) * 100,
+                            )}%
+                          </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                            <p className="text-[8px] font-bold uppercase tracking-widest text-emerald-600/70 mb-0.5">
-                              Settled
-                            </p>
-                            <p className="font-black text-emerald-600 text-sm">
-                              {formatAmount(loan.paidAmount)}
-                            </p>
+                        <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-4">
+                          <div
+                            className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                            style={{
+                              width: `${Math.round((loan.paidAmount / loan.totalAmount) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Paid</span>
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">{formatAmount(loan.paidAmount)}</span>
                           </div>
-                          <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10">
-                            <p className="text-[8px] font-bold uppercase tracking-widest text-orange-600/70 mb-0.5">
-                              Outstanding
-                            </p>
-                            <p className="font-black text-orange-600 text-sm">
-                              {formatAmount(loan.remainingAmount)}
-                            </p>
+                          <div className="flex flex-col text-right">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Remaining</span>
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">{formatAmount(loan.remainingAmount)}</span>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    <div className="flex-grow min-h-[20px]"></div>
+                    <div className="flex-grow" />
 
                     <Button
                       variant="outline"
-                      className="w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-widest border-border/50 hover:bg-muted/50 transition-all group/btn shadow-xs"
+                      className="w-full h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all group/btn"
                       onClick={() =>
                         generateLoanPDF(
                           loan,
@@ -342,8 +323,8 @@ const LoanLookup = () => {
                         )
                       }
                     >
-                      <Download className="w-4 h-4 mr-2 group-hover/btn:-translate-y-0.5 transition-transform" />
-                      Download PDF Report
+                      <Download className="w-4 h-4 mr-2 text-slate-400 group-hover/btn:text-primary group-hover/btn:-translate-y-0.5 transition-all" />
+                      Download Statement
                     </Button>
                   </CardContent>
                 </Card>

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Shield,
-  ChevronDown,
+  Plus,
+  Minus,
   Lock,
   Eye,
   FileText,
@@ -11,6 +12,7 @@ import {
   Globe,
 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { cn } from '@/lib/utils';
 
 const PrivacyPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -72,25 +74,25 @@ const PrivacyPage = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
           scrollY > 30
-            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
-            : 'py-8'
+            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-white/[0.04] py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+            : 'py-6'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-0 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/30 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:rotate-6 transition-all duration-500">
-              <ArrowLeft size={20} />
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors">
+              <ArrowLeft size={15} className="text-slate-500 dark:text-slate-400" />
             </div>
-            <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">
-              Return Home
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              Home
             </span>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
-              <Shield className="w-5 h-5 text-emerald-500" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center">
+              <Shield className="w-3.5 h-3.5 text-blue-500" />
             </div>
-            <span className="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-200">
-              Last Updated: Feb 08, 2026
+            <span className="hidden sm:block text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Updated Feb 2026
             </span>
           </div>
         </div>
@@ -145,41 +147,49 @@ const PrivacyPage = () => {
                 onClick={() =>
                   setActiveSection(activeSection === index ? -1 : index)
                 }
-                className={`group cursor-pointer rounded-3xl border transition-all duration-500 overflow-hidden ${
+                className={cn(
+                  'group cursor-pointer rounded-xl border transition-all duration-300 overflow-hidden',
                   activeSection === index
-                    ? 'bg-white dark:bg-white/5 border-primary/50 shadow-2xl shadow-primary/10'
-                    : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary/30 hover:bg-white dark:hover:bg-white/10'
-                }`}
+                    ? 'bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.08] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]'
+                    : 'bg-transparent border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08]',
+                )}
               >
-                <div className="p-6 sm:p-8 flex items-center justify-between">
-                  <div className="flex items-center gap-4 sm:gap-6">
+                <div className="w-full flex items-center justify-between p-5 md:p-6 text-left gap-4">
+                  <div className="flex items-center gap-4">
                     <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-500 ${
+                      className={cn(
+                        'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300',
                         activeSection === index
                           ? 'bg-primary/10 text-primary'
-                          : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-primary group-hover:bg-primary/5'
-                      }`}
+                          : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-primary group-hover:bg-primary/5',
+                      )}
                     >
                       {section.icon}
                     </div>
-                    <h3
-                      className={`text-xl font-bold tracking-tight transition-colors ${
+                    <span
+                      className={cn(
+                        'text-base md:text-[17px] font-medium tracking-tight transition-colors',
                         activeSection === index
-                          ? 'text-primary'
-                          : 'text-slate-900 dark:text-white'
-                      }`}
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-600 dark:text-slate-300',
+                      )}
                     >
                       {section.title}
-                    </h3>
+                    </span>
                   </div>
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+                    className={cn(
+                      'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300',
                       activeSection === index
-                        ? 'bg-primary text-primary-foreground rotate-180'
-                        : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'
-                    }`}
+                        ? 'bg-primary/10 text-primary rotate-0'
+                        : 'bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500',
+                    )}
                   >
-                    <ChevronDown size={20} />
+                    {activeSection === index ? (
+                      <Minus size={14} strokeWidth={2.5} />
+                    ) : (
+                      <Plus size={14} strokeWidth={2.5} />
+                    )}
                   </div>
                 </div>
                 <AnimatePresence>
@@ -188,10 +198,11 @@ const PrivacyPage = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <div className="px-8 pb-8 sm:pl-[5.5rem]">
-                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-base sm:text-lg font-medium">
+                      <div className="px-5 md:px-6 pb-5 md:pb-6 pt-0 sm:pl-[4.5rem]">
+                        <div className="h-px w-full bg-slate-100 dark:bg-white/[0.04] mb-4" />
+                        <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
                           {section.content}
                         </p>
                       </div>

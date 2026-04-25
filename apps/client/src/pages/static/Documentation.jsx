@@ -78,57 +78,66 @@ const Documentation = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-primary/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-primary transition-colors">
-                <Rocket className="w-5 h-5 text-primary" />
-                Quick Start
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Get your system up and running in less than 5 minutes. Configure
-                your settings and invite your team.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full py-6 rounded-full border-border/50 hover:bg-primary/5 font-black uppercase tracking-widest text-[10px]"
-                onClick={() => setActiveSection('getting-started')}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+            <div
+              onClick={() => setActiveSection('getting-started')}
+              className="group cursor-pointer p-6 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full"
+            >
+              <div className="flex-grow">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <Rocket className="w-4 h-4 text-primary" />
+                </div>
+                <h3 className="text-[15px] font-semibold tracking-tight mb-1.5 text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                  Quick Start
+                </h3>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                  Get your system up and running in less than 5 minutes.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-primary uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                 Go to Guide
-              </Button>
+                <ChevronRight size={12} />
+              </span>
             </div>
-            <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-indigo-500/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-indigo-500 transition-colors">
-                <Shield className="w-5 h-5 text-indigo-500" />
-                Architecture
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Deep dive into the Multi-Branch infrastructure and AI Risk
-                Engine.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full py-6 rounded-full border-border/50 hover:bg-indigo-500/5 font-black uppercase tracking-widest text-[10px]"
-                onClick={() => setActiveSection('architecture')}
-              >
+            <div
+              onClick={() => setActiveSection('architecture')}
+              className="group cursor-pointer p-6 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full"
+            >
+              <div className="flex-grow">
+                <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
+                  <Shield className="w-4 h-4 text-indigo-500" />
+                </div>
+                <h3 className="text-[15px] font-semibold tracking-tight mb-1.5 text-slate-900 dark:text-white group-hover:text-indigo-500 transition-colors">
+                  Architecture
+                </h3>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                  Deep dive into Multi-Branch infrastructure and AI Risk Engine.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                 Explore Tech
-              </Button>
+                <ChevronRight size={12} />
+              </span>
             </div>
-            <div className="p-8 rounded-[2rem] bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:border-emerald-500/30 transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2 group-hover:text-emerald-500 transition-colors">
-                <Code2 className="w-5 h-5 text-emerald-500" />
-                API Reference
-              </h3>
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Integrate Finflow with your existing tools using our robust REST
-                API.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full py-6 rounded-full border-border/50 hover:bg-emerald-500/5 font-black uppercase tracking-widest text-[10px]"
-                onClick={() => setActiveSection('api-reference')}
-              >
+            <div
+              onClick={() => setActiveSection('api-reference')}
+              className="group cursor-pointer p-6 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.04] hover:border-slate-200 dark:hover:border-white/[0.08] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full"
+            >
+              <div className="flex-grow">
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
+                  <Code2 className="w-4 h-4 text-emerald-500" />
+                </div>
+                <h3 className="text-[15px] font-semibold tracking-tight mb-1.5 text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">
+                  API Reference
+                </h3>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                  Integrate Finflow with your tools using our robust REST API.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                 View API Docs
-              </Button>
+                <ChevronRight size={12} />
+              </span>
             </div>
           </div>
         </div>
@@ -636,24 +645,24 @@ const Documentation = () => {
       <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
           scrollY > 30
-            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-200 dark:border-white/5 py-4 shadow-xl'
-            : 'py-8'
+            ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-white/[0.04] py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+            : 'py-6'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-primary shadow-lg shadow-primary/30 rounded-xl flex items-center justify-center text-primary-foreground font-black group-hover:rotate-6 transition-all duration-500">
-              <ArrowLeft size={20} />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors">
+              <ArrowLeft size={15} className="text-slate-500 dark:text-slate-400" />
             </div>
-            <span className="text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors">
-              Return Home
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+              Home
             </span>
           </Link>
-          <div className="hidden lg:flex items-center gap-3">
-            <div className="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-white/10">
-              <Shield className="w-5 h-5 text-emerald-500" />
+          <div className="hidden lg:flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center">
+              <Shield className="w-3.5 h-3.5 text-emerald-500" />
             </div>
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               System Documentation
             </span>
           </div>
@@ -662,9 +671,9 @@ const Documentation = () => {
           <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="w-5 h-5" />
-                </Button>
+                <button className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors">
+                  <Menu className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                </button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[280px] p-4 pt-12">
                 <SidebarContent />
