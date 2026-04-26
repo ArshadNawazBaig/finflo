@@ -630,7 +630,9 @@ const BranchDetail = () => {
       if (!categoryToDelete || !categoryToDelete.id) return;
 
       await api.delete(`/expense-categories/${categoryToDelete.id}`);
-      setClassificationPool((prev) => prev.filter((cat) => cat.value !== value));
+      setClassificationPool((prev) =>
+        prev.filter((cat) => cat.value !== value),
+      );
 
       if (expenseData.category === value) {
         setExpenseData((prev) => ({ ...prev, category: 'other' }));
@@ -1304,7 +1306,7 @@ const BranchDetail = () => {
                               placeholder="Select Manager"
                             />
                           </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-border/40">
+                          <SelectContent className="rounded-2xl text-start justify-start items-start border-border/40">
                             <SelectItem value="none" className="rounded-xl">
                               No Manager Assigned
                             </SelectItem>
@@ -1314,7 +1316,7 @@ const BranchDetail = () => {
                                 value={member._id}
                                 className="rounded-xl"
                               >
-                                <div className="flex flex-col py-1">
+                                <div className="flex flex-col py-1 text-start justify-start items-start">
                                   <span className="font-bold text-sm capitalize">
                                     {member.name}
                                   </span>
@@ -1437,7 +1439,9 @@ const BranchDetail = () => {
                     options={classificationPool}
                     value={expenseData.category}
                     onChange={(val) => {
-                      if (!classificationPool.some((opt) => opt.value === val)) {
+                      if (
+                        !classificationPool.some((opt) => opt.value === val)
+                      ) {
                         handleCreateCategory(val);
                       } else {
                         setExpenseData({ ...expenseData, category: val });
