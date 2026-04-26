@@ -1,3 +1,13 @@
+// Redirect www → non-www (must run before anything else)
+if (
+  window.location.hostname === 'www.finflo.org' &&
+  window.location.protocol === 'https:'
+) {
+  window.location.replace(
+    `https://finflo.org${window.location.pathname}${window.location.search}${window.location.hash}`
+  );
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
