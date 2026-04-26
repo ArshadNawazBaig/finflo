@@ -236,6 +236,23 @@ const systemSettingsSchema = new mongoose.Schema(
       },
     },
 
+    // Partners
+    partners: {
+      type: [
+        {
+          name: { type: String, required: true },
+          logoUrl: { type: String, default: '' },
+          active: { type: Boolean, default: true },
+        },
+      ],
+      default: [
+        { name: 'NORTHSPEX', logoUrl: '', active: true },
+        { name: 'CALIBREON', logoUrl: '', active: true },
+        { name: 'MICRO LOANS', logoUrl: '', active: true },
+        { name: 'APEX FUND', logoUrl: '', active: true },
+      ],
+    },
+
     // Metadata
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,

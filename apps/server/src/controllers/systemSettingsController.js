@@ -41,6 +41,7 @@ const updateSystemSettings = async (req, res) => {
       'lateFeeGracePeriodDays',
       'termDepositRates',
       'termDepositEarlyBreakPenalty',
+      'partners',
     ];
 
     allowedFields.forEach((field) => {
@@ -308,6 +309,24 @@ const getMemberBusinessConfig = async (req, res) => {
   }
 };
 
+// Upload partner logo (Super Admin only)
+const uploadPartnerLogo = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No logo file provided' });
+    }
+
+    res.json({
+      success: true,
+      logoUrl: req.file.path, // Cloudinary URL
+      message: 'Partner logo uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Error uploading partner logo:', error);
+    res.status(500).json({ message: 'Failed to upload partner logo' });
+  }
+};
+
 module.exports = {
   getSystemSettings,
   updateSystemSettings,
@@ -316,4 +335,5 @@ module.exports = {
   getMemberBusinessConfig,
   resetToDefaults,
   testSmtpConnection,
+  uploadPartnerLogo,
 };

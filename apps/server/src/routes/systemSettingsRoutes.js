@@ -8,10 +8,12 @@ const {
   getMemberBusinessConfig,
   resetToDefaults,
   testSmtpConnection,
+  uploadPartnerLogo,
 } = require('../controllers/systemSettingsController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
+const upload = require('../middleware/userUploadMiddleware');
 
 // Public route - anyone can view basic settings
 router.get('/', getSystemSettings);
@@ -26,6 +28,7 @@ router.get('/member-business-config', protectMember, getMemberBusinessConfig);
 router.put('/', protect, superAdminProtect, updateSystemSettings);
 router.post('/reset', protect, superAdminProtect, resetToDefaults);
 router.post('/test-connection', protect, superAdminProtect, testSmtpConnection);
+router.post('/upload-partner-logo', protect, superAdminProtect, upload.single('logo'), uploadPartnerLogo);
 
 // Protected routes - admin & super admin
 router.put('/loan-configuration', protect, updateLoanConfiguration);

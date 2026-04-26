@@ -1,6 +1,15 @@
 import { motion } from 'framer-motion';
+import useSystemSettings from '@/hooks/useSystemSettings';
 
 const TrustedBy = () => {
+  const { settings, loading } = useSystemSettings();
+
+  if (loading) return null;
+
+  const activePartners = settings?.partners?.filter(p => p.active) || [];
+
+  if (activePartners.length === 0) return null;
+
   return (
     <section className="py-12 lg:py-16 border-y border-slate-200/50 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.01] overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -10,49 +19,23 @@ const TrustedBy = () => {
           </p>
           
           <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 sm:gap-x-20 group">
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-black tracking-tighter text-slate-800 dark:text-white whitespace-nowrap flex items-center gap-2 opacity-50 dark:opacity-40 transition-opacity duration-300 group-hover:opacity-20 hover:!opacity-100 cursor-default"
-            >
-              <div className="w-6 h-6 rounded bg-slate-800 dark:bg-white inline-block"></div>
-              NORTHSPEX
-            </motion.span>
-            
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-black tracking-tighter text-slate-800 dark:text-white whitespace-nowrap flex items-center gap-2 opacity-50 dark:opacity-40 transition-opacity duration-300 group-hover:opacity-20 hover:!opacity-100 cursor-default"
-            >
-              <div className="w-6 h-6 rounded-full bg-slate-800 dark:bg-white inline-block"></div>
-              CALIBREON
-            </motion.span>
-            
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-black tracking-tighter text-slate-800 dark:text-white whitespace-nowrap flex items-center gap-2 opacity-50 dark:opacity-40 transition-opacity duration-300 group-hover:opacity-20 hover:!opacity-100 cursor-default"
-            >
-              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-b-[20px] border-b-slate-800 dark:border-b-white border-r-[12px] border-r-transparent inline-block"></div>
-              MICRO LOANS
-            </motion.span>
-            
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-black tracking-tighter text-slate-800 dark:text-white whitespace-nowrap flex items-center gap-2 opacity-50 dark:opacity-40 transition-opacity duration-300 group-hover:opacity-20 hover:!opacity-100 cursor-default"
-            >
-              <div className="w-6 h-6 rounded-tr-xl rounded-bl-xl bg-slate-800 dark:bg-white inline-block"></div>
-              APEX FUND
-            </motion.span>
+            {activePartners.map((partner, idx) => (
+              <motion.span 
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 + (idx * 0.1), duration: 0.5 }}
+                className="text-xl sm:text-2xl font-black tracking-tighter text-slate-800 dark:text-white whitespace-nowrap flex items-center gap-2 opacity-50 dark:opacity-40 transition-opacity duration-300 group-hover:opacity-20 hover:!opacity-100 cursor-default"
+              >
+                {partner.logoUrl ? (
+                  <img src={partner.logoUrl} alt={partner.name} className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded bg-slate-800 dark:bg-white inline-block"></div>
+                )}
+                {partner.name}
+              </motion.span>
+            ))}
           </div>
         </div>
       </div>

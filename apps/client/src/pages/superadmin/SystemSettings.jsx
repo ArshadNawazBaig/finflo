@@ -15,6 +15,8 @@ import {
   Plus,
   Trash2,
   Clock,
+  Users,
+  Upload,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
@@ -34,6 +36,7 @@ const SystemSettings = () => {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [testingSmtp, setTestingSmtp] = useState(false);
   const [testEmail, setTestEmail] = useState('');
+  const [uploadingLogoIndex, setUploadingLogoIndex] = useState(null);
 
   const fetchSettings = async () => {
     try {
@@ -163,6 +166,54 @@ const SystemSettings = () => {
     }));
   };
 
+  const addPartner = () => {
+    setSettings((prev) => ({
+      ...prev,
+      partners: [...(prev.partners || []), { name: 'New Partner', logoUrl: '', active: true }],
+    }));
+  };
+
+  const updatePartner = (index, field, value) => {
+    setSettings((prev) => {
+      const newPartners = [...(prev.partners || [])];
+      newPartners[index] = { ...newPartners[index], [field]: value };
+      return { ...prev, partners: newPartners };
+    });
+  };
+
+  const removePartner = (index) => {
+    setSettings((prev) => {
+      const newPartners = [...(prev.partners || [])];
+      newPartners.splice(index, 1);
+      return { ...prev, partners: newPartners };
+    });
+  };
+
+  const handleLogoUpload = async (index, file) => {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Logo must be less than 2MB');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('logo', file);
+    
+    setUploadingLogoIndex(index);
+    try {
+      const { data } = await api.post('/system-settings/upload-partner-logo', formData);
+      if (data.success) {
+        updatePartner(index, 'logoUrl', data.logoUrl);
+        toast.success('Partner logo uploaded temporarily. Save settings to persist.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setUploadingLogoIndex(null);
+    }
+  };
+
   const tabs = [
     {
       id: 'plans',
@@ -181,6 +232,12 @@ const SystemSettings = () => {
       label: 'Platform Config',
       icon: Globe,
       desc: 'General Infrastructure',
+    },
+    {
+      id: 'partners',
+      label: 'Trusted Partners',
+      icon: Users,
+      desc: 'Landing Page Logos',
     },
   ];
 
@@ -835,6 +892,101 @@ const SystemSettings = () => {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'partners' && (
+                <div className="space-y-12">
+                  <header className="flex items-center gap-4 mb-10">
+                    <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-500/10 flex items-center justify-center">
+                      <Users className="text-indigo-500 w-8 h-8" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-black tracking-tight">
+                        Trusted Partners
+                      </h2>
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Manage the partner logos displayed on the public landing page.
+                      </p>
+                    </div>
+                    <Button onClick={addPartner} variant="outline" className="rounded-xl">
+                      <Plus size={16} className="mr-2" /> Add Partner
+                    </Button>
+                  </header>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {(settings.partners || []).map((partner, index) => (
+                      <div key={index} className="bg-white/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 flex flex-col gap-6 relative group">
+                        <button
+                          onClick={() => removePartner(index)}
+                          className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        
+                        <div className="flex items-center gap-6">
+                          <div
+                            className="relative w-24 h-24 rounded-2xl bg-muted/30 border-2 border-dashed border-border/50 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors group/logo"
+                            onClick={() => document.getElementById(`partner-logo-${index}`).click()}
+                          >
+                            {uploadingLogoIndex === index ? (
+                              <div className="flex flex-col items-center justify-center">
+                                <Loader2 className="animate-spin text-primary mb-1" size={24} />
+                                <span className="text-[9px] font-black uppercase text-primary">Uploading</span>
+                              </div>
+                            ) : partner.logoUrl ? (
+                              <img src={partner.logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
+                            ) : (
+                              <div className="text-center">
+                                <Upload size={20} className="mx-auto text-muted-foreground opacity-50 mb-1" />
+                                <span className="text-[9px] font-black uppercase text-muted-foreground">Upload</span>
+                              </div>
+                            )}
+                            {uploadingLogoIndex !== index && (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity">
+                                <Upload className="text-white" size={24} />
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              id={`partner-logo-${index}`}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleLogoUpload(index, e.target.files[0])}
+                            />
+                          </div>
+                          
+                          <div className="flex-1 space-y-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                                Partner Name
+                              </label>
+                              <input
+                                type="text"
+                                value={partner.name}
+                                onChange={(e) => updatePartner(index, 'name', e.target.value)}
+                                className="w-full bg-white dark:bg-slate-900 h-10 px-4 rounded-xl border border-border/50 font-bold text-sm focus:border-primary outline-none transition-all"
+                              />
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                                Visibility
+                              </label>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={partner.active}
+                                  onChange={(e) => updatePartner(index, 'active', e.target.checked)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
