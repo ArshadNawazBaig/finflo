@@ -366,28 +366,26 @@ const Customers = () => {
           )}
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-          <CustomerTable
-            data={customers}
-            pagination={{
-              currentPage,
-              totalPages,
-              totalEntries,
-              limit,
-              onPageChange: (page) => setCurrentPage(page),
-              onLimitChange: (newLimit) => {
-                setLimit(newLimit);
-                setCurrentPage(1);
-              },
-            }}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-            onEdit={(customer) => setEditCustomer(customer)}
-            onDelete={handleDeleteClick}
-            onConvert={(customer) => setConvertCustomer(customer)}
-          />
-        </div>
+        <CustomerTable
+          data={customers}
+          pagination={{
+            currentPage,
+            totalPages,
+            totalEntries,
+            limit,
+            onPageChange: (page) => setCurrentPage(page),
+            onLimitChange: (newLimit) => {
+              setLimit(newLimit);
+              setCurrentPage(1);
+            },
+          }}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          onEdit={(customer) => setEditCustomer(customer)}
+          onDelete={handleDeleteClick}
+          onConvert={(customer) => setConvertCustomer(customer)}
+        />
       )}
 
       {/* Modals */}

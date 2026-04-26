@@ -6,13 +6,13 @@ const BranchCardSkeleton = ({ count = 3 }) => {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="relative rounded-[2rem] overflow-hidden border border-border/40 bg-card/50 backdrop-blur-xl"
+          className="relative rounded-[2rem] overflow-hidden border border-border/40 bg-card/10 backdrop-blur-xl"
         >
           {/* Header area skeleton */}
           <div className="h-32 bg-muted/20 animate-pulse relative">
             {/* Logo placeholder */}
             <div className="absolute bottom-0 left-8 translate-y-1/2">
-              <div className="w-20 h-20 rounded-[1.5rem] bg-background border-[6px] border-background shadow-lg">
+              <div className="w-20 h-20 rounded-[1.5rem] bg-background border-[6px] border-background">
                 <Skeleton className="w-full h-full rounded-[1.2rem]" />
               </div>
             </div>

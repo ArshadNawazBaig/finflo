@@ -4,7 +4,7 @@ import Pagination from '../ui/Pagination';
 
 const DistributionTable = ({ data, pagination, loading, lastElementRef }) => {
   return (
-    <div className="w-full bg-card/50 backdrop-blur-sm border border-border/50 rounded-[2.5rem] overflow-hidden shadow-sm">
+    <div className="w-full bg-card/10 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>

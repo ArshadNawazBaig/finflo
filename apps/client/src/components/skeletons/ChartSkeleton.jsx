@@ -5,7 +5,7 @@ const ChartSkeleton = ({ className }) => {
   return (
     <div
       className={cn(
-        'w-full h-[400px] flex flex-col gap-6 p-6 rounded-[2rem] border border-border/50 bg-card/30 backdrop-blur-md shadow-sm animate-in fade-in duration-700',
+        'w-full h-[400px] flex flex-col gap-6 p-6 rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-md animate-in fade-in duration-700',
         className,
       )}
     >

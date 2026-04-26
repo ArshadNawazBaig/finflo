@@ -3255,7 +3255,7 @@ const MemberProfile = () => {
           {/* ────────────────────────────────────────────────────────── */}
 
           {/* ── Checkbook Section ──────────────────────────────────── */}
-          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="bg-card/10 backdrop-blur-sm p-6 sm:p-10 rounded-[2rem] border border-border/40 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter text-primary">

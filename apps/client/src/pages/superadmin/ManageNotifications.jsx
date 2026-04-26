@@ -322,7 +322,7 @@ const ManageNotifications = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border border-border/50 bg-card overflow-hidden shadow-sm">
+          <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-muted/30">

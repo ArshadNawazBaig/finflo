@@ -163,7 +163,7 @@ const Roles = () => {
     <div className="space-y-8 animate-in fade-in duration-700">
       <PageHeader
         title="Role Management"
-        subtitle="Define granular access control levels for your team members."
+        description="Define granular access control levels for your team members."
         icon={Shield}
       />
 

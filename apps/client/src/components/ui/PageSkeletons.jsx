@@ -16,7 +16,7 @@ export const CardsSkeleton = ({ count = 4, className }) => {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm"
+          className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/40 bg-card/10 backdrop-blur-sm"
         >
           <div className="flex justify-between items-start mb-4">
             <div className="h-12 w-12 rounded-2xl bg-muted/30 animate-pulse" />
@@ -41,12 +41,12 @@ export const TableSkeleton = ({ rows = 5, columns = 5, className }) => {
         className,
       )}
     >
-      <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 border border-border/50 shadow-xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
+      <div className="rounded-[2.5rem] bg-card/10 backdrop-blur-sm border border-border/40 overflow-hidden relative">
+
         <div className="overflow-x-auto relative">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-border/50 bg-muted/20">
+              <tr className="border-b border-border/40 bg-muted/20">
                 {[...Array(columns)].map((_, i) => (
                   <th
                     key={i}
@@ -194,7 +194,7 @@ export const AdminDashboardSkeleton = () => (
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3"
+            className="rounded-[1.5rem] bg-card/10 border border-border/40 p-5 flex flex-col gap-3"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="h-10 w-10 rounded-xl" />
@@ -210,7 +210,7 @@ export const AdminDashboardSkeleton = () => (
       </div>
 
       {/* Right: Portfolio Risk card */}
-      <div className="xl:col-span-1 rounded-[2rem] border border-border/50 bg-card p-4 sm:p-6 space-y-4">
+      <div className="xl:col-span-1 rounded-[2rem] border border-border/40 bg-card/10 p-4 sm:p-6 space-y-4">
         <div className="border-b border-border/40 pb-3 space-y-1">
           <Skeleton className="h-5 w-36" />
           <Skeleton className="h-3 w-48" />
@@ -235,7 +235,7 @@ export const AdminDashboardSkeleton = () => (
     {/* ROW 2 — Cash Flow chart (left 2/3) + Activity feed (right 1/3) */}
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
       {/* Chart */}
-      <div className="xl:col-span-2 rounded-[2rem] border border-border/50 bg-card p-4 sm:p-8 space-y-4">
+      <div className="xl:col-span-2 rounded-[2rem] border border-border/40 bg-card/10 p-4 sm:p-8 space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <Skeleton className="h-5 w-40" />
@@ -250,7 +250,7 @@ export const AdminDashboardSkeleton = () => (
       </div>
 
       {/* Activity feed */}
-      <div className="xl:col-span-1 rounded-[2rem] border border-border/50 bg-card overflow-hidden flex flex-col">
+      <div className="xl:col-span-1 rounded-[2rem] border border-border/40 bg-card/10 overflow-hidden flex flex-col">
         <div className="p-4 sm:p-6 pb-2 border-b border-border/40 flex items-center justify-between">
           <div className="space-y-1">
             <Skeleton className="h-5 w-32" />
@@ -357,7 +357,7 @@ export const LoansPageSkeleton = () => (
     <Skeleton className="h-12 w-full sm:w-72 rounded-2xl" />
 
     {/* Desktop Table */}
-    <div className="mt-4 hidden md:block rounded-[2rem] border border-border/50 bg-card/50 overflow-hidden">
+    <div className="mt-4 hidden md:block rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
       <div className="h-12 border-b border-border/40 bg-muted/30" />
       {Array.from({ length: 8 }).map((_, i) => (
         <div
@@ -447,7 +447,7 @@ export const MembersPageSkeleton = () => (
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block rounded-[2rem] border border-border/50 bg-card/50 overflow-hidden">
+      <div className="hidden md:block rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
         <div className="h-12 border-b border-border/40 bg-muted/30" />
         {Array.from({ length: 8 }).map((_, i) => (
           <div
@@ -523,7 +523,7 @@ export const ActivityLogsPageSkeleton = () => (
     </div>
 
     {/* Desktop Table */}
-    <div className="hidden md:block rounded-[2rem] border border-border/50 bg-card/50 overflow-hidden mt-2">
+    <div className="hidden md:block rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden mt-2">
       <div className="h-12 border-b border-border/40 bg-muted/30" />
       {Array.from({ length: 12 }).map((_, i) => (
         <div
@@ -643,7 +643,7 @@ export const ReportsSkeleton = () => (
     <PageHeaderSkeleton />
 
     {/* Tab bar */}
-    <div className="flex flex-wrap items-center gap-1 border-b border-border/50 pb-1 overflow-x-auto">
+    <div className="flex flex-wrap items-center gap-1 border-b border-border/40 pb-1 overflow-x-auto">
       {Array.from({ length: 5 }).map((_, i) => (
         <Skeleton key={i} className="h-10 w-32 shrink-0 rounded-lg mx-1" />
       ))}
@@ -657,7 +657,7 @@ export const ReportsSkeleton = () => (
       {Array.from({ length: 2 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-[2rem] border border-border/50 bg-card/50 p-4 sm:p-6 space-y-4"
+          className="rounded-[2rem] border border-border/40 bg-card/10 p-4 sm:p-6 space-y-4"
         >
           <div className="flex items-center justify-between border-b border-border/40 pb-3">
             <div className="space-y-1">
@@ -752,7 +752,7 @@ export const SettingsPageSkeleton = () => (
             ))}
           </div>
           {/* Color palette */}
-          <div className="pt-4 border-t border-border/50 space-y-3">
+          <div className="pt-4 border-t border-border/40 space-y-3">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-24" />
               <Skeleton className="h-4 w-28 rounded" />
@@ -924,7 +924,7 @@ export const MemberDashboardSkeleton = () => {
       {/* Member Grade & Financial Health */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
         {/* Member Grade Card Skeleton */}
-        <div className="group relative rounded-[2rem] bg-card p-6 sm:p-8 border shrink-0 shadow-xs h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
+        <div className="group relative rounded-[2rem] bg-card/10 backdrop-blur-sm p-6 sm:p-8 border border-border/40 shrink-0 h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
           <div className="relative z-10 flex flex-col h-full justify-between">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -960,7 +960,7 @@ export const MemberDashboardSkeleton = () => {
         </div>
 
         {/* Financial Health Card Skeleton */}
-        <div className="group relative rounded-[2rem] bg-card p-6 sm:p-8 border border-border/50 shadow-xs h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
+        <div className="group relative rounded-[2rem] bg-card/10 backdrop-blur-sm p-6 sm:p-8 border border-border/40 h-[380px] sm:h-[400px] flex flex-col justify-between overflow-hidden">
           <div className="relative z-10 flex flex-col h-full justify-between">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -1016,7 +1016,7 @@ export const MemberDashboardSkeleton = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Cash Flow */}
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
+          <div className="bg-card/10 backdrop-blur-sm p-6 sm:p-10 rounded-[2.5rem] border border-border/40 space-y-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="space-y-2">
                 <Skeleton className="h-6 w-32 rounded" />
@@ -1036,7 +1036,7 @@ export const MemberDashboardSkeleton = () => {
           </div>
 
           {/* My Loan Requests */}
-          <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+          <div className="bg-card/10 backdrop-blur-sm p-6 sm:p-10 rounded-[2.5rem] border border-border/40 space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="space-y-2">
                 <Skeleton className="h-6 w-40 rounded" />
@@ -1050,7 +1050,7 @@ export const MemberDashboardSkeleton = () => {
 
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="p-6 rounded-[2rem] border border-border/50 bg-muted/20">
+                <div key={i} className="p-6 rounded-[2rem] border border-border/40 bg-muted/20">
                   <div className="flex items-center justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -1070,7 +1070,7 @@ export const MemberDashboardSkeleton = () => {
         {/* Saving Goals */}
         <div className="lg:col-span-1">
           <div className="sticky top-10">
-            <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm h-full space-y-8">
+            <div className="bg-card/10 backdrop-blur-sm p-8 rounded-[2.5rem] border border-border/40 h-full space-y-8">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="space-y-2">
                   <Skeleton className="h-6 w-32 rounded" />
@@ -1116,7 +1116,7 @@ export const MemberInvestmentSkeleton = ({ count = 5 }) => {
         {[...Array(count)].map((_, i) => (
           <div
             key={i}
-            className="bg-card/40 border border-border/40 rounded-[2rem] p-6 shadow-sm"
+            className="bg-card/10 border border-border/40 rounded-[2rem] p-6"
           >
             {/* Top row: icon + desc + amount */}
             <div className="flex justify-between items-start mb-5">
@@ -1183,7 +1183,7 @@ export const MemberLoansSkeleton = ({ count = 4 }) => {
         {[...Array(count)].map((_, i) => (
           <div
             key={i}
-            className="p-8 rounded-[2.5rem] border border-border/40 bg-card/40 backdrop-blur-md shadow-sm"
+            className="p-8 rounded-[2.5rem] border border-border/40 bg-card/10 backdrop-blur-md"
           >
             {/* Header: icon block + status badge */}
             <div className="flex items-center justify-between mb-6">
@@ -1238,7 +1238,7 @@ export const MemberTransactionsSkeleton = ({ count = 6 }) => {
         {[...Array(count)].map((_, i) => (
           <div
             key={i}
-            className="bg-card/40 border border-border/40 rounded-[2rem] p-6 shadow-sm"
+            className="bg-card/10 border border-border/40 rounded-[2rem] p-6"
           >
             {/* Top row: icon + desc + amount */}
             <div className="flex justify-between items-start mb-5">
@@ -1331,7 +1331,7 @@ export const MemberWalletSkeleton = () => (
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="flex-1 bg-card border border-border/50 p-8 rounded-[2.5rem] space-y-4"
+            className="flex-1 bg-card/10 border border-border/40 p-8 rounded-[2.5rem] space-y-4"
           >
             <div className="flex justify-between items-start">
               <Skeleton className="h-3 w-28" />
@@ -1347,8 +1347,8 @@ export const MemberWalletSkeleton = () => (
     </div>
 
     {/* Ledger Section */}
-    <div className="bg-card rounded-[3rem] border border-border/50 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-border/50 flex items-center justify-between">
+    <div className="bg-card/10 backdrop-blur-sm rounded-[3rem] border border-border/40 overflow-hidden">
+      <div className="p-8 border-b border-border/40 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-2xl" />
           <div className="space-y-1.5">
@@ -1396,7 +1396,7 @@ export const MemberTransferSkeleton = () => (
         </div>
 
         {/* Form Card */}
-        <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm min-h-[500px] space-y-8">
+        <div className="bg-card/10 backdrop-blur-sm p-6 sm:p-10 rounded-[2.5rem] border border-border/40 min-h-[500px] space-y-8">
           <div className="space-y-4">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-64" />
@@ -1435,7 +1435,7 @@ export const MemberTransferSkeleton = () => (
         </div>
 
         {/* Recent Activity Card */}
-        <div className="bg-card border border-border/50 rounded-[2.5rem] p-6 space-y-4">
+        <div className="bg-card/10 border border-border/40 rounded-[2.5rem] p-6 space-y-4">
           <Skeleton className="h-5 w-32" />
           <RecentActivityListSkeleton count={3} />
         </div>
@@ -1472,8 +1472,8 @@ export const MemberInvestmentPageSkeleton = () => (
   <div className="space-y-10 animate-pulse pb-20">
     <PageHeaderSkeleton />
     <CardsSkeleton count={3} />
-    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-border/50 flex items-center justify-between bg-muted/20">
+    <div className="bg-card/10 backdrop-blur-sm rounded-[2.5rem] border border-border/40 overflow-hidden">
+      <div className="p-8 border-b border-border/40 flex items-center justify-between bg-muted/20">
         <Skeleton className="h-10 w-64 rounded-xl" />
         <Skeleton className="h-10 w-32 rounded-xl" />
       </div>
@@ -1487,8 +1487,8 @@ export const MemberLoansPageSkeleton = () => (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
       <PageHeaderSkeleton />
     </div>
-    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-      <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
+    <div className="bg-card/10 backdrop-blur-sm rounded-[2.5rem] border border-border/40 overflow-hidden">
+      <div className="p-6 sm:p-10 border-b border-border/40 bg-muted/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <Skeleton className="h-12 w-full max-w-md rounded-2xl" />
           <div className="flex gap-2">
@@ -1507,8 +1507,8 @@ export const MemberActivityPageSkeleton = () => (
   <div className="space-y-10 animate-pulse pb-20">
     <PageHeaderSkeleton />
     <CardsSkeleton count={3} />
-    <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-      <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
+    <div className="bg-card/10 backdrop-blur-sm rounded-[2.5rem] border border-border/40 overflow-hidden">
+      <div className="p-6 sm:p-10 border-b border-border/40 bg-muted/20">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
           <div className="flex gap-4 flex-1">
             <Skeleton className="h-12 flex-1 max-w-md rounded-2xl" />
@@ -1559,7 +1559,7 @@ export const TellerStatsSkeleton = () => (
     {Array.from({ length: 3 }).map((_, i) => (
       <div
         key={i}
-        className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-sm relative overflow-hidden"
+        className="p-6 rounded-[2.5rem] bg-card/10 backdrop-blur-sm border border-border/40 relative overflow-hidden"
       >
         <Skeleton className="w-10 h-10 rounded-2xl mb-4" />
         <Skeleton className="h-2 w-20 mb-2 opacity-50" />
@@ -1570,7 +1570,7 @@ export const TellerStatsSkeleton = () => (
 );
 
 export const TellerMemberCardSkeleton = () => (
-  <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-sm space-y-8 animate-in fade-in duration-500">
+  <div className="p-6 rounded-[2.5rem] bg-card/10 backdrop-blur-sm border border-border/40 space-y-8 animate-in fade-in duration-500">
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-4">
         <Skeleton className="w-14 h-14 rounded-2xl shadow-lg" />
@@ -1603,7 +1603,7 @@ export const TellerMemberCardSkeleton = () => (
 
 export const TellerJournalSkeleton = () => (
   <div className="w-full space-y-6 animate-in fade-in duration-500">
-    <div className="p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-sm space-y-8">
+    <div className="p-8 rounded-[2.5rem] bg-card/10 backdrop-blur-sm border border-border/40 space-y-8">
       <div className="grid grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="space-y-1">
@@ -1613,7 +1613,7 @@ export const TellerJournalSkeleton = () => (
         ))}
       </div>
       <div className="space-y-4">
-        <div className="border-b border-border/50 pb-4 flex justify-between px-2">
+        <div className="border-b border-border/40 pb-4 flex justify-between px-2">
            {Array.from({ length: 4 }).map((_, i) => (
              <Skeleton key={i} className="h-3 w-20" />
            ))}

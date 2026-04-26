@@ -4,19 +4,19 @@ const CalendarSkeleton = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[500px] animate-in fade-in duration-500 overflow-hidden">
       {/* Calendar Section Skeleton */}
-      <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-6 shadow-sm flex flex-col">
+      <div className="flex-1 bg-card/10 backdrop-blur-xl border border-border/40 rounded-[2.5rem] p-6 flex flex-col">
         <header className="flex items-center justify-between mb-8 px-2">
           <div>
             <Skeleton className="h-7 w-48 mb-2" />
             <Skeleton className="h-3 w-32" />
           </div>
-          <div className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
+          <div className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/40">
             <Skeleton className="h-9 w-9 rounded-xl" />
             <Skeleton className="h-9 w-9 rounded-xl" />
           </div>
         </header>
 
-        <div className="grid grid-cols-7 border-b border-border/50 pb-4 mb-4">
+        <div className="grid grid-cols-7 border-b border-border/40 pb-4 mb-4">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <div key={i} className="flex justify-center">
               <Skeleton className="h-3 w-10 uppercase tracking-widest" />
@@ -42,7 +42,7 @@ const CalendarSkeleton = () => {
 
       {/* Details Side-pane Skeleton */}
       <div className="w-full lg:w-80 flex flex-col gap-6 overflow-hidden max-h-full">
-        <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2rem] p-6 shadow-sm flex flex-col overflow-hidden">
+        <div className="flex-1 bg-card/10 backdrop-blur-xl border border-border/40 rounded-[2rem] p-6 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-6">
             <div>
               <Skeleton className="h-4 w-24 mb-2" />
@@ -55,7 +55,7 @@ const CalendarSkeleton = () => {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="p-4 rounded-3xl border border-border/50 bg-background/40"
+                className="p-4 rounded-3xl border border-border/40 bg-background/40"
               >
                 <div className="flex justify-between items-start mb-2">
                   <Skeleton className="h-3 w-20" />

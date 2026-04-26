@@ -334,7 +334,7 @@ const Billing = () => {
               </section>
 
               {/* Billing History */}
-              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+              <section className="bg-card/10 backdrop-blur-sm border border-border/40 rounded-[2rem] overflow-hidden">
                 <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/10">
                   <h3 className="text-lg font-bold">Billing History</h3>
                   <p className="text-muted-foreground text-sm">

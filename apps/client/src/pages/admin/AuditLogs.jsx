@@ -301,7 +301,7 @@ const AuditLogs = () => {
       </div>
 
       {/* Desktop Trace Table */}
-      <div className="hidden lg:block rounded-[2.5rem] bg-white dark:bg-slate-900 border border-border/50 shadow-xl overflow-hidden relative group">
+      <div className="hidden lg:block rounded-[2rem] bg-card/10 backdrop-blur-sm border border-border/40 overflow-hidden relative group">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
         <div className="overflow-x-auto relative">
           <table className="w-full border-collapse">

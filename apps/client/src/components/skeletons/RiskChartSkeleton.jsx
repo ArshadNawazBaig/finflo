@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 const RiskChartSkeleton = () => (
-  <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 sm:p-6">
+  <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm p-4 sm:p-6">
     {/* Header */}
     <div className="border-b border-border/40 pb-4 mb-5 flex items-center gap-2">
       <div className="h-4 w-4 rounded bg-muted/40 animate-pulse" />

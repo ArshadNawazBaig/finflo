@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const DistributionCardSkeleton = () => {
   return (
-    <div className="p-5 rounded-[2rem] border border-border/40 bg-card space-y-4 shadow-sm animate-pulse">
+    <div className="p-5 rounded-[2rem] border border-border/40 bg-card/10 animate-pulse space-y-4">
       <div className="flex justify-between items-start">
         <div className="flex gap-3">
           <Skeleton className="h-10 w-10 rounded-xl" />

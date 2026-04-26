@@ -444,7 +444,7 @@ const Notifications = () => {
             </div>
           ) : (
             /* Desktop Table View */
-            <div className="rounded-lg border border-border/50 bg-card overflow-hidden shadow-sm">
+            <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">

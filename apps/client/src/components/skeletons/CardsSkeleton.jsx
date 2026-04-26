@@ -8,7 +8,7 @@ const CardsSkeleton = ({ count = 4 }) => {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm"
+          className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/40 bg-card/10 backdrop-blur-sm"
         >
           <div className="flex justify-between items-start mb-4">
             <div className="h-12 w-12 rounded-2xl bg-muted/30 animate-pulse" />

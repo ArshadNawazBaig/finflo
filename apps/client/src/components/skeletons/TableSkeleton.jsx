@@ -9,12 +9,12 @@ const TableSkeleton = ({ rows = 5, columns = 5, className }) => {
         className,
       )}
     >
-      <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 border border-border/50 shadow-xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
+      <div className="rounded-[2rem] bg-card/10 backdrop-blur-sm border border-border/40 overflow-hidden relative">
+
         <div className="overflow-x-auto relative">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-border/50 bg-muted/20">
+              <tr className="border-b border-border/40 bg-muted/20">
                 {[...Array(columns)].map((_, i) => (
                   <th
                     key={i}

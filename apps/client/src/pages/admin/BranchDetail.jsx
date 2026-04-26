@@ -996,41 +996,39 @@ const BranchDetail = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
-                      <TransactionTable
-                        data={expenses}
-                        sortBy={expenseSortBy}
-                        sortOrder={expenseSortOrder}
-                        onSort={(column) => {
-                          const newOrder =
-                            expenseSortBy === column &&
-                            expenseSortOrder === 'asc'
-                              ? 'desc'
-                              : 'asc';
-                          setExpenseSortBy(column);
-                          setExpenseSortOrder(newOrder);
+                    <TransactionTable
+                      data={expenses}
+                      sortBy={expenseSortBy}
+                      sortOrder={expenseSortOrder}
+                      onSort={(column) => {
+                        const newOrder =
+                          expenseSortBy === column &&
+                          expenseSortOrder === 'asc'
+                            ? 'desc'
+                            : 'asc';
+                        setExpenseSortBy(column);
+                        setExpenseSortOrder(newOrder);
+                        setExpensePagination((prev) => ({
+                          ...prev,
+                          page: 1,
+                        }));
+                      }}
+                      pagination={{
+                        currentPage: expensePagination.page,
+                        totalPages: expensePagination.totalPages,
+                        totalEntries: expensePagination.totalEntries,
+                        limit: expensePagination.limit,
+                        onPageChange: (page) => {
+                          setExpensePagination((prev) => ({ ...prev, page }));
+                        },
+                        onLimitChange: (limit) =>
                           setExpensePagination((prev) => ({
                             ...prev,
+                            limit,
                             page: 1,
-                          }));
-                        }}
-                        pagination={{
-                          currentPage: expensePagination.page,
-                          totalPages: expensePagination.totalPages,
-                          totalEntries: expensePagination.totalEntries,
-                          limit: expensePagination.limit,
-                          onPageChange: (page) => {
-                            setExpensePagination((prev) => ({ ...prev, page }));
-                          },
-                          onLimitChange: (limit) =>
-                            setExpensePagination((prev) => ({
-                              ...prev,
-                              limit,
-                              page: 1,
-                            })),
-                        }}
-                      />
-                    </div>
+                          })),
+                      }}
+                    />
                   )}
                 </div>
               </motion.div>
@@ -1189,38 +1187,36 @@ const BranchDetail = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="rounded-[2rem] border border-border/40 overflow-hidden bg-card/30 backdrop-blur-sm">
-                      <TransactionTable
-                        data={ledger}
-                        sortBy={ledgerSortBy}
-                        sortOrder={ledgerSortOrder}
-                        hideType={true}
-                        onSort={(column) => {
-                          const newOrder =
-                            ledgerSortBy === column && ledgerSortOrder === 'asc'
-                              ? 'desc'
-                              : 'asc';
-                          setLedgerSortBy(column);
-                          setLedgerSortOrder(newOrder);
-                          setLedgerPagination((prev) => ({ ...prev, page: 1 }));
-                        }}
-                        pagination={{
-                          currentPage: ledgerPagination.page,
-                          totalPages: ledgerPagination.totalPages,
-                          totalEntries: ledgerPagination.totalEntries,
-                          limit: ledgerPagination.limit,
-                          onPageChange: (page) => {
-                            setLedgerPagination((prev) => ({ ...prev, page }));
-                          },
-                          onLimitChange: (limit) =>
-                            setLedgerPagination((prev) => ({
-                              ...prev,
-                              limit,
-                              page: 1,
-                            })),
-                        }}
-                      />
-                    </div>
+                    <TransactionTable
+                      data={ledger}
+                      sortBy={ledgerSortBy}
+                      sortOrder={ledgerSortOrder}
+                      hideType={true}
+                      onSort={(column) => {
+                        const newOrder =
+                          ledgerSortBy === column && ledgerSortOrder === 'asc'
+                            ? 'desc'
+                            : 'asc';
+                        setLedgerSortBy(column);
+                        setLedgerSortOrder(newOrder);
+                        setLedgerPagination((prev) => ({ ...prev, page: 1 }));
+                      }}
+                      pagination={{
+                        currentPage: ledgerPagination.page,
+                        totalPages: ledgerPagination.totalPages,
+                        totalEntries: ledgerPagination.totalEntries,
+                        limit: ledgerPagination.limit,
+                        onPageChange: (page) => {
+                          setLedgerPagination((prev) => ({ ...prev, page }));
+                        },
+                        onLimitChange: (limit) =>
+                          setLedgerPagination((prev) => ({
+                            ...prev,
+                            limit,
+                            page: 1,
+                          })),
+                      }}
+                    />
                   )}
                 </div>
               </motion.div>

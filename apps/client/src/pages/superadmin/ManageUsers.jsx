@@ -321,7 +321,7 @@ const ManageUsers = () => {
           )}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card">
+        <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/10">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">

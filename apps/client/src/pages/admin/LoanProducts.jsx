@@ -122,7 +122,7 @@ const LoanProducts = () => {
       </div>
 
       {/* Products Table */}
-      <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
+      <Card className="border border-border/40 bg-card/10 backdrop-blur-sm rounded-[2rem] overflow-hidden">
         <CardHeader className="p-8 pb-4 border-b border-border/40">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>

@@ -445,27 +445,25 @@ const Members = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-            <MemberTable
-              data={members}
-              onDelete={setDeleteMemberId}
-              onApprove={handleApproveMember}
-              onReject={handleRejectMember}
-              approvingId={approvingId}
-              rejectingId={rejectingId}
-              pagination={{
-                currentPage,
-                totalPages,
-                totalEntries,
-                limit,
-                onPageChange: (page) => fetchMembers(false, page),
-                onLimitChange: (newLimit) => setLimit(newLimit),
-              }}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-            />
-          </div>
+          <MemberTable
+            data={members}
+            onDelete={setDeleteMemberId}
+            onApprove={handleApproveMember}
+            onReject={handleRejectMember}
+            approvingId={approvingId}
+            rejectingId={rejectingId}
+            pagination={{
+              currentPage,
+              totalPages,
+              totalEntries,
+              limit,
+              onPageChange: (page) => fetchMembers(false, page),
+              onLimitChange: (newLimit) => setLimit(newLimit),
+            }}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+          />
         )}
       </div>
 

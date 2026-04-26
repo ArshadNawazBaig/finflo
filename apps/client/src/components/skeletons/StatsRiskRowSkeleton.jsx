@@ -11,7 +11,7 @@ const StatsRiskRowSkeleton = () => (
       {[...Array(4)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-card/50 backdrop-blur-sm p-5 flex flex-col gap-3"
+          className="relative overflow-hidden rounded-[1.5rem] border border-border/40 bg-card/10 backdrop-blur-sm p-5 flex flex-col gap-3"
         >
           <div className="flex items-center justify-between">
             <div className="h-10 w-10 rounded-xl bg-muted/40 animate-pulse" />
@@ -27,7 +27,7 @@ const StatsRiskRowSkeleton = () => (
     </div>
 
     {/* Right — Risk chart skeleton */}
-    <div className="xl:col-span-1 rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 sm:p-6">
+    <div className="xl:col-span-1 rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm p-4 sm:p-6">
       {/* Header */}
       <div className="border-b border-border/40 pb-4 mb-5 flex items-center gap-2">
         <div className="h-4 w-4 rounded bg-muted/40 animate-pulse" />

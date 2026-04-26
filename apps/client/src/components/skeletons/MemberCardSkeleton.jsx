@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const MemberCardSkeleton = () => {
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm animate-pulse">
+    <div className="bg-card/10 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 animate-pulse">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-2xl bg-muted/30" />

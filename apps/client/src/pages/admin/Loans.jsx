@@ -290,33 +290,31 @@ const Loans = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-            <LoanTable
-              data={loans}
-              onRefresh={() => {
-                fetchLoans();
-                fetchStats();
-              }}
-              pagination={{
-                currentPage,
-                totalPages,
-                totalEntries,
-                limit,
-                onPageChange: setCurrentPage,
-                onLimitChange: (newLimit) => {
-                  setLimit(newLimit);
-                  setCurrentPage(1);
-                },
-              }}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onRepay={(loan) => setRepayLoan(loan)}
-              onDetails={(loan) => setDetailLoan(loan)}
-              onEdit={(loan) => setEditLoan(loan)}
-              onDelete={(loan) => setDeleteLoan(loan)}
-            />
-          </div>
+          <LoanTable
+            data={loans}
+            onRefresh={() => {
+              fetchLoans();
+              fetchStats();
+            }}
+            pagination={{
+              currentPage,
+              totalPages,
+              totalEntries,
+              limit,
+              onPageChange: setCurrentPage,
+              onLimitChange: (newLimit) => {
+                setLimit(newLimit);
+                setCurrentPage(1);
+              },
+            }}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
+            onRepay={(loan) => setRepayLoan(loan)}
+            onDetails={(loan) => setDetailLoan(loan)}
+            onEdit={(loan) => setEditLoan(loan)}
+            onDelete={(loan) => setDeleteLoan(loan)}
+          />
         )}
       </div>
 

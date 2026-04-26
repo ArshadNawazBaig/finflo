@@ -5,7 +5,7 @@ const SecondaryStatsSkeleton = ({ count = 4 }) => (
     {[...Array(count)].map((_, i) => (
       <div
         key={i}
-        className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-card/50 backdrop-blur-sm p-5 flex flex-col gap-3"
+        className="relative overflow-hidden rounded-[1.5rem] border border-border/40 bg-card/10 backdrop-blur-sm p-5 flex flex-col gap-3"
       >
         <div className="flex items-center justify-between">
           <div className="h-10 w-10 rounded-xl bg-muted/40 animate-pulse" />

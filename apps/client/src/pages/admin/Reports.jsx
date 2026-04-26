@@ -2043,7 +2043,7 @@ const Reports = () => {
               <TableSkeleton rows={8} columns={2} />
             </div>
           ) : pnl ? (
-            <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden p-1">
+            <div className="bg-card/10 rounded-[2rem] border border-border/40 overflow-hidden p-1">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <tbody>
                   {/* REVENUE */}
@@ -2550,7 +2550,7 @@ const Reports = () => {
               </div>
 
               {/* Detailed Table */}
-              <div className="overflow-hidden rounded-[2rem] border border-border/50 shadow-sm bg-card">
+              <div className="overflow-hidden rounded-[2rem] border border-border/40 bg-card/10">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/50">

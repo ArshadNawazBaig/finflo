@@ -285,7 +285,7 @@ const Team = () => {
                 )}
               </div>
             ) : (
-              <div className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+              <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
                 <StaffTable
                   data={staff}
                   onToggleStatus={handleToggleStatus}
