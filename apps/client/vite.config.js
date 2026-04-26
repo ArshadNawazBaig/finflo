@@ -106,7 +106,6 @@ export default defineConfig({
       'finflo-production.up.railway.app',
       'app.finflo.org',
       'finflo.org',
-      'www.finflo.org',
     ],
     hmr: true,
     fs: {

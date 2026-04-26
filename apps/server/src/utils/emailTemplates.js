@@ -144,7 +144,7 @@ const loanReminderEmail = (
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${`${process.env.CLIENT_URL}/member/login` || 'https://www.finflo.org/member/login'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
+          <a href="${`${process.env.CLIENT_URL}/member/login` || 'https://finflo.org/member/login'}" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View Account</a>
         </td>
       </tr>
     </table>
@@ -276,7 +276,7 @@ const memberApprovalEmail = (
         ? `<table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/member/login" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Login to Member Portal</a>
+          <a href="${process.env.CLIENT_URL || 'https://finflo.org'}/member/login" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Login to Member Portal</a>
         </td>
       </tr>
     </table>`
@@ -315,7 +315,7 @@ const welcomeBusinessEmail = (businessName, logoUrl = null) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/dashboard" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Go to Dashboard</a>
+          <a href="${process.env.CLIENT_URL || 'https://finflo.org'}/dashboard" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Go to Dashboard</a>
         </td>
       </tr>
     </table>
@@ -357,7 +357,7 @@ const superAdminNewRegistrationEmail = (userData) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Manage Users</a>
+          <a href="${process.env.CLIENT_URL || 'https://finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Manage Users</a>
         </td>
       </tr>
     </table>
@@ -403,7 +403,7 @@ const superAdminSubscriptionNotificationEmail = (userData, planName) => {
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
         <td align="center" style="padding-bottom: 32px;">
-          <a href="${process.env.CLIENT_URL || 'https://www.finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View User Details</a>
+          <a href="${process.env.CLIENT_URL || 'https://finflo.org'}/admin/users" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 12px; text-transform: uppercase;">View User Details</a>
         </td>
       </tr>
     </table>

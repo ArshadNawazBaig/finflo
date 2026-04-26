@@ -13,5 +13,5 @@ Disallow: /member/
 Disallow: /settings/
 Disallow: /billing/
 
-Sitemap: https://www.finflo.org/sitemap.xml
+Sitemap: https://finflo.org/sitemap.xml
 Sitemap: https://app.finflo.org/sitemap.xml

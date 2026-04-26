@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.finflo.org/</loc>
+    <loc>https://finflo.org/</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/pricing</loc>
+    <loc>https://finflo.org/pricing</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/register</loc>
+    <loc>https://finflo.org/register</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/privacy</loc>
+    <loc>https://finflo.org/privacy</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/terms</loc>
+    <loc>https://finflo.org/terms</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/documentation</loc>
+    <loc>https://finflo.org/documentation</loc>
     <lastmod>2026-03-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.finflo.org/login</loc>
+    <loc>https://finflo.org/login</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.6</priority>
   </url>
