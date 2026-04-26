@@ -1,18 +1,18 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+import { ThemeProvider } from '@/context/ThemeContext';
+
 // Redirect www → non-www (must run before anything else)
 if (
   window.location.hostname === 'www.finflo.org' &&
   window.location.protocol === 'https:'
 ) {
   window.location.replace(
-    `https://finflo.org${window.location.pathname}${window.location.search}${window.location.hash}`
+    `https://finflo.org${window.location.pathname}${window.location.search}${window.location.hash}`,
   );
 }
-
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import './index.css';
-import { ThemeProvider } from '@/context/ThemeContext';
 
 // Handle ChunkLoadError (common after deployment when old assets are removed)
 window.addEventListener(
@@ -41,8 +41,6 @@ window.addEventListener('unhandledrejection', (event) => {
     console.warn('Startup might be stuck due to above error.');
   }
 });
-
-
 
 // Service Worker Registration Handler
 const registerServiceWorker = () => {
