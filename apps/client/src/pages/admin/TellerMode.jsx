@@ -1056,6 +1056,16 @@ const TellerMode = () => {
       adjustedInterest = Math.round(
         Math.max(monthlyInterest, calculatedInterest),
       );
+    } else if (loan.interestType === 'compound') {
+      // Compound: remainingAmount already includes compounded interest
+      return {
+        amount: Math.round(loan.remainingAmount),
+        adjustedPrincipal: Math.round(loan.remainingAmount),
+        adjustedInterest: Math.round(loan.compoundedAmount || 0),
+        monthsElapsed: fullMonths,
+        daysIntoMonth,
+        isEarly: true,
+      };
     } else if (loan.interestType === 'emi') {
       const monthlyRate = loan.rate / 12 / 100;
       const r = monthlyRate;
@@ -1093,13 +1103,28 @@ const TellerMode = () => {
     let diff = now.getTime() - refDate.getTime();
     if (diff < 0) diff = 0;
     const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const monthlyInterest =
-      (tellerActiveLoan.principal * tellerActiveLoan.rate) / 1200;
-    const dailyInterest = monthlyInterest / 30;
-    const interestForDays = Math.round(dailyInterest * daysPassed);
-    const principalPerInstallment = Math.round(
-      tellerActiveLoan.principal / (tellerActiveLoan.duration || 1),
-    );
+    let interestForDays, principalPerInstallment;
+
+    if (tellerActiveLoan.interestType === 'compound') {
+      // Compound: interest on remaining balance (which grows on missed payments)
+      const monthlyInterest =
+        (tellerActiveLoan.remainingAmount * tellerActiveLoan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        tellerActiveLoan.principal / (tellerActiveLoan.duration || 1),
+      );
+    } else {
+      // Simple interest (default)
+      const monthlyInterest =
+        (tellerActiveLoan.principal * tellerActiveLoan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        tellerActiveLoan.principal / (tellerActiveLoan.duration || 1),
+      );
+    }
+
     const adjustedAmount = principalPerInstallment + interestForDays;
     return { daysPassed, interestForDays, adjustedAmount };
   };

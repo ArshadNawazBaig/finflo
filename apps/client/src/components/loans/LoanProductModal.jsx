@@ -181,6 +181,7 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                   <SelectContent>
                     <SelectItem value="simple">Simple Interest</SelectItem>
                     <SelectItem value="emi">EMI (Reducing)</SelectItem>
+                    <SelectItem value="compound">Compound Interest</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

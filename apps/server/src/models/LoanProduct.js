@@ -9,7 +9,7 @@ const loanProductSchema = new mongoose.Schema(
     duration: { type: Number, required: true }, // Default months
     interestType: {
       type: String,
-      enum: ['simple', 'emi'],
+      enum: ['simple', 'emi', 'compound'],
       default: 'simple',
     },
     minAmount: { type: Number, default: 0 },

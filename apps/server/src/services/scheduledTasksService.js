@@ -754,6 +754,106 @@ const runLoanDefaultDetection = async () => {
   }
 };
 
+// ─── Job 8: Compound Interest Accrual ────────────────────────────────────────
+/**
+ * Runs daily at 00:30.
+ * For compound-interest loans with missed installments, adds the unpaid
+ * interest to the outstanding balance (totalAmount & remainingAmount).
+ * This makes the borrower pay interest-on-interest for missed payments.
+ * De-duplicated daily via lastCompoundedAt.
+ */
+const runCompoundInterestAccrual = async () => {
+  console.log('[CRON] runCompoundInterestAccrual: starting...');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  try {
+    // Only process compound-interest loans that are active or overdue
+    const compoundLoans = await Loan.find({
+      interestType: 'compound',
+      status: { $in: ['active', 'overdue'] },
+      remainingAmount: { $gt: 0 },
+    }).populate('customer', 'name memberId isMember');
+
+    let totalCompounded = 0;
+
+    for (const loan of compoundLoans) {
+      try {
+        // Calculate which installment should be paid by now
+        const startDate = new Date(loan.startDate);
+        const monthsSinceStart = Math.floor(
+          (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+        );
+
+        // How many installments have been paid
+        const installmentsPaid = Math.floor(
+          ((loan.paidAmount || 0) + 0.5) / loan.emi
+        );
+
+        // If the borrower is up to date, no compounding needed
+        if (installmentsPaid >= monthsSinceStart) continue;
+
+        // Calculate one month's interest on the current remaining balance
+        const monthlyInterest = Math.round(
+          (loan.remainingAmount * loan.rate) / 1200
+        );
+
+        if (monthlyInterest <= 0) continue;
+
+        // Daily de-duplication: only compound once per day
+        const updatedLoan = await Loan.findOneAndUpdate(
+          {
+            _id: loan._id,
+            $or: [
+              { lastCompoundedAt: { $exists: false } },
+              { lastCompoundedAt: null },
+              { lastCompoundedAt: { $lt: today } },
+            ],
+          },
+          {
+            $inc: {
+              totalAmount: monthlyInterest,
+              remainingAmount: monthlyInterest,
+              compoundedAmount: monthlyInterest,
+            },
+            $set: { lastCompoundedAt: new Date() },
+          },
+          { new: true }
+        );
+
+        if (!updatedLoan) continue;
+
+        totalCompounded++;
+
+        // Notify member about compounded interest
+        if (loan.customer?.isMember && loan.customer?.memberId) {
+          try {
+            await createTransactionNotification({
+              recipientId: loan.customer.memberId,
+              title: '📈 Interest Compounded',
+              message: `Rs. ${monthlyInterest.toLocaleString()} interest has been added to your loan #${loan._id.toString().slice(-6).toUpperCase()} balance due to a missed installment. New outstanding: Rs. ${updatedLoan.remainingAmount.toLocaleString()}.`,
+              type: 'warning',
+              branchId: loan.branchId,
+              action: 'compound_interest_accrual',
+              metadata: { loanId: loan._id, link: '/member/loans' },
+            });
+          } catch (notifErr) {
+            console.error('[CRON] Compound interest notification error:', notifErr.message);
+          }
+        }
+      } catch (loanErr) {
+        console.error(`[CRON] Error compounding loan ${loan._id}:`, loanErr.message);
+      }
+    }
+
+    console.log(
+      `[CRON] runCompoundInterestAccrual: compounded interest on ${totalCompounded} loan(s).`
+    );
+  } catch (err) {
+    console.error('[CRON] runCompoundInterestAccrual ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -788,7 +888,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 7 jobs registered.');
+  // Job 8: Compound interest accrual daily at 00:30
+  cron.schedule('30 0 * * *', runCompoundInterestAccrual, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 8 jobs registered.');
 };
 
 module.exports = {
@@ -801,4 +906,5 @@ module.exports = {
   runSavingProfitAccrual,
   runMonthlySavingProfitDistribution,
   runLoanDefaultDetection,
+  runCompoundInterestAccrual,
 };

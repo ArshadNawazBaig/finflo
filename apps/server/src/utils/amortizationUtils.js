@@ -29,8 +29,10 @@ const generateAmortizationSchedule = (loan) => {
 
     let interest, principalPortion, installmentTotal;
 
-    if (interestType === 'simple' || !interestType) {
-      // Simple Interest: each installment = principal slice + 30 days of daily interest
+    if (interestType === 'simple' || interestType === 'compound' || !interestType) {
+      // Simple & Compound Interest: each installment = principal slice + 30 days of daily interest
+      // For compound, the initial schedule is flat (same as simple). The actual compounding
+      // happens dynamically via a cron job when installments are missed.
       interest = interestPer30Days;
       principalPortion = principalPerInstallment;
       installmentTotal = principalPortion + interest;

@@ -39,9 +39,11 @@ const loanSchema = new mongoose.Schema(
     remainingAmount: { type: Number, required: true },
     interestType: {
       type: String,
-      enum: ['simple', 'emi'],
+      enum: ['simple', 'emi', 'compound'],
       default: 'simple',
     },
+    compoundedAmount: { type: Number, default: 0 },
+    lastCompoundedAt: { type: Date },
     documents: [
       {
         name: { type: String, required: true },

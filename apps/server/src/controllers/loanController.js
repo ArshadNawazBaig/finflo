@@ -108,6 +108,15 @@ const calculateSimpleInterest = (principal, rate, duration) => {
   return { emi, totalAmount };
 };
 
+// Compound interest initial calculation — same as simple at creation time.
+// The actual compounding happens dynamically via a cron job when installments are missed.
+const calculateCompoundInterest = (principal, rate, duration) => {
+  const totalInterest = (principal * rate * duration) / 1200;
+  const totalAmount = principal + totalInterest;
+  const emi = totalAmount / duration;
+  return { emi, totalAmount };
+};
+
 const createLoan = async (req, res) => {
   const {
     customerId,
@@ -269,8 +278,9 @@ const createLoan = async (req, res) => {
 
     let emi, totalAmount;
 
-    if (interestType === 'simple') {
-      const result = calculateSimpleInterest(principal, rate, duration);
+    if (interestType === 'simple' || interestType === 'compound') {
+      const calcFn = interestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
+      const result = calcFn(principal, rate, duration);
       emi = Math.round(result.emi);
       totalAmount = Math.round(result.totalAmount);
     } else {
@@ -553,7 +563,8 @@ const requestLoan = async (req, res) => {
       totalAmount = principal;
 
     if (rate > 0) {
-      const result = calculateSimpleInterest(principal, rate, duration);
+      const calcFn = interestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
+      const result = calcFn(principal, rate, duration);
       emi = Math.round(result.emi);
       totalAmount = Math.round(result.totalAmount);
     } else {
@@ -1116,8 +1127,9 @@ const updateLoan = async (req, res) => {
 
       let emi, totalAmount;
 
-      if (newInterestType === 'simple') {
-        const result = calculateSimpleInterest(
+      if (newInterestType === 'simple' || newInterestType === 'compound') {
+        const calcFn = newInterestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
+        const result = calcFn(
           newPrincipal,
           newRate,
           newDuration,
@@ -1487,8 +1499,9 @@ const approveLoan = async (req, res) => {
       }
 
       let emi, totalAmount;
-      if (newInterestType === 'simple') {
-        const result = calculateSimpleInterest(
+      if (newInterestType === 'simple' || newInterestType === 'compound') {
+        const calcFn = newInterestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
+        const result = calcFn(
           newPrincipal,
           newRate,
           newDuration,

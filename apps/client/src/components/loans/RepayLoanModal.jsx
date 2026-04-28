@@ -127,6 +127,14 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
       principalPerInstallment = Math.round(
         loan.principal / (loan.duration || 1),
       );
+    } else if (loan.interestType === 'compound') {
+      // Compound: interest on current remaining balance (grows on missed payments)
+      const monthlyInterest = (loan.remainingAmount * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        loan.principal / (loan.duration || 1),
+      );
     } else {
       // EMI Math
       const currentPrincipal = Math.max(0, loan.principal - truePrincipalPaid);
@@ -181,6 +189,14 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         daysElapsed: totalDaysPassed,
         interest: totalAccruedInterest,
         isEarly: true,
+      };
+    } else if (loan.interestType === 'compound') {
+      // Compound: remainingAmount already includes compounded interest from cron
+      return {
+        amount: loan.remainingAmount,
+        daysElapsed: totalDaysPassed,
+        interest: loan.compoundedAmount || 0,
+        isEarly: totalDaysPassed < expectedDays,
       };
     } else {
       // EMI Math: Final settlement is current principal + just the current period's interest

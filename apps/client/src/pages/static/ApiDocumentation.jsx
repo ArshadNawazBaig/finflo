@@ -625,6 +625,7 @@ const ApiDocumentation = () => {
                             },
                             lateFeeAmount: 0,
                             remainingAmount: 4200,
+                            compoundedAmount: 0,
                           },
                         ],
                       },
@@ -675,7 +676,7 @@ const ApiDocumentation = () => {
                       {
                         name: 'interestType',
                         type: 'string',
-                        desc: 'simple or emi (default: simple)',
+                        desc: "'simple', 'emi', or 'compound' (default: simple). Compound adds unpaid interest to principal on missed installments.",
                       },
                       {
                         name: 'grantor1',

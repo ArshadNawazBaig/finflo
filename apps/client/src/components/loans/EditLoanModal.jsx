@@ -125,20 +125,27 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
                 <Percent className="w-3 h-3 text-orange-500" /> Interest Type
               </Label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setInterestType('simple')}
-                  className={`px-4 py-3 rounded-2xl border text-sm font-black transition-all ${interestType === 'simple' ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'simple' ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
                 >
-                  Simple Interest
+                  Simple
                 </button>
                 <button
                   type="button"
                   onClick={() => setInterestType('emi')}
-                  className={`px-4 py-3 rounded-2xl border text-sm font-black transition-all ${interestType === 'emi' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'emi' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
                 >
                   EMI (Reducing)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInterestType('compound')}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'compound' ? 'border-rose-500 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                >
+                  Compound
                 </button>
               </div>
             </div>

@@ -124,6 +124,14 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
       principalPerInstallment = Math.round(
         loan.principal / (loan.duration || 1),
       );
+    } else if (loan.interestType === 'compound') {
+      // Compound: interest on current remaining balance (grows on missed payments)
+      const monthlyInterest = (loan.remainingAmount * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestForDays = Math.round(dailyInterest * daysPassed);
+      principalPerInstallment = Math.round(
+        loan.principal / (loan.duration || 1),
+      );
     } else {
       // EMI Math
       const currentPrincipal = Math.max(0, loan.principal - truePrincipalPaid);

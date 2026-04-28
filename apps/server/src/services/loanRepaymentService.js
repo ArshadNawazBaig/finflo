@@ -53,6 +53,19 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       const proRatedInterest = Math.round(dailyInterest * totalDaysPassed);
 
       actualSettlementAmount = loan.principal + proRatedInterest;
+    } else if (loan.interestType === 'compound') {
+      // Compound: interest is on the current outstanding balance (remainingAmount)
+      const outstandingBalance = loan.remainingAmount + loan.paidAmount - (loan.compoundedAmount || 0);
+      const monthlyInterest = (outstandingBalance * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+
+      const proRatedInterest = Math.round(dailyInterest * totalDaysPassed);
+
+      actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
+      // If settlement is happening, just pay what's currently owed
+      if (proRatedInterest > 0) {
+        actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
+      }
     } else if (loan.interestType === 'emi') {
       // EMI (Reducing Balance) Early Settlement
       const monthlyRate = loan.rate / 12 / 100;
@@ -124,6 +137,12 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
     if (loan.interestType === 'simple') {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
+      const dailyInterest = monthlyInterest / 30;
+      interestAmount = Math.round(dailyInterest * daysPassed);
+    } else if (loan.interestType === 'compound') {
+      // Compound: interest calculated on remaining balance (which grows on missed payments)
+      const currentOutstanding = loan.remainingAmount;
+      const monthlyInterest = (currentOutstanding * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
       interestAmount = Math.round(dailyInterest * daysPassed);
     } else {
