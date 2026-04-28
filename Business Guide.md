@@ -62,7 +62,8 @@ Build your community with advanced registration and guidance tools.
 Define how you lend and grow.
 
 - **Loan Products**: Create diverse lending products (e.g., Micro-loans, Car Loans, Business Loans).
-- **Custom Logic**: Define interest rates (simple or EMI-based), repayment cycles (monthly, weekly), and penalty rules.
+- **Custom Logic**: Define interest rates (Simple, EMI, or Compound), repayment cycles (monthly, weekly), and penalty rules.
+  - **Compound Interest**: A premium risk-management model where missed installments cause interest to be recalculated and added back to the principal, ensuring the business is protected from chronic non-payment.
 - **Grantor Requirements**: Set rules for requiring grantors (guarantors) to secure high-value loans. Grantors approve via their member portal with digital signatures and agreement acceptance.
 - **Risk Assessment**: Each loan can include an automated **risk assessment** with grade scoring (A+ to F), risk score (0–100), approval suggestion, and contributing factors.
 
@@ -85,6 +86,7 @@ The core of your business activity.
 - **Repayment Tracking**: Automated tracking of installments with payment schedule views (table on desktop, card-based layout on mobile). View real-time status: **Paid**, **Partially Paid**, or **Overdue**.
 - **The Ledger**: Every transaction (Deposits, Withdrawals, Expenses, Loan Repayments) is automatically recorded in the **Transaction Ledger**, providing a transparent audit trail.
 - **Distribution Hub**: Manage your profit-sharing logic centrally. Allocate earnings to members based on their investment shares with a single click.
+- **Automated Interest Compounding**: For compound-interest loans, the system runs a daily automated job that identifies missed installments and accrues one month's interest onto the outstanding balance, keeping the loan's value aligned with the debt's age.
 - **External Fund Reconciliation**: Seamless fund movements to external accounts (bank transfers, mobile wallets like JazzCash) with integrated ledger reconciliation, category tagging, and automated branch reporting.
 - **Teller Mode**: A dedicated POS-style operational interface for frontline tellers:
   - **Quick Member Search**: Look up any member by name, CNIC, phone, or account number with real-time search.

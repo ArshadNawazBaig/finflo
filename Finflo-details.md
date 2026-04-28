@@ -46,6 +46,7 @@ The system features a robust, automated loan engine designed to mitigate risk an
 ### Interest Calculation Models
 - **Simple Interest**: `Total = Principal + (Principal × Rate × Duration / 1200)`. EMI is evenly split across the duration.
 - **EMI (Reducing Balance)**: Standard amortization formula where interest is calculated on the outstanding principal each period, resulting in a decreasing interest component over time.
+- **Compound Interest**: Dynamic interest-on-interest model. While the initial schedule is flat, any missed installments trigger automated daily compounding, where one month's interest is added to the outstanding balance, causing the debt to grow over time.
 - **Daily-Based Precision**: All repayment interest calculations use exact days elapsed since the last payment rather than fixed monthly periods, ensuring fairness for early or late payments.
 
 ### Loan Approval and Disbursal
@@ -66,6 +67,7 @@ The system features a robust, automated loan engine designed to mitigate risk an
 - Members and admins can opt for **Early Settlement**, where the system recalculates the total owed based on the exact number of days the loan was active.
 - For Simple Interest loans: `Settlement = Principal + (Daily Interest × Days Active)`
 - For EMI loans: `Settlement = Paid Amount + Remaining Principal + Accrued Interest Since Last Payment`
+- For Compound Interest loans: `Settlement = Current Remaining Amount` (as compounded interest is already integrated into the living balance).
 - The overpaid interest from the original amortization schedule is automatically waived.
 
 ### Automated Reminders
