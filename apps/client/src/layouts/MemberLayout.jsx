@@ -112,7 +112,7 @@ const MemberLayout = () => {
               )}
             >
               <Outlet />
-              <div className="h-32 lg:h-8 shrink-0" />
+              {/* <div className="h-32 lg:h-8 shrink-0" /> */}
             </div>
           </div>
         </div>

@@ -62,7 +62,8 @@ const MemberTermDeposits = () => {
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(DESKTOP_PAGE_LIMIT);
-  const [mobileVisibleCount, setMobileVisibleCount] = useState(MOBILE_PAGE_LIMIT);
+  const [mobileVisibleCount, setMobileVisibleCount] =
+    useState(MOBILE_PAGE_LIMIT);
   const observerTarget = useRef(null);
 
   const fetchDeposits = useCallback(async () => {
@@ -235,8 +236,14 @@ const MemberTermDeposits = () => {
     if (!isMobile || !observerTarget.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && mobileVisibleCount < filteredDeposits.length) {
-          setTimeout(() => setMobileVisibleCount((prev) => prev + MOBILE_PAGE_LIMIT), 400);
+        if (
+          entries[0].isIntersecting &&
+          mobileVisibleCount < filteredDeposits.length
+        ) {
+          setTimeout(
+            () => setMobileVisibleCount((prev) => prev + MOBILE_PAGE_LIMIT),
+            400,
+          );
         }
       },
       { threshold: 0.1 },
@@ -354,7 +361,7 @@ const MemberTermDeposits = () => {
                       key={pkg.duration}
                       onClick={() => handleSelectPackage(pkg)}
                       className={cn(
-                        'group relative text-left rounded-3xl p-6 sm:p-8 transition-all overflow-hidden border-2 border-border/50 shadow-sm hover:shadow-xl',
+                        'group relative text-left rounded-[1.5rem] p-4 sm:p-5 transition-all overflow-hidden border-2 border-border/50 shadow-sm hover:shadow-xl',
                         c.border,
                       )}
                     >
@@ -365,36 +372,36 @@ const MemberTermDeposits = () => {
                         )}
                       />
                       <div className="relative">
-                        <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center justify-between mb-3">
                           <div
                             className={cn(
-                              'p-3 rounded-2xl border group-hover:scale-110 transition-transform duration-300',
+                              'p-2 rounded-xl border group-hover:scale-110 transition-transform duration-300',
                               c.icon,
                             )}
                           >
-                            <Clock size={22} />
+                            <TrendingUp size={18} />
                           </div>
                           <div
                             className={cn(
-                              'px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border',
+                              'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border',
                               c.badge,
                             )}
                           >
                             {pkg.rate}% p.a.
                           </div>
                         </div>
-                        <h3 className="text-4xl font-black tracking-tighter mb-1">
+                        <h3 className="text-2xl font-black tracking-tighter mb-0.5">
                           {pkg.duration}
                         </h3>
-                        <p className="text-sm font-bold text-muted-foreground">
+                        <p className="text-xs font-bold text-muted-foreground">
                           Months Term
                         </p>
-                        <div className="mt-5 pt-5 border-t border-border/40 flex items-center justify-between">
+                        <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
                           <div>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                               Est. Profit on 10,000
                             </p>
-                            <p className="text-lg font-black text-emerald-600">
+                            <p className="text-base font-black text-emerald-600">
                               +
                               {formatCurrency(
                                 Math.round(
@@ -404,8 +411,8 @@ const MemberTermDeposits = () => {
                               )}
                             </p>
                           </div>
-                          <div className="p-2 rounded-xl bg-muted/50 text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
-                            <ArrowRight size={16} />
+                          <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all">
+                            <ArrowRight size={14} />
                           </div>
                         </div>
                       </div>
@@ -460,7 +467,14 @@ const MemberTermDeposits = () => {
           ) : (
             <>
               <DepositGrid
-                deposits={isMobile ? filteredDeposits.slice(0, mobileVisibleCount) : filteredDeposits.slice((currentPage - 1) * limit, currentPage * limit)}
+                deposits={
+                  isMobile
+                    ? filteredDeposits.slice(0, mobileVisibleCount)
+                    : filteredDeposits.slice(
+                        (currentPage - 1) * limit,
+                        currentPage * limit,
+                      )
+                }
                 setBreakTarget={setBreakTarget}
               />
               {/* Mobile Infinite Scroll */}
@@ -770,18 +784,46 @@ const DepositGrid = ({ deposits, setBreakTarget }) => (
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 p-4 bg-muted/50 rounded-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6 p-4 bg-muted/50 rounded-2xl">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Principal Amount">Principal</p>
-              <p className="font-black sm:text-lg text-base">{formatCurrency(deposit.principal)}</p>
+              <p
+                className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1"
+                title="Principal Amount"
+              >
+                Principal
+              </p>
+              <p className="font-black sm:text-lg text-base">
+                {formatCurrency(deposit.principal)}
+              </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Projected Profit">Projected</p>
-              <p className="font-black sm:text-lg text-base text-indigo-500">+{formatCurrency(deposit.projectedProfit)}</p>
+              <p
+                className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1"
+                title="Projected Profit"
+              >
+                Projected
+              </p>
+              <p className="font-black sm:text-lg text-base text-indigo-500">
+                +{formatCurrency(deposit.projectedProfit)}
+              </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Realized Profit">Realized</p>
-              <p className={cn('font-black sm:text-lg text-base', isMatured ? 'text-emerald-500' : isBroken ? 'text-rose-500' : 'text-muted-foreground/40')}>
+              <p
+                className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1"
+                title="Realized Profit"
+              >
+                Realized
+              </p>
+              <p
+                className={cn(
+                  'font-black sm:text-lg text-base',
+                  isMatured
+                    ? 'text-emerald-500'
+                    : isBroken
+                      ? 'text-rose-500'
+                      : 'text-muted-foreground/40',
+                )}
+              >
                 +{formatCurrency(deposit.actualProfit)}
               </p>
             </div>
@@ -789,7 +831,9 @@ const DepositGrid = ({ deposits, setBreakTarget }) => (
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <div className="flex items-center gap-2">
               <CalendarDays size={14} />
-              <span>Started: {new Date(deposit.startDate).toLocaleDateString()}</span>
+              <span>
+                Started: {new Date(deposit.startDate).toLocaleDateString()}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <CalendarDays size={14} />
