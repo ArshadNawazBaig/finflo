@@ -35,6 +35,7 @@ const routes = [
   ['/ocr', './ocrRoutes'],
   ['/term-deposits', './termDepositRoutes'],
   ['/expense-categories', './expenseCategoryRoutes'],
+  ['/aml', './amlRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

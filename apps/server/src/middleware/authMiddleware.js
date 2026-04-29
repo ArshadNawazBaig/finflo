@@ -1,5 +1,13 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
+const { isPasswordExpired } = require('../utils/passwordPolicy');
+
+/**
+ * Hash a JWT token for session storage (never store raw tokens in DB).
+ */
+const hashToken = (token) =>
+  crypto.createHash('sha256').update(token).digest('hex');
 
 const protect = async (req, res, next) => {
   let token;
@@ -24,6 +32,46 @@ const protect = async (req, res, next) => {
 
       if (!req.user) {
         return res.status(401).json({ message: 'User not found' });
+      }
+
+      // ── Password Expiry Check ──────────────────────────────────────
+      // Skip for password-change and logout endpoints
+      const isPasswordEndpoint =
+        req.path.includes('/change-password') ||
+        req.path.includes('/logout') ||
+        req.path.includes('/password');
+      if (
+        !isPasswordEndpoint &&
+        req.user.passwordExpiresAt &&
+        isPasswordExpired(req.user.passwordExpiresAt)
+      ) {
+        return res.status(403).json({
+          message: 'Your password has expired. Please change your password.',
+          code: 'PASSWORD_EXPIRED',
+        });
+      }
+
+      // ── IP Whitelist Check ─────────────────────────────────────────
+      if (
+        req.user.ipWhitelistEnabled &&
+        req.user.role !== 'super_admin' &&
+        req.user.ipWhitelist &&
+        req.user.ipWhitelist.length > 0
+      ) {
+        const clientIP =
+          req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+          req.connection?.remoteAddress ||
+          req.ip;
+        const normalizedIP = clientIP?.replace(/^::ffff:/, '') || '';
+        const isAllowed = req.user.ipWhitelist.some(
+          (ip) => normalizedIP === ip.replace(/^::ffff:/, '').trim(),
+        );
+        if (!isAllowed) {
+          return res.status(403).json({
+            message: 'Access denied. Your IP address is not authorized.',
+            code: 'IP_NOT_WHITELISTED',
+          });
+        }
       }
 
       // Use centralized permission logic from model

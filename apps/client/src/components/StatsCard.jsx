@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import { SensitiveBalance } from '@/components/ui/SensitiveData';
 
 const StatsCard = ({
   title,
@@ -11,6 +12,7 @@ const StatsCard = ({
   subtitle,
   badge,
   badgeTooltip,
+  sensitive = false,
 }) => {
   const isPositive = percentage > 0;
 
@@ -82,7 +84,7 @@ const StatsCard = ({
           </p>
           <div className="flex flex-col">
             <h3 className="text-md sm:text-lg font-black tracking-tight text-foreground tabular-nums capitalize">
-              {amount}
+              {sensitive ? <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance> : amount}
             </h3>
             {subtitle && (
               <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">

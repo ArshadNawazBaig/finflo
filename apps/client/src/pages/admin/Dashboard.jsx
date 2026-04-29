@@ -22,6 +22,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import StatsCard from '@/components/StatsCard';
+import { SensitiveBalance } from '@/components/ui/SensitiveData';
 import AnalyticsChart from '@/components/AnalyticsChart';
 import PageHeader from '@/components/PageHeader';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
@@ -387,6 +388,7 @@ const Dashboard = () => {
               subtitle="Available Cash"
               icon={<Coins size={20} />}
               color="bg-emerald-500 shadow-emerald-500/20"
+              sensitive
             />
           )}
           {canViewReports && (
@@ -396,6 +398,7 @@ const Dashboard = () => {
               subtitle="Member Capital"
               icon={<Download size={20} />}
               color="bg-blue-500 shadow-blue-500/20"
+              sensitive
             />
           )}
           {canViewReports && (
@@ -406,6 +409,7 @@ const Dashboard = () => {
               subtitle="Interest Earnings"
               icon={<TrendingUp size={20} />}
               color="bg-primary shadow-primary/20"
+              sensitive
             />
           )}
           {hasAnyPermission([
@@ -420,6 +424,7 @@ const Dashboard = () => {
               subtitle="Portfolio Value"
               icon={<ExternalLink size={20} />}
               color="bg-orange-500 shadow-orange-500/20"
+              sensitive
             />
           )}
         </div>
@@ -470,7 +475,7 @@ const Dashboard = () => {
                     </p>
                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
                       Outstanding:{' '}
-                      {formatCurrency(stats?.outstanding?.amount || 0)}
+                      <SensitiveBalance iconSize={11}>{formatCurrency(stats?.outstanding?.amount || 0)}</SensitiveBalance>
                     </p>
                   </div>
                 </div>
@@ -496,7 +501,7 @@ const Dashboard = () => {
                       {stats?.members?.total ?? 0}
                     </p>
                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                      Balance: {formatCurrency(stats?.members?.deposits || 0)}
+                      Balance: <SensitiveBalance iconSize={11}>{formatCurrency(stats?.members?.deposits || 0)}</SensitiveBalance>
                     </p>
                   </div>
                 </div>

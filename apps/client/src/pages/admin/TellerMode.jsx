@@ -64,6 +64,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
+import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
 
 const TellerMode = () => {
   const navigate = useNavigate();
@@ -1445,7 +1446,7 @@ const TellerMode = () => {
                             {member.name}
                           </h2>
                           <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mt-1">
-                            {member.currentAccountNumber}
+                            <SensitiveData maskLength={14} iconSize={11}>{member.currentAccountNumber}</SensitiveData>
                           </p>
                         </div>
                       </div>
@@ -1513,7 +1514,7 @@ const TellerMode = () => {
                             </div>
                           </div>
                           <p className="text-sm font-black tracking-tight">
-                            {formatCurrency(card.value || 0)}
+                            <SensitiveBalance iconSize={12}>{formatCurrency(card.value || 0)}</SensitiveBalance>
                           </p>
                         </div>
                       ))}
@@ -1543,7 +1544,7 @@ const TellerMode = () => {
                                   {g.name || 'Unknown'}
                                 </div>
                                 <div className="text-[10px] font-mono text-muted-foreground/60 truncate">
-                                  {formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}
+                                  <SensitiveData maskLength={15} iconSize={10}>{formatCNIC?.(g.cnic) || g.cnic || 'No CNIC'}</SensitiveData>
                                 </div>
                               </div>
                             </div>

@@ -23,6 +23,7 @@ import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import SignaturePad from '@/components/ui/SignaturePad';
+import SensitiveData from '@/components/ui/SensitiveData';
 
 const MemberGrantorRequests = () => {
   const navigate = useNavigate();
@@ -411,7 +412,7 @@ const MemberGrantorRequests = () => {
                       </span>
                       , CNIC:{' '}
                       <span className="text-foreground font-bold">
-                        {member?.cnic || 'N/A'}
+                        <SensitiveData maskLength={15} iconSize={12}>{member?.cnic || 'N/A'}</SensitiveData>
                       </span>
                       , hereby voluntarily agree to act as a guarantor for the
                       loan of{' '}
@@ -538,7 +539,7 @@ const MemberGrantorRequests = () => {
                       CNIC
                     </p>
                     <p className="text-sm font-black mt-0.5">
-                      {member?.cnic || 'N/A'}
+                      <SensitiveData maskLength={15} iconSize={12}>{member?.cnic || 'N/A'}</SensitiveData>
                     </p>
                   </div>
                 </div>

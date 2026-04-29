@@ -111,6 +111,7 @@ const createTermDeposit = async (req, res) => {
         member: memberId,
         referenceId: termDeposit._id,
         referenceModel: 'TermDeposit',
+        paymentMethod: 'online',
       }],
       { session },
     );
@@ -458,6 +459,7 @@ const createPortalTermDeposit = async (req, res) => {
         member: memberId,
         referenceId: termDeposit._id,
         referenceModel: 'TermDeposit',
+        paymentMethod: 'online',
       }],
       { session },
     );

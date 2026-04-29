@@ -253,6 +253,19 @@ const systemSettingsSchema = new mongoose.Schema(
       ],
     },
 
+    // ── Compliance & Security Configuration ──────────────────────────
+    compliance: {
+      ctrThreshold: { type: Number, default: 2000000 }, // PKR 2M for CTR auto-generation
+      sarAutoEscalationDays: { type: Number, default: 3 }, // Auto-escalate unreviewed SARs
+      passwordExpiryDays: { type: Number, default: 90 },
+      maxConcurrentSessions: { type: Number, default: 5 },
+      sessionTimeoutMinutes: { type: Number, default: 30 },
+      ipWhitelistEnabled: { type: Boolean, default: false },
+      dataRetentionYears: { type: Number, default: 10 }, // SBP minimum 10 years
+      amlEnabled: { type: Boolean, default: true },
+      encryptionEnabled: { type: Boolean, default: true },
+    },
+
     // Metadata
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,

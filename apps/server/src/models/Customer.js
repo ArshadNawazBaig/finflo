@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { encryptFields, decryptFields, hash } = require('../utils/encryption');
 
 const customerSchema = new mongoose.Schema(
   {
@@ -40,6 +41,7 @@ const customerSchema = new mongoose.Schema(
       max: 10,
     },
     cnic: { type: String, required: true },
+    cnicHash: { type: String, index: true }, // SHA-256 hash for searchable lookups
     job: { type: String },
     jobDetail: { type: String },
     monthlyIncome: { type: Number },
@@ -120,6 +122,31 @@ customerSchema.pre('save', async function () {
       this.loanAccountNumber = generateAcc('LON');
     }
   }
+});
+
+// ── PII Encryption Hooks ─────────────────────────────────────────────────────
+// Encrypt PII fields before saving to database
+customerSchema.pre('save', function () {
+  encryptFields(
+    this,
+    ['cnic', 'phone', 'address'],
+    ['cnicHash', null, null],
+  );
+  // Generate phone hash separately (phone has no dedicated hash field in index,
+  // but we keep cnicHash for search)
+});
+
+// Decrypt PII fields after reading from database
+const decryptPIIFields = (doc) => {
+  if (!doc) return;
+  decryptFields(doc, ['cnic', 'phone', 'address']);
+};
+
+customerSchema.post('findOne', decryptPIIFields);
+customerSchema.post('findById', decryptPIIFields);
+customerSchema.post('save', decryptPIIFields);
+customerSchema.post('find', (docs) => {
+  if (Array.isArray(docs)) docs.forEach(decryptPIIFields);
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

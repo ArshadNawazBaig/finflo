@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { getPasswordExpiryDate } = require('../utils/passwordPolicy');
 
 const userSchema = new mongoose.Schema(
   {
@@ -147,6 +148,45 @@ const userSchema = new mongoose.Schema(
     },
     failedLoginAttempts: { type: Number, default: 0 },
     lockUntil: { type: Date },
+
+    // ── Bank-Grade Security Fields ───────────────────────────────────
+    // Password Policy
+    passwordHistory: {
+      type: [
+        {
+          hash: { type: String, required: true },
+          changedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+      select: false, // Never expose password hashes in queries
+    },
+    passwordExpiresAt: { type: Date },
+    passwordChangedAt: { type: Date },
+
+    // Session Management
+    activeSessions: {
+      type: [
+        {
+          tokenHash: { type: String, required: true }, // SHA-256 of JWT
+          ip: { type: String },
+          userAgent: { type: String },
+          deviceName: { type: String },
+          createdAt: { type: Date, default: Date.now },
+          lastActiveAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+      select: false, // Don't include in default queries
+    },
+    maxConcurrentSessions: { type: Number, default: 5, min: 1, max: 20 },
+
+    // IP Whitelisting
+    ipWhitelist: {
+      type: [String], // Supports IPs, CIDRs (192.168.1.0/24), wildcards (192.168.*.*)
+      default: [],
+    },
+    ipWhitelistEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
@@ -183,8 +223,22 @@ userSchema.pre('save', async function () {
   // Hash password if modified
   if (!this.isModified('password') || this.isGoogleAuth || !this.password)
     return;
+
+  // Record old password in history before hashing the new one
+  if (this.password && this._previousPassword) {
+    // _previousPassword is set by the controller before changing
+    const history = this.passwordHistory || [];
+    history.unshift({ hash: this._previousPassword, changedAt: new Date() });
+    // Keep only last 5
+    this.passwordHistory = history.slice(0, 5);
+  }
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+
+  // Set password expiry and change timestamp
+  this.passwordChangedAt = new Date();
+  this.passwordExpiresAt = getPasswordExpiryDate(90);
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

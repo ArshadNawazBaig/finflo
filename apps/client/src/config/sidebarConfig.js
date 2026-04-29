@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Archive,
   Shield,
+  ShieldAlert,
   Bell,
   Gem,
   CreditCard,
@@ -152,6 +153,15 @@ export const sidebarMenuConfig = [
         onboardingId: 'sidebar-audit',
         permissions: ['view_reports', 'manage_roles'],
         any: true,
+      },
+      {
+        to: '/aml-compliance',
+        icon: ShieldAlert,
+        label: 'AML Compliance',
+        onboardingId: 'sidebar-aml',
+        permissions: ['view_reports', 'manage_roles'],
+        any: true,
+        condition: (user) => user?.role === 'admin',
       },
       {
         to: '/roles',

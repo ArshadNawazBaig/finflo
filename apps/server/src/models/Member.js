@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { encryptFields, decryptFields } = require('../utils/encryption');
 
 const memberSchema = new mongoose.Schema(
   {
@@ -87,6 +88,7 @@ const memberSchema = new mongoose.Schema(
       default: '',
     },
     cnic: { type: String, required: true },
+    cnicHash: { type: String, index: true }, // SHA-256 hash for searchable lookups
     job: { type: String },
     jobDetail: { type: String },
     monthlyIncome: { type: Number },
@@ -183,5 +185,28 @@ memberSchema.methods.getResetPasswordToken = function () {
 
   return resetToken;
 };
+
+// ── PII Encryption Hooks ─────────────────────────────────────────────────────
+// Encrypt PII fields before saving to database
+memberSchema.pre('save', function () {
+  encryptFields(
+    this,
+    ['cnic', 'phone', 'address'],
+    ['cnicHash', null, null],
+  );
+});
+
+// Decrypt PII fields after reading from database
+const decryptMemberPII = (doc) => {
+  if (!doc) return;
+  decryptFields(doc, ['cnic', 'phone', 'address']);
+};
+
+memberSchema.post('findOne', decryptMemberPII);
+memberSchema.post('findById', decryptMemberPII);
+memberSchema.post('save', decryptMemberPII);
+memberSchema.post('find', (docs) => {
+  if (Array.isArray(docs)) docs.forEach(decryptMemberPII);
+});
 
 module.exports = mongoose.model('Member', memberSchema);

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   BadgeDollarSign,
 } from 'lucide-react';
+import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
@@ -245,13 +246,15 @@ const MemberWallet = () => {
                           : 'Available Credit Limit'}
                   </p>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter drop-shadow-sm">
-                    {activeAccount === 'current'
-                      ? formatCurrency(member?.currentBalance || 0)
-                      : activeAccount === 'saving'
-                        ? formatCurrency(member?.savingBalance || 0)
-                        : member?.activeLoan
-                          ? formatCurrency(member.activeLoan.remainingAmount || 0)
-                          : formatCurrency(member?.creditLimit || 0)}
+                    <SensitiveBalance iconSize={20} iconClassName="text-white/40 hover:text-white/80">
+                      {activeAccount === 'current'
+                        ? formatCurrency(member?.currentBalance || 0)
+                        : activeAccount === 'saving'
+                          ? formatCurrency(member?.savingBalance || 0)
+                          : member?.activeLoan
+                            ? formatCurrency(member.activeLoan.remainingAmount || 0)
+                            : formatCurrency(member?.creditLimit || 0)}
+                    </SensitiveBalance>
                   </h2>
                   {activeAccount === 'loan' && member?.activeLoan ? (
                     <div className="flex items-center gap-4 mt-4 ml-1">
@@ -277,11 +280,13 @@ const MemberWallet = () => {
                       Account Number
                     </p>
                     <p className="text-sm sm:text-base font-mono font-bold tracking-widest opacity-90 drop-shadow-md">
-                      {activeAccount === 'current'
-                        ? member?.currentAccountNumber || 'CUR-C-XXXXX'
-                        : activeAccount === 'saving'
-                          ? member?.savingAccountNumber || 'SAV-S-XXXXX'
-                          : member?.loanAccountNumber || 'LON-L-XXXXX'}
+                      <SensitiveData maskLength={14} iconSize={14} iconClassName="text-white/30 hover:text-white/70">
+                        {activeAccount === 'current'
+                          ? member?.currentAccountNumber || 'CUR-C-XXXXX'
+                          : activeAccount === 'saving'
+                            ? member?.savingAccountNumber || 'SAV-S-XXXXX'
+                            : member?.loanAccountNumber || 'LON-L-XXXXX'}
+                      </SensitiveData>
                     </p>
                   </div>
                   <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
@@ -318,7 +323,9 @@ const MemberWallet = () => {
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-lg font-black tracking-tighter">
-                    {formatCurrency(member?.savingBalance || 0)}
+                    <SensitiveBalance iconSize={14}>
+                      {formatCurrency(member?.savingBalance || 0)}
+                    </SensitiveBalance>
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-teal-500 bg-teal-500/10 px-2 py-0.5 rounded-full">
                     <TrendingUp size={10} /> Profit:{' '}
@@ -336,7 +343,9 @@ const MemberWallet = () => {
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-lg font-black tracking-tighter">
-                    {formatCurrency(member?.totalInvested || 0)}
+                    <SensitiveBalance iconSize={14}>
+                      {formatCurrency(member?.totalInvested || 0)}
+                    </SensitiveBalance>
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                     <ArrowUp size={10} /> Inflow
@@ -353,7 +362,9 @@ const MemberWallet = () => {
                 </p>
                 <div className="flex items-baseline gap-2">
                   <h3 className="text-lg font-black tracking-tighter">
-                    {formatCurrency(member?.totalWithdrawn || 0)}
+                    <SensitiveBalance iconSize={14}>
+                      {formatCurrency(member?.totalWithdrawn || 0)}
+                    </SensitiveBalance>
                   </h3>
                   <div className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
                     <ArrowDown size={10} /> Outflow

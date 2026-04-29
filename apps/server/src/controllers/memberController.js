@@ -1442,6 +1442,7 @@ const distributeProfit = async (req, res) => {
             member: member._id,
             referenceId: distribution._id,
             referenceModel: 'ProfitDistribution',
+            paymentMethod: 'online',
           });
           await financialTx.save();
 
@@ -1565,6 +1566,7 @@ const distributeProfit = async (req, res) => {
             member: member._id,
             referenceId: distribution._id,
             referenceModel: 'ProfitDistribution',
+            paymentMethod: 'online',
           });
           await financialTx.save();
 
@@ -3062,6 +3064,7 @@ const distributeShareProfit = async (req, res) => {
         member: member._id,
         referenceId: shareRecord._id,
         referenceModel: 'BusinessShare',
+        paymentMethod: 'online',
       });
 
       // Notify member

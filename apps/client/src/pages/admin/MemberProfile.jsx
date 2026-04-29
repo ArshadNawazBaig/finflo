@@ -47,6 +47,7 @@ import {
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
+import SensitiveData from '@/components/ui/SensitiveData';
 import api from '@/lib/axios';
 import { formatCurrency, capitalize, formatCNIC, cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -1149,7 +1150,7 @@ const MemberProfile = () => {
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 text-xs font-medium">
               <ShieldCheck size={14} className="text-primary" />
-              {member.cnic}
+              <SensitiveData maskLength={15} iconSize={13}>{member.cnic}</SensitiveData>
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 text-xs font-medium">
@@ -1257,6 +1258,7 @@ const MemberProfile = () => {
           amount={formatCurrency(member.currentBalance || 0)}
           icon={<Wallet size={18} />}
           color="bg-primary text-primary border-primary/20"
+          sensitive
           isGlass
         />
         <StatsCard
@@ -1264,6 +1266,7 @@ const MemberProfile = () => {
           amount={formatCurrency(member.savingBalance || 0)}
           icon={<BadgeDollarSign size={18} />}
           color="bg-teal-500 text-teal-600 border-teal-500/20"
+          sensitive
           isGlass
         />
         <StatsCard
@@ -1271,6 +1274,7 @@ const MemberProfile = () => {
           amount={formatCurrency(member.creditLimit || 0)}
           icon={<ShieldCheck size={18} />}
           color="bg-amber-500 text-amber-600 border-amber-500/20"
+          sensitive
           isGlass
         />
         <StatsCard
@@ -1278,6 +1282,7 @@ const MemberProfile = () => {
           amount={formatCurrency(member.totalSavingProfit || 0)}
           icon={<TrendingUp size={18} />}
           color="bg-emerald-500 text-emerald-600 border-emerald-500/20"
+          sensitive
           isGlass
         />
         <StatsCard
@@ -1285,6 +1290,7 @@ const MemberProfile = () => {
           amount={formatCurrency(member.totalInvested || 0)}
           icon={<DollarSign size={18} />}
           color="bg-blue-500 text-blue-600 border-blue-500/20"
+          sensitive
           isGlass
         />
       </div>
