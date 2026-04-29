@@ -340,10 +340,242 @@ const getPortalTermDeposits = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Member self-creates a term deposit from the portal
+ * @route   POST /api/term-deposits/portal/create
+ * @access  Private (Member)
+ */
+const createPortalTermDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { principal, duration, sourceAccount = 'current' } = req.body;
+    const memberId = req.member._id;
+    const ownerId = req.member.user; // business owner
+
+    if (!principal || !duration) {
+      return res.status(400).json({ message: 'Principal and duration are required' });
+    }
+
+    if (principal <= 0) {
+      return res.status(400).json({ message: 'Principal must be greater than zero' });
+    }
+
+    const member = await Member.findById(memberId).session(session);
+    if (!member) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Check balance
+    const balance = sourceAccount === 'saving' ? member.savingBalance : member.currentBalance;
+    if (balance < principal) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: `Insufficient ${sourceAccount} account balance. Available: ${balance}, Required: ${principal}`,
+      });
+    }
+
+    // Get profit rate from business owner's config
+    const User = require('../models/User');
+    const adminUser = await User.findById(ownerId).select(
+      'termDepositRates termDepositEarlyBreakPenalty'
+    );
+    const rateConfig = (adminUser?.termDepositRates || []).find(
+      (r) => r.duration === duration,
+    );
+
+    if (!rateConfig) {
+      await session.abortTransaction();
+      return res.status(400).json({ message: 'Invalid term duration. This package is not available.' });
+    }
+
+    const profitRate = rateConfig.rate;
+    const earlyBreakPenalty = adminUser?.termDepositEarlyBreakPenalty || 0;
+
+    // Calculate projected profit (simple interest)
+    const projectedProfit = Math.round((principal * profitRate * duration) / (12 * 100));
+
+    // Calculate maturity date
+    const startDate = new Date();
+    const maturityDate = new Date(startDate);
+    maturityDate.setMonth(maturityDate.getMonth() + duration);
+
+    // Deduct from member balance
+    const deductFields = sourceAccount === 'saving'
+      ? { savingBalance: -principal, totalSavingWithdrawn: principal }
+      : { currentBalance: -principal, totalWithdrawn: principal };
+
+    await Member.findByIdAndUpdate(memberId, { $inc: deductFields }, { session });
+
+    // Create term deposit
+    const [termDeposit] = await TermDeposit.create(
+      [{
+        user: ownerId,
+        member: memberId,
+        branchId: member.branchId,
+        principal,
+        profitRate,
+        duration,
+        sourceAccount,
+        startDate,
+        maturityDate,
+        projectedProfit,
+        earlyBreakPenaltyRate: earlyBreakPenalty,
+        notes: 'Self-created via Member Portal',
+      }],
+      { session },
+    );
+
+    // Record investment ledger entry
+    const updatedMember = await Member.findById(memberId).session(session);
+    await Investment.create(
+      [{
+        user: ownerId,
+        member: memberId,
+        branchId: member.branchId,
+        type: 'withdrawal',
+        accountType: sourceAccount,
+        amount: principal,
+        balanceAfter: sourceAccount === 'saving' ? updatedMember.savingBalance : updatedMember.currentBalance,
+        description: `Term Deposit ${termDeposit.depositNumber} — Locked for ${duration} months at ${profitRate}%`,
+        date: startDate,
+      }],
+      { session },
+    );
+
+    // Record financial transaction
+    await FinancialTransaction.create(
+      [{
+        user: ownerId,
+        branchId: member.branchId,
+        type: 'income',
+        category: 'term_deposit',
+        amount: principal,
+        date: startDate,
+        description: `Term Deposit ${termDeposit.depositNumber} — ${member.name} locked ${principal} for ${duration} months (Self-Service)`,
+        member: memberId,
+        referenceId: termDeposit._id,
+        referenceModel: 'TermDeposit',
+      }],
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    // Log activity (fire-and-forget, no session needed)
+    logActivity({
+      userId: ownerId,
+      action: 'term_deposit_created',
+      category: 'member',
+      details: `Term Deposit ${termDeposit.depositNumber} self-created by ${member.name} — ${principal} locked for ${duration} months at ${profitRate}%`,
+      metadata: { termDepositId: termDeposit._id, memberId: memberId.toString(), principal, duration, selfService: true },
+      req,
+    }).catch(() => {});
+
+    res.status(201).json(termDeposit);
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Portal Create Term Deposit Error:', error);
+    res.status(500).json({ message: error.message || 'Failed to create term deposit' });
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * @desc    Member self-breaks a term deposit early from portal
+ * @route   POST /api/term-deposits/portal/:id/break
+ * @access  Private (Member)
+ */
+const breakPortalTermDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const deposit = await TermDeposit.findById(req.params.id).session(session);
+    if (!deposit || deposit.member.toString() !== req.member._id.toString()) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'Term deposit not found' });
+    }
+
+    if (deposit.status !== 'active') {
+      await session.abortTransaction();
+      return res.status(400).json({ message: 'Only active deposits can be broken' });
+    }
+
+    // Calculate pro-rated profit with penalty
+    const now = new Date();
+    const msElapsed = now - new Date(deposit.startDate);
+    const monthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
+    const fullProfit = Math.round(
+      (deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100),
+    );
+    const penaltyRate = deposit.earlyBreakPenaltyRate / 100;
+    const actualProfit = Math.round(fullProfit * (1 - penaltyRate));
+    const totalReturn = deposit.principal + Math.max(0, actualProfit);
+
+    // Credit back to member
+    const creditFields = deposit.sourceAccount === 'saving'
+      ? { savingBalance: totalReturn, totalSavingDeposited: totalReturn }
+      : { currentBalance: totalReturn, totalInvested: totalReturn };
+
+    await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
+
+    // Update deposit
+    deposit.status = 'broken';
+    deposit.brokenAt = now;
+    deposit.actualProfit = Math.max(0, actualProfit);
+    await deposit.save({ session });
+
+    // Record investment ledger
+    const updatedMember = await Member.findById(deposit.member).session(session);
+    await Investment.create(
+      [{
+        user: deposit.user,
+        member: deposit.member,
+        branchId: deposit.branchId,
+        type: 'deposit',
+        accountType: deposit.sourceAccount,
+        amount: totalReturn,
+        balanceAfter: deposit.sourceAccount === 'saving' ? updatedMember.savingBalance : updatedMember.currentBalance,
+        description: `Term Deposit ${deposit.depositNumber} broken early (Self-Service) — Principal: ${deposit.principal}, Profit: ${Math.max(0, actualProfit)} (${deposit.earlyBreakPenaltyRate}% penalty applied)`,
+        date: now,
+      }],
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    // Log activity
+    const member = await Member.findById(deposit.member);
+    logActivity({
+      userId: deposit.user,
+      action: 'term_deposit_broken',
+      category: 'member',
+      details: `Term Deposit ${deposit.depositNumber} broken early by ${member?.name || 'member'} (Self-Service). Returned ${totalReturn} (${deposit.earlyBreakPenaltyRate}% penalty)`,
+      metadata: { termDepositId: deposit._id, totalReturn, actualProfit, selfService: true },
+      req,
+    }).catch(() => {});
+
+    res.json({ message: 'Term deposit broken successfully', deposit, totalReturn, actualProfit });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Portal Break Term Deposit Error:', error);
+    res.status(500).json({ message: error.message || 'Failed to break term deposit' });
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   createTermDeposit,
   getTermDeposits,
   breakTermDeposit,
   matureTermDeposit,
   getPortalTermDeposits,
+  createPortalTermDeposit,
+  breakPortalTermDeposit,
 };
+
