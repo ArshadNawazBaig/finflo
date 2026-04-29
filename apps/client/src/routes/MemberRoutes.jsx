@@ -29,7 +29,7 @@ const MemberLoans = withSkeleton(() => import('@/pages/member/MemberLoans'), Mem
 const MemberTransactions = withSkeleton(() => import('@/pages/member/MemberTransactions'), MemberActivityPageSkeleton);
 const MemberTransfer = withSkeleton(() => import('@/pages/member/MemberTransfer'), MemberTransferSkeleton);
 const MemberWallet = withSkeleton(() => import('@/pages/member/MemberWallet'), MemberWalletSkeleton);
-const MemberInvestment = withSkeleton(() => import('@/pages/member/MemberInvestment'), MemberInvestmentPageSkeleton);
+const MemberTermDeposits = withSkeleton(() => import('@/pages/member/MemberTermDeposits'), MemberInvestmentPageSkeleton);
 const MemberBusinessShare = withSkeleton(() => import('@/pages/member/MemberBusinessShare'), MemberInvestmentPageSkeleton);
 const MemberSettings = withSkeleton(() => import('@/pages/member/MemberSettings'), SettingsPageSkeleton);
 const MemberNotifications = withSkeleton(() => import('@/pages/member/MemberNotifications'), MemberNotificationsPageSkeleton);
@@ -55,7 +55,7 @@ const MemberRoutes = () => (
         <Route path="/member/transactions" element={<MemberTransactions />} />
         <Route path="/member/transfer" element={<MemberTransfer />} />
         <Route path="/member/wallet" element={<MemberWallet />} />
-        <Route path="/member/investments" element={<MemberInvestment />} />
+        <Route path="/member/term-deposits" element={<MemberTermDeposits />} />
         <Route path="/member/shares" element={<MemberBusinessShare />} />
         <Route path="/member/settings" element={<MemberSettings />} />
         <Route path="/member/notifications" element={<MemberNotifications />} />

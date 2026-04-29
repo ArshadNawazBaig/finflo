@@ -330,9 +330,20 @@ const matureTermDeposit = async (req, res) => {
   }
 };
 
+const getPortalTermDeposits = async (req, res) => {
+  try {
+    const deposits = await TermDeposit.find({ member: req.member._id })
+      .sort({ createdAt: -1 });
+    res.json(deposits);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createTermDeposit,
   getTermDeposits,
   breakTermDeposit,
   matureTermDeposit,
+  getPortalTermDeposits,
 };

@@ -15,6 +15,7 @@ import {
   Wallet,
   ChevronDown,
   Bell,
+  Lock,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -229,11 +230,11 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             isExpanded={isLayoutExpanded}
           />
           <NavItem
-            to="/member/investments"
-            icon={<TrendingUp size={18} />}
-            active={isActive('/member/investments')}
-            onboardingId="sidebar-investments"
-            label="Investments"
+            to="/member/term-deposits"
+            icon={<Lock size={18} />}
+            active={isActive('/member/term-deposits')}
+            onboardingId="sidebar-term-deposits"
+            label="Term Deposits"
             isExpanded={isLayoutExpanded}
           />
           <NavItem
