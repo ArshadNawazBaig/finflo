@@ -162,25 +162,33 @@ const MemberTermDeposits = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-muted/50 rounded-2xl">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 p-4 bg-muted/50 rounded-2xl">
                       <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                          Principal Amount
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Principal Amount">
+                          Principal
                         </p>
-                        <p className="font-black text-lg">
+                        <p className="font-black sm:text-lg text-base">
                           {formatCurrency(deposit.principal)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                          {isMatured || isBroken ? 'Actual Profit' : 'Projected Profit'}
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Projected Profit">
+                          Projected
+                        </p>
+                        <p className="font-black sm:text-lg text-base text-indigo-500">
+                          +{formatCurrency(deposit.projectedProfit)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1" title="Realized Profit">
+                          Realized
                         </p>
                         <p className={cn(
-                          "font-black text-lg",
-                          isActive ? "text-indigo-500" :
-                          isMatured ? "text-emerald-500" : "text-rose-500"
+                          "font-black sm:text-lg text-base",
+                          isMatured ? "text-emerald-500" : 
+                          isBroken ? "text-rose-500" : "text-muted-foreground/40"
                         )}>
-                          +{formatCurrency(isActive ? deposit.projectedProfit : deposit.actualProfit)}
+                          +{formatCurrency(deposit.actualProfit)}
                         </p>
                       </div>
                     </div>
