@@ -14,6 +14,7 @@ import {
   Loader2,
   ArrowRight,
   Unlock,
+  Gem,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
@@ -291,8 +292,8 @@ const MemberTermDeposits = () => {
       <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-border/50">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-primary/10 to-indigo-500/10 rounded-xl border border-primary/10">
-              <Sparkles size={20} className="text-primary" />
+            <div className="p-3 bg-gradient-to-br from-rose-500/10 to-pink-500/10 rounded-xl border border-rose-500/20">
+              <Gem size={20} className="text-rose-500 fill-rose-500/10" />
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight">

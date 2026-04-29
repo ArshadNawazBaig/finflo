@@ -108,7 +108,7 @@ const MemberLayout = () => {
             <div
               className={cn(
                 'max-w-7xl mx-auto flex flex-col px-4 lg:px-0',
-                isMobile ? 'pb-10' : 'h-full min-h-full',
+                isMobile ? 'pb-32' : 'h-full min-h-full',
               )}
             >
               <Outlet />
