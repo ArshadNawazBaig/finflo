@@ -20,8 +20,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthLayout from '@/layouts/AuthLayout';
-import { renderPdfHeader, renderPdfFooter, toTitleCase, renderPdfSignatures, getBusinessContext } from '@/lib/pdfExportUtils';
-import { formatCurrency } from '@/lib/utils';
+import {
+  renderPdfHeader,
+  renderPdfFooter,
+  toTitleCase,
+  renderPdfSignatures,
+  getBusinessContext,
+} from '@/lib/pdfExportUtils';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { savePdf } from '@/lib/nativeDownload';
 
 // Local formatAmount is kept for layouts that split the symbol and value
@@ -48,7 +54,10 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
     title: 'Loan Details Report',
     leftDetails: [
       { label: 'Customer Name', value: toTitleCase(customerName) },
-      { label: 'Loan ID', value: loan.loanId || loan._id.slice(-6).toUpperCase() },
+      {
+        label: 'Loan ID',
+        value: loan.loanId || loan._id.slice(-6).toUpperCase(),
+      },
       { label: 'Status', value: loan.status.toUpperCase() },
     ],
     rightDetails: [
@@ -68,7 +77,10 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
   ];
 
   if (loan.status === 'active') {
-    details.push(['Remaining Amount', formatCurrency(loan.remainingAmount || 0)]);
+    details.push([
+      'Remaining Amount',
+      formatCurrency(loan.remainingAmount || 0),
+    ]);
     details.push(['Paid Amount', formatCurrency(loan.paidAmount || 0)]);
   }
 
@@ -77,7 +89,12 @@ const generateLoanPDF = async (loan, customerName, businessName) => {
     head: [['Description', 'Detail']],
     body: details,
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+    headStyles: {
+      fillColor: [64, 53, 100],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9,
+    },
     styles: { fontSize: 9, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -228,7 +245,9 @@ const LoanLookup = () => {
                       </div>
                       <div className="flex items-baseline justify-between">
                         <div className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">
-                          <span className="text-xl text-slate-400 mr-1">$</span>
+                          <span className="text-xl text-slate-400 mr-1">
+                            {getCurrencySymbol()}
+                          </span>
                           {formatAmount(loan.principal)}
                         </div>
                         <div className="text-2xl font-black text-primary tracking-tight">
@@ -286,7 +305,8 @@ const LoanLookup = () => {
                           <span className="text-sm font-black text-emerald-500">
                             {Math.round(
                               (loan.paidAmount / loan.totalAmount) * 100,
-                            )}%
+                            )}
+                            %
                           </span>
                         </div>
                         <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-4">
@@ -299,12 +319,20 @@ const LoanLookup = () => {
                         </div>
                         <div className="flex justify-between">
                           <div className="flex flex-col">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Paid</span>
-                            <span className="font-bold text-sm text-slate-900 dark:text-white">{formatAmount(loan.paidAmount)}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">
+                              Paid
+                            </span>
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">
+                              {formatAmount(loan.paidAmount)}
+                            </span>
                           </div>
                           <div className="flex flex-col text-right">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Remaining</span>
-                            <span className="font-bold text-sm text-slate-900 dark:text-white">{formatAmount(loan.remainingAmount)}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">
+                              Remaining
+                            </span>
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">
+                              {formatAmount(loan.remainingAmount)}
+                            </span>
                           </div>
                         </div>
                       </div>
