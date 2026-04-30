@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Bell,
   Lock,
+  BookOpen,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -243,6 +244,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             active={isActive('/member/shares')}
             onboardingId="sidebar-shares"
             label="Business Share"
+            isExpanded={isLayoutExpanded}
+          />
+          <NavItem
+            to="/member/checkbooks"
+            icon={<BookOpen size={18} />}
+            active={isActive('/member/checkbooks')}
+            onboardingId="sidebar-checkbooks"
+            label="Checkbooks"
             isExpanded={isLayoutExpanded}
           />
           <NavItem

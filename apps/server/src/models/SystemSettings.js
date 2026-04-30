@@ -134,11 +134,11 @@ const systemSettingsSchema = new mongoose.Schema(
       },
     },
 
-    // Checkbook Configuration
-    checkbookFee: {
-      type: Number,
-      default: 250,
-      min: 0,
+    // Checkbook Configuration – per-leaf pricing
+    checkbookFees: {
+      25:  { type: Number, default: 200, min: 0 },
+      50:  { type: Number, default: 350, min: 0 },
+      100: { type: Number, default: 500, min: 0 },
     },
 
     // Late Fee / Penalty Configuration

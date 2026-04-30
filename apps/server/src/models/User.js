@@ -84,8 +84,13 @@ const userSchema = new mongoose.Schema(
     savingProfitRate: { type: Number, default: 0, min: 0, max: 100 }, // Annual profit rate % for saving accounts
 
     // ── Per-Business Configurations ──────────────────────────────────
-    // Checkbook
-    checkbookFee: { type: Number, default: 0, min: 0 },
+    // Checkbook – per-leaf pricing
+    checkbookFee: { type: Number, default: 0, min: 0 }, // legacy flat fee (migration fallback)
+    checkbookFees: {
+      25:  { type: Number, default: 0, min: 0 },
+      50:  { type: Number, default: 0, min: 0 },
+      100: { type: Number, default: 0, min: 0 },
+    },
 
     // Late Fee / Penalty
     lateFeeEnabled: { type: Boolean, default: false },

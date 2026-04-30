@@ -34,7 +34,7 @@ const updateSystemSettings = async (req, res) => {
       'estimatedMaintenanceTime',
       'emailTemplates',
       'smtpConfig',
-      'checkbookFee',
+      'checkbookFees',
       'lateFeeEnabled',
       'lateFeeType',
       'lateFeeRate',
@@ -140,7 +140,7 @@ const updateLoanConfiguration = async (req, res) => {
 
     // Per-business fields go to the User model
     const perBusinessFields = [
-      'checkbookFee',
+      'checkbookFees',
       'lateFeeEnabled',
       'lateFeeType',
       'lateFeeRate',
@@ -242,7 +242,7 @@ const getBusinessConfig = async (req, res) => {
     const User = require('../models/User');
     const adminId = req.user.effectiveOwnerId || req.user._id;
     const adminUser = await User.findById(adminId).select(
-      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty'
+      'checkbookFee checkbookFees lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty'
     );
 
     if (!adminUser) {
@@ -258,7 +258,9 @@ const getBusinessConfig = async (req, res) => {
       defaultLoanTerm: settings.defaultLoanTerm,
       currency: settings.currency,
       // Per-business fields (from User)
-      checkbookFee: adminUser.checkbookFee ?? 0,
+      checkbookFees: adminUser.checkbookFees && (adminUser.checkbookFees[25] || adminUser.checkbookFees[50] || adminUser.checkbookFees[100])
+        ? { 25: adminUser.checkbookFees[25] ?? 0, 50: adminUser.checkbookFees[50] ?? 0, 100: adminUser.checkbookFees[100] ?? 0 }
+        : { 25: adminUser.checkbookFee ?? 0, 50: adminUser.checkbookFee ?? 0, 100: adminUser.checkbookFee ?? 0 },
       lateFeeEnabled: adminUser.lateFeeEnabled ?? false,
       lateFeeType: adminUser.lateFeeType || 'fixed',
       lateFeeRate: adminUser.lateFeeRate ?? 0,
@@ -285,7 +287,7 @@ const getMemberBusinessConfig = async (req, res) => {
     }
 
     const adminUser = await User.findById(ownerId).select(
-      'checkbookFee lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty currency'
+      'checkbookFee checkbookFees lateFeeEnabled lateFeeType lateFeeRate lateFeeGracePeriodDays loanDefaultThresholdMonths termDepositRates termDepositEarlyBreakPenalty currency'
     );
 
     if (!adminUser) {
@@ -294,7 +296,9 @@ const getMemberBusinessConfig = async (req, res) => {
 
     res.json({
       currency: adminUser.currency || 'Rs.',
-      checkbookFee: adminUser.checkbookFee ?? 0,
+      checkbookFees: adminUser.checkbookFees && (adminUser.checkbookFees[25] || adminUser.checkbookFees[50] || adminUser.checkbookFees[100])
+        ? { 25: adminUser.checkbookFees[25] ?? 0, 50: adminUser.checkbookFees[50] ?? 0, 100: adminUser.checkbookFees[100] ?? 0 }
+        : { 25: adminUser.checkbookFee ?? 0, 50: adminUser.checkbookFee ?? 0, 100: adminUser.checkbookFee ?? 0 },
       lateFeeEnabled: adminUser.lateFeeEnabled ?? false,
       lateFeeType: adminUser.lateFeeType || 'fixed',
       lateFeeRate: adminUser.lateFeeRate ?? 0,

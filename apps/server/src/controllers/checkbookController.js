@@ -31,10 +31,12 @@ const issueCheckbook = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
 
-    // Fetch checkbook fee from the business owner's config
+    // Fetch checkbook fee from the business owner's config (per-leaf pricing)
     const User = require('../models/User');
-    const adminUser = await User.findById(userId).select('checkbookFee');
-    const fee = adminUser?.checkbookFee || 0;
+    const adminUser = await User.findById(userId).select('checkbookFee checkbookFees');
+    // Per-leaf pricing first, fallback to legacy flat fee
+    const feesMap = adminUser?.checkbookFees || {};
+    const fee = feesMap[numberOfLeaves] ?? adminUser?.checkbookFee ?? 0;
 
     // Fetch member
     const member = await Member.findOne({

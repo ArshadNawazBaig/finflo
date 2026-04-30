@@ -197,7 +197,7 @@ const MemberWallet = () => {
               {/* Credit Card Hero */}
               <div
                 className={cn(
-                  'relative overflow-hidden text-white p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between flex-1 min-h-[320px] md:min-h-0 group transition-all duration-500',
+                  'relative text-white p-8 md:p-10 rounded-[3rem] shadow-2xl flex flex-col justify-between flex-1 min-h-[320px] md:min-h-0 group transition-all duration-500',
                   activeAccount === 'current'
                     ? 'bg-zinc-950 hover:shadow-zinc-500/20'
                     : activeAccount === 'saving'
@@ -211,7 +211,7 @@ const MemberWallet = () => {
                 </div>
                 <div
                   className={cn(
-                    'absolute -left-20 -bottom-20 w-64 h-64 blur-[100px] rounded-full pointer-events-none transition-colors duration-500',
+                    'absolute -left-20 -bottom-20 w-64 h-64 blur-3xl rounded-full pointer-events-none transition-colors duration-500',
                     activeAccount === 'current'
                       ? 'bg-primary/30'
                       : activeAccount === 'saving'

@@ -1887,9 +1887,14 @@ const MemberProfile = () => {
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                      The checkbook fee will be automatically deducted from the
-                      member's <strong>current account</strong>. Current
-                      balance:{' '}
+                      A fee of{' '}
+                      <strong className="text-indigo-600">
+                        {formatCurrency(
+                          systemSettings?.checkbookFees?.[checkbookLeaves] ?? 0,
+                        )}
+                      </strong>{' '}
+                      will be deducted from the member's{' '}
+                      <strong>current account</strong>. Current balance:{' '}
                       <strong className="text-primary">
                         {formatCurrency(member.currentBalance || 0)}
                       </strong>
@@ -1907,13 +1912,16 @@ const MemberProfile = () => {
                             key={val}
                             type="button"
                             onClick={() => setCheckbookLeaves(val)}
-                            className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                            className={`flex-1 px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-0.5 ${
                               checkbookLeaves === val
                                 ? 'bg-indigo-500 text-white shadow-lg'
                                 : 'text-muted-foreground hover:bg-muted'
                             }`}
                           >
-                            {val} Leaves
+                            <span>{val} Leaves</span>
+                            <span className={`text-[9px] font-bold ${checkbookLeaves === val ? 'text-white/70' : 'text-muted-foreground/50'}`}>
+                              {formatCurrency(systemSettings?.checkbookFees?.[val] ?? 0)}
+                            </span>
                           </button>
                         ))}
                       </div>

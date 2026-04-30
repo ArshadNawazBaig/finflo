@@ -1915,7 +1915,7 @@ const ConfigurationSection = ({ user }) => {
     supportEmail: '',
     maintenanceMode: false,
     estimatedMaintenanceTime: '',
-    checkbookFee: 250,
+    checkbookFees: { 25: 200, 50: 350, 100: 500 },
     lateFeeEnabled: true,
     lateFeeType: 'fixed',
     lateFeeRate: 500,
@@ -1960,7 +1960,7 @@ const ConfigurationSection = ({ user }) => {
           supportEmail: data.supportEmail || '',
           maintenanceMode: data.maintenanceMode || false,
           estimatedMaintenanceTime: data.estimatedMaintenanceTime || '',
-          checkbookFee: data.checkbookFee ?? 0,
+          checkbookFees: data.checkbookFees ?? { 25: 0, 50: 0, 100: 0 },
           lateFeeEnabled: data.lateFeeEnabled ?? false,
           lateFeeType: data.lateFeeType || 'fixed',
           lateFeeRate: data.lateFeeRate ?? 0,
@@ -2434,43 +2434,46 @@ const ConfigurationSection = ({ user }) => {
               Checkbook Configuration
             </h3>
             <p className="text-muted-foreground text-[11px] font-medium leading-relaxed">
-              Set the fee charged to members when a checkbook is issued. This
-              amount is automatically deducted from the member's current
+              Set the fee charged to members per checkbook based on the number
+              of leaves. Fee is automatically deducted from the member's current
               account.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Checkbook Issuance Fee
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
-                  {settings.currency || 'Rs.'}
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={settings.checkbookFee}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      checkbookFee: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
-                  placeholder="250"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 py-8">
+            {[25, 50, 100].map((leaves) => (
+              <div key={leaves} className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  {leaves} Leaves Fee
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
+                    {settings.currency || 'Rs.'}
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={settings.checkbookFees?.[leaves] ?? 0}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        checkbookFees: {
+                          ...settings.checkbookFees,
+                          [leaves]: parseFloat(e.target.value) || 0,
+                        },
+                      })
+                    }
+                    className="w-full pl-12 pr-5 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm font-medium"
+                    placeholder="0"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex items-end">
-              <p className="text-[10px] text-muted-foreground/60 italic font-medium pb-3">
-                * This fee is deducted from the member's current account balance
-                when a checkbook is issued. Set to 0 for free checkbooks.
-              </p>
-            </div>
+            ))}
+            <p className="md:col-span-3 text-[10px] text-muted-foreground/60 italic font-medium mt-2 ml-1">
+              * These fees are deducted from the member's current account balance
+              when a checkbook is issued. Set to 0 for free checkbooks.
+            </p>
           </div>
         </div>
 
