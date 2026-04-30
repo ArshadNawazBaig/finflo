@@ -112,10 +112,19 @@ const MemberTermDeposits = () => {
     0,
   );
   const maturedDeposits = deposits.filter((d) => d.status === 'matured');
-  const totalMaturedProfit = maturedDeposits.reduce(
-    (sum, d) => sum + (d.actualProfit || d.projectedProfit),
-    0,
-  );
+  const totalAccruedProfit = useMemo(() => {
+    const matured = maturedDeposits.reduce(
+      (sum, d) => sum + (d.actualProfit || d.projectedProfit),
+      0,
+    );
+    const active = activeDeposits.reduce((sum, d) => {
+      const msElapsed = Date.now() - new Date(d.startDate).getTime();
+      const daysElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24)));
+      const dailyProfit = (d.principal * d.profitRate) / (100 * 365);
+      return sum + (dailyProfit * daysElapsed);
+    }, 0);
+    return Math.round(matured + active);
+  }, [maturedDeposits, activeDeposits]);
   const filteredDeposits = deposits.filter(
     (d) =>
       d.depositNumber?.toLowerCase().includes(search.toLowerCase()) ||
@@ -279,11 +288,11 @@ const MemberTermDeposits = () => {
             subtitle="Expected earnings on maturity"
           />
           <StatsCard
-            title="Realized Profit"
-            amount={formatCurrency(totalMaturedProfit)}
+            title="Accrued Profit"
+            amount={formatCurrency(totalAccruedProfit)}
             icon={<CheckCircle2 size={20} />}
             color="bg-emerald-500 shadow-emerald-500/20"
-            subtitle={`${maturedDeposits.length} matured deposits`}
+            subtitle="Day-by-day profit earned so far"
           />
         </div>
       )}
@@ -811,21 +820,23 @@ const DepositGrid = ({ deposits, setBreakTarget }) => (
             <div>
               <p
                 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1"
-                title="Realized Profit"
+                title={isActive ? "Accrued Profit" : "Realized Profit"}
               >
-                Realized
+                {isActive ? 'Accrued' : 'Realized'}
               </p>
               <p
                 className={cn(
                   'font-black sm:text-lg text-base',
-                  isMatured
+                  isActive
                     ? 'text-emerald-500'
-                    : isBroken
-                      ? 'text-rose-500'
-                      : 'text-muted-foreground/40',
+                    : isMatured
+                      ? 'text-emerald-500'
+                      : isBroken
+                        ? 'text-rose-500'
+                        : 'text-muted-foreground/40',
                 )}
               >
-                +{formatCurrency(deposit.actualProfit)}
+                +{formatCurrency(isActive ? Math.round(((deposit.principal * deposit.profitRate) / (100 * 365)) * Math.max(0, Math.floor((Date.now() - new Date(deposit.startDate).getTime()) / (1000 * 60 * 60 * 24)))) : deposit.actualProfit)}
               </p>
             </div>
           </div>
