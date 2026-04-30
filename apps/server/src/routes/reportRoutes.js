@@ -11,6 +11,7 @@ const {
   saveRegulatorySnapshot,
   getRegulatorySavedSnapshots,
 } = require('../controllers/reportController');
+const { getReconciliation, resolveMemberBalances, resolveLoanLedger, resolveSavingShare } = require('../controllers/reconciliationController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/stats', protect, getReportStats);
@@ -20,6 +21,10 @@ router.get('/trial-balance', protect, getTrialBalance);
 router.get('/profit-loss', protect, getProfitAndLoss);
 router.get('/branch-summary', protect, getBranchSummary);
 router.get('/balance-sheet', protect, getBalanceSheet);
+router.get('/reconciliation', protect, getReconciliation);
+router.post('/reconciliation/resolve/member-balance', protect, resolveMemberBalances);
+router.post('/reconciliation/resolve/loan-ledger', protect, resolveLoanLedger);
+router.post('/reconciliation/resolve/saving-share', protect, resolveSavingShare);
 
 router
   .route('/snapshots')

@@ -191,10 +191,9 @@ const breakTermDeposit = async (req, res) => {
     const actualProfit = Math.round(fullProfit * (1 - penaltyRate));
     const totalReturn = deposit.principal + Math.max(0, actualProfit);
 
-    // Credit back to member
     const creditFields = deposit.sourceAccount === 'saving'
-      ? { savingBalance: totalReturn, totalSavingDeposited: totalReturn }
-      : { currentBalance: totalReturn, totalInvested: totalReturn };
+      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: Math.max(0, actualProfit) }
+      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: Math.max(0, actualProfit) };
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
@@ -518,10 +517,9 @@ const breakPortalTermDeposit = async (req, res) => {
     const actualProfit = Math.round(fullProfit * (1 - penaltyRate));
     const totalReturn = deposit.principal + Math.max(0, actualProfit);
 
-    // Credit back to member
     const creditFields = deposit.sourceAccount === 'saving'
-      ? { savingBalance: totalReturn, totalSavingDeposited: totalReturn }
-      : { currentBalance: totalReturn, totalInvested: totalReturn };
+      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: Math.max(0, actualProfit) }
+      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: Math.max(0, actualProfit) };
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 

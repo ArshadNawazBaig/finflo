@@ -27,7 +27,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   Building2,
+  Scale,
 } from 'lucide-react';
+import ReconciliationTab from '@/components/reports/ReconciliationTab';
 import {
   Dialog,
   DialogContent,
@@ -813,78 +815,91 @@ const Reports = () => {
       </PageHeader>
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border/50 pb-1 overflow-x-auto">
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 sm:gap-2 p-1.5 bg-muted/20 border border-border/40 rounded-2xl overflow-x-auto w-full hide-scrollbar flex-wrap xl:flex-nowrap scroll-smooth">
         <button
           onClick={() => setActiveTab('performance')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
             activeTab === 'performance'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
           )}
         >
-          <Activity size={14} />
+          <Activity size={16} />
           Performance
         </button>
         <button
           onClick={() => setActiveTab('regulatory')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
             activeTab === 'regulatory'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
           )}
         >
-          <ShieldCheck size={14} />
+          <ShieldCheck size={16} />
           Regulatory Center
         </button>
         <button
           onClick={() => setActiveTab('trial-balance')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
             activeTab === 'trial-balance'
-              ? 'border-emerald-500 text-emerald-500'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-emerald-500'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
           )}
         >
-          <Layers size={14} />
+          <Layers size={16} />
           Trial Balance
         </button>
         <button
           onClick={() => setActiveTab('profit-loss')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
             activeTab === 'profit-loss'
-              ? 'border-indigo-500 text-indigo-500'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-indigo-500'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
           )}
         >
-          <FileText size={14} />
+          <FileText size={16} />
           Profit & Loss
         </button>
         <button
           onClick={() => setActiveTab('balance-sheet')}
           className={cn(
-            'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
             activeTab === 'balance-sheet'
-              ? 'border-teal-500 text-teal-500'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-teal-500'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
           )}
         >
-          <Landmark size={14} />
+          <Landmark size={16} />
           Balance Sheet
+        </button>
+        <button
+          onClick={() => setActiveTab('reconciliation')}
+          className={cn(
+            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            activeTab === 'reconciliation'
+              ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-cyan-500'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+          )}
+        >
+          <Scale size={16} />
+          Reconciliation
         </button>
         {isAdmin && (
           <button
             onClick={() => setActiveTab('branch-analytics')}
             className={cn(
-              'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
+              'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
               activeTab === 'branch-analytics'
-                ? 'border-purple-500 text-purple-500'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
+                ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-purple-500'
+                : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
             )}
           >
-            <Banknote size={14} className="lucide-icon" />
+            <Banknote size={16} className="lucide-icon" />
             Branch Analytics
           </button>
         )}
@@ -2803,6 +2818,8 @@ const Reports = () => {
             </div>
           )}
         </div>
+      ) : activeTab === 'reconciliation' ? (
+        <ReconciliationTab />
       ) : null}
 
       {/* Export Report Modal */}

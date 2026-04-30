@@ -325,14 +325,23 @@ const reverseTransaction = async (req, res) => {
     // 4. Undo side effects based on category
     // ── REPAYMENT ──
     if (originalTx.category === 'repayment' && originalTx.loan) {
-      // Restore loan balances
+      // Look up the actual Repayment record to get the true amount (may differ from tx in settlements)
+      let repaymentRecordAmount = amount;
+      if (originalTx.referenceId) {
+        const repaymentRecord = await Repayment.findById(originalTx.referenceId);
+        if (repaymentRecord) {
+          repaymentRecordAmount = repaymentRecord.amount;
+        }
+      }
+
+      // Restore loan balances using the actual repayment amount
       const loan = await Loan.findById(originalTx.loan);
       if (loan) {
         const wasCompleted = loan.status === 'completed';
         await Loan.findByIdAndUpdate(loan._id, {
           $inc: {
-            paidAmount: -amount,
-            remainingAmount: amount,
+            paidAmount: -repaymentRecordAmount,
+            remainingAmount: repaymentRecordAmount,
           },
           ...(wasCompleted ? { status: 'active' } : {}),
         });
@@ -349,8 +358,8 @@ const reverseTransaction = async (req, res) => {
       if (originalTx.customer?.memberId) {
         await Member.findByIdAndUpdate(originalTx.customer.memberId, {
           $inc: {
-            currentBalance: amount,
-            totalWithdrawn: -amount,
+            currentBalance: repaymentRecordAmount,
+            totalWithdrawn: -repaymentRecordAmount,
           },
         });
 
@@ -360,7 +369,7 @@ const reverseTransaction = async (req, res) => {
             {
               member: originalTx.customer.memberId,
               type: 'withdrawal',
-              amount: amount,
+              amount: repaymentRecordAmount,
               description: { $regex: originalTx.loan.toString().slice(-6), $options: 'i' },
             },
             { status: 'Reversed' },
