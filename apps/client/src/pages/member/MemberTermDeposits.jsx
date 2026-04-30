@@ -119,9 +119,8 @@ const MemberTermDeposits = () => {
     );
     const active = activeDeposits.reduce((sum, d) => {
       const msElapsed = Date.now() - new Date(d.startDate).getTime();
-      const daysElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24)));
-      const dailyProfit = (d.principal * d.profitRate) / (100 * 365);
-      return sum + (dailyProfit * daysElapsed);
+      const monthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
+      return sum + Math.round((d.principal * d.profitRate * monthsElapsed) / (12 * 100));
     }, 0);
     return Math.round(matured + active);
   }, [maturedDeposits, activeDeposits]);
@@ -836,7 +835,11 @@ const DepositGrid = ({ deposits, setBreakTarget }) => (
                         : 'text-muted-foreground/40',
                 )}
               >
-                +{formatCurrency(isActive ? Math.round(((deposit.principal * deposit.profitRate) / (100 * 365)) * Math.max(0, Math.floor((Date.now() - new Date(deposit.startDate).getTime()) / (1000 * 60 * 60 * 24)))) : deposit.actualProfit)}
+                +{formatCurrency(isActive ? (() => {
+                  const msElapsed = Date.now() - new Date(deposit.startDate).getTime();
+                  const monthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
+                  return Math.round((deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100));
+                })() : deposit.actualProfit)}
               </p>
             </div>
           </div>
