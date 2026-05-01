@@ -582,7 +582,7 @@ const LoanDetail = () => {
                     <div className="flex items-center gap-5">
                       <div
                         className={cn(
-                          'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
+                          'min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all',
                           rp.status === 'Reversed'
                             ? 'bg-orange-500/10 text-orange-500'
                             : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white',
@@ -708,7 +708,7 @@ const LoanDetail = () => {
                     >
                       <div className="flex items-center gap-5">
                         <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                          className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all ${
                             inv.type === 'deposit'
                               ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'
                               : 'bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white'

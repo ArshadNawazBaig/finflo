@@ -50,7 +50,7 @@ const CommunicationLogs = ({ reminders = [] }) => {
             <div className="flex items-center gap-5">
               <div
                 className={cn(
-                  'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
+                  'min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all',
                   log.type === 'upcoming'
                     ? 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white'
                     : 'bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white',

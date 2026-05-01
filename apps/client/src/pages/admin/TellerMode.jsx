@@ -1582,7 +1582,7 @@ const TellerMode = () => {
                           }`}
                         >
                           <div
-                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+                            className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${
                               isActive
                                 ? 'bg-white/20'
                                 : `bg-${config.color}-500/10 text-${config.color}-500 group-hover:scale-110`

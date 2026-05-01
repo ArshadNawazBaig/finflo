@@ -341,7 +341,8 @@ const MemberProfile = () => {
 
     if (activeLoan.interestType === 'compound') {
       // Compound: interest on remaining balance (which grows on missed payments)
-      const monthlyInterest = (activeLoan.remainingAmount * activeLoan.rate) / 1200;
+      const monthlyInterest =
+        (activeLoan.remainingAmount * activeLoan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
       interestForDays = Math.round(dailyInterest * daysPassed);
       principalPerInstallment = Math.round(
@@ -1150,7 +1151,9 @@ const MemberProfile = () => {
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 text-xs font-medium">
               <ShieldCheck size={14} className="text-primary" />
-              <SensitiveData maskLength={15} iconSize={13}>{member.cnic}</SensitiveData>
+              <SensitiveData maskLength={15} iconSize={13}>
+                {member.cnic}
+              </SensitiveData>
             </div>
             <div className="w-1 h-1 bg-border rounded-full hidden sm:block" />
             <div className="flex items-center gap-1.5 text-xs font-medium">
@@ -1919,8 +1922,12 @@ const MemberProfile = () => {
                             }`}
                           >
                             <span>{val} Leaves</span>
-                            <span className={`text-[9px] font-bold ${checkbookLeaves === val ? 'text-white/70' : 'text-muted-foreground/50'}`}>
-                              {formatCurrency(systemSettings?.checkbookFees?.[val] ?? 0)}
+                            <span
+                              className={`text-[9px] font-bold ${checkbookLeaves === val ? 'text-white/70' : 'text-muted-foreground/50'}`}
+                            >
+                              {formatCurrency(
+                                systemSettings?.checkbookFees?.[val] ?? 0,
+                              )}
                             </span>
                           </button>
                         ))}
@@ -2281,7 +2288,7 @@ const MemberProfile = () => {
                   >
                     <div className="flex items-center gap-5">
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                        className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all ${
                           inv.type === 'deposit' ||
                           inv.type === 'transfer_receive'
                             ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white'
