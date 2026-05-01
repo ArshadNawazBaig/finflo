@@ -1,9 +1,9 @@
 {
-  "appId": "com.finflo.business",
-  "appName": "FinFlo Business",
+  "appId": "com.finflo.member",
+  "appName": "FinFlo Member",
   "webDir": "dist",
   "server": {
-    "url": "https://app.finflo.org",
+    "url": "https://app.finflo.org?app_mode=member",
     "cleartext": true,
     "allowNavigation": ["app.finflo.org", "finflo.org"]
   },
@@ -14,7 +14,7 @@
     "GoogleAuth": {
       "forceCodeForRefreshToken": true,
       "clientId": "52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com",
-      "androidClientId": "52862721923-2d2tpriitmri5s8orj7vrpek5mgp4uef.apps.googleusercontent.com"
+      "androidClientId": "52862721923-trb17t10u5ni99aimh6s4j42eldukmrj.apps.googleusercontent.com"
     }
   }
 }
