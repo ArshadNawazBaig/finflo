@@ -96,6 +96,12 @@ const memberSchema = new mongoose.Schema(
     savingAccountNumber: { type: String, sparse: true },
     currentAccountNumber: { type: String, sparse: true },
     loanAccountNumber: { type: String, sparse: true },
+    nominee: {
+      name: { type: String, default: '' },
+      cnic: { type: String, default: '' },
+      relation: { type: String, default: '' },
+      cnicImage: { type: String, default: '' },
+    },
     documents: [
       {
         name: { type: String },
@@ -126,7 +132,11 @@ memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
 // Hash password before saving
 memberSchema.pre('save', async function () {
   // Generate account numbers if missing
-  if (!this.savingAccountNumber || !this.currentAccountNumber || !this.loanAccountNumber) {
+  if (
+    !this.savingAccountNumber ||
+    !this.currentAccountNumber ||
+    !this.loanAccountNumber
+  ) {
     const User = mongoose.model('User');
     const user = await User.findById(this.user);
     const abbr = user?.businessAbbreviation || '';
@@ -135,7 +145,9 @@ memberSchema.pre('save', async function () {
     // Helper to generate account number: [ABBR]-[TYPE_INITIAL]-[COUNT][RANDOM] e.g. MLO-S-100001xxx
     const generateAcc = (prefix) => {
       const typeInitial = String(prefix).charAt(0).toUpperCase();
-      const prefixStr = abbr ? `${abbr.toUpperCase()}-${typeInitial}` : prefix.toUpperCase();
+      const prefixStr = abbr
+        ? `${abbr.toUpperCase()}-${typeInitial}`
+        : prefix.toUpperCase();
       const base = `${prefixStr}-${count}`;
       const remaining = 13 - base.length;
       let randomDigits = '';
@@ -189,11 +201,7 @@ memberSchema.methods.getResetPasswordToken = function () {
 // ── PII Encryption Hooks ─────────────────────────────────────────────────────
 // Encrypt PII fields before saving to database
 memberSchema.pre('save', function () {
-  encryptFields(
-    this,
-    ['cnic', 'phone', 'address'],
-    ['cnicHash', null, null],
-  );
+  encryptFields(this, ['cnic', 'phone', 'address'], ['cnicHash', null, null]);
 });
 
 // Decrypt PII fields after reading from database

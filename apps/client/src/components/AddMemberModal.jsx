@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, X, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import SignaturePad from '@/components/ui/SignaturePad';
 import {
   formatCNIC,
   validateEmail,
@@ -20,9 +22,13 @@ import KycOcrScanner from './kyc/KycOcrScanner';
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
   const [loading, setLoading] = useState(false);
+  const [fetchingBranches, setFetchingBranches] = useState(false);
+  const [branches, setBranches] = useState([]);
   const [savingAccountNumber, setSavingAccountNumber] = useState('');
   const [currentAccountNumber, setCurrentAccountNumber] = useState('');
   const [loanAccountNumber, setLoanAccountNumber] = useState('');
+  const [signature, setSignature] = useState('');
+  const [nominee, setNominee] = useState({ name: '', cnic: '', relation: '', cnicImage: '' });
 
   const {
     register,
@@ -38,10 +44,35 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
       email: '',
       phone: '',
       address: '',
+      branchId: '',
+      job: '',
+      jobDetail: '',
+      monthlyIncome: '',
       initialInvestment: '',
       profitRate: '',
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      if (user.role === 'staff' && user.branchId) {
+        setValue('branchId', user.branchId);
+      } else {
+        const fetchBranches = async () => {
+          setFetchingBranches(true);
+          try {
+            const { data } = await api.get('/branches');
+            setBranches(data);
+          } catch (err) {
+            console.error('Failed to fetch branches', err);
+          } finally {
+            setFetchingBranches(false);
+          }
+        };
+        fetchBranches();
+      }
+    }
+  }, [isOpen, user.role, user.branchId]);
 
   const handleOcrData = (data) => {
     if (data.name) setValue('name', data.name);
@@ -56,6 +87,21 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     if (type === 'savingAccountNumber') setSavingAccountNumber(result);
     else if (type === 'currentAccountNumber') setCurrentAccountNumber(result);
     else setLoanAccountNumber(result);
+  };
+
+  const handleNomineeImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('CNIC image exceeds 2MB limit');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNominee((prev) => ({ ...prev, cnicImage: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const onSubmit = async (formData) => {
@@ -74,19 +120,31 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         cnic: formData.cnic?.trim(),
         name: formData.name?.trim().toLowerCase(),
         email: formData.email?.trim().toLowerCase(),
+        monthlyIncome: formData.monthlyIncome ? Number(formData.monthlyIncome) : undefined,
         initialInvestment: parseFloat(formData.initialInvestment) || 0,
         profitRate: parseFloat(formData.profitRate) || 0,
         savingAccountNumber: savingAccountNumber || undefined,
         currentAccountNumber: currentAccountNumber || undefined,
         loanAccountNumber: loanAccountNumber || undefined,
+        signature: signature || undefined,
+        nominee: {
+          name: nominee.name || '',
+          cnic: nominee.cnic || '',
+          relation: nominee.relation || '',
+          cnicImage: nominee.cnicImage || '',
+        },
       });
+      toast.success('Member added successfully');
       onSuccess();
       onClose();
       reset();
       setSavingAccountNumber('');
       setCurrentAccountNumber('');
       setLoanAccountNumber('');
+      setSignature('');
+      setNominee({ name: '', cnic: '', relation: '', cnicImage: '' });
     } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add member');
       setError('root', {
         message: err.response?.data?.message || 'Failed to add member',
       });
@@ -210,6 +268,42 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Occupation
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Business"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('job')}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Monthly Income
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    {...register('monthlyIncome')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Job Detail & Office Address
+                </label>
+                <textarea
+                  placeholder="Details of job and office location..."
+                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  {...register('jobDetail')}
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                   Residential Address
@@ -219,6 +313,36 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('address')}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Branch Selection
+                </label>
+                {user.role === 'staff' ? (
+                  <div className="w-full px-4 py-3 rounded-2xl bg-muted/30 text-xs font-bold text-muted-foreground italic border border-border/50">
+                    Assigned to your branch
+                  </div>
+                ) : (
+                  <select
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                    {...register('branchId', {
+                      required: 'Branch is required',
+                    })}
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {errors.branchId && (
+                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    {errors.branchId.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">
@@ -319,6 +443,115 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                     {...register('profitRate')}
                   />
                 </div>
+              </div>
+
+              {/* Nominee */}
+              <div className="space-y-3 p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20">
+                <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 px-1 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />{' '}
+                  Nominee Information
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                      Nominee Name
+                    </label>
+                    <input
+                      type="text"
+                      value={nominee.name}
+                      onChange={(e) =>
+                        setNominee({ ...nominee, name: e.target.value })
+                      }
+                      placeholder="Full name of nominee"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                      Nominee CNIC
+                    </label>
+                    <input
+                      type="text"
+                      value={nominee.cnic}
+                      onChange={(e) =>
+                        setNominee({
+                          ...nominee,
+                          cnic: formatCNIC(e.target.value),
+                        })
+                      }
+                      placeholder="00000-0000000-0"
+                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Relation to Member
+                  </label>
+                  <input
+                    type="text"
+                    value={nominee.relation}
+                    onChange={(e) =>
+                      setNominee({ ...nominee, relation: e.target.value })
+                    }
+                    placeholder="e.g. Spouse, Father, Son"
+                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    Nominee CNIC Image
+                  </label>
+                  <div className="flex flex-col gap-3">
+                    {nominee.cnicImage && (
+                      <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-border/50 bg-white shadow-sm flex items-center justify-center p-2">
+                        <img
+                          src={nominee.cnicImage}
+                          alt="CNIC Preview"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNominee({ ...nominee, cnicImage: '' })
+                          }
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-white hover:scale-110 transition-transform shadow-lg"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                    <div className="relative group p-4 border-2 border-dashed border-border/50 rounded-[1.5rem] bg-background/50 text-center hover:bg-muted/10 transition-all overflow-hidden">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleNomineeImageChange}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="flex flex-col items-center gap-1">
+                        <Upload
+                          size={16}
+                          className="text-muted-foreground group-hover:text-amber-500 transition-colors"
+                        />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {nominee.cnicImage
+                            ? 'Replace CNIC Image'
+                            : 'Upload CNIC Front'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  Signature *
+                </label>
+                <SignaturePad
+                  onSave={(data) => setSignature(data)}
+                  onClear={() => setSignature('')}
+                />
               </div>
             </div>
           </form>
