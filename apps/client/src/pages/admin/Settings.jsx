@@ -505,7 +505,14 @@ const Settings = () => {
                         >
                           <div className="relative group/logo">
                             <div className="h-24 w-48 rounded-[2rem] bg-indigo-500/5 flex items-center justify-center text-3xl font-black text-primary overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl group-hover/logo:border-primary/20 transition-all cursor-pointer">
-                              {user.businessLogo ? (
+                              {logoLoading ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="animate-spin text-primary" />
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    Processing...
+                                  </span>
+                                </div>
+                              ) : user.businessLogo ? (
                                 <img
                                   src={user.businessLogo}
                                   alt="Business Logo"
@@ -516,7 +523,7 @@ const Settings = () => {
                                 <div className="flex flex-col items-center gap-1 opacity-40">
                                   <Sparkles size={24} />
                                   <span className="text-[10px] uppercase tracking-widest">
-                                    No Logo
+                                    Upload Logo
                                   </span>
                                 </div>
                               )}
