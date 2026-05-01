@@ -138,40 +138,47 @@ const MessageBubble = ({
           'relative max-w-[75%] flex flex-col',
           isOwn ? 'items-end' : 'items-start',
         )}
+        ref={reactionRef}
       >
         {/* Context menu trigger */}
         {isOwn && !editMode && (
           <div
-            className="absolute -left-8 top-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute -left-10 sm:-left-8 top-0 sm:top-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
             ref={menuRef}
           >
             <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="p-1 rounded-full hover:bg-muted/50 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setMenuOpen((v) => !v);
+              }}
+              className="p-2 sm:p-1 rounded-full hover:bg-muted/50 transition-colors"
             >
-              <MoreVertical size={14} className="text-muted-foreground" />
+              <MoreVertical size={16} className="text-muted-foreground" />
             </button>
             {menuOpen && (
-              <div className="absolute right-full top-0 mr-1 bg-popover border border-border/50 rounded-xl shadow-xl overflow-hidden z-50 min-w-[120px]">
+              <div className="absolute right-0 sm:right-full top-full sm:top-0 mt-1 sm:mt-0 sm:mr-1 bg-popover border border-border/50 rounded-xl shadow-xl overflow-hidden z-50 min-w-[120px]">
                 {message.mediaType === 'text' && (
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setEditMode(true);
                       setMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold hover:bg-muted/50 w-full text-left transition-colors"
+                    className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-sm sm:text-xs font-semibold hover:bg-muted/50 w-full text-left transition-colors"
                   >
-                    <Edit3 size={12} /> Edit
+                    <Edit3 size={14} /> Edit
                   </button>
                 )}
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onDelete(message._id);
                     setMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 w-full text-left transition-colors"
+                  className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-sm sm:text-xs font-semibold text-rose-500 hover:bg-rose-500/10 w-full text-left transition-colors"
                 >
-                  <Trash2 size={12} /> Delete
+                  <Trash2 size={14} /> Delete
                 </button>
               </div>
             )}
@@ -182,48 +189,59 @@ const MessageBubble = ({
         {!message.isDeleted && !editMode && (
           <div
             className={cn(
-              'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10',
-              isOwn ? '-left-16' : '-right-8',
+              'absolute top-0 sm:top-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-10',
+              isOwn ? '-left-20 sm:-left-16' : '-right-10 sm:-right-8',
             )}
-            ref={reactionRef}
           >
             <button
-              onClick={() => setReactionOpen((v) => !v)}
-              className="p-1 rounded-full hover:bg-muted/50 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setReactionOpen((v) => !v);
+              }}
+              className="p-2 sm:p-1 rounded-full hover:bg-muted/50 transition-colors"
             >
-              <Smile size={14} className="text-muted-foreground" />
+              <Smile size={16} className="text-muted-foreground" />
             </button>
-            {reactionOpen && (
-              <div
-                className={cn(
-                  'absolute top-0 bg-popover border border-border/50 rounded-full shadow-xl p-1 flex items-center gap-1 z-50 animate-in zoom-in-95 duration-200',
-                  isOwn ? 'right-full mr-1' : 'left-full ml-1',
-                )}
-              >
-                {COMMON_EMOJIS.map((emoji) => {
-                  const hasReacted = message.reactions
-                    ?.find((r) => r.emoji === emoji)
-                    ?.users.some(
-                      (u) => String(u.userId) === String(currentUserId),
-                    );
-                  return (
-                    <button
-                      key={emoji}
-                      onClick={() => {
-                        onReact(message._id, emoji);
-                        setReactionOpen(false);
-                      }}
-                      className={cn(
-                        'hover:scale-125 transition-transform px-1.5 py-1 rounded-full',
-                        hasReacted && 'bg-primary/20 scale-110',
-                      )}
-                    >
-                      {emoji}
-                    </button>
-                  );
-                })}
-              </div>
+          </div>
+        )}
+
+        {/* Reaction Popover anchored to the bubble */}
+        {reactionOpen && (
+          <div
+            className={cn(
+              'absolute bg-popover border border-border/50 rounded-full shadow-xl p-1.5 sm:p-1 flex items-center gap-1 z-[100] animate-in zoom-in-95 duration-200',
+              // Mobile: render below bubble, aligned to the bubble edge. Desktop: to the side of bubble.
+              'top-full mt-1 sm:top-0 sm:mt-0',
+              isOwn 
+                ? 'right-0 sm:right-full sm:mr-3' 
+                : 'left-0 sm:left-full sm:ml-3'
             )}
+          >
+            {COMMON_EMOJIS.map((emoji) => {
+              const hasReacted = message.reactions
+                ?.find((r) => r.emoji === emoji)
+                ?.users.some(
+                  (u) => String(u.userId) === String(currentUserId),
+                );
+              return (
+                <button
+                  key={emoji}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onReact(message._id, emoji);
+                    setReactionOpen(false);
+                  }}
+                  className={cn(
+                    'hover:scale-125 transition-transform px-2 py-1.5 sm:px-1.5 sm:py-1 rounded-full text-lg sm:text-base',
+                    hasReacted && 'bg-primary/20 scale-110',
+                  )}
+                >
+                  {emoji}
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -310,8 +328,7 @@ const MessageBubble = ({
                       : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50',
                   )}
                 >
-                  <span>{r.emoji}</span>
-                  <span>{r.users.length}</span>
+                  <span className="text-[13px] leading-none">{r.emoji}</span>
                 </button>
               );
             })}

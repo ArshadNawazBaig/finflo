@@ -583,6 +583,7 @@ const runMonthlySavingProfitDistribution = async () => {
           member: member._id,
           referenceId: investment._id,
           referenceModel: 'Investment',
+          paymentMethod: 'online',
         }).save();
 
         totalProcessed++;

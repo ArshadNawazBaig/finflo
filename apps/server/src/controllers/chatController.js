@@ -838,7 +838,23 @@ const reactToMessage = async (req, res) => {
 
     if (!conv) return res.status(403).json({ message: 'Not a participant' });
 
-    // Toggle reaction
+    // Enforce single reaction per user: Remove user from all OTHER reactions
+    message.reactions.forEach((r) => {
+      if (r.emoji !== emoji) {
+        r.users = r.users.filter(
+          (u) =>
+            !(
+              u.userId.toString() === requesterId.toString() &&
+              u.userModel === requesterModel
+            ),
+        );
+      }
+    });
+
+    // Clean up any emojis that no longer have users
+    message.reactions = message.reactions.filter((r) => r.users.length > 0);
+
+    // Toggle the requested reaction
     const emojiReaction = message.reactions.find((r) => r.emoji === emoji);
 
     if (emojiReaction) {
@@ -849,7 +865,7 @@ const reactToMessage = async (req, res) => {
       );
 
       if (userIndex > -1) {
-        // Remove reaction
+        // Remove reaction (toggle off)
         emojiReaction.users.splice(userIndex, 1);
         // If no users left for this emoji, remove the emoji entirely
         if (emojiReaction.users.length === 0) {

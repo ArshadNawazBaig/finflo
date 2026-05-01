@@ -2063,7 +2063,9 @@ class-variance-authority@^0.7.1:
     "@capacitor/android" "^8.1.0"
     "@capacitor/cli" "^8.1.0"
     "@capacitor/core" "^8.1.0"
+    "@capacitor/filesystem" "^8.1.2"
     "@capacitor/ios" "^8.1.0"
+    "@capacitor/share" "^8.0.1"
     "@codetrix-studio/capacitor-google-auth" "^3.4.0-rc.4"
     "@headlessui/react" "^2.2.9"
     "@radix-ui/react-alert-dialog" "^1.1.15"
@@ -3311,13 +3313,13 @@ fraction.js@^5.3.4:
   resolved "https://registry.npmjs.org/fraction.js/-/fraction.js-5.3.4.tgz"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
-framer-motion@^12.33.0:
-  version "12.34.3"
-  resolved "https://registry.npmjs.org/framer-motion/-/framer-motion-12.34.3.tgz"
-  integrity sha512-v81ecyZKYO/DfpTwHivqkxSUBzvceOpoI+wLfgCgoUIKxlFKEXdg0oR9imxwXumT4SFy8vRk9xzJ5l3/Du/55Q==
+framer-motion@^12.38.0:
+  version "12.38.0"
+  resolved "https://registry.npmjs.org/framer-motion/-/framer-motion-12.38.0.tgz"
+  integrity sha512-rFYkY/pigbcswl1XQSb7q424kSTQ8q6eAC+YUsSKooHQYuLdzdHjrt6uxUC+PRAO++q5IS7+TamgIw1AphxR+g==
   dependencies:
-    motion-dom "^12.34.3"
-    motion-utils "^12.29.2"
+    motion-dom "^12.38.0"
+    motion-utils "^12.36.0"
     tslib "^2.4.0"
 
 fresh@^2.0.0:
@@ -4649,17 +4651,17 @@ morgan@^1.10.0, morgan@^1.10.1:
     on-finished "~2.3.0"
     on-headers "~1.1.0"
 
-motion-dom@^12.34.3:
-  version "12.34.3"
-  resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.34.3.tgz"
-  integrity sha512-sYgFe+pR9aIM7o4fhs2aXtOI+oqlUd33N9Yoxcgo1Fv7M20sRkHtCmzE/VRNIcq7uNJ+qio+Xubt1FXH3pQ+eQ==
+motion-dom@^12.38.0:
+  version "12.38.0"
+  resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.38.0.tgz"
+  integrity sha512-pdkHLD8QYRp8VfiNLb8xIBJis1byQ9gPT3Jnh2jqfFtAsWUA3dEepDlsWe/xMpO8McV+VdpKVcp+E+TGJEtOoA==
   dependencies:
-    motion-utils "^12.29.2"
+    motion-utils "^12.36.0"
 
-motion-utils@^12.29.2:
-  version "12.29.2"
-  resolved "https://registry.npmjs.org/motion-utils/-/motion-utils-12.29.2.tgz"
-  integrity sha512-G3kc34H2cX2gI63RqU+cZq+zWRRPSsNIOjpdl9TN4AQwC4sgwYPl/Q/Obf/d53nOm569T0fYK+tcoSV50BWx8A==
+motion-utils@^12.36.0:
+  version "12.36.0"
+  resolved "https://registry.npmjs.org/motion-utils/-/motion-utils-12.36.0.tgz"
+  integrity sha512-eHWisygbiwVvf6PZ1vhaHCLamvkSbPIeAYxWUuL3a2PD/TROgE7FvfHWTIH4vMl798QLfMw15nRqIaRDXTlYRg==
 
 mpath@0.9.0:
   version "0.9.0"
