@@ -792,8 +792,17 @@ const addBusinessCapital = async (req, res) => {
 
     // Determine branch context
     let branchScope = undefined;
+    let finalDescription = description || (type === 'inject' ? 'Capital injection' : 'Capital withdrawal');
+
     if (req.user.role === 'staff') {
       branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) {
+        const Branch = require('../models/Branch');
+        const branch = await Branch.findById(branchScope).select('name');
+        if (branch) {
+          finalDescription += ` (${branch.name})`;
+        }
+      }
     }
 
     // Create the FinancialTransaction
@@ -803,7 +812,7 @@ const addBusinessCapital = async (req, res) => {
       type: txnType,
       category: 'business_capital',
       amount,
-      description: description || (type === 'inject' ? 'Capital injection' : 'Capital withdrawal'),
+      description: finalDescription,
       paymentMethod,
       date: new Date(),
     });
@@ -838,6 +847,7 @@ const getCapitalHistory = async (req, res) => {
 
     const [transactions, total] = await Promise.all([
       FinancialTransaction.find(query)
+        .populate('branchId', 'name')
         .sort({ date: -1 })
         .skip(skip)
         .limit(parseInt(limit)),

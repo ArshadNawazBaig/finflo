@@ -116,13 +116,20 @@ const TransactionTable = ({
                           'U'
                         ).charAt(0).toUpperCase()}
                       </div>
-                      <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
-                        {capitalize(
-                          transaction.customer?.name ||
-                            transaction.member?.name ||
-                            (transaction.category === 'salary' &&
-                              'Branch Operations') ||
-                            'System',
+                      <div className="flex flex-col">
+                        <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
+                          {capitalize(
+                            transaction.customer?.name ||
+                              transaction.member?.name ||
+                              (transaction.category === 'salary' &&
+                                'Branch Operations') ||
+                              'System',
+                          )}
+                        </div>
+                        {transaction.branchId?.name && (
+                          <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                            {transaction.branchId.name}
+                          </div>
                         )}
                       </div>
                     </div>

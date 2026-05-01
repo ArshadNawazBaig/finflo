@@ -18,6 +18,7 @@ import {
   Loader2,
   Banknote,
   Wallet,
+  Building2,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import {
@@ -165,7 +166,9 @@ const Dashboard = () => {
   const fetchCapitalHistory = async () => {
     setCapitalHistoryLoading(true);
     try {
-      const { data } = await api.get('/dashboard/capital-history', { params: { limit: 5 } });
+      const { data } = await api.get('/dashboard/capital-history', {
+        params: { limit: 5 },
+      });
       setCapitalHistory(data.data || []);
     } catch {
       // ignore
@@ -475,7 +478,7 @@ const Dashboard = () => {
               sensitive
             />
           )}
-          {canViewReports && (
+          {/* {canViewReports && (
             <StatsCard
               title="Total Deposits"
               amount={formatCurrency(stats?.banking?.deposits || 0)}
@@ -484,7 +487,7 @@ const Dashboard = () => {
               color="bg-blue-500 shadow-blue-500/20"
               sensitive
             />
-          )}
+          )} */}
           {canViewReports && (
             <StatsCard
               title="Net Profit"
@@ -559,7 +562,9 @@ const Dashboard = () => {
                     </p>
                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
                       Outstanding:{' '}
-                      <SensitiveBalance iconSize={11}>{formatCurrency(stats?.outstanding?.amount || 0)}</SensitiveBalance>
+                      <SensitiveBalance iconSize={11}>
+                        {formatCurrency(stats?.outstanding?.amount || 0)}
+                      </SensitiveBalance>
                     </p>
                   </div>
                 </div>
@@ -585,7 +590,10 @@ const Dashboard = () => {
                       {stats?.members?.total ?? 0}
                     </p>
                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                      Balance: <SensitiveBalance iconSize={11}>{formatCurrency(stats?.members?.deposits || 0)}</SensitiveBalance>
+                      Balance:{' '}
+                      <SensitiveBalance iconSize={11}>
+                        {formatCurrency(stats?.members?.deposits || 0)}
+                      </SensitiveBalance>
                     </p>
                   </div>
                 </div>
@@ -922,9 +930,13 @@ const Dashboard = () => {
             {/* Balance Badge */}
             <div className="mt-4 flex items-center gap-3">
               <div className="px-4 py-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">Current Balance</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">
+                  Current Balance
+                </p>
                 <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight">
-                  <SensitiveBalance iconSize={14}>{formatCurrency(stats?.businessCapital || 0)}</SensitiveBalance>
+                  <SensitiveBalance iconSize={14}>
+                    {formatCurrency(stats?.businessCapital || 0)}
+                  </SensitiveBalance>
                 </p>
               </div>
             </div>
@@ -975,10 +987,14 @@ const Dashboard = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                    <Banknote className={cn(
-                      'h-5 w-5 transition-colors',
-                      capitalType === 'inject' ? 'text-emerald-500' : 'text-orange-500',
-                    )} />
+                    <Banknote
+                      className={cn(
+                        'h-5 w-5 transition-colors',
+                        capitalType === 'inject'
+                          ? 'text-emerald-500'
+                          : 'text-orange-500',
+                      )}
+                    />
                   </div>
                   <input
                     type="number"
@@ -999,7 +1015,11 @@ const Dashboard = () => {
                 </label>
                 <input
                   type="text"
-                  placeholder={capitalType === 'inject' ? 'E.g. Owner equity injection, seed capital...' : 'E.g. Owner draw, business withdrawal...'}
+                  placeholder={
+                    capitalType === 'inject'
+                      ? 'E.g. Owner equity injection, seed capital...'
+                      : 'E.g. Owner draw, business withdrawal...'
+                  }
                   value={capitalDescription}
                   onChange={(e) => setCapitalDescription(e.target.value)}
                   className="w-full h-12 sm:h-14 px-5 rounded-2xl border border-border/40 bg-muted/30 font-bold text-sm tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -1052,29 +1072,59 @@ const Dashboard = () => {
                         className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/20"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            'h-8 w-8 rounded-lg flex items-center justify-center',
-                            txn.type === 'income' ? 'bg-emerald-500/10' : 'bg-orange-500/10',
-                          )}>
-                            {txn.type === 'income'
-                              ? <ArrowDownCircle size={14} className="text-emerald-500" />
-                              : <ArrowUpCircle size={14} className="text-orange-500" />
-                            }
+                          <div
+                            className={cn(
+                              'h-8 w-8 rounded-lg flex items-center justify-center',
+                              txn.type === 'income'
+                                ? 'bg-emerald-500/10'
+                                : 'bg-orange-500/10',
+                            )}
+                          >
+                            {txn.type === 'income' ? (
+                              <ArrowDownCircle
+                                size={14}
+                                className="text-emerald-500"
+                              />
+                            ) : (
+                              <ArrowUpCircle
+                                size={14}
+                                className="text-orange-500"
+                              />
+                            )}
                           </div>
                           <div>
                             <p className="text-xs font-bold truncate max-w-[150px]">
-                              {txn.description || (txn.type === 'income' ? 'Capital Injection' : 'Capital Withdrawal')}
+                              {txn.description ||
+                                (txn.type === 'income'
+                                  ? 'Capital Injection'
+                                  : 'Capital Withdrawal')}
                             </p>
-                            <p className="text-[9px] text-muted-foreground font-medium">
-                              {new Date(txn.date).toLocaleDateString()}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <p className="text-[9px] text-muted-foreground font-medium">
+                                {new Date(txn.date).toLocaleDateString()}
+                              </p>
+                              {txn.branchId?.name && (
+                                <>
+                                  <span className="w-1 h-1 rounded-full bg-border" />
+                                  <div className="flex items-center gap-1 text-[9px] font-bold text-primary/80 uppercase tracking-wider">
+                                    <Building2 size={9} />
+                                    {txn.branchId.name}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <span className={cn(
-                          'text-sm font-black tabular-nums',
-                          txn.type === 'income' ? 'text-emerald-600' : 'text-orange-600',
-                        )}>
-                          {txn.type === 'income' ? '+' : '-'}{formatCurrency(txn.amount)}
+                        <span
+                          className={cn(
+                            'text-sm font-black tabular-nums',
+                            txn.type === 'income'
+                              ? 'text-emerald-600'
+                              : 'text-orange-600',
+                          )}
+                        >
+                          {txn.type === 'income' ? '+' : '-'}
+                          {formatCurrency(txn.amount)}
                         </span>
                       </div>
                     ))}
@@ -1119,8 +1169,7 @@ const Dashboard = () => {
                   ? 'Processing...'
                   : capitalType === 'inject'
                     ? 'Inject Capital'
-                    : 'Withdraw Capital'
-                }
+                    : 'Withdraw Capital'}
               </Button>
             </div>
           </div>

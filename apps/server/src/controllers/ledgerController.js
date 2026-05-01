@@ -98,6 +98,7 @@ const getLedger = async (req, res) => {
       .populate('member', 'name email')
       .populate('loan', 'principal totalAmount Status')
       .populate('referenceId', 'name')
+      .populate('branchId', 'name')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit);
