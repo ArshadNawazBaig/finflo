@@ -264,7 +264,8 @@ const Register = () => {
             {(() => {
               try {
                 // We check if we are on a native platform safely
-                const isNative = window.Capacitor?.getPlatform() !== 'web';
+                const platform = window.Capacitor?.getPlatform?.();
+                const isNative = !!platform && platform !== 'web';
                 if (isNative) {
                   return (
                     <Button

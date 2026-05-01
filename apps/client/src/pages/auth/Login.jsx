@@ -426,7 +426,8 @@ const Login = () => {
           <div className="flex flex-col items-center justify-center w-full space-y-4">
             {(() => {
               try {
-                const isNative = window.Capacitor?.getPlatform() !== 'web';
+                const platform = window.Capacitor?.getPlatform?.();
+                const isNative = !!platform && platform !== 'web';
                 if (isNative) {
                   return (
                     <Button
