@@ -300,25 +300,27 @@ const AmlCompliance = () => {
             </div>
           )}
           {rules.map((rule) => (
-            <div key={rule._id} className="p-6 rounded-[2rem] bg-card/50 border border-border/50 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <button onClick={() => toggleRule(rule._id, rule.isActive)} className="shrink-0">
+            <div key={rule._id} className="p-4 sm:p-6 rounded-[2rem] bg-card/50 border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-4 min-w-0">
+                <button onClick={() => toggleRule(rule._id, rule.isActive)} className="shrink-0 mt-1 sm:mt-0">
                   {rule.isActive ? <ToggleRight size={24} className="text-emerald-400" /> : <ToggleLeft size={24} className="text-muted-foreground/40" />}
                 </button>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <p className={cn('text-sm font-black', !rule.isActive && 'text-muted-foreground/40')}>{rule.name}</p>
                     <span className={cn('px-2 py-0.5 rounded text-[8px] font-black uppercase border', SEVERITY_COLORS[rule.severity])}>{rule.severity}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground/60 truncate">{rule.description}</p>
+                  <p className="text-xs text-muted-foreground/60">{rule.description}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-3 sm:pt-0 border-t border-border/30 sm:border-0 mt-2 sm:mt-0">
                 <span className="text-[10px] font-mono text-muted-foreground/40">Triggered: {rule.totalTriggered}</span>
-                <span className="px-2 py-1 rounded-lg bg-muted/30 text-[9px] font-black uppercase tracking-wider text-muted-foreground">{rule.type}</span>
-                <button onClick={() => deleteRule(rule._id)} className="p-2 rounded-xl hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-400 transition-all">
-                  <Trash2 size={14} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 rounded-lg bg-muted/30 text-[9px] font-black uppercase tracking-wider text-muted-foreground">{rule.type}</span>
+                  <button onClick={() => deleteRule(rule._id)} className="p-2 rounded-xl hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-400 transition-all">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

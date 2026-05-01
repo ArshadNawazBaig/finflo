@@ -3,7 +3,9 @@
   "appName": "FinFlo Member",
   "webDir": "dist",
   "server": {
-    "allowNavigation": ["loan-master-client.vercel.app"]
+    "url": "https://app.finflo.org",
+    "cleartext": true,
+    "allowNavigation": ["app.finflo.org", "finflo.org"]
   },
   "plugins": {
     "CapacitorHttp": {

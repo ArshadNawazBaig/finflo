@@ -181,7 +181,11 @@ const Reports = () => {
   const [trialBalance, setTrialBalance] = useState(null);
   const [pnl, setPnL] = useState(null);
   const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()),
+    from: new Date(
+      new Date().getFullYear() - 1,
+      new Date().getMonth(),
+      new Date().getDate(),
+    ),
     to: new Date(),
   });
   const [isExporting, setIsExporting] = useState(false);
@@ -380,10 +384,20 @@ const Reports = () => {
             formatCurrency(trialBalance.liabilities?.memberCapital || 0),
           ],
           ...((trialBalance.liabilities?.memberSavingAccounts || 0) > 0
-            ? [['Member Saving Accounts', formatCurrency(trialBalance.liabilities.memberSavingAccounts)]]
+            ? [
+                [
+                  'Member Saving Accounts',
+                  formatCurrency(trialBalance.liabilities.memberSavingAccounts),
+                ],
+              ]
             : []),
           ...((trialBalance.liabilities?.memberShareCapital || 0) > 0
-            ? [['Member Share Capital', formatCurrency(trialBalance.liabilities.memberShareCapital)]]
+            ? [
+                [
+                  'Member Share Capital',
+                  formatCurrency(trialBalance.liabilities.memberShareCapital),
+                ],
+              ]
             : []),
           [
             { content: 'Total Liabilities', styles: { fontStyle: 'bold' } },
@@ -1007,7 +1021,8 @@ const Reports = () => {
                 </div>
                 {branchSummaries && branchSummaries.length > 0 && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 shrink-0">
-                    {branchSummaries.length} {branchSummaries.length === 1 ? 'branch' : 'branches'}
+                    {branchSummaries.length}{' '}
+                    {branchSummaries.length === 1 ? 'branch' : 'branches'}
                   </span>
                 )}
               </div>
@@ -1026,8 +1041,12 @@ const Reports = () => {
                           <th className="px-6 py-3">Branch</th>
                           <th className="px-6 py-3 text-center">Members</th>
                           <th className="px-6 py-3 text-right">Deposits</th>
-                          <th className="px-6 py-3 text-center">Active Loans</th>
-                          <th className="px-6 py-3 text-right">Disbursed Volume</th>
+                          <th className="px-6 py-3 text-center">
+                            Active Loans
+                          </th>
+                          <th className="px-6 py-3 text-right">
+                            Disbursed Volume
+                          </th>
                           <th className="px-6 py-3 text-right">Outstanding</th>
                           <th className="px-6 py-3 text-right">Profit</th>
                           <th className="px-6 py-3 text-right">Expenses</th>
@@ -1035,59 +1054,72 @@ const Reports = () => {
                       </thead>
                       <tbody className="divide-y divide-border/20">
                         {branchSummaries
-                          .slice((branchPage - 1) * ROWS_PER_PAGE, branchPage * ROWS_PER_PAGE)
+                          .slice(
+                            (branchPage - 1) * ROWS_PER_PAGE,
+                            branchPage * ROWS_PER_PAGE,
+                          )
                           .map((branch) => (
-                          <tr
-                            key={branch._id}
-                            className="hover:bg-muted/10 transition-colors"
-                          >
-                            <td className="px-6 py-3 font-bold">
-                              {branch.name}
-                              <span className="text-[10px] text-muted-foreground tabular-nums block mt-0.5">
-                                {branch.code}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 text-center font-medium">
-                              {branch.stats.totalMembers}
-                            </td>
-                            <td className="px-6 py-3 text-right tabular-nums font-medium text-blue-500">
-                              {formatCurrency(branch.stats.totalInvested)}
-                            </td>
-                            <td className="px-6 py-3 text-center font-medium">
-                              {branch.stats.activeLoans}{' '}
-                              <span className="text-[10px] text-muted-foreground">
-                                / {branch.stats.totalLoans}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-500">
-                              {formatCurrency(branch.stats.totalVolume)}
-                            </td>
-                            <td className="px-6 py-3 text-right tabular-nums font-medium text-amber-500">
-                              {formatCurrency(branch.stats.totalOutstanding)}
-                            </td>
-                            <td className="px-6 py-3 text-right tabular-nums font-medium text-indigo-500">
-                              {formatCurrency(branch.stats.totalProfit)}
-                            </td>
-                            <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                              {formatCurrency(branch.stats.totalExpenses)}
-                            </td>
-                          </tr>
-                        ))}
+                            <tr
+                              key={branch._id}
+                              className="hover:bg-muted/10 transition-colors"
+                            >
+                              <td className="px-6 py-3 font-bold">
+                                {branch.name}
+                                <span className="text-[10px] text-muted-foreground tabular-nums block mt-0.5">
+                                  {branch.code}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 text-center font-medium">
+                                {branch.stats.totalMembers}
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-blue-500">
+                                {formatCurrency(branch.stats.totalInvested)}
+                              </td>
+                              <td className="px-6 py-3 text-center font-medium">
+                                {branch.stats.activeLoans}{' '}
+                                <span className="text-[10px] text-muted-foreground">
+                                  / {branch.stats.totalLoans}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-500">
+                                {formatCurrency(branch.stats.totalVolume)}
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-amber-500">
+                                {formatCurrency(branch.stats.totalOutstanding)}
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-indigo-500">
+                                {formatCurrency(branch.stats.totalProfit)}
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                                {formatCurrency(branch.stats.totalExpenses)}
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
                   <TablePagination
                     currentPage={branchPage}
-                    totalPages={Math.ceil(branchSummaries.length / ROWS_PER_PAGE)}
+                    totalPages={Math.ceil(
+                      branchSummaries.length / ROWS_PER_PAGE,
+                    )}
                     onPageChange={setBranchPage}
                   />
                 </>
               ) : (
                 <div className="p-12 text-center text-muted-foreground min-h-[300px] flex items-center justify-center">
                   <div className="flex flex-col items-center">
-                    <Building2 size={48} strokeWidth={1} className="mb-4 opacity-20" />
-                    <p className="text-xs font-black uppercase tracking-widest">No Branch Data Available</p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">Ensure you have active branches with data.</p>
+                    <Building2
+                      size={48}
+                      strokeWidth={1}
+                      className="mb-4 opacity-20"
+                    />
+                    <p className="text-xs font-black uppercase tracking-widest">
+                      No Branch Data Available
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">
+                      Ensure you have active branches with data.
+                    </p>
                   </div>
                 </div>
               )}
@@ -1873,7 +1905,8 @@ const Reports = () => {
                   </div>
                   {savedSnapshots.length > 0 && (
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 shrink-0">
-                      {savedSnapshots.length} {savedSnapshots.length === 1 ? 'snapshot' : 'snapshots'}
+                      {savedSnapshots.length}{' '}
+                      {savedSnapshots.length === 1 ? 'snapshot' : 'snapshots'}
                     </span>
                   )}
                 </div>
@@ -1898,59 +1931,64 @@ const Reports = () => {
                         </thead>
                         <tbody className="divide-y divide-border/20">
                           {savedSnapshots
-                            .slice((snapshotPage - 1) * ROWS_PER_PAGE, snapshotPage * ROWS_PER_PAGE)
+                            .slice(
+                              (snapshotPage - 1) * ROWS_PER_PAGE,
+                              snapshotPage * ROWS_PER_PAGE,
+                            )
                             .map((snap) => (
-                            <tr
-                              key={snap._id}
-                              className="hover:bg-muted/10 transition-colors"
-                            >
-                              <td className="px-6 py-3 font-bold">
-                                {snap.title}
-                              </td>
-                              <td className="px-6 py-3">
-                                <span
-                                  className={cn(
-                                    'inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border',
-                                    snap.reportType === 'ifrs9'
-                                      ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
-                                      : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-                                  )}
-                                >
-                                  {snap.reportType === 'ifrs9'
-                                    ? 'IFRS 9'
-                                    : 'Basel III'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-3 font-medium">
-                                {snap.generatedBy?.name || 'Unknown'}
-                              </td>
-                              <td className="px-6 py-3 text-muted-foreground tabular-nums text-xs">
-                                {format(new Date(snap.createdAt), 'PPp')}
-                              </td>
-                              <td className="px-6 py-3 text-right">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 rounded-full font-black text-[10px] uppercase tracking-widest px-4 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-                                  onClick={() => {
-                                    if (snap.reportType === 'ifrs9')
-                                      setIfrs9Data(snap.snapshotData);
-                                    else setBasel3Data(snap.snapshotData);
-                                    toast.success(`Loaded ${snap.title}`);
-                                  }}
-                                >
-                                  <Eye className="w-3 h-3 mr-1.5" />
-                                  View
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
+                              <tr
+                                key={snap._id}
+                                className="hover:bg-muted/10 transition-colors"
+                              >
+                                <td className="px-6 py-3 font-bold">
+                                  {snap.title}
+                                </td>
+                                <td className="px-6 py-3">
+                                  <span
+                                    className={cn(
+                                      'inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border',
+                                      snap.reportType === 'ifrs9'
+                                        ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                        : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+                                    )}
+                                  >
+                                    {snap.reportType === 'ifrs9'
+                                      ? 'IFRS 9'
+                                      : 'Basel III'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-3 font-medium">
+                                  {snap.generatedBy?.name || 'Unknown'}
+                                </td>
+                                <td className="px-6 py-3 text-muted-foreground tabular-nums text-xs">
+                                  {format(new Date(snap.createdAt), 'PPp')}
+                                </td>
+                                <td className="px-6 py-3 text-right">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 rounded-full font-black text-[10px] uppercase tracking-widest px-4 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
+                                    onClick={() => {
+                                      if (snap.reportType === 'ifrs9')
+                                        setIfrs9Data(snap.snapshotData);
+                                      else setBasel3Data(snap.snapshotData);
+                                      toast.success(`Loaded ${snap.title}`);
+                                    }}
+                                  >
+                                    <Eye className="w-3 h-3 mr-1.5" />
+                                    View
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                     </div>
                     <TablePagination
                       currentPage={snapshotPage}
-                      totalPages={Math.ceil(savedSnapshots.length / ROWS_PER_PAGE)}
+                      totalPages={Math.ceil(
+                        savedSnapshots.length / ROWS_PER_PAGE,
+                      )}
                       onPageChange={setSnapshotPage}
                     />
                   </>
@@ -1960,7 +1998,9 @@ const Reports = () => {
                     <p className="text-xs font-black uppercase tracking-widest">
                       No Snapshots Saved
                     </p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">Save a regulatory report to see it here.</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">
+                      Save a regulatory report to see it here.
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -1993,8 +2033,8 @@ const Reports = () => {
                   className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2 shrink-0"
                 >
                   <Download size={14} />
-              <span className="hidden sm:inline">Export PDF</span>
-            </Button>
+                  <span className="hidden sm:inline">Export PDF</span>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -2018,7 +2058,10 @@ const Reports = () => {
                 </CardContent>
               </Card>
               {[0, 1].map((i) => (
-                <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                <Card
+                  key={i}
+                  className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden"
+                >
                   <CardHeader className="p-4 sm:p-6">
                     <div className="flex items-center gap-4">
                       <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -2032,7 +2075,10 @@ const Reports = () => {
                   <CardContent className="p-0">
                     <div className="px-6 py-3 space-y-3">
                       {[0, 1, 2].map((j) => (
-                        <div key={j} className="flex justify-between items-center">
+                        <div
+                          key={j}
+                          className="flex justify-between items-center"
+                        >
                           <Skeleton className="h-4 w-1/3 rounded-lg" />
                           <Skeleton className="h-4 w-1/5 rounded-lg" />
                         </div>
@@ -2075,7 +2121,9 @@ const Reports = () => {
                         {(trialBalance.discrepancy || 0) === 0 ? (
                           <>
                             Trial Balance{' '}
-                            <span className="text-emerald-600 dark:text-emerald-400">Matched</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">
+                              Matched
+                            </span>
                           </>
                         ) : (
                           <>
@@ -2087,25 +2135,41 @@ const Reports = () => {
                         )}
                       </h2>
                       <p className="text-xs text-muted-foreground font-medium mt-1">
-                        Debits and Credits {(trialBalance.discrepancy || 0) === 0 ? 'are perfectly in balance' : 'do not match'}.
+                        Debits and Credits{' '}
+                        {(trialBalance.discrepancy || 0) === 0
+                          ? 'are perfectly in balance'
+                          : 'do not match'}
+                        .
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
                       <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
-                        <div className="text-xl font-black text-emerald-600">{formatCompactValue(trialBalance.assets?.totalAssets || 0)}</div>
+                        <div className="text-xl font-black text-emerald-600">
+                          {formatCompactValue(
+                            trialBalance.assets?.totalAssets || 0,
+                          )}
+                        </div>
                         <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
                           Assets
                         </div>
                       </div>
                       <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
-                        <div className="text-xl font-black text-rose-600">{formatCompactValue(trialBalance.liabilities?.totalLiabilities || 0)}</div>
+                        <div className="text-xl font-black text-rose-600">
+                          {formatCompactValue(
+                            trialBalance.liabilities?.totalLiabilities || 0,
+                          )}
+                        </div>
                         <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
                           Liabilities
                         </div>
                       </div>
                       <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
-                        <div className="text-xl font-black text-indigo-600">{formatCompactValue(trialBalance.equity?.totalEquity || 0)}</div>
+                        <div className="text-xl font-black text-indigo-600">
+                          {formatCompactValue(
+                            trialBalance.equity?.totalEquity || 0,
+                          )}
+                        </div>
                         <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
                           Equity
                         </div>
@@ -2116,7 +2180,10 @@ const Reports = () => {
                   {(trialBalance.discrepancy || 0) !== 0 && (
                     <div className="mt-5 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex items-center gap-3">
-                        <TrendingDown size={18} className="text-rose-500 shrink-0" />
+                        <TrendingDown
+                          size={18}
+                          className="text-rose-500 shrink-0"
+                        />
                         <div>
                           <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
                             Discrepancy Amount
@@ -2127,7 +2194,9 @@ const Reports = () => {
                         </div>
                       </div>
                       <span className="text-lg font-black tabular-nums text-rose-600 dark:text-rose-400">
-                        {formatCurrency(Math.abs(trialBalance.discrepancy || 0))}
+                        {formatCurrency(
+                          Math.abs(trialBalance.discrepancy || 0),
+                        )}
                       </span>
                     </div>
                   )}
@@ -2170,18 +2239,30 @@ const Reports = () => {
                       <tbody className="divide-y divide-border/20">
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
-                            <DollarSign size={14} className="text-muted-foreground" /> Loans Receivable
+                            <DollarSign
+                              size={14}
+                              className="text-muted-foreground"
+                            />{' '}
+                            Loans Receivable
                           </td>
                           <td className="px-6 py-3 text-right tabular-nums font-medium">
-                            {formatCurrency(trialBalance.assets?.loansReceivable || 0)}
+                            {formatCurrency(
+                              trialBalance.assets?.loansReceivable || 0,
+                            )}
                           </td>
                         </tr>
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
-                            <Landmark size={14} className="text-muted-foreground" /> Cash at Hand / Bank
+                            <Landmark
+                              size={14}
+                              className="text-muted-foreground"
+                            />{' '}
+                            Cash at Hand / Bank
                           </td>
                           <td className="px-6 py-3 text-right tabular-nums font-medium">
-                            {formatCurrency(trialBalance.assets?.cashAtHand || 0)}
+                            {formatCurrency(
+                              trialBalance.assets?.cashAtHand || 0,
+                            )}
                           </td>
                         </tr>
                       </tbody>
@@ -2208,7 +2289,10 @@ const Reports = () => {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="tabular-nums font-black text-lg text-indigo-600">
-                        {formatCurrency((trialBalance.liabilities?.totalLiabilities || 0) + (trialBalance.equity?.totalEquity || 0))}
+                        {formatCurrency(
+                          (trialBalance.liabilities?.totalLiabilities || 0) +
+                            (trialBalance.equity?.totalEquity || 0),
+                        )}
                       </span>
                     </div>
                   </div>
@@ -2226,7 +2310,11 @@ const Reports = () => {
                       <tbody className="divide-y divide-border/20">
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
-                            <Users size={14} className="text-muted-foreground" /> Member Current Accounts
+                            <Users
+                              size={14}
+                              className="text-muted-foreground"
+                            />{' '}
+                            Member Current Accounts
                           </td>
                           <td className="px-6 py-3">
                             <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
@@ -2234,13 +2322,20 @@ const Reports = () => {
                             </span>
                           </td>
                           <td className="px-6 py-3 text-right tabular-nums font-medium">
-                            {formatCurrency(trialBalance.liabilities?.memberCapital || 0)}
+                            {formatCurrency(
+                              trialBalance.liabilities?.memberCapital || 0,
+                            )}
                           </td>
                         </tr>
-                        {(trialBalance.liabilities?.memberSavingAccounts || 0) > 0 && (
+                        {(trialBalance.liabilities?.memberSavingAccounts || 0) >
+                          0 && (
                           <tr className="hover:bg-muted/10 transition-colors">
                             <td className="px-6 py-3 font-medium flex items-center gap-2">
-                              <Users size={14} className="text-muted-foreground" /> Member Saving Accounts
+                              <Users
+                                size={14}
+                                className="text-muted-foreground"
+                              />{' '}
+                              Member Saving Accounts
                             </td>
                             <td className="px-6 py-3">
                               <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
@@ -2248,14 +2343,21 @@ const Reports = () => {
                               </span>
                             </td>
                             <td className="px-6 py-3 text-right tabular-nums font-medium">
-                              {formatCurrency(trialBalance.liabilities.memberSavingAccounts)}
+                              {formatCurrency(
+                                trialBalance.liabilities.memberSavingAccounts,
+                              )}
                             </td>
                           </tr>
                         )}
-                        {(trialBalance.liabilities?.memberShareCapital || 0) > 0 && (
+                        {(trialBalance.liabilities?.memberShareCapital || 0) >
+                          0 && (
                           <tr className="hover:bg-muted/10 transition-colors">
                             <td className="px-6 py-3 font-medium flex items-center gap-2">
-                              <Users size={14} className="text-muted-foreground" /> Member Share Capital
+                              <Users
+                                size={14}
+                                className="text-muted-foreground"
+                              />{' '}
+                              Member Share Capital
                             </td>
                             <td className="px-6 py-3">
                               <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
@@ -2263,13 +2365,19 @@ const Reports = () => {
                               </span>
                             </td>
                             <td className="px-6 py-3 text-right tabular-nums font-medium">
-                              {formatCurrency(trialBalance.liabilities.memberShareCapital)}
+                              {formatCurrency(
+                                trialBalance.liabilities.memberShareCapital,
+                              )}
                             </td>
                           </tr>
                         )}
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
-                            <Building2 size={14} className="text-muted-foreground" /> Business Capital
+                            <Building2
+                              size={14}
+                              className="text-muted-foreground"
+                            />{' '}
+                            Business Capital
                           </td>
                           <td className="px-6 py-3">
                             <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
@@ -2277,12 +2385,18 @@ const Reports = () => {
                             </span>
                           </td>
                           <td className="px-6 py-3 text-right tabular-nums font-medium">
-                            {formatCurrency(trialBalance.equity?.businessCapital || 0)}
+                            {formatCurrency(
+                              trialBalance.equity?.businessCapital || 0,
+                            )}
                           </td>
                         </tr>
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
-                            <TrendingUp size={14} className="text-muted-foreground" /> Retained Earnings
+                            <TrendingUp
+                              size={14}
+                              className="text-muted-foreground"
+                            />{' '}
+                            Retained Earnings
                           </td>
                           <td className="px-6 py-3">
                             <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
@@ -2290,7 +2404,9 @@ const Reports = () => {
                             </span>
                           </td>
                           <td className="px-6 py-3 text-right tabular-nums font-medium">
-                            {formatCurrency(trialBalance.equity?.retainedEarnings || 0)}
+                            {formatCurrency(
+                              trialBalance.equity?.retainedEarnings || 0,
+                            )}
                           </td>
                         </tr>
                       </tbody>
@@ -2361,7 +2477,10 @@ const Reports = () => {
               </Card>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {[0, 1, 2, 3].map((i) => (
-                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                  <Card
+                    key={i}
+                    className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden"
+                  >
                     <CardHeader className="p-4 sm:p-6">
                       <div className="flex items-center gap-4">
                         <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -2375,7 +2494,10 @@ const Reports = () => {
                     <CardContent className="p-0">
                       <div className="px-6 py-3 space-y-3">
                         {[0, 1].map((j) => (
-                          <div key={j} className="flex justify-between items-center">
+                          <div
+                            key={j}
+                            className="flex justify-between items-center"
+                          >
                             <Skeleton className="h-4 w-1/3 rounded-lg" />
                             <Skeleton className="h-4 w-1/5 rounded-lg" />
                           </div>
@@ -2426,10 +2548,16 @@ const Reports = () => {
                           <tbody className="divide-y divide-border/20">
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <TrendingUp size={14} className="text-emerald-500" /> Interest Earned
+                                <TrendingUp
+                                  size={14}
+                                  className="text-emerald-500"
+                                />{' '}
+                                Interest Earned
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(pnl.revenue.interestEarned || 0)}
+                                {formatCurrency(
+                                  pnl.revenue.interestEarned || 0,
+                                )}
                               </td>
                             </tr>
                           </tbody>
@@ -2472,20 +2600,33 @@ const Reports = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/20">
-                            {Object.entries(pnl.expenses.breakdown || {}).length > 0 ? (
-                              Object.entries(pnl.expenses.breakdown).map(([category, amount]) => (
-                                <tr key={category} className="hover:bg-muted/10 transition-colors">
-                                  <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
-                                    <TrendingDown size={14} className="text-rose-500" /> {category}
-                                  </td>
-                                  <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                    {formatCurrency(amount)}
-                                  </td>
-                                </tr>
-                              ))
+                            {Object.entries(pnl.expenses.breakdown || {})
+                              .length > 0 ? (
+                              Object.entries(pnl.expenses.breakdown).map(
+                                ([category, amount]) => (
+                                  <tr
+                                    key={category}
+                                    className="hover:bg-muted/10 transition-colors"
+                                  >
+                                    <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
+                                      <TrendingDown
+                                        size={14}
+                                        className="text-rose-500"
+                                      />{' '}
+                                      {category}
+                                    </td>
+                                    <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                      {formatCurrency(amount)}
+                                    </td>
+                                  </tr>
+                                ),
+                              )
                             ) : (
                               <tr>
-                                <td colSpan={2} className="px-6 py-4 text-center text-muted-foreground italic text-xs">
+                                <td
+                                  colSpan={2}
+                                  className="px-6 py-4 text-center text-muted-foreground italic text-xs"
+                                >
                                   No expenses recorded in this period.
                                 </td>
                               </tr>
@@ -2517,7 +2658,9 @@ const Reports = () => {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="tabular-nums font-black text-lg text-amber-600">
-                            {formatCurrency(pnl.distributions.totalDistributions || 0)}
+                            {formatCurrency(
+                              pnl.distributions.totalDistributions || 0,
+                            )}
                           </span>
                         </div>
                       </div>
@@ -2532,20 +2675,33 @@ const Reports = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border/20">
-                            {Object.entries(pnl.distributions.breakdown || {}).length > 0 ? (
-                              Object.entries(pnl.distributions.breakdown).map(([type, amount]) => (
-                                <tr key={type} className="hover:bg-muted/10 transition-colors">
-                                  <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
-                                    <TrendingDown size={14} className="text-amber-500" /> {type} Profit
-                                  </td>
-                                  <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                    {formatCurrency(amount)}
-                                  </td>
-                                </tr>
-                              ))
+                            {Object.entries(pnl.distributions.breakdown || {})
+                              .length > 0 ? (
+                              Object.entries(pnl.distributions.breakdown).map(
+                                ([type, amount]) => (
+                                  <tr
+                                    key={type}
+                                    className="hover:bg-muted/10 transition-colors"
+                                  >
+                                    <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
+                                      <TrendingDown
+                                        size={14}
+                                        className="text-amber-500"
+                                      />{' '}
+                                      {type} Profit
+                                    </td>
+                                    <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                      {formatCurrency(amount)}
+                                    </td>
+                                  </tr>
+                                ),
+                              )
                             ) : (
                               <tr>
-                                <td colSpan={2} className="px-6 py-4 text-center text-muted-foreground italic text-xs">
+                                <td
+                                  colSpan={2}
+                                  className="px-6 py-4 text-center text-muted-foreground italic text-xs"
+                                >
                                   No distributions recorded in this period.
                                 </td>
                               </tr>
@@ -2578,16 +2734,22 @@ const Reports = () => {
                           <DollarSign className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                          <h2 className="text-xl font-black tracking-tight uppercase">Net Income</h2>
+                          <h2 className="text-xl font-black tracking-tight uppercase">
+                            Net Income
+                          </h2>
                           <p className="text-xs text-muted-foreground font-medium mt-1">
                             Final bottom line for the period
                           </p>
                         </div>
                       </div>
-                      <div className={cn(
-                        "text-3xl font-black tabular-nums tracking-tight",
-                        (pnl.netIncome || 0) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                      )}>
+                      <div
+                        className={cn(
+                          'text-3xl font-black tabular-nums tracking-tight',
+                          (pnl.netIncome || 0) >= 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-rose-600 dark:text-rose-400',
+                        )}
+                      >
                         {formatCurrency(pnl.netIncome || 0)}
                       </div>
                     </CardContent>
@@ -2618,312 +2780,314 @@ const Reports = () => {
                       Formal Assets = Liabilities + Equity statement
                       {balanceSheet?.generatedAt && (
                         <span className="ml-2 text-muted-foreground/40">
-                          · {new Date(balanceSheet.generatedAt).toLocaleString()}
+                          ·{' '}
+                          {new Date(balanceSheet.generatedAt).toLocaleString()}
                         </span>
                       )}
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
-              <Button
-                onClick={() => {
-                  if (!balanceSheet) return;
-                  const exportBalanceSheetPDF = async () => {
-                    try {
-                      setIsExporting(true);
-                      const {
-                        renderPdfHeader,
-                        renderPdfFooter,
-                        getBusinessContext,
-                        toTitleCase,
-                        renderPdfSignatures,
-                      } = await import('@/lib/pdfExportUtils');
-                      const ctx = getBusinessContext();
-                      const doc = new jsPDF();
+                  <Button
+                    onClick={() => {
+                      if (!balanceSheet) return;
+                      const exportBalanceSheetPDF = async () => {
+                        try {
+                          setIsExporting(true);
+                          const {
+                            renderPdfHeader,
+                            renderPdfFooter,
+                            getBusinessContext,
+                            toTitleCase,
+                            renderPdfSignatures,
+                          } = await import('@/lib/pdfExportUtils');
+                          const ctx = getBusinessContext();
+                          const doc = new jsPDF();
 
-                      const startY = await renderPdfHeader(doc, {
-                        businessContext: ctx,
-                        title: 'Balance Sheet',
-                        leftDetails: [
-                          { label: 'Report Type', value: 'Balance Sheet' },
-                          {
-                            label: 'Generated By',
-                            value: toTitleCase(user.name || 'Admin'),
-                          },
-                        ],
-                        rightDetails: [
-                          {
-                            label: 'As Of Date',
-                            value: new Date().toLocaleDateString(),
-                          },
-                          {
-                            label: 'Generated On',
-                            value: new Date().toLocaleString(),
-                          },
-                        ],
-                      });
+                          const startY = await renderPdfHeader(doc, {
+                            businessContext: ctx,
+                            title: 'Balance Sheet',
+                            leftDetails: [
+                              { label: 'Report Type', value: 'Balance Sheet' },
+                              {
+                                label: 'Generated By',
+                                value: toTitleCase(user.name || 'Admin'),
+                              },
+                            ],
+                            rightDetails: [
+                              {
+                                label: 'As Of Date',
+                                value: new Date().toLocaleDateString(),
+                              },
+                              {
+                                label: 'Generated On',
+                                value: new Date().toLocaleString(),
+                              },
+                            ],
+                          });
 
-                      const bs = balanceSheet;
-                      const tableData = [
-                        [
-                          {
-                            content: 'ASSETS',
-                            colSpan: 2,
-                            styles: {
-                              fillColor: [220, 252, 231],
-                              fontStyle: 'bold',
-                              textColor: [5, 150, 105],
-                              fontSize: 10,
-                            },
-                          },
-                        ],
-                        [
-                          'Cash at Hand / Bank',
-                          formatCurrency(bs.assets?.cashAtHand || 0),
-                        ],
-                        [
-                          'Loans Receivable',
-                          formatCurrency(bs.assets?.loansReceivable || 0),
-                        ],
-                        ...(bs.assets?.termDepositsHeld > 0
-                          ? [
-                              [
-                                'Term Deposits Held',
-                                formatCurrency(bs.assets.termDepositsHeld),
-                              ],
-                            ]
-                          : []),
-                        [
-                          {
-                            content: 'Total Assets',
-                            styles: { fontStyle: 'bold' },
-                          },
-                          {
-                            content: formatCurrency(
-                              bs.assets?.totalAssets || 0,
-                            ),
-                            styles: { fontStyle: 'bold' },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'LIABILITIES',
-                            colSpan: 2,
-                            styles: {
-                              fillColor: [254, 226, 226],
-                              fontStyle: 'bold',
-                              textColor: [225, 29, 72],
-                              fontSize: 10,
-                            },
-                          },
-                        ],
-                        [
-                          'Member Current Accounts',
-                          formatCurrency(
-                            bs.liabilities?.memberCurrentAccounts || 0,
-                          ),
-                        ],
-                        [
-                          'Member Saving Accounts',
-                          formatCurrency(
-                            bs.liabilities?.memberSavingAccounts || 0,
-                          ),
-                        ],
-                        ...(bs.liabilities?.memberShareCapital > 0
-                          ? [
-                              [
-                                'Member Share Capital',
-                                formatCurrency(
-                                  bs.liabilities.memberShareCapital,
+                          const bs = balanceSheet;
+                          const tableData = [
+                            [
+                              {
+                                content: 'ASSETS',
+                                colSpan: 2,
+                                styles: {
+                                  fillColor: [220, 252, 231],
+                                  fontStyle: 'bold',
+                                  textColor: [5, 150, 105],
+                                  fontSize: 10,
+                                },
+                              },
+                            ],
+                            [
+                              'Cash at Hand / Bank',
+                              formatCurrency(bs.assets?.cashAtHand || 0),
+                            ],
+                            [
+                              'Loans Receivable',
+                              formatCurrency(bs.assets?.loansReceivable || 0),
+                            ],
+                            ...(bs.assets?.termDepositsHeld > 0
+                              ? [
+                                  [
+                                    'Term Deposits Held',
+                                    formatCurrency(bs.assets.termDepositsHeld),
+                                  ],
+                                ]
+                              : []),
+                            [
+                              {
+                                content: 'Total Assets',
+                                styles: { fontStyle: 'bold' },
+                              },
+                              {
+                                content: formatCurrency(
+                                  bs.assets?.totalAssets || 0,
                                 ),
-                              ],
-                            ]
-                          : []),
-                        ...(bs.liabilities?.termDepositObligations > 0
-                          ? [
-                              [
-                                'Term Deposit Obligations',
-                                formatCurrency(
-                                  bs.liabilities.termDepositObligations,
+                                styles: { fontStyle: 'bold' },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'LIABILITIES',
+                                colSpan: 2,
+                                styles: {
+                                  fillColor: [254, 226, 226],
+                                  fontStyle: 'bold',
+                                  textColor: [225, 29, 72],
+                                  fontSize: 10,
+                                },
+                              },
+                            ],
+                            [
+                              'Member Current Accounts',
+                              formatCurrency(
+                                bs.liabilities?.memberCurrentAccounts || 0,
+                              ),
+                            ],
+                            [
+                              'Member Saving Accounts',
+                              formatCurrency(
+                                bs.liabilities?.memberSavingAccounts || 0,
+                              ),
+                            ],
+                            ...(bs.liabilities?.memberShareCapital > 0
+                              ? [
+                                  [
+                                    'Member Share Capital',
+                                    formatCurrency(
+                                      bs.liabilities.memberShareCapital,
+                                    ),
+                                  ],
+                                ]
+                              : []),
+                            ...(bs.liabilities?.termDepositObligations > 0
+                              ? [
+                                  [
+                                    'Term Deposit Obligations',
+                                    formatCurrency(
+                                      bs.liabilities.termDepositObligations,
+                                    ),
+                                  ],
+                                ]
+                              : []),
+                            [
+                              {
+                                content: 'Total Liabilities',
+                                styles: { fontStyle: 'bold' },
+                              },
+                              {
+                                content: formatCurrency(
+                                  bs.liabilities?.totalLiabilities || 0,
                                 ),
-                              ],
-                            ]
-                          : []),
-                        [
-                          {
-                            content: 'Total Liabilities',
-                            styles: { fontStyle: 'bold' },
-                          },
-                          {
-                            content: formatCurrency(
-                              bs.liabilities?.totalLiabilities || 0,
-                            ),
-                            styles: { fontStyle: 'bold' },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'EQUITY',
-                            colSpan: 2,
-                            styles: {
-                              fillColor: [224, 231, 255],
-                              fontStyle: 'bold',
-                              textColor: [79, 70, 229],
-                              fontSize: 10,
-                            },
-                          },
-                        ],
-                        [
-                          '   Interest Earned',
-                          formatCurrency(bs.equity?.interestEarned || 0),
-                        ],
-                        ...(bs.equity?.feeIncome > 0
-                          ? [
-                              [
-                                '   Fee Income',
-                                formatCurrency(bs.equity.feeIncome),
-                              ],
-                            ]
-                          : []),
-                        [
-                          {
-                            content: '   Less: Profit Distributed',
-                            styles: { textColor: [239, 68, 68] },
-                          },
-                          {
-                            content: `(${formatCurrency(bs.equity?.profitDistributed || 0)})`,
-                            styles: { textColor: [239, 68, 68] },
-                          },
-                        ],
-                        [
-                          {
-                            content: '   Less: Operating Expenses',
-                            styles: { textColor: [239, 68, 68] },
-                          },
-                          {
-                            content: `(${formatCurrency(bs.equity?.operatingExpenses || 0)})`,
-                            styles: { textColor: [239, 68, 68] },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'Retained Earnings',
-                            styles: { fontStyle: 'bold' },
-                          },
-                          {
-                            content: formatCurrency(
-                              bs.equity?.retainedEarnings || 0,
-                            ),
-                            styles: { fontStyle: 'bold' },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'Business Capital',
-                            styles: { fontStyle: 'bold' },
-                          },
-                          {
-                            content: formatCurrency(
-                              bs.equity?.businessCapital || 0,
-                            ),
-                            styles: { fontStyle: 'bold' },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'Total Equity',
-                            styles: { fontStyle: 'bold' },
-                          },
-                          {
-                            content: formatCurrency(
-                              bs.equity?.totalEquity || 0,
-                            ),
-                            styles: { fontStyle: 'bold' },
-                          },
-                        ],
-                        [
-                          {
-                            content: 'BALANCE VERIFICATION',
-                            styles: {
-                              fontStyle: 'bold',
-                              fontSize: 11,
-                              fillColor: bs.balanceCheck?.isBalanced
-                                ? [5, 150, 105]
-                                : [245, 158, 11],
-                              textColor: 255,
-                            },
-                          },
-                          {
-                            content: bs.balanceCheck?.isBalanced
-                              ? '✓ BALANCED'
-                              : `Discrepancy: ${formatCurrency(bs.balanceCheck?.discrepancy || 0)}`,
-                            styles: {
-                              fontStyle: 'bold',
-                              fontSize: 11,
-                              fillColor: bs.balanceCheck?.isBalanced
-                                ? [5, 150, 105]
-                                : [245, 158, 11],
-                              textColor: 255,
-                            },
-                          },
-                        ],
-                      ];
+                                styles: { fontStyle: 'bold' },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'EQUITY',
+                                colSpan: 2,
+                                styles: {
+                                  fillColor: [224, 231, 255],
+                                  fontStyle: 'bold',
+                                  textColor: [79, 70, 229],
+                                  fontSize: 10,
+                                },
+                              },
+                            ],
+                            [
+                              '   Interest Earned',
+                              formatCurrency(bs.equity?.interestEarned || 0),
+                            ],
+                            ...(bs.equity?.feeIncome > 0
+                              ? [
+                                  [
+                                    '   Fee Income',
+                                    formatCurrency(bs.equity.feeIncome),
+                                  ],
+                                ]
+                              : []),
+                            [
+                              {
+                                content: '   Less: Profit Distributed',
+                                styles: { textColor: [239, 68, 68] },
+                              },
+                              {
+                                content: `(${formatCurrency(bs.equity?.profitDistributed || 0)})`,
+                                styles: { textColor: [239, 68, 68] },
+                              },
+                            ],
+                            [
+                              {
+                                content: '   Less: Operating Expenses',
+                                styles: { textColor: [239, 68, 68] },
+                              },
+                              {
+                                content: `(${formatCurrency(bs.equity?.operatingExpenses || 0)})`,
+                                styles: { textColor: [239, 68, 68] },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'Retained Earnings',
+                                styles: { fontStyle: 'bold' },
+                              },
+                              {
+                                content: formatCurrency(
+                                  bs.equity?.retainedEarnings || 0,
+                                ),
+                                styles: { fontStyle: 'bold' },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'Business Capital',
+                                styles: { fontStyle: 'bold' },
+                              },
+                              {
+                                content: formatCurrency(
+                                  bs.equity?.businessCapital || 0,
+                                ),
+                                styles: { fontStyle: 'bold' },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'Total Equity',
+                                styles: { fontStyle: 'bold' },
+                              },
+                              {
+                                content: formatCurrency(
+                                  bs.equity?.totalEquity || 0,
+                                ),
+                                styles: { fontStyle: 'bold' },
+                              },
+                            ],
+                            [
+                              {
+                                content: 'BALANCE VERIFICATION',
+                                styles: {
+                                  fontStyle: 'bold',
+                                  fontSize: 11,
+                                  fillColor: bs.balanceCheck?.isBalanced
+                                    ? [5, 150, 105]
+                                    : [245, 158, 11],
+                                  textColor: 255,
+                                },
+                              },
+                              {
+                                content: bs.balanceCheck?.isBalanced
+                                  ? '✓ BALANCED'
+                                  : `Discrepancy: ${formatCurrency(bs.balanceCheck?.discrepancy || 0)}`,
+                                styles: {
+                                  fontStyle: 'bold',
+                                  fontSize: 11,
+                                  fillColor: bs.balanceCheck?.isBalanced
+                                    ? [5, 150, 105]
+                                    : [245, 158, 11],
+                                  textColor: 255,
+                                },
+                              },
+                            ],
+                          ];
 
-                      autoTable(doc, {
-                        startY,
-                        body: tableData,
-                        theme: 'grid',
-                        styles: { fontSize: 10, cellPadding: 4 },
-                        columnStyles: { 1: { halign: 'right' } },
-                        alternateRowStyles: { fillColor: [250, 250, 255] },
-                        margin: { left: 14, right: 14 },
-                      });
+                          autoTable(doc, {
+                            startY,
+                            body: tableData,
+                            theme: 'grid',
+                            styles: { fontSize: 10, cellPadding: 4 },
+                            columnStyles: { 1: { halign: 'right' } },
+                            alternateRowStyles: { fillColor: [250, 250, 255] },
+                            margin: { left: 14, right: 14 },
+                          });
 
-                      const finalY = doc.lastAutoTable?.finalY || startY + 20;
-                      await renderPdfSignatures(doc, {
-                        startY: finalY,
-                        businessContext: ctx,
-                      });
-                      renderPdfFooter(doc, { businessContext: ctx });
+                          const finalY =
+                            doc.lastAutoTable?.finalY || startY + 20;
+                          await renderPdfSignatures(doc, {
+                            startY: finalY,
+                            businessContext: ctx,
+                          });
+                          renderPdfFooter(doc, { businessContext: ctx });
 
-                      const { savePdf: savePdfFn } =
-                        await import('@/lib/nativeDownload');
-                      await savePdfFn(
-                        doc,
-                        `Balance_Sheet_${new Date().toISOString().split('T')[0]}.pdf`,
-                      );
-                      toast.success('Balance Sheet PDF downloaded');
-                    } catch (error) {
-                      console.error(error);
-                      toast.error('Failed to export Balance Sheet PDF');
-                    } finally {
-                      setIsExporting(false);
-                    }
-                  };
-                  exportBalanceSheetPDF();
-                }}
-                variant="outline"
-                disabled={!balanceSheet || isExporting}
-                className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
-              >
-                {isExporting ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <Download size={12} />
-                )}
-                Export PDF
-              </Button>
-              <Button
-                onClick={fetchBalanceSheet}
-                variant="outline"
-                className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
-              >
-                <Loader2
-                  size={12}
-                  className={loadingBalanceSheet ? 'animate-spin' : ''}
-                />
-                Refresh
-              </Button>
+                          const { savePdf: savePdfFn } =
+                            await import('@/lib/nativeDownload');
+                          await savePdfFn(
+                            doc,
+                            `Balance_Sheet_${new Date().toISOString().split('T')[0]}.pdf`,
+                          );
+                          toast.success('Balance Sheet PDF downloaded');
+                        } catch (error) {
+                          console.error(error);
+                          toast.error('Failed to export Balance Sheet PDF');
+                        } finally {
+                          setIsExporting(false);
+                        }
+                      };
+                      exportBalanceSheetPDF();
+                    }}
+                    variant="outline"
+                    disabled={!balanceSheet || isExporting}
+                    className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
+                  >
+                    {isExporting ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Download size={12} />
+                    )}
+                    Export PDF
+                  </Button>
+                  <Button
+                    onClick={fetchBalanceSheet}
+                    variant="outline"
+                    className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
+                  >
+                    <Loader2
+                      size={12}
+                      className={loadingBalanceSheet ? 'animate-spin' : ''}
+                    />
+                    Refresh
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -2933,7 +3097,10 @@ const Reports = () => {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
                 {[0, 1, 2, 3].map((i) => (
-                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden">
+                  <Card
+                    key={i}
+                    className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden"
+                  >
                     <CardContent className="p-4 sm:p-5 space-y-2">
                       <Skeleton className="h-3 w-24 rounded-full" />
                       <Skeleton className="h-7 w-32 rounded-lg" />
@@ -2943,7 +3110,10 @@ const Reports = () => {
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {[0, 1, 2].map((i) => (
-                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                  <Card
+                    key={i}
+                    className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden"
+                  >
                     <CardHeader className="p-4 sm:p-6">
                       <div className="flex items-center gap-4">
                         <Skeleton className="w-12 h-12 rounded-2xl" />
@@ -2957,7 +3127,10 @@ const Reports = () => {
                     <CardContent className="p-0">
                       <div className="px-6 py-3 space-y-3">
                         {[0, 1, 2].map((j) => (
-                          <div key={j} className="flex justify-between items-center">
+                          <div
+                            key={j}
+                            className="flex justify-between items-center"
+                          >
                             <Skeleton className="h-4 w-1/3 rounded-lg" />
                             <Skeleton className="h-4 w-1/5 rounded-lg" />
                           </div>
@@ -2983,7 +3156,7 @@ const Reports = () => {
           ) : balanceSheet ? (
             <>
               {/* Summary Cards */}
-              <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 space-y-1">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Total Assets
@@ -3053,7 +3226,9 @@ const Reports = () => {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="tabular-nums font-black text-lg text-emerald-600">
-                            {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
+                            {formatCurrency(
+                              balanceSheet.assets?.totalAssets || 0,
+                            )}
                           </span>
                         </div>
                       </div>
@@ -3070,27 +3245,45 @@ const Reports = () => {
                           <tbody className="divide-y divide-border/20">
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <Landmark size={14} className="text-muted-foreground" /> Cash at Hand / Bank
+                                <Landmark
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />{' '}
+                                Cash at Hand / Bank
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(balanceSheet.assets?.cashAtHand || 0)}
+                                {formatCurrency(
+                                  balanceSheet.assets?.cashAtHand || 0,
+                                )}
                               </td>
                             </tr>
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <DollarSign size={14} className="text-muted-foreground" /> Loans Receivable
+                                <DollarSign
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />{' '}
+                                Loans Receivable
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(balanceSheet.assets?.loansReceivable || 0)}
+                                {formatCurrency(
+                                  balanceSheet.assets?.loansReceivable || 0,
+                                )}
                               </td>
                             </tr>
                             {balanceSheet.assets?.termDepositsHeld > 0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                  <ShieldCheck size={14} className="text-muted-foreground" /> Term Deposits Held
+                                  <ShieldCheck
+                                    size={14}
+                                    className="text-muted-foreground"
+                                  />{' '}
+                                  Term Deposits Held
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                  {formatCurrency(balanceSheet.assets.termDepositsHeld)}
+                                  {formatCurrency(
+                                    balanceSheet.assets.termDepositsHeld,
+                                  )}
                                 </td>
                               </tr>
                             )}
@@ -3121,7 +3314,9 @@ const Reports = () => {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="tabular-nums font-black text-lg text-rose-600">
-                            {formatCurrency(balanceSheet.liabilities?.totalLiabilities || 0)}
+                            {formatCurrency(
+                              balanceSheet.liabilities?.totalLiabilities || 0,
+                            )}
                           </span>
                         </div>
                       </div>
@@ -3138,37 +3333,66 @@ const Reports = () => {
                           <tbody className="divide-y divide-border/20">
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <Users size={14} className="text-muted-foreground" /> Member Current Accounts
+                                <Users
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />{' '}
+                                Member Current Accounts
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(balanceSheet.liabilities?.memberCurrentAccounts || 0)}
+                                {formatCurrency(
+                                  balanceSheet.liabilities
+                                    ?.memberCurrentAccounts || 0,
+                                )}
                               </td>
                             </tr>
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <Activity size={14} className="text-muted-foreground" /> Member Saving Accounts
+                                <Activity
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />{' '}
+                                Member Saving Accounts
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(balanceSheet.liabilities?.memberSavingAccounts || 0)}
+                                {formatCurrency(
+                                  balanceSheet.liabilities
+                                    ?.memberSavingAccounts || 0,
+                                )}
                               </td>
                             </tr>
-                            {balanceSheet.liabilities?.memberShareCapital > 0 && (
+                            {balanceSheet.liabilities?.memberShareCapital >
+                              0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                  <Layers size={14} className="text-muted-foreground" /> Member Share Capital
+                                  <Layers
+                                    size={14}
+                                    className="text-muted-foreground"
+                                  />{' '}
+                                  Member Share Capital
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                  {formatCurrency(balanceSheet.liabilities.memberShareCapital)}
+                                  {formatCurrency(
+                                    balanceSheet.liabilities.memberShareCapital,
+                                  )}
                                 </td>
                               </tr>
                             )}
-                            {balanceSheet.liabilities?.termDepositObligations > 0 && (
+                            {balanceSheet.liabilities?.termDepositObligations >
+                              0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                  <Clock size={14} className="text-muted-foreground" /> Term Deposit Obligations
+                                  <Clock
+                                    size={14}
+                                    className="text-muted-foreground"
+                                  />{' '}
+                                  Term Deposit Obligations
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                  {formatCurrency(balanceSheet.liabilities.termDepositObligations)}
+                                  {formatCurrency(
+                                    balanceSheet.liabilities
+                                      .termDepositObligations,
+                                  )}
                                 </td>
                               </tr>
                             )}
@@ -3197,7 +3421,9 @@ const Reports = () => {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="tabular-nums font-black text-lg text-indigo-600">
-                            {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
+                            {formatCurrency(
+                              balanceSheet.equity?.totalEquity || 0,
+                            )}
                           </span>
                         </div>
                       </div>
@@ -3214,64 +3440,116 @@ const Reports = () => {
                           <tbody className="divide-y divide-border/20">
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <TrendingUp size={14} className="text-emerald-500" /> Interest Earned
+                                <TrendingUp
+                                  size={14}
+                                  className="text-emerald-500"
+                                />{' '}
+                                Interest Earned
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-600">
-                                {formatCurrency(balanceSheet.equity?.interestEarned || 0)}
+                                {formatCurrency(
+                                  balanceSheet.equity?.interestEarned || 0,
+                                )}
                               </td>
                             </tr>
                             {balanceSheet.equity?.feeIncome > 0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                  <DollarSign size={14} className="text-emerald-500" /> Fee Income
+                                  <DollarSign
+                                    size={14}
+                                    className="text-emerald-500"
+                                  />{' '}
+                                  Fee Income
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-600">
-                                  {formatCurrency(balanceSheet.equity.feeIncome)}
+                                  {formatCurrency(
+                                    balanceSheet.equity.feeIncome,
+                                  )}
                                 </td>
                               </tr>
                             )}
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
-                                <TrendingDown size={14} className="text-rose-500" /> Less: Profit Distributed
+                                <TrendingDown
+                                  size={14}
+                                  className="text-rose-500"
+                                />{' '}
+                                Less: Profit Distributed
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                                ({formatCurrency(balanceSheet.equity?.profitDistributed || 0)})
+                                (
+                                {formatCurrency(
+                                  balanceSheet.equity?.profitDistributed || 0,
+                                )}
+                                )
                               </td>
                             </tr>
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
-                                <TrendingDown size={14} className="text-rose-500" /> Less: Operating Expenses
+                                <TrendingDown
+                                  size={14}
+                                  className="text-rose-500"
+                                />{' '}
+                                Less: Operating Expenses
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                                ({formatCurrency(balanceSheet.equity?.operatingExpenses || 0)})
+                                (
+                                {formatCurrency(
+                                  balanceSheet.equity?.operatingExpenses || 0,
+                                )}
+                                )
                               </td>
                             </tr>
-                            {balanceSheet.equity?.savingProfitDistributed > 0 && (
+                            {balanceSheet.equity?.savingProfitDistributed >
+                              0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
-                                  <TrendingDown size={14} className="text-rose-500" /> Less: Saving Profit Paid
+                                  <TrendingDown
+                                    size={14}
+                                    className="text-rose-500"
+                                  />{' '}
+                                  Less: Saving Profit Paid
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                                  ({formatCurrency(balanceSheet.equity.savingProfitDistributed)})
+                                  (
+                                  {formatCurrency(
+                                    balanceSheet.equity.savingProfitDistributed,
+                                  )}
+                                  )
                                 </td>
                               </tr>
                             )}
-                            {balanceSheet.equity?.shareProfitDistributed > 0 && (
+                            {balanceSheet.equity?.shareProfitDistributed >
+                              0 && (
                               <tr className="hover:bg-muted/10 transition-colors">
                                 <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
-                                  <TrendingDown size={14} className="text-rose-500" /> Less: Share Profit Paid
+                                  <TrendingDown
+                                    size={14}
+                                    className="text-rose-500"
+                                  />{' '}
+                                  Less: Share Profit Paid
                                 </td>
                                 <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                                  ({formatCurrency(balanceSheet.equity.shareProfitDistributed)})
+                                  (
+                                  {formatCurrency(
+                                    balanceSheet.equity.shareProfitDistributed,
+                                  )}
+                                  )
                                 </td>
                               </tr>
                             )}
                             <tr className="hover:bg-muted/10 transition-colors">
                               <td className="px-6 py-3 font-medium flex items-center gap-2">
-                                <Building2 size={14} className="text-muted-foreground" /> Business Capital
+                                <Building2
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />{' '}
+                                Business Capital
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-medium">
-                                {formatCurrency(balanceSheet.equity?.businessCapital || 0)}
+                                {formatCurrency(
+                                  balanceSheet.equity?.businessCapital || 0,
+                                )}
                               </td>
                             </tr>
                             <tr className="bg-indigo-500/5">
@@ -3279,7 +3557,9 @@ const Reports = () => {
                                 Retained Earnings
                               </td>
                               <td className="px-6 py-3 text-right tabular-nums font-black">
-                                {formatCurrency(balanceSheet.equity?.retainedEarnings || 0)}
+                                {formatCurrency(
+                                  balanceSheet.equity?.retainedEarnings || 0,
+                                )}
                               </td>
                             </tr>
                           </tbody>
@@ -3316,7 +3596,9 @@ const Reports = () => {
                       )}
                     </div>
                     <div>
-                      <h2 className="text-xl font-black tracking-tight uppercase">Balance Check (A = L + E)</h2>
+                      <h2 className="text-xl font-black tracking-tight uppercase">
+                        Balance Check (A = L + E)
+                      </h2>
                       <p className="text-xs text-muted-foreground font-medium mt-1">
                         {balanceSheet.balanceCheck?.isBalanced
                           ? 'Assets perfectly match Liabilities + Equity'
@@ -3324,17 +3606,24 @@ const Reports = () => {
                       </p>
                     </div>
                   </div>
-                  <div className={cn(
-                    "text-2xl font-black tabular-nums tracking-tight",
-                    balanceSheet.balanceCheck?.isBalanced ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                  )}>
+                  <div
+                    className={cn(
+                      'text-2xl font-black tabular-nums tracking-tight',
+                      balanceSheet.balanceCheck?.isBalanced
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-rose-600 dark:text-rose-400',
+                    )}
+                  >
                     {balanceSheet.balanceCheck?.isBalanced ? (
                       <span className="flex items-center justify-end gap-2">
                         BALANCED
                       </span>
                     ) : (
                       <span className="flex flex-col items-end">
-                        Discrepancy: {formatCurrency(balanceSheet.balanceCheck?.discrepancy || 0)}
+                        Discrepancy:{' '}
+                        {formatCurrency(
+                          balanceSheet.balanceCheck?.discrepancy || 0,
+                        )}
                       </span>
                     )}
                   </div>

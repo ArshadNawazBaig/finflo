@@ -2106,7 +2106,7 @@ const TellerMode = () => {
                   </AnimatePresence>
 
                   {/* Recent Activity Card */}
-                  <div className="p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.01]">
+                  <div className="p-4 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.01]">
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground">
@@ -2149,11 +2149,11 @@ const TellerMode = () => {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.05 }}
                               key={txn._id || i}
-                              className="flex items-center justify-between p-4 rounded-2xl bg-muted/10 border border-border/10 hover:bg-muted/20 transition-all group"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl bg-muted/80 border border-border/10 hover:bg-muted transition-all group"
                             >
-                              <div className="flex items-center gap-4">
+                              <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                                 <div
-                                  className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center shadow-sm ${
+                                  className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm ${
                                     isIn
                                       ? 'bg-emerald-500/10 text-emerald-500'
                                       : 'bg-rose-500/10 text-rose-500'
@@ -2184,8 +2184,8 @@ const TellerMode = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <div className="text-right">
+                              <div className="flex items-center justify-between sm:justify-end gap-3 sm:pl-0 pt-2 sm:pt-0 border-t border-border/5 sm:border-0 mt-2 sm:mt-0 w-full sm:w-auto shrink-0">
+                                <div className="text-left sm:text-right">
                                   <p
                                     className={`text-sm font-black ${
                                       isIn
@@ -2850,7 +2850,7 @@ const TellerMode = () => {
           {cashSummaryLoading ? (
             <TellerStatsSkeleton />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
                 {
                   label: 'Opening Cash',
