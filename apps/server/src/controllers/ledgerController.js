@@ -55,9 +55,9 @@ const getLedger = async (req, res) => {
     if (category) query.category = category;
     if (paymentMethod) query.paymentMethod = paymentMethod;
 
-    // Always exclude cash_opening entries from ledger
+    // Always exclude system-generated entries from ledger (unless explicitly filtering by category)
     if (!category) {
-      query.category = { $ne: 'cash_opening' };
+      query.category = { $nin: ['cash_opening', 'saving_profit'] };
     }
     
     if (member) {
@@ -192,7 +192,7 @@ const exportLedgerExcel = async (req, res) => {
 
     if (type) query.type = type;
     if (category) query.category = category;
-    if (!category) query.category = { $ne: 'cash_opening' };
+    if (!category) query.category = { $nin: ['cash_opening', 'saving_profit'] };
 
     if (search) {
       const { Customer, Member } = require('../models');
