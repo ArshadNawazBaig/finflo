@@ -2513,7 +2513,7 @@ const Reports = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-6">
                   {/* Gross Revenue Card */}
-                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
                     <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-4 min-w-0">
@@ -2567,7 +2567,7 @@ const Reports = () => {
                   </Card>
 
                   {/* Operating Expenses Card */}
-                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
                     <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-4 min-w-0">
@@ -2640,7 +2640,7 @@ const Reports = () => {
 
                 <div className="space-y-6">
                   {/* Profit Distributions Card */}
-                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
                     <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-4 min-w-0">
@@ -3208,7 +3208,7 @@ const Reports = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <div className="space-y-6">
                   {/* Assets Card */}
-                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
                     <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-4 min-w-0">
