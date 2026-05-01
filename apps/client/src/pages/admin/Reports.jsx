@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -28,6 +28,8 @@ import {
   CheckCircle2,
   Building2,
   Scale,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import ReconciliationTab from '@/components/reports/ReconciliationTab';
 import {
@@ -77,6 +79,71 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { toast } from 'sonner';
 import { savePdf, saveFile } from '@/lib/nativeDownload';
 
+// ── Reusable Pagination Component ──
+const TablePagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  };
+
+  return (
+    <div className="flex items-center justify-between px-6 py-3 border-t border-border/30 bg-muted/5">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+        Page {currentPage} of {totalPages}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={cn(
+            'p-1.5 rounded-lg transition-colors',
+            currentPage === 1
+              ? 'text-muted-foreground/30 cursor-not-allowed'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          )}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        {getPageNumbers().map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={cn(
+              'w-8 h-8 rounded-lg text-xs font-black transition-all',
+              page === currentPage
+                ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+            )}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={cn(
+            'p-1.5 rounded-lg transition-colors',
+            currentPage === totalPages
+              ? 'text-muted-foreground/30 cursor-not-allowed'
+              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+          )}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const Reports = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
   const isAdmin = ['admin', 'super_admin'].includes(user.role);
@@ -114,8 +181,8 @@ const Reports = () => {
   const [trialBalance, setTrialBalance] = useState(null);
   const [pnl, setPnL] = useState(null);
   const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+    from: new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()),
+    to: new Date(),
   });
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingModal, setIsExportingModal] = useState(false);
@@ -132,6 +199,11 @@ const Reports = () => {
   // Branch Analytics
   const [branchSummaries, setBranchSummaries] = useState(null);
   const [loadingBranch, setLoadingBranch] = useState(false);
+
+  // Pagination state
+  const ROWS_PER_PAGE = 10;
+  const [branchPage, setBranchPage] = useState(1);
+  const [snapshotPage, setSnapshotPage] = useState(1);
 
   const fetchBranchSummaries = async () => {
     try {
@@ -304,9 +376,15 @@ const Reports = () => {
             },
           ],
           [
-            'Member Capital',
+            'Member Current Accounts',
             formatCurrency(trialBalance.liabilities?.memberCapital || 0),
           ],
+          ...((trialBalance.liabilities?.memberSavingAccounts || 0) > 0
+            ? [['Member Saving Accounts', formatCurrency(trialBalance.liabilities.memberSavingAccounts)]]
+            : []),
+          ...((trialBalance.liabilities?.memberShareCapital || 0) > 0
+            ? [['Member Share Capital', formatCurrency(trialBalance.liabilities.memberShareCapital)]]
+            : []),
           [
             { content: 'Total Liabilities', styles: { fontStyle: 'bold' } },
             {
@@ -907,14 +985,28 @@ const Reports = () => {
 
       {activeTab === 'branch-analytics' && isAdmin ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-            <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
-              <CardTitle className="text-lg font-black tracking-tight">
-                Cross-Branch Comparison
-              </CardTitle>
-              <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                Aggregated KPIs per branch
-              </CardDescription>
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
+            <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/25">
+                    <Building2 size={20} className="text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle className="text-base font-black tracking-tight truncate">
+                      Cross-Branch Comparison
+                    </CardTitle>
+                    <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                      Aggregated KPIs per branch
+                    </CardDescription>
+                  </div>
+                </div>
+                {branchSummaries && branchSummaries.length > 0 && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 shrink-0">
+                    {branchSummaries.length} {branchSummaries.length === 1 ? 'branch' : 'branches'}
+                  </span>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {loadingBranch ? (
@@ -922,67 +1014,77 @@ const Reports = () => {
                   <TableSkeleton rows={5} columns={8} />
                 </div>
               ) : branchSummaries && branchSummaries.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/30 border-b border-border/50 text-xs uppercase tracking-wider text-muted-foreground font-black">
-                      <tr>
-                        <th className="px-6 py-4">Branch</th>
-                        <th className="px-6 py-4 text-center">Members</th>
-                        <th className="px-6 py-4 text-right">Deposits</th>
-                        <th className="px-6 py-4 text-center">Active Loans</th>
-                        <th className="px-6 py-4 text-right">
-                          Disbursed Volume
-                        </th>
-                        <th className="px-6 py-4 text-right">Outstanding</th>
-                        <th className="px-6 py-4 text-right">Profit</th>
-                        <th className="px-6 py-4 text-right">Expenses</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/20">
-                      {branchSummaries.map((branch) => (
-                        <tr
-                          key={branch._id}
-                          className="hover:bg-muted/10 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-bold">
-                            {branch.name}{' '}
-                            <span className="text-[10px] text-muted-foreground font-mono block">
-                              {branch.code}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-center font-medium">
-                            {branch.stats.totalMembers}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-blue-500">
-                            {formatCurrency(branch.stats.totalInvested)}
-                          </td>
-                          <td className="px-6 py-4 text-center font-medium">
-                            {branch.stats.activeLoans}{' '}
-                            <span className="text-xs text-muted-foreground">
-                              / {branch.stats.totalLoans}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-emerald-500">
-                            {formatCurrency(branch.stats.totalVolume)}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-amber-500">
-                            {formatCurrency(branch.stats.totalOutstanding)}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-indigo-500">
-                            {formatCurrency(branch.stats.totalProfit)}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-red-500">
-                            {formatCurrency(branch.stats.totalExpenses)}
-                          </td>
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                        <tr>
+                          <th className="px-6 py-3">Branch</th>
+                          <th className="px-6 py-3 text-center">Members</th>
+                          <th className="px-6 py-3 text-right">Deposits</th>
+                          <th className="px-6 py-3 text-center">Active Loans</th>
+                          <th className="px-6 py-3 text-right">Disbursed Volume</th>
+                          <th className="px-6 py-3 text-right">Outstanding</th>
+                          <th className="px-6 py-3 text-right">Profit</th>
+                          <th className="px-6 py-3 text-right">Expenses</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-border/20">
+                        {branchSummaries
+                          .slice((branchPage - 1) * ROWS_PER_PAGE, branchPage * ROWS_PER_PAGE)
+                          .map((branch) => (
+                          <tr
+                            key={branch._id}
+                            className="hover:bg-muted/10 transition-colors"
+                          >
+                            <td className="px-6 py-3 font-bold">
+                              {branch.name}
+                              <span className="text-[10px] text-muted-foreground tabular-nums block mt-0.5">
+                                {branch.code}
+                              </span>
+                            </td>
+                            <td className="px-6 py-3 text-center font-medium">
+                              {branch.stats.totalMembers}
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium text-blue-500">
+                              {formatCurrency(branch.stats.totalInvested)}
+                            </td>
+                            <td className="px-6 py-3 text-center font-medium">
+                              {branch.stats.activeLoans}{' '}
+                              <span className="text-[10px] text-muted-foreground">
+                                / {branch.stats.totalLoans}
+                              </span>
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-500">
+                              {formatCurrency(branch.stats.totalVolume)}
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium text-amber-500">
+                              {formatCurrency(branch.stats.totalOutstanding)}
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium text-indigo-500">
+                              {formatCurrency(branch.stats.totalProfit)}
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                              {formatCurrency(branch.stats.totalExpenses)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <TablePagination
+                    currentPage={branchPage}
+                    totalPages={Math.ceil(branchSummaries.length / ROWS_PER_PAGE)}
+                    onPageChange={setBranchPage}
+                  />
+                </>
               ) : (
                 <div className="p-12 text-center text-muted-foreground min-h-[300px] flex items-center justify-center">
-                  No branch analytics available. Ensure you have active branches
-                  with data.
+                  <div className="flex flex-col items-center">
+                    <Building2 size={48} strokeWidth={1} className="mb-4 opacity-20" />
+                    <p className="text-xs font-black uppercase tracking-widest">No Branch Data Available</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">Ensure you have active branches with data.</p>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -1749,20 +1851,27 @@ const Reports = () => {
           </div>
 
           <div className="mt-8">
-            <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-6 sm:p-8 pb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-primary/10 rounded-xl">
-                    <Clock className="w-5 h-5 text-primary" />
+            <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
+              <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+                      <Clock size={20} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base font-black tracking-tight truncate">
+                        Snapshot History
+                      </CardTitle>
+                      <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                        Previously saved regulatory reports
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-xl font-black tracking-tight">
-                      Snapshot History
-                    </CardTitle>
-                    <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-1">
-                      Previously saved regulatory reports
-                    </CardDescription>
-                  </div>
+                  {savedSnapshots.length > 0 && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 shrink-0">
+                      {savedSnapshots.length} {savedSnapshots.length === 1 ? 'snapshot' : 'snapshots'}
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -1771,75 +1880,83 @@ const Reports = () => {
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
                   </div>
                 ) : savedSnapshots.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-muted/30 border-y border-border/50 text-[10px] uppercase tracking-widest font-black text-muted-foreground/70">
-                        <tr>
-                          <th className="px-6 sm:px-8 py-4">Title</th>
-                          <th className="px-6 py-4">Type</th>
-                          <th className="px-6 py-4">Generated By</th>
-                          <th className="px-6 py-4">Date</th>
-                          <th className="px-6 sm:px-8 py-4 text-right">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/20">
-                        {savedSnapshots.map((snap) => (
-                          <tr
-                            key={snap._id}
-                            className="hover:bg-muted/10 transition-colors"
-                          >
-                            <td className="px-6 sm:px-8 py-4 font-bold">
-                              {snap.title}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span
-                                className={cn(
-                                  'px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold',
-                                  snap.reportType === 'ifrs9'
-                                    ? 'bg-indigo-500/10 text-indigo-500'
-                                    : 'bg-emerald-500/10 text-emerald-500',
-                                )}
-                              >
-                                {snap.reportType === 'ifrs9'
-                                  ? 'IFRS 9'
-                                  : 'Basel III'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 font-medium">
-                              {snap.generatedBy?.name || 'Unknown'}
-                            </td>
-                            <td className="px-6 py-4 text-muted-foreground">
-                              {format(new Date(snap.createdAt), 'PPp')}
-                            </td>
-                            <td className="px-6 sm:px-8 py-4 text-right">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
-                                onClick={() => {
-                                  if (snap.reportType === 'ifrs9')
-                                    setIfrs9Data(snap.snapshotData);
-                                  else setBasel3Data(snap.snapshotData);
-                                  toast.success(`Loaded ${snap.title}`);
-                                }}
-                              >
-                                <Eye className="w-3 h-3 mr-1.5" />
-                                View
-                              </Button>
-                            </td>
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                          <tr>
+                            <th className="px-6 py-3">Title</th>
+                            <th className="px-6 py-3">Type</th>
+                            <th className="px-6 py-3">Generated By</th>
+                            <th className="px-6 py-3">Date</th>
+                            <th className="px-6 py-3 text-right">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-border/20">
+                          {savedSnapshots
+                            .slice((snapshotPage - 1) * ROWS_PER_PAGE, snapshotPage * ROWS_PER_PAGE)
+                            .map((snap) => (
+                            <tr
+                              key={snap._id}
+                              className="hover:bg-muted/10 transition-colors"
+                            >
+                              <td className="px-6 py-3 font-bold">
+                                {snap.title}
+                              </td>
+                              <td className="px-6 py-3">
+                                <span
+                                  className={cn(
+                                    'inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border',
+                                    snap.reportType === 'ifrs9'
+                                      ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                                      : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+                                  )}
+                                >
+                                  {snap.reportType === 'ifrs9'
+                                    ? 'IFRS 9'
+                                    : 'Basel III'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 font-medium">
+                                {snap.generatedBy?.name || 'Unknown'}
+                              </td>
+                              <td className="px-6 py-3 text-muted-foreground tabular-nums text-xs">
+                                {format(new Date(snap.createdAt), 'PPp')}
+                              </td>
+                              <td className="px-6 py-3 text-right">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 rounded-full font-black text-[10px] uppercase tracking-widest px-4 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300"
+                                  onClick={() => {
+                                    if (snap.reportType === 'ifrs9')
+                                      setIfrs9Data(snap.snapshotData);
+                                    else setBasel3Data(snap.snapshotData);
+                                    toast.success(`Loaded ${snap.title}`);
+                                  }}
+                                >
+                                  <Eye className="w-3 h-3 mr-1.5" />
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <TablePagination
+                      currentPage={snapshotPage}
+                      totalPages={Math.ceil(savedSnapshots.length / ROWS_PER_PAGE)}
+                      onPageChange={setSnapshotPage}
+                    />
+                  </>
                 ) : (
                   <div className="p-12 text-center text-muted-foreground flex flex-col items-center">
                     <Clock className="w-8 h-8 mb-3 opacity-20" />
-                    <p className="text-xs font-bold uppercase tracking-widest">
+                    <p className="text-xs font-black uppercase tracking-widest">
                       No Snapshots Saved
                     </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">Save a regulatory report to see it here.</p>
                   </div>
                 )}
               </CardContent>
@@ -1848,172 +1965,322 @@ const Reports = () => {
         </div>
       ) : activeTab === 'trial-balance' ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex justify-between items-center bg-card p-6 rounded-3xl border border-border/50 shadow-sm">
-            <div>
-              <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                <Layers className="text-emerald-500 w-5 h-5" /> Trial Balance
-                Statement
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Snapshot of assets, liabilities, and equity.
-              </p>
-            </div>
-            <Button
-              onClick={() => exportAdvancedPDF('trial')}
-              isLoading={isExporting}
-              disabled={loadingTrial || !trialBalance}
-              variant="outline"
-              className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm"
-            >
-              <Download size={16} />
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/25">
+                    <Layers size={20} className="text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-base font-black tracking-tight truncate">
+                      Trial Balance Statement
+                    </h2>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5">
+                      Snapshot of assets, liabilities, and equity
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => exportAdvancedPDF('trial')}
+                  isLoading={isExporting}
+                  disabled={loadingTrial || !trialBalance}
+                  variant="outline"
+                  className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2 shrink-0"
+                >
+                  <Download size={14} />
               <span className="hidden sm:inline">Export PDF</span>
             </Button>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {loadingTrial ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-card/40 p-10 rounded-[2.5rem] border border-border/40 shadow-sm backdrop-blur-md">
-              <div className="space-y-8">
-                <div className="flex justify-between items-center pb-4 border-b border-border/20">
-                  <Skeleton className="h-4 w-32 rounded-full" />
-                  <Skeleton className="h-6 w-20 rounded-lg" />
-                </div>
-                <div className="space-y-5">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-1/2 rounded-full" />
-                      <Skeleton className="h-4 w-1/4 rounded-full" />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <Skeleton className="w-20 h-20 rounded-full" />
+                    <div className="flex-1 space-y-3 text-center sm:text-left">
+                      <Skeleton className="h-8 w-64 rounded-xl mx-auto sm:mx-0" />
+                      <Skeleton className="h-4 w-48 rounded-lg mx-auto sm:mx-0" />
                     </div>
-                  ))}
-                </div>
-                <div className="pt-6 border-t border-border/20">
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-5 w-1/4 rounded-full" />
-                    <Skeleton className="h-6 w-1/3 rounded-full" />
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-8">
-                <div className="flex justify-between items-center pb-4 border-b border-border/20">
-                  <Skeleton className="h-4 w-32 rounded-full" />
-                  <Skeleton className="h-6 w-20 rounded-lg" />
-                </div>
-                <div className="space-y-5">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-1/12 rounded-full" />
-                      <Skeleton className="h-4 w-1/2 rounded-full" />
-                      <Skeleton className="h-4 w-1/4 rounded-full" />
+                    <div className="grid grid-cols-3 gap-4">
+                      {[0, 1, 2].map((i) => (
+                        <Skeleton key={i} className="h-16 w-24 rounded-xl" />
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="pt-6 border-t border-border/20">
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-5 w-1/4 rounded-full" />
-                    <Skeleton className="h-6 w-1/3 rounded-full" />
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+              {[0, 1].map((i) => (
+                <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                  <CardHeader className="p-4 sm:p-6">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="w-12 h-12 rounded-2xl" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-40 rounded-lg" />
+                        <Skeleton className="h-3 w-64 rounded-lg" />
+                      </div>
+                      <Skeleton className="h-8 w-24 rounded-full" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="px-6 py-3 space-y-3">
+                      {[0, 1, 2].map((j) => (
+                        <div key={j} className="flex justify-between items-center">
+                          <Skeleton className="h-4 w-1/3 rounded-lg" />
+                          <Skeleton className="h-4 w-1/5 rounded-lg" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : trialBalance ? (
-            <div className="bg-card rounded-3xl border border-border/50 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/50">
-                {/* Debit Side (Assets) */}
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center justify-between pb-4 border-b border-border/50">
-                    <h3 className="font-bold text-muted-foreground uppercase tracking-widest text-xs">
-                      Debit (Assets)
-                    </h3>
-                    <span className="text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded text-xs font-bold">
-                      + Balance
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        <DollarSign size={14} /> Loans Receivable
-                      </span>
-                      <span className="font-mono font-medium">
-                        {formatCurrency(
-                          trialBalance.assets?.loansReceivable || 0,
+            <div className="space-y-6">
+              {/* HEALTH DASHBOARD */}
+              <Card
+                className={cn(
+                  'border shadow-sm rounded-[2rem] overflow-hidden transition-all duration-500',
+                  (trialBalance.discrepancy || 0) === 0
+                    ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-emerald-600/5'
+                    : 'border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-amber-500/5',
+                )}
+              >
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div
+                      className={cn(
+                        'w-20 h-20 rounded-full flex items-center justify-center shrink-0 shadow-xl',
+                        (trialBalance.discrepancy || 0) === 0
+                          ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30'
+                          : 'bg-gradient-to-br from-rose-500 to-amber-500 shadow-rose-500/30',
+                      )}
+                    >
+                      {(trialBalance.discrepancy || 0) === 0 ? (
+                        <ShieldCheck className="w-10 h-10 text-white" />
+                      ) : (
+                        <AlertTriangle className="w-10 h-10 text-white" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 text-center sm:text-left">
+                      <h2 className="text-2xl font-black tracking-tight">
+                        {(trialBalance.discrepancy || 0) === 0 ? (
+                          <>
+                            Trial Balance{' '}
+                            <span className="text-emerald-600 dark:text-emerald-400">Matched</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-rose-600 dark:text-rose-400">
+                              Discrepancy
+                            </span>{' '}
+                            Detected
+                          </>
                         )}
-                      </span>
+                      </h2>
+                      <p className="text-xs text-muted-foreground font-medium mt-1">
+                        Debits and Credits {(trialBalance.discrepancy || 0) === 0 ? 'are perfectly in balance' : 'do not match'}.
+                      </p>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        <Landmark size={14} /> Cash at Hand / Bank
-                      </span>
-                      <span className="font-mono font-medium">
-                        {formatCurrency(trialBalance.assets?.cashAtHand || 0)}
-                      </span>
+
+                    <div className="grid grid-cols-3 gap-3 shrink-0">
+                      <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
+                        <div className="text-xl font-black text-emerald-600">{formatCompactValue(trialBalance.assets?.totalAssets || 0)}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
+                          Assets
+                        </div>
+                      </div>
+                      <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
+                        <div className="text-xl font-black text-rose-600">{formatCompactValue(trialBalance.liabilities?.totalLiabilities || 0)}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
+                          Liabilities
+                        </div>
+                      </div>
+                      <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
+                        <div className="text-xl font-black text-indigo-600">{formatCompactValue(trialBalance.equity?.totalEquity || 0)}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mt-0.5">
+                          Equity
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="pt-4 border-t border-border/50 mt-auto">
-                    <div className="flex justify-between items-center">
-                      <span className="font-black text-sm">Total Assets</span>
-                      <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
+
+                  {(trialBalance.discrepancy || 0) !== 0 && (
+                    <div className="mt-5 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <TrendingDown size={18} className="text-rose-500 shrink-0" />
+                        <div>
+                          <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                            Discrepancy Amount
+                          </span>
+                          <span className="text-[10px] text-muted-foreground ml-2">
+                            (Assets - [Liabilities + Equity])
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-lg font-black tabular-nums text-rose-600 dark:text-rose-400">
+                        {formatCurrency(Math.abs(trialBalance.discrepancy || 0))}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* CHECK CARDS FOR DEBIT AND CREDIT */}
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
+                <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/25">
+                        <Banknote size={20} className="text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-base font-black tracking-tight truncate">
+                          Debit (Assets)
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                          Total value of all assets
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="tabular-nums font-black text-lg text-emerald-600">
                         {formatCurrency(trialBalance.assets?.totalAssets || 0)}
                       </span>
                     </div>
                   </div>
-                </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                        <tr>
+                          <th className="px-6 py-3">Account Name</th>
+                          <th className="px-6 py-3 text-right">Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/20">
+                        <tr className="hover:bg-muted/10 transition-colors">
+                          <td className="px-6 py-3 font-medium flex items-center gap-2">
+                            <DollarSign size={14} className="text-muted-foreground" /> Loans Receivable
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums font-medium">
+                            {formatCurrency(trialBalance.assets?.loansReceivable || 0)}
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-muted/10 transition-colors">
+                          <td className="px-6 py-3 font-medium flex items-center gap-2">
+                            <Landmark size={14} className="text-muted-foreground" /> Cash at Hand / Bank
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums font-medium">
+                            {formatCurrency(trialBalance.assets?.cashAtHand || 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Credit Side (Liabilities & Equity) */}
-                <div className="flex flex-col h-full">
-                  <div className="p-6 space-y-4 flex-1">
-                    <div className="flex items-center justify-between pb-4 border-b border-border/50">
-                      <h3 className="font-bold text-muted-foreground uppercase tracking-widest text-xs">
-                        Credit (Liabilities & Equity)
-                      </h3>
-                      <span className="text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded text-xs font-bold">
-                        + Balance
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
+                <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/25">
+                        <ArrowRightLeft size={20} className="text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-base font-black tracking-tight truncate">
+                          Credit (Liabilities & Equity)
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                          Total obligations and capital
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="tabular-nums font-black text-lg text-indigo-600">
+                        {formatCurrency((trialBalance.liabilities?.totalLiabilities || 0) + (trialBalance.equity?.totalEquity || 0))}
                       </span>
                     </div>
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground/70 uppercase">
-                          Liabilities
-                        </h4>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground flex items-center gap-2">
-                            <ArrowRightLeft size={14} /> Member Capital
-                          </span>
-                          <span className="font-mono font-medium">
-                            {formatCurrency(
-                              trialBalance.liabilities?.memberCapital || 0,
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground/70 uppercase">
-                          Equity
-                        </h4>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground flex items-center gap-2">
-                            <TrendingUp size={14} /> Retained Earnings
-                          </span>
-                          <span className="font-mono font-medium">
-                            {formatCurrency(
-                              trialBalance.equity?.retainedEarnings || 0,
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                  <div className="p-6 pt-4 border-t border-border/50 bg-muted/10 mt-auto">
-                    <div className="flex justify-between items-center">
-                      <span className="font-black text-sm">Total L & E</span>
-                      <span className="font-black font-mono text-indigo-600 dark:text-indigo-400">
-                        {formatCurrency(
-                          (trialBalance.liabilities?.totalLiabilities || 0) +
-                            (trialBalance.equity?.totalEquity || 0),
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                        <tr>
+                          <th className="px-6 py-3">Account Name</th>
+                          <th className="px-6 py-3">Category</th>
+                          <th className="px-6 py-3 text-right">Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/20">
+                        <tr className="hover:bg-muted/10 transition-colors">
+                          <td className="px-6 py-3 font-medium flex items-center gap-2">
+                            <Users size={14} className="text-muted-foreground" /> Member Current Accounts
+                          </td>
+                          <td className="px-6 py-3">
+                            <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                              Liability
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums font-medium">
+                            {formatCurrency(trialBalance.liabilities?.memberCapital || 0)}
+                          </td>
+                        </tr>
+                        {(trialBalance.liabilities?.memberSavingAccounts || 0) > 0 && (
+                          <tr className="hover:bg-muted/10 transition-colors">
+                            <td className="px-6 py-3 font-medium flex items-center gap-2">
+                              <Users size={14} className="text-muted-foreground" /> Member Saving Accounts
+                            </td>
+                            <td className="px-6 py-3">
+                              <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                                Liability
+                              </span>
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium">
+                              {formatCurrency(trialBalance.liabilities.memberSavingAccounts)}
+                            </td>
+                          </tr>
                         )}
-                      </span>
-                    </div>
+                        {(trialBalance.liabilities?.memberShareCapital || 0) > 0 && (
+                          <tr className="hover:bg-muted/10 transition-colors">
+                            <td className="px-6 py-3 font-medium flex items-center gap-2">
+                              <Users size={14} className="text-muted-foreground" /> Member Share Capital
+                            </td>
+                            <td className="px-6 py-3">
+                              <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                                Liability
+                              </span>
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium">
+                              {formatCurrency(trialBalance.liabilities.memberShareCapital)}
+                            </td>
+                          </tr>
+                        )}
+                        <tr className="hover:bg-muted/10 transition-colors">
+                          <td className="px-6 py-3 font-medium flex items-center gap-2">
+                            <TrendingUp size={14} className="text-muted-foreground" /> Retained Earnings
+                          </td>
+                          <td className="px-6 py-3">
+                            <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
+                              Equity
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums font-medium">
+                            {formatCurrency(trialBalance.equity?.retainedEarnings || 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <div className="text-center py-12 bg-card rounded-3xl border border-border/50 text-muted-foreground">
@@ -2023,179 +2290,293 @@ const Reports = () => {
         </div>
       ) : activeTab === 'profit-loss' ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-3xl border border-border/50 shadow-sm">
-            <div>
-              <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-                <FileText className="text-indigo-500 w-5 h-5" /> Profit & Loss
-                Statement
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Income and expenses over a specific period.
-              </p>
-            </div>
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/25">
+                    <FileText size={20} className="text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-base font-black tracking-tight truncate">
+                      Profit & Loss Statement
+                    </h2>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5">
+                      Income and expenses over a specific period
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <DateRangePicker
-                date={dateRange}
-                setDate={setDateRange}
-                className="w-full sm:w-auto"
-              />
-              <Button
-                onClick={() => exportAdvancedPDF('pnl')}
-                isLoading={isExporting}
-                disabled={loadingPnL || !pnl}
-                variant="outline"
-                className="flex items-center gap-2 px-5 py-2.5 bg-muted/50 hover:bg-muted border border-border/50 rounded-xl transition-colors font-semibold text-sm ml-auto"
-              >
-                <Download size={16} />
-                <span className="hidden sm:inline">Export PDF</span>
-              </Button>
-            </div>
-          </div>
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0">
+                  <DateRangePicker
+                    date={dateRange}
+                    setDate={setDateRange}
+                    className="w-full sm:w-auto"
+                  />
+                  <Button
+                    onClick={() => exportAdvancedPDF('pnl')}
+                    isLoading={isExporting}
+                    disabled={loadingPnL || !pnl}
+                    variant="outline"
+                    className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2 ml-auto shrink-0"
+                  >
+                    <Download size={14} />
+                    <span className="hidden sm:inline">Export PDF</span>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {loadingPnL ? (
-            <div className="p-8 bg-card/40 rounded-3xl border border-border/10">
-              <TableSkeleton rows={8} columns={2} />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <Skeleton className="w-16 h-16 rounded-full" />
+                    <div className="flex-1 space-y-3 text-center sm:text-left">
+                      <Skeleton className="h-7 w-48 rounded-xl mx-auto sm:mx-0" />
+                      <Skeleton className="h-4 w-36 rounded-lg mx-auto sm:mx-0" />
+                    </div>
+                    <Skeleton className="h-10 w-32 rounded-xl" />
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[0, 1, 2, 3].map((i) => (
+                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                    <CardHeader className="p-4 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="w-12 h-12 rounded-2xl" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-5 w-40 rounded-lg" />
+                          <Skeleton className="h-3 w-64 rounded-lg" />
+                        </div>
+                        <Skeleton className="h-8 w-24 rounded-full" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="px-6 py-3 space-y-3">
+                        {[0, 1].map((j) => (
+                          <div key={j} className="flex justify-between items-center">
+                            <Skeleton className="h-4 w-1/3 rounded-lg" />
+                            <Skeleton className="h-4 w-1/5 rounded-lg" />
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           ) : pnl ? (
-            <div className="bg-card/10 rounded-[2rem] border border-border/40 overflow-hidden p-1">
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <tbody>
-                  {/* REVENUE */}
-                  <tr className="bg-muted/30">
-                    <td
-                      colSpan={2}
-                      className="p-4 font-black text-xs uppercase tracking-widest text-muted-foreground"
-                    >
-                      Gross Revenue
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 pl-8 border-b border-border/50 text-foreground/80 flex items-center gap-2">
-                      <TrendingUp size={14} className="text-emerald-500" />{' '}
-                      Interest Earned
-                    </td>
-                    <td className="p-4 border-b border-border/50 text-right font-mono">
-                      {formatCurrency(pnl.revenue.interestEarned || 0)}
-                    </td>
-                  </tr>
-                  <tr className="bg-emerald-500/5">
-                    <td className="p-4 pl-8 font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                      Total Revenue
-                    </td>
-                    <td className="p-4 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                      {formatCurrency(pnl.revenue.totalRevenue || 0)}
-                    </td>
-                  </tr>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  {/* Gross Revenue Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/25">
+                            <TrendingUp size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Gross Revenue
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Income from interest and fees
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-emerald-600">
+                            {formatCurrency(pnl.revenue.totalRevenue || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Source</th>
+                              <th className="px-6 py-3 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <TrendingUp size={14} className="text-emerald-500" /> Interest Earned
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(pnl.revenue.interestEarned || 0)}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                  {/* EXPENSES */}
-                  <tr className="bg-muted/30">
-                    <td
-                      colSpan={2}
-                      className="p-4 font-black text-xs uppercase tracking-widest text-muted-foreground flex mt-4"
-                    >
-                      Operating Expenses
-                    </td>
-                  </tr>
-                  {Object.entries(pnl.expenses.breakdown || {}).length > 0 ? (
-                    Object.entries(pnl.expenses.breakdown).map(
-                      ([category, amount]) => (
-                        <tr key={category}>
-                          <td className="p-4 pl-8 border-b border-border/50 text-foreground/80 flex items-center gap-2 capitalize">
-                            <TrendingDown size={14} className="text-red-500" />{' '}
-                            {category}
-                          </td>
-                          <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatCurrency(amount)}
-                          </td>
-                        </tr>
-                      ),
-                    )
-                  ) : (
-                    <tr>
-                      <td className="p-4 pl-8 border-b border-border/50 text-muted-foreground italic text-xs">
-                        No expenses recorded in this period.
-                      </td>
-                      <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatCurrency(0)}
-                      </td>
-                    </tr>
-                  )}
-                  <tr className="bg-red-500/5">
-                    <td className="p-4 pl-8 font-black text-red-600 dark:text-red-400 flex items-center gap-2">
-                      Total Expenses
-                    </td>
-                    <td className="p-4 text-right font-mono font-black text-red-600 dark:text-red-400">
-                      {formatCurrency(pnl.expenses.totalExpenses || 0)}
-                    </td>
-                  </tr>
+                  {/* Operating Expenses Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/25">
+                            <TrendingDown size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Operating Expenses
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Business operating costs
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-rose-600">
+                            {formatCurrency(pnl.expenses.totalExpenses || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Category</th>
+                              <th className="px-6 py-3 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            {Object.entries(pnl.expenses.breakdown || {}).length > 0 ? (
+                              Object.entries(pnl.expenses.breakdown).map(([category, amount]) => (
+                                <tr key={category} className="hover:bg-muted/10 transition-colors">
+                                  <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
+                                    <TrendingDown size={14} className="text-rose-500" /> {category}
+                                  </td>
+                                  <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                    {formatCurrency(amount)}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={2} className="px-6 py-4 text-center text-muted-foreground italic text-xs">
+                                  No expenses recorded in this period.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                  {/* DISTRIBUTIONS */}
-                  <tr className="bg-muted/30">
-                    <td
-                      colSpan={2}
-                      className="p-4 font-black text-xs uppercase tracking-widest text-muted-foreground flex mt-4"
-                    >
-                      Profit Distributions
-                    </td>
-                  </tr>
-                  {Object.entries(pnl.distributions.breakdown || {}).length >
-                  0 ? (
-                    Object.entries(pnl.distributions.breakdown).map(
-                      ([type, amount]) => (
-                        <tr key={type}>
-                          <td className="p-4 pl-8 border-b border-border/50 text-foreground/80 flex items-center gap-2 capitalize">
-                            <TrendingDown
-                              size={14}
-                              className="text-amber-500"
-                            />{' '}
-                            {type} Profit
-                          </td>
-                          <td className="p-4 border-b border-border/50 text-right font-mono">
-                            {formatCurrency(amount)}
-                          </td>
-                        </tr>
-                      ),
-                    )
-                  ) : (
-                    <tr>
-                      <td className="p-4 pl-8 border-b border-border/50 text-muted-foreground italic text-xs">
-                        No distributions recorded in this period.
-                      </td>
-                      <td className="p-4 border-b border-border/50 text-right font-mono">
-                        {formatCurrency(0)}
-                      </td>
-                    </tr>
-                  )}
-                  <tr className="bg-amber-500/5">
-                    <td className="p-4 pl-8 font-black text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                      Total Distributions
-                    </td>
-                    <td className="p-4 text-right font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatCurrency(
-                        pnl.distributions.totalDistributions || 0,
-                      )}
-                    </td>
-                  </tr>
+                <div className="space-y-6">
+                  {/* Profit Distributions Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/25">
+                            <Users size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Profit Distributions
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Profits shared with members
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-amber-600">
+                            {formatCurrency(pnl.distributions.totalDistributions || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Type</th>
+                              <th className="px-6 py-3 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            {Object.entries(pnl.distributions.breakdown || {}).length > 0 ? (
+                              Object.entries(pnl.distributions.breakdown).map(([type, amount]) => (
+                                <tr key={type} className="hover:bg-muted/10 transition-colors">
+                                  <td className="px-6 py-3 font-medium flex items-center gap-2 capitalize">
+                                    <TrendingDown size={14} className="text-amber-500" /> {type} Profit
+                                  </td>
+                                  <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                    {formatCurrency(amount)}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={2} className="px-6 py-4 text-center text-muted-foreground italic text-xs">
+                                  No distributions recorded in this period.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                  {/* NET INCOME */}
-                  <tr
+                  {/* Net Income Card */}
+                  <Card
                     className={cn(
-                      'border-t-2 border-border',
+                      'border shadow-sm rounded-[2rem] overflow-hidden transition-all duration-500',
                       (pnl.netIncome || 0) >= 0
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-red-500 text-white',
+                        ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-emerald-600/5'
+                        : 'border-rose-500/30 bg-gradient-to-br from-rose-500/5 to-rose-600/5',
                     )}
                   >
-                    <td className="p-5 pl-8 font-black text-base flex items-center gap-2 mt-2 border-none">
-                      NET INCOME
-                    </td>
-                    <td className="p-5 text-right font-mono font-black text-lg border-none tracking-tight">
-                      {formatCurrency(pnl.netIncome || 0)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={cn(
+                            'w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-lg',
+                            (pnl.netIncome || 0) >= 0
+                              ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30'
+                              : 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-rose-500/30',
+                          )}
+                        >
+                          <DollarSign className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-black tracking-tight uppercase">Net Income</h2>
+                          <p className="text-xs text-muted-foreground font-medium mt-1">
+                            Final bottom line for the period
+                          </p>
+                        </div>
+                      </div>
+                      <div className={cn(
+                        "text-3xl font-black tabular-nums tracking-tight",
+                        (pnl.netIncome || 0) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                      )}>
+                        {formatCurrency(pnl.netIncome || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="text-center py-12 bg-card rounded-3xl border border-border/50 text-muted-foreground">
@@ -2205,22 +2586,28 @@ const Reports = () => {
         </div>
       ) : activeTab === 'balance-sheet' ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h2 className="text-xl font-black tracking-tight">
-                Balance Sheet
-              </h2>
-              <p className="text-xs text-muted-foreground font-medium mt-1">
-                Formal Assets = Liabilities + Equity statement
-                {balanceSheet?.generatedAt && (
-                  <span className="ml-2 text-muted-foreground/50">
-                    · Generated{' '}
-                    {new Date(balanceSheet.generatedAt).toLocaleString()}
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="flex gap-2">
+          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/25">
+                    <Landmark size={20} className="text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-base font-black tracking-tight truncate">
+                      Balance Sheet
+                    </h2>
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5">
+                      Formal Assets = Liabilities + Equity statement
+                      {balanceSheet?.generatedAt && (
+                        <span className="ml-2 text-muted-foreground/40">
+                          · {new Date(balanceSheet.generatedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
               <Button
                 onClick={() => {
                   if (!balanceSheet) return;
@@ -2488,31 +2875,82 @@ const Reports = () => {
                 }}
                 variant="outline"
                 disabled={!balanceSheet || isExporting}
-                className="rounded-full text-[10px] font-black uppercase tracking-widest px-4 min-h-9"
+                className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
               >
                 {isExporting ? (
-                  <Loader2 size={12} className="animate-spin mr-1" />
+                  <Loader2 size={12} className="animate-spin" />
                 ) : (
-                  <Download size={12} className="mr-1" />
+                  <Download size={12} />
                 )}
                 Export PDF
               </Button>
               <Button
                 onClick={fetchBalanceSheet}
                 variant="outline"
-                className="rounded-full text-[10px] font-black uppercase tracking-widest px-4 h-9"
+                className="rounded-full text-[10px] font-black uppercase tracking-widest px-5 h-9 gap-2"
               >
                 <Loader2
                   size={12}
-                  className={loadingBalanceSheet ? 'animate-spin mr-1' : 'mr-1'}
-                />{' '}
+                  className={loadingBalanceSheet ? 'animate-spin' : ''}
+                />
                 Refresh
               </Button>
-            </div>
-          </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {loadingBalanceSheet ? (
-            <TableSkeleton rows={12} columns={2} />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+              <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden">
+                    <CardContent className="p-4 sm:p-5 space-y-2">
+                      <Skeleton className="h-3 w-24 rounded-full" />
+                      <Skeleton className="h-7 w-32 rounded-lg" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[0, 1, 2].map((i) => (
+                  <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                    <CardHeader className="p-4 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="w-12 h-12 rounded-2xl" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-5 w-40 rounded-lg" />
+                          <Skeleton className="h-3 w-64 rounded-lg" />
+                        </div>
+                        <Skeleton className="h-8 w-24 rounded-full" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="px-6 py-3 space-y-3">
+                        {[0, 1, 2].map((j) => (
+                          <div key={j} className="flex justify-between items-center">
+                            <Skeleton className="h-4 w-1/3 rounded-lg" />
+                            <Skeleton className="h-4 w-1/5 rounded-lg" />
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <Skeleton className="w-16 h-16 rounded-full" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-7 w-56 rounded-xl" />
+                      <Skeleton className="h-4 w-72 rounded-lg" />
+                    </div>
+                    <Skeleton className="h-8 w-32 rounded-xl" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ) : balanceSheet ? (
             <>
               {/* Summary Cards */}
@@ -2521,7 +2959,7 @@ const Reports = () => {
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Total Assets
                   </p>
-                  <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                  <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
                   </p>
                 </div>
@@ -2529,7 +2967,7 @@ const Reports = () => {
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Total Liabilities
                   </p>
-                  <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400 font-mono">
+                  <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">
                     {formatCurrency(
                       balanceSheet.liabilities?.totalLiabilities || 0,
                     )}
@@ -2539,7 +2977,7 @@ const Reports = () => {
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Total Equity
                   </p>
-                  <p className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                  <p className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
                     {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
                   </p>
                 </div>
@@ -2549,7 +2987,7 @@ const Reports = () => {
                   </p>
                   <p
                     className={cn(
-                      'text-lg sm:text-xl font-black font-mono',
+                      'text-lg sm:text-xl font-black tabular-nums',
                       balanceSheet.balanceCheck?.isBalanced
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-amber-600 dark:text-amber-400',
@@ -2564,247 +3002,321 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* Detailed Table */}
-              <div className="overflow-hidden rounded-[2rem] border border-border/40 bg-card/10">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/50">
-                      <th className="text-left p-4 pl-6 text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        Account
-                      </th>
-                      <th className="text-right p-4 pr-6 text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* ══════ ASSETS ══════ */}
-                    <tr className="bg-emerald-500/5">
-                      <td
-                        colSpan={2}
-                        className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-emerald-600"
-                      >
-                        Assets
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80">
-                        Cash at Hand / Bank
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono">
-                        {formatCurrency(balanceSheet.assets?.cashAtHand || 0)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80">
-                        Loans Receivable
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono">
-                        {formatCurrency(
-                          balanceSheet.assets?.loansReceivable || 0,
-                        )}
-                      </td>
-                    </tr>
-                    {balanceSheet.assets?.termDepositsHeld > 0 && (
-                      <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                        <td className="p-3 pl-10 text-foreground/80">
-                          Term Deposits Held
-                        </td>
-                        <td className="p-3 pr-6 text-right font-mono">
-                          {formatCurrency(balanceSheet.assets.termDepositsHeld)}
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="bg-emerald-500/10 font-black">
-                      <td className="p-4 pl-6 text-emerald-700 dark:text-emerald-400">
-                        Total Assets
-                      </td>
-                      <td className="p-4 pr-6 text-right font-mono text-emerald-700 dark:text-emerald-400">
-                        {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
-                      </td>
-                    </tr>
+              {/* Detailed Tables */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div className="space-y-6">
+                  {/* Assets Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col h-full">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/25">
+                            <Banknote size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Assets
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Resources owned
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-emerald-600">
+                            {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-1">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Account</th>
+                              <th className="px-6 py-3 text-right">Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <Landmark size={14} className="text-muted-foreground" /> Cash at Hand / Bank
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(balanceSheet.assets?.cashAtHand || 0)}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <DollarSign size={14} className="text-muted-foreground" /> Loans Receivable
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(balanceSheet.assets?.loansReceivable || 0)}
+                              </td>
+                            </tr>
+                            {balanceSheet.assets?.termDepositsHeld > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                  <ShieldCheck size={14} className="text-muted-foreground" /> Term Deposits Held
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                  {formatCurrency(balanceSheet.assets.termDepositsHeld)}
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                    {/* ══════ LIABILITIES ══════ */}
-                    <tr className="bg-rose-500/5">
-                      <td
-                        colSpan={2}
-                        className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-rose-600"
-                      >
-                        Liabilities
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80">
-                        Member Current Accounts
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono">
-                        {formatCurrency(
-                          balanceSheet.liabilities?.memberCurrentAccounts || 0,
-                        )}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80">
-                        Member Saving Accounts
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono">
-                        {formatCurrency(
-                          balanceSheet.liabilities?.memberSavingAccounts || 0,
-                        )}
-                      </td>
-                    </tr>
-                    {balanceSheet.liabilities?.memberShareCapital > 0 && (
-                      <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                        <td className="p-3 pl-10 text-foreground/80">
-                          Member Share Capital
-                        </td>
-                        <td className="p-3 pr-6 text-right font-mono">
-                          {formatCurrency(
-                            balanceSheet.liabilities.memberShareCapital,
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                    {balanceSheet.liabilities?.termDepositObligations > 0 && (
-                      <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                        <td className="p-3 pl-10 text-foreground/80">
-                          Term Deposit Obligations
-                        </td>
-                        <td className="p-3 pr-6 text-right font-mono">
-                          {formatCurrency(
-                            balanceSheet.liabilities.termDepositObligations,
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="bg-rose-500/10 font-black">
-                      <td className="p-4 pl-6 text-rose-700 dark:text-rose-400">
-                        Total Liabilities
-                      </td>
-                      <td className="p-4 pr-6 text-right font-mono text-rose-700 dark:text-rose-400">
-                        {formatCurrency(
-                          balanceSheet.liabilities?.totalLiabilities || 0,
-                        )}
-                      </td>
-                    </tr>
+                <div className="space-y-6">
+                  {/* Liabilities Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/25">
+                            <ArrowRightLeft size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Liabilities
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Obligations owed
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-rose-600">
+                            {formatCurrency(balanceSheet.liabilities?.totalLiabilities || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Account</th>
+                              <th className="px-6 py-3 text-right">Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <Users size={14} className="text-muted-foreground" /> Member Current Accounts
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(balanceSheet.liabilities?.memberCurrentAccounts || 0)}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <Activity size={14} className="text-muted-foreground" /> Member Saving Accounts
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(balanceSheet.liabilities?.memberSavingAccounts || 0)}
+                              </td>
+                            </tr>
+                            {balanceSheet.liabilities?.memberShareCapital > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                  <Layers size={14} className="text-muted-foreground" /> Member Share Capital
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                  {formatCurrency(balanceSheet.liabilities.memberShareCapital)}
+                                </td>
+                              </tr>
+                            )}
+                            {balanceSheet.liabilities?.termDepositObligations > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                  <Clock size={14} className="text-muted-foreground" /> Term Deposit Obligations
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                  {formatCurrency(balanceSheet.liabilities.termDepositObligations)}
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                    {/* ══════ EQUITY ══════ */}
-                    <tr className="bg-indigo-500/5">
-                      <td
-                        colSpan={2}
-                        className="p-4 pl-6 font-black text-xs uppercase tracking-widest text-indigo-600"
-                      >
-                        Equity
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80">
-                        Interest Earned
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono text-emerald-600">
-                        {formatCurrency(
-                          balanceSheet.equity?.interestEarned || 0,
-                        )}
-                      </td>
-                    </tr>
-                    {balanceSheet.equity?.feeIncome > 0 && (
-                      <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                        <td className="p-3 pl-10 text-foreground/80">
-                          Fee Income
-                        </td>
-                        <td className="p-3 pr-6 text-right font-mono text-emerald-600">
-                          {formatCurrency(balanceSheet.equity.feeIncome)}
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80 italic">
-                        Less: Profit Distributed
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono text-rose-500">
-                        (
-                        {formatCurrency(
-                          balanceSheet.equity?.profitDistributed || 0,
-                        )}
-                        )
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 hover:bg-muted/5 transition-colors">
-                      <td className="p-3 pl-10 text-foreground/80 italic">
-                        Less: Operating Expenses
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono text-rose-500">
-                        (
-                        {formatCurrency(
-                          balanceSheet.equity?.operatingExpenses || 0,
-                        )}
-                        )
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border/30 bg-indigo-500/5">
-                      <td className="p-3 pl-10 font-bold text-foreground/90">
-                        Retained Earnings
-                      </td>
-                      <td className="p-3 pr-6 text-right font-mono font-bold">
-                        {formatCurrency(
-                          balanceSheet.equity?.retainedEarnings || 0,
-                        )}
-                      </td>
-                    </tr>
-                    <tr className="bg-indigo-500/10 font-black">
-                      <td className="p-4 pl-6 text-indigo-700 dark:text-indigo-400">
-                        Total Equity
-                      </td>
-                      <td className="p-4 pr-6 text-right font-mono text-indigo-700 dark:text-indigo-400">
-                        {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
-                      </td>
-                    </tr>
+                  {/* Equity Card */}
+                  <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
+                    <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/25">
+                            <TrendingUp size={20} className="text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <CardTitle className="text-base font-black tracking-tight truncate">
+                              Equity
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                              Retained earnings and capital
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="tabular-nums font-black text-lg text-indigo-600">
+                            {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
+                            <tr>
+                              <th className="px-6 py-3">Account</th>
+                              <th className="px-6 py-3 text-right">Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <TrendingUp size={14} className="text-emerald-500" /> Interest Earned
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-600">
+                                {formatCurrency(balanceSheet.equity?.interestEarned || 0)}
+                              </td>
+                            </tr>
+                            {balanceSheet.equity?.feeIncome > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                  <DollarSign size={14} className="text-emerald-500" /> Fee Income
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-600">
+                                  {formatCurrency(balanceSheet.equity.feeIncome)}
+                                </td>
+                              </tr>
+                            )}
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
+                                <TrendingDown size={14} className="text-rose-500" /> Less: Profit Distributed
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                                ({formatCurrency(balanceSheet.equity?.profitDistributed || 0)})
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
+                                <TrendingDown size={14} className="text-rose-500" /> Less: Operating Expenses
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                                ({formatCurrency(balanceSheet.equity?.operatingExpenses || 0)})
+                              </td>
+                            </tr>
+                            {balanceSheet.equity?.savingProfitDistributed > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
+                                  <TrendingDown size={14} className="text-rose-500" /> Less: Saving Profit Paid
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                                  ({formatCurrency(balanceSheet.equity.savingProfitDistributed)})
+                                </td>
+                              </tr>
+                            )}
+                            {balanceSheet.equity?.shareProfitDistributed > 0 && (
+                              <tr className="hover:bg-muted/10 transition-colors">
+                                <td className="px-6 py-3 font-medium flex items-center gap-2 italic text-muted-foreground">
+                                  <TrendingDown size={14} className="text-rose-500" /> Less: Share Profit Paid
+                                </td>
+                                <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
+                                  ({formatCurrency(balanceSheet.equity.shareProfitDistributed)})
+                                </td>
+                              </tr>
+                            )}
+                            <tr className="bg-indigo-500/5">
+                              <td className="px-6 py-3 font-black text-foreground/90 flex items-center gap-2">
+                                Retained Earnings
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-black">
+                                {formatCurrency(balanceSheet.equity?.retainedEarnings || 0)}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
 
-                    {/* ══════ BALANCE VERIFICATION ══════ */}
-                    <tr
+              {/* Balance Verification Card */}
+              <Card
+                className={cn(
+                  'border shadow-sm rounded-[2rem] overflow-hidden transition-all duration-500 mt-6',
+                  balanceSheet.balanceCheck?.isBalanced
+                    ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/10'
+                    : 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-amber-500/10',
+                )}
+              >
+                <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div
                       className={cn(
-                        'border-t-2 border-border',
+                        'w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-lg',
                         balanceSheet.balanceCheck?.isBalanced
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-amber-500 text-white',
+                          ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30'
+                          : 'bg-gradient-to-br from-rose-500 to-amber-500 shadow-rose-500/30',
                       )}
                     >
-                      <td className="p-5 pl-6 font-black text-base">
-                        Balance Check (A = L + E)
-                      </td>
-                      <td className="p-5 pr-6 text-right font-mono font-black text-lg">
-                        {balanceSheet.balanceCheck?.isBalanced ? (
-                          <span className="flex items-center justify-end gap-2">
-                            <ShieldCheck size={18} />
-                            Balanced
-                          </span>
-                        ) : (
-                          <span>
-                            Discrepancy:{' '}
-                            {formatCurrency(
-                              balanceSheet.balanceCheck?.discrepancy || 0,
-                            )}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                      {balanceSheet.balanceCheck?.isBalanced ? (
+                        <ShieldCheck className="w-8 h-8 text-white" />
+                      ) : (
+                        <AlertTriangle className="w-8 h-8 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black tracking-tight uppercase">Balance Check (A = L + E)</h2>
+                      <p className="text-xs text-muted-foreground font-medium mt-1">
+                        {balanceSheet.balanceCheck?.isBalanced
+                          ? 'Assets perfectly match Liabilities + Equity'
+                          : 'Discrepancy detected between Assets and L+E'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "text-2xl font-black tabular-nums tracking-tight",
+                    balanceSheet.balanceCheck?.isBalanced ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                  )}>
+                    {balanceSheet.balanceCheck?.isBalanced ? (
+                      <span className="flex items-center justify-end gap-2">
+                        BALANCED
+                      </span>
+                    ) : (
+                      <span className="flex flex-col items-end">
+                        Discrepancy: {formatCurrency(balanceSheet.balanceCheck?.discrepancy || 0)}
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Equation Footer */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground font-medium py-2">
-                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                <span className="tabular-nums text-emerald-600 dark:text-emerald-400 font-bold">
                   {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
                 </span>
                 <span className="text-muted-foreground/50">=</span>
-                <span className="font-mono text-rose-600 dark:text-rose-400 font-bold">
+                <span className="tabular-nums text-rose-600 dark:text-rose-400 font-bold">
                   {formatCurrency(
                     balanceSheet.liabilities?.totalLiabilities || 0,
                   )}
                 </span>
                 <span className="text-muted-foreground/50">+</span>
-                <span className="font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+                <span className="tabular-nums text-indigo-600 dark:text-indigo-400 font-bold">
                   {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
                 </span>
                 <span className="text-muted-foreground/40 ml-1">

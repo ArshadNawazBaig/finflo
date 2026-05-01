@@ -480,13 +480,13 @@ const getTrialBalance = async (req, res) => {
     const loans = await Loan.find({ ...query, status: { $ne: 'rejected' } });
     const members = await Member.find(query);
     const transactions = await FinancialTransaction.find(query);
-    const repayments = await Repayment.find(query);
 
     const loansReceivable = loans.reduce(
       (sum, loan) => sum + (loan.remainingAmount || 0),
       0,
     );
 
+    // Current account cash flows
     const totalDeposits = members.reduce(
       (sum, m) => sum + (m.totalInvested || 0),
       0,
@@ -495,6 +495,15 @@ const getTrialBalance = async (req, res) => {
       (sum, m) => sum + (m.totalWithdrawn || 0),
       0,
     );
+
+    // Saving account cash flows
+    const totalSavingDeposited = members.reduce((sum, m) => sum + (m.totalSavingDeposited || 0), 0);
+    const totalSavingWithdrawn = members.reduce((sum, m) => sum + (m.totalSavingWithdrawn || 0), 0);
+
+    // Share account cash flows
+    const totalShareInvested = members.reduce((sum, m) => sum + (m.totalShareInvested || 0), 0);
+
+    // Loan cash flows
     const totalRepaid = loans.reduce((sum, m) => sum + (m.paidAmount || 0), 0);
     const totalDisbursed = loans.reduce(
       (sum, l) => sum + (l.principal || 0),
@@ -504,20 +513,27 @@ const getTrialBalance = async (req, res) => {
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const cashAtHand =
-      totalDeposits -
-      totalWithdrawn +
-      totalRepaid -
-      totalDisbursed -
-      totalExpenses;
+    // Fee income
+    const feeIncome = transactions
+      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const cashAtHand = totalDeposits - totalWithdrawn
+      + totalSavingDeposited - totalSavingWithdrawn
+      + totalShareInvested
+      + totalRepaid - totalDisbursed
+      - totalExpenses
+      + feeIncome;
     const totalAssets = loansReceivable + cashAtHand;
 
     // 2. Liabilities
-    const memberCapital = members.reduce(
+    const memberCurrentBalance = members.reduce(
       (sum, m) => sum + (m.currentBalance || 0),
       0,
     );
-    const totalLiabilities = memberCapital;
+    const memberSavingBalance = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
+    const memberShareBalance = members.reduce((sum, m) => sum + (m.shareBalance || 0), 0);
+    const totalLiabilities = memberCurrentBalance + memberSavingBalance + memberShareBalance;
 
     // 3. Equity / Retained Earnings
     const calculateProfit = (repaymentsList) => {
@@ -550,8 +566,14 @@ const getTrialBalance = async (req, res) => {
       0,
     );
 
-    const retainedEarnings =
-      totalInterestEarned - totalDistributed - totalExpenses;
+    // Saving/share profit distributions
+    const totalSavingProfitDistributed = members.reduce((sum, m) => sum + (m.totalSavingProfit || 0), 0);
+    const totalShareProfitDistributed = members.reduce((sum, m) => sum + (m.totalShareProfit || 0), 0);
+
+    const retainedEarnings = totalInterestEarned + feeIncome
+      - totalDistributed - totalExpenses
+      - totalSavingProfitDistributed
+      - totalShareProfitDistributed;
     const totalEquity = retainedEarnings;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
@@ -563,7 +585,9 @@ const getTrialBalance = async (req, res) => {
         totalAssets: Math.round(totalAssets),
       },
       liabilities: {
-        memberCapital: Math.round(memberCapital),
+        memberCapital: Math.round(memberCurrentBalance),
+        memberSavingAccounts: Math.round(memberSavingBalance),
+        memberShareCapital: Math.round(memberShareBalance),
         totalLiabilities: Math.round(totalLiabilities),
       },
       equity: {
@@ -854,19 +878,42 @@ const getBalanceSheet = async (req, res) => {
     // ══════ ASSETS ══════
     const loansReceivable = loans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
 
+    // Current account cash flows
     const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
     const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
+
+    // Saving account cash flows (Bug Fix #1: these were missing from cashAtHand)
+    const totalSavingDeposited = members.reduce((sum, m) => sum + (m.totalSavingDeposited || 0), 0);
+    const totalSavingWithdrawn = members.reduce((sum, m) => sum + (m.totalSavingWithdrawn || 0), 0);
+
+    // Share account cash flows (Bug Fix #1: these were missing from cashAtHand)
+    const totalShareInvested = members.reduce((sum, m) => sum + (m.totalShareInvested || 0), 0);
+
+    // Loan cash flows
     const totalRepaid = loans.reduce((sum, l) => sum + (l.paidAmount || 0), 0);
     const totalDisbursed = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
+
+    // Operating expenses
     const totalExpenses = transactions
       .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // Fee income (checkbook, late fees, etc.)
+    const feeIncome = transactions
+      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const termDepositAssets = activeTermDeposits.reduce(
       (sum, td) => sum + (td.principal || 0), 0,
     );
 
-    const cashAtHand = totalDeposits - totalWithdrawn + totalRepaid - totalDisbursed - totalExpenses;
+    // Complete cash position: all inflows minus all outflows
+    const cashAtHand = totalDeposits - totalWithdrawn
+      + totalSavingDeposited - totalSavingWithdrawn   // Bug Fix #1
+      + totalShareInvested                             // Bug Fix #1
+      + totalRepaid - totalDisbursed
+      - totalExpenses
+      + feeIncome;                                     // Bug Fix #2
 
     const totalAssets = loansReceivable + cashAtHand + termDepositAssets;
 
@@ -896,12 +943,21 @@ const getBalanceSheet = async (req, res) => {
     const distributions = await ProfitDistribution.find(query);
     const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
 
-    // Fee income (checkbook, late fees, etc.)
-    const feeIncome = transactions
-      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Bug Fix #3: Saving/share profit distributions increase liabilities (member balances)
+    // without new cash inflow — they must be deducted from equity to keep A = L + E
+    const totalSavingProfitDistributed = members.reduce((sum, m) => sum + (m.totalSavingProfit || 0), 0);
+    const totalShareProfitDistributed = members.reduce((sum, m) => sum + (m.totalShareProfit || 0), 0);
 
-    const retainedEarnings = totalInterestEarned + feeIncome - totalDistributed - totalExpenses;
+    // Term deposit projected profit is an obligation (liability) that also needs equity offset
+    const termDepositProfitObligation = activeTermDeposits.reduce(
+      (sum, td) => sum + (td.projectedProfit || 0), 0,
+    );
+
+    const retainedEarnings = totalInterestEarned + feeIncome
+      - totalDistributed - totalExpenses
+      - totalSavingProfitDistributed   // Bug Fix #3
+      - totalShareProfitDistributed    // Bug Fix #3
+      - termDepositProfitObligation;   // Term deposit profit owed
     const totalEquity = retainedEarnings;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
@@ -925,6 +981,8 @@ const getBalanceSheet = async (req, res) => {
         interestEarned: Math.round(totalInterestEarned),
         feeIncome: Math.round(feeIncome),
         profitDistributed: Math.round(totalDistributed),
+        savingProfitDistributed: Math.round(totalSavingProfitDistributed),
+        shareProfitDistributed: Math.round(totalShareProfitDistributed),
         operatingExpenses: Math.round(totalExpenses),
         retainedEarnings: Math.round(retainedEarnings),
         totalEquity: Math.round(totalEquity),

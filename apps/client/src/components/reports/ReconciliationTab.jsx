@@ -425,16 +425,16 @@ const DiscrepancyRow = ({ d, checkKey }) => {
           </span>
         </td>
       )}
-      <td className="px-6 py-3 text-right font-mono text-sm font-medium">
+      <td className="px-6 py-3 text-right tabular-nums text-sm font-medium">
         {d.expected != null ? formatCurrency(d.expected) : '—'}
       </td>
-      <td className="px-6 py-3 text-right font-mono text-sm font-medium">
+      <td className="px-6 py-3 text-right tabular-nums text-sm font-medium">
         {d.actual != null ? formatCurrency(d.actual) : '—'}
       </td>
       <td className="px-6 py-3 text-right">
         <span
           className={cn(
-            'font-mono text-sm font-black',
+            'tabular-nums text-sm font-black',
             diff > 0 ? 'text-emerald-600' : 'text-rose-600',
           )}
         >
@@ -666,7 +666,7 @@ const ReconciliationTab = () => {
                   </span>
                 </div>
               </div>
-              <span className="text-lg font-black font-mono text-rose-600 dark:text-rose-400">
+              <span className="text-lg font-black tabular-nums text-rose-600 dark:text-rose-400">
                 {formatCurrency(summary.totalDiscrepancyAmount)}
               </span>
             </div>
