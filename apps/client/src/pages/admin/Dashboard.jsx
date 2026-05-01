@@ -1144,7 +1144,7 @@ const Dashboard = () => {
                   setCapitalAmount('');
                   setCapitalDescription('');
                 }}
-                className="flex-1 rounded-xl h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
+                className="flex-1 rounded-xl min-h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
               >
                 Cancel
               </Button>
@@ -1152,7 +1152,7 @@ const Dashboard = () => {
                 disabled={!capitalAmount || parseFloat(capitalAmount) <= 0}
                 onClick={handleCapitalSubmit}
                 className={cn(
-                  'flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transform transition-all active:scale-95 order-1 sm:order-2 gap-2 text-white',
+                  'flex-[1.5] rounded-xl min-h-12 font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transform transition-all active:scale-95 order-1 sm:order-2 gap-2 text-white',
                   capitalType === 'inject'
                     ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
                     : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/20',
