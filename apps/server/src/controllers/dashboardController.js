@@ -790,9 +790,16 @@ const addBusinessCapital = async (req, res) => {
     const sign = type === 'inject' ? 1 : -1;
     const newBalance = (owner.businessCapital || 0) + sign * amount;
 
+    // Determine branch context
+    let branchScope = undefined;
+    if (req.user.role === 'staff') {
+      branchScope = req.user.managedBranchId || req.user.branchId;
+    }
+
     // Create the FinancialTransaction
     await FinancialTransaction.create({
       user: ownerId,
+      branchId: branchScope,
       type: txnType,
       category: 'business_capital',
       amount,
