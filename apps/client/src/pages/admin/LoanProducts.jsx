@@ -141,119 +141,133 @@ const LoanProducts = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-muted/30">
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Product Name
-                  </th>
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Interest Rate
-                  </th>
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Duration
-                  </th>
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Type
-                  </th>
-                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    Status
-                  </th>
-                  {isAdmin && (
-                    <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">
-                      Actions
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/30">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <tr
-                      key={product._id}
-                      className="group hover:bg-muted/20 transition-all duration-300"
-                    >
-                      <td className="px-8 py-5">
-                        <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
-                          {product.name}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground font-medium mt-0.5 max-w-[200px] truncate">
-                          {product.description || 'No description'}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-1.5 text-emerald-500">
-                          <TrendingUp size={14} />
-                          <span className="text-sm font-black">
-                            {product.interestRate}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Clock size={14} />
-                          <span className="text-sm font-bold">
-                            {product.duration} Months
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 px-2.5 py-1 rounded-full">
-                          {product.interestType}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${product.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}
-                        >
-                          {product.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      {isAdmin && (
-                        <td className="px-8 py-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 rounded-lg border-border/50 hover:bg-primary/5 hover:text-primary"
-                              onClick={() => {
-                                setEditingProduct(product);
-                                setIsModalOpen(true);
-                              }}
-                            >
-                              <Edit size={14} />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-8 w-8 rounded-lg border-border/50 hover:bg-rose-500/5 hover:text-rose-500"
-                              onClick={() => setDeleteProduct(product)}
-                            >
-                              <Trash2 size={14} />
-                            </Button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={isAdmin ? 6 : 5}
-                      className="px-8 py-12 text-center"
-                    >
-                      <div className="flex flex-col items-center justify-center opacity-30">
-                        <AlertCircle size={48} className="mb-4" />
-                        <p className="text-xs font-black uppercase tracking-widest">
-                          No loan products found
-                        </p>
+          <div className="space-y-3">
+            {/* Desktop Header */}
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-4 bg-muted/30 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+              <div className="col-span-3">Product Name</div>
+              <div className="col-span-2">Interest Rate</div>
+              <div className="col-span-2">Duration</div>
+              <div className="col-span-2">Type</div>
+              <div className="col-span-2">Status</div>
+              {isAdmin && <div className="col-span-1 text-right">Actions</div>}
+            </div>
+
+            <div className="space-y-3 lg:space-y-0 lg:divide-y lg:divide-border/30 px-4 pb-4 lg:px-0 lg:pb-0 pt-4 lg:pt-0">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <div
+                    key={product._id}
+                    className="group flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4 p-5 lg:px-8 lg:py-5 rounded-2xl lg:rounded-none bg-muted/5 lg:bg-transparent border border-border/30 lg:border-transparent hover:bg-muted/20 transition-all duration-300"
+                  >
+                    {/* Mobile Header: Name & Status */}
+                    <div className="flex lg:hidden items-center justify-between border-b border-border/10 pb-3 mb-2">
+                      <div className="text-sm font-black capitalize tracking-tight text-primary">
+                        {product.name}
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${product.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}
+                      >
+                        {product.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    {/* Desktop Name */}
+                    <div className="hidden lg:flex flex-col col-span-3 justify-center">
+                      <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
+                        {product.name}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-medium mt-0.5 max-w-[200px] truncate">
+                        {product.description || 'No description'}
+                      </div>
+                    </div>
+
+                    {/* Mobile Description */}
+                    <div className="lg:hidden text-xs text-muted-foreground font-medium mb-2">
+                      {product.description || 'No description'}
+                    </div>
+
+                    {/* Interest Rate */}
+                    <div className="flex items-center justify-between lg:justify-start col-span-2">
+                      <span className="lg:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Interest Rate
+                      </span>
+                      <div className="flex items-center gap-1.5 text-emerald-500">
+                        <TrendingUp size={14} />
+                        <span className="text-sm font-black">
+                          {product.interestRate}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div className="flex items-center justify-between lg:justify-start col-span-2">
+                      <span className="lg:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Duration
+                      </span>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock size={14} />
+                        <span className="text-sm font-bold">
+                          {product.duration} Months
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Type */}
+                    <div className="flex items-center justify-between lg:justify-start col-span-2">
+                      <span className="lg:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Type
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 px-2.5 py-1 rounded-full">
+                        {product.interestType}
+                      </span>
+                    </div>
+
+                    {/* Desktop Status */}
+                    <div className="hidden lg:flex items-center col-span-2">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${product.isActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}
+                      >
+                        {product.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    {isAdmin && (
+                      <div className="flex items-center justify-end lg:justify-end col-span-1 mt-3 lg:mt-0 pt-3 lg:pt-0 border-t border-border/10 lg:border-transparent">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg border-border/50 hover:bg-primary/5 hover:text-primary"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            <Edit size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg border-border/50 hover:bg-rose-500/5 hover:text-rose-500"
+                            onClick={() => setDeleteProduct(product)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center flex flex-col items-center justify-center opacity-30">
+                  <AlertCircle size={48} className="mb-4" />
+                  <p className="text-xs font-black uppercase tracking-widest">
+                    No loan products found
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

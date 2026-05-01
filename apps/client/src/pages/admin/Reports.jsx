@@ -2143,7 +2143,7 @@ const Reports = () => {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0 w-full sm:w-fit">
                       <div className="text-center p-3 rounded-2xl bg-background/60 border border-border/40">
                         <div className="text-xl font-black text-emerald-600">
                           {formatCompactValue(
