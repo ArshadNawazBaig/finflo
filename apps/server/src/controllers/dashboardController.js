@@ -1,6 +1,7 @@
 const Loan = require('../models/Loan');
 const Repayment = require('../models/Repayment');
 const Customer = require('../models/Customer');
+const User = require('../models/User');
 const {
   calculatePercentageChange,
   getMonthDates,
@@ -578,6 +579,10 @@ const getDashboardStats = async (req, res) => {
       totalLast6MonthsActual,
     );
 
+    // Fetch business capital from User model
+    const ownerUser = await User.findById(req.user.effectiveOwnerId).select('businessCapital');
+    const businessCapital = ownerUser?.businessCapital || 0;
+
     res.json({
       success: true,
       stats: {
@@ -608,6 +613,7 @@ const getDashboardStats = async (req, res) => {
           liquidity: netLiquidity,
           expenses: totalExpenses,
         },
+        businessCapital,
       },
       recentTransactions,
       analyticsData: [...monthlyHistory, ...forecastHistory],
@@ -754,4 +760,101 @@ const downloadStatement = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardStats, downloadStatement };
+// ── Business Capital Management ─────────────────────────────────────────────
+const addBusinessCapital = async (req, res) => {
+  try {
+    const { amount, type, description, paymentMethod = 'cash' } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Amount must be greater than zero' });
+    }
+    if (!type || !['inject', 'withdraw'].includes(type)) {
+      return res.status(400).json({ message: 'Type must be "inject" or "withdraw"' });
+    }
+
+    const ownerId = req.user.effectiveOwnerId;
+    const owner = await User.findById(ownerId);
+    if (!owner) {
+      return res.status(404).json({ message: 'Business owner not found' });
+    }
+
+    // Prevent negative balance on withdrawal
+    if (type === 'withdraw' && (owner.businessCapital || 0) < amount) {
+      return res.status(400).json({
+        message: `Insufficient capital. Available: ${owner.businessCapital || 0}`,
+      });
+    }
+
+    // Determine transaction type (income for inject, expense for withdraw)
+    const txnType = type === 'inject' ? 'income' : 'expense';
+    const sign = type === 'inject' ? 1 : -1;
+    const newBalance = (owner.businessCapital || 0) + sign * amount;
+
+    // Create the FinancialTransaction
+    await FinancialTransaction.create({
+      user: ownerId,
+      type: txnType,
+      category: 'business_capital',
+      amount,
+      description: description || (type === 'inject' ? 'Capital injection' : 'Capital withdrawal'),
+      paymentMethod,
+      date: new Date(),
+    });
+
+    // Update the cached balance on the User model
+    owner.businessCapital = newBalance;
+    await owner.save();
+
+    res.json({
+      success: true,
+      message: type === 'inject'
+        ? `${amount} capital injected successfully`
+        : `${amount} capital withdrawn successfully`,
+      businessCapital: newBalance,
+    });
+  } catch (error) {
+    console.error('Business Capital Error:', error);
+    res.status(500).json({ message: 'Failed to process capital transaction' });
+  }
+};
+
+const getCapitalHistory = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const ownerId = req.user.effectiveOwnerId;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const query = {
+      user: ownerId,
+      category: 'business_capital',
+    };
+
+    const [transactions, total] = await Promise.all([
+      FinancialTransaction.find(query)
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      FinancialTransaction.countDocuments(query),
+    ]);
+
+    // Fetch current balance
+    const owner = await User.findById(ownerId).select('businessCapital');
+
+    res.json({
+      success: true,
+      data: transactions,
+      businessCapital: owner?.businessCapital || 0,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Capital History Error:', error);
+    res.status(500).json({ message: 'Failed to fetch capital history' });
+  }
+};
+
+module.exports = { getDashboardStats, downloadStatement, addBusinessCapital, getCapitalHistory };

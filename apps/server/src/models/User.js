@@ -82,6 +82,7 @@ const userSchema = new mongoose.Schema(
     plan: { type: String, enum: ['Free', 'Basic', 'Pro'], default: 'Free' },
     customerCount: { type: Number, default: 0 },
     savingProfitRate: { type: Number, default: 0, min: 0, max: 100 }, // Annual profit rate % for saving accounts
+    businessCapital: { type: Number, default: 0 }, // Owner's equity / capital balance
 
     // ── Per-Business Configurations ──────────────────────────────────
     // Checkbook – per-leaf pricing

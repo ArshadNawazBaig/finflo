@@ -12,6 +12,12 @@ import {
   ArrowUpRight,
   BarChart3,
   FileText,
+  Landmark,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Loader2,
+  Banknote,
+  Wallet,
 } from 'lucide-react';
 import { subMonths } from 'date-fns';
 import {
@@ -47,6 +53,13 @@ import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import usePermissions from '@/hooks/usePermissions';
 import ActivityFeed from '@/components/ActivityFeed';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 const RISK_COLORS = {
   'A+': '#10b981',
@@ -123,6 +136,16 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { hasPermission, hasAnyPermission } = usePermissions();
 
+  // ── Capital Modal State ────────────────────────────
+  const [showCapitalModal, setShowCapitalModal] = useState(false);
+  const [capitalType, setCapitalType] = useState('inject');
+  const [capitalAmount, setCapitalAmount] = useState('');
+  const [capitalDescription, setCapitalDescription] = useState('');
+  const [capitalPaymentMethod, setCapitalPaymentMethod] = useState('cash');
+  const [capitalProcessing, setCapitalProcessing] = useState(false);
+  const [capitalHistory, setCapitalHistory] = useState([]);
+  const [capitalHistoryLoading, setCapitalHistoryLoading] = useState(false);
+
   const canViewReports = hasPermission('view_reports');
   const canManageLoans = hasAnyPermission(['manage_loans', 'create_loan']);
   const canViewDashboard = hasAnyPermission([
@@ -137,6 +160,43 @@ const Dashboard = () => {
       hasPermission(a.permission) ||
       (a.altPermission && hasPermission(a.altPermission)),
   );
+
+  // ── Capital Handlers ──────────────────────────────
+  const fetchCapitalHistory = async () => {
+    setCapitalHistoryLoading(true);
+    try {
+      const { data } = await api.get('/dashboard/capital-history', { params: { limit: 5 } });
+      setCapitalHistory(data.data || []);
+    } catch {
+      // ignore
+    } finally {
+      setCapitalHistoryLoading(false);
+    }
+  };
+
+  const handleCapitalSubmit = async () => {
+    const amt = parseFloat(capitalAmount);
+    if (!amt || amt <= 0) return toast.error('Enter a valid amount');
+    setCapitalProcessing(true);
+    try {
+      const { data } = await api.post('/dashboard/capital', {
+        amount: amt,
+        type: capitalType,
+        description: capitalDescription || undefined,
+        paymentMethod: capitalPaymentMethod,
+      });
+      toast.success(data.message);
+      setCapitalAmount('');
+      setCapitalDescription('');
+      setShowCapitalModal(false);
+      // Refresh stats
+      fetchDashboardData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Capital transaction failed');
+    } finally {
+      setCapitalProcessing(false);
+    }
+  };
 
   const fetchDashboardData = async (isInitial = false) => {
     try {
@@ -239,6 +299,20 @@ const Dashboard = () => {
             </strong>
             . Here&apos;s your portfolio performance.
           </>
+        }
+        action={
+          canViewReports ? (
+            <Button
+              onClick={() => {
+                setShowCapitalModal(true);
+                fetchCapitalHistory();
+              }}
+              className="rounded-2xl px-5 py-2.5 h-auto bg-teal-500 hover:bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-teal-500/20 gap-2"
+            >
+              <Landmark size={16} />
+              Add Capital
+            </Button>
+          ) : null
         }
       />
 
@@ -388,6 +462,16 @@ const Dashboard = () => {
               subtitle="Available Cash"
               icon={<Coins size={20} />}
               color="bg-emerald-500 shadow-emerald-500/20"
+              sensitive
+            />
+          )}
+          {canViewReports && (
+            <StatsCard
+              title="Business Capital"
+              amount={formatCurrency(stats?.businessCapital || 0)}
+              subtitle="Owner's Equity"
+              icon={<Landmark size={20} />}
+              color="bg-teal-500 shadow-teal-500/20"
               sensitive
             />
           )}
@@ -819,6 +903,229 @@ const Dashboard = () => {
           )}
         </div>
       )}
+      {/* ── Business Capital Modal ──────────────────────────────── */}
+      <Dialog open={showCapitalModal} onOpenChange={setShowCapitalModal}>
+        <DialogContent className="sm:max-w-[520px] w-[95vw] rounded-[1.5rem] sm:rounded-[2.5rem] !p-0 border-none shadow-2xl overflow-hidden flex flex-col gap-0 bg-card">
+          {/* Gradient Header */}
+          <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 sm:p-10 text-white relative shrink-0">
+            <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-10">
+              <Landmark size={64} className="sm:w-20 sm:h-20" />
+            </div>
+            <DialogHeader className="relative z-10 text-left items-start">
+              <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter leading-none mb-2">
+                Business Capital
+              </DialogTitle>
+              <DialogDescription className="text-white/70 font-black uppercase tracking-[0.2em] text-[8px] sm:text-[10px]">
+                Manage Owner&apos;s Equity & Funds
+              </DialogDescription>
+            </DialogHeader>
+            {/* Balance Badge */}
+            <div className="mt-4 flex items-center gap-3">
+              <div className="px-4 py-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">Current Balance</p>
+                <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight">
+                  <SensitiveBalance iconSize={14}>{formatCurrency(stats?.businessCapital || 0)}</SensitiveBalance>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">
+              {/* Type Toggle */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Transaction Type
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCapitalType('inject')}
+                    className={cn(
+                      'relative overflow-hidden flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 transition-all duration-300 font-black text-xs uppercase tracking-widest',
+                      capitalType === 'inject'
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-lg shadow-emerald-500/10 scale-[1.02]'
+                        : 'border-border/40 text-muted-foreground hover:border-emerald-500/30 hover:bg-emerald-500/5',
+                    )}
+                  >
+                    <ArrowDownCircle size={18} />
+                    Inject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCapitalType('withdraw')}
+                    className={cn(
+                      'relative overflow-hidden flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 transition-all duration-300 font-black text-xs uppercase tracking-widest',
+                      capitalType === 'withdraw'
+                        ? 'border-orange-500 bg-orange-500/10 text-orange-600 shadow-lg shadow-orange-500/10 scale-[1.02]'
+                        : 'border-border/40 text-muted-foreground hover:border-orange-500/30 hover:bg-orange-500/5',
+                    )}
+                  >
+                    <ArrowUpCircle size={18} />
+                    Withdraw
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Amount
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <Banknote className={cn(
+                      'h-5 w-5 transition-colors',
+                      capitalType === 'inject' ? 'text-emerald-500' : 'text-orange-500',
+                    )} />
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    placeholder="0.00"
+                    value={capitalAmount}
+                    onChange={(e) => setCapitalAmount(e.target.value)}
+                    className="w-full h-14 sm:h-16 pl-14 pr-5 rounded-2xl border border-border/40 bg-muted/30 font-black text-lg sm:text-xl tabular-nums tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Description (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder={capitalType === 'inject' ? 'E.g. Owner equity injection, seed capital...' : 'E.g. Owner draw, business withdrawal...'}
+                  value={capitalDescription}
+                  onChange={(e) => setCapitalDescription(e.target.value)}
+                  className="w-full h-12 sm:h-14 px-5 rounded-2xl border border-border/40 bg-muted/30 font-bold text-sm tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+              </div>
+
+              {/* Payment Method */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCapitalPaymentMethod('cash')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
+                      capitalPaymentMethod === 'cash'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border/40 text-muted-foreground hover:border-primary/30',
+                    )}
+                  >
+                    <Wallet size={14} /> Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCapitalPaymentMethod('online')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
+                      capitalPaymentMethod === 'online'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
+                        : 'border-border/40 text-muted-foreground hover:border-blue-500/30',
+                    )}
+                  >
+                    <CreditCard size={14} /> Online
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Capital History */}
+              {capitalHistory.length > 0 && (
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                    Recent Capital Movements
+                  </label>
+                  <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
+                    {capitalHistory.map((txn) => (
+                      <div
+                        key={txn._id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/20"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'h-8 w-8 rounded-lg flex items-center justify-center',
+                            txn.type === 'income' ? 'bg-emerald-500/10' : 'bg-orange-500/10',
+                          )}>
+                            {txn.type === 'income'
+                              ? <ArrowDownCircle size={14} className="text-emerald-500" />
+                              : <ArrowUpCircle size={14} className="text-orange-500" />
+                            }
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold truncate max-w-[150px]">
+                              {txn.description || (txn.type === 'income' ? 'Capital Injection' : 'Capital Withdrawal')}
+                            </p>
+                            <p className="text-[9px] text-muted-foreground font-medium">
+                              {new Date(txn.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          'text-sm font-black tabular-nums',
+                          txn.type === 'income' ? 'text-emerald-600' : 'text-orange-600',
+                        )}>
+                          {txn.type === 'income' ? '+' : '-'}{formatCurrency(txn.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="px-6 sm:px-10 pb-6 sm:pb-8 shrink-0 mt-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCapitalModal(false);
+                  setCapitalAmount('');
+                  setCapitalDescription('');
+                }}
+                className="flex-1 rounded-xl h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!capitalAmount || parseFloat(capitalAmount) <= 0}
+                onClick={handleCapitalSubmit}
+                className={cn(
+                  'flex-[1.5] rounded-xl h-12 font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transform transition-all active:scale-95 order-1 sm:order-2 gap-2 text-white',
+                  capitalType === 'inject'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
+                    : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/20',
+                )}
+              >
+                {capitalProcessing ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : capitalType === 'inject' ? (
+                  <ArrowDownCircle size={14} />
+                ) : (
+                  <ArrowUpCircle size={14} />
+                )}
+                {capitalProcessing
+                  ? 'Processing...'
+                  : capitalType === 'inject'
+                    ? 'Inject Capital'
+                    : 'Withdraw Capital'
+                }
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -80,43 +80,51 @@ const PaymentSuccess = () => {
   }, []);
 
   return (
-    <div className="h-[85vh] w-full overflow-hidden flex items-center justify-center bg-background p-4">
-      <div className="max-w-md w-full text-center space-y-6 animate-in fade-in zoom-in duration-500">
-        <div className="relative inline-block">
-          <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl animate-pulse" />
-          <div className="relative bg-background p-4 rounded-full border border-border shadow-2xl">
-            <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+    <div className="min-h-[85vh] w-full flex items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-lg mx-auto flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-700 ease-out">
+        
+        {/* Elegant Icon */}
+        <div className="relative mb-8 flex items-center justify-center mt-4">
+          <div className="absolute w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl animate-pulse duration-3000" />
+          <div className="absolute w-24 h-24 bg-emerald-400/20 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]" />
+          <div className="relative w-20 h-20 bg-background border-2 border-emerald-100 dark:border-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+            <CheckCircle2 className="w-10 h-10" strokeWidth={2.5} />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-primary">
-            Payment Successful!
-          </h1>
-          <p className="text-muted-foreground text-sm font-medium">
-            Thank you for your purchase. Your account has been upgraded to{' '}
-            {planName}.
-          </p>
-        </div>
+        {/* Typography */}
+        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-foreground mb-4">
+          Payment <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Successful</span>
+        </h1>
+        
+        <p className="text-base text-muted-foreground max-w-sm mx-auto mb-10 font-medium leading-relaxed">
+          Thank you for your purchase. Your account is now on the <span className="text-foreground font-bold">{planName}</span> plan.
+        </p>
 
-        <div className="pt-6">
-          <Button
-            asChild
-            variant="gradient"
-            className="px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px]"
-          >
-            <Link to="/dashboard">
-              Go to Dashboard
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button 
+          asChild 
+          className="h-12 px-10 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300 mb-10"
+        >
+          <Link to="/dashboard">
+            Go to Dashboard
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Link>
+        </Button>
 
+        {/* Subtle Details */}
         {sessionId && (
-          <p className="text-[10px] text-muted-foreground font-mono opacity-50">
-            ID: {sessionId.slice(0, 8)}...
-          </p>
+          <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground opacity-60 font-medium">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Status: Completed
+            </div>
+            <p className="font-mono tracking-wider uppercase">
+              ID: {sessionId.slice(0, 16)}...
+            </p>
+          </div>
         )}
+
       </div>
     </div>
   );
