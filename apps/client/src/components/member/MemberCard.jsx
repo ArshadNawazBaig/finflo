@@ -24,7 +24,7 @@ const MemberCard = ({
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:bg-primary/20 transition-colors">
-            {member.name?.charAt(0) || 'M'}
+            {member.name?.charAt(0)?.toUpperCase() || 'M'}
           </div>
           <div className="flex flex-col">
             <Link

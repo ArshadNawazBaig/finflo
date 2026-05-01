@@ -261,7 +261,7 @@ const AuditLogs = () => {
 
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[12px] font-black text-primary-foreground shadow-lg shadow-primary/20">
-                  {log.user?.name?.charAt(0) || <Shield size={16} />}
+                  {log.user?.name?.charAt(0)?.toUpperCase() || <Shield size={16} />}
                 </div>
                 <div>
                   <p className="text-xs font-black tracking-tight">
@@ -364,7 +364,7 @@ const AuditLogs = () => {
                       {log.user ? (
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20 capitalize">
-                            {log.user.name?.charAt(0) || 'U'}
+                            {log.user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           <div>
                             <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">

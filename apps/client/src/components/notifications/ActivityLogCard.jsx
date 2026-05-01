@@ -78,7 +78,7 @@ const ActivityLogCard = ({ log }) => {
       <div className="bg-muted/30 rounded-2xl p-3 space-y-2 mb-2">
         <div className="flex items-center gap-2 mb-2">
           <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black">
-            {log.user?.name?.charAt(0) || 'S'}
+            {log.user?.name?.charAt(0)?.toUpperCase() || 'S'}
           </div>
           <span className="text-xs font-bold text-foreground">
             {log.user?.name || 'System Auto'}

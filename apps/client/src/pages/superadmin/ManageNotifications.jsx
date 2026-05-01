@@ -383,7 +383,7 @@ const ManageNotifications = () => {
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black capitalize border border-primary/20">
-                            {notification.recipient?.name?.charAt(0) || 'U'}
+                            {notification.recipient?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           <div>
                             <p className="font-bold text-sm capitalize tracking-tight text-foreground">

@@ -172,7 +172,7 @@ const MemberGrantorRequests = () => {
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="min-w-12 min-h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
-                        {loan.customer?.name?.charAt(0) || '#'}
+                        {loan.customer?.name?.charAt(0)?.toUpperCase() || '#'}
                       </div>
                       <div>
                         <h3 className="text-lg font-black tracking-tight capitalize">

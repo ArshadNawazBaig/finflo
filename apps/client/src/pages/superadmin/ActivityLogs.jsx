@@ -279,7 +279,7 @@ const ActivityLogs = () => {
                       {log.user ? (
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold capitalize">
-                            {log.user.name?.charAt(0) || 'U'}
+                            {log.user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           <div className="text-sm">
                             <p className="font-medium capitalize">

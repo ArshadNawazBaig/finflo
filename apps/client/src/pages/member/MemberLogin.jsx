@@ -362,7 +362,7 @@ const MemberLogin = () => {
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                {googleAuthData.name?.charAt(0)}
+                {googleAuthData.name?.charAt(0)?.toUpperCase()}
               </div>
             )}
             <div>

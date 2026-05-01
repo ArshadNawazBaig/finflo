@@ -25,7 +25,7 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-base group-hover:bg-primary/20 transition-colors">
-            {loan.customer?.name?.charAt(0) || 'U'}
+            {loan.customer?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex flex-col">
             <Link

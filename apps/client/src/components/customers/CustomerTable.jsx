@@ -92,7 +92,7 @@ const CustomerTable = ({
                       to={`/customers/${customer._id}`}
                       className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-sm capitalize"
                     >
-                      {customer.name.charAt(0)}
+                      {customer.name.charAt(0).toUpperCase()}
                     </Link>
                     <div className="flex flex-col">
                       <Link

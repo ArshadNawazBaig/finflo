@@ -215,7 +215,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
               }`}
             >
               <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-bold">
-                {ticket.user.name.charAt(0)}
+                {ticket.user.name.charAt(0).toUpperCase()}
               </div>
               <span className="text-[10px] font-bold text-foreground">
                 {ticket.user.name}
@@ -350,7 +350,7 @@ const TicketChat = ({ ticket, currentUser, onUpdateTicket }) => {
                 >
                   {isReplyFromStaff
                     ? 'S'
-                    : reply.user?.name?.charAt(0) || ticket.user.name.charAt(0)}
+                    : reply.user?.name?.charAt(0)?.toUpperCase() || ticket.user.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="text-[10px] font-bold text-foreground">
                   {isMe

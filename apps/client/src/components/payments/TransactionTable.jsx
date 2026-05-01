@@ -114,7 +114,7 @@ const TransactionTable = ({
                           transaction.member?.name ||
                           (transaction.category === 'salary' && 'B') ||
                           'U'
-                        ).charAt(0)}
+                        ).charAt(0).toUpperCase()}
                       </div>
                       <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
                         {capitalize(
