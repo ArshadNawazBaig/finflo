@@ -411,6 +411,10 @@ const Reports = () => {
             formatCurrency(trialBalance.equity?.retainedEarnings || 0),
           ],
           [
+            'Business Capital',
+            formatCurrency(trialBalance.equity?.businessCapital || 0),
+          ],
+          [
             { content: 'Total Equity', styles: { fontStyle: 'bold' } },
             {
               content: formatCurrency(trialBalance.equity?.totalEquity || 0),
@@ -2265,6 +2269,19 @@ const Reports = () => {
                         )}
                         <tr className="hover:bg-muted/10 transition-colors">
                           <td className="px-6 py-3 font-medium flex items-center gap-2">
+                            <Building2 size={14} className="text-muted-foreground" /> Business Capital
+                          </td>
+                          <td className="px-6 py-3">
+                            <span className="inline-flex px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
+                              Equity
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-right tabular-nums font-medium">
+                            {formatCurrency(trialBalance.equity?.businessCapital || 0)}
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-muted/10 transition-colors">
+                          <td className="px-6 py-3 font-medium flex items-center gap-2">
                             <TrendingUp size={14} className="text-muted-foreground" /> Retained Earnings
                           </td>
                           <td className="px-6 py-3">
@@ -2802,6 +2819,18 @@ const Reports = () => {
                         ],
                         [
                           {
+                            content: 'Business Capital',
+                            styles: { fontStyle: 'bold' },
+                          },
+                          {
+                            content: formatCurrency(
+                              bs.equity?.businessCapital || 0,
+                            ),
+                            styles: { fontStyle: 'bold' },
+                          },
+                        ],
+                        [
+                          {
                             content: 'Total Equity',
                             styles: { fontStyle: 'bold' },
                           },
@@ -3237,6 +3266,14 @@ const Reports = () => {
                                 </td>
                               </tr>
                             )}
+                            <tr className="hover:bg-muted/10 transition-colors">
+                              <td className="px-6 py-3 font-medium flex items-center gap-2">
+                                <Building2 size={14} className="text-muted-foreground" /> Business Capital
+                              </td>
+                              <td className="px-6 py-3 text-right tabular-nums font-medium">
+                                {formatCurrency(balanceSheet.equity?.businessCapital || 0)}
+                              </td>
+                            </tr>
                             <tr className="bg-indigo-500/5">
                               <td className="px-6 py-3 font-black text-foreground/90 flex items-center gap-2">
                                 Retained Earnings

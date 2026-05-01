@@ -510,8 +510,16 @@ const getTrialBalance = async (req, res) => {
       0,
     );
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense')
+      .filter((t) => t.type === 'expense' && t.category !== 'business_capital')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const businessCapitalInjections = transactions
+      .filter((t) => t.category === 'business_capital' && t.type === 'income')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const businessCapitalWithdrawals = transactions
+      .filter((t) => t.category === 'business_capital' && t.type === 'expense')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
 
     // Fee income
     const feeIncome = transactions
@@ -523,7 +531,8 @@ const getTrialBalance = async (req, res) => {
       + totalShareInvested
       + totalRepaid - totalDisbursed
       - totalExpenses
-      + feeIncome;
+      + feeIncome
+      + netBusinessCapital;
     const totalAssets = loansReceivable + cashAtHand;
 
     // 2. Liabilities
@@ -574,7 +583,7 @@ const getTrialBalance = async (req, res) => {
       - totalDistributed - totalExpenses
       - totalSavingProfitDistributed
       - totalShareProfitDistributed;
-    const totalEquity = retainedEarnings;
+    const totalEquity = retainedEarnings + netBusinessCapital;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
 
@@ -592,6 +601,7 @@ const getTrialBalance = async (req, res) => {
       },
       equity: {
         retainedEarnings: Math.round(retainedEarnings),
+        businessCapital: Math.round(netBusinessCapital),
         totalEquity: Math.round(totalEquity),
       },
       discrepancy: Math.round(discrepancy),
@@ -655,7 +665,7 @@ const getProfitAndLoss = async (req, res) => {
 
     // 2. Expenses
     const expensesAgg = await FinancialTransaction.aggregate([
-      { $match: { ...query, date: dateFilter, type: 'expense' } },
+      { $match: { ...query, date: dateFilter, type: 'expense', category: { $ne: 'business_capital' } } },
       { $group: { _id: '$category', total: { $sum: '$amount' } } },
     ]);
 
@@ -753,7 +763,7 @@ const getBranchSummary = async (req, res) => {
     // Aggregate Expenses by branch
     const FinancialTransaction = require('../models/FinancialTransaction');
     const expenseStats = await FinancialTransaction.aggregate([
-      { $match: { ...query, type: 'expense' } },
+      { $match: { ...query, type: 'expense', category: { $ne: 'business_capital' } } },
       {
         $group: {
           _id: '$branchId',
@@ -895,8 +905,17 @@ const getBalanceSheet = async (req, res) => {
 
     // Operating expenses
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense')
+      .filter((t) => t.type === 'expense' && t.category !== 'business_capital')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    // Business Capital
+    const businessCapitalInjections = transactions
+      .filter((t) => t.category === 'business_capital' && t.type === 'income')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const businessCapitalWithdrawals = transactions
+      .filter((t) => t.category === 'business_capital' && t.type === 'expense')
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
 
     // Fee income (checkbook, late fees, etc.)
     const feeIncome = transactions
@@ -913,7 +932,8 @@ const getBalanceSheet = async (req, res) => {
       + totalShareInvested                             // Bug Fix #1
       + totalRepaid - totalDisbursed
       - totalExpenses
-      + feeIncome;                                     // Bug Fix #2
+      + feeIncome                                      // Bug Fix #2
+      + netBusinessCapital;                            // Business capital
 
     const totalAssets = loansReceivable + cashAtHand + termDepositAssets;
 
@@ -958,7 +978,7 @@ const getBalanceSheet = async (req, res) => {
       - totalSavingProfitDistributed   // Bug Fix #3
       - totalShareProfitDistributed    // Bug Fix #3
       - termDepositProfitObligation;   // Term deposit profit owed
-    const totalEquity = retainedEarnings;
+    const totalEquity = retainedEarnings + netBusinessCapital;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
 
@@ -985,6 +1005,7 @@ const getBalanceSheet = async (req, res) => {
         shareProfitDistributed: Math.round(totalShareProfitDistributed),
         operatingExpenses: Math.round(totalExpenses),
         retainedEarnings: Math.round(retainedEarnings),
+        businessCapital: Math.round(netBusinessCapital),
         totalEquity: Math.round(totalEquity),
       },
       balanceCheck: {
