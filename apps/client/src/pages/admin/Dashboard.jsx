@@ -142,7 +142,7 @@ const Dashboard = () => {
   const [capitalType, setCapitalType] = useState('inject');
   const [capitalAmount, setCapitalAmount] = useState('');
   const [capitalDescription, setCapitalDescription] = useState('');
-  const [capitalPaymentMethod, setCapitalPaymentMethod] = useState('cash');
+  const [capitalPaymentMethod, setCapitalPaymentMethod] = useState('online');
   const [capitalProcessing, setCapitalProcessing] = useState(false);
   const [capitalHistory, setCapitalHistory] = useState([]);
   const [capitalHistoryLoading, setCapitalHistoryLoading] = useState(false);
@@ -191,6 +191,7 @@ const Dashboard = () => {
       toast.success(data.message);
       setCapitalAmount('');
       setCapitalDescription('');
+      setCapitalPaymentMethod('online');
       setShowCapitalModal(false);
       // Refresh stats
       fetchDashboardData();
@@ -912,7 +913,17 @@ const Dashboard = () => {
         </div>
       )}
       {/* ── Business Capital Modal ──────────────────────────────── */}
-      <Dialog open={showCapitalModal} onOpenChange={setShowCapitalModal}>
+      <Dialog 
+        open={showCapitalModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setCapitalAmount('');
+            setCapitalDescription('');
+            setCapitalPaymentMethod('online');
+          }
+          setShowCapitalModal(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[520px] w-[95vw] rounded-[1.5rem] sm:rounded-[2.5rem] !p-0 border-none shadow-2xl overflow-hidden flex flex-col gap-0 bg-card">
           {/* Gradient Header */}
           <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 sm:p-10 text-white relative shrink-0">
@@ -1143,6 +1154,7 @@ const Dashboard = () => {
                   setShowCapitalModal(false);
                   setCapitalAmount('');
                   setCapitalDescription('');
+                  setCapitalPaymentMethod('online');
                 }}
                 className="flex-1 rounded-xl min-h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
               >
