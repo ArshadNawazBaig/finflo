@@ -3,7 +3,7 @@
   "appName": "FinFlo Member",
   "webDir": "dist",
   "server": {
-    "url": "https://app.finflo.org",
+    "url": "https://app.finflo.org?app_mode=member",
     "cleartext": true,
     "allowNavigation": ["app.finflo.org", "finflo.org"]
   },

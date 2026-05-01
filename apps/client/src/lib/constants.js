@@ -35,9 +35,17 @@ export const IS_NATIVE = (() => {
 
 // App mode: 'member' or 'business'
 // On native APKs loading a remote URL, VITE_APP_MODE from the deployed build
-// is always the same. Detect mode at runtime via the Capacitor native appId.
+// is always the same. Detect mode via URL query param (?app_mode=member),
+// Capacitor appId, or build-time env var.
 export const APP_MODE = (() => {
-  // 1. On native platforms, check the Capacitor-injected appId
+  // 1. Check URL query parameter (set in capacitor server.url)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get('app_mode');
+    if (modeParam === 'member' || modeParam === 'business') return modeParam;
+  } catch { /* ignore */ }
+
+  // 2. On native platforms, check the Capacitor-injected appId
   if (IS_NATIVE) {
     try {
       const nativeAppId =
@@ -47,7 +55,8 @@ export const APP_MODE = (() => {
       if (nativeAppId === 'com.finflo.business') return 'business';
     } catch { /* ignore */ }
   }
-  // 2. Fall back to build-time env var (works for local dev / direct builds)
+
+  // 3. Fall back to build-time env var (works for local dev / direct builds)
   return import.meta.env.VITE_APP_MODE || 'business';
 })();
 
