@@ -110,28 +110,10 @@ const TellerMode = () => {
     net: 0,
   });
 
-  // ── Journal State ─────────────────────────────
-  const [viewMode, setViewMode] = useState('pos'); // 'pos' | 'journal' | 'cashbook'
-  const [selectedDate, setSelectedDate] = useState({
-    from: new Date(),
-    to: new Date(),
-  });
-  const [journalTxns, setJournalTxns] = useState([]);
-  const [journalLoading, setJournalLoading] = useState(false);
-  const [isExportingJournal, setIsExportingJournal] = useState(false);
+  // ── View Mode ─────────────────────────────────
+  const [viewMode, setViewMode] = useState('pos'); // 'pos' | 'cashbook'
   const [isExportingMemberPdf, setIsExportingMemberPdf] = useState(false);
   const [isExportingCashbook, setIsExportingCashbook] = useState(false);
-  const [isFetchingMoreJournal, setIsFetchingMoreJournal] = useState(false);
-  const [journalStats, setJournalStats] = useState({
-    cashIn: 0,
-    cashOut: 0,
-    net: 0,
-  });
-  const [journalPage, setJournalPage] = useState(1);
-  const [journalLimit, setJournalLimit] = useState(5);
-  const [journalTotalPages, setJournalTotalPages] = useState(0);
-  const [journalTotalEntries, setJournalTotalEntries] = useState(0);
-  const [journalPriorBalance, setJournalPriorBalance] = useState(0);
   const isMobile = useIsMobile();
   const observerTarget = useRef(null);
   const recentTxnsObserverTarget = useRef(null);
@@ -358,36 +340,7 @@ const TellerMode = () => {
     }
   };
 
-  const handleExportJournalPDF = async () => {
-    try {
-      setIsExportingJournal(true);
-      const { exportJournalPDF } = await import('@/lib/pdfExportUtils');
 
-      // Fetch ALL journal records for the selected date range
-      const { data } = await api.get('/ledger', {
-        params: {
-          startDate: startOfDay(selectedDate?.from || new Date()).toISOString(),
-          endDate: endOfDay(
-            selectedDate?.to || selectedDate?.from || new Date(),
-          ).toISOString(),
-          page: 1,
-          limit: 2000,
-        },
-      });
-
-      const success = await exportJournalPDF(data, selectedDate, user);
-      if (success) {
-        toast.success('Journal exported successfully!');
-      } else {
-        toast.error('No transactions found to export.');
-      }
-    } catch (error) {
-      console.error('Failed to export Journal PDF:', error);
-      toast.error('Failed to export journal.');
-    } finally {
-      setIsExportingJournal(false);
-    }
-  };
 
   const handleExportMemberPDF = async () => {
     if (!member) return;
@@ -648,95 +601,11 @@ const TellerMode = () => {
     }
   };
 
-  const fetchJournal = async (
-    isAppend = false,
-    pageOverride,
-    limitOverride,
-  ) => {
-    if (viewMode !== 'journal') return;
 
-    if (isAppend) {
-      setIsFetchingMoreJournal(true);
-    } else {
-      setJournalLoading(true);
-    }
-
-    try {
-      const pageToFetch =
-        pageOverride || (isAppend ? journalPage + 1 : journalPage);
-      const startDate = startOfDay(
-        selectedDate?.from || new Date(),
-      ).toISOString();
-      const endDate = endOfDay(
-        selectedDate?.to || selectedDate?.from || new Date(),
-      ).toISOString();
-
-      const { data } = await api.get('/ledger', {
-        params: {
-          startDate,
-          endDate,
-          page: pageToFetch,
-          limit: limitOverride || journalLimit,
-        },
-      });
-
-      const txns = data?.data || [];
-
-      if (isAppend) {
-        setJournalTxns((prev) => {
-          const existingIds = new Set(prev.map((t) => t._id));
-          const newTransactions = txns.filter((t) => !existingIds.has(t._id));
-          return [...prev, ...newTransactions];
-        });
-        skipNextEffect.current = true;
-        setJournalPage(pageToFetch);
-      } else {
-        setJournalTxns(txns);
-      }
-
-      setJournalTotalPages(data.totalPages || 0);
-      setJournalTotalEntries(data.totalEntries || 0);
-      setJournalPriorBalance(data.priorPageBalance || 0);
-
-      // Stats should represent the whole range, but here we just use what we have or rethink if stats should be paginated
-      // For now, keep the stats calculation based on the fetched chunk or request a separate summary if the API supports it
-      // Usually, stats for a range are better served by a summary endpoint or total range fetch
-      if (data.summary) {
-        setJournalStats({
-          cashIn: data.summary.totalIncome || 0,
-          cashOut: data.summary.totalExpense || 0,
-          net:
-            (data.summary.totalIncome || 0) - (data.summary.totalExpense || 0),
-        });
-      }
-    } catch (err) {
-      console.error('Failed to fetch journal', err);
-      toast.error('Failed to load journal records');
-      if (!isAppend) setJournalTxns([]);
-    } finally {
-      setJournalLoading(false);
-      setIsFetchingMoreJournal(false);
-    }
-  };
 
   useEffect(() => {
     fetchSessionStats();
   }, []);
-
-  useEffect(() => {
-    if (skipNextEffect.current) {
-      skipNextEffect.current = false;
-      return;
-    }
-    setJournalPage(1);
-    fetchJournal(false, 1);
-  }, [selectedDate, viewMode, journalLimit]);
-
-  useEffect(() => {
-    if (viewMode === 'journal' && !isMobile) {
-      fetchJournal(false, journalPage);
-    }
-  }, [journalPage]);
 
   // Infinite scroll for mobile
   useEffect(() => {
@@ -746,13 +615,6 @@ const TellerMode = () => {
       (entries) => {
         if (entries[0].isIntersecting) {
           if (
-            viewMode === 'journal' &&
-            !isFetchingMoreJournal &&
-            !journalLoading &&
-            journalPage < journalTotalPages
-          ) {
-            fetchJournal(true);
-          } else if (
             viewMode === 'pos' &&
             member &&
             !isFetchingMoreRecent &&
@@ -765,9 +627,7 @@ const TellerMode = () => {
       { threshold: 0.1 },
     );
 
-    if (viewMode === 'journal' && observerTarget.current) {
-      observer.observe(observerTarget.current);
-    } else if (viewMode === 'pos' && recentTxnsObserverTarget.current) {
+    if (viewMode === 'pos' && recentTxnsObserverTarget.current) {
       observer.observe(recentTxnsObserverTarget.current);
     }
 
@@ -775,10 +635,6 @@ const TellerMode = () => {
   }, [
     isMobile,
     viewMode,
-    isFetchingMoreJournal,
-    journalLoading,
-    journalPage,
-    journalTotalPages,
     isFetchingMoreRecent,
     recentTxnsPage,
     recentTxnsTotalPages,
@@ -1285,17 +1141,7 @@ const TellerMode = () => {
             <Zap size={12} />
             Quick POS
           </button>
-          <button
-            onClick={() => setViewMode('journal')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
-              viewMode === 'journal'
-                ? 'bg-card text-primary shadow-lg shadow-black/5'
-                : 'text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            <FileText size={12} />
-            Journal
-          </button>
+
           <button
             onClick={() => setViewMode('cashbook')}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
@@ -2482,8 +2328,8 @@ const TellerMode = () => {
         </div>
       )}
 
-      {/* ── Journal View ─────────────────────────── */}
-      {viewMode === 'journal' && (
+      {/* Journal View removed — use Ledger in Insights & Analytics */}
+      {false && (
         <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Journal Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-[2.5rem] bg-card border border-border/50">
