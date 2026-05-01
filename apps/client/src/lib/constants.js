@@ -33,9 +33,23 @@ export const IS_NATIVE = (() => {
   }
 })();
 
-// App mode: 'member' or 'business' — set via VITE_APP_MODE at build time
-// Defaults to 'business' for backward compatibility
-export const APP_MODE = import.meta.env.VITE_APP_MODE || 'business';
+// App mode: 'member' or 'business'
+// On native APKs loading a remote URL, VITE_APP_MODE from the deployed build
+// is always the same. Detect mode at runtime via the Capacitor native appId.
+export const APP_MODE = (() => {
+  // 1. On native platforms, check the Capacitor-injected appId
+  if (IS_NATIVE) {
+    try {
+      const nativeAppId =
+        window.Capacitor?.config?.appId ||    // Capacitor 5+
+        window.Capacitor?.Plugins?.App?.id;   // fallback
+      if (nativeAppId === 'com.finflo.member') return 'member';
+      if (nativeAppId === 'com.finflo.business') return 'business';
+    } catch { /* ignore */ }
+  }
+  // 2. Fall back to build-time env var (works for local dev / direct builds)
+  return import.meta.env.VITE_APP_MODE || 'business';
+})();
 
 export const getAppUrl = (path = '') => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
