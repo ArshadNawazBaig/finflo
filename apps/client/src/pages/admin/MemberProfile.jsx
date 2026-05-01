@@ -3209,11 +3209,11 @@ const MemberProfile = () => {
                     return (
                       <div
                         key={s._id}
-                        className="flex items-center justify-between p-4 rounded-2xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all"
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                           <div
-                            className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center ${isCredit ? 'bg-violet-500/10' : 'bg-rose-500/10'} ${color}`}
+                            className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ${isCredit ? 'bg-violet-500/10' : 'bg-rose-500/10'} ${color}`}
                           >
                             {isCredit ? (
                               <ArrowUpCircle size={18} />
@@ -3221,8 +3221,8 @@ const MemberProfile = () => {
                               <ArrowDownCircle size={18} />
                             )}
                           </div>
-                          <div>
-                            <p className="text-sm font-black">
+                          <div className="min-w-0">
+                            <p className="text-sm font-black truncate">
                               {s.description || label}
                             </p>
                             <div className="flex items-center gap-2">
@@ -3260,14 +3260,16 @@ const MemberProfile = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`text-base font-black ${color}`}>
-                            {isCredit ? '+' : '-'}
-                            {formatCurrency(s.amount)}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {new Date(s.date).toLocaleDateString()}
-                          </p>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-border/5 sm:border-0 mt-2 sm:mt-0 w-full sm:w-auto shrink-0">
+                          <div className="text-left sm:text-right">
+                            <p className={`text-base font-black ${color}`}>
+                              {isCredit ? '+' : '-'}
+                              {formatCurrency(s.amount)}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {new Date(s.date).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
@@ -3301,7 +3303,7 @@ const MemberProfile = () => {
 
           {/* ── Checkbook Section ──────────────────────────────────── */}
           <div className="bg-card/10 backdrop-blur-sm p-6 sm:p-10 rounded-[2rem] border border-border/40 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-black tracking-tighter text-primary">
                   Checkbook Registry
@@ -3332,120 +3334,147 @@ const MemberProfile = () => {
               />
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-border/50">
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
-                          <div className="flex items-center gap-1">
-                            <Hash size={10} />
-                            Checkbook #
-                          </div>
-                        </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
-                          Leaves
-                        </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
-                          Fee
-                        </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
-                          Status
-                        </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3 pr-4">
-                          Date
-                        </th>
-                        <th className="text-[9px] font-black uppercase tracking-widest text-muted-foreground pb-3">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/30">
-                      {checkbooks.map((cb) => (
-                        <tr
-                          key={cb._id}
-                          className="group hover:bg-muted/20 transition-colors"
-                        >
-                          <td className="py-3 pr-4">
-                            <span className="text-xs font-black font-mono text-indigo-600">
-                              {cb.checkbookNumber}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-4">
-                            <span className="text-xs font-bold">
-                              {cb.numberOfLeaves}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-4">
-                            <span className="text-xs font-black text-primary">
-                              {formatCurrency(cb.fee)}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-4">
-                            <span
-                              className={cn(
-                                'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
-                                cb.status === 'active'
-                                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                                  : cb.status === 'cancelled'
-                                    ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                                    : 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
-                              )}
-                            >
-                              {cb.status}
-                              {cb.refunded && ' (Refunded)'}
-                            </span>
-                          </td>
-                          <td className="py-3 pr-4">
-                            <span className="text-[10px] font-medium text-muted-foreground">
-                              {new Date(cb.createdAt).toLocaleDateString(
-                                'en-GB',
-                                {
-                                  day: '2-digit',
-                                  month: 'short',
-                                  year: 'numeric',
-                                },
-                              )}
-                            </span>
-                          </td>
-                          <td className="py-3">
-                            {cb.status === 'active' && (
-                              <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Tooltip content="Cancel & Refund">
-                                  <button
-                                    onClick={() =>
-                                      handleCancelCheckbook(cb._id, true)
-                                    }
-                                    disabled={isCancellingCheckbook === cb._id}
-                                    className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors disabled:opacity-50"
-                                  >
-                                    {isCancellingCheckbook === cb._id ? (
-                                      <Loader2
-                                        size={12}
-                                        className="animate-spin"
-                                      />
-                                    ) : (
-                                      <RefreshCw size={12} />
-                                    )}
-                                  </button>
-                                </Tooltip>
-                                <Tooltip content="Cancel (No Refund)">
-                                  <button
-                                    onClick={() =>
-                                      handleCancelCheckbook(cb._id, false)
-                                    }
-                                    disabled={isCancellingCheckbook === cb._id}
-                                    className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors disabled:opacity-50"
-                                  >
-                                    <XCircle size={12} />
-                                  </button>
-                                </Tooltip>
-                              </div>
+                <div className="space-y-3">
+                  {/* Desktop Header */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 pb-3 border-b border-border/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                    <div className="col-span-3 flex items-center gap-1">
+                      <Hash size={10} /> Checkbook #
+                    </div>
+                    <div className="col-span-2">Leaves</div>
+                    <div className="col-span-2">Fee</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2">Date</div>
+                    <div className="col-span-1 text-right">Actions</div>
+                  </div>
+
+                  <div className="space-y-3 md:space-y-0 md:divide-y md:divide-border/30">
+                    {checkbooks.map((cb) => (
+                      <div
+                        key={cb._id}
+                        className="group flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-4 p-4 md:py-3 md:px-4 rounded-2xl md:rounded-none bg-muted/5 md:bg-transparent border border-border/30 md:border-transparent hover:bg-muted/10 transition-colors"
+                      >
+                        {/* Mobile Header: Checkbook # & Status */}
+                        <div className="flex md:hidden items-center justify-between border-b border-border/10 pb-3 mb-1">
+                          <span className="text-xs font-black font-mono text-indigo-600">
+                            {cb.checkbookNumber}
+                          </span>
+                          <span
+                            className={cn(
+                              'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+                              cb.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                : cb.status === 'cancelled'
+                                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                                  : 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          >
+                            {cb.status}
+                            {cb.refunded && ' (Refund)'}
+                          </span>
+                        </div>
+
+                        {/* Desktop Checkbook # */}
+                        <div className="hidden md:flex items-center col-span-3">
+                          <span className="text-xs font-black font-mono text-indigo-600">
+                            {cb.checkbookNumber}
+                          </span>
+                        </div>
+
+                        {/* Leaves */}
+                        <div className="flex items-center justify-between md:justify-start col-span-2">
+                          <span className="md:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Leaves
+                          </span>
+                          <span className="text-xs font-bold">
+                            {cb.numberOfLeaves}
+                          </span>
+                        </div>
+
+                        {/* Fee */}
+                        <div className="flex items-center justify-between md:justify-start col-span-2">
+                          <span className="md:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Fee
+                          </span>
+                          <span className="text-xs font-black text-primary">
+                            {formatCurrency(cb.fee)}
+                          </span>
+                        </div>
+
+                        {/* Desktop Status */}
+                        <div className="hidden md:flex items-center col-span-2">
+                          <span
+                            className={cn(
+                              'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+                              cb.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                : cb.status === 'cancelled'
+                                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                                  : 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+                            )}
+                          >
+                            {cb.status}
+                            {cb.refunded && ' (Refund)'}
+                          </span>
+                        </div>
+
+                        {/* Date */}
+                        <div className="flex items-center justify-between md:justify-start col-span-2">
+                          <span className="md:hidden text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Date
+                          </span>
+                          <span className="text-[10px] font-medium text-muted-foreground">
+                            {new Date(cb.createdAt).toLocaleDateString(
+                              'en-GB',
+                              {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              },
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end col-span-1 mt-2 md:mt-0 pt-3 md:pt-0 border-t border-border/10 md:border-none">
+                          {cb.status === 'active' ? (
+                            <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                              <Tooltip content="Cancel & Refund">
+                                <button
+                                  onClick={() =>
+                                    handleCancelCheckbook(cb._id, true)
+                                  }
+                                  disabled={isCancellingCheckbook === cb._id}
+                                  className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors disabled:opacity-50"
+                                >
+                                  {isCancellingCheckbook === cb._id ? (
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <RefreshCw size={12} />
+                                  )}
+                                </button>
+                              </Tooltip>
+                              <Tooltip content="Cancel (No Refund)">
+                                <button
+                                  onClick={() =>
+                                    handleCancelCheckbook(cb._id, false)
+                                  }
+                                  disabled={isCancellingCheckbook === cb._id}
+                                  className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-colors disabled:opacity-50"
+                                >
+                                  <XCircle size={12} />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          ) : (
+                            <span className="md:hidden text-[10px] text-muted-foreground italic">No actions</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {checkbookTotalPages > 1 && (

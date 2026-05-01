@@ -25,11 +25,11 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
         isReversed && 'opacity-50',
       )}
     >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-4">
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
           <div
             className={cn(
-              'h-10 w-10 rounded-xl flex items-center justify-center',
+              'h-10 w-10 shrink-0 rounded-xl flex items-center justify-center',
               isIncome
                 ? 'bg-emerald-500/10 text-emerald-600'
                 : 'bg-rose-500/10 text-rose-600',
@@ -37,7 +37,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
           >
             {isIncome ? <TrendingUp size={20} /> : <ArrowDown size={20} />}
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="font-bold text-sm text-foreground capitalize">
               {isReversal && <span className="text-amber-600 mr-1">[REV]</span>}
               {transaction.category.replace(/_/g, ' ')}
@@ -61,7 +61,7 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
             </span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto pt-3 sm:pt-0 border-t border-border/10 sm:border-0 mt-1 sm:mt-0 gap-2">
           <div
             className={cn(
               'font-black text-base tabular-nums',
