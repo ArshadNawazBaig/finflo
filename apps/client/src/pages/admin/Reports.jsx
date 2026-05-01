@@ -912,11 +912,11 @@ const Reports = () => {
 
       {/* Tab Navigation */}
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 sm:gap-2 p-1.5 bg-muted/20 border border-border/40 rounded-2xl overflow-x-auto w-full hide-scrollbar flex-wrap xl:flex-nowrap scroll-smooth">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:flex items-center gap-1.5 sm:gap-2 p-1.5 bg-muted/20 border border-border/40 rounded-[1.5rem] w-full">
         <button
           onClick={() => setActiveTab('performance')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'performance'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -928,7 +928,7 @@ const Reports = () => {
         <button
           onClick={() => setActiveTab('regulatory')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'regulatory'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -940,7 +940,7 @@ const Reports = () => {
         <button
           onClick={() => setActiveTab('trial-balance')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'trial-balance'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-emerald-500'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -952,7 +952,7 @@ const Reports = () => {
         <button
           onClick={() => setActiveTab('profit-loss')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'profit-loss'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-indigo-500'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -964,7 +964,7 @@ const Reports = () => {
         <button
           onClick={() => setActiveTab('balance-sheet')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'balance-sheet'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-teal-500'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -976,7 +976,7 @@ const Reports = () => {
         <button
           onClick={() => setActiveTab('reconciliation')}
           className={cn(
-            'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
             activeTab === 'reconciliation'
               ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-cyan-500'
               : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
@@ -989,7 +989,7 @@ const Reports = () => {
           <button
             onClick={() => setActiveTab('branch-analytics')}
             className={cn(
-              'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-[13px] font-bold capitalize transition-all whitespace-nowrap flex items-center gap-2 shrink-0',
+              'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
               activeTab === 'branch-analytics'
                 ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-purple-500'
                 : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
