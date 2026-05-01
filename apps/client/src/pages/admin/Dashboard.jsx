@@ -945,6 +945,39 @@ const Dashboard = () => {
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
             <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">
+              {/* Payment Method */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCapitalPaymentMethod('cash')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
+                      capitalPaymentMethod === 'cash'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border/40 text-muted-foreground hover:border-primary/30',
+                    )}
+                  >
+                    <Wallet size={14} /> Cash
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCapitalPaymentMethod('online')}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
+                      capitalPaymentMethod === 'online'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
+                        : 'border-border/40 text-muted-foreground hover:border-blue-500/30',
+                    )}
+                  >
+                    <CreditCard size={14} /> Online
+                  </button>
+                </div>
+              </div>
+
               {/* Type Toggle */}
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
@@ -1024,39 +1057,6 @@ const Dashboard = () => {
                   onChange={(e) => setCapitalDescription(e.target.value)}
                   className="w-full h-12 sm:h-14 px-5 rounded-2xl border border-border/40 bg-muted/30 font-bold text-sm tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
-              </div>
-
-              {/* Payment Method */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Payment Method
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCapitalPaymentMethod('cash')}
-                    className={cn(
-                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
-                      capitalPaymentMethod === 'cash'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border/40 text-muted-foreground hover:border-primary/30',
-                    )}
-                  >
-                    <Wallet size={14} /> Cash
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCapitalPaymentMethod('online')}
-                    className={cn(
-                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
-                      capitalPaymentMethod === 'online'
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-                        : 'border-border/40 text-muted-foreground hover:border-blue-500/30',
-                    )}
-                  >
-                    <CreditCard size={14} /> Online
-                  </button>
-                </div>
               </div>
 
               {/* Recent Capital History */}
