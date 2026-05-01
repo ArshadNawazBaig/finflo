@@ -273,7 +273,7 @@ const MemberCheckbooks = () => {
                   <BookOpen size={20} className="text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black tracking-tight uppercase">
+                  <h2 className="text-md sm:text-xl font-black tracking-tight uppercase">
                     My Checkbooks
                   </h2>
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
@@ -365,10 +365,7 @@ const MemberCheckbooks = () => {
                               <span>Fee: {formatCurrency(cb.fee)}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                              <Calendar
-                                size={12}
-                                className="text-primary/60"
-                              />
+                              <Calendar size={12} className="text-primary/60" />
                               <span>
                                 {new Date(cb.createdAt).toLocaleDateString(
                                   undefined,

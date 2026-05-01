@@ -310,7 +310,7 @@ const Dashboard = () => {
                 setShowCapitalModal(true);
                 fetchCapitalHistory();
               }}
-              className="rounded-2xl px-5 py-2.5 h-auto bg-teal-500 hover:bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-teal-500/20 gap-2"
+              className="rounded-2xl px-5 py-2.5 h-auto bg-teal-500 hover:bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-teal-500/20 gap-2 w-full sm:w-auto"
             >
               <Landmark size={16} />
               Add Capital

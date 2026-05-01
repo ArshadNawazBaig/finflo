@@ -246,13 +246,18 @@ const MemberWallet = () => {
                           : 'Available Credit Limit'}
                   </p>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter drop-shadow-sm">
-                    <SensitiveBalance iconSize={20} iconClassName="text-white/40 hover:text-white/80">
+                    <SensitiveBalance
+                      iconSize={20}
+                      iconClassName="text-white/40 hover:text-white/80"
+                    >
                       {activeAccount === 'current'
                         ? formatCurrency(member?.currentBalance || 0)
                         : activeAccount === 'saving'
                           ? formatCurrency(member?.savingBalance || 0)
                           : member?.activeLoan
-                            ? formatCurrency(member.activeLoan.remainingAmount || 0)
+                            ? formatCurrency(
+                                member.activeLoan.remainingAmount || 0,
+                              )
                             : formatCurrency(member?.creditLimit || 0)}
                     </SensitiveBalance>
                   </h2>
@@ -263,7 +268,9 @@ const MemberWallet = () => {
                         EMI: {formatCurrency(member.activeLoan.emi || 0)}
                       </div>
                       <div className="text-[10px] font-black uppercase tracking-widest opacity-70">
-                        Paid: {formatCurrency(member.activeLoan.paidAmount || 0)} / {formatCurrency(member.activeLoan.totalAmount || 0)}
+                        Paid:{' '}
+                        {formatCurrency(member.activeLoan.paidAmount || 0)} /{' '}
+                        {formatCurrency(member.activeLoan.totalAmount || 0)}
                       </div>
                     </div>
                   ) : (
@@ -280,7 +287,11 @@ const MemberWallet = () => {
                       Account Number
                     </p>
                     <p className="text-sm sm:text-base font-mono font-bold tracking-widest opacity-90 drop-shadow-md">
-                      <SensitiveData maskLength={14} iconSize={14} iconClassName="text-white/30 hover:text-white/70">
+                      <SensitiveData
+                        maskLength={14}
+                        iconSize={14}
+                        iconClassName="text-white/30 hover:text-white/70"
+                      >
                         {activeAccount === 'current'
                           ? member?.currentAccountNumber || 'CUR-C-XXXXX'
                           : activeAccount === 'saving'
@@ -382,7 +393,7 @@ const MemberWallet = () => {
                   <Activity size={20} className="text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black tracking-tight uppercase">
+                  <h2 className="text-md sm:text-xl font-black tracking-tight uppercase">
                     Wallet Ledger
                   </h2>
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
