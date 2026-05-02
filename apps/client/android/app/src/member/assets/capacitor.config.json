@@ -2,6 +2,7 @@
   "appId": "com.finflo.member",
   "appName": "FinFlo Member",
   "webDir": "dist",
+  "backgroundColor": "#020617",
   "server": {
     "url": "https://app.finflo.org?app_mode=member",
     "errorPath": "error.html",

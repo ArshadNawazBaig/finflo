@@ -2,6 +2,7 @@
   "appId": "com.finflo.business",
   "appName": "FinFlo Business",
   "webDir": "dist",
+  "backgroundColor": "#020617",
   "server": {
     "url": "https://app.finflo.org",
     "errorPath": "error.html",

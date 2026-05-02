@@ -134,6 +134,18 @@
         transform: scale(0.96);
       }
 
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        min-height: 1.2em;
+      }
+
       @keyframes fadeUp {
         from {
           opacity: 0;
@@ -179,19 +191,27 @@
         Finflo requires an active network connection to securely synchronize your financial data. Please check your internet and try again.
       </p>
 
-      <button onclick="retryConnection()">Try Again</button>
+      <button id="retryBtn" onclick="retryConnection()">Try Again</button>
+      <div class="status" id="status"></div>
     </div>
 
     <script>
       function retryConnection() {
+        var btn = document.getElementById('retryBtn');
+        var status = document.getElementById('status');
+
         if (!navigator.onLine) {
-          // Native alert won't work well if offline, so just visual feedback or do nothing
-          // Actually, we can just try to navigate and let it fail back to error.html
+          status.textContent = 'Still offline. Please check your connection.';
+          return;
         }
 
+        btn.disabled = true;
+        btn.textContent = 'Connecting...';
+        status.textContent = '';
+
+        // Determine correct URL
         let url = 'https://app.finflo.org';
         try {
-          // Detect member app via Capacitor bridge
           const appId = window.Capacitor?.config?.appId || window.Capacitor?.Plugins?.App?.id;
           if (appId === 'com.finflo.member') {
             url = 'https://app.finflo.org?app_mode=member';
@@ -200,9 +220,23 @@
           console.error(e);
         }
 
-        // Use replace to prevent history buildup and force load inside Capacitor WebView
-        window.location.replace(url);
+        // Test actual internet connection via a lightweight fetch before replacing location
+        // This prevents the WebView from showing the ugly ERR_NAME_NOT_RESOLVED if still offline
+        fetch('https://app.finflo.org/favicon.ico?t=' + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
+          .then(function() {
+            window.location.replace(url);
+          })
+          .catch(function() {
+            btn.disabled = false;
+            btn.textContent = 'Try Again';
+            status.textContent = 'Still offline. Please check your connection.';
+          });
       }
+
+      window.addEventListener('online', function() {
+        document.getElementById('status').textContent = 'Connection detected! Reconnecting...';
+        setTimeout(retryConnection, 1000);
+      });
     </script>
   </body>
 </html>
