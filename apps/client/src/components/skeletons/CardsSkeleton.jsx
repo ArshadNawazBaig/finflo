@@ -8,16 +8,16 @@ const CardsSkeleton = ({ count = 4 }) => {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden rounded-[2rem] p-5 sm:p-7 border border-border/40 bg-card/10 backdrop-blur-sm"
+          className="relative overflow-hidden rounded-[2rem] p-6 border border-border/50 bg-card/50 shadow-sm space-y-4 animate-pulse"
         >
           <div className="flex justify-between items-start mb-4">
-            <div className="h-12 w-12 rounded-2xl bg-muted/30 animate-pulse" />
-            <Skeleton className="h-6 w-12 rounded-full" />
+            <Skeleton className="h-12 w-12 rounded-[1rem]" />
+            <Skeleton className="h-6 w-16 rounded-full" />
           </div>
           <div className="space-y-3">
-            <Skeleton className="h-3 w-20 rounded" />
-            <Skeleton className="h-9 w-32 rounded-lg" />
-            <Skeleton className="h-3 w-24 rounded mt-1" />
+            <Skeleton className="h-4 w-20 rounded-lg" />
+            <Skeleton className="h-8 w-32 rounded-xl" />
+            <Skeleton className="h-3 w-24 rounded-lg mt-1" />
           </div>
         </div>
       ))}

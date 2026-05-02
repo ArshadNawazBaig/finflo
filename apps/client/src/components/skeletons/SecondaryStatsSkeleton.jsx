@@ -5,16 +5,16 @@ const SecondaryStatsSkeleton = ({ count = 4 }) => (
     {[...Array(count)].map((_, i) => (
       <div
         key={i}
-        className="relative overflow-hidden rounded-[1.5rem] border border-border/40 bg-card/10 backdrop-blur-sm p-5 flex flex-col gap-3"
+        className="relative overflow-hidden rounded-[2rem] border border-border/50 bg-card/30 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-sm animate-pulse"
       >
         <div className="flex items-center justify-between">
-          <div className="h-10 w-10 rounded-xl bg-muted/40 animate-pulse" />
-          <Skeleton className="h-5 w-14 rounded-full" />
+          <Skeleton className="h-12 w-12 rounded-[1rem] bg-muted/40" />
+          <Skeleton className="h-6 w-16 rounded-full" />
         </div>
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-20 rounded" />
-          <Skeleton className="h-9 w-16 rounded-lg" />
-          <Skeleton className="h-2.5 w-28 rounded mt-1" />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-20 rounded-lg" />
+          <Skeleton className="h-10 w-24 rounded-xl" />
+          <Skeleton className="h-3 w-28 rounded-lg mt-1" />
         </div>
       </div>
     ))}

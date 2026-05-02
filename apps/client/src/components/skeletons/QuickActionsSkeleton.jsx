@@ -11,22 +11,23 @@ const QuickActionsSkeleton = ({ count = 4 }) => (
     {[...Array(count)].map((_, i) => (
       <div
         key={i}
-        className="flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 p-2 pr-5"
+        className="flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/50 bg-card/30 backdrop-blur-sm shadow-sm p-3 pr-6 animate-pulse"
       >
         {/* Left Icon Pill */}
-        <div className="h-11 w-11 shrink-0 rounded-full bg-muted/40 animate-pulse" />
+        <Skeleton className="h-12 w-12 shrink-0 rounded-full bg-muted/40" />
 
         {/* Center Text */}
         <div className="flex-1 flex flex-col justify-center gap-2">
-          <Skeleton className="h-3 w-20 rounded" />
-          <Skeleton className="h-2 w-28 rounded" />
+          <Skeleton className="h-4 w-20 rounded-lg" />
+          <Skeleton className="h-3 w-28 rounded-lg" />
         </div>
 
         {/* Right Arrow */}
-        <div className="h-7 w-7 shrink-0 rounded-full bg-muted/30 animate-pulse" />
+        <Skeleton className="h-8 w-8 shrink-0 rounded-full bg-muted/30" />
       </div>
     ))}
   </div>
 );
 
 export default QuickActionsSkeleton;
+

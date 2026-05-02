@@ -17,7 +17,7 @@ const StatsCard = ({
   const isPositive = percentage > 0;
 
   return (
-    <div className="group relative rounded-[2rem] bg-card p-5 sm:p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 border border-border/50">
+    <div className="group relative rounded-[2rem] bg-card p-5 sm:p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 border border-border/50">
       {/* Background Accent Gradient Wrapper */}
       <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
         <div
@@ -84,7 +84,11 @@ const StatsCard = ({
           </p>
           <div className="flex flex-col">
             <h3 className="text-md sm:text-lg font-black tracking-tight text-foreground tabular-nums capitalize">
-              {sensitive ? <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance> : amount}
+              {sensitive ? (
+                <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance>
+              ) : (
+                amount
+              )}
             </h3>
             {subtitle && (
               <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
