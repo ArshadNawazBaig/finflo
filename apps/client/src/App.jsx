@@ -76,6 +76,10 @@ const TestError = () => {
   throw new Error('This is an intentional test error to demonstrate the Error Boundary.');
 };
 
+const TestOfflineError = () => {
+  throw new Error('Failed to fetch: intentional test for offline UI');
+};
+
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 
 function App() {
@@ -167,7 +171,10 @@ function App() {
 
                   {/* Dev-only: test error boundary */}
                   {IS_DEV && (
-                    <Route path="/test-error" element={<TestError />} />
+                    <>
+                      <Route path="/test-error" element={<TestError />} />
+                      <Route path="/test-offline" element={<TestOfflineError />} />
+                    </>
                   )}
 
                   {/* Auth Routes */}
