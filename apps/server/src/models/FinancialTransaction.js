@@ -87,6 +87,10 @@ const financialTransactionSchema = new mongoose.Schema(
         'TermDeposit',
       ],
     },
+    checkbookId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Checkbook',
+    },
   },
   {
     timestamps: true,

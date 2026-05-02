@@ -401,9 +401,86 @@ const cancelCheckbook = async (req, res) => {
   }
 };
 
+// @desc    Update checkbook status (reactivate, mark used, etc.)
+// @route   PUT /api/checkbooks/:id/status
+// @access  Private (Admin/Staff)
+const updateCheckbookStatus = async (req, res) => {
+  const { status } = req.body;
+
+  if (!status || !['active', 'used', 'cancelled'].includes(status)) {
+    return res.status(400).json({
+      message: 'Invalid status. Must be one of: active, used, cancelled',
+    });
+  }
+
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+
+    const checkbook = await Checkbook.findOne({
+      _id: id,
+      user: userId,
+    });
+
+    if (!checkbook) {
+      return res.status(404).json({ message: 'Checkbook not found' });
+    }
+
+    const oldStatus = checkbook.status;
+
+    if (oldStatus === status) {
+      return res.status(400).json({ message: `Checkbook is already ${status}` });
+    }
+
+    checkbook.status = status;
+
+    // If reactivating, clear cancellation fields
+    if (status === 'active') {
+      checkbook.cancelledBy = undefined;
+      checkbook.cancelledAt = undefined;
+    }
+
+    // If cancelling via status change, record who cancelled
+    if (status === 'cancelled') {
+      checkbook.cancelledBy = req.user._id;
+      checkbook.cancelledAt = new Date();
+    }
+
+    await checkbook.save();
+
+    // Fetch member name for logging
+    const member = await Member.findById(checkbook.member).select('name');
+
+    // Log activity
+    await logActivity({
+      userId: req.user._id,
+      action: 'checkbook_status_updated',
+      category: 'member',
+      details: `Changed checkbook ${checkbook.checkbookNumber} status from "${oldStatus}" to "${status}" for ${member?.name || 'Unknown'}`,
+      metadata: {
+        checkbookId: checkbook._id,
+        checkbookNumber: checkbook.checkbookNumber,
+        oldStatus,
+        newStatus: status,
+      },
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: `Checkbook ${checkbook.checkbookNumber} status updated to "${status}"`,
+      checkbook,
+    });
+  } catch (error) {
+    console.error('Update Checkbook Status Error:', error);
+    res.status(500).json({ message: 'Failed to update checkbook status' });
+  }
+};
+
 module.exports = {
   issueCheckbook,
   getMemberCheckbooks,
   getPortalCheckbooks,
   cancelCheckbook,
+  updateCheckbookStatus,
 };

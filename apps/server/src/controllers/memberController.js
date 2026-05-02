@@ -12,6 +12,7 @@ const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
 const loanRepaymentService = require('../services/loanRepaymentService');
 const Loan = require('../models/Loan');
+const Checkbook = require('../models/Checkbook');
 const { canAddMember } = require('../utils/planLimits');
 const {
   createTransactionNotification,
@@ -855,8 +856,6 @@ const addInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-
-
     const balanceBefore = isSaving ? member.savingBalance : member.currentBalance;
     const investedBefore = isSaving ? member.totalSavingDeposited : member.totalInvested;
 
@@ -1032,7 +1031,7 @@ const withdrawInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description, notes: userNotes, accountType = 'current', paymentMethod = 'cash' } = req.body;
+    const { amount, description, notes: userNotes, accountType = 'current', paymentMethod = 'cash', checkbookId, checkNo } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid withdrawal amount' });
@@ -1043,8 +1042,28 @@ const withdrawInvestment = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
+    // ── Checkbook validation ──────────────────────────────────────────────
+    let checkbookDoc = null;
+    if (checkbookId) {
+      checkbookDoc = await Checkbook.findOne({
+        _id: checkbookId,
+        member: id,
+        user: userId,
+        status: 'active',
+      });
+      if (!checkbookDoc) {
+        return res.status(400).json({ message: 'Invalid or inactive checkbook' });
+      }
+      if (checkbookDoc.usedLeaves >= checkbookDoc.numberOfLeaves) {
+        return res.status(400).json({ message: 'All checkbook leaves have been used. Please issue a new checkbook.' });
+      }
+    }
+
     const isSaving = accountType === 'saving';
     const systemDescription = isSaving ? 'Saving account withdrawal' : 'Investment withdrawal';
+    const checkbookLabel = checkbookDoc
+      ? ` (Checkbook: ${checkbookDoc.checkbookNumber}${checkNo ? ', Check #' + checkNo : ''})`
+      : '';
     const availableBalance = isSaving ? member.savingBalance : member.currentBalance;
 
     if (availableBalance < amount) {
@@ -1081,9 +1100,19 @@ const withdrawInvestment = async (req, res) => {
       type: 'withdrawal',
       amount,
       accountType,
-      description: description || systemDescription,
+      description: (description || systemDescription) + checkbookLabel,
       balanceAfter,
+      metadata: checkbookDoc ? { checkbookId: checkbookDoc._id, checkbookNumber: checkbookDoc.checkbookNumber, checkNo: checkNo || undefined } : {},
     });
+
+    // ── Increment checkbook used leaves ───────────────────────────────────
+    if (checkbookDoc) {
+      checkbookDoc.usedLeaves += 1;
+      if (checkbookDoc.usedLeaves >= checkbookDoc.numberOfLeaves) {
+        checkbookDoc.status = 'used';
+      }
+      await checkbookDoc.save();
+    }
 
     // Create Financial Transaction
     const financialTx = new FinancialTransaction({
@@ -1093,12 +1122,13 @@ const withdrawInvestment = async (req, res) => {
       category: isSaving ? 'saving_withdrawal' : 'withdrawal',
       amount,
       date: new Date(),
-      description: description || systemDescription,
+      description: (description || systemDescription) + checkbookLabel,
       notes: userNotes || undefined,
       paymentMethod,
       member: member._id,
       referenceId: investment._id,
       referenceModel: 'Investment',
+      checkbookId: checkbookDoc?._id || undefined,
     });
     await financialTx.save();
 

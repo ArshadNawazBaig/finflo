@@ -30,6 +30,7 @@ import {
   Download,
   FileBadge,
   Building2,
+  BookOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -94,6 +95,11 @@ const TellerMode = () => {
     useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'online'
   const [deductFromWallet, setDeductFromWallet] = useState(false);
+
+  // ── Checkbook State ───────────────────────────
+  const [memberCheckbooks, setMemberCheckbooks] = useState([]);
+  const [selectedCheckbookId, setSelectedCheckbookId] = useState('');
+  const [checkNo, setCheckNo] = useState('');
 
   // ── Recent Transactions ───────────────────────
   const [recentTxns, setRecentTxns] = useState([]);
@@ -233,6 +239,7 @@ const TellerMode = () => {
     setSelectedLoan(null);
     setSearchResults([]);
     setQuery('');
+    setSelectedCheckbookId('');
     try {
       const { data } = await api.get(`/members/${memberId}`);
       setMember(data);
@@ -250,6 +257,14 @@ const TellerMode = () => {
       );
 
       setActiveLoans(filteredLoans);
+
+      // Fetch member checkbooks
+      try {
+        const cbRes = await api.get(`/checkbooks/member/${memberId}?limit=20`);
+        setMemberCheckbooks(cbRes.data.checkbooks || []);
+      } catch {
+        setMemberCheckbooks([]);
+      }
 
       // Fetch recent transactions
       setRecentTxnsPage(1);
@@ -676,6 +691,8 @@ const TellerMode = () => {
         notes: description || undefined,
         accountType,
         paymentMethod,
+        checkbookId: selectedCheckbookId || undefined,
+        checkNo: checkNo || undefined,
       });
       toast.success(
         `${formatCurrency(parseFloat(amount))} withdrawn from ${member.name}'s ${accountType} account`,
@@ -717,6 +734,8 @@ const TellerMode = () => {
     setDescription('');
     setActiveAction(null);
     setSelectedLoan(null);
+    setSelectedCheckbookId('');
+    setCheckNo('');
     // Refresh member data
     if (member) {
       await selectMember(member._id);
@@ -743,6 +762,9 @@ const TellerMode = () => {
     setRepaymentType('installment');
     setPaymentMethod('cash');
     setDeductFromWallet(false);
+    setMemberCheckbooks([]);
+    setSelectedCheckbookId('');
+    setCheckNo('');
     setTimeout(() => searchRef.current?.focus(), 100);
   };
 
@@ -1726,6 +1748,108 @@ const TellerMode = () => {
                                 </button>
                               </div>
                             </div>
+
+                            {/* Via Checkbook Toggle & Selector (withdrawal only) */}
+                            {activeAction === 'withdraw' &&
+                              memberCheckbooks.filter((cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves).length > 0 && (
+                              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                                      <BookOpen size={16} />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-black tracking-tight">
+                                        Via Checkbook
+                                      </p>
+                                      <p className="text-[9px] text-muted-foreground font-medium">
+                                        Withdraw against a checkbook leaf
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (selectedCheckbookId) {
+                                        setSelectedCheckbookId('');
+                                      } else {
+                                        const active = memberCheckbooks.find(
+                                          (cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves,
+                                        );
+                                        if (active) setSelectedCheckbookId(active._id);
+                                      }
+                                    }}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${selectedCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
+                                  >
+                                    <span
+                                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
+                                    />
+                                  </button>
+                                </div>
+
+                                {selectedCheckbookId && (
+                                  <div className="space-y-2 pt-1">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                      Select Checkbook
+                                    </label>
+                                    <div className="space-y-1.5 max-h-[120px] overflow-y-auto custom-scrollbar">
+                                      {memberCheckbooks
+                                        .filter((cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves)
+                                        .map((cb) => (
+                                          <button
+                                            key={cb._id}
+                                            type="button"
+                                            onClick={() => setSelectedCheckbookId(cb._id)}
+                                            className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
+                                              selectedCheckbookId === cb._id
+                                                ? 'border-amber-500 bg-amber-500/5'
+                                                : 'border-border/30 hover:border-amber-500/30'
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-2.5">
+                                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                                                selectedCheckbookId === cb._id
+                                                  ? 'bg-amber-500 text-white'
+                                                  : 'bg-amber-500/10 text-amber-600'
+                                              }`}>
+                                                <BookOpen size={12} />
+                                              </div>
+                                              <div>
+                                                <p className="text-[11px] font-black group-hover:text-amber-600 transition-colors">
+                                                  {cb.checkbookNumber}
+                                                </p>
+                                                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                  {cb.numberOfLeaves - (cb.usedLeaves || 0)} leaves left
+                                                </p>
+                                              </div>
+                                            </div>
+                                            {selectedCheckbookId === cb._id && (
+                                              <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                                                <CheckCircle2 size={10} />
+                                              </div>
+                                            )}
+                                          </button>
+                                        ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {selectedCheckbookId && (
+                                  <div className="space-y-2 pt-1">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                      Check No
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={checkNo}
+                                      onChange={(e) => setCheckNo(e.target.value)}
+                                      placeholder="e.g. 001, 025"
+                                      className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Loan Selector */}
                             {activeAction === 'loan-pay' && (

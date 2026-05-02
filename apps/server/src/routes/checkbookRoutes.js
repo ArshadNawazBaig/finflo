@@ -5,6 +5,7 @@ const {
   getMemberCheckbooks,
   getPortalCheckbooks,
   cancelCheckbook,
+  updateCheckbookStatus,
 } = require('../controllers/checkbookController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
@@ -23,5 +24,8 @@ router.get('/member/:memberId', getMemberCheckbooks);
 
 // Cancel a checkbook
 router.put('/:id/cancel', cancelCheckbook);
+
+// Update checkbook status (reactivate, mark used, etc.)
+router.put('/:id/status', updateCheckbookStatus);
 
 module.exports = router;

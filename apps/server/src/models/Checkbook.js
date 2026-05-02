@@ -53,6 +53,10 @@ const checkbookSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    usedLeaves: {
+      type: Number,
+      default: 0,
+    },
     notes: {
       type: String,
       default: '',

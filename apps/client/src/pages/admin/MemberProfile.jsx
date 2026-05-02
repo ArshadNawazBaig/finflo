@@ -165,6 +165,8 @@ const MemberProfile = () => {
   const [investmentType, setInvestmentType] = useState('deposit');
   const [investAccountType, setInvestAccountType] = useState('current');
   const [investPaymentMethod, setInvestPaymentMethod] = useState('cash'); // 'cash' | 'online'
+  const [investCheckbookId, setInvestCheckbookId] = useState(''); // selected checkbook for via-checkbook transactions
+  const [investCheckNo, setInvestCheckNo] = useState(''); // check leaf number
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
@@ -745,6 +747,7 @@ const MemberProfile = () => {
       setIsSubmittingInvestment(true);
       const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
       const isSaving = investAccountType === 'saving';
+      const isWithdrawal = investmentType === 'withdrawal';
       await api.post(`/members/${id}/${endpoint}`, {
         amount: parseFloat(amount),
         notes: description || undefined,
@@ -754,6 +757,8 @@ const MemberProfile = () => {
           investmentType === 'deposit' && !isSaving ? applyDeduction : false,
         repaymentType:
           investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
+        checkbookId: isWithdrawal && investCheckbookId ? investCheckbookId : undefined,
+        checkNo: isWithdrawal && investCheckNo ? investCheckNo : undefined,
       });
       const accountLabel = isSaving ? 'Saving' : 'Current';
       toast.success(
@@ -762,8 +767,11 @@ const MemberProfile = () => {
       setAmount('');
       setDescription('');
       setInvestPaymentMethod('cash');
+      setInvestCheckbookId('');
+      setInvestCheckNo('');
       setShowInvestmentForm(false);
       fetchMemberData();
+      if (investCheckbookId) fetchCheckbooks(1); // Refresh checkbook data
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed');
     } finally {
@@ -934,6 +942,24 @@ const MemberProfile = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message || 'Failed to cancel checkbook',
+      );
+    } finally {
+      setIsCancellingCheckbook(null);
+    }
+  };
+
+  const handleUpdateCheckbookStatus = async (checkbookId, status) => {
+    setIsCancellingCheckbook(checkbookId);
+    try {
+      const { data } = await api.put(`/checkbooks/${checkbookId}/status`, {
+        status,
+      });
+      toast.success(data.message || `Checkbook status updated to ${status}`);
+      fetchMemberData();
+      fetchCheckbooks(checkbookPage);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to update checkbook status',
       );
     } finally {
       setIsCancellingCheckbook(null);
@@ -2083,6 +2109,105 @@ const MemberProfile = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Via Checkbook Toggle & Selector (withdrawal only) */}
+                  {investmentType === 'withdrawal' && checkbooks.filter((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves).length > 0 && (
+                    <div className="p-4 rounded-[1.5rem] bg-amber-500/5 border border-amber-500/10 space-y-3 animate-in slide-in-from-top-4 duration-300">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                            <BookOpen size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black tracking-tight">
+                              Via Checkbook
+                            </p>
+                            <p className="text-[10px] text-muted-foreground font-medium">
+                              Withdraw against a checkbook leaf
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (investCheckbookId) {
+                              setInvestCheckbookId('');
+                            } else {
+                              const active = checkbooks.find((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves);
+                              if (active) setInvestCheckbookId(active._id);
+                            }
+                          }}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${investCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${investCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
+                          />
+                        </button>
+                      </div>
+
+                      {investCheckbookId && (
+                        <div className="space-y-2 pt-1">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Select Checkbook
+                          </label>
+                          <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar">
+                            {checkbooks
+                              .filter((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves)
+                              .map((cb) => (
+                                <button
+                                  key={cb._id}
+                                  type="button"
+                                  onClick={() => setInvestCheckbookId(cb._id)}
+                                  className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
+                                    investCheckbookId === cb._id
+                                      ? 'border-amber-500 bg-amber-500/5'
+                                      : 'border-border/30 hover:border-amber-500/30'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
+                                      investCheckbookId === cb._id
+                                        ? 'bg-amber-500 text-white'
+                                        : 'bg-amber-500/10 text-amber-600'
+                                    }`}>
+                                      <BookOpen size={14} />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-black group-hover:text-amber-600 transition-colors">
+                                        {cb.checkbookNumber}
+                                      </p>
+                                      <p className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
+                                        {cb.numberOfLeaves - (cb.usedLeaves || 0)} leaves left • {cb.numberOfLeaves} total
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {investCheckbookId === cb._id && (
+                                    <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                                      <CheckCircle2 size={12} />
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {investCheckbookId && (
+                        <div className="space-y-2 pt-1">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Check No
+                          </label>
+                          <input
+                            type="text"
+                            value={investCheckNo}
+                            onChange={(e) => setInvestCheckNo(e.target.value)}
+                            placeholder="e.g. 001, 025"
+                            className="w-full px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -3482,6 +3607,24 @@ const MemberProfile = () => {
                         <div className="flex items-center justify-end col-span-1 mt-2 md:mt-0 pt-3 md:pt-0 border-t border-border/10 md:border-none">
                           {cb.status === 'active' ? (
                             <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                              <Tooltip content="Mark as Used">
+                                <button
+                                  onClick={() =>
+                                    handleUpdateCheckbookStatus(cb._id, 'used')
+                                  }
+                                  disabled={isCancellingCheckbook === cb._id}
+                                  className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors disabled:opacity-50"
+                                >
+                                  {isCancellingCheckbook === cb._id ? (
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <CheckCircle2 size={12} />
+                                  )}
+                                </button>
+                              </Tooltip>
                               <Tooltip content="Cancel & Refund">
                                 <button
                                   onClick={() =>
@@ -3513,7 +3656,26 @@ const MemberProfile = () => {
                               </Tooltip>
                             </div>
                           ) : (
-                            <span className="md:hidden text-[10px] text-muted-foreground italic">No actions</span>
+                            <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                              <Tooltip content="Reactivate">
+                                <button
+                                  onClick={() =>
+                                    handleUpdateCheckbookStatus(cb._id, 'active')
+                                  }
+                                  disabled={isCancellingCheckbook === cb._id}
+                                  className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-emerald-600 transition-colors disabled:opacity-50"
+                                >
+                                  {isCancellingCheckbook === cb._id ? (
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                  ) : (
+                                    <RefreshCw size={12} />
+                                  )}
+                                </button>
+                              </Tooltip>
+                            </div>
                           )}
                         </div>
                       </div>
