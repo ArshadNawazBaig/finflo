@@ -3555,7 +3555,7 @@ const MemberProfile = () => {
                             Leaves
                           </span>
                           <span className="text-xs font-bold">
-                            {cb.numberOfLeaves}
+                            {cb.numberOfLeaves}/<span className="text-muted-foreground">{cb.usedLeaves || 0}</span>
                           </span>
                         </div>
 
