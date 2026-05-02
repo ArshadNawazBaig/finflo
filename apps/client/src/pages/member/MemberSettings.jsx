@@ -26,12 +26,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  cn,
-  formatCNIC,
-  validateEmail,
-  validatePassword,
-} from '@/lib/utils';
+import { cn, formatCNIC, validateEmail, validatePassword } from '@/lib/utils';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -368,7 +363,9 @@ const ProfileSection = ({
             <div
               className={cn(
                 'absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-all duration-300',
-                uploading ? 'opacity-100' : 'opacity-0 group-hover/avatar:opacity-100'
+                uploading
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover/avatar:opacity-100',
               )}
             >
               <button
@@ -445,7 +442,9 @@ const ProfileSection = ({
               {member.role || 'MEMBER'}
             </span>
           </div>
-          {(member.savingAccountNumber || member.currentAccountNumber || member.loanAccountNumber) && (
+          {(member.savingAccountNumber ||
+            member.currentAccountNumber ||
+            member.loanAccountNumber) && (
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
               {member.savingAccountNumber && (
                 <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter font-mono">
@@ -1343,7 +1342,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
           <Button
             variant="outline"
             onClick={onClose}
-            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+            className="flex-1 min-h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
             disabled={loading}
           >
             Cancel
@@ -1353,7 +1352,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
             onClick={handleDelete}
             isLoading={loading}
             disabled={confirmText !== 'DELETE'}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            className="flex-[2] min-h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
             Confirm Deletion
           </Button>

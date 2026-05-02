@@ -499,7 +499,7 @@ const DeleteRoleConfirmModal = ({
           <Button
             variant="outline"
             onClick={onClose}
-            className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
+            className="flex-1 min-h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
             disabled={loading}
           >
             Cancel
@@ -508,7 +508,7 @@ const DeleteRoleConfirmModal = ({
             variant="destructive"
             onClick={onConfirm}
             isLoading={loading}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            className="flex-[2] min-h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 shadow-xl shadow-rose-500/20 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
             Finalize Deletion
           </Button>
