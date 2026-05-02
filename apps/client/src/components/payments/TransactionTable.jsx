@@ -1,13 +1,52 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User, RotateCcw } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Hash, User, RotateCcw, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
-import { Button } from '@/components/ui/button';
+import Tooltip from '@/components/ui/Tooltip';
+import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
+import { toast } from 'sonner';
 
 const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
+
+const handleDownloadReceipt = async (transaction) => {
+  try {
+    const isIncome = transaction.type === 'income';
+    const member = transaction.member || transaction.customer || {};
+    const category = transaction.category || '';
+
+    // Map category to receipt type
+    let type = 'deposit';
+    if (category.includes('withdrawal')) type = 'withdrawal';
+    else if (category.includes('repayment')) type = 'repayment';
+    else if (category.includes('checkbook')) type = 'checkbook_fee';
+    else if (category.includes('transfer')) type = isIncome ? 'transfer_receive' : 'transfer_send';
+    else if (category.includes('salary') || category.includes('late_fee')) type = 'late_fee';
+    else if (category.includes('profit') || category.includes('distribution')) type = 'profit';
+    else if (category.includes('share')) type = isIncome ? 'share_deposit' : 'share_withdrawal';
+    else if (!isIncome) type = 'withdrawal';
+
+    await generateTransactionReceipt({
+      member,
+      type,
+      amount: transaction.amount,
+      description: transaction.description || transaction.notes || '',
+      date: transaction.date,
+      referenceId: transaction._id,
+      accountType: transaction.accountType || 'current',
+      extra: {
+        ...(transaction.paymentMethod && { 'Payment Method': capitalize(transaction.paymentMethod) }),
+        ...(transaction.branchId?.name && { Branch: transaction.branchId.name }),
+        ...(transaction.status && { Status: transaction.status }),
+      },
+    });
+  } catch (error) {
+    console.error('Receipt download error:', error);
+    toast.error('Failed to download receipt');
+  }
+};
 
 const TransactionTable = ({
   data,
@@ -68,11 +107,9 @@ const TransactionTable = ({
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
               </th>
-              {onReverse && (
-                <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap text-center">
-                  Actions
-                </th>
-              )}
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -219,25 +256,33 @@ const TransactionTable = ({
                   <td className="py-4 px-4 text-sm text-muted-foreground truncate max-w-[200px]">
                     {transaction.notes || '-'}
                   </td>
-                  {onReverse && (
-                    <td className="py-4 px-4 text-center">
-                      {canReverse ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onReverse(transaction)}
-                          className="h-8 px-3 text-xs font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-500/10 rounded-xl gap-1.5"
+                  <td className="py-4 px-4 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <Tooltip content="Download Receipt">
+                        <button
+                          onClick={() => handleDownloadReceipt(transaction)}
+                          className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                         >
-                          <RotateCcw size={13} />
-                          Reverse
-                        </Button>
-                      ) : isReversed ? (
+                          <Download size={14} />
+                        </button>
+                      </Tooltip>
+                      {canReverse && (
+                        <Tooltip content="Reverse">
+                          <button
+                            onClick={() => onReverse(transaction)}
+                            className="p-1.5 rounded-lg hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 transition-colors"
+                          >
+                            <RotateCcw size={14} />
+                          </button>
+                        </Tooltip>
+                      )}
+                      {isReversed && (
                         <span className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">
                           Reversed
                         </span>
-                      ) : null}
-                    </td>
-                  )}
+                      )}
+                    </div>
+                  </td>
                 </tr>
               );
             })}

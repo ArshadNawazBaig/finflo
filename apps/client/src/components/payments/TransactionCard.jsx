@@ -1,11 +1,49 @@
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Receipt, User, TrendingUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { Receipt, User, TrendingUp, ArrowDown, RotateCcw, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import Tooltip from '@/components/ui/Tooltip';
+import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
+import { toast } from 'sonner';
 
 const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
+
+const handleDownloadReceipt = async (transaction) => {
+  try {
+    const isIncome = transaction.type === 'income';
+    const member = transaction.member || transaction.customer || {};
+    const category = transaction.category || '';
+
+    let type = 'deposit';
+    if (category.includes('withdrawal')) type = 'withdrawal';
+    else if (category.includes('repayment')) type = 'repayment';
+    else if (category.includes('checkbook')) type = 'checkbook_fee';
+    else if (category.includes('transfer')) type = isIncome ? 'transfer_receive' : 'transfer_send';
+    else if (category.includes('salary') || category.includes('late_fee')) type = 'late_fee';
+    else if (category.includes('profit') || category.includes('distribution')) type = 'profit';
+    else if (category.includes('share')) type = isIncome ? 'share_deposit' : 'share_withdrawal';
+    else if (!isIncome) type = 'withdrawal';
+
+    await generateTransactionReceipt({
+      member,
+      type,
+      amount: transaction.amount,
+      description: transaction.description || transaction.notes || '',
+      date: transaction.date,
+      referenceId: transaction._id,
+      accountType: transaction.accountType || 'current',
+      extra: {
+        ...(transaction.paymentMethod && { 'Payment Method': capitalize(transaction.paymentMethod) }),
+        ...(transaction.branchId?.name && { Branch: transaction.branchId.name }),
+        ...(transaction.status && { Status: transaction.status }),
+      },
+    });
+  } catch (error) {
+    console.error('Receipt download error:', error);
+    toast.error('Failed to download receipt');
+  }
+};
 
 const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
   const isIncome = transaction.type === 'income';
@@ -147,19 +185,26 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
         </div>
       )}
 
-      {canReverse && (
-        <div className="mt-3 pt-3 border-t border-border/30">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onReverse(transaction)}
-            className="w-full h-9 text-xs font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-500/10 rounded-xl gap-1.5"
+      <div className="mt-3 pt-3 border-t border-border/30 flex items-center gap-2">
+        <Tooltip content="Download Receipt">
+          <button
+            onClick={() => handleDownloadReceipt(transaction)}
+            className="p-2 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
           >
-            <RotateCcw size={13} />
-            Reverse Transaction
-          </Button>
-        </div>
-      )}
+            <Download size={15} />
+          </button>
+        </Tooltip>
+        {canReverse && (
+          <Tooltip content="Reverse">
+            <button
+              onClick={() => onReverse(transaction)}
+              className="p-2 rounded-xl hover:bg-orange-500/10 text-muted-foreground hover:text-orange-600 transition-colors"
+            >
+              <RotateCcw size={15} />
+            </button>
+          </Tooltip>
+        )}
+      </div>
     </div>
   );
 };
