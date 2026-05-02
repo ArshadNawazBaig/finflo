@@ -4,6 +4,7 @@
   "webDir": "dist",
   "server": {
     "url": "https://app.finflo.org?app_mode=member",
+    "errorPath": "error.html",
     "cleartext": true,
     "allowNavigation": ["app.finflo.org", "finflo.org"]
   },
