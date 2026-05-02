@@ -364,48 +364,63 @@ const MemberLoanDetail = () => {
         lateFeeEnabled &&
         loan.status !== 'completed' &&
         loan.status !== 'rejected' && (
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-[2rem] p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4 group-hover:scale-110 transition-transform duration-500">
-              <AlertCircle size={120} className="text-orange-500" />
+          <div className="bg-card/40 backdrop-blur-md border border-orange-500/20 rounded-[2.5rem] p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-start relative overflow-hidden group shadow-sm transition-all hover:border-orange-500/40 hover:shadow-orange-500/5 mt-8">
+            {/* Soft Ambient Glow */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 blur-[100px] -mr-20 -mt-20 rounded-full pointer-events-none transition-opacity group-hover:opacity-100 opacity-50" />
+
+            {/* Background Icon */}
+            <div className="absolute top-0 right-0 p-8 opacity-5 -mr-4 -mt-4 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-700 pointer-events-none">
+              <AlertCircle size={160} className="text-orange-500" />
             </div>
 
             {/* Close Button */}
             <button
               onClick={() => setShowPenaltyBanner(false)}
-              className="absolute top-4 right-4 p-2 rounded-xl bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-colors z-20"
+              className="absolute top-6 right-6 p-2 rounded-xl bg-card/50 text-muted-foreground hover:bg-orange-500/10 hover:text-orange-500 border border-border/50 hover:border-orange-500/20 transition-all z-20 backdrop-blur-md active:scale-95"
               title="Dismiss Notice"
             >
               <X size={16} strokeWidth={3} />
             </button>
 
-            <div className="p-4 bg-orange-500/20 rounded-2xl text-orange-600 shadow-inner">
+            {/* Icon Box */}
+            <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-orange-500 shadow-inner shrink-0 relative z-10 group-hover:scale-110 transition-transform duration-500">
               <AlertCircle size={24} strokeWidth={2.5} />
             </div>
-            <div className="space-y-2 text-center sm:text-left relative z-10">
-              <h4 className="text-lg font-black tracking-tight text-orange-700">
-                Post-Tenure Late Payment Notice
-              </h4>
-              <p className="text-sm text-orange-600/80 font-medium leading-relaxed max-w-2xl">
+            
+            {/* Content */}
+            <div className="space-y-3 sm:pr-12 relative z-10 flex-1">
+              <div className="space-y-1.5">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-orange-500 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                  Policy Notice
+                </span>
+                <h4 className="text-xl font-black tracking-tight text-foreground">
+                  Post-Tenure Late Payment Notice
+                </h4>
+              </div>
+              <div className="h-px w-12 bg-orange-500/20 my-2" />
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
                 Late fees are applied only{' '}
-                <strong>after your full loan tenure ends</strong>. If your loan
+                <strong className="text-foreground font-black">after your full loan tenure ends</strong>. If your loan
                 is not fully repaid by the end of the{' '}
-                <span className="font-black text-orange-700 underline decoration-2 underline-offset-4">
+                <span className="font-bold text-foreground">
                   {loan.duration}-month loan period
                 </span>
                 , a daily late fee of{' '}
-                <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center shadow-sm">
+                <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-lg font-black tracking-tighter mx-1 inline-flex items-center border border-orange-500/20">
                   {formatCurrency(dailyFee)}
                 </span>{' '}
-                (
-                {lateFeeType === 'percentage'
-                  ? `${lateFeeRate}%`
-                  : formatCurrency(lateFeeRate)}{' '}
-                monthly rate) will accrue on the outstanding balance after a{' '}
-                <span className="font-black text-orange-700">
+                <span className="text-[11px] opacity-80 font-medium">
+                  ({lateFeeType === 'percentage'
+                    ? `${lateFeeRate}%`
+                    : formatCurrency(lateFeeRate)}{' '}
+                  monthly rate)
+                </span>{' '}
+                will accrue on the outstanding balance after a{' '}
+                <span className="font-bold text-foreground">
                   {gracePeriod}-day grace period
                 </span>
-                . Continued non-payment may result in the loan being marked as
-                defaulted.
+                . Continued non-payment may result in the loan being marked as defaulted.
               </p>
             </div>
           </div>
