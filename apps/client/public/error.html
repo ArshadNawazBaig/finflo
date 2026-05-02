@@ -196,11 +196,23 @@
     </div>
 
     <script>
-      // Read the retry URL from the query parameter passed by native Android code.
-      // The native MainActivity reads capacitor.config.json (which is flavor-specific)
-      // and passes the correct server URL (with ?app_mode=member for member APK).
-      var params = new URLSearchParams(window.location.search);
-      var retryUrl = params.get('retry_url') || 'https://app.finflo.org';
+      // Get the correct server URL from the native Android bridge.
+      // The native MainActivity reads the flavor-specific capacitor.config.json
+      // and exposes it via window.NativeConfig.getServerUrl().
+      // Falls back to query param (if loaded with ?retry_url=...) or default.
+      var retryUrl = 'https://app.finflo.org';
+      try {
+        if (window.NativeConfig && window.NativeConfig.getServerUrl) {
+          retryUrl = window.NativeConfig.getServerUrl();
+        }
+      } catch (e) { /* ignore */ }
+
+      // Also check query param as fallback
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var paramUrl = params.get('retry_url');
+        if (paramUrl) retryUrl = paramUrl;
+      } catch (e) { /* ignore */ }
 
       function retryConnection() {
         var btn = document.getElementById('retryBtn');
@@ -215,8 +227,8 @@
         btn.textContent = 'Connecting...';
         status.textContent = '';
 
-        // Test actual connectivity before navigating (prevents another error flash)
-        fetch(retryUrl, { mode: 'no-cors', cache: 'no-store' })
+        // Test actual connectivity before navigating (prevents error flash)
+        fetch('https://app.finflo.org/favicon.ico?t=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
           .then(function() {
             window.location.replace(retryUrl);
           })
