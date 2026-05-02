@@ -72,6 +72,10 @@ const AppRootRedirect = () => {
 
 const PageLoader = () => <SplashScreen />;
 
+const TestError = () => {
+  throw new Error('This is an intentional test error to demonstrate the Error Boundary.');
+};
+
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 
 function App() {
@@ -159,6 +163,11 @@ function App() {
                   {/* Dev-only: preview onboarding screens in browser */}
                   {IS_DEV && (
                     <Route path="/onboarding" element={<OnboardingScreen onComplete={() => window.history.back()} />} />
+                  )}
+
+                  {/* Dev-only: test error boundary */}
+                  {IS_DEV && (
+                    <Route path="/test-error" element={<TestError />} />
                   )}
 
                   {/* Auth Routes */}

@@ -1,94 +1,102 @@
 import { motion } from 'framer-motion';
-import { Home, ArrowLeft, Ghost } from 'lucide-react';
+import { Home, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const NotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 overflow-hidden relative">
-      {/* Background Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-violet-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
-
-      <div className="relative z-10 max-w-2xl w-full">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden selection:bg-primary/30">
+      {/* Animated Mesh Gradient Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-12 text-center shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)]"
-        >
-          {/* Animated 404 Icon */}
-          <motion.div
-            animate={{
-              y: [0, -20, 0],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-primary via-indigo-600 to-violet-700 rounded-3xl mb-8 shadow-2xl relative"
-          >
-            <Ghost className="w-16 h-16 text-white" />
-            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg">
-              Lost
-            </div>
-          </motion.div>
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-primary/20 to-indigo-500/20 blur-[100px] dark:from-primary/10 dark:to-indigo-500/10 opacity-70"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-bl from-rose-500/10 to-violet-500/20 blur-[100px] dark:from-rose-500/5 dark:to-violet-500/10 opacity-70 translate-x-1/4"
+        />
+      </div>
 
-          {/* Typography */}
-          <h1 className="text-8xl font-black tracking-tighter text-white mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
+      <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center"
+        >
+          {/* Subtle Label */}
+          <motion.span 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
+            className="px-4 py-1.5 rounded-full bg-muted/50 border border-border/50 text-xs font-semibold text-muted-foreground uppercase tracking-[0.3em] mb-8"
+          >
+            System Error
+          </motion.span>
+
+          {/* Huge Typography */}
+          <h1 className="text-[12rem] sm:text-[18rem] md:text-[22rem] leading-none font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-foreground via-foreground/80 to-background select-none filter drop-shadow-xl">
             404
           </h1>
-          <h2 className="text-2xl font-black tracking-tight text-white/90 mb-6 uppercase">
-            Void Detected
-          </h2>
-          <p className="text-slate-400 text-lg mb-12 max-w-md mx-auto font-medium leading-relaxed">
-            The coordinates you provided lead to deep space. This page doesn't
-            exist or has been moved to another dimension.
-          </p>
+          
+          {/* Negative margin to pull text closer to the massive 404 */}
+          <div className="-mt-8 sm:-mt-16 md:-mt-20 z-10">
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground mb-6">
+              Looks like you're lost.
+            </h2>
+            <p className="text-muted-foreground text-lg sm:text-xl max-w-lg mx-auto font-medium leading-relaxed mb-12">
+              The page you are looking for has vanished into the void, or perhaps it never existed at all.
+            </p>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              onClick={() => navigate('/')}
-              className="group relative px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.05] active:scale-95 transition-all w-full sm:w-auto"
-            >
-              <span className="flex items-center justify-center gap-2">
-                <Home className="w-4 h-4" />
-                Return Base
-              </span>
-            </button>
-            <button
-              onClick={() => navigate(-1)}
-              className="group px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all border border-white/10 w-full sm:w-auto"
-            >
-              <span className="flex items-center justify-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Initiate Warp Back
-              </span>
-            </button>
+            {/* Elegant Pill Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
+                onClick={() => navigate('/')}
+                className="group flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-bold transition-all hover:scale-105 active:scale-95 shadow-xl w-full sm:w-auto shadow-primary/20 hover:shadow-primary/40"
+              >
+                <Home className="w-5 h-5" />
+                <span>Return to Home</span>
+              </button>
+              
+              <button
+                onClick={() => navigate(-1)}
+                className="group flex items-center justify-center gap-3 px-8 py-4 bg-card hover:bg-muted border border-border text-foreground rounded-full font-bold transition-all hover:scale-105 active:scale-95 shadow-sm w-full sm:w-auto"
+              >
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span>Go Back</span>
+              </button>
+            </div>
           </div>
         </motion.div>
-
-        {/* System Metadata */}
-        <div className="mt-8 flex justify-center gap-8 opacity-20 pointer-events-none">
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase ">
-              Status
-            </span>
-            <span className="text-xs font-mono text-red-500">OFFLINE</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase ">
-              System
-            </span>
-            <span className="text-xs font-mono text-primary">FINFLO_PRO</span>
-          </div>
-        </div>
       </div>
+      
+      {/* Footer minimal elements */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 1 }}
+        className="absolute bottom-8 left-0 w-full flex justify-center text-xs text-muted-foreground font-mono tracking-widest uppercase opacity-50"
+      >
+        <span>Error Code_404 // Sector_Not_Found</span>
+      </motion.div>
     </div>
   );
 };
