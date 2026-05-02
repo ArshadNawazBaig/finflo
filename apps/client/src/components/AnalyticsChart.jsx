@@ -42,6 +42,7 @@ const AnalyticsChart = ({
                 expenses: 'text-rose-500',
                 outflow: 'text-orange-500',
                 profit: 'text-emerald-500',
+                capital: 'text-teal-500',
                 projected: 'text-primary/60',
               };
               const labels = {
@@ -50,6 +51,7 @@ const AnalyticsChart = ({
                 expenses: 'Operating Expenses',
                 outflow: 'Disbursements',
                 profit: 'Interest Profit',
+                capital: 'Business Capital',
                 projected: 'Projected Inflow',
               };
 
@@ -217,6 +219,17 @@ const AnalyticsChart = ({
                 strokeWidth={3}
                 dot={false}
                 activeDot={{ r: 5, strokeWidth: 0, fill: '#10b981' }}
+                animationDuration={1500}
+                opacity={0.9}
+              />
+              <Line
+                type="monotone"
+                dataKey="capital"
+                name="Business Capital"
+                stroke="#14b8a6" // teal-500
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#14b8a6' }}
                 animationDuration={1500}
                 opacity={0.9}
               />

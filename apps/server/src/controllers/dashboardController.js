@@ -423,6 +423,24 @@ const getDashboardStats = async (req, res) => {
           outflow: {
             $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },
           },
+          capitalIn: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ['$category', 'business_capital'] }, { $eq: ['$type', 'income'] }] },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          capitalOut: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ['$category', 'business_capital'] }, { $eq: ['$type', 'expense'] }] },
+                '$amount',
+                0,
+              ],
+            },
+          },
         },
       },
       { $sort: { _id: 1 } },
@@ -507,6 +525,7 @@ const getDashboardStats = async (req, res) => {
         deposits: m.deposits || 0,
         expenses: m.expenses || 0,
         profit: (profitData ? profitData.profit : 0) || 0,
+        capital: (m.capitalIn || 0) - (m.capitalOut || 0),
       };
     });
 

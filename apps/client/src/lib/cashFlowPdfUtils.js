@@ -43,6 +43,7 @@ export const exportCashFlowStatement = async (
       ['Total Disbursements', `-${formatCurrency(summary.outflow || 0)}`],
       ['Interest Profit', formatCurrency(summary.profit || 0)],
       ['Operating Expenses', `-${formatCurrency(summary.expenses || 0)}`],
+      ['Business Capital (Net)', formatCurrency(summary.capital || 0)],
       ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'grid',
