@@ -6,38 +6,145 @@ import {
   Home,
   Terminal,
   ShieldAlert,
+  WifiOff,
+  RefreshCw,
 } from 'lucide-react';
 
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, showDetails: false };
+    this.state = { hasError: false, error: null, showDetails: false, isOffline: false, retrying: false };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    // Detect network-related errors
+    const isNetworkError =
+      !navigator.onLine ||
+      error?.message?.includes('Failed to fetch') ||
+      error?.message?.includes('NetworkError') ||
+      error?.message?.includes('Network request failed') ||
+      error?.message?.includes('net::') ||
+      error?.message?.includes('Load failed') ||
+      error?.message?.includes('ERR_');
+
+    return { hasError: true, error, isOffline: isNetworkError };
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('[ErrorBoundary] Caught render error:', error, errorInfo);
   }
 
+  componentDidMount() {
+    window.addEventListener('online', this.handleOnline);
+    window.addEventListener('offline', this.handleOffline);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('online', this.handleOnline);
+    window.removeEventListener('offline', this.handleOffline);
+  }
+
+  handleOnline = () => {
+    if (this.state.hasError && this.state.isOffline) {
+      // Auto-retry when connection comes back
+      setTimeout(() => {
+        this.handleReload();
+      }, 1000);
+    }
+  };
+
+  handleOffline = () => {
+    // If app is running and goes offline, note it
+    if (this.state.hasError) {
+      this.setState({ isOffline: true });
+    }
+  };
+
   handleReload = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, isOffline: false });
     window.location.reload();
   };
 
+  handleRetry = () => {
+    if (!navigator.onLine) {
+      this.setState({ retrying: false });
+      return;
+    }
+    this.setState({ retrying: true });
+    // Brief delay then reload
+    setTimeout(() => {
+      this.setState({ hasError: false, error: null, isOffline: false, retrying: false });
+      window.location.reload();
+    }, 500);
+  };
+
   handleGoHome = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, isOffline: false });
     window.location.href = '/';
   };
 
   toggleDetails = () => {
-    this.setState((prev) => ({ showDetails: !prev }));
+    this.setState((prev) => ({ showDetails: !prev.showDetails }));
   };
 
   render() {
     if (this.state.hasError) {
+      // ── Offline / Network Error Screen ──────────────────────────
+      if (this.state.isOffline || !navigator.onLine) {
+        return (
+          <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 overflow-hidden relative font-sans">
+            {/* Glow effects */}
+            <div className="absolute -top-32 -left-32 w-[50vw] h-[50vw] bg-blue-500/8 rounded-full filter blur-[100px] pointer-events-none" />
+            <div className="absolute -bottom-32 -right-32 w-[50vw] h-[50vw] bg-emerald-500/6 rounded-full filter blur-[100px] pointer-events-none" />
+
+            <div className="relative z-10 max-w-md w-full">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center text-center"
+              >
+                {/* Icon */}
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-800/80 to-slate-900/90 border border-slate-700/50 flex items-center justify-center mb-8 shadow-2xl">
+                  <WifiOff className="w-8 h-8 text-blue-400" />
+                </div>
+
+                {/* Text */}
+                <h1 className="text-2xl font-extrabold text-white tracking-tight mb-3">
+                  Connection Lost
+                </h1>
+                <p className="text-slate-400 text-base leading-relaxed mb-10 max-w-xs">
+                  Please check your internet connection and try again.
+                </p>
+
+                {/* Retry Button */}
+                <button
+                  onClick={this.handleRetry}
+                  disabled={this.state.retrying}
+                  className="w-full max-w-xs bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-8 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {this.state.retrying ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Connecting...
+                    </span>
+                  ) : (
+                    'Try Again'
+                  )}
+                </button>
+
+                {!navigator.onLine && (
+                  <p className="text-slate-500 text-xs mt-4">
+                    You are currently offline
+                  </p>
+                )}
+              </motion.div>
+            </div>
+          </div>
+        );
+      }
+
+      // ── Generic Error Screen (non-network errors) ──────────────
       return (
         <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 overflow-hidden relative font-sans">
           {/* Background Blobs (Matched with NotFound) */}
