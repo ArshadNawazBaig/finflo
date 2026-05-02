@@ -266,6 +266,7 @@ const MemberProfile = () => {
   const [systemSettings, setSystemSettings] = useState(null);
   const [isBreakingTD, setIsBreakingTD] = useState(null);
   const [isMaturingTD, setIsMaturingTD] = useState(null);
+  const [breakTDTarget, setBreakTDTarget] = useState(null); // term deposit to break
 
   // Transaction Confirm Modal State
   const [showTxnConfirm, setShowTxnConfirm] = useState(false);
@@ -1149,16 +1150,11 @@ const MemberProfile = () => {
   };
 
   const handleBreakTermDeposit = async (tdId) => {
-    if (
-      !window.confirm(
-        'Are you sure you want to break this term deposit early? A penalty will be applied to the profit.',
-      )
-    )
-      return;
     try {
       setIsBreakingTD(tdId);
       const { data } = await api.post(`/term-deposits/${tdId}/break`);
       toast.success(data.message || 'Term deposit broken safely');
+      setBreakTDTarget(null);
       fetchMemberData();
     } catch (error) {
       toast.error(
@@ -3067,7 +3063,7 @@ const MemberProfile = () => {
                             <Button
                               size="sm"
                               isLoading={isBreakingTD === td._id}
-                              onClick={() => handleBreakTermDeposit(td._id)}
+                              onClick={() => setBreakTDTarget(td)}
                               variant="outline"
                               className="h-8 border-rose-500/30 text-rose-600 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-wider rounded-lg px-4"
                             >
@@ -4115,6 +4111,39 @@ const MemberProfile = () => {
             : description || undefined
         }
       />
+
+      {/* Break Term Deposit Confirmation Modal */}
+      {breakTDTarget && (() => {
+        const msElapsed = Date.now() - new Date(breakTDTarget.startDate).getTime();
+        const monthsElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24 * 30)));
+        const fullProfit = Math.round(
+          (breakTDTarget.principal * breakTDTarget.profitRate * (msElapsed / (1000 * 60 * 60 * 24 * 30))) / (12 * 100),
+        );
+        const penaltyRate = (breakTDTarget.earlyBreakPenaltyRate || 0) / 100;
+        const actualProfit = Math.max(0, Math.round(fullProfit * (1 - penaltyRate)));
+        const totalReturn = breakTDTarget.principal + actualProfit;
+        return (
+          <TransactionConfirmModal
+            isOpen={!!breakTDTarget}
+            onClose={() => setBreakTDTarget(null)}
+            onConfirm={() => handleBreakTermDeposit(breakTDTarget._id)}
+            loading={isBreakingTD === breakTDTarget._id}
+            type="custom"
+            title="Break Term Deposit Early"
+            amount={totalReturn}
+            confirmText="Break Deposit"
+            details={[
+              { label: 'Deposit', value: breakTDTarget.depositNumber || 'N/A' },
+              { label: 'Principal', value: formatCurrency(breakTDTarget.principal) },
+              { label: 'Months Elapsed', value: `${monthsElapsed} months` },
+              { label: 'Penalty Rate', value: `${breakTDTarget.earlyBreakPenaltyRate || 0}%` },
+              { label: 'Profit After Penalty', value: formatCurrency(actualProfit) },
+              { label: 'Est. Total Return', value: formatCurrency(totalReturn) },
+            ]}
+            description={`Breaking this deposit early will apply a ${breakTDTarget.earlyBreakPenaltyRate || 0}% penalty on accrued profit. The estimated return of ${formatCurrency(totalReturn)} will be credited to the member's ${breakTDTarget.sourceAccount || 'current'} account.`}
+          />
+        );
+      })()}
     </div>
   );
 };
