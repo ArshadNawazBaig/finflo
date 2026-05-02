@@ -355,7 +355,9 @@ const MemberCheckbooks = () => {
                           <div className="flex items-center gap-4 mt-2 flex-wrap">
                             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                               <Layers size={12} className="text-primary/60" />
-                              <span>{cb.numberOfLeaves} Leaves</span>
+                              <span>
+                                {cb.numberOfLeaves - (cb.usedLeaves || 0)} / {cb.numberOfLeaves} Leaves remaining
+                              </span>
                             </div>
                             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                               <BadgeDollarSign
@@ -378,6 +380,35 @@ const MemberCheckbooks = () => {
                               </span>
                             </div>
                           </div>
+
+                          {/* Leaf usage progress bar */}
+                          {cb.status === 'active' && (
+                            <div className="mt-3 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                  Leaf Usage
+                                </span>
+                                <span className="text-[9px] font-black text-muted-foreground">
+                                  {cb.usedLeaves || 0} / {cb.numberOfLeaves} used
+                                </span>
+                              </div>
+                              <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    'h-full rounded-full transition-all duration-700',
+                                    ((cb.usedLeaves || 0) / cb.numberOfLeaves) >= 0.9
+                                      ? 'bg-rose-500'
+                                      : ((cb.usedLeaves || 0) / cb.numberOfLeaves) >= 0.6
+                                        ? 'bg-amber-500'
+                                        : 'bg-emerald-500',
+                                  )}
+                                  style={{
+                                    width: `${Math.min(100, ((cb.usedLeaves || 0) / cb.numberOfLeaves) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
 
                           {cb.notes && (
                             <p className="text-[10px] text-muted-foreground/60 mt-2 italic font-medium truncate max-w-xs">
