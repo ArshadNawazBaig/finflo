@@ -264,7 +264,7 @@ const MemberLoans = () => {
                       </div>
                       <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden p-0.5 border border-border/20">
                         <div
-                          className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full transition-all duration-1000"
+                          className="h-full bg-primary rounded-full transition-all duration-1000"
                           style={{
                             width: `${100 - ((loan.remainingAmount || loan.totalAmount) / loan.totalAmount) * 100}%`,
                           }}

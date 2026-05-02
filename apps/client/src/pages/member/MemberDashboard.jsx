@@ -654,7 +654,7 @@ const MemberDashboard = () => {
                                 </div>
                                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full transition-all"
+                                    className="h-full bg-primary rounded-full transition-all"
                                     style={{
                                       width: `${100 - ((loan.remainingAmount || loan.totalAmount) / loan.totalAmount) * 100}%`,
                                     }}
