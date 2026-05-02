@@ -135,21 +135,35 @@ const MemberTransfer = () => {
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Wallet size={120} />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-              Available Balance
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary relative z-10">
+              Total Assets
             </p>
-            <h2 className="text-xl font-black tracking-tighter text-foreground">
-              {formatCurrency(member?.currentBalance || 0)}
+            <h2 className="text-xl font-black tracking-tighter text-foreground relative z-10">
+              {formatCurrency(
+                (member?.currentBalance || 0) +
+                  (member?.savingBalance || 0) +
+                  (member?.shareBalance || 0),
+              )}
             </h2>
-            <div className="h-px bg-border/50 w-full my-4!" />
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
-                <span>Daily Limit</span>
-                <span>Rs. 500k</span>
+            <div className="h-px bg-border/50 w-full my-4 relative z-10" />
+            <div className="space-y-3 relative z-10">
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-muted-foreground">Current Account</span>
+                <span className="text-foreground">
+                  {formatCurrency(member?.currentBalance || 0)}
+                </span>
               </div>
-              <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
-                <span>Monthly Limit</span>
-                <span>Unlimited</span>
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-muted-foreground">Saving Account</span>
+                <span className="text-foreground">
+                  {formatCurrency(member?.savingBalance || 0)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-muted-foreground">Share Account</span>
+                <span className="text-foreground">
+                  {formatCurrency(member?.shareBalance || 0)}
+                </span>
               </div>
             </div>
           </div>
