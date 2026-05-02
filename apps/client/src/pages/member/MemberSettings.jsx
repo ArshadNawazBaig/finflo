@@ -365,7 +365,12 @@ const ProfileSection = ({
             ) : (
               initials
             )}
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 opacity-0 group-hover/avatar:opacity-100 transition-all duration-300">
+            <div
+              className={cn(
+                'absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-all duration-300',
+                uploading ? 'opacity-100' : 'opacity-0 group-hover/avatar:opacity-100'
+              )}
+            >
               <button
                 type="button"
                 disabled={uploading}
@@ -380,7 +385,7 @@ const ProfileSection = ({
                 )}
               </button>
 
-              {member.profilePicture && (
+              {member.profilePicture && !uploading && (
                 <button
                   type="button"
                   disabled={uploading}
