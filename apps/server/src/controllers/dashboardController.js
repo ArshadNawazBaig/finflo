@@ -367,7 +367,18 @@ const getDashboardStats = async (req, res) => {
             $sum: { $cond: [{ $eq: ['$type', 'income'] }, '$amount', 0] },
           },
           totalExpense: {
-            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'expense'] },
+                    { $ne: ['$category', 'profit_distribution'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
           },
           totalLoanDisbursed: {
             $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },
@@ -454,7 +465,10 @@ const getDashboardStats = async (req, res) => {
           expenses: {
             $sum: {
               $cond: [
-                { $and: [{ $eq: ['$type', 'expense'] }, { $ne: ['$category', 'business_capital'] }] },
+                { $and: [
+                  { $eq: ['$type', 'expense'] },
+                  { $not: { $in: ['$category', ['business_capital', 'profit_distribution']] } },
+                ] },
                 '$amount',
                 0,
               ],

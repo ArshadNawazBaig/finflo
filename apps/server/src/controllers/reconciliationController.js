@@ -281,7 +281,7 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
       const totalRepaid = branchLoans.reduce((s, l) => s + (l.paidAmount || 0), 0);
       const totalDisbursed = branchLoans.reduce((s, l) => s + (l.principal || 0), 0);
       const totalExpenses = branchTxns
-        .filter((t) => t.type === 'expense')
+        .filter((t) => t.type === 'expense' && t.category !== 'profit_distribution' && t.category !== 'business_capital')
         .reduce((s, t) => s + (t.amount || 0), 0);
       
       const otherIncome = branchTxns
