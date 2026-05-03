@@ -6,6 +6,7 @@ const FinancialTransaction = require('../models/FinancialTransaction');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Member = require('../models/Member');
+const Investment = require('../models/Investment');
 const Branch = require('../models/Branch');
 const LoanProduct = require('../models/LoanProduct');
 const SystemSettings = require('../models/SystemSettings');
@@ -1562,6 +1563,29 @@ const approveLoan = async (req, res) => {
     });
     await financialTx.save();
 
+    // Credit loan principal to member's current account
+    const customerDoc = typeof loan.customer === 'object' ? loan.customer : await Customer.findById(loan.customer);
+    if (customerDoc?.isMember && customerDoc?.memberId) {
+      const updatedMember = await Member.findByIdAndUpdate(
+        customerDoc.memberId,
+        { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+        { new: true },
+      );
+
+      if (updatedMember) {
+        await Investment.create({
+          user: req.user.effectiveOwnerId,
+          member: customerDoc.memberId,
+          branchId: loan.branchId || updatedMember.branchId,
+          type: 'deposit',
+          amount: loan.principal,
+          balanceAfter: updatedMember.currentBalance,
+          description: `Loan Disbursement — #${loan._id.toString().slice(-6).toUpperCase()}`,
+          date: new Date(),
+        });
+      }
+    }
+
     // Log activity
     await logActivity({
       userId: req.user._id,
@@ -1587,7 +1611,7 @@ const approveLoan = async (req, res) => {
           recipient: customerForNotification.memberId,
           recipientModel: 'Member',
           title: 'Loan Approved',
-          message: `Your loan request for ${loan.principal} has been approved.`,
+          message: `Your loan request for Rs. ${loan.principal.toLocaleString()} has been approved and credited to your current account.`,
           type: 'success',
           link: '/member/loans',
           action: 'loan_approved',
@@ -2096,6 +2120,29 @@ const bulkApproveLoans = async (req, res) => {
         });
         await financialTx.save();
 
+        // Credit loan principal to member's current account
+        const customerDoc = typeof loan.customer === 'object' ? loan.customer : await Customer.findById(loan.customer);
+        if (customerDoc?.isMember && customerDoc?.memberId) {
+          const updatedMember = await Member.findByIdAndUpdate(
+            customerDoc.memberId,
+            { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+            { new: true },
+          );
+
+          if (updatedMember) {
+            await Investment.create({
+              user: req.user.effectiveOwnerId,
+              member: customerDoc.memberId,
+              branchId: loan.branchId || updatedMember.branchId,
+              type: 'deposit',
+              amount: loan.principal,
+              balanceAfter: updatedMember.currentBalance,
+              description: `Loan Disbursement (Bulk) — #${loan._id.toString().slice(-6).toUpperCase()}`,
+              date: new Date(),
+            });
+          }
+        }
+
         await logActivity({
           userId: req.user._id,
           action: 'loan_approved',
@@ -2111,7 +2158,7 @@ const bulkApproveLoans = async (req, res) => {
             recipient: customer.memberId,
             recipientModel: 'Member',
             title: 'Loan Approved',
-            message: `Your loan request for ${loan.principal} has been approved.`,
+            message: `Your loan request for Rs. ${loan.principal.toLocaleString()} has been approved and credited to your current account.`,
             type: 'success',
             link: '/member/loans',
             action: 'loan_approved',
