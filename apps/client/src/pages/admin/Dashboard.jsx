@@ -469,37 +469,6 @@ const Dashboard = () => {
               sensitive
             />
           )}
-          {canViewReports && (
-            <StatsCard
-              title="Business Capital"
-              amount={formatCurrency(stats?.businessCapital || 0)}
-              subtitle="Owner's Equity"
-              icon={<Landmark size={20} />}
-              color="bg-teal-500 shadow-teal-500/20"
-              sensitive
-            />
-          )}
-          {/* {canViewReports && (
-            <StatsCard
-              title="Total Deposits"
-              amount={formatCurrency(stats?.banking?.deposits || 0)}
-              subtitle="Member Capital"
-              icon={<Download size={20} />}
-              color="bg-blue-500 shadow-blue-500/20"
-              sensitive
-            />
-          )} */}
-          {canViewReports && (
-            <StatsCard
-              title="Net Profit"
-              amount={formatCurrency(stats?.profit?.amount || 0)}
-              percentage={stats?.profit?.percentage}
-              subtitle="Interest Earnings"
-              icon={<TrendingUp size={20} />}
-              color="bg-primary shadow-primary/20"
-              sensitive
-            />
-          )}
           {hasAnyPermission([
             'view_reports',
             'manage_loans',
@@ -512,6 +481,27 @@ const Dashboard = () => {
               subtitle="Portfolio Value"
               icon={<ExternalLink size={20} />}
               color="bg-orange-500 shadow-orange-500/20"
+              sensitive
+            />
+          )}
+          {canViewReports && (
+            <StatsCard
+              title="Business Capital"
+              amount={formatCurrency(stats?.businessCapital || 0)}
+              subtitle="Owner's Equity"
+              icon={<Landmark size={20} />}
+              color="bg-teal-500 shadow-teal-500/20"
+              sensitive
+            />
+          )}
+          {canViewReports && (
+            <StatsCard
+              title="Net Profit"
+              amount={formatCurrency(stats?.profit?.amount || 0)}
+              percentage={stats?.profit?.percentage}
+              subtitle="Interest Earnings"
+              icon={<TrendingUp size={20} />}
+              color="bg-primary shadow-primary/20"
               sensitive
             />
           )}

@@ -418,9 +418,9 @@ const BalanceSheetTab = () => {
 
           {/* Detailed Tables */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6 h-full">
               {/* Assets Card */}
-              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col flex-1">
                 <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-4 min-w-0">
@@ -539,11 +539,71 @@ const BalanceSheetTab = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Balance Verification Card */}
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col mt-6">
+                <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className={cn(
+                        "p-3 rounded-2xl shrink-0 shadow-lg",
+                        balanceSheet.balanceCheck?.isBalanced 
+                          ? "bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/25"
+                          : "bg-gradient-to-br from-rose-500 to-amber-500 shadow-rose-500/25"
+                      )}>
+                        {balanceSheet.balanceCheck?.isBalanced ? (
+                          <ShieldCheck size={20} className="text-white" />
+                        ) : (
+                          <AlertTriangle size={20} className="text-white" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-base font-black tracking-tight truncate">
+                          Balance Check
+                        </CardTitle>
+                        <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                          {balanceSheet.balanceCheck?.isBalanced
+                            ? 'Assets perfectly match Liabilities + Equity'
+                            : 'Discrepancy detected (A ≠ L + E)'}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <span className={cn(
+                      "tabular-nums font-black text-lg shrink-0",
+                      balanceSheet.balanceCheck?.isBalanced ? "text-emerald-600" : "text-rose-600"
+                    )}>
+                      {balanceSheet.balanceCheck?.isBalanced ? (
+                        'BALANCED'
+                      ) : (
+                        `Discrepancy: ${formatCurrency(balanceSheet.balanceCheck?.discrepancy || 0)}`
+                      )}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 flex-1 flex flex-col justify-end">
+                  <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground font-medium py-6 px-4 bg-muted/5 text-center mt-auto">
+                    <span className="tabular-nums text-emerald-600 dark:text-emerald-400 font-bold">
+                      {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
+                    </span>
+                    <span className="text-muted-foreground/50">=</span>
+                    <span className="tabular-nums text-rose-600 dark:text-rose-400 font-bold">
+                      {formatCurrency(balanceSheet.liabilities?.totalLiabilities || 0)}
+                    </span>
+                    <span className="text-muted-foreground/50">+</span>
+                    <span className="tabular-nums text-indigo-600 dark:text-indigo-400 font-bold">
+                      {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
+                    </span>
+                    <span className="text-muted-foreground/40 ml-1">
+                      (Assets = Liabilities + Equity)
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6 h-full">
               {/* Liabilities Card */}
-              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col">
+              <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300 flex flex-col flex-1">
                 <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-4 min-w-0">
@@ -953,83 +1013,7 @@ const BalanceSheetTab = () => {
             </div>
           </div>
 
-          {/* Balance Verification Card */}
-          <Card
-            className={cn(
-              'border shadow-sm rounded-[2rem] overflow-hidden transition-all duration-500 mt-6',
-              balanceSheet.balanceCheck?.isBalanced
-                ? 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/10'
-                : 'border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-amber-500/10',
-            )}
-          >
-            <CardContent className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div
-                  className={cn(
-                    'w-16 h-16 rounded-full flex items-center justify-center shrink-0 shadow-lg',
-                    balanceSheet.balanceCheck?.isBalanced
-                      ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/30'
-                      : 'bg-gradient-to-br from-rose-500 to-amber-500 shadow-rose-500/30',
-                  )}
-                >
-                  {balanceSheet.balanceCheck?.isBalanced ? (
-                    <ShieldCheck className="w-8 h-8 text-white" />
-                  ) : (
-                    <AlertTriangle className="w-8 h-8 text-white" />
-                  )}
-                </div>
-                <div>
-                  <h2 className="text-md sm:text-xl font-black tracking-tight uppercase">
-                    Balance Check (A = L + E)
-                  </h2>
-                  <p className="text-xs text-muted-foreground font-medium mt-1">
-                    {balanceSheet.balanceCheck?.isBalanced
-                      ? 'Assets perfectly match Liabilities + Equity'
-                      : 'Discrepancy detected between Assets and L+E'}
-                  </p>
-                </div>
-              </div>
-              <div
-                className={cn(
-                  'text-2xl font-black tabular-nums tracking-tight',
-                  balanceSheet.balanceCheck?.isBalanced
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-rose-600 dark:text-rose-400',
-                )}
-              >
-                {balanceSheet.balanceCheck?.isBalanced ? (
-                  <span className="flex items-center justify-end gap-2">
-                    BALANCED
-                  </span>
-                ) : (
-                  <span className="flex flex-col items-end">
-                    Discrepancy:{' '}
-                    {formatCurrency(
-                      balanceSheet.balanceCheck?.discrepancy || 0,
-                    )}
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Equation Footer */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground font-medium py-2">
-            <span className="tabular-nums text-emerald-600 dark:text-emerald-400 font-bold">
-              {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
-            </span>
-            <span className="text-muted-foreground/50">=</span>
-            <span className="tabular-nums text-rose-600 dark:text-rose-400 font-bold">
-              {formatCurrency(balanceSheet.liabilities?.totalLiabilities || 0)}
-            </span>
-            <span className="text-muted-foreground/50">+</span>
-            <span className="tabular-nums text-indigo-600 dark:text-indigo-400 font-bold">
-              {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
-            </span>
-            <span className="text-muted-foreground/40 ml-1">
-              (Assets = Liabilities + Equity)
-            </span>
-          </div>
+          {/* Equation Footer moved to Balance Verification Card */}
         </>
       ) : (
         <div className="text-center py-12 bg-card rounded-3xl border border-border/50 text-muted-foreground">
