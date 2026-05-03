@@ -2739,7 +2739,7 @@ const addShareInvestment = async (req, res) => {
           {
             user: userId,
             branchId: member.branchId,
-            type: 'income',
+            type: 'transfer',
             category: 'investment',
             amount,
             date: new Date(),
@@ -2871,7 +2871,7 @@ const withdrawShareInvestment = async (req, res) => {
     await FinancialTransaction.create({
       user: userId,
       branchId: member.branchId,
-      type: 'expense',
+      type: 'transfer',
       category: 'withdrawal',
       amount,
       date: new Date(),

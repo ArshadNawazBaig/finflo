@@ -510,7 +510,7 @@ const getTrialBalance = async (req, res) => {
       0,
     );
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense' && t.category !== 'business_capital')
+      .filter((t) => t.type === 'expense' && t.category !== 'business_capital' && t.category !== 'profit_distribution')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const businessCapitalInjections = transactions
@@ -673,7 +673,7 @@ const getProfitAndLoss = async (req, res) => {
 
     // 2. Expenses
     const expensesAgg = await FinancialTransaction.aggregate([
-      { $match: { ...query, date: dateFilter, type: 'expense', category: { $ne: 'business_capital' } } },
+      { $match: { ...query, date: dateFilter, type: 'expense', category: { $nin: ['business_capital', 'profit_distribution'] } } },
       { $group: { _id: '$category', total: { $sum: '$amount' } } },
     ]);
 
@@ -912,9 +912,9 @@ const getBalanceSheet = async (req, res) => {
     const totalRepaid = loans.reduce((sum, l) => sum + (l.paidAmount || 0), 0);
     const totalDisbursed = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
-    // Operating expenses
+    // Operating expenses (exclude business_capital and profit_distribution — distributions handled separately)
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense' && t.category !== 'business_capital')
+      .filter((t) => t.type === 'expense' && t.category !== 'business_capital' && t.category !== 'profit_distribution')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     // Business Capital
@@ -972,21 +972,17 @@ const getBalanceSheet = async (req, res) => {
     const distributions = await ProfitDistribution.find(query);
     const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
 
-    // Bug Fix #3: Saving/share profit distributions increase liabilities (member balances)
-    // without new cash inflow — they must be deducted from equity to keep A = L + E
-    const totalSavingProfitDistributed = members.reduce((sum, m) => sum + (m.totalSavingProfit || 0), 0);
-    const totalShareProfitDistributed = members.reduce((sum, m) => sum + (m.totalShareProfit || 0), 0);
-
     // Term deposit projected profit is an obligation (liability) that also needs equity offset
     const termDepositProfitObligation = activeTermDeposits.reduce(
       (sum, td) => sum + (td.projectedProfit || 0), 0,
     );
 
+    // Retained Earnings: revenue minus operating costs minus all profit distributions
+    // totalDistributed (from ProfitDistribution model) covers regular, saving, and share distributions
     const retainedEarnings = totalInterestEarned + feeIncome
-      - totalDistributed - totalExpenses
-      - totalSavingProfitDistributed   // Bug Fix #3
-      - totalShareProfitDistributed    // Bug Fix #3
-      - termDepositProfitObligation;   // Term deposit profit owed
+      - totalExpenses                  // operating expenses only (no profit_distribution)
+      - totalDistributed               // all profit distributions (regular + saving + share)
+      - termDepositProfitObligation;   // term deposit profit owed
     const totalEquity = retainedEarnings + netBusinessCapital;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
@@ -1010,8 +1006,6 @@ const getBalanceSheet = async (req, res) => {
         interestEarned: Math.round(totalInterestEarned),
         feeIncome: Math.round(feeIncome),
         profitDistributed: Math.round(totalDistributed),
-        savingProfitDistributed: Math.round(totalSavingProfitDistributed),
-        shareProfitDistributed: Math.round(totalShareProfitDistributed),
         operatingExpenses: Math.round(totalExpenses),
         retainedEarnings: Math.round(retainedEarnings),
         businessCapital: Math.round(netBusinessCapital),

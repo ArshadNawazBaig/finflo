@@ -256,7 +256,7 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
     }
 
     const baseQuery = user.isSuperAdmin ? {} : { user: user.effectiveOwnerId };
-    const members = await Member.find(baseQuery).select('totalInvested totalWithdrawn branchId');
+    const members = await Member.find(baseQuery).select('totalInvested totalWithdrawn branchId totalSavingDeposited totalSavingWithdrawn totalShareInvested');
     const loans = await Loan.find({ ...baseQuery, status: { $ne: 'rejected' } }).select(
       'principal paidAmount branchId',
     );
@@ -276,12 +276,16 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
       const branchLoans = loans.filter((l) => l.branchId?.toString() === bid);
       const branchTxns = transactions.filter((t) => t.branchId?.toString() === bid);
 
-      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0), 0);
-      const totalWithdrawn = branchMembers.reduce((s, m) => s + (m.totalWithdrawn || 0), 0);
+      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0) + (m.totalSavingDeposited || 0) + (m.totalShareInvested || 0), 0);
+      const totalWithdrawn = branchMembers.reduce((s, m) => s + (m.totalWithdrawn || 0) + (m.totalSavingWithdrawn || 0), 0);
       const totalRepaid = branchLoans.reduce((s, l) => s + (l.paidAmount || 0), 0);
       const totalDisbursed = branchLoans.reduce((s, l) => s + (l.principal || 0), 0);
       const totalExpenses = branchTxns
         .filter((t) => t.type === 'expense')
+        .reduce((s, t) => s + (t.amount || 0), 0);
+      
+      const otherIncome = branchTxns
+        .filter((t) => t.type === 'income' && t.category !== 'repayment' && t.category !== 'term_deposit')
         .reduce((s, t) => s + (t.amount || 0), 0);
 
       // Cash-only transactions (physical cash flow)
@@ -289,7 +293,7 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
         .filter((t) => t.type === 'income' && t.paymentMethod === 'cash')
         .reduce((s, t) => s + (t.amount || 0), 0);
 
-      const expectedCash = totalDeposits - totalWithdrawn + totalRepaid - totalDisbursed - totalExpenses;
+      const expectedCash = totalDeposits - totalWithdrawn + totalRepaid - totalDisbursed + otherIncome - totalExpenses;
 
       // Get latest cash opening for cross-reference
       const latestOpening = await CashOpening.findOne({ ...baseQuery, branchId: branch._id })
