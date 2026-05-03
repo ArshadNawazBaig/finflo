@@ -421,7 +421,7 @@ const TellerMode = () => {
         'Balance After',
       ];
       const tableRows = reportData.map((item) => {
-        const isWithdrawal = item.type?.toLowerCase() === 'expense' || (item.type === 'transfer' && (item.category?.includes('withdrawal')));
+        const isWithdrawal = item.type?.toLowerCase() === 'expense' || item.type === 'debit';
         return [
           format(new Date(item.date || item.createdAt), 'MMM dd, yyyy'),
           item.description || item.category?.replace(/_/g, ' ') || '—',

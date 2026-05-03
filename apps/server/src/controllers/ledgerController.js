@@ -418,9 +418,11 @@ const reverseTransaction = async (req, res) => {
     const reversalTx = await FinancialTransaction.create({
       user: originalTx.user,
       branchId: originalTx.branchId,
-      type: originalTx.type === 'transfer'
-        ? 'transfer'
-        : originalTx.type === 'income' ? 'expense' : 'income',
+      type: originalTx.type === 'credit'
+        ? 'debit'
+        : originalTx.type === 'debit'
+          ? 'credit'
+          : originalTx.type === 'income' ? 'expense' : 'income',
       category: originalTx.category,
       amount: amount,
       date: new Date(),
@@ -565,8 +567,7 @@ const getCashSummary = async (req, res) => {
 
         const isIncomeHelper = (t) => {
           const type = (t.type || '').toLowerCase();
-          const cat = (t.category || '').toLowerCase();
-          return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
+          return type === 'income' || type === 'credit';
         };
 
         let interimIn = 0;
@@ -599,8 +600,7 @@ const getCashSummary = async (req, res) => {
 
     const isIncome = (t) => {
       const type = (t.type || '').toLowerCase();
-      const cat = (t.category || '').toLowerCase();
-      return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
+      return type === 'income' || type === 'credit';
     };
 
     let cashIn = 0;

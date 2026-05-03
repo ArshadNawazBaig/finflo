@@ -11,7 +11,7 @@ const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
 
 const handleDownloadReceipt = async (transaction) => {
   try {
-    const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment'));
+    const isIncome = transaction.type === 'income' || transaction.type === 'credit';
     const member = transaction.member || transaction.customer || {};
     const category = transaction.category || '';
 
@@ -46,8 +46,8 @@ const handleDownloadReceipt = async (transaction) => {
 };
 
 const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
-  const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment' || transaction.category === 'saving_deposit'));
-  const isTransfer = transaction.type === 'transfer';
+  const isIncome = transaction.type === 'income' || transaction.type === 'credit';
+  const isTransfer = transaction.type === 'credit' || transaction.type === 'debit';
   const isReversed = transaction.status === 'Reversed';
   const isReversal = !!transaction.originalTransaction;
   const canReverse =

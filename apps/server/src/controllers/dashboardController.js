@@ -436,30 +436,12 @@ const getDashboardStats = async (req, res) => {
           },
           deposits: {
             $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ['$type', 'transfer'] },
-                    { $not: { $in: ['$category', ['withdrawal', 'saving_withdrawal']] } }
-                  ]
-                },
-                '$amount',
-                0
-              ],
+              $cond: [{ $eq: ['$type', 'credit'] }, '$amount', 0],
             },
           },
           withdrawals: {
             $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ['$type', 'transfer'] },
-                    { $in: ['$category', ['withdrawal', 'saving_withdrawal']] }
-                  ]
-                },
-                '$amount',
-                0
-              ],
+              $cond: [{ $eq: ['$type', 'debit'] }, '$amount', 0],
             },
           },
           expenses: {

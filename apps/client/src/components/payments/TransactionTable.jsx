@@ -13,7 +13,7 @@ const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
 
 const handleDownloadReceipt = async (transaction) => {
   try {
-    const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && transaction.category?.includes('deposit') || transaction.category === 'investment');
+    const isIncome = transaction.type === 'income' || transaction.type === 'credit';
     const member = transaction.member || transaction.customer || {};
     const category = transaction.category || '';
 
@@ -176,9 +176,9 @@ const TransactionTable = ({
                       <span
                         className={cn(
                           'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
-                          transaction.type === 'income'
+                          transaction.type === 'income' || transaction.type === 'credit'
                             ? 'bg-emerald-500/10 text-emerald-600'
-                            : transaction.type === 'transfer'
+                            : transaction.type === 'debit'
                               ? 'bg-blue-500/10 text-blue-600'
                               : 'bg-rose-500/10 text-rose-600',
                         )}
@@ -218,14 +218,14 @@ const TransactionTable = ({
                         'font-bold tabular-nums',
                         isReversed
                           ? 'text-muted-foreground line-through'
-                          : transaction.type === 'income'
+                          : transaction.type === 'income' || transaction.type === 'credit'
                             ? 'text-emerald-600'
-                            : transaction.type === 'transfer'
+                            : transaction.type === 'debit'
                               ? 'text-blue-600'
                               : 'text-rose-600',
                       )}
                     >
-                      {transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment' || transaction.category === 'saving_deposit')) ? '+' : '-'}
+                      {transaction.type === 'income' || transaction.type === 'credit' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </div>
                   </td>

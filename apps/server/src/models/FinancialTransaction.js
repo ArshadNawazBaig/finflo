@@ -13,7 +13,7 @@ const financialTransactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['income', 'expense', 'loan', 'transfer'],
+      enum: ['income', 'expense', 'loan', 'credit', 'debit'],
       required: true,
     },
     category: {
