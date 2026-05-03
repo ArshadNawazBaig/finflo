@@ -119,7 +119,7 @@ function App() {
       <ErrorBoundary>
         <Router>
           <TooltipProvider>
-            <Suspense fallback={<PageLoader />}>
+            <Suspense fallback={null}>
               <LandingRoutes DomainRedirect={DomainRedirect} />
             </Suspense>
             <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '9999px' } }} />
@@ -134,7 +134,7 @@ function App() {
     <ErrorBoundary>
       <Router>
         <TooltipProvider>
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={null}>
             {/* Native onboarding: show before any routing on first launch */}
             {showOnboarding ? (
               <Routes>
