@@ -4,12 +4,12 @@ function Skeleton({ className, ...props }) {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-md bg-muted/70',
+        'relative overflow-hidden rounded-md !bg-muted dark:!bg-muted/70',
         'before:absolute before:inset-0',
         'before:-translate-x-full',
         'before:animate-[shimmer_2s_infinite]',
         'before:bg-gradient-to-r',
-        'before:from-transparent before:via-white/20 before:to-transparent',
+        'before:from-transparent before:via-white/60 dark:before:via-white/20 before:to-transparent',
         className,
       )}
       {...props}

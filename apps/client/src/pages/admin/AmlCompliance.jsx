@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import StatsCard from '@/components/StatsCard';
 
 const SEVERITY_COLORS = {
   critical: 'bg-red-500/10 text-red-400 border-red-500/30',
@@ -148,11 +150,45 @@ const AmlCompliance = () => {
   if (loading) {
     return (
       <div className="space-y-6 pb-20">
-        <div className="h-32 rounded-[2rem] bg-card/50 animate-pulse" />
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-card/50 animate-pulse" />)}
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card/30 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 gap-4">
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-16 h-16 rounded-[1.5rem]" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48 rounded-xl" />
+              <Skeleton className="h-4 w-64 rounded-lg" />
+            </div>
+          </div>
+          <Skeleton className="h-12 w-32 rounded-2xl" />
         </div>
-        <div className="h-96 rounded-[2rem] bg-card/50 animate-pulse" />
+
+        {/* Tabs Skeleton */}
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-10 w-24 rounded-2xl" />
+          ))}
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-36 rounded-[2rem] border border-border/50 bg-card/50 p-5 flex flex-col justify-between">
+              <div className="flex justify-between items-start">
+                <Skeleton className="h-12 w-12 rounded-2xl" />
+              </div>
+              <div className="space-y-2 mt-4">
+                <Skeleton className="h-4 w-20 rounded-md" />
+                <Skeleton className="h-8 w-12 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Cards Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Skeleton className="h-[300px] rounded-[2rem]" />
+          <Skeleton className="h-[300px] rounded-[2rem]" />
+        </div>
       </div>
     );
   }
@@ -208,18 +244,18 @@ const AmlCompliance = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Open Alerts', value: dashboard.openAlerts, color: 'text-red-400', icon: AlertTriangle },
-              { label: 'Under Review', value: dashboard.underReview, color: 'text-yellow-400', icon: Clock },
-              { label: 'Pending SARs', value: dashboard.pendingSARs, color: 'text-orange-400', icon: FileWarning },
-              { label: 'Pending CTRs', value: dashboard.pendingCTRs, color: 'text-blue-400', icon: DollarSign },
+              { label: 'Open Alerts', value: dashboard.openAlerts, color: 'bg-red-500 shadow-red-500/20', icon: <AlertTriangle size={20} /> },
+              { label: 'Under Review', value: dashboard.underReview, color: 'bg-yellow-500 shadow-yellow-500/20', icon: <Clock size={20} /> },
+              { label: 'Pending SARs', value: dashboard.pendingSARs, color: 'bg-orange-500 shadow-orange-500/20', icon: <FileWarning size={20} /> },
+              { label: 'Pending CTRs', value: dashboard.pendingCTRs, color: 'bg-blue-500 shadow-blue-500/20', icon: <DollarSign size={20} /> },
             ].map((stat) => (
-              <div key={stat.label} className="p-6 rounded-[2rem] bg-card/50 border border-border/50">
-                <div className="flex items-center justify-between mb-3">
-                  <stat.icon size={18} className={stat.color} />
-                  <span className={cn('text-3xl font-black font-mono', stat.color)}>{stat.value}</span>
-                </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{stat.label}</p>
-              </div>
+              <StatsCard
+                key={stat.label}
+                title={stat.label}
+                amount={stat.value}
+                icon={stat.icon}
+                color={stat.color}
+              />
             ))}
           </div>
 
