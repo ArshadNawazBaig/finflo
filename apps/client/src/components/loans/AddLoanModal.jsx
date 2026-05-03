@@ -43,6 +43,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
   const [grantor2Identifier, setGrantor2Identifier] = useState('');
   const [grantor2IdentifierForBackend, setGrantor2IdentifierForBackend] =
     useState('');
+  const [grantor1Display, setGrantor1Display] = useState('');
+  const [grantor2Display, setGrantor2Display] = useState('');
 
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -275,6 +277,8 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     setGrantor2IdentifierForBackend('');
     setGrantor1Name('');
     setGrantor2Name('');
+    setGrantor1Display('');
+    setGrantor2Display('');
   };
 
   const onSubmit = async (formData) => {
@@ -521,8 +525,9 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                           onClick={() => {
                             setGrantor1Identifier(member.name);
                             setGrantor1IdentifierForBackend(
-                              member.cnic || member.phone,
+                              member._id,
                             );
+                            setGrantor1Display(member.cnic || member.phone);
                             setGrantor1Name(member.name);
                             setTimeout(() => setSearchResults1([]), 100);
                           }}
@@ -573,7 +578,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-tighter">
                       Verified: {grantor1Name} (
-                      {grantor1IdentifierForBackend || grantor1Identifier})
+                      {grantor1Display || grantor1Identifier})
                     </span>
                   </div>
                 )}
@@ -630,8 +635,9 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                           onClick={() => {
                             setGrantor2Identifier(member.name);
                             setGrantor2IdentifierForBackend(
-                              member.cnic || member.phone,
+                              member._id,
                             );
+                            setGrantor2Display(member.cnic || member.phone);
                             setGrantor2Name(member.name);
                             setTimeout(() => setSearchResults2([]), 100);
                           }}
@@ -682,7 +688,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     <User size={10} className="shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-tighter">
                       Verified: {grantor2Name} (
-                      {grantor2IdentifierForBackend || grantor2Identifier})
+                      {grantor2Display || grantor2Identifier})
                     </span>
                   </div>
                 )}

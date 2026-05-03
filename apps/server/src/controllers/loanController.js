@@ -151,35 +151,52 @@ const createLoan = async (req, res) => {
     let grantor2Id = null;
 
     if (grantor1Identifier) {
-      const Member = require('../models/Member');
-      const grantor1 = await Member.findOne({
-        user: req.user.effectiveOwnerId,
-        $or: [{ cnic: grantor1Identifier }, { phone: grantor1Identifier }],
-      });
+      const { hash } = require('../utils/encryption');
+      const mongoose = require('mongoose');
 
-      if (!grantor1) {
+      let grantor1Final = null;
+      // Try _id first (most reliable — client sends member._id)
+      if (mongoose.Types.ObjectId.isValid(grantor1Identifier)) {
+        grantor1Final = await Member.findOne({ _id: grantor1Identifier, user: req.user.effectiveOwnerId });
+      }
+      // Fallback: cnicHash
+      if (!grantor1Final) {
+        grantor1Final = await Member.findOne({ user: req.user.effectiveOwnerId, cnicHash: hash(grantor1Identifier) });
+      }
+      // Fallback: name
+      if (!grantor1Final) {
+        grantor1Final = await Member.findOne({ user: req.user.effectiveOwnerId, name: grantor1Identifier.toLowerCase().trim() });
+      }
+
+      if (!grantor1Final) {
         return res.status(404).json({
-          message:
-            'Grantor 1 not found. Please provide a valid Member CNIC or Phone number.',
+          message: 'Grantor 1 not found. Please provide a valid Member CNIC or Phone number.',
         });
       }
-      grantor1Id = grantor1._id;
+      grantor1Id = grantor1Final._id;
     }
 
     if (grantor2Identifier) {
-      const Member = require('../models/Member');
-      const grantor2 = await Member.findOne({
-        user: req.user.effectiveOwnerId,
-        $or: [{ cnic: grantor2Identifier }, { phone: grantor2Identifier }],
-      });
+      const { hash: hashFn } = require('../utils/encryption');
+      const mongoose = require('mongoose');
 
-      if (!grantor2) {
+      let grantor2Final = null;
+      if (mongoose.Types.ObjectId.isValid(grantor2Identifier)) {
+        grantor2Final = await Member.findOne({ _id: grantor2Identifier, user: req.user.effectiveOwnerId });
+      }
+      if (!grantor2Final) {
+        grantor2Final = await Member.findOne({ user: req.user.effectiveOwnerId, cnicHash: hashFn(grantor2Identifier) });
+      }
+      if (!grantor2Final) {
+        grantor2Final = await Member.findOne({ user: req.user.effectiveOwnerId, name: grantor2Identifier.toLowerCase().trim() });
+      }
+
+      if (!grantor2Final) {
         return res.status(404).json({
-          message:
-            'Grantor 2 not found. Please provide a valid Member CNIC or Phone number.',
+          message: 'Grantor 2 not found. Please provide a valid Member CNIC or Phone number.',
         });
       }
-      grantor2Id = grantor2._id;
+      grantor2Id = grantor2Final._id;
     }
 
     if (
@@ -477,10 +494,16 @@ const requestLoan = async (req, res) => {
       });
     }
 
+    const { hash: hashIdentifier } = require('../utils/encryption');
+    const grantor1Hash = hashIdentifier(grantor1Identifier);
     const grantor1 = await Member.findOne({
       user: req.member.user,
-      $or: [{ cnic: grantor1Identifier }, { phone: grantor1Identifier }],
-      _id: { $ne: req.member._id }, // Cannot be own grantor
+      cnicHash: grantor1Hash,
+      _id: { $ne: req.member._id },
+    }) || await Member.findOne({
+      user: req.member.user,
+      name: grantor1Identifier.toLowerCase().trim(),
+      _id: { $ne: req.member._id },
     });
 
     if (!grantor1) {
@@ -490,10 +513,15 @@ const requestLoan = async (req, res) => {
       });
     }
 
+    const grantor2Hash = hashIdentifier(grantor2Identifier);
     const grantor2 = await Member.findOne({
       user: req.member.user,
-      $or: [{ cnic: grantor2Identifier }, { phone: grantor2Identifier }],
-      _id: { $ne: req.member._id }, // Cannot be own grantor
+      cnicHash: grantor2Hash,
+      _id: { $ne: req.member._id },
+    }) || await Member.findOne({
+      user: req.member.user,
+      name: grantor2Identifier.toLowerCase().trim(),
+      _id: { $ne: req.member._id },
     });
 
     if (!grantor2) {
