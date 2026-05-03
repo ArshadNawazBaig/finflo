@@ -3,6 +3,7 @@ const TermDeposit = require('../models/TermDeposit');
 const Member = require('../models/Member');
 const Investment = require('../models/Investment');
 const FinancialTransaction = require('../models/FinancialTransaction');
+const ProfitDistribution = require('../models/ProfitDistribution');
 const { logActivity } = require('./activityLogController');
 
 /**
@@ -197,11 +198,27 @@ const breakTermDeposit = async (req, res) => {
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
-    // Update deposit
     deposit.status = 'broken';
     deposit.brokenAt = now;
     deposit.actualProfit = Math.max(0, actualProfit);
     await deposit.save({ session });
+
+    // Record profit distribution so Balance Sheet equity tracks this payout
+    if (actualProfit > 0) {
+      await ProfitDistribution.create(
+        [{
+          user: deposit.user,
+          member: deposit.member,
+          branchId: deposit.branchId,
+          amount: actualProfit,
+          type: 'term_deposit',
+          period: now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          calculationMethod: `Term Deposit ${deposit.depositNumber} broken early — ${deposit.earlyBreakPenaltyRate}% penalty applied`,
+          date: now,
+        }],
+        { session },
+      );
+    }
 
     // Record investment
     const updatedMember = await Member.findById(deposit.member).session(session);
@@ -271,11 +288,27 @@ const matureTermDeposit = async (req, res) => {
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
-    // Update deposit
     deposit.status = 'matured';
     deposit.maturedAt = new Date();
     deposit.actualProfit = deposit.projectedProfit;
     await deposit.save({ session });
+
+    // Record profit distribution so Balance Sheet equity tracks this payout
+    if (deposit.projectedProfit > 0) {
+      await ProfitDistribution.create(
+        [{
+          user: deposit.user,
+          member: deposit.member,
+          branchId: deposit.branchId,
+          amount: deposit.projectedProfit,
+          type: 'term_deposit',
+          period: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          calculationMethod: `Term Deposit ${deposit.depositNumber} matured — ${deposit.principal} × ${deposit.profitRate}% × ${deposit.duration} months`,
+          date: new Date(),
+        }],
+        { session },
+      );
+    }
 
     // Record investment
     const updatedMember = await Member.findById(deposit.member).session(session);
@@ -523,11 +556,27 @@ const breakPortalTermDeposit = async (req, res) => {
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
-    // Update deposit
     deposit.status = 'broken';
     deposit.brokenAt = now;
     deposit.actualProfit = Math.max(0, actualProfit);
     await deposit.save({ session });
+
+    // Record profit distribution so Balance Sheet equity tracks this payout
+    if (actualProfit > 0) {
+      await ProfitDistribution.create(
+        [{
+          user: deposit.user,
+          member: deposit.member,
+          branchId: deposit.branchId,
+          amount: actualProfit,
+          type: 'term_deposit',
+          period: now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          calculationMethod: `Term Deposit ${deposit.depositNumber} broken early (Self-Service) — ${deposit.earlyBreakPenaltyRate}% penalty applied`,
+          date: now,
+        }],
+        { session },
+      );
+    }
 
     // Record investment ledger
     const updatedMember = await Member.findById(deposit.member).session(session);

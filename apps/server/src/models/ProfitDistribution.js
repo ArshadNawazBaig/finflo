@@ -19,7 +19,7 @@ const profitDistributionSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     type: {
       type: String,
-      enum: ['regular', 'share', 'saving'],
+      enum: ['regular', 'share', 'saving', 'term_deposit'],
       default: 'regular',
     },
     period: { type: String, required: true }, // e.g., "Jan 2026"
