@@ -6,6 +6,8 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import StatsCard from '@/components/StatsCard';
+import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import {
   Download,
   DollarSign,
@@ -321,19 +323,7 @@ const BalanceSheetTab = () => {
 
       {loadingBalanceSheet ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-          <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
-            {[0, 1, 2, 3].map((i) => (
-              <Card
-                key={i}
-                className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden"
-              >
-                <CardContent className="p-4 sm:p-5 space-y-2">
-                  <Skeleton className="h-3 w-24 rounded-full" />
-                  <Skeleton className="h-7 w-32 rounded-lg" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CardsSkeleton />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[0, 1, 2].map((i) => (
               <Card
@@ -371,49 +361,46 @@ const BalanceSheetTab = () => {
         <>
           {/* Summary Cards */}
           <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Total Assets
-              </p>
-              <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                {formatCurrency(balanceSheet.assets?.totalAssets || 0)}
-              </p>
-            </div>
-            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Total Liabilities
-              </p>
-              <p className="text-lg sm:text-xl font-black text-rose-600 dark:text-rose-400 tabular-nums">
-                {formatCurrency(
-                  balanceSheet.liabilities?.totalLiabilities || 0,
-                )}
-              </p>
-            </div>
-            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Total Equity
-              </p>
-              <p className="text-lg sm:text-xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
-                {formatCurrency(balanceSheet.equity?.totalEquity || 0)}
-              </p>
-            </div>
-            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                Balance Check
-              </p>
-              <p
-                className={cn(
-                  'text-lg sm:text-xl font-black tabular-nums',
-                  balanceSheet.balanceCheck?.isBalanced
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-amber-600 dark:text-amber-400',
-                )}
-              >
-                {balanceSheet.balanceCheck?.isBalanced
-                  ? '✓ Balanced'
-                  : formatCurrency(balanceSheet.balanceCheck?.discrepancy || 0)}
-              </p>
-            </div>
+            <StatsCard
+              title="Total Assets"
+              amount={formatCurrency(balanceSheet.assets?.totalAssets || 0)}
+              icon={<Landmark size={20} />}
+              color="bg-emerald-500 shadow-emerald-500/20"
+            />
+            <StatsCard
+              title="Total Liabilities"
+              amount={formatCurrency(
+                balanceSheet.liabilities?.totalLiabilities || 0,
+              )}
+              icon={<ArrowRightLeft size={20} />}
+              color="bg-rose-500 shadow-rose-500/20"
+            />
+            <StatsCard
+              title="Total Equity"
+              amount={formatCurrency(balanceSheet.equity?.totalEquity || 0)}
+              icon={<TrendingUp size={20} />}
+              color="bg-indigo-500 shadow-indigo-500/20"
+            />
+            <StatsCard
+              title="Balance Check"
+              amount={
+                balanceSheet.balanceCheck?.isBalanced
+                  ? 'Balanced'
+                  : formatCurrency(balanceSheet.balanceCheck?.discrepancy || 0)
+              }
+              icon={
+                balanceSheet.balanceCheck?.isBalanced ? (
+                  <ShieldCheck size={20} />
+                ) : (
+                  <AlertTriangle size={20} />
+                )
+              }
+              color={
+                balanceSheet.balanceCheck?.isBalanced
+                  ? 'bg-emerald-500 shadow-emerald-500/20'
+                  : 'bg-amber-500 shadow-amber-500/20'
+              }
+            />
           </div>
 
           {/* Detailed Tables */}
