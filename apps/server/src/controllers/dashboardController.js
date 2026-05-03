@@ -425,7 +425,30 @@ const getDashboardStats = async (req, res) => {
           },
           deposits: {
             $sum: {
-              $cond: [{ $eq: ['$category', 'investment'] }, '$amount', 0],
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'transfer'] },
+                    { $not: { $in: ['$category', ['withdrawal', 'saving_withdrawal']] } }
+                  ]
+                },
+                '$amount',
+                0
+              ],
+            },
+          },
+          withdrawals: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'transfer'] },
+                    { $in: ['$category', ['withdrawal', 'saving_withdrawal']] }
+                  ]
+                },
+                '$amount',
+                0
+              ],
             },
           },
           expenses: {
@@ -540,6 +563,7 @@ const getDashboardStats = async (req, res) => {
         inflow: m.inflow || 0,
         outflow: m.outflow || 0,
         deposits: m.deposits || 0,
+        withdrawals: m.withdrawals || 0,
         expenses: m.expenses || 0,
         profit: (profitData ? profitData.profit : 0) || 0,
         capital: (m.capitalIn || 0) - (m.capitalOut || 0),

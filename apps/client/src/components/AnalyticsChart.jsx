@@ -39,6 +39,7 @@ const AnalyticsChart = ({
               const colors = {
                 inflow: 'text-primary',
                 deposits: 'text-blue-500',
+                withdrawals: 'text-purple-500',
                 expenses: 'text-rose-500',
                 outflow: 'text-orange-500',
                 profit: 'text-emerald-500',
@@ -48,6 +49,7 @@ const AnalyticsChart = ({
               const labels = {
                 inflow: 'Inflow',
                 deposits: 'Deposits',
+                withdrawals: 'Withdrawals',
                 expenses: 'Operating Expenses',
                 outflow: 'Disbursements',
                 profit: 'Interest Profit',
@@ -186,6 +188,17 @@ const AnalyticsChart = ({
                 strokeWidth={3}
                 dot={false}
                 activeDot={{ r: 5, strokeWidth: 0, fill: '#3b82f6' }}
+                animationDuration={1500}
+                opacity={0.9}
+              />
+              <Line
+                type="monotone"
+                dataKey="withdrawals"
+                name="Withdrawals"
+                stroke="#a855f7" // purple-500
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ r: 5, strokeWidth: 0, fill: '#a855f7' }}
                 animationDuration={1500}
                 opacity={0.9}
               />
