@@ -343,7 +343,7 @@ const Transactions = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl min-h-12 min-w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
                   onClick={() => setIsExportModalOpen(true)}
                   title="Download Statement (PDF)"
                 >
@@ -352,7 +352,7 @@ const Transactions = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl min-h-12 min-w-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                   onClick={handleExportExcel}
                   isLoading={isExportingExcel}
                   title="Export to Excel"
@@ -487,7 +487,8 @@ const Transactions = () => {
                       </span>
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          reversalTarget.type === 'income' || reversalTarget.type === 'credit'
+                          reversalTarget.type === 'income' ||
+                          reversalTarget.type === 'credit'
                             ? 'bg-emerald-500/10 text-emerald-600'
                             : reversalTarget.type === 'debit'
                               ? 'bg-blue-500/10 text-blue-600'
