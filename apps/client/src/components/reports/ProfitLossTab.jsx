@@ -118,6 +118,7 @@ const ProfitLossTab = () => {
             },
           ],
           ['Interest Earned', formatCurrency(pnl.revenue?.interestEarned || 0)],
+          ['Fee Income', formatCurrency(pnl.revenue?.feeIncome || 0)],
           [
             {
               content: 'Total Gross Revenue',
@@ -359,6 +360,20 @@ const ProfitLossTab = () => {
                             {formatCurrency(pnl.revenue.interestEarned || 0)}
                           </td>
                         </tr>
+                        {(pnl.revenue.feeIncome || 0) > 0 && (
+                          <tr className="hover:bg-muted/10 transition-colors">
+                            <td className="px-6 py-3 font-medium flex items-center gap-2">
+                              <TrendingUp
+                                size={14}
+                                className="text-emerald-500"
+                              />{' '}
+                              Fee Income
+                            </td>
+                            <td className="px-6 py-3 text-right tabular-nums font-medium">
+                              {formatCurrency(pnl.revenue.feeIncome || 0)}
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -372,6 +387,17 @@ const ProfitLossTab = () => {
                         {formatCurrency(pnl.revenue.interestEarned || 0)}
                       </div>
                     </div>
+                    {(pnl.revenue.feeIncome || 0) > 0 && (
+                      <div className="p-4 flex items-center justify-between">
+                        <div className="font-bold flex items-center gap-2 text-sm">
+                          <TrendingUp size={16} className="text-emerald-500" />
+                          Fee Income
+                        </div>
+                        <div className="text-right tabular-nums font-black text-emerald-600">
+                          {formatCurrency(pnl.revenue.feeIncome || 0)}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

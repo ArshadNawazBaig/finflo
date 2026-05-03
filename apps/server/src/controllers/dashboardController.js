@@ -326,6 +326,9 @@ const getDashboardStats = async (req, res) => {
           totalDeposits: { $sum: '$currentBalance' },
           totalInvested: { $sum: '$totalInvested' },
           totalWithdrawn: { $sum: '$totalWithdrawn' },
+          totalSavingDeposited: { $sum: '$totalSavingDeposited' },
+          totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
+          totalShareInvested: { $sum: '$totalShareInvested' },
           totalMembers: { $sum: 1 },
         },
       },
@@ -335,6 +338,9 @@ const getDashboardStats = async (req, res) => {
       totalDeposits = 0,
       totalInvested = 0,
       totalWithdrawnByMembers = 0,
+      totalSavingDeposited = 0,
+      totalSavingWithdrawn = 0,
+      totalShareInvested = 0,
       totalMembers = 0,
     } = (() => {
       const s = memberStatsAgg[0] || {};
@@ -342,6 +348,9 @@ const getDashboardStats = async (req, res) => {
         totalDeposits: s.totalDeposits || 0,
         totalInvested: s.totalInvested || 0,
         totalWithdrawnByMembers: s.totalWithdrawn || 0,
+        totalSavingDeposited: s.totalSavingDeposited || 0,
+        totalSavingWithdrawn: s.totalSavingWithdrawn || 0,
+        totalShareInvested: s.totalShareInvested || 0,
         totalMembers: s.totalMembers || 0,
       };
     })();
@@ -379,7 +388,9 @@ const getDashboardStats = async (req, res) => {
 
     // Liquidity = Total money in (deposits + repayments) minus money out (disbursements + withdrawals + expenses)
     const netLiquidity = Math.round(
-      totalIncome - totalExpense - totalLoanDisbursed - totalWithdrawnByMembers,
+      totalInvested + totalSavingDeposited + totalShareInvested
+      + totalIncome - totalExpense - totalLoanDisbursed
+      - totalWithdrawnByMembers - totalSavingWithdrawn,
     );
     const netProfit = Math.round(totalProfit);
 
@@ -418,7 +429,13 @@ const getDashboardStats = async (req, res) => {
             },
           },
           expenses: {
-            $sum: { $cond: [{ $eq: ['$type', 'expense'] }, '$amount', 0] },
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ['$type', 'expense'] }, { $ne: ['$category', 'business_capital'] }] },
+                '$amount',
+                0,
+              ],
+            },
           },
           outflow: {
             $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },

@@ -14,7 +14,7 @@ const getReportStats = async (req, res) => {
     // Branch Segregation
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
-      if (branchScope) query.branchId = req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     // Apply date filter to the primary query
@@ -407,7 +407,7 @@ const generateBasel3Report = async (req, res) => {
     // Branch Segregation
     if (req.user.role === 'staff') {
       const branchScope = req.user.managedBranchId || req.user.branchId;
-      if (branchScope) query.branchId = req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
     }
 
     const loans = await Loan.find(query);
@@ -661,7 +661,15 @@ const getProfitAndLoss = async (req, res) => {
     };
 
     const interestRevenue = Math.round(calculateProfit(repayments));
-    const totalRevenue = interestRevenue;
+
+    // Fee income (checkbook fees, late fees, etc.)
+    const feeIncomeAgg = await FinancialTransaction.aggregate([
+      { $match: { ...query, date: dateFilter, category: { $in: ['checkbook_fee', 'late_fee', 'fee'] }, type: 'income' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const feeIncome = Math.round(feeIncomeAgg[0]?.total || 0);
+
+    const totalRevenue = interestRevenue + feeIncome;
 
     // 2. Expenses
     const expensesAgg = await FinancialTransaction.aggregate([
@@ -700,6 +708,7 @@ const getProfitAndLoss = async (req, res) => {
       period: { startDate: dateFilter.$gte, endDate: dateFilter.$lte },
       revenue: {
         interestEarned: interestRevenue,
+        feeIncome: feeIncome,
         totalRevenue: totalRevenue,
       },
       expenses: {
