@@ -489,7 +489,9 @@ const Transactions = () => {
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           reversalTarget.type === 'income'
                             ? 'bg-emerald-500/10 text-emerald-600'
-                            : 'bg-rose-500/10 text-rose-600'
+                            : reversalTarget.type === 'transfer'
+                              ? 'bg-blue-500/10 text-blue-600'
+                              : 'bg-rose-500/10 text-rose-600'
                         }`}
                       >
                         {reversalTarget.type}

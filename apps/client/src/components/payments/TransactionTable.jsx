@@ -13,7 +13,7 @@ const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
 
 const handleDownloadReceipt = async (transaction) => {
   try {
-    const isIncome = transaction.type === 'income';
+    const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && transaction.category?.includes('deposit') || transaction.category === 'investment');
     const member = transaction.member || transaction.customer || {};
     const category = transaction.category || '';
 
@@ -178,7 +178,9 @@ const TransactionTable = ({
                           'px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider',
                           transaction.type === 'income'
                             ? 'bg-emerald-500/10 text-emerald-600'
-                            : 'bg-rose-500/10 text-rose-600',
+                            : transaction.type === 'transfer'
+                              ? 'bg-blue-500/10 text-blue-600'
+                              : 'bg-rose-500/10 text-rose-600',
                         )}
                       >
                         {transaction.type}
@@ -218,10 +220,12 @@ const TransactionTable = ({
                           ? 'text-muted-foreground line-through'
                           : transaction.type === 'income'
                             ? 'text-emerald-600'
-                            : 'text-rose-600',
+                            : transaction.type === 'transfer'
+                              ? 'text-blue-600'
+                              : 'text-rose-600',
                       )}
                     >
-                      {transaction.type === 'income' ? '+' : '-'}
+                      {transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment' || transaction.category === 'saving_deposit')) ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </div>
                   </td>

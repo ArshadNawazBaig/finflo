@@ -11,7 +11,7 @@ const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
 
 const handleDownloadReceipt = async (transaction) => {
   try {
-    const isIncome = transaction.type === 'income';
+    const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment'));
     const member = transaction.member || transaction.customer || {};
     const category = transaction.category || '';
 
@@ -46,7 +46,8 @@ const handleDownloadReceipt = async (transaction) => {
 };
 
 const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
-  const isIncome = transaction.type === 'income';
+  const isIncome = transaction.type === 'income' || (transaction.type === 'transfer' && (transaction.category?.includes('deposit') || transaction.category === 'investment' || transaction.category === 'saving_deposit'));
+  const isTransfer = transaction.type === 'transfer';
   const isReversed = transaction.status === 'Reversed';
   const isReversal = !!transaction.originalTransaction;
   const canReverse =
@@ -68,9 +69,11 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
           <div
             className={cn(
               'h-10 w-10 shrink-0 rounded-xl flex items-center justify-center',
-              isIncome
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-rose-500/10 text-rose-600',
+              isTransfer
+                ? 'bg-blue-500/10 text-blue-600'
+                : isIncome
+                  ? 'bg-emerald-500/10 text-emerald-600'
+                  : 'bg-rose-500/10 text-rose-600',
             )}
           >
             {isIncome ? <TrendingUp size={20} /> : <ArrowDown size={20} />}
@@ -105,9 +108,11 @@ const TransactionCard = ({ transaction, hideType = false, onReverse }) => {
               'font-black text-base tabular-nums',
               isReversed
                 ? 'text-muted-foreground line-through'
-                : isIncome
-                  ? 'text-emerald-600'
-                  : 'text-rose-600',
+                : isTransfer
+                  ? 'text-blue-600'
+                  : isIncome
+                    ? 'text-emerald-600'
+                    : 'text-rose-600',
             )}
           >
             {isIncome ? '+' : '-'}

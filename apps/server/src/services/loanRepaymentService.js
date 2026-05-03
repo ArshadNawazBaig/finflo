@@ -229,7 +229,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         const withdrawalTx = new FinancialTransaction({
           user: updatedMember.user,
           branchId: loan.branchId || updatedMember.branchId,
-          type: 'expense',
+          type: 'transfer',
           category: 'withdrawal',
           amount: repaymentAmount,
           date: new Date(date),

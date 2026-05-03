@@ -111,7 +111,7 @@ const getLedger = async (req, res) => {
     const isIncome = (t) => {
       const type = (t.type || '').toLowerCase();
       const cat = (t.category || '').toLowerCase();
-      return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+      return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
     };
 
     const summary = allMatching.reduce((acc, t) => {
@@ -119,7 +119,7 @@ const getLedger = async (req, res) => {
       const cat = (t.category || '').toLowerCase();
       const amt = t.amount || 0;
 
-      if (type === 'income' || cat.includes('repayment') || cat.includes('deposit')) {
+      if (type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment') {
         acc.totalIncome += amt;
       } else if (type === 'expense' || type === 'loan' || cat.includes('withdrawal') || cat.includes('disbursement')) {
         acc.totalExpense += amt;
@@ -418,7 +418,9 @@ const reverseTransaction = async (req, res) => {
     const reversalTx = await FinancialTransaction.create({
       user: originalTx.user,
       branchId: originalTx.branchId,
-      type: originalTx.type === 'income' ? 'expense' : 'income',
+      type: originalTx.type === 'transfer'
+        ? 'transfer'
+        : originalTx.type === 'income' ? 'expense' : 'income',
       category: originalTx.category,
       amount: amount,
       date: new Date(),
@@ -564,7 +566,7 @@ const getCashSummary = async (req, res) => {
         const isIncomeHelper = (t) => {
           const type = (t.type || '').toLowerCase();
           const cat = (t.category || '').toLowerCase();
-          return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+          return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
         };
 
         let interimIn = 0;
@@ -598,7 +600,7 @@ const getCashSummary = async (req, res) => {
     const isIncome = (t) => {
       const type = (t.type || '').toLowerCase();
       const cat = (t.category || '').toLowerCase();
-      return type === 'income' || cat.includes('repayment') || cat.includes('deposit');
+      return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
     };
 
     let cashIn = 0;

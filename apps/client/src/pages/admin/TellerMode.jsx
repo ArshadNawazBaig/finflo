@@ -421,7 +421,7 @@ const TellerMode = () => {
         'Balance After',
       ];
       const tableRows = reportData.map((item) => {
-        const isWithdrawal = item.type?.toLowerCase() === 'expense';
+        const isWithdrawal = item.type?.toLowerCase() === 'expense' || (item.type === 'transfer' && (item.category?.includes('withdrawal')));
         return [
           format(new Date(item.date || item.createdAt), 'MMM dd, yyyy'),
           item.description || item.category?.replace(/_/g, ' ') || '—',
@@ -558,7 +558,8 @@ const TellerMode = () => {
           const isIn =
             txn.type === 'income' ||
             (txn.category || '').includes('deposit') ||
-            (txn.category || '').includes('repayment');
+            (txn.category || '').includes('repayment') ||
+            (txn.category || '') === 'investment';
           return [
             format(new Date(txn.date || txn.createdAt), 'hh:mm a'),
             txn.member?.name || '\u2014',
@@ -2266,7 +2267,8 @@ const TellerMode = () => {
                           const isIn =
                             txn.type === 'income' ||
                             (txn.category || '').includes('repayment') ||
-                            (txn.category || '').includes('deposit');
+                            (txn.category || '').includes('deposit') ||
+                            (txn.category || '') === 'investment';
                           return (
                             <motion.div
                               initial={{ opacity: 0, x: 20 }}
@@ -2624,7 +2626,8 @@ const TellerMode = () => {
                             const isIn =
                               txn.type === 'income' ||
                               (txn.category || '').includes('repayment') ||
-                              (txn.category || '').includes('deposit');
+                              (txn.category || '').includes('deposit') ||
+                              (txn.category || '') === 'investment';
 
                             runningSum += txn.amount * (isIn ? 1 : -1);
                             journalWithBalances.push({
@@ -2638,7 +2641,8 @@ const TellerMode = () => {
                             const isIn =
                               txn.type === 'income' ||
                               (txn.category || '').includes('repayment') ||
-                              (txn.category || '').includes('deposit');
+                              (txn.category || '').includes('deposit') ||
+                              (txn.category || '') === 'investment';
 
                             return (
                               <tr
@@ -3116,7 +3120,8 @@ const TellerMode = () => {
                         const isIn =
                           txn.type === 'income' ||
                           (txn.category || '').includes('repayment') ||
-                          (txn.category || '').includes('deposit');
+                          (txn.category || '').includes('deposit') ||
+                          (txn.category || '') === 'investment';
                         return (
                           <tr
                             key={txn._id || i}

@@ -538,7 +538,7 @@ const createMember = async (req, res) => {
       await FinancialTransaction.create({
         user: userId,
         branchId: member.branchId,
-        type: 'income',
+        type: 'transfer',
         category: 'investment',
         amount: initialInvestment,
         date: new Date(),
@@ -892,7 +892,7 @@ const addInvestment = async (req, res) => {
     const financialTx = new FinancialTransaction({
       user: userId,
       branchId: member.branchId,
-      type: 'income',
+      type: 'transfer',
       category: isSaving ? 'saving_deposit' : 'investment',
       amount,
       date: new Date(),
@@ -1118,7 +1118,7 @@ const withdrawInvestment = async (req, res) => {
     const financialTx = new FinancialTransaction({
       user: userId,
       branchId: member.branchId,
-      type: 'expense',
+      type: 'transfer',
       category: isSaving ? 'saving_withdrawal' : 'withdrawal',
       amount,
       date: new Date(),
