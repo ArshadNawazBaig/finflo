@@ -122,7 +122,7 @@ function App() {
             <Suspense fallback={<PageLoader />}>
               <LandingRoutes DomainRedirect={DomainRedirect} />
             </Suspense>
-            <Toaster position="top-right" richColors />
+            <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '9999px' } }} />
             {!IS_NATIVE && <FloatingSettings />}
           </TooltipProvider>
         </Router>
@@ -192,7 +192,7 @@ function App() {
             </Routes>
             )}
           </Suspense>
-          <Toaster position="top-right" richColors />
+          <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '9999px' } }} />
           {!IS_NATIVE && <FloatingSettings />}
         </TooltipProvider>
       </Router>
