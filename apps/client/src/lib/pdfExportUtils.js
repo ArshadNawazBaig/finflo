@@ -117,12 +117,30 @@ export const renderPdfHeader = async (doc, {
 
   let currentY = 14;
 
+  // Helper to get image dimensions
+  const getDims = (base64) => new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.width, h: img.height });
+    img.onerror = () => resolve({ w: 1, h: 1 });
+    img.src = base64;
+  });
+
   // ── Logo (top-left) ──
   const logoBase64 = await loadImageAsBase64(businessLogo);
   if (logoBase64) {
     try {
-      doc.addImage(logoBase64, 'PNG', 14, currentY, 24, 24);
-      currentY += 26;
+      const dims = await getDims(logoBase64);
+      const ratio = dims.w / dims.h;
+      const maxHeightMm = 21.16; // ~80px max height
+      let renderH = maxHeightMm;
+      let renderW = renderH * ratio;
+      // Cap width to prevent overlapping right side
+      if (renderW > 60) {
+        renderW = 60;
+        renderH = renderW / ratio;
+      }
+      doc.addImage(logoBase64, 'PNG', 14, currentY, renderW, renderH);
+      currentY += renderH + 2;
       // Business Name below logo
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
@@ -322,11 +340,29 @@ export const renderPdfSignatures = async (doc, { startY, businessContext = {} } 
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.2);
 
+  const getDims = (base64) => new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.width, h: img.height });
+    img.onerror = () => resolve({ w: 1, h: 1 });
+    img.src = base64;
+  });
+
+  const maxHeightMm = 13.23; // ~50px max height
+
   // CEO Signature (Right side)
   if (ceoSignature) {
     const sigBase64 = await loadImageAsBase64(ceoSignature);
     if (sigBase64) {
-      doc.addImage(sigBase64, 'PNG', pageWidth - 64, currentY - 15, 50, 15);
+      const dims = await getDims(sigBase64);
+      const ratio = dims.w / dims.h;
+      let renderH = maxHeightMm;
+      let renderW = renderH * ratio;
+      // Cap width to prevent it from overlapping text/stamp
+      if (renderW > 50) {
+        renderW = 50;
+        renderH = renderW / ratio;
+      }
+      doc.addImage(sigBase64, 'PNG', pageWidth - margin - renderW, currentY - renderH, renderW, renderH);
     }
     doc.line(pageWidth - 64, currentY, pageWidth - margin, currentY);
     doc.setFontSize(8);
@@ -341,7 +377,16 @@ export const renderPdfSignatures = async (doc, { startY, businessContext = {} } 
   if (businessStamp) {
     const stampBase64 = await loadImageAsBase64(businessStamp);
     if (stampBase64) {
-      doc.addImage(stampBase64, 'PNG', margin, currentY - 20, 25, 25);
+      const dims = await getDims(stampBase64);
+      const ratio = dims.w / dims.h;
+      let renderH = maxHeightMm;
+      let renderW = renderH * ratio;
+      if (renderW > 40) {
+        renderW = 40;
+        renderH = renderW / ratio;
+      }
+      // Draw stamp resting on the baseline
+      doc.addImage(stampBase64, 'PNG', margin, currentY - renderH, renderW, renderH);
     }
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
