@@ -52,6 +52,9 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }
       }
+      // Return a pending promise so calling code doesn't see an error
+      // before the page redirect completes
+      return new Promise(() => {});
     }
     return Promise.reject(error);
   },

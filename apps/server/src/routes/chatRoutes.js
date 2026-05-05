@@ -70,7 +70,11 @@ const protectAny = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('[Chat Security] Error:', error.message);
+    if (error.name === 'TokenExpiredError') {
+      console.log('[Chat Security] Token expired for request:', req.originalUrl);
+    } else {
+      console.error('[Chat Security] Error:', error.message);
+    }
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
