@@ -58,10 +58,7 @@ const AuthLayout = ({
             transition={{ delay: 0.3, duration: 0.8 }}
             className="text-5xl lg:text-6xl font-extrabold text-white leading-[1.05] tracking-tight"
           >
-            Join the{' '}
-            <span className="text-gradient-primary">
-              Financial
-            </span>{' '}
+            Join the <span className="text-gradient-primary">Financial</span>{' '}
             Revolution.
           </motion.h1>
 
@@ -110,7 +107,7 @@ const AuthLayout = ({
       </div>
 
       {/* ─── Form Side ───────────────────────────────────────── */}
-      <div className="flex flex-col items-center justify-start lg:justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background min-h-screen overflow-y-auto overflow-x-hidden">
+      <div className="flex flex-col items-center justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background min-h-screen overflow-y-auto overflow-x-hidden">
         {/* Decorative elements — static on native to prevent WebView flickering */}
         {!IS_NATIVE && (
           <>
@@ -119,7 +116,7 @@ const AuthLayout = ({
           </>
         )}
 
-        <div className="w-full max-w-lg lg:max-w-md relative z-10 py-8 lg:py-0">
+        <div className="w-full max-w-lg lg:max-w-md relative z-10 lg:py-0">
           <div className="bg-white/90 dark:bg-slate-950/90 lg:bg-transparent lg:dark:bg-transparent border lg:border-none border-slate-100 dark:border-white/[0.04] shadow-xl lg:shadow-none shadow-black/[0.02] rounded-3xl p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
             {/* Top accent line - only on mobile */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent lg:hidden" />
