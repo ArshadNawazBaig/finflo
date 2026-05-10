@@ -1,17 +1,46 @@
 const Review = require('../models/Review');
 
-// @desc    Get all approved reviews for landing page
+// Simple seeded random for daily shuffle
+const seededRandom = (seed) => {
+  let s = seed;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+};
+
+// @desc    Get top 5-star reviews for landing page (shuffled daily)
 // @route   GET /api/reviews/public
 // @access  Public
 exports.getPublicReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ isApproved: true })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .select('businessName reviewerName reviewerRole content rating profilePicture createdAt')
+    // Only fetch approved 5-star reviews, populate user for live profile picture
+    const reviews = await Review.find({ isApproved: true, rating: 5 })
+      .populate('user', 'profilePicture name')
+      .select('businessName reviewerName reviewerRole content rating profilePicture createdAt user')
       .lean();
 
-    res.status(200).json({ success: true, data: reviews });
+    // Map reviews: prefer live profilePicture from User model over stale snapshot
+    const mapped = reviews.map((r) => ({
+      _id: r._id,
+      businessName: r.businessName,
+      reviewerName: r.reviewerName,
+      reviewerRole: r.reviewerRole,
+      content: r.content,
+      rating: r.rating,
+      profilePicture: r.user?.profilePicture || r.profilePicture || '',
+      createdAt: r.createdAt,
+    }));
+
+    // Shuffle based on today's date so the order changes daily
+    const today = new Date();
+    const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    const rng = seededRandom(daySeed);
+
+    const shuffled = [...mapped].sort(() => rng() - 0.5);
+
+    // Return top 5
+    res.status(200).json({ success: true, data: shuffled.slice(0, 5) });
   } catch (error) {
     console.error('Error fetching public reviews:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
