@@ -16,6 +16,7 @@ import {
   APP_MODE,
 } from '@/lib/constants';
 import useSystemSettings from '@/hooks/useSystemSettings';
+import useInactivityLogout from '@/hooks/useInactivityLogout';
 
 // Route Modules
 import LandingRoutes from '@/routes/LandingRoutes';
@@ -37,6 +38,7 @@ const Maintenance = lazy(() => import('@/pages/static/Maintenance'));
 const NotFound = lazy(() => import('@/pages/static/NotFound'));
 const FaqPage = lazy(() => import('@/pages/static/FaqPage'));
 const OnboardingScreen = lazy(() => import('@/pages/onboarding/OnboardingScreen'));
+const NativeWelcomeScreen = lazy(() => import('@/pages/native/NativeWelcomeScreen'));
 
 import { DomainRedirect } from '@/lib/routeUtils';
 
@@ -50,7 +52,7 @@ const AppRootRedirect = () => {
     if (APP_MODE === 'member') {
       return member
         ? <Navigate to="/member/dashboard" replace />
-        : <Navigate to="/member/login" replace />;
+        : <Navigate to="/welcome" replace />;
     }
     // Business mode
     if (user) {
@@ -58,7 +60,7 @@ const AppRootRedirect = () => {
         ? <Navigate to="/super-admin" replace />
         : <Navigate to="/dashboard" replace />;
     }
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/welcome" replace />;
   }
 
   // Web behavior
@@ -87,6 +89,9 @@ function App() {
   const user = useAtomValue(userAtom);
   const member = useAtomValue(memberAtom);
   const isSuperAdmin = user?.role === 'super_admin';
+
+  // Auto-logout after 5 minutes of inactivity (native APK only)
+  useInactivityLogout();
 
   // On native platforms, check if onboarding has been completed
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -149,6 +154,11 @@ function App() {
                   {/* On App Domain, / redirects to login or dashboard */}
                   {/* In dev mode, show landing at / for convenience (unless native) */}
                   <Route path="/" element={IS_DEV && !IS_NATIVE ? <Landing /> : <AppRootRedirect />} />
+
+                  {/* Native Welcome Screen (EasyPaisa-style) */}
+                  {(IS_NATIVE || IS_DEV) && (
+                    <Route path="/welcome" element={<NativeWelcomeScreen />} />
+                  )}
 
                   {/* Shared Top-level Routes — hidden on native APKs */}
                   {!IS_NATIVE && (
