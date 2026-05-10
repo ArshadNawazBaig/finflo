@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
-const reviews = [
+const fallbackReviews = [
   {
     id: 1,
     name: 'Sarah Jenkins',
@@ -95,16 +95,82 @@ const reviews = [
   },
 ];
 
+// Generate a consistent color from a name string
+const getInitialColor = (name) => {
+  const colors = [
+    'from-indigo-500 to-violet-600',
+    'from-emerald-500 to-teal-600',
+    'from-amber-500 to-orange-600',
+    'from-rose-500 to-pink-600',
+    'from-blue-500 to-cyan-600',
+    'from-purple-500 to-fuchsia-600',
+    'from-lime-500 to-green-600',
+    'from-red-500 to-rose-600',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
 const Testimonials = () => {
+  const [reviews, setReviews] = useState(fallbackReviews);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+
+  // Fetch real reviews from API
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const apiBase =
+          import.meta.env.VITE_API_URL ||
+          (window.location.hostname === 'finflo.org'
+            ? 'https://app.finflo.org/api'
+            : '/api');
+
+        const res = await fetch(`${apiBase}/reviews/public`);
+        const data = await res.json();
+
+        if (data.success && data.data && data.data.length > 0) {
+          // Map API reviews to the display format
+          const apiReviews = data.data.map((r, idx) => ({
+            id: r._id || idx + 1,
+            name: r.reviewerName,
+            role: `${r.reviewerRole}${r.businessName ? ` at ${r.businessName}` : ''}`,
+            content: r.content,
+            rating: r.rating,
+            // No image for real reviews — we'll use initials
+            image: null,
+          }));
+          // Show real reviews first, then pad with fallbacks if needed
+          if (apiReviews.length >= 3) {
+            setReviews(apiReviews);
+          } else {
+            setReviews([...apiReviews, ...fallbackReviews.slice(0, 10 - apiReviews.length)]);
+          }
+        }
+      } catch {
+        // API unavailable — keep fallback reviews
+      }
+    };
+    fetchReviews();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(timer);
-  }, [currentIndex]);
+  }, [currentIndex, reviews.length]);
 
   const nextSlide = () => {
     setDirection(1);
@@ -188,11 +254,19 @@ const Testimonials = () => {
                 <div className="flex flex-col items-center text-center space-y-6">
                   {/* Avatar */}
                   <div className="w-16 h-16 rounded-full ring-2 ring-slate-100 dark:ring-white/10 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 overflow-hidden">
-                    <img
-                      src={review.image}
-                      alt={review.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {review.image ? (
+                      <img
+                        src={review.image}
+                        alt={review.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={`w-full h-full bg-gradient-to-br ${getInitialColor(review.name)} flex items-center justify-center text-white font-bold text-lg`}
+                      >
+                        {getInitials(review.name)}
+                      </div>
+                    )}
                   </div>
 
                   {/* Stars */}

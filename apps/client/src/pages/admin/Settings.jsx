@@ -37,6 +37,8 @@ import {
   Landmark,
   Fingerprint,
   ArrowUpCircle,
+  Star,
+  MessageSquareQuote,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -61,6 +63,213 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+
+// ─── Review Section Component ──────────────────────────────────────────
+const ReviewSection = () => {
+  const [review, setReview] = useState(null);
+  const [reviewLoading, setReviewLoading] = useState(true);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    reviewerName: '',
+    reviewerRole: '',
+    content: '',
+    rating: 5,
+  });
+
+  useEffect(() => {
+    const fetchReview = async () => {
+      try {
+        const { data } = await api.get('/reviews/mine');
+        if (data.success && data.data) {
+          setReview(data.data);
+          setReviewForm({
+            reviewerName: data.data.reviewerName || '',
+            reviewerRole: data.data.reviewerRole || '',
+            content: data.data.content || '',
+            rating: data.data.rating || 5,
+          });
+        }
+      } catch (error) {
+        // No review yet — that's fine
+      } finally {
+        setReviewLoading(false);
+      }
+    };
+    fetchReview();
+  }, []);
+
+  const handleSaveReview = async () => {
+    if (!reviewForm.reviewerName.trim() || !reviewForm.content.trim()) {
+      toast.error('Please fill in your name and review');
+      return;
+    }
+    if (reviewForm.content.length > 300) {
+      toast.error('Review must be 300 characters or less');
+      return;
+    }
+    setReviewSaving(true);
+    try {
+      const { data } = await api.post('/reviews', reviewForm);
+      if (data.success) {
+        setReview(data.data);
+        toast.success('Review saved! It will appear on our landing page.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save review');
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    setReviewSaving(true);
+    try {
+      const { data } = await api.delete('/reviews');
+      if (data.success) {
+        setReview(null);
+        setReviewForm({ reviewerName: '', reviewerRole: '', content: '', rating: 5 });
+        toast.success('Review removed');
+      }
+    } catch (error) {
+      toast.error('Failed to delete review');
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
+  if (reviewLoading) {
+    return (
+      <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 delay-100 overflow-hidden relative group">
+      <div className="absolute -left-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+      <div className="flex flex-col md:flex-row items-start justify-between gap-4 relative z-10">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <MessageSquareQuote size={20} className="text-amber-500" />
+            <h3 className="text-xl font-black tracking-tight">
+              Your Review
+            </h3>
+          </div>
+          <p className="text-muted-foreground text-xs font-medium">
+            Share your experience — it will be featured on our landing page.
+          </p>
+        </div>
+        {review && (
+          <button
+            onClick={handleDeleteReview}
+            disabled={reviewSaving}
+            className="text-rose-500 hover:text-rose-600 transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
+          >
+            <Trash2 size={14} />
+            Remove Review
+          </button>
+        )}
+      </div>
+
+      <div className="relative z-10 space-y-5">
+        {/* Star Rating */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            Rating
+          </label>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                className="p-0.5 hover:scale-110 transition-transform"
+              >
+                <Star
+                  size={24}
+                  className={`transition-colors ${
+                    star <= reviewForm.rating
+                      ? 'text-amber-400 fill-amber-400'
+                      : 'text-slate-200 dark:text-slate-700'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Name & Role */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Your Name
+            </label>
+            <input
+              type="text"
+              value={reviewForm.reviewerName}
+              onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerName: e.target.value }))}
+              placeholder="e.g. Ahmed Khan"
+              className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Your Role
+            </label>
+            <input
+              type="text"
+              value={reviewForm.reviewerRole}
+              onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerRole: e.target.value }))}
+              placeholder="e.g. CEO, Founder"
+              className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Review Content */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Your Review
+            </label>
+            <span className={`text-[10px] font-bold ${
+              reviewForm.content.length > 300 ? 'text-rose-500' : 'text-muted-foreground/60'
+            }`}>
+              {reviewForm.content.length}/300
+            </span>
+          </div>
+          <textarea
+            value={reviewForm.content}
+            onChange={(e) => setReviewForm((prev) => ({ ...prev, content: e.target.value }))}
+            placeholder="Share what you love about FinFlo..."
+            rows={3}
+            maxLength={300}
+            className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
+        </div>
+
+        {/* Submit */}
+        <Button
+          onClick={handleSaveReview}
+          disabled={reviewSaving || !reviewForm.reviewerName.trim() || !reviewForm.content.trim()}
+          className="rounded-xl text-[10px] font-black uppercase tracking-widest px-6"
+        >
+          {reviewSaving ? (
+            <Loader2 size={14} className="animate-spin mr-2" />
+          ) : (
+            <Save size={14} className="mr-2" />
+          )}
+          {review ? 'Update Review' : 'Submit Review'}
+        </Button>
+      </div>
+    </section>
+  );
+};
 
 const Settings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme(); // Use Global Theme
@@ -1067,6 +1276,9 @@ const Settings = () => {
                       </div>
                     </div>
                   </section>
+
+                  {/* Your Review Section — Admin only */}
+                  {isAdmin && <ReviewSection />}
 
                   {/* Danger Zone — Admin only */}
                   {isAdmin && (
