@@ -8,7 +8,7 @@ exports.getPublicReviews = async (req, res) => {
     const reviews = await Review.find({ isApproved: true })
       .sort({ createdAt: -1 })
       .limit(20)
-      .select('businessName reviewerName reviewerRole content rating createdAt')
+      .select('businessName reviewerName reviewerRole content rating profilePicture createdAt')
       .lean();
 
     res.status(200).json({ success: true, data: reviews });
@@ -36,12 +36,12 @@ exports.getMyReview = async (req, res) => {
 // @access  Private (admin)
 exports.upsertReview = async (req, res) => {
   try {
-    const { reviewerName, reviewerRole, content, rating } = req.body;
+    const { reviewerRole, content, rating } = req.body;
 
-    if (!reviewerName || !content || !rating) {
+    if (!content || !rating) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide reviewer name, content, and rating',
+        message: 'Please provide review content and rating',
       });
     }
 
@@ -62,12 +62,17 @@ exports.upsertReview = async (req, res) => {
     const businessName =
       req.user.businessName || req.user.name || 'FinFlo Business';
 
+    // Auto-fill name and profile picture from the logged-in user
+    const reviewerName = req.user.name || 'Business User';
+    const profilePicture = req.user.profilePicture || '';
+
     const review = await Review.findOneAndUpdate(
       { user: req.user._id },
       {
         user: req.user._id,
         businessName,
-        reviewerName: reviewerName.trim(),
+        reviewerName,
+        profilePicture,
         reviewerRole: (reviewerRole || 'Business Owner').trim(),
         content: content.trim(),
         rating: Math.round(rating),

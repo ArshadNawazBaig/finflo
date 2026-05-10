@@ -1,99 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-
-const fallbackReviews = [
-  {
-    id: 1,
-    name: 'Sarah Jenkins',
-    role: 'Small Business Owner',
-    image: 'https://i.pravatar.cc/150?img=1',
-    content:
-      'FinFlo transformed how I manage my business finances. The approval process was incredibly fast!',
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: 'Michael Chen',
-    role: 'Freelance Designer',
-    image: 'https://i.pravatar.cc/150?img=11',
-    content:
-      'The P2P transfer feature is a game-changer. I can move funds instantly between my accounts.',
-    rating: 5,
-  },
-  {
-    id: 3,
-    name: 'Emily Rodriguez',
-    role: 'Real Estate Investor',
-    image: 'https://i.pravatar.cc/150?img=5',
-    content:
-      'The ROI tracking on the member portal is fantastic. I can see my portfolio growth in real-time.',
-    rating: 5,
-  },
-  {
-    id: 4,
-    name: 'David Kim',
-    role: 'Tech Entrepreneur',
-    image: 'https://i.pravatar.cc/150?img=3',
-    content:
-      'Bank-grade security was my top priority. FinFlo delivers that and more with its audit ledger.',
-    rating: 5,
-  },
-  {
-    id: 5,
-    name: 'Lisa Patel',
-    role: 'Retail Manager',
-    image: 'https://i.pravatar.cc/150?img=9',
-    content:
-      'Customer support is top-notch. Any question I have is answered within minutes.',
-    rating: 4,
-  },
-  {
-    id: 6,
-    name: 'James Wilson',
-    role: 'Construction Lead',
-    image: 'https://i.pravatar.cc/150?img=8',
-    content:
-      'Applying for a loan was seamless. The mobile app works perfectly in the field.',
-    rating: 5,
-  },
-  {
-    id: 7,
-    name: 'Jessica Wong',
-    role: 'E-commerce Seller',
-    image: 'https://i.pravatar.cc/150?img=6',
-    content:
-      'The low interest rates and transparent fee structure made me switch to FinFlo.',
-    rating: 5,
-  },
-  {
-    id: 8,
-    name: 'Robert Thompson',
-    role: 'Restaurant Owner',
-    image: 'https://i.pravatar.cc/150?img=12',
-    content:
-      'I appreciate the flexibility in repayment schedules. It really helps with cash flow management.',
-    rating: 5,
-  },
-  {
-    id: 9,
-    name: 'Amanda Garcia',
-    role: 'Marketing Consultant',
-    image: 'https://i.pravatar.cc/150?img=20',
-    content:
-      'The dashboard is so intuitive. verifying my documents took less than 2 minutes.',
-    rating: 5,
-  },
-  {
-    id: 10,
-    name: 'Thomas Anderson',
-    role: 'Software Engineer',
-    image: 'https://i.pravatar.cc/150?img=60',
-    content:
-      "As a developer, I'm impressed by the platform's responsiveness and modern UI. Very well built.",
-    rating: 5,
-  },
-];
+import { Star, ChevronLeft, ChevronRight, Quote, MessageSquareQuote } from 'lucide-react';
 
 // Generate a consistent color from a name string
 const getInitialColor = (name) => {
@@ -123,7 +30,8 @@ const getInitials = (name) =>
     .slice(0, 2);
 
 const Testimonials = () => {
-  const [reviews, setReviews] = useState(fallbackReviews);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -141,31 +49,27 @@ const Testimonials = () => {
         const data = await res.json();
 
         if (data.success && data.data && data.data.length > 0) {
-          // Map API reviews to the display format
           const apiReviews = data.data.map((r, idx) => ({
             id: r._id || idx + 1,
             name: r.reviewerName,
             role: `${r.reviewerRole}${r.businessName ? ` at ${r.businessName}` : ''}`,
             content: r.content,
             rating: r.rating,
-            // No image for real reviews — we'll use initials
-            image: null,
+            image: r.profilePicture || null,
           }));
-          // Show real reviews first, then pad with fallbacks if needed
-          if (apiReviews.length >= 3) {
-            setReviews(apiReviews);
-          } else {
-            setReviews([...apiReviews, ...fallbackReviews.slice(0, 10 - apiReviews.length)]);
-          }
+          setReviews(apiReviews);
         }
       } catch {
-        // API unavailable — keep fallback reviews
+        // API unavailable
+      } finally {
+        setLoading(false);
       }
     };
     fetchReviews();
   }, []);
 
   useEffect(() => {
+    if (reviews.length === 0) return;
     const timer = setInterval(() => {
       nextSlide();
     }, 5000);
@@ -201,6 +105,25 @@ const Testimonials = () => {
       scale: 0.96,
     }),
   };
+
+  // Don't render section if no reviews
+  if (loading) {
+    return (
+      <section className="py-28 lg:py-36 bg-slate-50/50 dark:bg-white/[0.01] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="animate-pulse space-y-6">
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded mx-auto" />
+            <div className="h-12 w-96 bg-slate-200 dark:bg-slate-800 rounded mx-auto" />
+            <div className="max-w-3xl mx-auto h-64 bg-slate-100 dark:bg-slate-900 rounded-2xl" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (reviews.length === 0) {
+    return null; // Hide section entirely if no reviews
+  }
 
   const review = reviews[currentIndex];
 
@@ -259,6 +182,7 @@ const Testimonials = () => {
                         src={review.image}
                         alt={review.name}
                         className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div
@@ -304,39 +228,45 @@ const Testimonials = () => {
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation arrows */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          {/* Navigation arrows — only show if more than 1 review */}
+          {reviews.length > 1 && (
+            <>
+              <button
+                onClick={prevSlide}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
 
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+              <button
+                onClick={nextSlide}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-14 w-10 h-10 rounded-full bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-105 transition-all z-20"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Dot indicators */}
-        <div className="flex justify-center gap-1.5 mt-10">
-          {reviews.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setDirection(idx > currentIndex ? 1 : -1);
-                setCurrentIndex(idx);
-              }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex
-                  ? 'w-6 bg-primary'
-                  : 'w-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20'
-              }`}
-            />
-          ))}
-        </div>
+        {reviews.length > 1 && (
+          <div className="flex justify-center gap-1.5 mt-10">
+            {reviews.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setDirection(idx > currentIndex ? 1 : -1);
+                  setCurrentIndex(idx);
+                }}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentIndex
+                    ? 'w-6 bg-primary'
+                    : 'w-1.5 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

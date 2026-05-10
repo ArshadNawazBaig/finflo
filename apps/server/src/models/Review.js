@@ -18,6 +18,10 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    profilePicture: {
+      type: String,
+      default: '',
+    },
     reviewerRole: {
       type: String,
       trim: true,

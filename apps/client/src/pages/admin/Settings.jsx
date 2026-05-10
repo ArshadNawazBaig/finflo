@@ -65,16 +65,24 @@ import {
 } from '@/components/ui/dialog';
 
 // ─── Review Section Component ──────────────────────────────────────────
-const ReviewSection = () => {
+const ReviewSection = ({ user }) => {
   const [review, setReview] = useState(null);
   const [reviewLoading, setReviewLoading] = useState(true);
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewForm, setReviewForm] = useState({
-    reviewerName: '',
     reviewerRole: '',
     content: '',
     rating: 5,
   });
+
+  const userInitials = user.name
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'U';
 
   useEffect(() => {
     const fetchReview = async () => {
@@ -83,7 +91,6 @@ const ReviewSection = () => {
         if (data.success && data.data) {
           setReview(data.data);
           setReviewForm({
-            reviewerName: data.data.reviewerName || '',
             reviewerRole: data.data.reviewerRole || '',
             content: data.data.content || '',
             rating: data.data.rating || 5,
@@ -99,8 +106,8 @@ const ReviewSection = () => {
   }, []);
 
   const handleSaveReview = async () => {
-    if (!reviewForm.reviewerName.trim() || !reviewForm.content.trim()) {
-      toast.error('Please fill in your name and review');
+    if (!reviewForm.content.trim()) {
+      toast.error('Please write your review');
       return;
     }
     if (reviewForm.content.length > 300) {
@@ -127,7 +134,7 @@ const ReviewSection = () => {
       const { data } = await api.delete('/reviews');
       if (data.success) {
         setReview(null);
-        setReviewForm({ reviewerName: '', reviewerRole: '', content: '', rating: 5 });
+        setReviewForm({ reviewerRole: '', content: '', rating: 5 });
         toast.success('Review removed');
       }
     } catch (error) {
@@ -153,16 +160,31 @@ const ReviewSection = () => {
       <div className="absolute -left-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="flex flex-col md:flex-row items-start justify-between gap-4 relative z-10">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <MessageSquareQuote size={20} className="text-amber-500" />
-            <h3 className="text-xl font-black tracking-tight">
-              Your Review
-            </h3>
+        <div className="flex items-center gap-4">
+          {/* User avatar */}
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-lg font-black text-primary overflow-hidden border-2 border-white dark:border-slate-800 shadow-lg flex-shrink-0">
+            {user.profilePicture ? (
+              <img
+                src={user.profilePicture}
+                alt={user.name}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              userInitials
+            )}
           </div>
-          <p className="text-muted-foreground text-xs font-medium">
-            Share your experience — it will be featured on our landing page.
-          </p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <MessageSquareQuote size={18} className="text-amber-500" />
+              <h3 className="text-xl font-black tracking-tight">
+                Your Review
+              </h3>
+            </div>
+            <p className="text-muted-foreground text-xs font-medium">
+              Posting as <span className="text-foreground font-bold">{user.name}</span> · {user.businessName || 'Your Business'}
+            </p>
+          </div>
         </div>
         {review && (
           <button
@@ -171,7 +193,7 @@ const ReviewSection = () => {
             className="text-rose-500 hover:text-rose-600 transition-colors text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
           >
             <Trash2 size={14} />
-            Remove Review
+            Remove
           </button>
         )}
       </div>
@@ -203,32 +225,18 @@ const ReviewSection = () => {
           </div>
         </div>
 
-        {/* Name & Role */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Your Name
-            </label>
-            <input
-              type="text"
-              value={reviewForm.reviewerName}
-              onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerName: e.target.value }))}
-              placeholder="e.g. Ahmed Khan"
-              className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Your Role
-            </label>
-            <input
-              type="text"
-              value={reviewForm.reviewerRole}
-              onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerRole: e.target.value }))}
-              placeholder="e.g. CEO, Founder"
-              className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-            />
-          </div>
+        {/* Role */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            Your Role / Title
+          </label>
+          <input
+            type="text"
+            value={reviewForm.reviewerRole}
+            onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerRole: e.target.value }))}
+            placeholder="e.g. CEO, Founder, Manager"
+            className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+          />
         </div>
 
         {/* Review Content */}
@@ -256,7 +264,7 @@ const ReviewSection = () => {
         {/* Submit */}
         <Button
           onClick={handleSaveReview}
-          disabled={reviewSaving || !reviewForm.reviewerName.trim() || !reviewForm.content.trim()}
+          disabled={reviewSaving || !reviewForm.content.trim()}
           className="rounded-xl text-[10px] font-black uppercase tracking-widest px-6"
         >
           {reviewSaving ? (
@@ -377,6 +385,15 @@ const Settings = () => {
       label: 'Configuration',
       icon: Sliders,
       desc: 'Global Parameter Rules',
+    });
+  }
+
+  if (isAdmin || user.role === 'super_admin') {
+    tabs.push({
+      id: 'review',
+      label: 'Review',
+      icon: MessageSquareQuote,
+      desc: 'Landing Page Testimonial',
     });
   }
 
@@ -1277,9 +1294,6 @@ const Settings = () => {
                     </div>
                   </section>
 
-                  {/* Your Review Section — Admin only */}
-                  {isAdmin && <ReviewSection />}
-
                   {/* Danger Zone — Admin only */}
                   {isAdmin && (
                     <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group mb-40 sm:mb-0">
@@ -1676,6 +1690,11 @@ const Settings = () => {
               {/* Configuration Section */}
               {activeSection === 'configuration' && (
                 <ConfigurationSection user={user} />
+              )}
+
+              {/* Review Section */}
+              {activeSection === 'review' && (
+                <ReviewSection user={user} />
               )}
             </motion.div>
           </AnimatePresence>
