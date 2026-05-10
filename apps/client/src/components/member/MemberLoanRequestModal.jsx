@@ -47,6 +47,8 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   const [isLookingUp2, setIsLookingUp2] = useState(false);
   const [searchResults2, setSearchResults2] = useState([]);
   const [currentMember, setCurrentMember] = useState(null);
+  const [g1BackendId, setG1BackendId] = useState('');
+  const [g2BackendId, setG2BackendId] = useState('');
 
   // Document upload state
   const [files, setFiles] = useState([]); // { file, type, preview }
@@ -71,6 +73,10 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       fetchData();
       setStep(1);
       setFiles([]);
+      setG1BackendId('');
+      setG2BackendId('');
+      setGrantor1Name('');
+      setGrantor2Name('');
     }
   }, [isOpen]);
 
@@ -78,13 +84,11 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   const duration = watch('duration');
   const grantor1Identifier = watch('grantor1Identifier');
   const grantor2Identifier = watch('grantor2Identifier');
-  const grantor1Backend = watch('grantor1IdentifierForBackend');
-  const grantor2Backend = watch('grantor2IdentifierForBackend');
 
   // Grantor 1 lookup
   useEffect(() => {
     const lookup = async () => {
-      if (grantor1Identifier && grantor1Identifier.length >= 3 && !grantor1Backend && grantor1Identifier !== grantor1Name) {
+      if (grantor1Identifier && grantor1Identifier.length >= 3 && !g1BackendId && grantor1Identifier !== grantor1Name) {
         setIsLookingUp1(true);
         try {
           const { data } = await api.get(`/members/portal/lookup?identifier=${grantor1Identifier}`);
@@ -98,17 +102,17 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           setGrantor1Name(exact && target.length >= 11 ? exact.name : '');
         } catch { setSearchResults1([]); setGrantor1Name(''); }
         finally { setIsLookingUp1(false); }
-      } else if (!grantor1Backend) { setSearchResults1([]); setGrantor1Name(''); }
+      } else if (!g1BackendId) { setSearchResults1([]); setGrantor1Name(''); }
       else { setSearchResults1([]); }
     };
     const t = setTimeout(lookup, 500);
     return () => clearTimeout(t);
-  }, [grantor1Identifier, grantor1Backend, currentMember, watch('grantor2Identifier'), grantor2Backend]);
+  }, [grantor1Identifier, g1BackendId, currentMember, watch('grantor2Identifier'), g2BackendId]);
 
   // Grantor 2 lookup
   useEffect(() => {
     const lookup = async () => {
-      if (grantor2Identifier && grantor2Identifier.length >= 3 && !grantor2Backend && grantor2Identifier !== grantor2Name) {
+      if (grantor2Identifier && grantor2Identifier.length >= 3 && !g2BackendId && grantor2Identifier !== grantor2Name) {
         setIsLookingUp2(true);
         try {
           const { data } = await api.get(`/members/portal/lookup?identifier=${grantor2Identifier}`);
@@ -122,12 +126,12 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           setGrantor2Name(exact && target.length >= 11 ? exact.name : '');
         } catch { setSearchResults2([]); setGrantor2Name(''); }
         finally { setIsLookingUp2(false); }
-      } else if (!grantor2Backend) { setSearchResults2([]); setGrantor2Name(''); }
+      } else if (!g2BackendId) { setSearchResults2([]); setGrantor2Name(''); }
       else { setSearchResults2([]); }
     };
     const t = setTimeout(lookup, 500);
     return () => clearTimeout(t);
-  }, [grantor2Identifier, grantor2Backend, currentMember, watch('grantor1Identifier'), grantor1Backend]);
+  }, [grantor2Identifier, g2BackendId, currentMember, watch('grantor1Identifier'), g1BackendId]);
 
   const estimatedMonthlyPayment = principal && duration
     ? (() => {
@@ -177,16 +181,15 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     return true;
   };
 
-  // Final submit
-  const onSubmit = async (data) => {
-    const g1Backend = watch('grantor1IdentifierForBackend');
-    const g2Backend = watch('grantor2IdentifierForBackend');
-
+  const onSubmit = async () => {
+    const allValues = getValues();
     const payload = {
-      ...data,
+      principal: allValues.principal,
+      duration: allValues.duration,
+      notes: allValues.notes,
       rate: defaultInterestRate,
-      grantor1Identifier: g1Backend || data.grantor1Identifier,
-      grantor2Identifier: g2Backend || data.grantor2Identifier,
+      grantor1Identifier: g1BackendId || allValues.grantor1Identifier,
+      grantor2Identifier: g2BackendId || allValues.grantor2Identifier,
     };
 
     if (payload.grantor1Identifier === payload.grantor2Identifier) {
@@ -197,6 +200,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
+      console.log('[LoanRequest] g1BackendId:', g1BackendId, 'g2BackendId:', g2BackendId, 'data.grantor1Identifier:', data.grantor1Identifier, 'data.grantor2Identifier:', data.grantor2Identifier);
+      console.log('[LoanRequest] payload grantor1:', payload.grantor1Identifier, 'payload grantor2:', payload.grantor2Identifier);
+
       const formData = new FormData();
       formData.append('principal', payload.principal);
       formData.append('duration', payload.duration);
@@ -232,7 +238,8 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const isLooking = num === 1 ? isLookingUp1 : isLookingUp2;
     const results = num === 1 ? searchResults1 : searchResults2;
     const fieldName = `grantor${num}Identifier`;
-    const backendField = `grantor${num}IdentifierForBackend`;
+    const backendField = num === 1 ? 'g1BackendId' : 'g2BackendId';
+    const setBackendId = num === 1 ? setG1BackendId : setG2BackendId;
     const setName = num === 1 ? setGrantor1Name : setGrantor2Name;
     const setResults = num === 1 ? setSearchResults1 : setSearchResults2;
 
@@ -246,7 +253,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             type="text"
             {...register(fieldName, {
               required: `Grantor ${num} is required`,
-              onChange: () => { setValue(backendField, ''); setName(''); },
+              onChange: () => { setBackendId(''); setName(''); },
             })}
             autoComplete="off"
             className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize shadow-inner"
@@ -264,7 +271,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                   key={member._id} type="button"
                   onClick={() => {
                     setValue(fieldName, member.name);
-                    setValue(backendField, member.cnic || member.phone);
+                    setBackendId(member._id);
                     setName(member.name);
                     setResults([]);
                     clearErrors(fieldName);

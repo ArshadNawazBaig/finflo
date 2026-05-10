@@ -427,6 +427,8 @@ const requestLoan = async (req, res) => {
   let rate = Number(rateInput || 0);
   const duration = Number(durationInput);
 
+  console.log('[requestLoan] Body received:', { grantor1Identifier, grantor2Identifier, principal, duration, notes, files: req.files?.length || 0 });
+
   try {
     // If rate is 0 or not provided, get system default
     if (!rate || rate === 0) {
@@ -495,16 +497,28 @@ const requestLoan = async (req, res) => {
     }
 
     const { hash: hashIdentifier } = require('../utils/encryption');
-    const grantor1Hash = hashIdentifier(grantor1Identifier);
-    const grantor1 = await Member.findOne({
-      user: req.member.user,
-      cnicHash: grantor1Hash,
-      _id: { $ne: req.member._id },
-    }) || await Member.findOne({
-      user: req.member.user,
-      name: grantor1Identifier.toLowerCase().trim(),
-      _id: { $ne: req.member._id },
-    });
+    const mongoose = require('mongoose');
+
+    // Grantor 1 resolution: try _id → cnicHash → name
+    let grantor1 = null;
+    if (mongoose.Types.ObjectId.isValid(grantor1Identifier)) {
+      grantor1 = await Member.findOne({ _id: grantor1Identifier, user: req.member.user, _id: { $ne: req.member._id } });
+    }
+    if (!grantor1) {
+      const grantor1Hash = hashIdentifier(grantor1Identifier);
+      grantor1 = await Member.findOne({
+        user: req.member.user,
+        cnicHash: grantor1Hash,
+        _id: { $ne: req.member._id },
+      });
+    }
+    if (!grantor1) {
+      grantor1 = await Member.findOne({
+        user: req.member.user,
+        name: grantor1Identifier.toLowerCase().trim(),
+        _id: { $ne: req.member._id },
+      });
+    }
 
     if (!grantor1) {
       return res.status(404).json({
@@ -513,16 +527,26 @@ const requestLoan = async (req, res) => {
       });
     }
 
-    const grantor2Hash = hashIdentifier(grantor2Identifier);
-    const grantor2 = await Member.findOne({
-      user: req.member.user,
-      cnicHash: grantor2Hash,
-      _id: { $ne: req.member._id },
-    }) || await Member.findOne({
-      user: req.member.user,
-      name: grantor2Identifier.toLowerCase().trim(),
-      _id: { $ne: req.member._id },
-    });
+    // Grantor 2 resolution: try _id → cnicHash → name
+    let grantor2 = null;
+    if (mongoose.Types.ObjectId.isValid(grantor2Identifier)) {
+      grantor2 = await Member.findOne({ _id: grantor2Identifier, user: req.member.user, _id: { $ne: req.member._id } });
+    }
+    if (!grantor2) {
+      const grantor2Hash = hashIdentifier(grantor2Identifier);
+      grantor2 = await Member.findOne({
+        user: req.member.user,
+        cnicHash: grantor2Hash,
+        _id: { $ne: req.member._id },
+      });
+    }
+    if (!grantor2) {
+      grantor2 = await Member.findOne({
+        user: req.member.user,
+        name: grantor2Identifier.toLowerCase().trim(),
+        _id: { $ne: req.member._id },
+      });
+    }
 
     if (!grantor2) {
       return res.status(404).json({
