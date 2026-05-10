@@ -32,4 +32,10 @@ Thumbs.db
 
 # OCR Models
 *.traineddata
-*.apk
+
+# Ignore root-level APK build artifacts, but allow public/ APKs for deployment
+/FinFlo-debug.apk
+/member-app.apk
+/business-app.apk
+/apps/client/member-app.apk
+/apps/client/business-app.apk
