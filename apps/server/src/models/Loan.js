@@ -44,6 +44,7 @@ const loanSchema = new mongoose.Schema(
     },
     compoundedAmount: { type: Number, default: 0 },
     lastCompoundedAt: { type: Date },
+    notes: { type: String }, // Member-submitted purpose/notes
     documents: [
       {
         name: { type: String, required: true },

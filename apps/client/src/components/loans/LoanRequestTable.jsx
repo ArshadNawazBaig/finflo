@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Check,
   X,
@@ -7,6 +8,7 @@ import {
   ArrowDown,
   ChevronsUpDown,
   FileQuestion,
+  Paperclip,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -15,6 +17,7 @@ import { Button } from '@/components/ui/button';
 
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
+import LoanDocumentViewer from './LoanDocumentViewer';
 
 const LoanRequestTable = ({
   requests,
@@ -29,6 +32,9 @@ const LoanRequestTable = ({
   onToggleSelect,
   onSelectAll,
 }) => {
+  const [docViewerOpen, setDocViewerOpen] = useState(false);
+  const [docViewerData, setDocViewerData] = useState({ documents: [], memberName: '' });
+
   const renderSortIcon = (column) => {
     if (sortBy !== column)
       return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
@@ -100,6 +106,9 @@ const LoanRequestTable = ({
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Notes
+              </th>
+              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
+                Docs
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 Grantor 1
@@ -191,6 +200,25 @@ const LoanRequestTable = ({
                   <div className="text-xs text-muted-foreground max-w-xs truncate">
                     {request.notes || '—'}
                   </div>
+                </td>
+                <td className="py-4 px-4">
+                  {request.documents && request.documents.filter(d => d.url !== 'N/A').length > 0 ? (
+                    <button
+                      onClick={() => {
+                        setDocViewerData({
+                          documents: request.documents,
+                          memberName: request.customer?.name || 'Member',
+                        });
+                        setDocViewerOpen(true);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[10px] font-black"
+                    >
+                      <Paperclip size={11} />
+                      {request.documents.filter(d => d.url !== 'N/A').length}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="py-4 px-4">
                   <span
@@ -288,6 +316,13 @@ const LoanRequestTable = ({
       )}
 
       {pagination && <Pagination {...pagination} />}
+
+      <LoanDocumentViewer
+        isOpen={docViewerOpen}
+        onClose={() => setDocViewerOpen(false)}
+        documents={docViewerData.documents}
+        memberName={docViewerData.memberName}
+      />
     </div>
   );
 };

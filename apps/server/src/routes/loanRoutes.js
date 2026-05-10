@@ -10,6 +10,7 @@ const {
   uploadDocument,
   deleteDocument,
   requestLoan,
+  memberUploadDocuments,
   getMyLoans,
   approveLoan,
   rejectLoan,
@@ -30,16 +31,18 @@ const {
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const loanDocUpload = require('../middleware/loanDocUploadMiddleware');
 const { loanValidation } = require('../middleware/validationMiddleware');
 
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.post('/send-reminder', protect, sendPaymentReminder);
-router.route('/request').post(protectMember, requestLoan);
+router.route('/request').post(protectMember, loanDocUpload.array('documents', 5), requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
 router.route('/grantor-loans').get(protectMember, getGrantorLoans);
 router.patch('/:id/grantor-status', protectMember, updateGrantorStatus);
 router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
+router.post('/my-loans/:id/documents', protectMember, loanDocUpload.array('documents', 5), memberUploadDocuments);
 
 // Bulk actions
 router.post('/bulk-approve', protect, staffOrAdmin, bulkApproveLoans);

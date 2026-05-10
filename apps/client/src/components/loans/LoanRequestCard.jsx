@@ -1,11 +1,17 @@
-import { Check, X, Loader2, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { Check, X, Loader2, Calendar, Paperclip } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import LoanDocumentViewer from './LoanDocumentViewer';
 
 const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
+  const [docViewerOpen, setDocViewerOpen] = useState(false);
+  const docCount = request.documents?.filter(d => d.url !== 'N/A').length || 0;
+
   return (
+    <>
     <div className="bg-card p-3 rounded-lg border border-border/50 shadow-xs hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-2.5">
         <div>
@@ -74,6 +80,17 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
             </p>
           </div>
         )}
+        {docCount > 0 && (
+          <div className="pt-1">
+            <button
+              onClick={() => setDocViewerOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black"
+            >
+              <Paperclip size={10} />
+              {docCount} document{docCount > 1 ? 's' : ''}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2">
@@ -110,6 +127,16 @@ const LoanRequestCard = ({ request, onApprove, onReject, processingId }) => {
         )}
       </div>
     </div>
+
+    {docCount > 0 && (
+      <LoanDocumentViewer
+        isOpen={docViewerOpen}
+        onClose={() => setDocViewerOpen(false)}
+        documents={request.documents}
+        memberName={request.customer?.name || 'Member'}
+      />
+    )}
+    </>
   );
 };
 

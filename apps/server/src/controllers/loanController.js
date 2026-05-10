@@ -605,6 +605,22 @@ const requestLoan = async (req, res) => {
     const customerHistory = await Loan.find({ customer: req.member.customer });
     const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
 
+    // Build documents array from uploaded files
+    const uploadedDocs = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        // documentTypes is sent as a JSON string array from the frontend
+        const docTypes = req.body.documentTypes ? JSON.parse(req.body.documentTypes) : [];
+        const idx = req.files.indexOf(file);
+        uploadedDocs.push({
+          name: docTypes[idx] || file.originalname || 'Document',
+          url: file.path, // Cloudinary URL
+          type: file.mimetype?.includes('pdf') ? 'pdf' : 'image',
+          uploadedAt: new Date(),
+        });
+      }
+    }
+
     const loan = new Loan({
       user: req.member.user,
       customer: req.member.customer,
@@ -623,9 +639,8 @@ const requestLoan = async (req, res) => {
       grantor2: grantor2._id,
       grantor2Status: 'pending',
       riskDetails,
-      documents: notes
-        ? [{ name: 'Request Notes', url: 'N/A', type: 'text' }]
-        : [], // Optionally store notes
+      notes: notes || '',
+      documents: uploadedDocs,
     });
 
     const createdLoan = await loan.save();
@@ -703,6 +718,51 @@ const requestLoan = async (req, res) => {
       message:
         error.message || 'An error occurred while processing your request.',
     });
+  }
+};
+
+/**
+ * @desc    Member uploads documents to their own pending loan
+ * @route   POST /api/loans/my-loans/:id/documents
+ * @access  Private (Member)
+ */
+const memberUploadDocuments = async (req, res) => {
+  try {
+    const loan = await Loan.findOne({
+      _id: req.params.id,
+      customer: req.member.customer,
+      status: 'pending',
+    });
+
+    if (!loan) {
+      return res.status(404).json({
+        message: 'Pending loan not found or you do not have access.',
+      });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded.' });
+    }
+
+    const docTypes = req.body.documentTypes
+      ? JSON.parse(req.body.documentTypes)
+      : [];
+
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
+      loan.documents.push({
+        name: docTypes[i] || file.originalname || 'Document',
+        url: file.path,
+        type: file.mimetype?.includes('pdf') ? 'pdf' : 'image',
+        uploadedAt: new Date(),
+      });
+    }
+
+    await loan.save();
+    res.json({ message: 'Documents uploaded successfully', documents: loan.documents });
+  } catch (error) {
+    console.error('memberUploadDocuments Error:', error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -2342,6 +2402,7 @@ module.exports = {
   uploadDocument,
   deleteDocument,
   requestLoan,
+  memberUploadDocuments,
   getMyLoans,
   approveLoan,
   rejectLoan,
