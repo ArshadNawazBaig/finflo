@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Building2,
   ArrowDownLeft,
@@ -13,6 +13,13 @@ import { toast } from 'sonner';
 import { formatCurrency, cn } from '@/lib/utils';
 import InternalTransferForm from '@/components/member/InternalTransferForm';
 import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
+import QRScanner from '@/components/QRScanner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   MemberTransferSkeleton,
   RecentActivityListSkeleton,
@@ -26,6 +33,8 @@ const MemberTransfer = () => {
   // History State
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const transferFormRef = useRef(null);
 
   // Fetch Member
   const fetchMember = useCallback(async () => {
@@ -76,6 +85,7 @@ const MemberTransfer = () => {
   if (loading) return <MemberTransferSkeleton />;
 
   return (
+    <>
     <div className="space-y-10 pb-20 w-full animate-in fade-in duration-300">
       <PageHeader
         title="Transfer & Withdraw"
@@ -122,7 +132,12 @@ const MemberTransfer = () => {
             </div>
 
             {activeTab === 'internal' ? (
-              <InternalTransferForm member={member} onSuccess={handleSuccess} />
+              <InternalTransferForm
+                member={member}
+                onSuccess={handleSuccess}
+                onScanQR={() => setShowQRScanner(true)}
+                ref={transferFormRef}
+              />
             ) : (
               <BankWithdrawalForm member={member} onSuccess={handleSuccess} />
             )}
@@ -277,9 +292,44 @@ const MemberTransfer = () => {
               )}
             </div>
           </div>
-        </div>
       </div>
     </div>
+    </div>
+
+    {/* QR Scanner Dialog */}
+    <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-black tracking-tight text-center">Scan Member QR Code</DialogTitle>
+        </DialogHeader>
+        <div className="p-4">
+          <QRScanner
+            onScanSuccess={(decodedText) => {
+              try {
+                const payload = JSON.parse(decodedText);
+                if (payload.type === 'finflo_pay' && payload.id) {
+                  setShowQRScanner(false);
+                  setActiveTab('internal');
+                  toast.success(`Recipient found: ${payload.name || 'Member'}`);
+                  window.dispatchEvent(new CustomEvent('finflo:qr-scan', {
+                    detail: { recipientId: payload.id, recipientName: payload.name }
+                  }));
+                } else {
+                  toast.error('Invalid QR code \u2014 not a FinFlo payment QR');
+                }
+              } catch {
+                toast.error('Invalid QR code format');
+              }
+            }}
+            onScanError={() => {}}
+          />
+          <p className="text-[10px] text-center text-muted-foreground mt-4 font-medium">
+            Point your camera at a member's FinFlo QR code to auto-fill their details.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

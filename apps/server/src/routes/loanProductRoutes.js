@@ -5,8 +5,13 @@ const {
   createLoanProduct,
   updateLoanProduct,
   deleteLoanProduct,
+  getMemberLoanProducts,
 } = require('../controllers/loanProductController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const { protectMember } = require('../middleware/memberAuthMiddleware');
+
+// Member portal route (before admin protect)
+router.get('/member', protectMember, getMemberLoanProducts);
 
 router.use(protect);
 

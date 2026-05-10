@@ -480,6 +480,69 @@ const getMe = async (req, res) => {
             factors: gradedLoan.riskDetails.factors || [],
           };
         }
+
+        // ── Credit Score (FICO-like 300–850) ─────────────────────
+        const Customer = require('../models/Customer');
+        const customer = await Customer.findById(member.customer);
+        const allLoans = await Loan.find({
+          customer: member.customer,
+          user: member.user._id,
+        });
+
+        let creditScore = 550; // Neutral baseline
+        const factors = [];
+
+        // 1. Repayment History (35% weight, max ±175)
+        const trustRating = customer?.trustRating ?? 5;
+        const historyBonus = Math.round(((trustRating - 5) / 5) * 175);
+        creditScore += historyBonus;
+        if (trustRating >= 7) factors.push('Strong repayment track record');
+        else if (trustRating < 4) factors.push('Late or missed payments detected');
+
+        // 2. Credit Utilization (30% weight, max ±150)
+        const creditLimit = member.creditLimit || 0;
+        const loanRemaining = memberObj.activeLoan?.remainingAmount || 0;
+        if (creditLimit > 0) {
+          const utilization = loanRemaining / creditLimit;
+          if (utilization <= 0.1) { creditScore += 150; factors.push('Very low credit utilization'); }
+          else if (utilization <= 0.3) { creditScore += 100; factors.push('Healthy credit utilization'); }
+          else if (utilization <= 0.5) { creditScore += 40; }
+          else if (utilization <= 0.7) { creditScore -= 30; factors.push('High credit utilization'); }
+          else { creditScore -= 80; factors.push('Credit utilization is very high'); }
+        } else if (allLoans.length === 0) {
+          factors.push('No credit history yet');
+        }
+
+        // 3. Account Age (15% weight, max ±75)
+        const accountAgeMonths = Math.floor((Date.now() - new Date(member.joinDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
+        if (accountAgeMonths >= 24) { creditScore += 75; factors.push('Long-standing account (2+ years)'); }
+        else if (accountAgeMonths >= 12) { creditScore += 50; factors.push('Established account (1+ year)'); }
+        else if (accountAgeMonths >= 6) { creditScore += 25; }
+        else { creditScore -= 20; factors.push('New account — build history over time'); }
+
+        // 4. Credit Mix (10% weight, max ±50)
+        const completedLoans = allLoans.filter(l => l.status === 'completed').length;
+        const hasSavings = (member.savingBalance || 0) > 0;
+        if (completedLoans >= 2 && hasSavings) { creditScore += 50; factors.push('Diverse financial activity'); }
+        else if (completedLoans >= 1) { creditScore += 25; }
+
+        // 5. Recent Activity (10% weight, max ±50)
+        const hasDefaulted = allLoans.some(l => l.status === 'defaulted');
+        const hasOverdue = allLoans.some(l => l.status === 'overdue');
+        if (hasDefaulted) { creditScore -= 100; factors.push('Loan default on record'); }
+        else if (hasOverdue) { creditScore -= 50; factors.push('Overdue loan requires attention'); }
+        else if ((member.totalInvested || 0) > 0) { creditScore += 50; factors.push('Active deposit history'); }
+
+        creditScore = Math.min(850, Math.max(300, creditScore));
+
+        let creditGrade;
+        if (creditScore >= 800) creditGrade = 'Excellent';
+        else if (creditScore >= 740) creditGrade = 'Very Good';
+        else if (creditScore >= 670) creditGrade = 'Good';
+        else if (creditScore >= 580) creditGrade = 'Fair';
+        else creditGrade = 'Poor';
+
+        memberObj.creditScore = { score: creditScore, grade: creditGrade, factors };
       }
 
       res.json(memberObj);
@@ -1115,6 +1178,41 @@ const forceMemberChangePassword = async (req, res) => {
   }
 };
 
+// @desc    Update notification preferences
+// @route   PUT /api/member-auth/notification-preferences
+// @access  Private (Member)
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const { email, inApp } = req.body;
+    const member = await Member.findById(req.member._id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    // Deep merge preferences
+    if (email) {
+      member.notificationPreferences.email = {
+        ...member.notificationPreferences.email.toObject?.() || member.notificationPreferences.email,
+        ...email,
+      };
+    }
+    if (inApp) {
+      member.notificationPreferences.inApp = {
+        ...member.notificationPreferences.inApp.toObject?.() || member.notificationPreferences.inApp,
+        ...inApp,
+      };
+    }
+
+    await member.save({ validateBeforeSave: false });
+
+    res.json({
+      success: true,
+      notificationPreferences: member.notificationPreferences,
+    });
+  } catch (error) {
+    console.error('Update Notification Preferences Error:', error);
+    res.status(500).json({ message: 'Failed to update preferences' });
+  }
+};
+
 const logoutMember = (req, res) => {
   res
     .cookie('token', '', { ...cookieOptions, maxAge: 0 })
@@ -1169,4 +1267,5 @@ module.exports = {
   forceChangePassword: forceMemberChangePassword,
   getOnboardingStatus,
   updateOnboardingStatus,
+  updateNotificationPreferences,
 };

@@ -827,66 +827,108 @@ const SecuritySection = ({
 );
 
 const NotificationSection = () => {
-  const [notifs, setNotifs] = useState({ email: true, push: false });
+  const [member] = useAtom(memberAtom);
+  const [prefs, setPrefs] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    // Load from member atom (already fetched via /me)
+    if (member?.notificationPreferences) {
+      setPrefs(member.notificationPreferences);
+    } else {
+      // Defaults
+      setPrefs({
+        email: { loanUpdates: true, paymentReminders: true, profitCredits: true, securityAlerts: true, promotions: false },
+        inApp: { loanUpdates: true, paymentReminders: true, profitCredits: true, securityAlerts: true, promotions: true },
+      });
+    }
+  }, [member]);
+
+  const handleToggle = (channel, key, value) => {
+    const updated = {
+      ...prefs,
+      [channel]: { ...prefs[channel], [key]: value },
+    };
+    setPrefs(updated);
+
+    // Debounced save
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await api.put('/member-auth/notification-preferences', {
+          [channel]: { [key]: value },
+        });
+      } catch {
+        toast.error('Failed to save preference');
+      } finally {
+        setSaving(false);
+      }
+    }, 600);
+  };
+
+  const NOTIF_EVENTS = [
+    { key: 'loanUpdates', label: 'Loan Updates', desc: 'Approvals, rejections, and status changes', icon: Mail, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    { key: 'paymentReminders', label: 'Payment Reminders', desc: 'Upcoming EMIs and repayment due dates', icon: Bell, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+    { key: 'profitCredits', label: 'Profit Credits', desc: 'Saving profit distributions and dividends', icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    { key: 'securityAlerts', label: 'Security Alerts', desc: 'Login activity and 2FA notifications', icon: Shield, color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30' },
+    { key: 'promotions', label: 'Promotions', desc: 'Announcements and new feature updates', icon: Smartphone, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+  ];
+
+  if (!prefs) return null;
+
   return (
     <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
       <div className="absolute -right-12 -top-12 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="relative z-10">
-        <h3 className="text-xl font-black tracking-tight">Push & Alerts</h3>
-        <p className="text-muted-foreground text-xs font-medium mt-1">
-          Manage system notifications and delivery.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-black tracking-tight">Notifications</h3>
+            <p className="text-muted-foreground text-xs font-medium mt-1">
+              Control what notifications you receive and how.
+            </p>
+          </div>
+          {saving && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
+        </div>
       </div>
 
       <div className="space-y-4 relative z-10">
-        {[
-          {
-            id: 'email',
-            label: 'Email Alerts',
-            desc: 'Receive deposit and profit summaries',
-            icon: Mail,
-            color: 'text-blue-600',
-            bg: 'bg-blue-100 dark:bg-blue-900/30',
-          },
-          {
-            id: 'push',
-            label: 'Security Alerts',
-            desc: 'Real-time login and activity alerts',
-            icon: Smartphone,
-            color: 'text-purple-600',
-            bg: 'bg-purple-100 dark:bg-purple-900/30',
-          },
-        ].map((item) => (
+        {/* Column headers */}
+        <div className="flex items-center justify-end gap-6 pr-2 mb-2">
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">Email</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">In-App</span>
+        </div>
+
+        {NOTIF_EVENTS.map((item) => (
           <div
-            key={item.id}
-            className="flex items-center justify-between p-4 rounded-2xl border border-border/50"
+            key={item.key}
+            className="flex items-center justify-between p-4 rounded-2xl border border-border/50 hover:bg-muted/10 transition-colors"
           >
-            <div className="flex items-center gap-4">
-              <div
-                className={cn(
-                  'h-10 w-10 rounded-full flex items-center justify-center',
-                  item.bg,
-                  item.color,
-                )}
-              >
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', item.bg, item.color)}>
                 <item.icon size={18} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h4 className="font-bold text-sm leading-none mb-1">
                   {item.label}
                 </h4>
-                <p className="text-[10px] text-muted-foreground font-medium">
+                <p className="text-[10px] text-muted-foreground font-medium truncate">
                   {item.desc}
                 </p>
               </div>
             </div>
-            <Switch
-              checked={notifs[item.id]}
-              onCheckedChange={(val) =>
-                setNotifs({ ...notifs, [item.id]: val })
-              }
-            />
+            <div className="flex items-center gap-6 shrink-0">
+              <Switch
+                checked={prefs.email?.[item.key] ?? false}
+                onCheckedChange={(val) => handleToggle('email', item.key, val)}
+              />
+              <Switch
+                checked={prefs.inApp?.[item.key] ?? true}
+                onCheckedChange={(val) => handleToggle('inApp', item.key, val)}
+              />
+            </div>
           </div>
         ))}
       </div>

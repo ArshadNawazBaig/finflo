@@ -33,6 +33,21 @@ const emitNotification = (notification) => {
 /**
  * Creates a notification and logs the activity.
  */
+// Maps notification action keys to preference categories
+const ACTION_TO_PREFERENCE = {
+  loan_overdue_notification: 'loanUpdates',
+  loan_defaulted: 'loanUpdates',
+  grantor_loan_defaulted: 'loanUpdates',
+  loan_approved: 'loanUpdates',
+  loan_rejected: 'loanUpdates',
+  upcoming_emi_reminder: 'paymentReminders',
+  repayment_received: 'paymentReminders',
+  saving_profit_distributed: 'profitCredits',
+  profit_distributed: 'profitCredits',
+  member_login: 'securityAlerts',
+  member_2fa_enabled: 'securityAlerts',
+};
+
 const createTransactionNotification = async ({
   recipientId,
   recipientModel = 'Member',
@@ -44,6 +59,20 @@ const createTransactionNotification = async ({
   action = 'transaction_notification',
 }) => {
   try {
+    // Check member notification preferences before creating
+    if (recipientModel === 'Member') {
+      const prefCategory = ACTION_TO_PREFERENCE[action];
+      if (prefCategory) {
+        const Member = require('../models/Member');
+        const memberPrefs = await Member.findById(recipientId).select('notificationPreferences').lean();
+        const inAppEnabled = memberPrefs?.notificationPreferences?.inApp?.[prefCategory];
+        if (inAppEnabled === false) {
+          // Member has disabled this notification category — skip silently
+          return null;
+        }
+      }
+    }
+
     // 1. Create In-App Notification
     const notification = new Notification({
       recipient: recipientId,

@@ -24,7 +24,10 @@ import PageHeader from '@/components/PageHeader';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import MemberGradeCard from '@/components/member/MemberGradeCard';
+import CreditScoreCard from '@/components/member/CreditScoreCard';
 import FinancialHealthCard from '@/components/member/FinancialHealthCard';
+import AccountOverviewCard from '@/components/member/AccountOverviewCard';
+import MemberLoanCalculator from '@/components/member/MemberLoanCalculator';
 import SavingGoalsList from '@/components/savings/SavingGoalsList';
 import CreateSavingGoalModal from '@/components/savings/CreateSavingGoalModal';
 import ContributeGoalModal from '@/components/savings/ContributeGoalModal';
@@ -266,15 +269,17 @@ const MemberDashboard = () => {
         <MemberDashboardSkeleton />
       ) : (
         <>
-          {/* Member Grade & Financial Health */}
+          {/* Member Grade, Credit Score & Financial Health */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {member?.memberGrade && (
               <MemberGradeCard memberGrade={member.memberGrade} />
             )}
+            <CreditScoreCard creditScore={member?.creditScore || { score: 550, grade: 'Fair', factors: ['No credit history yet — build your profile over time'] }} />
             <FinancialHealthCard
               member={member}
               activeLoansCount={activeLoansCount}
             />
+            <AccountOverviewCard member={member} />
           </div>
 
           <div className="flex flex-wrap gap-4 items-center justify-center sm:justify-start">
@@ -757,6 +762,8 @@ const MemberDashboard = () => {
               </div>
             </div>
           </div>
+          {/* Loan Calculator */}
+          <MemberLoanCalculator member={member} />
         </>
       )}
 

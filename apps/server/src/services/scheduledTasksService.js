@@ -855,6 +855,191 @@ const runCompoundInterestAccrual = async () => {
   }
 };
 
+// ─── Job 9: Recurring Scheduled Payments ─────────────────────────────────────
+/**
+ * Runs daily at 06:00.
+ * Processes active scheduled payments (monthly) where nextExecutionDate <= today.
+ * Supports saving_deposit (current→saving transfer) and loan_repayment types.
+ */
+const runScheduledPayments = async () => {
+  console.log('[CRON] runScheduledPayments: starting...');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  try {
+    const ScheduledPayment = require('../models/ScheduledPayment');
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const FinancialTransaction = require('../models/FinancialTransaction');
+
+    const duePayments = await ScheduledPayment.find({
+      status: 'active',
+      nextExecutionDate: { $lte: today },
+    }).populate('member', 'name currentBalance savingBalance user branchId');
+
+    let executed = 0;
+    let failed = 0;
+
+    for (const payment of duePayments) {
+      try {
+        const member = await Member.findById(payment.member._id);
+        if (!member) {
+          payment.status = 'failed';
+          payment.failureReason = 'Member not found';
+          await payment.save();
+          failed++;
+          continue;
+        }
+
+        const sourceBalance = payment.sourceAccount === 'saving'
+          ? member.savingBalance
+          : member.currentBalance;
+
+        if (sourceBalance < payment.amount) {
+          payment.status = 'failed';
+          payment.failureReason = `Insufficient ${payment.sourceAccount} balance (needed ${payment.amount}, had ${sourceBalance})`;
+          await payment.save();
+          failed++;
+
+          // Notify member of failure
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: '❌ Scheduled Payment Failed',
+              message: `Your scheduled ${payment.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${payment.amount.toLocaleString()} failed due to insufficient funds.`,
+              type: 'error',
+              branchId: member.branchId,
+              action: 'scheduled_payment_failed',
+              metadata: { scheduledPaymentId: payment._id },
+            });
+          } catch (notifErr) {
+            console.error('[CRON] Scheduled payment notification error:', notifErr.message);
+          }
+          continue;
+        }
+
+        // Execute the payment
+        if (payment.type === 'saving_deposit') {
+          // Transfer from current/saving to saving
+          if (payment.sourceAccount === 'current') {
+            member.currentBalance -= payment.amount;
+          }
+          member.savingBalance += payment.amount;
+          member.totalSavingDeposited = (member.totalSavingDeposited || 0) + payment.amount;
+          await member.save({ validateBeforeSave: false });
+
+          // Create investment record
+          await Investment.create({
+            user: member.user,
+            member: member._id,
+            branchId: member.branchId,
+            type: 'deposit',
+            accountType: 'saving',
+            amount: payment.amount,
+            description: `Auto: Scheduled monthly saving deposit`,
+            balanceAfter: member.savingBalance,
+          });
+
+          await FinancialTransaction.create({
+            user: member.user,
+            branchId: member.branchId,
+            type: 'credit',
+            category: 'saving_deposit',
+            amount: payment.amount,
+            date: new Date(),
+            description: `Auto: Scheduled saving deposit for ${member.name}`,
+            member: member._id,
+            paymentMethod: 'online',
+          });
+        } else if (payment.type === 'loan_repayment' && payment.loanId) {
+          // Use the existing loan repayment service
+          const Loan = require('../models/Loan');
+          const loan = await Loan.findById(payment.loanId);
+
+          if (!loan || loan.status === 'completed') {
+            payment.status = 'completed';
+            payment.failureReason = loan ? 'Loan already completed' : 'Loan not found';
+            await payment.save();
+            continue;
+          }
+
+          const repaymentAmount = Math.min(payment.amount, loan.remainingAmount);
+          if (payment.sourceAccount === 'current') {
+            member.currentBalance -= repaymentAmount;
+          } else {
+            member.savingBalance -= repaymentAmount;
+          }
+          await member.save({ validateBeforeSave: false });
+
+          loan.paidAmount = (loan.paidAmount || 0) + repaymentAmount;
+          loan.remainingAmount = Math.max(0, loan.remainingAmount - repaymentAmount);
+          if (loan.remainingAmount <= 0) {
+            loan.status = 'completed';
+            loan.completedAt = new Date();
+          }
+          await loan.save();
+
+          const Repayment = require('../models/Repayment');
+          await Repayment.create({
+            loan: loan._id,
+            user: member.user,
+            customer: loan.customer,
+            branchId: member.branchId,
+            amount: repaymentAmount,
+            method: 'auto_scheduled',
+            note: 'Automated scheduled loan repayment',
+            date: new Date(),
+          });
+        }
+
+        // Update schedule
+        payment.lastExecutedAt = new Date();
+        payment.executionCount += 1;
+
+        // Check if max executions reached
+        if (payment.maxExecutions && payment.executionCount >= payment.maxExecutions) {
+          payment.status = 'completed';
+        } else {
+          // Schedule next month
+          const nextDate = new Date(payment.nextExecutionDate);
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          payment.nextExecutionDate = nextDate;
+        }
+        payment.failureReason = undefined;
+        await payment.save();
+        executed++;
+
+        // Notify member of success
+        try {
+          await createTransactionNotification({
+            recipientId: member._id,
+            title: '✅ Scheduled Payment Processed',
+            message: `Your monthly ${payment.type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'} of Rs. ${payment.amount.toLocaleString()} has been processed successfully.`,
+            type: 'success',
+            branchId: member.branchId,
+            action: 'scheduled_payment_success',
+            metadata: { scheduledPaymentId: payment._id },
+          });
+        } catch (notifErr) {
+          console.error('[CRON] Scheduled payment notification error:', notifErr.message);
+        }
+      } catch (paymentErr) {
+        console.error(`[CRON] Error processing scheduled payment ${payment._id}:`, paymentErr.message);
+        payment.status = 'failed';
+        payment.failureReason = paymentErr.message;
+        await payment.save();
+        failed++;
+      }
+    }
+
+    console.log(
+      `[CRON] runScheduledPayments: ${executed} executed, ${failed} failed.`,
+    );
+  } catch (err) {
+    console.error('[CRON] runScheduledPayments ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -894,7 +1079,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 8 jobs registered.');
+  // Job 9: Recurring scheduled payments daily at 06:00
+  cron.schedule('0 6 * * *', runScheduledPayments, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 9 jobs registered.');
 };
 
 module.exports = {
@@ -908,4 +1098,6 @@ module.exports = {
   runMonthlySavingProfitDistribution,
   runLoanDefaultDetection,
   runCompoundInterestAccrual,
+  runScheduledPayments,
 };
+

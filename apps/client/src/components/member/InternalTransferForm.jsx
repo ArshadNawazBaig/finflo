@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/axios';
@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
-const InternalTransferForm = ({ member, onSuccess }) => {
+const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -51,6 +51,32 @@ const InternalTransferForm = ({ member, onSuccess }) => {
     }, 500);
     return () => clearTimeout(timeout);
   }, [recipient, member]);
+
+  // Handle QR scan auto-fill
+  useEffect(() => {
+    const handleQRScan = async (e) => {
+      const { recipientId, recipientName } = e.detail;
+      if (recipientId) {
+        try {
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${recipientId}`,
+          );
+          const match = data.find((m) => m._id === recipientId);
+          if (match) {
+            setLookupData(match);
+            setRecipient(match.email || match.name);
+          } else if (recipientName) {
+            setRecipient(recipientName);
+          }
+        } catch {
+          if (recipientName) setRecipient(recipientName);
+        }
+      }
+    };
+
+    window.addEventListener('finflo:qr-scan', handleQRScan);
+    return () => window.removeEventListener('finflo:qr-scan', handleQRScan);
+  }, []);
 
   const handleTransfer = async (e) => {
     e.preventDefault();
@@ -123,9 +149,21 @@ const InternalTransferForm = ({ member, onSuccess }) => {
         </div>
 
         <div className="space-y-2 text-left">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
-            Recipient Email or Finflo ID
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">
+              Recipient Email or Finflo ID
+            </label>
+            {onScanQR && (
+              <button
+                type="button"
+                onClick={onScanQR}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                <ScanLine size={12} />
+                Scan QR
+              </button>
+            )}
+          </div>
           <div className="relative">
             <Input
               placeholder="Search by Email, ID or CNIC"

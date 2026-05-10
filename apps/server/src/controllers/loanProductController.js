@@ -92,9 +92,25 @@ const deleteLoanProduct = async (req, res) => {
   }
 };
 
+// @desc    Get loan products for member portal
+// @route   GET /api/loan-products/member
+// @access  Private (Member)
+const getMemberLoanProducts = async (req, res) => {
+  try {
+    const products = await LoanProduct.find({
+      user: req.member.user,
+      isActive: true,
+    }).sort({ name: 1 });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching loan products' });
+  }
+};
+
 module.exports = {
   getLoanProducts,
   createLoanProduct,
   updateLoanProduct,
   deleteLoanProduct,
+  getMemberLoanProducts,
 };

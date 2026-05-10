@@ -118,6 +118,22 @@ const memberSchema = new mongoose.Schema(
       isCompleted: { type: Boolean, default: false },
       currentStep: { type: Number, default: 0 },
     },
+    notificationPreferences: {
+      email: {
+        loanUpdates: { type: Boolean, default: true },
+        paymentReminders: { type: Boolean, default: true },
+        profitCredits: { type: Boolean, default: true },
+        securityAlerts: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: false },
+      },
+      inApp: {
+        loanUpdates: { type: Boolean, default: true },
+        paymentReminders: { type: Boolean, default: true },
+        profitCredits: { type: Boolean, default: true },
+        securityAlerts: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: true },
+      },
+    },
   },
   { timestamps: true },
 );

@@ -177,12 +177,14 @@ const ReviewSection = ({ user }) => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <MessageSquareQuote size={18} className="text-amber-500" />
-              <h3 className="text-xl font-black tracking-tight">
-                Your Review
-              </h3>
+              <h3 className="text-xl font-black tracking-tight">Your Review</h3>
             </div>
             <p className="text-muted-foreground text-xs font-medium">
-              Posting as <span className="text-foreground font-bold">{user.name}</span> · {user.businessName || 'Your Business'}
+              Posting as{' '}
+              <span className="text-foreground font-bold capitalize">
+                {user.name}
+              </span>{' '}
+              · {user.businessName || 'Your Business'}
             </p>
           </div>
         </div>
@@ -209,7 +211,9 @@ const ReviewSection = ({ user }) => {
               <button
                 key={star}
                 type="button"
-                onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                onClick={() =>
+                  setReviewForm((prev) => ({ ...prev, rating: star }))
+                }
                 className="p-0.5 hover:scale-110 transition-transform"
               >
                 <Star
@@ -233,7 +237,12 @@ const ReviewSection = ({ user }) => {
           <input
             type="text"
             value={reviewForm.reviewerRole}
-            onChange={(e) => setReviewForm((prev) => ({ ...prev, reviewerRole: e.target.value }))}
+            onChange={(e) =>
+              setReviewForm((prev) => ({
+                ...prev,
+                reviewerRole: e.target.value,
+              }))
+            }
             placeholder="e.g. CEO, Founder, Manager"
             className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
           />
@@ -245,15 +254,21 @@ const ReviewSection = ({ user }) => {
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Your Review
             </label>
-            <span className={`text-[10px] font-bold ${
-              reviewForm.content.length > 300 ? 'text-rose-500' : 'text-muted-foreground/60'
-            }`}>
+            <span
+              className={`text-[10px] font-bold ${
+                reviewForm.content.length > 300
+                  ? 'text-rose-500'
+                  : 'text-muted-foreground/60'
+              }`}
+            >
               {reviewForm.content.length}/300
             </span>
           </div>
           <textarea
             value={reviewForm.content}
-            onChange={(e) => setReviewForm((prev) => ({ ...prev, content: e.target.value }))}
+            onChange={(e) =>
+              setReviewForm((prev) => ({ ...prev, content: e.target.value }))
+            }
             placeholder="Share what you love about FinFlo..."
             rows={3}
             maxLength={300}
@@ -1693,9 +1708,7 @@ const Settings = () => {
               )}
 
               {/* Review Section */}
-              {activeSection === 'review' && (
-                <ReviewSection user={user} />
-              )}
+              {activeSection === 'review' && <ReviewSection user={user} />}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -2709,8 +2722,8 @@ const ConfigurationSection = ({ user }) => {
               </div>
             ))}
             <p className="md:col-span-3 text-[10px] text-muted-foreground/60 italic font-medium mt-2 ml-1">
-              * These fees are deducted from the member's current account balance
-              when a checkbook is issued. Set to 0 for free checkbooks.
+              * These fees are deducted from the member's current account
+              balance when a checkbook is issued. Set to 0 for free checkbooks.
             </p>
           </div>
         </div>

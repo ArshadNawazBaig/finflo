@@ -27,6 +27,14 @@ import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberDepositModal from '@/components/member/MemberDepositModal';
+import MemberQRCode from '@/components/member/MemberQRCode';
+import MemberScheduledPayments from '@/components/member/MemberScheduledPayments';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Link, useNavigate } from 'react-router-dom';
 import { MemberWalletSkeleton } from '@/components/ui/PageSkeletons';
 
@@ -34,6 +42,7 @@ const MemberWallet = () => {
   const [member, setMember] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // Pagination / infinite load state
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -303,14 +312,11 @@ const MemberWallet = () => {
                   <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                     <div className="relative group flex-1 sm:flex-none">
                       <Button
-                        disabled
-                        className="w-full h-14 px-8 rounded-2xl bg-white/50 text-zinc-900/40 text-xs font-black uppercase tracking-widest cursor-not-allowed flex items-center gap-2 border border-white/10"
+                        onClick={() => setShowQRModal(true)}
+                        className="w-full h-14 px-8 rounded-2xl bg-white/15 border border-white/10 hover:bg-white/25 text-white text-xs font-black uppercase tracking-widest transition-all backdrop-blur-md hover:-translate-y-1 active:scale-95 flex items-center gap-2"
                       >
-                        <QrCode size={18} /> Add Funds
+                        <QrCode size={18} /> My QR Code
                       </Button>
-                      <div className="absolute -top-2 -right-2 bg-white text-zinc-900 text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded-lg shadow-lg animate-bounce">
-                        Coming Soon
-                      </div>
                     </div>
                     <Button
                       onClick={() => navigate('/member/transfer')}
@@ -594,6 +600,19 @@ const MemberWallet = () => {
           </div>
         </>
       )}
+
+      {/* Scheduled Payments */}
+      <MemberScheduledPayments member={member} />
+
+      {/* QR Code Dialog */}
+      <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tight text-center">My Payment QR</DialogTitle>
+          </DialogHeader>
+          <MemberQRCode member={member} />
+        </DialogContent>
+      </Dialog>
 
       <MemberDepositModal
         isOpen={isDepositModalOpen}

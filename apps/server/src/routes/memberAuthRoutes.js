@@ -21,6 +21,7 @@ const {
   updateOnboardingStatus,
   googleLogin,
   googleRegister,
+  updateNotificationPreferences,
 } = require('../controllers/memberAuthController');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
@@ -60,5 +61,8 @@ router.post('/force-change-password', protectMember, forceChangePassword);
 // Onboarding Routes
 router.get('/onboarding', protectMember, getOnboardingStatus);
 router.put('/onboarding', protectMember, updateOnboardingStatus);
+
+// Notification Preferences
+router.put('/notification-preferences', protectMember, updateNotificationPreferences);
 
 module.exports = router;
