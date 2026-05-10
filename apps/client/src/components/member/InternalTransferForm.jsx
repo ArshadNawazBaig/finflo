@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
-const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
+const InternalTransferForm = ({ member, onSuccess, onScanQR, transactionToken }) => {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -98,7 +98,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
         amount: parseFloat(amount),
         accountType,
         description: note || `Transfer to ${lookupData.name}`,
-      });
+      }, transactionToken ? { headers: { 'x-transaction-token': transactionToken } } : undefined);
       toast.success('Transfer sent successfully!');
       setAmount('');
       setNote('');

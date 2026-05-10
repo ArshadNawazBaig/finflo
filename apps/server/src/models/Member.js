@@ -134,6 +134,12 @@ const memberSchema = new mongoose.Schema(
         promotions: { type: Boolean, default: true },
       },
     },
+
+    // Transaction PIN for sensitive operations
+    transactionPin: { type: String, select: false }, // bcrypt-hashed 4-digit PIN
+    transactionPinSetAt: { type: Date },
+    pinFailedAttempts: { type: Number, default: 0 },
+    pinLockedUntil: { type: Date },
   },
   { timestamps: true },
 );

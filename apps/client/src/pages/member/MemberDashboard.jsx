@@ -27,6 +27,7 @@ import MemberGradeCard from '@/components/member/MemberGradeCard';
 import CreditScoreCard from '@/components/member/CreditScoreCard';
 import FinancialHealthCard from '@/components/member/FinancialHealthCard';
 import AccountOverviewCard from '@/components/member/AccountOverviewCard';
+import FinancialCalendar from '@/components/member/FinancialCalendar';
 import MemberLoanCalculator from '@/components/member/MemberLoanCalculator';
 import SavingGoalsList from '@/components/savings/SavingGoalsList';
 import CreateSavingGoalModal from '@/components/savings/CreateSavingGoalModal';
@@ -281,6 +282,9 @@ const MemberDashboard = () => {
             />
             <AccountOverviewCard member={member} />
           </div>
+
+          {/* Financial Calendar — full width */}
+          <FinancialCalendar className="my-8" />
 
           <div className="flex flex-wrap gap-4 items-center justify-center sm:justify-start">
             <Button

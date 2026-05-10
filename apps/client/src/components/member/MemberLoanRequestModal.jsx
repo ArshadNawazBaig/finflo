@@ -200,9 +200,6 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
     setLoading(true);
     try {
-      console.log('[LoanRequest] g1BackendId:', g1BackendId, 'g2BackendId:', g2BackendId, 'data.grantor1Identifier:', data.grantor1Identifier, 'data.grantor2Identifier:', data.grantor2Identifier);
-      console.log('[LoanRequest] payload grantor1:', payload.grantor1Identifier, 'payload grantor2:', payload.grantor2Identifier);
-
       const formData = new FormData();
       formData.append('principal', payload.principal);
       formData.append('duration', payload.duration);

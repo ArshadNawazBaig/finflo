@@ -14,6 +14,9 @@ import { formatCurrency, cn } from '@/lib/utils';
 import InternalTransferForm from '@/components/member/InternalTransferForm';
 import BankWithdrawalForm from '@/components/member/BankWithdrawalForm';
 import QRScanner from '@/components/QRScanner';
+import useTransactionPin from '@/hooks/useTransactionPin';
+import TransactionPinModal from '@/components/member/TransactionPinModal';
+import SetTransactionPinModal from '@/components/member/SetTransactionPinModal';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +38,12 @@ const MemberTransfer = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const transferFormRef = useRef(null);
+
+  const {
+    requirePin, showPinModal, setShowPinModal, showSetPinModal, setShowSetPinModal,
+    onPinVerified, onPinSet, getValidToken, checkPinStatus,
+  } = useTransactionPin();
+  const [transactionToken, setTransactionToken] = useState(null);
 
   // Fetch Member
   const fetchMember = useCallback(async () => {
@@ -137,6 +146,11 @@ const MemberTransfer = () => {
                 onSuccess={handleSuccess}
                 onScanQR={() => setShowQRScanner(true)}
                 ref={transferFormRef}
+                transactionToken={getValidToken()}
+                onRequirePin={(callback) => requirePin((token) => {
+                  setTransactionToken(token);
+                  callback?.(token);
+                })}
               />
             ) : (
               <BankWithdrawalForm member={member} onSuccess={handleSuccess} />
@@ -329,6 +343,20 @@ const MemberTransfer = () => {
         </div>
       </DialogContent>
     </Dialog>
+
+    <TransactionPinModal
+      isOpen={showPinModal}
+      onClose={() => setShowPinModal(false)}
+      onVerified={(token, expiresIn) => {
+        setTransactionToken(token);
+        onPinVerified(token, expiresIn);
+      }}
+    />
+    <SetTransactionPinModal
+      isOpen={showSetPinModal}
+      onClose={() => setShowSetPinModal(false)}
+      onSuccess={onPinSet}
+    />
     </>
   );
 };

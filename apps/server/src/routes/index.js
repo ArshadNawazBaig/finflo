@@ -38,6 +38,8 @@ const routes = [
   ['/aml', './amlRoutes'],
   ['/reviews', './reviewRoutes'],
   ['/scheduled-payments', './scheduledPaymentRoutes'],
+  ['/calendar', './calendarRoutes'],
+  ['/insights', './insightsRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

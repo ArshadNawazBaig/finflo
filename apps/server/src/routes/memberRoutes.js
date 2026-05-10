@@ -28,6 +28,16 @@ const {
   updateApprovalStatus,
   initiateRaastDeposit,
 } = require('../controllers/memberController');
+const {
+  setTransactionPin,
+  verifyTransactionPin,
+  requestPinResetOtp,
+  verifyPinResetOtp,
+  getPinStatus,
+} = require('../controllers/transactionPinController');
+const {
+  getMemberCalendarEvents,
+} = require('../controllers/calendarController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { memberValidation } = require('../middleware/validationMiddleware');
@@ -41,6 +51,15 @@ router.get('/portal/shares', protectMember, getPortalShares);
 router.post('/portal/transfer', protectMember, transferFunds);
 router.post('/portal/raast-deposit', protectMember, initiateRaastDeposit);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
+router.get('/portal/calendar', protectMember, getMemberCalendarEvents);
+
+// Transaction PIN routes
+router.get('/portal/pin-status', protectMember, getPinStatus);
+router.post('/portal/set-pin', protectMember, setTransactionPin);
+router.post('/portal/verify-pin', protectMember, verifyTransactionPin);
+router.post('/portal/pin-reset-otp', protectMember, requestPinResetOtp);
+router.post('/portal/pin-reset-verify', protectMember, verifyPinResetOtp);
+
 router.get('/lookup', protect, lookupMember); // Admin can lookup members
 
 // All subsequent routes require staff/admin authentication

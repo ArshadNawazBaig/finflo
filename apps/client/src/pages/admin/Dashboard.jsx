@@ -54,6 +54,8 @@ import { toast } from 'sonner';
 import { exportCashFlowStatement } from '@/lib/cashFlowPdfUtils';
 import usePermissions from '@/hooks/usePermissions';
 import ActivityFeed from '@/components/ActivityFeed';
+import FinancialCalendar from '@/components/member/FinancialCalendar';
+import InsightsWidget from '@/components/dashboard/InsightsWidget';
 import {
   Dialog,
   DialogContent,
@@ -898,10 +900,19 @@ const Dashboard = () => {
           {loading ? (
             <CalendarSkeleton />
           ) : (
-            <RepaymentCalendar upcomingPayments={upcomingPayments} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <RepaymentCalendar upcomingPayments={upcomingPayments} />
+              <FinancialCalendar apiUrl="/calendar" />
+            </div>
           )}
         </div>
       )}
+
+      {/* ── AI Insights ─────────────────────────────────────────── */}
+      {canViewDashboard && !loading && (
+        <InsightsWidget />
+      )}
+
       {/* ── Business Capital Modal ──────────────────────────────── */}
       <Dialog 
         open={showCapitalModal} 

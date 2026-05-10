@@ -427,8 +427,6 @@ const requestLoan = async (req, res) => {
   let rate = Number(rateInput || 0);
   const duration = Number(durationInput);
 
-  console.log('[requestLoan] Body received:', { grantor1Identifier, grantor2Identifier, principal, duration, notes, files: req.files?.length || 0 });
-
   try {
     // If rate is 0 or not provided, get system default
     if (!rate || rate === 0) {
