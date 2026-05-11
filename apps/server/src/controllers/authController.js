@@ -842,7 +842,7 @@ const updatePassword = async (req, res) => {
     }
 
     if (!(await user.matchPassword(currentPassword))) {
-      return res.status(401).json({ message: 'Incorrect current password' });
+      return res.status(400).json({ message: 'Incorrect current password' });
     }
 
     user.password = newPassword;

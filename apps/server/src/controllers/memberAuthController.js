@@ -682,7 +682,7 @@ const updatePassword = async (req, res) => {
     }
 
     if (!(await member.matchPassword(currentPassword))) {
-      return res.status(401).json({ message: 'Incorrect current password' });
+      return res.status(400).json({ message: 'Incorrect current password' });
     }
 
     member.password = newPassword;
@@ -1014,7 +1014,7 @@ const disable2FA = async (req, res) => {
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
     if (!(await member.matchPassword(password))) {
-      return res.status(401).json({ message: 'Incorrect password' });
+      return res.status(400).json({ message: 'Incorrect password' });
     }
 
     member.isTwoFactorEnabled = false;

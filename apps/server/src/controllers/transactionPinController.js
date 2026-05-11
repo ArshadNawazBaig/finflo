@@ -33,7 +33,7 @@ const setTransactionPin = async (req, res) => {
     // Verify current password
     const isMatch = await member.matchPassword(currentPassword);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Incorrect password.' });
+      return res.status(400).json({ message: 'Incorrect password.' });
     }
 
     // Hash and store the PIN
