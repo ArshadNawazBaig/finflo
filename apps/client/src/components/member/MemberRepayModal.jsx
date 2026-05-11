@@ -214,8 +214,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
     setShowTxnConfirm(true);
   };
 
-  const executeRepayment = async () => {
-    setShowTxnConfirm(false);
+  const executeRepayment = async (token) => {
     const paymentAmount = Number(formData.amount);
 
     setLoading(true);
@@ -231,7 +230,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
         },
         {
           headers: {
-            /* Auth header handled by browser cookies */
+            ...(token ? { 'x-transaction-token': token } : {}),
           },
         },
       );
@@ -241,6 +240,7 @@ const MemberRepayModal = ({ isOpen, onClose, loan, onSuccess }) => {
           ? 'Loan settled successfully! Your balance and loan status have been updated.'
           : 'Repayment successful! Your balance and loan has been updated.',
       );
+      setShowTxnConfirm(false);
       onSuccess();
       onClose();
     } catch (error) {

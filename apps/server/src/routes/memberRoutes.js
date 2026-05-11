@@ -40,6 +40,7 @@ const {
 } = require('../controllers/calendarController');
 const { protect } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
 const { memberValidation } = require('../middleware/validationMiddleware');
 
 // Public routes
@@ -48,8 +49,8 @@ router.post('/self-register', memberValidation, selfRegister);
 // Member Portal Specific Routes (Self-access) - Defined BEFORE global staff protection
 router.get('/portal/activity', protectMember, getMemberActivity);
 router.get('/portal/shares', protectMember, getPortalShares);
-router.post('/portal/transfer', protectMember, transferFunds);
-router.post('/portal/raast-deposit', protectMember, initiateRaastDeposit);
+router.post('/portal/transfer', protectMember, requireTransactionPin, transferFunds);
+router.post('/portal/raast-deposit', protectMember, requireTransactionPin, initiateRaastDeposit);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
 router.get('/portal/calendar', protectMember, getMemberCalendarEvents);
 

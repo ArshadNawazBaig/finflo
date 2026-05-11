@@ -53,6 +53,7 @@ const corsOptions = {
     'Accept',
     'Cookie',
     'cookie',
+    'x-transaction-token',
     'Sec-Ch-Ua',
     'Sec-Ch-Ua-Mobile',
     'Sec-Ch-Ua-Platform',

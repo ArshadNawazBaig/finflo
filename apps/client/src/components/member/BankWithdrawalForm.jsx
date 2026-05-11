@@ -70,8 +70,7 @@ const BankWithdrawalForm = ({ member, onSuccess }) => {
         accountIdentifier: account,
         accountTitle: accountTitle,
         amount: parseFloat(amount),
-        direction: 'send',
-      });
+      }, {});
       toast.success('Withdrawal request submitted!');
       setAmount('');
       setAccount('');

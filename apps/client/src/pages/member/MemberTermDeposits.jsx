@@ -157,7 +157,7 @@ const MemberTermDeposits = () => {
     setIsCreateOpen(true);
   };
 
-  // Step 1: user clicks Lock → show confirmation
+  // Step 1: user clicks Lock → show confirmation (PIN is inside the modal)
   const handleRequestCreate = () => {
     if (principalNum <= 0) {
       toast.error('Please enter a valid amount');
@@ -171,14 +171,18 @@ const MemberTermDeposits = () => {
     setShowCreateConfirm(true);
   };
 
-  // Step 2: confirmed
-  const handleConfirmCreate = async () => {
+  // Step 2: confirmed (receives token from TransactionConfirmModal)
+  const handleConfirmCreate = async (token) => {
     try {
       setIsCreating(true);
       await api.post('/term-deposits/portal/create', {
         principal: principalNum,
         duration: selectedPackage.duration,
         sourceAccount,
+      }, {
+        headers: {
+          ...(token ? { 'x-transaction-token': token } : {}),
+        },
       });
       toast.success('Term deposit created successfully!');
       setShowCreateConfirm(false);
@@ -195,13 +199,19 @@ const MemberTermDeposits = () => {
     }
   };
 
-  // Break: confirmed
-  const handleConfirmBreak = async () => {
+  // Break: confirmed (receives token from TransactionConfirmModal)
+  const handleConfirmBreak = async (token) => {
     if (!breakTarget) return;
     try {
       setIsBreaking(true);
       const res = await api.post(
         `/term-deposits/portal/${breakTarget._id}/break`,
+        {},
+        {
+          headers: {
+            ...(token ? { 'x-transaction-token': token } : {}),
+          },
+        },
       );
       toast.success(
         `Deposit broken. ${formatCurrency(res.data.totalReturn)} returned to your account.`,

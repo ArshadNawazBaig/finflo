@@ -3509,6 +3509,7 @@ const TellerMode = () => {
         amount={parseFloat(amount) || 0}
         details={getTxnConfirmDetails()}
         description={description || undefined}
+        isAdminTransaction
       />
     </div>
   );

@@ -99,8 +99,9 @@ const verifyTransactionPin = async (req, res) => {
       }
 
       await member.save({ validateBeforeSave: false });
-      return res.status(401).json({
+      return res.status(422).json({
         message: 'Incorrect PIN.',
+        code: 'WRONG_PIN',
         attemptsRemaining: PIN_MAX_ATTEMPTS - member.pinFailedAttempts,
       });
     }
@@ -175,8 +176,13 @@ const requestPinResetOtp = async (req, res) => {
 const verifyPinResetOtp = async (req, res) => {
   const { otp, newPin } = req.body;
 
-  if (!otp || !newPin || !/^\d{4}$/.test(newPin)) {
-    return res.status(400).json({ message: 'Valid OTP and a 4-digit PIN are required.' });
+  if (!otp) {
+    return res.status(400).json({ message: 'OTP is required.' });
+  }
+
+  // If newPin is provided, validate it
+  if (newPin && !/^\d{4}$/.test(newPin)) {
+    return res.status(400).json({ message: 'PIN must be exactly 4 digits.' });
   }
 
   try {
@@ -192,17 +198,24 @@ const verifyPinResetOtp = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired OTP.' });
     }
 
-    // Set new PIN
-    const salt = await bcrypt.genSalt(10);
-    member.transactionPin = await bcrypt.hash(newPin, salt);
-    member.transactionPinSetAt = new Date();
+    if (newPin) {
+      // Mode 1: Reset to a new PIN immediately
+      const salt = await bcrypt.genSalt(10);
+      member.transactionPin = await bcrypt.hash(newPin, salt);
+      member.transactionPinSetAt = new Date();
+    } else {
+      // Mode 2: Just clear the PIN so user can set a new one
+      member.transactionPin = undefined;
+      member.transactionPinSetAt = undefined;
+    }
+
     member.pinFailedAttempts = 0;
     member.pinLockedUntil = undefined;
     member.resetPasswordToken = undefined;
     member.resetPasswordExpire = undefined;
     await member.save({ validateBeforeSave: false });
 
-    res.json({ message: 'Transaction PIN reset successfully.' });
+    res.json({ message: newPin ? 'Transaction PIN reset successfully.' : 'PIN cleared. Please set a new PIN.' });
   } catch (error) {
     console.error('verifyPinResetOtp Error:', error);
     res.status(500).json({ message: 'Failed to reset PIN.' });
@@ -217,8 +230,12 @@ const verifyPinResetOtp = async (req, res) => {
 const getPinStatus = async (req, res) => {
   try {
     const member = await Member.findById(req.member._id).select('+transactionPin');
+    const hasPin = !!member?.transactionPin;
+    const isLocked = !!(member?.pinLockedUntil && member.pinLockedUntil > new Date());
     res.json({
-      hasPinSet: !!member?.transactionPin,
+      hasPin,
+      hasPinSet: hasPin, // backward compat
+      isLocked,
       pinSetAt: member?.transactionPinSetAt || null,
     });
   } catch (error) {

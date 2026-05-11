@@ -3054,6 +3054,7 @@ const MemberProfile = () => {
             ? transferDescription
             : description || undefined
         }
+        isAdminTransaction
       />
 
       {/* Break Term Deposit Confirmation Modal */}
@@ -3085,6 +3086,7 @@ const MemberProfile = () => {
               { label: 'Est. Total Return', value: formatCurrency(totalReturn) },
             ]}
             description={`Breaking this deposit early will apply a ${breakTDTarget.earlyBreakPenaltyRate || 0}% penalty on accrued profit. The estimated return of ${formatCurrency(totalReturn)} will be credited to the member's ${breakTDTarget.sourceAccount || 'current'} account.`}
+            isAdminTransaction
           />
         );
       })()}

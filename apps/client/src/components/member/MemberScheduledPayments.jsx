@@ -239,7 +239,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
         sourceAccount: 'current',
         dayOfMonth: parseInt(dayOfMonth),
         description: `Monthly ${type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'}`,
-      });
+      }, {});
       toast.success('Scheduled payment created!');
       setAmount('');
       setDayOfMonth(1);

@@ -24,6 +24,9 @@ import {
   Trash2,
   QrCode,
   KeyRound,
+  Fingerprint,
+  CheckCircle2,
+  RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatCNIC, validateEmail, validatePassword } from '@/lib/utils';
@@ -37,6 +40,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import ColorPalette from '@/components/ui/ColorPalette';
+import SetTransactionPinModal from '@/components/member/SetTransactionPinModal';
+import TransactionPinModal from '@/components/member/TransactionPinModal';
 
 const MemberSettings = () => {
   const { theme, setTheme, primaryColor, setPrimaryColor } = useTheme();
@@ -561,8 +566,65 @@ const SecuritySection = ({
   setTwoFALoading,
   disable2FAPassword,
   setDisable2FAPassword,
-}) => (
-  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+}) => {
+  const [pinStatus, setPinStatus] = useState({ hasPin: false, isLocked: false });
+  const [pinLoading, setPinLoading] = useState(true);
+  const [showSetPinModal, setShowSetPinModal] = useState(false);
+  const [showChangePinModal, setShowChangePinModal] = useState(false);
+  const [showResetFlow, setShowResetFlow] = useState(false);
+  const [resetOtpSent, setResetOtpSent] = useState(false);
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPinStatus = async () => {
+      try {
+        const { data } = await api.get('/members/portal/pin-status');
+        setPinStatus({ hasPin: data.hasPin, isLocked: data.isLocked });
+      } catch {
+        // Silently fail
+      } finally {
+        setPinLoading(false);
+      }
+    };
+    fetchPinStatus();
+  }, []);
+
+  const handleSendResetOtp = async () => {
+    setResetLoading(true);
+    try {
+      await api.post('/members/portal/pin-reset-otp');
+      setResetOtpSent(true);
+      toast.success('A 6-digit OTP has been sent to your registered email.');
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleVerifyResetOtp = async () => {
+    if (resetOtp.length !== 6) return;
+    setResetLoading(true);
+    try {
+      await api.post('/members/portal/pin-reset-verify', { otp: resetOtp });
+      toast.success('PIN has been reset! You can now set a new one.');
+      setPinStatus({ hasPin: false, isLocked: false });
+      setShowResetFlow(false);
+      setResetOtpSent(false);
+      setResetOtp('');
+      // Auto-open set PIN modal
+      setTimeout(() => setShowSetPinModal(true), 400);
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  return (
+    <>
+    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
     <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
     <div className="relative z-10">
@@ -593,6 +655,144 @@ const SecuritySection = ({
         >
           Update
         </Button>
+      </div>
+
+      {/* Transaction PIN Panel */}
+      <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Fingerprint size={18} className="text-muted-foreground" />
+            <div>
+              <p className="font-bold text-sm">Transaction PIN</p>
+              <p className="text-[10px] text-muted-foreground font-medium">
+                {pinLoading
+                  ? 'Checking...'
+                  : pinStatus.hasPin
+                    ? 'Your 4-digit PIN is active for all transactions.'
+                    : 'Set a 4-digit PIN to secure every transaction.'}
+              </p>
+            </div>
+          </div>
+          <span
+            className={cn(
+              'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
+              pinLoading
+                ? 'bg-muted text-muted-foreground'
+                : pinStatus.isLocked
+                  ? 'bg-rose-500/10 text-rose-600'
+                  : pinStatus.hasPin
+                    ? 'bg-emerald-500/10 text-emerald-600'
+                    : 'bg-amber-500/10 text-amber-600',
+            )}
+          >
+            {pinLoading ? '...' : pinStatus.isLocked ? 'Locked' : pinStatus.hasPin ? 'Active' : 'Not Set'}
+          </span>
+        </div>
+
+        {!pinLoading && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {!pinStatus.hasPin ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSetPinModal(true)}
+                className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+              >
+                <Fingerprint size={14} />
+                Set PIN
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSetPinModal(true)}
+                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+                >
+                  <Lock size={14} />
+                  Change PIN
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowResetFlow(!showResetFlow);
+                    setResetOtpSent(false);
+                    setResetOtp('');
+                  }}
+                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5 text-amber-600 border-amber-500/20 hover:bg-amber-500/10"
+                >
+                  <RotateCcw size={14} />
+                  Forgot PIN
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* OTP Reset Flow */}
+        {showResetFlow && (
+          <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            {!resetOtpSent ? (
+              <div className="space-y-2">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  We'll send a 6-digit code to your registered email to verify your identity.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  isLoading={resetLoading}
+                  onClick={handleSendResetOtp}
+                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+                >
+                  <Mail size={14} />
+                  Send OTP
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Enter the 6-digit code sent to your email.
+                </p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <KeyRound
+                      size={14}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={resetOtp}
+                      onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
+                      className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    isLoading={resetLoading}
+                    disabled={resetOtp.length !== 6}
+                    onClick={handleVerifyResetOtp}
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+                  >
+                    Reset
+                  </Button>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowResetFlow(false);
+                    setResetOtpSent(false);
+                    setResetOtp('');
+                  }}
+                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 2FA Panel */}
@@ -824,7 +1024,19 @@ const SecuritySection = ({
       </div>
     </div>
   </section>
-);
+
+  {/* PIN Modals */}
+  <SetTransactionPinModal
+    isOpen={showSetPinModal}
+    onClose={() => setShowSetPinModal(false)}
+    onSuccess={() => {
+      setPinStatus({ hasPin: true, isLocked: false });
+      setShowSetPinModal(false);
+    }}
+  />
+  </>
+  );
+};
 
 const NotificationSection = () => {
   const [member] = useAtom(memberAtom);

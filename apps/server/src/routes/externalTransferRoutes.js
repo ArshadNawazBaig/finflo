@@ -7,11 +7,12 @@ const {
   resolveExternalAccountTitle,
 } = require('../controllers/externalTransferController');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
 
 router.use(protectMember);
 
-router.post('/', initiateExternalTransfer);
-router.post('/receive', recordExternalReceive);
+router.post('/', requireTransactionPin, initiateExternalTransfer);
+router.post('/receive', requireTransactionPin, recordExternalReceive);
 router.post('/resolve-title', resolveExternalAccountTitle);
 router.get('/', getMyExternalTransfers);
 

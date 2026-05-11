@@ -29,6 +29,7 @@ const {
   staffOrAdmin,
 } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
+const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const loanDocUpload = require('../middleware/loanDocUploadMiddleware');

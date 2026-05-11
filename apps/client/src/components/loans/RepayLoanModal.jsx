@@ -629,6 +629,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         { label: 'Outstanding', value: formatCurrency(loan?.remainingAmount || 0) },
       ]}
       description={pendingFormData?.notes || undefined}
+      isAdminTransaction
     />
     </>
   );

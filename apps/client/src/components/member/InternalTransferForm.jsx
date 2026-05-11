@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
-const InternalTransferForm = ({ member, onSuccess, onScanQR, transactionToken }) => {
+const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -89,23 +89,33 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR, transactionToken })
     setShowTxnConfirm(true);
   };
 
-  const executeTransfer = async () => {
-    setShowTxnConfirm(false);
+  const executeTransfer = async (token) => {
+    console.log('[Transfer] executeTransfer called with token:', token ? 'present' : 'missing');
+    console.log('[Transfer] lookupData:', lookupData);
+    console.log('[Transfer] amount:', amount, 'accountType:', accountType);
     setLoading(true);
     try {
+      console.log('[Transfer] Making API call...');
       await api.post('/members/portal/transfer', {
         recipientId: lookupData._id,
         amount: parseFloat(amount),
         accountType,
         description: note || `Transfer to ${lookupData.name}`,
-      }, transactionToken ? { headers: { 'x-transaction-token': transactionToken } } : undefined);
+      }, {
+        headers: {
+          ...(token ? { 'x-transaction-token': token } : {}),
+        },
+      });
+      console.log('[Transfer] API call succeeded');
       toast.success('Transfer sent successfully!');
+      setShowTxnConfirm(false);
       setAmount('');
       setNote('');
       setRecipient('');
       setLookupData(null);
       if (onSuccess) onSuccess();
     } catch (error) {
+      console.error('[Transfer] API call failed:', error);
       toast.error(error.response?.data?.message || 'Transfer failed');
     } finally {
       setLoading(false);
