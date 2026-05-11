@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Calculator, Info, ChevronDown, ChevronUp, Landmark } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
@@ -7,12 +7,42 @@ import ModernSlider from '@/components/ui/ModernSlider';
 const MemberLoanCalculator = ({ member }) => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [amount, setAmount] = useState(50000);
+  const [amount, setAmount] = useState(200000);
   const [term, setTerm] = useState(12);
   const [rate, setRate] = useState(10);
   const [interestType, setInterestType] = useState('emi');
-  const [showSchedule, setShowSchedule] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(true);
   const [loading, setLoading] = useState(true);
+  const calculatorRef = useRef(null);
+  const [calcHeight, setCalcHeight] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : false);
+
+  // Track window size for reactivity
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Sync height of schedule with calculator
+  useEffect(() => {
+    if (!calculatorRef.current) return;
+
+    const updateHeight = () => {
+      if (calculatorRef.current) {
+        setCalcHeight(calculatorRef.current.offsetHeight);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    resizeObserver.observe(calculatorRef.current);
+    updateHeight();
+
+    return () => resizeObserver.disconnect();
+  }, [showSchedule]);
 
   // Fetch loan products
   useEffect(() => {
@@ -26,7 +56,7 @@ const MemberLoanCalculator = ({ member }) => {
           setRate(first.interestRate);
           setTerm(first.duration);
           setInterestType(first.interestType || 'emi');
-          if (first.maxAmount) setAmount(Math.min(50000, first.maxAmount));
+          if (first.maxAmount) setAmount(Math.min(200000, first.maxAmount));
         }
       } catch {
         // If endpoint doesn't exist yet, use defaults
@@ -80,7 +110,7 @@ const MemberLoanCalculator = ({ member }) => {
 
   const result = calculate();
   const creditLimit = member?.creditLimit || 0;
-  const maxAmount = selectedProduct?.maxAmount || creditLimit || 500000;
+  const maxAmount = 5000000;
   const minAmount = selectedProduct?.minAmount || 5000;
 
   // Generate amortization schedule
@@ -120,174 +150,192 @@ const MemberLoanCalculator = ({ member }) => {
   };
 
   return (
-    <div className="rounded-[2rem] bg-card p-6 sm:p-8 border border-border/50 shadow-xs">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-blue-500 to-indigo-600">
-            <Calculator size={20} />
+    <div className="rounded-[2rem] bg-card border border-border/50 shadow-xs overflow-hidden">
+      <div className="flex flex-col lg:flex-row">
+        {/* Left Panel: Calculator Inputs & Results */}
+        <div 
+          ref={calculatorRef}
+          className={cn(
+            "flex-1 p-8 sm:p-10 transition-all duration-500",
+            showSchedule && "lg:border-r border-border/40"
+          )}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-blue-500 to-indigo-600">
+                <Calculator size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  Loan Simulator
+                </p>
+                <p className="text-xs font-medium text-muted-foreground/70 mt-0.5">
+                  {creditLimit > 0 && `Credit limit: ${formatCurrency(creditLimit)}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+              <Info size={12} className="text-primary/60" />
+              Subject to approval
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-              Loan Simulator
-            </p>
-            <p className="text-xs font-medium text-muted-foreground/70 mt-0.5">
-              {creditLimit > 0 && `Credit limit: ${formatCurrency(creditLimit)}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
-          <Info size={12} className="text-primary/60" />
-          Subject to approval
-        </div>
-      </div>
 
-      {/* Loan Products */}
-      {products.length > 0 && (
-        <div className="mb-6">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-3 ml-1">
-            Available Products
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            {products.map((product) => (
+          {/* Loan Products */}
+          {products.length > 0 && (
+            <div className="mb-6">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-3 ml-1">
+                Available Products
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {products.map((product) => (
+                  <button
+                    key={product._id}
+                    onClick={() => handleProductSelect(product)}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all',
+                      selectedProduct?._id === product._id
+                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                        : 'bg-muted/20 border-border/50 text-muted-foreground hover:bg-muted/40',
+                    )}
+                  >
+                    <Landmark size={12} />
+                    {product.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Interest Type Toggle */}
+          <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit mb-6">
+            {['emi', 'simple', 'compound'].map((type) => (
               <button
-                key={product._id}
-                onClick={() => handleProductSelect(product)}
+                key={type}
+                onClick={() => setInterestType(type)}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all',
-                  selectedProduct?._id === product._id
-                    ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
-                    : 'bg-muted/20 border-border/50 text-muted-foreground hover:bg-muted/40',
+                  'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
+                  interestType === type
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'text-muted-foreground hover:bg-muted',
                 )}
               >
-                <Landmark size={12} />
-                {product.name}
+                {type}
               </button>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* Interest Type Toggle */}
-      <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit mb-6">
-        {['emi', 'simple', 'compound'].map((type) => (
-          <button
-            key={type}
-            onClick={() => setInterestType(type)}
-            className={cn(
-              'px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
-              interestType === type
-                ? 'bg-primary text-white shadow-lg'
-                : 'text-muted-foreground hover:bg-muted',
-            )}
+          {/* Sliders */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-x-12 gap-y-8 mb-10 px-2">
+            <ModernSlider
+              label="Interest Rate"
+              value={rate}
+              min={1}
+              max={30}
+              step={0.1}
+              onChange={setRate}
+              suffix="%"
+            />
+            <ModernSlider
+              label="Repayment Term"
+              value={term}
+              min={3}
+              max={84}
+              step={1}
+              onChange={setTerm}
+              suffix=" mo"
+            />
+            <div className="xl:col-span-2">
+              <ModernSlider
+                label="Loan Amount"
+                value={amount}
+                min={minAmount}
+                max={maxAmount}
+                step={5000}
+                onChange={setAmount}
+                suffix=""
+              />
+            </div>
+          </div>
+
+          {/* Results Card */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden shadow-xl shadow-slate-900/20">
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="text-center sm:text-left flex-1">
+                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">
+                  Monthly Payment
+                </p>
+                <span className="text-4xl font-black tracking-tighter tabular-nums text-white">
+                  {formatCurrency(Math.round(result.monthly))}
+                </span>
+              </div>
+              
+              <div className="flex flex-col gap-3 w-full sm:w-auto">
+                <div className="flex items-center justify-between sm:justify-end gap-6 pb-2 border-b border-slate-700/50">
+                  <div className="text-right">
+                    <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
+                      Total Payback
+                    </p>
+                    <p className="text-sm font-bold tracking-tight tabular-nums">
+                      {formatCurrency(Math.round(result.total))}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
+                      Total Interest
+                    </p>
+                    <p className="text-sm font-bold text-emerald-400 tracking-tight tabular-nums">
+                      {formatCurrency(Math.round(result.interest))}
+                    </p>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel: Amortization Schedule */}
+        {showSchedule && (
+          <div 
+            className="lg:w-[500px] xl:w-[600px] shrink-0 border-t lg:border-t-0 bg-muted/5 flex flex-col animate-in slide-in-from-right-4 duration-500"
+            style={{ height: (isDesktop && calcHeight > 0) ? `${calcHeight}px` : 'auto' }}
           >
-            {type}
-          </button>
-        ))}
-      </div>
-
-      {/* Sliders */}
-      <div className="space-y-6 mb-6">
-        <ModernSlider
-          label="Loan Amount"
-          value={amount}
-          min={minAmount}
-          max={maxAmount}
-          step={5000}
-          onChange={setAmount}
-          suffix=""
-        />
-        <ModernSlider
-          label="Repayment Term"
-          value={term}
-          min={3}
-          max={84}
-          step={1}
-          onChange={setTerm}
-          suffix=" mo"
-        />
-        <ModernSlider
-          label="Interest Rate"
-          value={rate}
-          min={1}
-          max={30}
-          step={0.1}
-          onChange={setRate}
-          suffix="%"
-        />
-      </div>
-
-      {/* Results */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="text-center mb-4">
-            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">
-              Estimated Monthly Payment
-            </p>
-            <span className="text-4xl font-black tracking-tighter tabular-nums">
-              {formatCurrency(Math.round(result.monthly))}
-            </span>
-          </div>
-          <div className="flex items-center justify-between pt-4 border-t border-slate-700">
-            <div>
-              <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
-                Total Payback
-              </p>
-              <p className="text-sm font-bold tracking-tight tabular-nums">
-                {formatCurrency(Math.round(result.total))}
-              </p>
+            <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between shrink-0">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Amortization Schedule</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                  Breakdown for {term} months
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wider">
-                Total Interest
-              </p>
-              <p className="text-sm font-bold text-emerald-400 tracking-tight tabular-nums">
-                {formatCurrency(Math.round(result.interest))}
-              </p>
+            
+            <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+              <table className="w-full text-[11px] border-collapse">
+                <thead className="sticky top-0 bg-muted/90 backdrop-blur-md z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">#</th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">EMI</th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Principal</th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Interest</th>
+                    <th className="px-4 py-3 text-right font-black uppercase tracking-widest text-muted-foreground/60 border-b border-border/40">Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/10">
+                  {generateSchedule().map((row) => (
+                    <tr key={row.month} className="hover:bg-primary/5 transition-colors group">
+                      <td className="px-4 py-3 font-bold tabular-nums text-muted-foreground group-hover:text-foreground">{row.month}</td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium">{row.emi.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium text-primary">{row.principal.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium text-amber-500">{row.interest.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right tabular-nums font-bold group-hover:text-primary transition-colors">{row.balance.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Amortization Schedule Toggle */}
-      <button
-        onClick={() => setShowSchedule(!showSchedule)}
-        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-muted-foreground w-full justify-center py-3 mt-4 rounded-xl hover:bg-muted/30 transition-colors"
-      >
-        {showSchedule ? 'Hide' : 'View'} Amortization Schedule
-        {showSchedule ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-      </button>
-
-      <div
-        className={cn(
-          'overflow-hidden transition-all duration-500',
-          showSchedule ? 'max-h-[600px] opacity-100 mt-2' : 'max-h-0 opacity-0',
         )}
-      >
-        <div className="max-h-[500px] overflow-y-auto rounded-xl border border-border/50">
-          <table className="w-full text-[11px]">
-            <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm">
-              <tr>
-                <th className="px-3 py-2 text-left font-black uppercase tracking-widest text-muted-foreground">#</th>
-                <th className="px-3 py-2 text-right font-black uppercase tracking-widest text-muted-foreground">EMI</th>
-                <th className="px-3 py-2 text-right font-black uppercase tracking-widest text-muted-foreground">Principal</th>
-                <th className="px-3 py-2 text-right font-black uppercase tracking-widest text-muted-foreground">Interest</th>
-                <th className="px-3 py-2 text-right font-black uppercase tracking-widest text-muted-foreground">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {generateSchedule().map((row) => (
-                <tr key={row.month} className="border-t border-border/20 hover:bg-muted/10">
-                  <td className="px-3 py-2 font-bold tabular-nums">{row.month}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium">{row.emi.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium text-primary">{row.principal.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium text-amber-500">{row.interest.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-bold">{row.balance.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
