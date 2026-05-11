@@ -3230,7 +3230,7 @@ const TellerMode = () => {
                     <DialogTitle className="text-xl font-black tracking-tight">
                       Denomination Counter
                     </DialogTitle>
-                    <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mt-1">
+                    <DialogDescription className="text-[10px] font-bold tracking-wide text-muted-foreground/60 mt-1">
                       {isCashbookToday
                         ? 'Count physical currency notes & coins'
                         : 'View only — historical date'}
@@ -3409,7 +3409,7 @@ const TellerMode = () => {
                     <h3 className="text-lg font-black tracking-tight">
                       {cashSummary.hasOpening ? 'Update' : 'Set'} Cash in Hand
                     </h3>
-                    <p className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1">
+                    <p className="text-[11px] font-bold text-muted-foreground/80 tracking-wide mt-1">
                       {format(cashbookDate, 'MMM d, yyyy')}
                     </p>
                   </div>

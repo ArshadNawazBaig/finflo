@@ -102,7 +102,7 @@ const ConfirmActionModal = ({
                   This action is permanent and may have unintended consequences.
                   Please confirm your decision.
                 </p>
-                <p className="text-[11px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground/60 mt-2 tracking-wide">
                   Caution: Cannot be undone
                 </p>
               </div>

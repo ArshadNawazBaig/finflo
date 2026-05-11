@@ -281,7 +281,7 @@ const VaultTab = ({ customerId, documents = [], onUpdate }) => {
       >
         <DialogContent className="max-w-md bg-slate-950 border-white/10 text-white rounded-[2.5rem] p-0 overflow-hidden">
           <DialogHeader className="p-8 pb-2 border-b border-white/5">
-            <DialogTitle className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+            <DialogTitle className="text-xl font-black tracking-tight flex items-center gap-3">
               <Upload size={20} className="text-primary" />
               Secure Upload
             </DialogTitle>

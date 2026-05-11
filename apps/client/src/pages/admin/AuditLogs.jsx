@@ -432,7 +432,7 @@ const AuditLogs = () => {
           <DialogHeader className="p-8 pb-4 border-b border-white/5">
             <div className="flex items-center gap-3 mb-2 text-primary">
               <Terminal size={20} className="animate-pulse" />
-              <DialogTitle className="text-lg font-black uppercase tracking-widest font-mono">
+              <DialogTitle className="text-lg font-black tracking-tight font-mono">
                 Trace Details
               </DialogTitle>
             </div>

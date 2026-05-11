@@ -1359,7 +1359,7 @@ const BranchDetail = () => {
               <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter leading-none mb-2">
                 Record Outflow
               </DialogTitle>
-              <DialogDescription className="text-white/70 font-black uppercase tracking-[0.2em] text-[8px] sm:text-[10px]">
+              <DialogDescription className="text-white/70 font-bold tracking-wide text-[10px] sm:text-xs">
                 Operational Disbursement Authorization
               </DialogDescription>
             </DialogHeader>

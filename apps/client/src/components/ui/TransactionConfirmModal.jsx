@@ -319,7 +319,7 @@ const TransactionConfirmModal = ({
               <DialogTitle className="text-lg font-black tracking-tight">
                 {modalTitle}
               </DialogTitle>
-              <DialogDescription className="text-[11px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1">
+              <DialogDescription className="text-[11px] font-bold text-muted-foreground/80 tracking-wide mt-1">
                 Please review and confirm
               </DialogDescription>
             </div>
