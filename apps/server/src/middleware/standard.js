@@ -22,4 +22,20 @@ module.exports = (app) => {
   
   // Static files
   app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+
+  // APK downloads — serve with correct MIME type so browsers don't extract as zip
+  app.get('/downloads/:filename', (req, res) => {
+    const { filename } = req.params;
+    // Only allow .apk files
+    if (!filename.endsWith('.apk')) {
+      return res.status(404).send('Not found');
+    }
+    const filePath = path.join(__dirname, '../../downloads', filename);
+    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.sendFile(filePath, (err) => {
+      if (err) res.status(404).send('File not found');
+    });
+  });
+
 };

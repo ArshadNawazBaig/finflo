@@ -381,7 +381,7 @@ const Footer = () => {
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <a
-                    href="/member-app.apk"
+                    href="/downloads/member-app.apk"
                     download="FinFlo-Member.apk"
                     className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:from-indigo-600 hover:to-violet-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-indigo-500/20 group"
                   >
@@ -400,7 +400,7 @@ const Footer = () => {
                     />
                   </a>
                   <a
-                    href="/business-app.apk"
+                    href="/downloads/business-app.apk"
                     download="FinFlo-Business.apk"
                     className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20 group"
                   >
