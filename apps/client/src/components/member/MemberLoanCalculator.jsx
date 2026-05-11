@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Calculator, Info, ChevronDown, ChevronUp, Landmark } from 'lucide-react';
+import { Calculator, Info, ChevronDown, ChevronUp, Landmark, TableProperties, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -12,6 +12,7 @@ const MemberLoanCalculator = ({ member }) => {
   const [rate, setRate] = useState(10);
   const [interestType, setInterestType] = useState('emi');
   const [showSchedule, setShowSchedule] = useState(true);
+  const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const calculatorRef = useRef(null);
   const [calcHeight, setCalcHeight] = useState(0);
@@ -148,6 +149,8 @@ const MemberLoanCalculator = ({ member }) => {
     }
     return schedule;
   };
+
+  const scheduleData = generateSchedule();
 
   return (
     <div className="rounded-[2rem] bg-card border border-border/50 shadow-xs overflow-hidden">
@@ -293,12 +296,24 @@ const MemberLoanCalculator = ({ member }) => {
               </div>
             </div>
           </div>
+
+          {/* Mobile: Show Schedule Button */}
+          <div className="lg:hidden mt-6">
+            <button
+              onClick={() => setMobileScheduleOpen(true)}
+              className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-primary/5 border border-primary/15 text-primary hover:bg-primary/10 transition-all active:scale-[0.98]"
+            >
+              <TableProperties size={18} />
+              <span className="text-xs font-black uppercase tracking-widest">View Amortization Schedule</span>
+              <ChevronDown size={16} />
+            </button>
+          </div>
         </div>
 
-        {/* Right Panel: Amortization Schedule */}
+        {/* Right Panel: Amortization Schedule — Desktop Only */}
         {showSchedule && (
           <div 
-            className="lg:w-[500px] xl:w-[600px] shrink-0 border-t lg:border-t-0 bg-muted/5 flex flex-col animate-in slide-in-from-right-4 duration-500"
+            className="hidden lg:flex lg:w-[500px] xl:w-[600px] shrink-0 border-t lg:border-t-0 bg-muted/5 flex-col animate-in slide-in-from-right-4 duration-500"
             style={{ height: (isDesktop && calcHeight > 0) ? `${calcHeight}px` : 'auto' }}
           >
             <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between shrink-0">
@@ -322,7 +337,7 @@ const MemberLoanCalculator = ({ member }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/10">
-                  {generateSchedule().map((row) => (
+                  {scheduleData.map((row) => (
                     <tr key={row.month} className="hover:bg-primary/5 transition-colors group">
                       <td className="px-4 py-3 font-bold tabular-nums text-muted-foreground group-hover:text-foreground">{row.month}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-medium">{row.emi.toLocaleString()}</td>
@@ -337,6 +352,92 @@ const MemberLoanCalculator = ({ member }) => {
           </div>
         )}
       </div>
+
+      {/* Mobile: Full-Screen Schedule Overlay */}
+      {mobileScheduleOpen && (
+        <div className="lg:hidden fixed inset-0 z-[600] bg-background/95 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-300 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 border-b border-border/50 bg-card shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <TableProperties size={18} />
+              </div>
+              <div>
+                <p className="text-sm font-black tracking-tight">Amortization Schedule</p>
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  {term} months · {rate}% · {formatCurrency(amount)}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setMobileScheduleOpen(false)}
+              className="p-2.5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Summary Bar */}
+          <div className="grid grid-cols-3 gap-px bg-border/30 border-b border-border/50 shrink-0">
+            <div className="bg-card p-3 text-center">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Monthly</p>
+              <p className="text-xs font-black tabular-nums mt-0.5">{formatCurrency(Math.round(result.monthly))}</p>
+            </div>
+            <div className="bg-card p-3 text-center">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Total</p>
+              <p className="text-xs font-black tabular-nums mt-0.5">{formatCurrency(Math.round(result.total))}</p>
+            </div>
+            <div className="bg-card p-3 text-center">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">Interest</p>
+              <p className="text-xs font-black tabular-nums text-emerald-500 mt-0.5">{formatCurrency(Math.round(result.interest))}</p>
+            </div>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+            {scheduleData.map((row) => (
+              <div
+                key={row.month}
+                className="p-4 rounded-2xl bg-card border border-border/30 hover:border-primary/20 transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black">
+                      {row.month}
+                    </span>
+                    <span className="text-[10px] font-bold text-muted-foreground">Month {row.month}</span>
+                  </span>
+                  <span className="text-sm font-black tabular-nums">{formatCurrency(row.emi)}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Principal</p>
+                    <p className="text-[11px] font-bold tabular-nums text-primary">{formatCurrency(row.principal)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Interest</p>
+                    <p className="text-[11px] font-bold tabular-nums text-amber-500">{formatCurrency(row.interest)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/50 mb-0.5">Balance</p>
+                    <p className="text-[11px] font-black tabular-nums">{formatCurrency(row.balance)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Close Footer */}
+          <div className="p-4 border-t border-border/50 bg-card shrink-0">
+            <button
+              onClick={() => setMobileScheduleOpen(false)}
+              className="w-full py-3.5 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
+            >
+              Close Schedule
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
