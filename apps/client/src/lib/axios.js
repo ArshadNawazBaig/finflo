@@ -38,19 +38,27 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const isMemberRoute = window.location.pathname.startsWith('/member/');
+      const currentPath = window.location.pathname;
+      const isMemberRoute = currentPath.startsWith('/member/');
       const store = getDefaultStore();
+
+      // On auth pages (login, register, forgot/reset password, etc.),
+      // let the error propagate to the component's catch block
+      // so it can show the proper error message and reset loading state.
+      // 401 on these pages means "bad credentials", not "session expired".
+      const authSegments = ['/login', '/register', '/forgot-password', '/reset-password', '/force-password-change', '/verify-email', '/join'];
+      const isAuthPage = authSegments.some(seg => currentPath.includes(seg));
+
+      if (isAuthPage) {
+        return Promise.reject(error);
+      }
 
       if (isMemberRoute) {
         store.set(memberAtom, null);
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/member/login';
-        }
+        window.location.href = '/member/login';
       } else {
         store.set(userAtom, null);
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
-        }
+        window.location.href = '/login';
       }
       // Return a pending promise so calling code doesn't see an error
       // before the page redirect completes
