@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Banknote, HandCoins, Send, Loader2, Fingerprint, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Banknote, HandCoins, Send, Loader2, Fingerprint, ShieldCheck, ShieldAlert } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -374,6 +374,14 @@ const TransactionConfirmModal = ({
               ) : showSetPin ? (
                 /* ─── Inline Set PIN Flow ─── */
                 <div className="space-y-4 animate-in fade-in duration-300">
+                  {/* No PIN Banner */}
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
+                    <ShieldAlert size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 leading-relaxed">
+                      A transaction PIN is required to authorize transfers, withdrawals, and repayments. Please set up your PIN to continue.
+                    </p>
+                  </div>
+
                   <div className="flex items-center gap-2 justify-center">
                     <ShieldCheck size={16} className="text-emerald-500" />
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
