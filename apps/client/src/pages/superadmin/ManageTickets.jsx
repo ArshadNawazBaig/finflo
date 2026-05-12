@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import TicketChat from '@/components/support/TicketChat';
@@ -130,6 +131,10 @@ const ManageTickets = () => {
         return 'bg-muted text-muted-foreground';
     }
   };
+
+  if (loading && tickets.length === 0) {
+    return <TablePageSkeleton />;
+  }
 
   return (
     <div className="relative space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

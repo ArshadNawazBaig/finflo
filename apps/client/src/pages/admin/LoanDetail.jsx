@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/Tooltip';
 import PageHeader from '@/components/PageHeader';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import DocumentManager from '@/components/customers/DocumentManager';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -45,21 +46,6 @@ import AmortizationSchedule from '@/components/loans/AmortizationSchedule';
 import CommunicationLogs from '@/components/customers/CommunicationLogs';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import { useIsMobile } from '@/hooks/useIsMobile';
-
-const LoanDetailSkeleton = () => (
-  <div className="space-y-8 animate-pulse p-4">
-    <div className="h-40 bg-muted/60 rounded-[2.5rem]" />
-    <div className="grid gap-6 sm:gap-6 md:grid-cols-4">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-32 rounded-[2rem] bg-muted/60" />
-      ))}
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div className="lg:col-span-8 h-[600px] rounded-[2.5rem] bg-muted/60" />
-      <div className="lg:col-span-4 h-[400px] rounded-[2.5rem] bg-muted/60" />
-    </div>
-  </div>
-);
 
 const LoanDetail = () => {
   const { id } = useParams();
@@ -378,7 +364,7 @@ const LoanDetail = () => {
     fetchData();
   }, [fetchData]);
 
-  if (loading) return <LoanDetailSkeleton />;
+  if (loading) return <ProfilePageSkeleton />;
   if (!loan) return null;
 
   const netBalance = member ? member.currentBalance || 0 : 0;

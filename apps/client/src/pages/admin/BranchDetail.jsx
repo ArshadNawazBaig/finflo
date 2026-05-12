@@ -41,6 +41,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
 import StatsCard from '@/components/StatsCard';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
@@ -648,6 +649,10 @@ const BranchDetail = () => {
   // if (loading) {
   //   return <SplashScreen />;
   // }
+
+  if (loading && !branch) {
+    return <ProfilePageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-12">

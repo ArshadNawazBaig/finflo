@@ -15,6 +15,7 @@ import {
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
+import { ActivityLogsPageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
@@ -153,6 +154,10 @@ const ActivityLogs = () => {
     if (action.includes('admin')) return <Shield size={14} />;
     return <User size={14} />;
   };
+
+  if (loading && logs.length === 0 && !search && category === 'all') {
+    return <ActivityLogsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

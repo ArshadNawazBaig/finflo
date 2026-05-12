@@ -14,6 +14,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 
 import Pagination from '@/components/ui/Pagination';
+import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
 import BillingSkeleton from '@/components/pricing/BillingSkeleton';
 import InvoiceCard from '@/components/payments/InvoiceCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -132,6 +133,10 @@ const Billing = () => {
       day: 'numeric',
     });
   };
+
+  if (loading && !billingData) {
+    return <SettingsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">

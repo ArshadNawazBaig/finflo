@@ -951,7 +951,8 @@ export const MemberDashboardSkeleton = () => {
   );
 
   return (
-    <div className="space-y-10 animate-pulse">
+    <div className="space-y-10 animate-pulse pb-20">
+      <PageHeaderSkeleton />
       {/* Top status cards — Credit Score, Financial Health, Account Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         <StatusCardSkeleton />
@@ -1547,6 +1548,28 @@ export const MemberLoansPageSkeleton = () => (
       </div>
       <MemberLoansSkeleton count={4} />
     </div>
+  </div>
+);
+
+export const MemberLoanDetailSkeleton = () => (
+  <div className="space-y-10 animate-pulse pb-20">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex items-center gap-4 w-full">
+        <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-8 w-48 rounded" />
+          <Skeleton className="h-3 w-64 rounded hidden sm:block" />
+        </div>
+      </div>
+      <Skeleton className="h-12 w-full sm:w-32 rounded-2xl shrink-0" />
+    </div>
+    <Skeleton className="h-[280px] w-full rounded-[3rem]" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-32 rounded-3xl" />
+      ))}
+    </div>
+    <Skeleton className="h-[500px] w-full rounded-[3rem]" />
   </div>
 );
 

@@ -34,7 +34,7 @@ import { toast } from 'sonner';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import MemberRepayModal from '@/components/member/MemberRepayModal';
-import { Skeleton } from '@/components/ui/skeleton';
+import { MemberLoanDetailSkeleton } from '@/components/ui/PageSkeletons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MemberLoanDetail = () => {
@@ -202,33 +202,7 @@ const MemberLoanDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-10 animate-in fade-in duration-500 pb-20">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4 w-full">
-            <Skeleton className="w-10 h-10 rounded-full shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-8 w-48 rounded" />
-              <Skeleton className="h-3 w-64 rounded hidden sm:block" />
-            </div>
-          </div>
-          <Skeleton className="h-12 w-full sm:w-32 rounded-2xl shrink-0" />
-        </div>
-
-        {/* Progress Skeleton */}
-        <Skeleton className="h-[280px] w-full rounded-[3rem]" />
-
-        {/* Stats Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-3xl" />
-          ))}
-        </div>
-
-        {/* Schedule Skeleton */}
-        <Skeleton className="h-[500px] w-full rounded-[3rem]" />
-      </div>
-    );
+    return <MemberLoanDetailSkeleton />;
   }
 
   if (!loan) return null;

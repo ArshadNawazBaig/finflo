@@ -11,6 +11,7 @@ import { useRef } from 'react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReportsSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import PaymentCard from '@/components/payments/PaymentCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -181,6 +182,10 @@ const RevenueReports = () => {
     }
     return null;
   };
+
+  if (loading && !overview) {
+    return <ReportsSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

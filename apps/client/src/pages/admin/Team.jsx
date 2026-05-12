@@ -3,6 +3,7 @@ import { Plus, Users, ShieldCheck, UserCheck } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import PageHeader from '@/components/PageHeader';
+import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSearch from '@/components/ui/TableSearch';
@@ -187,6 +188,10 @@ const Team = () => {
 
   // Use backend summary for stats
   const statsDisplay = summaryDisplay;
+
+  if (loading && staff.length === 0 && !searchTerm) {
+    return <CardsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

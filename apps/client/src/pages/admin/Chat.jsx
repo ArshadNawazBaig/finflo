@@ -21,6 +21,7 @@ import api from '@/lib/axios';
 import { useSetAtom } from 'jotai';
 import { unreadChatCountAtom } from '@/atoms';
 import PageHeader from '@/components/PageHeader';
+import { ChatSkeleton } from '@/components/ui/PageSkeletons';
 import EmptyState from '@/components/ui/EmptyState';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
@@ -1029,6 +1030,10 @@ const Chat = () => {
   const filteredConversations = conversations.filter((c) =>
     c.participant?.name?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  if (loading && conversations.length === 0 && contacts.length === 0) {
+    return <ChatSkeleton />;
+  }
 
   // ─── Layout ───────────────────────────────────────────────────────────────
   return (

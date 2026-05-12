@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -242,15 +242,7 @@ const SystemSettings = () => {
   ];
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-24 w-full rounded-[2rem]" />
-        <div className="grid grid-cols-4 gap-8">
-          <Skeleton className="h-[400px] rounded-[2.5rem]" />
-          <Skeleton className="col-span-3 h-[600px] rounded-[3rem]" />
-        </div>
-      </div>
-    );
+    return <SettingsPageSkeleton />;
   }
 
   return (

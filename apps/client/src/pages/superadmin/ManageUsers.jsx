@@ -18,6 +18,7 @@ import {
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
@@ -189,6 +190,10 @@ const ManageUsers = () => {
         return 'bg-muted text-muted-foreground';
     }
   };
+
+  if (loading && users.length === 0 && !search && !filters.plan && !filters.status) {
+    return <TablePageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

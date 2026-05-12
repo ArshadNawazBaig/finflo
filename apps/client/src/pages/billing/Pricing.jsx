@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import { CheckCircle2, Gem, Zap, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PricingSkeleton from '@/components/pricing/PricingSkeleton';
+import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import ContactModal from '@/components/ContactModal';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -116,6 +117,10 @@ const Pricing = () => {
       badge: isPro ? 'Most Popular' : null,
     };
   });
+
+  if ((settingsLoading || loading) && !currentPlan) {
+    return <CardsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">

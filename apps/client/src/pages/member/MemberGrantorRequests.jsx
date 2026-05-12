@@ -19,7 +19,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
-import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
+import { MemberLoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import SignaturePad from '@/components/ui/SignaturePad';
@@ -118,15 +118,7 @@ const MemberGrantorRequests = () => {
   });
 
   if (loading) {
-    return (
-      <div className="space-y-8 pb-20">
-        <PageHeader
-          title="Grantor Approvals"
-          description="Manage loan requests where you are assigned as a grantor."
-        />
-        <MemberLoansSkeleton count={3} />
-      </div>
-    );
+    return <MemberLoansPageSkeleton />;
   }
 
   return (

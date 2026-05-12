@@ -23,6 +23,7 @@ import api from '@/lib/axios';
 import { toast } from 'sonner';
 import EmptyState from '@/components/ui/EmptyState';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import { MemberInvestmentPageSkeleton } from '@/components/ui/PageSkeletons';
 import Pagination from '@/components/ui/Pagination';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -270,6 +271,10 @@ const MemberTermDeposits = () => {
     observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [isMobile, mobileVisibleCount, filteredDeposits.length]);
+
+  if (loading && packagesLoading && deposits.length === 0 && !member) {
+    return <MemberInvestmentPageSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">

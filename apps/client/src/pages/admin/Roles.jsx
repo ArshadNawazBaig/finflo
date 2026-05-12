@@ -43,6 +43,7 @@ const availablePermissions = [
 ];
 
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
 import EmptyState from '@/components/ui/EmptyState';
 
 const Roles = () => {
@@ -158,6 +159,10 @@ const Roles = () => {
       role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       role.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  if (loading && roles.length === 0 && !searchQuery) {
+    return <SettingsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">

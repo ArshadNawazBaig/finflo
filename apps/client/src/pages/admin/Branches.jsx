@@ -47,6 +47,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
+import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import BranchCardSkeleton from '@/components/skeletons/BranchCardSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import api from '@/lib/axios';
@@ -251,6 +252,10 @@ const Branches = () => {
   const handleOpenDetails = (branch) => {
     navigate(`/branches/${branch._id}`);
   };
+
+  if (loading && branches.length === 0 && !searchQuery) {
+    return <CardsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

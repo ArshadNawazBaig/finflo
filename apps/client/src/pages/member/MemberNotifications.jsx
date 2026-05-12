@@ -262,6 +262,10 @@ const MemberNotifications = () => {
     }
   };
 
+  if (loading && notifications.length === 0 && !search) {
+    return <MemberNotificationsPageSkeleton />;
+  }
+
   return (
     <div className="relative pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Background Gradients */}

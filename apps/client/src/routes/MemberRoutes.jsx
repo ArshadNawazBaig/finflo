@@ -6,7 +6,6 @@ import RequireMemberAuth from '@/components/RequireMemberAuth';
 import RedirectIfMemberAuthenticated from '@/components/RedirectIfMemberAuthenticated';
 import ForcePasswordChange from '@/pages/auth/ForcePasswordChange';
 import {
-  ProfilePageSkeleton,
   SettingsPageSkeleton,
   ChatSkeleton,
   MemberNotificationsPageSkeleton,
@@ -15,6 +14,7 @@ import {
   MemberTransferSkeleton,
   MemberInvestmentPageSkeleton,
   MemberLoansPageSkeleton,
+  MemberLoanDetailSkeleton,
   MemberActivityPageSkeleton,
   MemberCalculatorSkeleton,
 } from '@/components/ui/PageSkeletons';
@@ -25,7 +25,7 @@ const MemberResetPassword = lazy(() => import('@/pages/member/MemberResetPasswor
 
 const MemberDashboard = withSkeleton(() => import('@/pages/member/MemberDashboard'), MemberDashboardSkeleton);
 const MemberGrantorRequests = withSkeleton(() => import('@/pages/member/MemberGrantorRequests'), MemberLoansPageSkeleton);
-const MemberLoanDetail = withSkeleton(() => import('@/pages/member/MemberLoanDetail'), ProfilePageSkeleton);
+const MemberLoanDetail = withSkeleton(() => import('@/pages/member/MemberLoanDetail'), MemberLoanDetailSkeleton);
 const MemberLoans = withSkeleton(() => import('@/pages/member/MemberLoans'), MemberLoansPageSkeleton);
 const MemberTransactions = withSkeleton(() => import('@/pages/member/MemberTransactions'), MemberActivityPageSkeleton);
 const MemberTransfer = withSkeleton(() => import('@/pages/member/MemberTransfer'), MemberTransferSkeleton);

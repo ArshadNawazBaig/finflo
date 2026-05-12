@@ -14,6 +14,7 @@ import {
   Activity,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import EmptyState from '@/components/ui/EmptyState';
 import api from '@/lib/axios';
@@ -183,7 +184,7 @@ const StaffProfile = () => {
   ]);
 
   if (loading) {
-    return <StaffProfileSkeleton />;
+    return <ProfilePageSkeleton />;
   }
 
   return (

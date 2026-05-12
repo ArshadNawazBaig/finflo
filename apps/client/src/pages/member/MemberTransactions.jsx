@@ -43,7 +43,7 @@ import {
 } from '@/lib/pdfExportUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
-import { MemberTransactionsSkeleton } from '@/components/ui/PageSkeletons';
+import { MemberTransactionsSkeleton, MemberActivityPageSkeleton } from '@/components/ui/PageSkeletons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -355,6 +355,10 @@ const MemberTransactions = () => {
       };
     }
   };
+
+  if (loading && activity.length === 0 && !member) {
+    return <MemberActivityPageSkeleton />;
+  }
 
   return (
     <div className="w-full max-w-full space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 overflow-visible">

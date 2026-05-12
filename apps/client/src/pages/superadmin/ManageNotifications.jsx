@@ -15,6 +15,7 @@ import {
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import Pagination from '@/components/ui/Pagination';
 import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
@@ -222,6 +223,10 @@ const ManageNotifications = () => {
         return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
     }
   };
+
+  if (loading && notifications.length === 0 && !search) {
+    return <TablePageSkeleton />;
+  }
 
   return (
     <div className="relative pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">

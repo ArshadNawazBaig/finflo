@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import StatsCard from '@/components/StatsCard';
+import { LoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import { formatCurrency } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -172,6 +173,10 @@ const Loans = () => {
       setIsDeleting(false);
     }
   };
+
+  if (loading && loans.length === 0 && !searchTerm) {
+    return <LoansPageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

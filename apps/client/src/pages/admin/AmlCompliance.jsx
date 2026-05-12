@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 
 const SEVERITY_COLORS = {
@@ -148,49 +148,7 @@ const AmlCompliance = () => {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6 pb-20">
-        {/* Header Skeleton */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card/30 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 gap-4">
-          <div className="flex items-center gap-4">
-            <Skeleton className="w-16 h-16 rounded-[1.5rem]" />
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-48 rounded-xl" />
-              <Skeleton className="h-4 w-64 rounded-lg" />
-            </div>
-          </div>
-          <Skeleton className="h-12 w-32 rounded-2xl" />
-        </div>
-
-        {/* Tabs Skeleton */}
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-10 w-24 rounded-2xl" />
-          ))}
-        </div>
-
-        {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-36 rounded-[2rem] border border-border/50 bg-card/50 p-5 flex flex-col justify-between">
-              <div className="flex justify-between items-start">
-                <Skeleton className="h-12 w-12 rounded-2xl" />
-              </div>
-              <div className="space-y-2 mt-4">
-                <Skeleton className="h-4 w-20 rounded-md" />
-                <Skeleton className="h-8 w-12 rounded-lg" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom Cards Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Skeleton className="h-[300px] rounded-[2rem]" />
-          <Skeleton className="h-[300px] rounded-[2rem]" />
-        </div>
-      </div>
-    );
+    return <RegistryPageSkeleton />;
   }
 
   return (

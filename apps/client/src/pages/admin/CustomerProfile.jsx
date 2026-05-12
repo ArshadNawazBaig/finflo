@@ -17,6 +17,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import StatsCard from '@/components/StatsCard';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import AddLoanModal from '@/components/loans/AddLoanModal';
@@ -29,37 +30,6 @@ import ConvertToMemberModal from '@/components/customers/ConvertToMemberModal';
 import VaultTab from '@/components/VaultTab';
 
 import { cn } from '@/lib/utils'; // Make sure to import cn
-
-const CustomerProfileSkeleton = () => (
-  <div className="space-y-8 animate-pulse">
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-card/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border/10">
-      <div className="space-y-4 w-full md:w-auto">
-        <div className="h-10 w-64 bg-muted/40 rounded-2xl" />
-        <div className="h-4 w-48 bg-muted/20 rounded-lg" />
-      </div>
-      <div className="h-12 w-32 bg-muted/30 rounded-2xl mt-4 md:mt-0" />
-    </div>
-    <div className="grid gap-6 md:grid-cols-3">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="h-32 rounded-[2rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm"
-        />
-      ))}
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div className="lg:col-span-8 space-y-8">
-        <div className="h-[400px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-        <div className="h-[300px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-      </div>
-      <div className="lg:col-span-4 space-y-8">
-        <div className="h-[300px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-        <div className="h-[220px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-        <div className="h-[140px] rounded-[2.5rem] border border-border/10 bg-card/40 backdrop-blur-lg shadow-sm" />
-      </div>
-    </div>
-  </div>
-);
 
 const CustomerProfile = () => {
   const { id } = useParams();
@@ -94,7 +64,7 @@ const CustomerProfile = () => {
     fetchCustomerData();
   }, [fetchCustomerData]);
 
-  if (loading) return <CustomerProfileSkeleton />;
+  if (loading) return <ProfilePageSkeleton />;
   if (!customer) return null;
 
   const totalBorrowed = loans.reduce((sum, loan) => sum + loan.totalAmount, 0);

@@ -6,7 +6,7 @@ import { FileText, Plus, ArrowRight, Download, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
-import { MemberLoansSkeleton } from '@/components/ui/PageSkeletons';
+import { MemberLoansSkeleton, MemberLoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -114,6 +114,10 @@ const MemberLoans = () => {
     observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [isFetchingMore, loading, currentPage, totalPages, fetchLoans]);
+
+  if (loading && loans.length === 0 && filter === 'all' && !search) {
+    return <MemberLoansPageSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">

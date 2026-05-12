@@ -147,6 +147,10 @@ const MemberWallet = () => {
     return () => observer.disconnect();
   }, [isFetchingMore, currentPage, totalPages, fetchWalletData]);
 
+  if (loading && !member) {
+    return <MemberWalletSkeleton />;
+  }
+
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <PageHeader
@@ -158,10 +162,7 @@ const MemberWallet = () => {
         description={`Manage your available ${member?.user?.businessName || 'FinFlo'} balance, deposit funds, or transfer money.`}
       />
 
-      {loading && !member ? (
-        <MemberWalletSkeleton />
-      ) : (
-        <>
+      <>
           {/* Dashboard Metrics Header */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {/* Main Account Area */}
@@ -599,7 +600,6 @@ const MemberWallet = () => {
             )}
           </div>
         </>
-      )}
 
       {/* Scheduled Payments */}
       <MemberScheduledPayments member={member} />

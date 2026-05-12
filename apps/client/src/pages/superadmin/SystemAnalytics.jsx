@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/card';
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import { formatCompactValue, formatCurrency } from '@/lib/utils';
 
@@ -121,6 +122,10 @@ const SystemAnalytics = () => {
     }
     return null;
   };
+
+  if (loading && !analytics) {
+    return <AdminDashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">

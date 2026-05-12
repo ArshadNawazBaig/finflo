@@ -32,6 +32,7 @@ import StatsCard from '@/components/StatsCard';
 import { SensitiveBalance } from '@/components/ui/SensitiveData';
 import AnalyticsChart from '@/components/AnalyticsChart';
 import PageHeader from '@/components/PageHeader';
+import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
 import CalendarSkeleton from '@/components/skeletons/CalendarSkeleton';
@@ -288,6 +289,10 @@ const Dashboard = () => {
   const collectionRate = stats?.collectionRate ?? 0;
   const riskDist = stats?.riskDistribution || [];
   const totalRiskLoans = riskDist.reduce((s, r) => s + r.count, 0);
+
+  if (loading && stats === null) {
+    return <AdminDashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">

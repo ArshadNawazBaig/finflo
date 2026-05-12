@@ -6,6 +6,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import api from '@/lib/axios';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
@@ -71,6 +72,10 @@ const MemberGuarantors = () => {
       completed: allItems.filter((g) => g.loanStatus === 'completed').length,
     };
   }, [guarantors, actingAsGrantor]);
+
+  if (loading && !member) {
+    return <CardsPageSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">

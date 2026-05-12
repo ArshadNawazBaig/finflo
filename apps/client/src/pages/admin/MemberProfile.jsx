@@ -67,6 +67,7 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import TransactionTimeline from '@/components/member/TransactionTimeline';
 import AssociatedLoans from '@/components/member/AssociatedLoans';
 import TermDepositsSection from '@/components/member/TermDepositsSection';
@@ -1112,7 +1113,7 @@ const MemberProfile = () => {
     }
   };
 
-  if (loading) return <MemberProfileSkeleton />;
+  if (loading) return <ProfilePageSkeleton />;
   if (!member) return null;
 
   return (

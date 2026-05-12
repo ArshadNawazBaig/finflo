@@ -17,6 +17,7 @@ import api from '@/lib/axios';
 import { capitalize, cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import {
   Select,
   SelectContent,
@@ -78,6 +79,10 @@ const UserDetail = () => {
   const recentCustomers = data?.recentCustomers || [];
   const recentMembers = data?.recentMembers || [];
   const recentLoans = data?.recentLoans || [];
+
+  if (loading && !data) {
+    return <ProfilePageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

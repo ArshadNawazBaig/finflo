@@ -257,6 +257,10 @@ const MemberDashboard = () => {
     ? member?.businessName || member?.user?.businessName || 'FinFlo'
     : 'FinFlo';
 
+  if (loading && loans.length === 0) {
+    return <MemberDashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       <PageHeader
@@ -264,11 +268,7 @@ const MemberDashboard = () => {
         description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
       />
 
-      {loading && loans.length === 0 ? (
-        <MemberDashboardSkeleton />
-      ) : (
-        <>
-          {/* Credit Score, Financial Health & Account Overview */}
+      {/* Credit Score, Financial Health & Account Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             <CreditScoreCard creditScore={member?.creditScore || { score: 550, grade: 'Fair', factors: ['No credit history yet — build your profile over time'] }} />
             <FinancialHealthCard
@@ -761,8 +761,6 @@ const MemberDashboard = () => {
               </div>
             </div>
           </div>
-        </>
-      )}
 
       <MemberLoanRequestModal
         isOpen={isRequestModalOpen}

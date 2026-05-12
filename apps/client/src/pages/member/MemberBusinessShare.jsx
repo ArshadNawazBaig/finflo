@@ -22,6 +22,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import {
   CardsSkeleton,
   MemberInvestmentSkeleton,
+  MemberInvestmentPageSkeleton,
 } from '@/components/ui/PageSkeletons';
 import MemberActivityCard from '@/components/member/MemberActivityCard';
 
@@ -152,6 +153,10 @@ const MemberBusinessShare = () => {
           100
         ).toFixed(1)
       : '0.0';
+
+  if (loading && !member && !search) {
+    return <MemberInvestmentPageSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
+import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -157,6 +158,10 @@ const Support = () => {
         return 'bg-muted text-muted-foreground';
     }
   };
+
+  if (loading && tickets.length === 0) {
+    return <CardsPageSkeleton />;
+  }
 
   return (
     <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-700">

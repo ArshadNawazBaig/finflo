@@ -16,6 +16,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import api from '@/lib/axios';
+import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/PageHeader';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
@@ -176,6 +177,10 @@ const SuperAdminDashboard = () => {
     }
     return null;
   };
+
+  if (loading && stats === null) {
+    return <AdminDashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
