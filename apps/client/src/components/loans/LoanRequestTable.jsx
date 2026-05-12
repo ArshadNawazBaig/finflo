@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Check,
   X,
@@ -8,7 +7,6 @@ import {
   ArrowDown,
   ChevronsUpDown,
   FileQuestion,
-  Paperclip,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -17,7 +15,14 @@ import { Button } from '@/components/ui/button';
 
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
-import LoanDocumentViewer from './LoanDocumentViewer';
+
+const grantorPillClasses = (status) => {
+  if (status === 'approved')
+    return 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/20';
+  if (status === 'rejected')
+    return 'bg-red-500/10 text-red-600 ring-red-500/20';
+  return 'bg-amber-500/10 text-amber-600 ring-amber-500/20';
+};
 
 const LoanRequestTable = ({
   requests,
@@ -32,9 +37,6 @@ const LoanRequestTable = ({
   onToggleSelect,
   onSelectAll,
 }) => {
-  const [docViewerOpen, setDocViewerOpen] = useState(false);
-  const [docViewerData, setDocViewerData] = useState({ documents: [], memberName: '' });
-
   const renderSortIcon = (column) => {
     if (sortBy !== column)
       return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
@@ -105,16 +107,7 @@ const LoanRequestTable = ({
                 Status
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Notes
-              </th>
-              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Docs
-              </th>
-              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Grantor 1
-              </th>
-              <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
-                Grantor 2
+                Grantors
               </th>
               <th className="py-4 px-4 font-medium text-sm text-muted-foreground text-nowrap">
                 AI Risk
@@ -197,54 +190,26 @@ const LoanRequestTable = ({
                   </span>
                 </td>
                 <td className="py-4 px-4">
-                  <div className="text-xs text-muted-foreground max-w-xs truncate">
-                    {request.notes || '—'}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  {request.documents && request.documents.filter(d => d.url !== 'N/A').length > 0 ? (
-                    <button
-                      onClick={() => {
-                        setDocViewerData({
-                          documents: request.documents,
-                          memberName: request.customer?.name || 'Member',
-                        });
-                        setDocViewerOpen(true);
-                      }}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-[10px] font-black"
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      title={`Grantor 1: ${request.grantor1Status || 'pending'}`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ring-1 ring-inset ${grantorPillClasses(
+                        request.grantor1Status,
+                      )}`}
                     >
-                      <Paperclip size={11} />
-                      {request.documents.filter(d => d.url !== 'N/A').length}
-                    </button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
-                </td>
-                <td className="py-4 px-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      request.grantor1Status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : request.grantor1Status === 'rejected'
-                          ? 'bg-red-500/10 text-red-600'
-                          : 'bg-amber-500/10 text-amber-600'
-                    }`}
-                  >
-                    {request.grantor1Status || 'pending'}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      request.grantor2Status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-600'
-                        : request.grantor2Status === 'rejected'
-                          ? 'bg-red-500/10 text-red-600'
-                          : 'bg-amber-500/10 text-amber-600'
-                    }`}
-                  >
-                    {request.grantor2Status || 'pending'}
-                  </span>
+                      <span className="opacity-70">G1</span>
+                      {request.grantor1Status || 'pending'}
+                    </span>
+                    <span
+                      title={`Grantor 2: ${request.grantor2Status || 'pending'}`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ring-1 ring-inset ${grantorPillClasses(
+                        request.grantor2Status,
+                      )}`}
+                    >
+                      <span className="opacity-70">G2</span>
+                      {request.grantor2Status || 'pending'}
+                    </span>
+                  </div>
                 </td>
                 <td className="py-4 px-4">
                   {request.riskDetails ? (
@@ -316,13 +281,6 @@ const LoanRequestTable = ({
       )}
 
       {pagination && <Pagination {...pagination} />}
-
-      <LoanDocumentViewer
-        isOpen={docViewerOpen}
-        onClose={() => setDocViewerOpen(false)}
-        documents={docViewerData.documents}
-        memberName={docViewerData.memberName}
-      />
     </div>
   );
 };

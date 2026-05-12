@@ -30,6 +30,7 @@ const {
 } = require('../utils/emailTemplates');
 const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
 const { validatePassword } = require('../utils/validation');
+const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
 const { OAuth2Client } = require('google-auth-library');
@@ -157,7 +158,7 @@ const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('Register Error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getFriendlyErrorMessage(error) });
   }
 };
 
@@ -323,7 +324,8 @@ const loginUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Login Error:', error);
+    res.status(500).json({ message: getFriendlyErrorMessage(error) });
   }
 };
 

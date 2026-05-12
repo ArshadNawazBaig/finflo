@@ -1,5 +1,6 @@
 const Member = require('../models/Member');
 const { OAuth2Client } = require('google-auth-library');
+const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Accept tokens from both Web and Android native OAuth clients
@@ -188,7 +189,7 @@ const loginMember = async (req, res) => {
     }
   } catch (error) {
     console.error('Member Login Error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: getFriendlyErrorMessage(error) });
   }
 };
 
