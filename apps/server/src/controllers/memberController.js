@@ -1079,7 +1079,7 @@ const withdrawInvestment = async (req, res) => {
   try {
     const userId = req.user.effectiveOwnerId;
     const { id } = req.params;
-    const { amount, description, notes: userNotes, accountType = 'current', paymentMethod = 'cash', checkbookId, checkNo } = req.body;
+    const { amount, description, notes: userNotes, accountType = 'current', paymentMethod = 'cash', checkbookId, checkNo, bearer } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid withdrawal amount' });
@@ -1107,10 +1107,40 @@ const withdrawInvestment = async (req, res) => {
       }
     }
 
+    // ── Check Bearer KYC ──────────────────────────────────────────────────
+    // When the check is being cashed by someone other than the account holder
+    // (bearer.type === 'other') we require their name + CNIC so the audit
+    // trail can identify who physically received the funds.
+    let bearerInfo = null;
+    if (checkbookDoc && bearer && typeof bearer === 'object') {
+      if (bearer.type === 'other') {
+        const name = (bearer.name || '').trim();
+        const cnic = (bearer.cnic || '').trim();
+        if (!name || !cnic) {
+          return res.status(400).json({
+            message:
+              'When a check is cashed by someone other than the account holder, both name and CNIC are required for the bearer.',
+          });
+        }
+        bearerInfo = {
+          type: 'other',
+          name,
+          cnic,
+          phone: (bearer.phone || '').trim() || undefined,
+        };
+      } else {
+        bearerInfo = { type: 'self' };
+      }
+    }
+
     const isSaving = accountType === 'saving';
     const systemDescription = isSaving ? 'Saving account withdrawal' : 'Investment withdrawal';
     const checkbookLabel = checkbookDoc
-      ? ` (Checkbook: ${checkbookDoc.checkbookNumber}${checkNo ? ', Check #' + checkNo : ''})`
+      ? ` (Checkbook: ${checkbookDoc.checkbookNumber}${checkNo ? ', Check #' + checkNo : ''}${
+          bearerInfo?.type === 'other'
+            ? `, Bearer: ${bearerInfo.name} — CNIC ${bearerInfo.cnic}`
+            : ''
+        })`
       : '';
     const availableBalance = isSaving ? member.savingBalance : member.currentBalance;
 
@@ -1157,7 +1187,14 @@ const withdrawInvestment = async (req, res) => {
       accountType,
       description: (description || systemDescription) + checkbookLabel,
       balanceAfter,
-      metadata: checkbookDoc ? { checkbookId: checkbookDoc._id, checkbookNumber: checkbookDoc.checkbookNumber, checkNo: checkNo || undefined } : {},
+      metadata: checkbookDoc
+        ? {
+            checkbookId: checkbookDoc._id,
+            checkbookNumber: checkbookDoc.checkbookNumber,
+            checkNo: checkNo || undefined,
+            ...(bearerInfo ? { bearer: bearerInfo } : {}),
+          }
+        : {},
     });
 
     // ── Increment checkbook used leaves ───────────────────────────────────
@@ -1200,6 +1237,7 @@ const withdrawInvestment = async (req, res) => {
         investmentId: investment._id,
         before: { balance: balanceBefore, totalWithdrawn: withdrawnBefore },
         after: { balance: balanceAfter, totalWithdrawn: isSaving ? updatedMember.totalSavingWithdrawn : updatedMember.totalWithdrawn },
+        ...(bearerInfo ? { bearer: bearerInfo } : {}),
       },
       req,
     });

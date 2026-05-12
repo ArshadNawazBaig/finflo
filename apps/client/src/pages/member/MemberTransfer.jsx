@@ -6,6 +6,7 @@ import {
   User,
   History,
   Wallet,
+  QrCode,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import api from '@/lib/axios';
@@ -19,6 +20,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   MemberTransferSkeleton,
@@ -298,11 +300,25 @@ const MemberTransfer = () => {
 
     {/* QR Scanner Dialog */}
     <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black tracking-tight text-center">Scan Member QR Code</DialogTitle>
-        </DialogHeader>
-        <div className="p-4">
+      <DialogContent className="sm:max-w-[500px] !p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
+        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
+          <DialogHeader className="mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
+                <QrCode className="w-7 h-7" />
+              </div>
+              <div className="text-left min-w-0 pr-8">
+                <DialogTitle className="text-xl font-black tracking-tight">
+                  Scan Member QR Code
+                </DialogTitle>
+                <DialogDescription className="text-xs font-medium mt-1">
+                  Point your camera at a member&rsquo;s FinFlo QR code to
+                  auto-fill their details.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
           <QRScanner
             onScanSuccess={(decodedText) => {
               try {
@@ -323,8 +339,9 @@ const MemberTransfer = () => {
             }}
             onScanError={() => {}}
           />
-          <p className="text-[10px] text-center text-muted-foreground mt-4 font-medium">
-            Point your camera at a member's FinFlo QR code to auto-fill their details.
+
+          <p className="mt-6 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide uppercase">
+            Only valid FinFlo payment QR codes will be accepted
           </p>
         </div>
       </DialogContent>

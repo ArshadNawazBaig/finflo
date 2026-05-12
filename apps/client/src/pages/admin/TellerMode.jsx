@@ -31,6 +31,10 @@ import {
   FileBadge,
   Building2,
   BookOpen,
+  ScanLine,
+  UserCheck,
+  Phone,
+  IdCard,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -66,6 +70,7 @@ import { toast } from 'sonner';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
+import KycOcrScanner from '@/components/kyc/KycOcrScanner';
 
 const TellerMode = () => {
   const navigate = useNavigate();
@@ -100,6 +105,14 @@ const TellerMode = () => {
   const [memberCheckbooks, setMemberCheckbooks] = useState([]);
   const [selectedCheckbookId, setSelectedCheckbookId] = useState('');
   const [checkNo, setCheckNo] = useState('');
+  // Who is presenting the check at the counter — defaults to the account holder.
+  // If 'other', we capture the bearer's identity (name, CNIC, phone) for the
+  // audit trail and KYC, with an OCR-scan option to auto-fill from a CNIC card.
+  const [checkBearer, setCheckBearer] = useState('self'); // 'self' | 'other'
+  const [bearerName, setBearerName] = useState('');
+  const [bearerCnic, setBearerCnic] = useState('');
+  const [bearerPhone, setBearerPhone] = useState('');
+  const [cnicScannerOpen, setCnicScannerOpen] = useState(false);
 
   // ── Recent Transactions ───────────────────────
   const [recentTxns, setRecentTxns] = useState([]);
@@ -685,8 +698,27 @@ const TellerMode = () => {
   const handleWithdraw = async () => {
     if (!amount || parseFloat(amount) <= 0)
       return toast.error('Enter a valid amount');
+    // Bearer KYC is required when the check is being cashed by someone other
+    // than the account holder, so the audit trail can identify who actually
+    // received the funds.
+    if (selectedCheckbookId && checkBearer === 'other') {
+      if (!bearerName.trim()) return toast.error('Enter the bearer’s name');
+      if (!bearerCnic.trim())
+        return toast.error('Enter the bearer’s CNIC');
+    }
     setIsProcessing(true);
     try {
+      const bearer =
+        selectedCheckbookId
+          ? checkBearer === 'self'
+            ? { type: 'self' }
+            : {
+                type: 'other',
+                name: bearerName.trim(),
+                cnic: bearerCnic.trim(),
+                phone: bearerPhone.trim() || undefined,
+              }
+          : undefined;
       await api.post(`/members/${member._id}/withdraw`, {
         amount: parseFloat(amount),
         notes: description || undefined,
@@ -694,6 +726,7 @@ const TellerMode = () => {
         paymentMethod,
         checkbookId: selectedCheckbookId || undefined,
         checkNo: checkNo || undefined,
+        bearer,
       });
       toast.success(
         `${formatCurrency(parseFloat(amount))} withdrawn from ${member.name}'s ${accountType} account`,
@@ -737,6 +770,10 @@ const TellerMode = () => {
     setSelectedLoan(null);
     setSelectedCheckbookId('');
     setCheckNo('');
+    setCheckBearer('self');
+    setBearerName('');
+    setBearerCnic('');
+    setBearerPhone('');
     // Refresh member data
     if (member) {
       await selectMember(member._id);
@@ -766,6 +803,10 @@ const TellerMode = () => {
     setMemberCheckbooks([]);
     setSelectedCheckbookId('');
     setCheckNo('');
+    setCheckBearer('self');
+    setBearerName('');
+    setBearerCnic('');
+    setBearerPhone('');
     setTimeout(() => searchRef.current?.focus(), 100);
   };
 
@@ -1773,6 +1814,11 @@ const TellerMode = () => {
                                     onClick={() => {
                                       if (selectedCheckbookId) {
                                         setSelectedCheckbookId('');
+                                        setCheckNo('');
+                                        setCheckBearer('self');
+                                        setBearerName('');
+                                        setBearerCnic('');
+                                        setBearerPhone('');
                                       } else {
                                         const active = memberCheckbooks.find(
                                           (cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves,
@@ -1847,6 +1893,108 @@ const TellerMode = () => {
                                       placeholder="e.g. 001, 025"
                                       className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
                                     />
+                                  </div>
+                                )}
+
+                                {/* Check Bearer Identification */}
+                                {selectedCheckbookId && (
+                                  <div className="space-y-3 pt-1">
+                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                      Check Bearer
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setCheckBearer('self');
+                                          setBearerName('');
+                                          setBearerCnic('');
+                                          setBearerPhone('');
+                                        }}
+                                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                          checkBearer === 'self'
+                                            ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                            : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
+                                        }`}
+                                      >
+                                        <User size={12} />
+                                        Self
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCheckBearer('other')}
+                                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                          checkBearer === 'other'
+                                            ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                            : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
+                                        }`}
+                                      >
+                                        <UserCheck size={12} />
+                                        Someone Else
+                                      </button>
+                                    </div>
+
+                                    {checkBearer === 'other' && (
+                                      <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
+                                        {/* CNIC Scanner trigger */}
+                                        <button
+                                          type="button"
+                                          onClick={() => setCnicScannerOpen(true)}
+                                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-amber-500/40 bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                                        >
+                                          <ScanLine size={14} />
+                                          Scan CNIC to auto-fill
+                                        </button>
+
+                                        {/* Name */}
+                                        <div className="space-y-1.5">
+                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                            <User size={10} /> Bearer Name
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={bearerName}
+                                            onChange={(e) => setBearerName(e.target.value)}
+                                            placeholder="Full name as on CNIC"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                          />
+                                        </div>
+
+                                        {/* CNIC */}
+                                        <div className="space-y-1.5">
+                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                            <IdCard size={10} /> CNIC Number
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={bearerCnic}
+                                            onChange={(e) =>
+                                              setBearerCnic(formatCNIC(e.target.value))
+                                            }
+                                            placeholder="00000-0000000-0"
+                                            inputMode="numeric"
+                                            maxLength={15}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                          />
+                                        </div>
+
+                                        {/* Phone */}
+                                        <div className="space-y-1.5">
+                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                            <Phone size={10} /> Phone
+                                            <span className="text-muted-foreground/40 normal-case tracking-normal">(optional)</span>
+                                          </label>
+                                          <input
+                                            type="tel"
+                                            value={bearerPhone}
+                                            onChange={(e) => setBearerPhone(e.target.value)}
+                                            placeholder="03XX-XXXXXXX"
+                                            inputMode="tel"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -3511,6 +3659,43 @@ const TellerMode = () => {
         description={description || undefined}
         isAdminTransaction
       />
+
+      {/* ── CNIC Scanner (Check Bearer KYC) ────────────────────────────── */}
+      <Dialog open={cnicScannerOpen} onOpenChange={setCnicScannerOpen}>
+        <DialogContent className="sm:max-w-[500px] !p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-amber-500/10 via-background to-background p-8">
+            <DialogHeader className="mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-inner shrink-0">
+                  <ScanLine className="w-7 h-7" />
+                </div>
+                <div className="text-left min-w-0 pr-8">
+                  <DialogTitle className="text-xl font-black tracking-tight">
+                    Scan Check Bearer CNIC
+                  </DialogTitle>
+                  <DialogDescription className="text-xs font-medium mt-1">
+                    Upload or capture the bearer&rsquo;s ID — name, CNIC and
+                    phone will auto-fill below.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <KycOcrScanner
+              onDataExtracted={(data) => {
+                if (data?.name) setBearerName(data.name);
+                if (data?.cnic) setBearerCnic(formatCNIC(data.cnic));
+                if (data?.phone) setBearerPhone(data.phone);
+                setCnicScannerOpen(false);
+              }}
+            />
+
+            <p className="mt-6 text-[9px] text-center text-muted-foreground/50 font-medium tracking-wide uppercase">
+              All bearer details are stored on the withdrawal record for audit
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
