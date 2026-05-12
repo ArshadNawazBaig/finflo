@@ -203,9 +203,26 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.json({ message: 'FinFlo API is running' });
-});
+// In production, this single service also serves the built client SPA
+// (root `npm run build` outputs to `<repo>/public`). Mirrors the rewrite
+// rule in vercel.json: anything not under /api, /socket.io, or /uploads
+// falls back to index.html so React Router can handle the route.
+const fs = require('fs');
+const clientDist = path.resolve(__dirname, '../../../public');
+const clientIndexHtml = path.join(clientDist, 'index.html');
+const clientBuildExists = fs.existsSync(clientIndexHtml);
+
+if (clientBuildExists) {
+  app.use(express.static(clientDist, { index: false, maxAge: '1y', etag: true }));
+  app.get(/^(?!\/api(?:\/|$)|\/socket\.io(?:\/|$)|\/uploads(?:\/|$)).*/, (req, res) => {
+    res.set('Cache-Control', 'no-cache');
+    res.sendFile(clientIndexHtml);
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({ message: 'FinFlo API is running' });
+  });
+}
 
 // Error Handling
 app.use(errorHandler);
