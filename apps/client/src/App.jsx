@@ -99,20 +99,22 @@ function App() {
     return !localStorage.getItem('onboarding_complete');
   });
 
-  // Synchronize auth state to a parent domain cookie so the cross-domain landing page can read it
+  // Synchronize auth state to a parent domain cookie so the cross-domain landing page can read it.
+  // Only run on the app domain — the landing domain has its own (empty) localStorage and would
+  // otherwise clear the cookie that app.finflo.org just set.
   useEffect(() => {
-    if (!IS_DEV) {
-      if (user) {
-        document.cookie = `finflo_business_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
-      } else {
-        document.cookie = `finflo_business_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
-      }
-      
-      if (member) {
-        document.cookie = `finflo_member_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
-      } else {
-        document.cookie = `finflo_member_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
-      }
+    if (IS_DEV || !IS_APP_DOMAIN) return;
+
+    if (user) {
+      document.cookie = `finflo_business_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
+    } else {
+      document.cookie = `finflo_business_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
+    }
+
+    if (member) {
+      document.cookie = `finflo_member_auth=true; domain=.finflo.org; path=/; max-age=86400; secure; samesite=lax`;
+    } else {
+      document.cookie = `finflo_member_auth=; domain=.finflo.org; path=/; max-age=0; secure; samesite=lax`;
     }
   }, [user, member]);
 
