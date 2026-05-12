@@ -290,14 +290,17 @@ const cancelCheckbook = async (req, res) => {
     checkbook.refunded = refund;
     await checkbook.save({ session });
 
-    // If refund requested, credit the fee back to member's current account
+    // If refund requested, credit the fee back to member's current account.
+    // The original fee charge debited currentBalance and incremented
+    // totalWithdrawn; reverse BOTH (don't inflate totalInvested as if this
+    // were a fresh deposit — that breaks lifetime-deposit metrics).
     if (refund) {
       await Member.updateOne(
         { _id: checkbook.member },
         {
           $inc: {
             currentBalance: checkbook.fee,
-            totalInvested: checkbook.fee,
+            totalWithdrawn: -checkbook.fee,
           },
         },
         { session },

@@ -780,15 +780,21 @@ const runCompoundInterestAccrual = async () => {
 
     for (const loan of compoundLoans) {
       try {
-        // Calculate which installment should be paid by now
+        // Calculate which installment should be paid by now.
+        // Installment due dates are calendar-month offsets from startDate
+        // (Loan creation uses setMonth(+i)), so we must measure elapsed time
+        // in real calendar months — NOT 30-day approximations, which drift
+        // and fire compounding a few days before the borrower is actually late.
         const startDate = new Date(loan.startDate);
-        const monthsSinceStart = Math.floor(
-          (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
-        );
+        let monthsSinceStart =
+          (today.getFullYear() - startDate.getFullYear()) * 12 +
+          (today.getMonth() - startDate.getMonth());
+        if (today.getDate() < startDate.getDate()) monthsSinceStart -= 1;
+        monthsSinceStart = Math.max(0, monthsSinceStart);
 
         // How many installments have been paid
         const installmentsPaid = Math.floor(
-          ((loan.paidAmount || 0) + 0.5) / loan.emi
+          ((loan.paidAmount || 0) + 0.5) / (loan.emi || 1)
         );
 
         // If the borrower is up to date, no compounding needed

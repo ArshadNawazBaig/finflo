@@ -212,7 +212,11 @@ const getDashboardStats = async (req, res) => {
     );
 
     // 2. Loan Stats Aggregation
-    const loanMatch = { user: query.user, status: { $ne: 'rejected' } };
+    // Build match conditionally — for super-admin, query.user is undefined and
+    // setting `user: undefined` in an aggregate $match matches only null/missing
+    // user fields (returning zero loans). Only add the user filter when scoped.
+    const loanMatch = { status: { $ne: 'rejected' } };
+    if (query.user) loanMatch.user = query.user;
     if (query.branchId !== undefined) loanMatch.branchId = query.branchId;
     const loanStatsAgg = await Loan.aggregate([
       {
@@ -316,7 +320,8 @@ const getDashboardStats = async (req, res) => {
 
     // 3. Member Stats Aggregation
     const Member = require('../models/Member');
-    const memberMatch = { user: query.user };
+    const memberMatch = {};
+    if (query.user) memberMatch.user = query.user;
     if (query.branchId !== undefined) memberMatch.branchId = query.branchId;
     const memberStatsAgg = await Member.aggregate([
       { $match: memberMatch },
@@ -581,7 +586,8 @@ const getDashboardStats = async (req, res) => {
       // However, since active loans are usually a manageable number, the current logic is OK if loans is already fetched.
       // But we can avoid the count query per loan.
 
-      const loanForecastMatch = { user: query.user, status: 'active' };
+      const loanForecastMatch = { status: 'active' };
+      if (query.user) loanForecastMatch.user = query.user;
       if (query.branchId !== undefined)
         loanForecastMatch.branchId = query.branchId;
       const activeLoansList = await Loan.find(loanForecastMatch);
@@ -626,8 +632,11 @@ const getDashboardStats = async (req, res) => {
       (sum, m) => sum + m.projected,
       0,
     );
+    // monthlyHistory rows expose repayments as `inflow` (category: 'repayment').
+    // The previous code summed `m.actual`, a field that does not exist on these
+    // rows, so the percentage was always anchored to 0 and effectively meaningless.
     const totalLast6MonthsActual = monthlyHistory.reduce(
-      (sum, m) => sum + (m.actual || 0),
+      (sum, m) => sum + (m.inflow || 0),
       0,
     );
     const forecastPercentage = calculatePercentageChange(

@@ -95,9 +95,12 @@ const getReportStats = async (req, res) => {
     ).length;
 
     const { start: prevStart, end: prevEnd } = getMonthDates(1);
-    const prevLoans = totalLoans.filter(
-      (l) => new Date(l.createdAt) <= prevEnd,
-    );
+    // Previous-period loans = loans created strictly inside the previous month.
+    // Previously this only had `<= prevEnd` which captured ALL historical loans.
+    const prevLoans = totalLoans.filter((l) => {
+      const created = new Date(l.createdAt);
+      return created >= prevStart && created <= prevEnd;
+    });
     const prevVolume = prevLoans.reduce((sum, l) => sum + l.principal, 0);
     const volumeChange = calculatePercentageChange(totalVolume, prevVolume);
 
@@ -132,7 +135,10 @@ const getReportStats = async (req, res) => {
 
     const prevDue = prevLoans.reduce((sum, l) => sum + l.totalAmount, 0);
     const prevRepaid = allRepayments
-      .filter((r) => r.date <= prevEnd)
+      .filter((r) => {
+        const d = new Date(r.date);
+        return d >= prevStart && d <= prevEnd;
+      })
       .reduce((sum, r) => sum + r.amount, 0);
     const prevCollectionRate =
       prevDue > 0 ? ((prevRepaid / prevDue) * 100).toFixed(1) : 0;
@@ -687,7 +693,10 @@ const getProfitAndLoss = async (req, res) => {
 
     // 3. Distributions
     const ProfitDistribution = require('../models/ProfitDistribution');
-    const distributionsQuery = { ...query, distributionDate: dateFilter };
+    // ProfitDistribution stores its timestamp on `date`, not `distributionDate`.
+    // The previous field name silently matched nothing, so this section always
+    // returned an empty breakdown.
+    const distributionsQuery = { ...query, date: dateFilter };
     const distributionsAgg = await ProfitDistribution.aggregate([
       { $match: distributionsQuery },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },

@@ -5,10 +5,10 @@ const Loan = require('../models/Loan');
  * Calculates a member's credit limit based on their **share balance** (business share investment).
  *
  * Rules:
- * - Members: Credit limit = (shareBalance × 3) × performance multiplier
+ * - Members: Credit limit = (shareBalance × 5) × performance multiplier
  * - Non-member customers: No credit limit enforcement (no investment balance exists)
  *
- * Formula: Base Limit (shareBalance × 3) × Multiplier (performance-based)
+ * Formula: Base Limit (shareBalance × 5) × Multiplier (performance-based)
  *
  * Multiplier Logic:
  * - Base multiplier: 1.0

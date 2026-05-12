@@ -752,12 +752,40 @@ const deleteMember = async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    // Check if member has active investments
-    if (member.currentBalance > 0) {
+    // Block deletion when ANY balance is non-zero or an unsettled loan exists.
+    // Previously only currentBalance was checked, which allowed members with
+    // savings, share investments, or active loans to be silently deleted —
+    // destroying their audit trail and orphaning the loan.
+    if ((member.currentBalance || 0) > 0) {
       return res.status(400).json({
         message:
-          'Cannot delete member with active investments. Please withdraw all funds first.',
+          'Cannot delete member with funds in their current account. Please withdraw all funds first.',
       });
+    }
+    if ((member.savingBalance || 0) > 0) {
+      return res.status(400).json({
+        message:
+          'Cannot delete member with funds in their saving account. Please withdraw all savings first.',
+      });
+    }
+    if ((member.shareBalance || 0) > 0) {
+      return res.status(400).json({
+        message:
+          'Cannot delete member with an active share balance. Please liquidate the share investment first.',
+      });
+    }
+    if (member.customer) {
+      const unsettledLoan = await Loan.findOne({
+        customer: member.customer,
+        user: userId,
+        status: { $in: ['active', 'overdue', 'pending'] },
+      }).select('_id');
+      if (unsettledLoan) {
+        return res.status(400).json({
+          message:
+            'Cannot delete member with an active, overdue, or pending loan. Settle or close the loan first.',
+        });
+      }
     }
 
     // Delete all member documents from Cloudinary if they exist
@@ -986,10 +1014,16 @@ const addInvestment = async (req, res) => {
     // ── Automatic Loan Deduction (only for current account) ────────────────
     if (!isSaving) {
       try {
+        // Tenant scope (`user: userId`) is defensive — `customer` is already
+        // tied to this business via the member fetch above, but keying the
+        // lookup on user too closes any cross-tenant edge case.
+        // Deterministic order (oldest first) so multiple active loans behave
+        // predictably and the oldest debt gets paid first.
         const activeLoan = await Loan.findOne({
           customer: member.customer,
+          user: userId,
           status: 'active',
-        });
+        }).sort({ createdAt: 1 });
 
         if (activeLoan && applyDeduction) {
           let deductionAmount = Math.min(amount, activeLoan.remainingAmount);
@@ -3081,7 +3115,7 @@ const distributeShareProfit = async (req, res) => {
         description:
           description ||
           `Share profit (Weighted Avg) for ${period || periodStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`,
-        shareBalanceAfter: member.shareBalance,
+        shareBalanceAfter: updatedMember.shareBalance,
         period:
           period ||
           periodStart.toLocaleDateString('en-US', {

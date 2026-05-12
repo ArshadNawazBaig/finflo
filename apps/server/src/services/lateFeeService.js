@@ -2,8 +2,6 @@ const Loan = require('../models/Loan');
 const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
-const Member = require('../models/Member');
-const Investment = require('../models/Investment');
 const { logActivity } = require('../controllers/activityLogController');
 const {
   createTransactionNotification,
@@ -133,35 +131,11 @@ const applyLateFees = async (req) => {
           referenceModel: 'Loan',
         });
 
-        // Deduct from member's current account if they are a member
+        // Note: the fee is accrued onto the loan (remainingAmount/totalAmount above).
+        // The member's wallet is NOT debited here — doing so would double-charge:
+        // once via the loan growing, once via the wallet shrinking. The fee is
+        // settled when the borrower next makes a repayment.
         if (loan.customer?.memberId) {
-          const member = await Member.findById(loan.customer.memberId);
-          if (member && member.currentBalance >= feeAmount) {
-            await Member.updateOne(
-              { _id: member._id },
-              {
-                $inc: {
-                  currentBalance: -feeAmount,
-                  totalWithdrawn: feeAmount,
-                },
-              },
-            );
-
-            const updatedMember = await Member.findById(member._id);
-
-            await Investment.create({
-              user: member.user,
-              member: member._id,
-              branchId: loan.branchId || member.branchId,
-              type: 'withdrawal',
-              amount: feeAmount,
-              accountType: 'current',
-              description: `Late fee penalty — Loan #${loan._id.toString().slice(-6).toUpperCase()}`,
-              balanceAfter: updatedMember.currentBalance,
-              date: now,
-            });
-          }
-
           // Notify member
           try {
             await createTransactionNotification({

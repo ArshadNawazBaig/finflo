@@ -54,18 +54,12 @@ const processRepayment = async (loan, amount, req, options = {}) => {
 
       actualSettlementAmount = loan.principal + proRatedInterest;
     } else if (loan.interestType === 'compound') {
-      // Compound: interest is on the current outstanding balance (remainingAmount)
-      const outstandingBalance = loan.remainingAmount + loan.paidAmount - (loan.compoundedAmount || 0);
-      const monthlyInterest = (outstandingBalance * loan.rate) / 1200;
-      const dailyInterest = monthlyInterest / 30;
-
-      const proRatedInterest = Math.round(dailyInterest * totalDaysPassed);
-
+      // For compound interest, the remainingAmount already reflects accrued
+      // compounding (added by the daily compound-interest cron). Early settlement
+      // simply means paying off the current outstanding balance — there is no
+      // additional discount because every missed installment has already been
+      // capitalized into the balance.
       actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
-      // If settlement is happening, just pay what's currently owed
-      if (proRatedInterest > 0) {
-        actualSettlementAmount = loan.paidAmount + loan.remainingAmount;
-      }
     } else if (loan.interestType === 'emi') {
       // EMI (Reducing Balance) Early Settlement
       const monthlyRate = loan.rate / 12 / 100;
@@ -118,8 +112,23 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   let principalAmount = 0;
 
   if (isEarlySettlement) {
-    interestAmount = Math.max(0, actualSettlementAmount - loan.principal);
-    principalAmount = Math.min(repaymentAmount, loan.principal);
+    // Split this final payment so that principal covers any outstanding
+    // principal first, with the remainder treated as interest. This keeps
+    // (principal + interest) === repaymentAmount and avoids double-counting
+    // interest across the loan's full lifetime in reports.
+    const splitAgg = await Repayment.aggregate([
+      { $match: { loan: loan._id } },
+      {
+        $group: {
+          _id: null,
+          principal: { $sum: '$principalAmount' },
+        },
+      },
+    ]);
+    const pastPrincipal = splitAgg.length > 0 ? splitAgg[0].principal : 0;
+    const remainingPrincipal = Math.max(0, loan.principal - pastPrincipal);
+    principalAmount = Math.min(repaymentAmount, remainingPrincipal);
+    interestAmount = Math.max(0, repaymentAmount - principalAmount);
   } else {
     // Normal repayment split calculation based on EXACT days elapsed
     const lastRepayment = await Repayment.findOne({ loan: loan._id }).sort({
@@ -196,8 +205,13 @@ const processRepayment = async (loan, amount, req, options = {}) => {
   try {
     customer = await Customer.findById(loan.customer);
     if (deductFromWallet && customer?.memberId) {
-      const updatedMember = await Member.findByIdAndUpdate(
-        customer.memberId,
+      // Overdraft guard: only decrement when the wallet has sufficient funds.
+      // The `$gte` predicate atomically prevents the balance from going negative
+      // even under concurrent writes — matching withdrawInvestment's pattern.
+      // If the predicate fails, throw so the surrounding transaction rolls back
+      // and the caller learns the payment couldn't be applied from the wallet.
+      const updatedMember = await Member.findOneAndUpdate(
+        { _id: customer.memberId, currentBalance: { $gte: repaymentAmount } },
         {
           $inc: {
             currentBalance: -repaymentAmount,
@@ -206,6 +220,12 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         },
         { new: true, session },
       );
+
+      if (!updatedMember) {
+        throw new Error(
+          'Insufficient wallet balance to apply this repayment. Please deposit funds first or pay via cash/external method.',
+        );
+      }
 
       if (updatedMember) {
         // Record in Investment ledger

@@ -184,23 +184,29 @@ const breakTermDeposit = async (req, res) => {
     // Calculate pro-rated profit with penalty
     const now = new Date();
     const msElapsed = now - new Date(deposit.startDate);
-    const monthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
-    const fullProfit = Math.round(
-      (deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100),
+    // Cap elapsed months at the deposit duration so a break-at-or-after-maturity
+    // cannot accidentally pay out more than the projected (matured) profit.
+    const rawMonthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
+    const monthsElapsed = Math.max(0, Math.min(deposit.duration, rawMonthsElapsed));
+    const fullProfit = Math.min(
+      deposit.projectedProfit,
+      Math.round(
+        (deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100),
+      ),
     );
     const penaltyRate = deposit.earlyBreakPenaltyRate / 100;
-    const actualProfit = Math.round(fullProfit * (1 - penaltyRate));
-    const totalReturn = deposit.principal + Math.max(0, actualProfit);
+    const actualProfit = Math.max(0, Math.round(fullProfit * (1 - penaltyRate)));
+    const totalReturn = deposit.principal + actualProfit;
 
     const creditFields = deposit.sourceAccount === 'saving'
-      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: Math.max(0, actualProfit) }
-      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: Math.max(0, actualProfit) };
+      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: actualProfit }
+      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: actualProfit };
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
     deposit.status = 'broken';
     deposit.brokenAt = now;
-    deposit.actualProfit = Math.max(0, actualProfit);
+    deposit.actualProfit = actualProfit;
     await deposit.save({ session });
 
     // Record profit distribution so Balance Sheet equity tracks this payout
@@ -231,7 +237,7 @@ const breakTermDeposit = async (req, res) => {
         accountType: deposit.sourceAccount,
         amount: totalReturn,
         balanceAfter: deposit.sourceAccount === 'saving' ? updatedMember.savingBalance : updatedMember.currentBalance,
-        description: `Term Deposit ${deposit.depositNumber} broken early — Principal: ${deposit.principal}, Profit: ${Math.max(0, actualProfit)} (${deposit.earlyBreakPenaltyRate}% penalty applied)`,
+        description: `Term Deposit ${deposit.depositNumber} broken early — Principal: ${deposit.principal}, Profit: ${actualProfit} (${deposit.earlyBreakPenaltyRate}% penalty applied)`,
         date: now,
       }],
       { session },
@@ -542,23 +548,29 @@ const breakPortalTermDeposit = async (req, res) => {
     // Calculate pro-rated profit with penalty
     const now = new Date();
     const msElapsed = now - new Date(deposit.startDate);
-    const monthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
-    const fullProfit = Math.round(
-      (deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100),
+    // Cap elapsed months at the deposit duration so a break-at-or-after-maturity
+    // cannot accidentally pay out more than the projected (matured) profit.
+    const rawMonthsElapsed = msElapsed / (1000 * 60 * 60 * 24 * 30);
+    const monthsElapsed = Math.max(0, Math.min(deposit.duration, rawMonthsElapsed));
+    const fullProfit = Math.min(
+      deposit.projectedProfit,
+      Math.round(
+        (deposit.principal * deposit.profitRate * monthsElapsed) / (12 * 100),
+      ),
     );
     const penaltyRate = deposit.earlyBreakPenaltyRate / 100;
-    const actualProfit = Math.round(fullProfit * (1 - penaltyRate));
-    const totalReturn = deposit.principal + Math.max(0, actualProfit);
+    const actualProfit = Math.max(0, Math.round(fullProfit * (1 - penaltyRate)));
+    const totalReturn = deposit.principal + actualProfit;
 
     const creditFields = deposit.sourceAccount === 'saving'
-      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: Math.max(0, actualProfit) }
-      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: Math.max(0, actualProfit) };
+      ? { savingBalance: totalReturn, totalSavingDeposited: deposit.principal, totalSavingProfit: actualProfit }
+      : { currentBalance: totalReturn, totalInvested: deposit.principal, totalProfit: actualProfit };
 
     await Member.findByIdAndUpdate(deposit.member, { $inc: creditFields }, { session });
 
     deposit.status = 'broken';
     deposit.brokenAt = now;
-    deposit.actualProfit = Math.max(0, actualProfit);
+    deposit.actualProfit = actualProfit;
     await deposit.save({ session });
 
     // Record profit distribution so Balance Sheet equity tracks this payout
@@ -589,7 +601,7 @@ const breakPortalTermDeposit = async (req, res) => {
         accountType: deposit.sourceAccount,
         amount: totalReturn,
         balanceAfter: deposit.sourceAccount === 'saving' ? updatedMember.savingBalance : updatedMember.currentBalance,
-        description: `Term Deposit ${deposit.depositNumber} broken early (Self-Service) — Principal: ${deposit.principal}, Profit: ${Math.max(0, actualProfit)} (${deposit.earlyBreakPenaltyRate}% penalty applied)`,
+        description: `Term Deposit ${deposit.depositNumber} broken early (Self-Service) — Principal: ${deposit.principal}, Profit: ${actualProfit} (${deposit.earlyBreakPenaltyRate}% penalty applied)`,
         date: now,
       }],
       { session },

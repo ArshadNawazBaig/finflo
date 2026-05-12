@@ -261,10 +261,13 @@ const recordExternalReceive = async (req, res) => {
 
     // ── Automatic Loan Deduction ───────────────────────────────────────────
     try {
+      // Tenant scope + deterministic ordering (oldest active loan first), same
+      // pattern as the deposit auto-deduction in memberController.addInvestment.
       const activeLoan = await Loan.findOne({
         customer: req.member.customer,
+        user: userId,
         status: 'active',
-      });
+      }).sort({ createdAt: 1 });
 
       if (activeLoan) {
         const deductionAmount = Math.min(

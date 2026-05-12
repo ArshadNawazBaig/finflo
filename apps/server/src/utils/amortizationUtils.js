@@ -20,6 +20,12 @@ const generateAmortizationSchedule = (loan) => {
   const interestPer30Days = Math.round(dailySimpleInterest * 30);
   const principalPerInstallment = Math.round(principal / (duration || 1));
 
+  // Running totals so the LAST installment can absorb any rounding residual.
+  // Without this, sum(schedule) drifts from the loan's totalAmount by a few units.
+  let allocatedPrincipal = 0;
+  let allocatedInterest = 0;
+  const totalInterestSimple = interestPer30Days * (duration || 1);
+
   // For EMI: track remaining principal to compute each period's interest
   let currentPrincipal = principal;
 
@@ -28,13 +34,20 @@ const generateAmortizationSchedule = (loan) => {
     dueDate.setMonth(dueDate.getMonth() + i);
 
     let interest, principalPortion, installmentTotal;
+    const isLast = i === duration;
 
     if (interestType === 'simple' || interestType === 'compound' || !interestType) {
       // Simple & Compound Interest: each installment = principal slice + 30 days of daily interest
       // For compound, the initial schedule is flat (same as simple). The actual compounding
       // happens dynamically via a cron job when installments are missed.
-      interest = interestPer30Days;
-      principalPortion = principalPerInstallment;
+      if (isLast) {
+        // Absorb residual so totals reconcile to the loan's principal + total interest
+        principalPortion = Math.max(0, principal - allocatedPrincipal);
+        interest = Math.max(0, totalInterestSimple - allocatedInterest);
+      } else {
+        principalPortion = principalPerInstallment;
+        interest = interestPer30Days;
+      }
       installmentTotal = principalPortion + interest;
     } else {
       // EMI (Reducing Balance): interest is proportional to remaining principal
@@ -45,9 +58,16 @@ const generateAmortizationSchedule = (loan) => {
         0,
         Math.min(principalPortion, currentPrincipal),
       );
+      if (isLast) {
+        // Last installment closes out remaining principal exactly
+        principalPortion = currentPrincipal;
+      }
       installmentTotal = principalPortion + interest;
       currentPrincipal = Math.max(0, currentPrincipal - principalPortion);
     }
+
+    allocatedPrincipal += principalPortion;
+    allocatedInterest += interest;
 
     schedule.push({
       installment: i,
