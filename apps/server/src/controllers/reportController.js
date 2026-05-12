@@ -37,16 +37,20 @@ const getReportStats = async (req, res) => {
       };
     }
 
-    // Aggregate monthly loans
+    // Aggregate monthly loans — group by year+month so January 2025 and
+    // January 2026 don't get summed together when the date range spans years.
     const monthlyLoans = await Loan.aggregate([
       { $match: loanQuery },
       {
         $group: {
-          _id: { $month: '$startDate' },
+          _id: {
+            year: { $year: '$startDate' },
+            month: { $month: '$startDate' },
+          },
           total: { $sum: '$principal' },
         },
       },
-      { $sort: { _id: 1 } },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     // Aggregate monthly repayments
@@ -54,11 +58,14 @@ const getReportStats = async (req, res) => {
       { $match: query },
       {
         $group: {
-          _id: { $month: '$date' },
+          _id: {
+            year: { $year: '$date' },
+            month: { $month: '$date' },
+          },
           total: { $sum: '$amount' },
         },
       },
-      { $sort: { _id: 1 } },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
     // Format for frontend (transform month number to name)
@@ -78,12 +85,12 @@ const getReportStats = async (req, res) => {
     ];
 
     const formattedLoans = monthlyLoans.map((item) => ({
-      name: monthNames[item._id - 1],
+      name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
       value: item.total,
     }));
 
     const formattedRepayments = monthlyRepayments.map((item) => ({
-      name: monthNames[item._id - 1],
+      name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
       value: item.total,
     }));
 

@@ -106,10 +106,13 @@ const getLedger = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // Calculate full summary ignoring pagination but respecting search/date filters
-    // Also include 'date' so we can sort chronologically for running total computation
-    const allMatching =
-      await FinancialTransaction.find(query).select('type category amount date');
+    // Calculate full summary ignoring pagination but respecting search/date filters.
+    // Include 'date' and 'createdAt' so we can sort chronologically (with
+    // createdAt as a tiebreaker for same-day entries) when computing the
+    // running total.
+    const allMatching = await FinancialTransaction.find(query).select(
+      'type category amount date createdAt',
+    );
     
     const isIncome = (t) => {
       const type = (t.type || '').toLowerCase();
@@ -132,8 +135,15 @@ const getLedger = async (req, res) => {
 
     // Calculate priorPageBalance: the cumulative running total of all transactions
     // that are chronologically BEFORE this page's transactions.
-    // Sort all matching transactions chronologically (ascending by date).
-    allMatching.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort all matching transactions chronologically (ascending by date), with
+    // createdAt as a tiebreaker so two transactions on the same calendar day
+    // appear in the order they were actually entered — otherwise the running
+    // balance shown next to each row may not match the real sequence.
+    allMatching.sort((a, b) => {
+      const dateDiff = new Date(a.date) - new Date(b.date);
+      if (dateDiff !== 0) return dateDiff;
+      return new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date);
+    });
 
     // For descending sort (newest first): older txns are on later pages.
     //   The chronologically-prior count = totalEntries - skip - limit

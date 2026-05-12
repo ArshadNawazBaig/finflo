@@ -198,7 +198,10 @@ const runLateFeeAccrual = async () => {
         const applicableFee = Math.min(dailyFee, maxFee - currentAccrued);
         if (applicableFee <= 0) continue;
 
-        // Atomic update with daily de-duplication
+        // Atomic update with daily de-duplication.
+        // Late fees must flow through to the outstanding balance so the
+        // borrower actually pays them on the next repayment — otherwise
+        // lateFeeAmount accrues silently while remainingAmount stays static.
         const updatedLoan = await Loan.findOneAndUpdate(
           {
             _id: loan._id,
@@ -208,7 +211,11 @@ const runLateFeeAccrual = async () => {
             ],
           },
           {
-            $inc: { lateFeeAmount: applicableFee },
+            $inc: {
+              lateFeeAmount: applicableFee,
+              remainingAmount: applicableFee,
+              totalAmount: applicableFee,
+            },
             $set: { lateFeeAppliedAt: new Date() },
           },
           { new: true },
@@ -343,7 +350,13 @@ const runTrustRatingRecalc = async () => {
         const schedule = generateAmortizationSchedule(loan);
 
         for (const repayment of repayments) {
-          const installmentNumber = Math.ceil(repayment.amount / loan.emi);
+          // Prefer the installmentNumber recorded at repayment time —
+          // ceil(amount/emi) misclassifies partial/over-payments (e.g. a
+          // 500 payment when EMI is 1000 maps to installment 1 regardless
+          // of which installment was actually due).
+          const installmentNumber =
+            repayment.installmentNumber ||
+            Math.ceil((repayment.amount || 0) / (loan.emi || 1));
           const schedItem = schedule.find(
             (s) => s.installment === installmentNumber,
           );
@@ -438,28 +451,45 @@ const runSavingProfitAccrual = async () => {
       });
 
       for (const member of members) {
-        const dailyProfit = Math.round(member.savingBalance * dailyRate);
-        if (dailyProfit <= 0) continue;
-
-        // Atomic update with daily de-duplication
+        // Use an aggregation pipeline so the profit is computed from the
+        // *current* savingBalance at write time, not the value we read into
+        // memory at the start of the loop. Otherwise a concurrent
+        // withdrawal between the read and the write would credit interest
+        // on funds the member has already pulled out.
         const updatedMember = await Member.findOneAndUpdate(
           {
             _id: member._id,
+            savingBalance: { $gte: 10000 },
             $or: [
               { lastSavingProfitAt: { $exists: false } },
               { lastSavingProfitAt: { $lt: today } },
             ],
           },
-          {
-            $inc: {
-              pendingSavingProfit: dailyProfit,
+          [
+            {
+              $set: {
+                pendingSavingProfit: {
+                  $add: [
+                    { $ifNull: ['$pendingSavingProfit', 0] },
+                    {
+                      $round: [
+                        { $multiply: ['$savingBalance', dailyRate] },
+                        0,
+                      ],
+                    },
+                  ],
+                },
+                lastSavingProfitAt: new Date(),
+              },
             },
-            $set: { lastSavingProfitAt: new Date() },
-          },
+          ],
           { new: true },
         );
 
         if (!updatedMember) continue;
+
+        const dailyProfit = Math.round(updatedMember.savingBalance * dailyRate);
+        if (dailyProfit <= 0) continue;
 
         // Daily accruals no longer create ledger entries immediately;
         // they are stored as pendingSavingProfit and distributed monthly.
@@ -958,10 +988,16 @@ const runScheduledPayments = async () => {
             paymentMethod: 'online',
           });
         } else if (payment.type === 'loan_repayment' && payment.loanId) {
-          // Use the existing loan repayment service
+          // Delegate to the shared loan repayment service so the repayment
+          // is recorded with a proper interest/principal split, a
+          // FinancialTransaction, an Investment ledger entry, and the
+          // member's trust rating is updated. Doing the bookkeeping inline
+          // skipped all of that and left repayments invisible to reports.
           const Loan = require('../models/Loan');
-          const loan = await Loan.findById(payment.loanId);
+          const Customer = require('../models/Customer');
+          const { processRepayment } = require('./loanRepaymentService');
 
+          const loan = await Loan.findById(payment.loanId).populate('customer');
           if (!loan || loan.status === 'completed') {
             payment.status = 'completed';
             payment.failureReason = loan ? 'Loan already completed' : 'Loan not found';
@@ -969,32 +1005,35 @@ const runScheduledPayments = async () => {
             continue;
           }
 
+          // Saving-account repayments aren't currently supported by the
+          // service (it always debits currentBalance). Reject those rather
+          // than silently double-counting against the wrong account.
+          if (payment.sourceAccount && payment.sourceAccount !== 'current') {
+            payment.status = 'failed';
+            payment.failureReason =
+              'Scheduled loan repayments can only be debited from the current account';
+            await payment.save();
+            failed++;
+            continue;
+          }
+
           const repaymentAmount = Math.min(payment.amount, loan.remainingAmount);
-          if (payment.sourceAccount === 'current') {
-            member.currentBalance -= repaymentAmount;
-          } else {
-            member.savingBalance -= repaymentAmount;
-          }
-          await member.save({ validateBeforeSave: false });
 
-          loan.paidAmount = (loan.paidAmount || 0) + repaymentAmount;
-          loan.remainingAmount = Math.max(0, loan.remainingAmount - repaymentAmount);
-          if (loan.remainingAmount <= 0) {
-            loan.status = 'completed';
-            loan.completedAt = new Date();
-          }
-          await loan.save();
+          // Build a minimal req-like context so logActivity / branch lookups work.
+          const ctx = {
+            user: {
+              _id: member.user,
+              effectiveOwnerId: member.user,
+              branchId: member.branchId,
+            },
+          };
 
-          const Repayment = require('../models/Repayment');
-          await Repayment.create({
-            loan: loan._id,
-            user: member.user,
-            customer: loan.customer,
-            branchId: member.branchId,
-            amount: repaymentAmount,
-            method: 'auto_scheduled',
-            note: 'Automated scheduled loan repayment',
+          await processRepayment(loan, repaymentAmount, ctx, {
             date: new Date(),
+            notes: 'Automated scheduled loan repayment',
+            isAutoValue: true,
+            deductFromWallet: true,
+            paymentMethod: 'online',
           });
         }
 
@@ -1046,6 +1085,131 @@ const runScheduledPayments = async () => {
   }
 };
 
+// ─── Job 10: Term Deposit Auto-Maturity ──────────────────────────────────────
+/**
+ * Runs daily at 04:00.
+ * Auto-matures any active term deposit whose maturityDate has been reached.
+ * Credits principal + projectedProfit to the member's source account,
+ * records the ProfitDistribution and Investment ledger entries, and emits
+ * a notification. Previously this required a manual admin action and
+ * deposits could sit "active" past maturity, hiding profit liabilities
+ * off the books indefinitely.
+ */
+const runTermDepositAutoMaturity = async () => {
+  console.log('[CRON] runTermDepositAutoMaturity: starting...');
+  const now = new Date();
+
+  try {
+    const TermDeposit = require('../models/TermDeposit');
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const ProfitDistribution = require('../models/ProfitDistribution');
+
+    const dueDeposits = await TermDeposit.find({
+      status: 'active',
+      maturityDate: { $lte: now },
+    });
+
+    let matured = 0;
+
+    for (const deposit of dueDeposits) {
+      try {
+        const totalReturn = deposit.principal + deposit.projectedProfit;
+
+        const creditFields =
+          deposit.sourceAccount === 'saving'
+            ? {
+                savingBalance: totalReturn,
+                totalSavingDeposited: deposit.principal,
+                totalSavingProfit: deposit.projectedProfit,
+              }
+            : {
+                currentBalance: totalReturn,
+                totalInvested: deposit.principal,
+                totalProfit: deposit.projectedProfit,
+              };
+
+        // Atomic guard on status so two cron runs can't double-credit.
+        const tdUpdate = await TermDeposit.findOneAndUpdate(
+          { _id: deposit._id, status: 'active' },
+          {
+            $set: {
+              status: 'matured',
+              maturedAt: now,
+              actualProfit: deposit.projectedProfit,
+            },
+          },
+          { new: true },
+        );
+        if (!tdUpdate) continue; // another run already matured it
+
+        const updatedMember = await Member.findByIdAndUpdate(
+          deposit.member,
+          { $inc: creditFields },
+          { new: true },
+        );
+
+        if (deposit.projectedProfit > 0) {
+          await ProfitDistribution.create({
+            user: deposit.user,
+            member: deposit.member,
+            branchId: deposit.branchId,
+            amount: deposit.projectedProfit,
+            type: 'term_deposit',
+            period: now.toLocaleDateString('en-US', {
+              month: 'short',
+              year: 'numeric',
+            }),
+            calculationMethod: `Auto-matured Term Deposit ${deposit.depositNumber} — ${deposit.principal} × ${deposit.profitRate}% × ${deposit.duration} months`,
+            date: now,
+          });
+        }
+
+        await Investment.create({
+          user: deposit.user,
+          member: deposit.member,
+          branchId: deposit.branchId,
+          type: 'deposit',
+          accountType: deposit.sourceAccount,
+          amount: totalReturn,
+          balanceAfter:
+            deposit.sourceAccount === 'saving'
+              ? updatedMember?.savingBalance
+              : updatedMember?.currentBalance,
+          description: `Auto-matured Term Deposit ${deposit.depositNumber} — Principal: ${deposit.principal} + Profit: ${deposit.projectedProfit}`,
+          date: now,
+        });
+
+        matured++;
+
+        try {
+          await createTransactionNotification({
+            recipientId: deposit.member,
+            title: '🎉 Term Deposit Matured',
+            message: `Your term deposit ${deposit.depositNumber} has matured. Rs. ${totalReturn.toLocaleString()} (principal Rs. ${deposit.principal.toLocaleString()} + profit Rs. ${deposit.projectedProfit.toLocaleString()}) has been credited to your ${deposit.sourceAccount} account.`,
+            type: 'success',
+            branchId: deposit.branchId,
+            action: 'term_deposit_matured',
+          });
+        } catch (notifErr) {
+          console.error('[CRON] TD maturity notification error:', notifErr.message);
+        }
+      } catch (depErr) {
+        console.error(
+          `[CRON] Error auto-maturing deposit ${deposit._id}:`,
+          depErr.message,
+        );
+      }
+    }
+
+    console.log(
+      `[CRON] runTermDepositAutoMaturity: matured ${matured} deposit(s).`,
+    );
+  } catch (err) {
+    console.error('[CRON] runTermDepositAutoMaturity ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -1090,7 +1254,12 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 9 jobs registered.');
+  // Job 10: Auto-mature term deposits daily at 04:00
+  cron.schedule('0 4 * * *', runTermDepositAutoMaturity, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 10 jobs registered.');
 };
 
 module.exports = {
@@ -1105,5 +1274,6 @@ module.exports = {
   runLoanDefaultDetection,
   runCompoundInterestAccrual,
   runScheduledPayments,
+  runTermDepositAutoMaturity,
 };
 

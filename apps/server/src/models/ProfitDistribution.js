@@ -16,7 +16,17 @@ const profitDistributionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
-    amount: { type: Number, required: true },
+    amount: {
+      type: Number,
+      required: true,
+      // A profit distribution represents money paid out — negative or zero
+      // amounts indicate a bookkeeping error upstream and must be rejected
+      // so they don't silently corrupt P&L and balance-sheet aggregates.
+      validate: {
+        validator: (v) => typeof v === 'number' && Number.isFinite(v) && v > 0,
+        message: 'ProfitDistribution.amount must be a positive number',
+      },
+    },
     type: {
       type: String,
       enum: ['regular', 'share', 'saving', 'term_deposit'],

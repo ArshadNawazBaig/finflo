@@ -5,6 +5,7 @@ const Investment = require('../models/Investment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const ProfitDistribution = require('../models/ProfitDistribution');
 const { logActivity } = require('./activityLogController');
+const { addMonthsSafe } = require('../utils/reportUtils');
 
 /**
  * @desc    Create a new term deposit
@@ -51,10 +52,11 @@ const createTermDeposit = async (req, res) => {
     // Calculate projected profit (simple interest)
     const projectedProfit = Math.round((principal * profitRate * duration) / (12 * 100));
 
-    // Calculate maturity date
+    // Calculate maturity date. setMonth() alone rolls forward when the
+    // target month has fewer days (Jan 31 + 1mo → Mar 2/3); addMonthsSafe
+    // clamps to the last day of the target month instead.
     const startDate = new Date();
-    const maturityDate = new Date(startDate);
-    maturityDate.setMonth(maturityDate.getMonth() + duration);
+    const maturityDate = addMonthsSafe(startDate, duration);
 
     // Deduct from member balance
     const deductFields = sourceAccount === 'saving'
@@ -436,10 +438,11 @@ const createPortalTermDeposit = async (req, res) => {
     // Calculate projected profit (simple interest)
     const projectedProfit = Math.round((principal * profitRate * duration) / (12 * 100));
 
-    // Calculate maturity date
+    // Calculate maturity date. setMonth() alone rolls forward when the
+    // target month has fewer days (Jan 31 + 1mo → Mar 2/3); addMonthsSafe
+    // clamps to the last day of the target month instead.
     const startDate = new Date();
-    const maturityDate = new Date(startDate);
-    maturityDate.setMonth(maturityDate.getMonth() + duration);
+    const maturityDate = addMonthsSafe(startDate, duration);
 
     // Deduct from member balance
     const deductFields = sourceAccount === 'saving'
