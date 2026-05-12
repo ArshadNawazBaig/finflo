@@ -1,72 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
-import { Calculator, Info, ChevronDown, ChevronUp, Landmark, TableProperties, X } from 'lucide-react';
+import { useState } from 'react';
+import { Calculator, Info, ChevronDown, Landmark, TableProperties, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
-import api from '@/lib/axios';
 import ModernSlider from '@/components/ui/ModernSlider';
 
-const MemberLoanCalculator = ({ member }) => {
-  const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [amount, setAmount] = useState(200000);
-  const [term, setTerm] = useState(12);
-  const [rate, setRate] = useState(10);
-  const [interestType, setInterestType] = useState('emi');
-  const [showSchedule, setShowSchedule] = useState(true);
+const MemberLoanCalculator = ({ member, products = [] }) => {
+  const initialProduct = products[0] || null;
+  const [selectedProduct, setSelectedProduct] = useState(initialProduct);
+  const [amount, setAmount] = useState(
+    initialProduct?.maxAmount ? Math.min(200000, initialProduct.maxAmount) : 200000,
+  );
+  const [term, setTerm] = useState(initialProduct?.duration || 12);
+  const [rate, setRate] = useState(initialProduct?.interestRate || 10);
+  const [interestType, setInterestType] = useState(
+    initialProduct?.interestType || 'emi',
+  );
+  const [showSchedule] = useState(true);
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const calculatorRef = useRef(null);
-  const [calcHeight, setCalcHeight] = useState(0);
-  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : false);
-
-  // Track window size for reactivity
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Sync height of schedule with calculator
-  useEffect(() => {
-    if (!calculatorRef.current) return;
-
-    const updateHeight = () => {
-      if (calculatorRef.current) {
-        setCalcHeight(calculatorRef.current.offsetHeight);
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateHeight();
-    });
-
-    resizeObserver.observe(calculatorRef.current);
-    updateHeight();
-
-    return () => resizeObserver.disconnect();
-  }, [showSchedule]);
-
-  // Fetch loan products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data } = await api.get('/loan-products/member');
-        setProducts(data);
-        if (data.length > 0) {
-          const first = data[0];
-          setSelectedProduct(first);
-          setRate(first.interestRate);
-          setTerm(first.duration);
-          setInterestType(first.interestType || 'emi');
-          if (first.maxAmount) setAmount(Math.min(200000, first.maxAmount));
-        }
-      } catch {
-        // If endpoint doesn't exist yet, use defaults
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, []);
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -154,13 +103,15 @@ const MemberLoanCalculator = ({ member }) => {
 
   return (
     <div className="rounded-[2rem] bg-card border border-border/50 shadow-xs overflow-hidden">
-      <div className="flex flex-col lg:flex-row">
-        {/* Left Panel: Calculator Inputs & Results */}
-        <div 
-          ref={calculatorRef}
+      <div className="relative flex flex-col lg:block">
+        {/* Left Panel: Calculator Inputs & Results.
+            On lg+, reserve right-side space so the absolutely-positioned
+            schedule panel doesn't overlap. Left's natural content height
+            becomes the bounding box the right panel scrolls inside. */}
+        <div
           className={cn(
-            "flex-1 p-8 sm:p-10 transition-all duration-500",
-            showSchedule && "lg:border-r border-border/40"
+            'p-8 sm:p-10 transition-all duration-500',
+            showSchedule && 'lg:border-r border-border/40 lg:mr-[500px] xl:mr-[600px]',
           )}
         >
           {/* Header */}
@@ -310,13 +261,14 @@ const MemberLoanCalculator = ({ member }) => {
           </div>
         </div>
 
-        {/* Right Panel: Amortization Schedule — Desktop Only */}
+        {/* Right Panel: Amortization Schedule — Desktop Only.
+            Absolutely positioned so the left panel's natural height defines
+            the bounding box. Inner table area scrolls within that height. */}
         {showSchedule && (
-          <div 
-            className="hidden lg:flex lg:w-[500px] xl:w-[600px] shrink-0 border-t lg:border-t-0 bg-muted/5 flex-col animate-in slide-in-from-right-4 duration-500"
-            style={{ height: (isDesktop && calcHeight > 0) ? `${calcHeight}px` : 'auto' }}
+          <div
+            className="hidden lg:flex lg:absolute lg:inset-y-0 lg:right-0 lg:w-[500px] xl:w-[600px] bg-muted/5 flex-col animate-in slide-in-from-right-4 duration-500"
           >
-            <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between shrink-0">
+            <div className="p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm flex items-center justify-between shrink-0">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Amortization Schedule</p>
                 <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
@@ -324,7 +276,7 @@ const MemberLoanCalculator = ({ member }) => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
               <table className="w-full text-[11px] border-collapse">
                 <thead className="sticky top-0 bg-muted/90 backdrop-blur-md z-10">

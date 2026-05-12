@@ -16,6 +16,7 @@ import {
   MemberInvestmentPageSkeleton,
   MemberLoansPageSkeleton,
   MemberActivityPageSkeleton,
+  MemberCalculatorSkeleton,
 } from '@/components/ui/PageSkeletons';
 
 const MemberLogin = lazy(() => import('@/pages/member/MemberLogin'));
@@ -32,6 +33,7 @@ const MemberWallet = withSkeleton(() => import('@/pages/member/MemberWallet'), M
 const MemberTermDeposits = withSkeleton(() => import('@/pages/member/MemberTermDeposits'), MemberInvestmentPageSkeleton);
 const MemberBusinessShare = withSkeleton(() => import('@/pages/member/MemberBusinessShare'), MemberInvestmentPageSkeleton);
 const MemberCheckbooks = withSkeleton(() => import('@/pages/member/MemberCheckbooks'), MemberInvestmentPageSkeleton);
+const MemberCalculator = withSkeleton(() => import('@/pages/member/MemberCalculator'), MemberCalculatorSkeleton);
 const MemberSettings = withSkeleton(() => import('@/pages/member/MemberSettings'), SettingsPageSkeleton);
 const MemberNotifications = withSkeleton(() => import('@/pages/member/MemberNotifications'), MemberNotificationsPageSkeleton);
 const MemberChat = withSkeleton(() => import('@/pages/member/MemberChat'), ChatSkeleton);
@@ -59,6 +61,7 @@ const MemberRoutes = () => (
         <Route path="/member/term-deposits" element={<MemberTermDeposits />} />
         <Route path="/member/shares" element={<MemberBusinessShare />} />
         <Route path="/member/checkbooks" element={<MemberCheckbooks />} />
+        <Route path="/member/calculator" element={<MemberCalculator />} />
         <Route path="/member/settings" element={<MemberSettings />} />
         <Route path="/member/notifications" element={<MemberNotifications />} />
         <Route path="/member/chat" element={<MemberChat />} />

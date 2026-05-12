@@ -17,6 +17,7 @@ import {
   Bell,
   Lock,
   BookOpen,
+  Calculator,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -268,6 +269,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             active={isActive('/member/grantor-requests')}
             onboardingId="sidebar-grantor"
             label="Grantor Requests"
+            isExpanded={isLayoutExpanded}
+          />
+          <NavItem
+            to="/member/calculator"
+            icon={<Calculator size={18} />}
+            active={isActive('/member/calculator')}
+            onboardingId="sidebar-calculator"
+            label="Loan Calculator"
             isExpanded={isLayoutExpanded}
           />
 
