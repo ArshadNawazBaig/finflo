@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Globe,
   Users,
   Activity,
   Award,
-  Download,
-  Smartphone,
+  ArrowUpRight,
   X,
   ExternalLink,
 } from 'lucide-react';
@@ -17,6 +16,65 @@ import {
   IS_LANDING_DOMAIN,
   IS_DEV,
 } from '@/lib/constants';
+
+// Minimal system status pill. Pings /api/health once on mount and renders a
+// subtle dot + label. Stays muted by design so it doesn't compete with the
+// rest of the footer.
+const StatusPill = () => {
+  const [status, setStatus] = useState('checking'); // 'checking' | 'operational' | 'degraded'
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    fetch('/api/health', { signal: controller.signal })
+      .then((res) => {
+        if (cancelled) return;
+        setStatus(res.ok ? 'operational' : 'degraded');
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('degraded');
+      })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  const dotClass =
+    status === 'operational'
+      ? 'bg-emerald-500'
+      : status === 'degraded'
+        ? 'bg-amber-500'
+        : 'bg-slate-400';
+  const label =
+    status === 'operational'
+      ? 'All systems operational'
+      : status === 'degraded'
+        ? 'Investigating issues'
+        : 'Checking status';
+
+  return (
+    <a
+      href="https://status.finflo.org"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        {status === 'operational' && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+        )}
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      </span>
+      {label}
+    </a>
+  );
+};
 
 // On finflo.org, app routes need to cross-domain to app.finflo.org
 const FooterLink = ({ to, children, isAppRoute = false, ...props }) => {
@@ -220,59 +278,50 @@ const Footer = () => {
 
   return (
     <>
-      <footer className="pt-10 pb-8 lg:pt-16 bg-white dark:bg-[#020617] border-t border-slate-100 dark:border-white/[0.04] px-6 relative z-10">
+      <footer className="dark pt-10 pb-8 lg:pt-16 bg-slate-950 border-t border-white/[0.04] px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Main grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-16">
             {/* Brand column */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-5">
               <Link
                 to="/"
                 className="inline-block hover:opacity-80 transition-opacity"
               >
                 <Logo showText={true} className="h-10" />
               </Link>
-              <p className="text-[15px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-sm">
+              <p className="text-[14px] text-slate-500 dark:text-slate-400 font-normal leading-relaxed max-w-sm">
                 The foundational operating layer for modern financial
                 institutions. Precision-engineered for global capital flow.
               </p>
-              <div className="flex gap-2.5">
+              <StatusPill />
+              <div className="flex items-center gap-5 pt-1">
                 {[
-                  { Icon: Globe, link: '#architecture', isApp: false },
-                  { Icon: Users, link: '/join', isApp: true },
-                  { Icon: Activity, link: '/documentation/api', isApp: false },
-                  { Icon: Award, link: '/privacy', isApp: false },
-                ].map(({ Icon, link, isApp }, i) => {
+                  { Icon: Globe, link: '#architecture', isApp: false, label: 'Architecture' },
+                  { Icon: Users, link: '/join', isApp: true, label: 'Join' },
+                  { Icon: Activity, link: '/documentation/api', isApp: false, label: 'API' },
+                  { Icon: Award, link: '/privacy', isApp: false, label: 'Privacy' },
+                ].map(({ Icon, link, isApp, label }, i) => {
                   const isAnchor = link.startsWith('#');
+                  const className =
+                    'text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors';
 
                   if (isAnchor) {
                     return (
-                      <a
-                        key={i}
-                        href={link}
-                        className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/20 dark:hover:border-primary/20 transition-all group"
-                      >
-                        <Icon
-                          size={17}
-                          strokeWidth={2}
-                          className="group-hover:scale-110 transition-transform"
-                        />
+                      <a key={i} href={link} aria-label={label} className={className}>
+                        <Icon size={16} strokeWidth={1.75} />
                       </a>
                     );
                   }
-
                   return (
                     <FooterLink
                       key={i}
                       to={link}
                       isAppRoute={isApp}
-                      className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/20 dark:hover:border-primary/20 transition-all group"
+                      aria-label={label}
+                      className={className}
                     >
-                      <Icon
-                        size={17}
-                        strokeWidth={2}
-                        className="group-hover:scale-110 transition-transform"
-                      />
+                      <Icon size={16} strokeWidth={1.75} />
                     </FooterLink>
                   );
                 })}
@@ -305,10 +354,10 @@ const Footer = () => {
               },
             ].map((col, i) => (
               <div key={i}>
-                <h5 className="text-[11px] font-semibold uppercase tracking-[0.15em] mb-8 text-slate-900 dark:text-slate-200">
+                <h5 className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-6 text-slate-900 dark:text-slate-200">
                   {col.title}
                 </h5>
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {col.items.map((item, j) => {
                     const linkMap = {
                       'Ledger Core': '/documentation#architecture',
@@ -327,29 +376,25 @@ const Footer = () => {
                       'Member Console',
                       'Loan Lookup Portal',
                     ].includes(item);
+                    const linkClass =
+                      'text-[13px] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-normal';
 
                     if (path) {
                       return (
-                        <li key={j} className="w-fit">
+                        <li key={j}>
                           <FooterLink
                             to={path}
                             isAppRoute={isAppLink}
-                            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium relative group block"
+                            className={linkClass}
                           >
                             {item}
-                            <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
                           </FooterLink>
                         </li>
                       );
                     }
-
                     return (
-                      <li
-                        key={j}
-                        className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer font-medium relative group w-fit block"
-                      >
+                      <li key={j} className={`${linkClass} cursor-pointer`}>
                         {item}
-                        <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
                       </li>
                     );
                   })}
@@ -360,137 +405,129 @@ const Footer = () => {
 
           {/* Download Apps Section */}
           <div className="mt-16 pt-10 border-t border-slate-100 dark:border-white/[0.04]">
-            <div className="flex flex-col items-center text-center space-y-8">
-              <div className="space-y-2">
-                <h5 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-900 dark:text-slate-200">
-                  Get Our Apps
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
+              <div className="max-w-sm">
+                <h5 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-900 dark:text-slate-200">
+                  Get our apps
                 </h5>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-normal max-w-md">
-                  Get the FinFlo mobile experience. Download for Android or
-                  install on iPhone directly from Safari.
+                <p className="mt-2 text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Native Android builds, plus a single-tap Safari install for
+                  iPhone and iPad. Same data, same account.
                 </p>
               </div>
 
-              {/* Android Section */}
-              <div className="space-y-3 w-full max-w-2xl">
-                <div className="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
-                  <AndroidIcon size={16} />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em]">
-                    Android
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  <a
-                    href="/downloads/member-app.apk?v=20260513"
-                    download="FinFlo-Member.apk"
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white hover:from-indigo-600 hover:to-violet-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-indigo-500/20 group"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                      <Smartphone size={16} />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider opacity-80">
-                        Download APK
-                      </p>
-                      <p className="text-sm font-bold -mt-0.5">Member App</p>
-                    </div>
-                    <Download
-                      size={14}
-                      className="ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all"
-                    />
-                  </a>
-                  <a
-                    href="/downloads/business-app.apk?v=20260513"
-                    download="FinFlo-Business.apk"
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/20 group"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                      <Smartphone size={16} />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider opacity-80">
-                        Download APK
-                      </p>
-                      <p className="text-sm font-bold -mt-0.5">Business App</p>
-                    </div>
-                    <Download
-                      size={14}
-                      className="ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all"
-                    />
-                  </a>
-                </div>
-              </div>
+              <div className="grid grid-cols-[auto_auto] gap-2.5 w-fit lg:ml-auto">
+                {/* Android — Member */}
+                <a
+                  href="/downloads/member-app.apk?v=20260513"
+                  download="FinFlo-Member.apk"
+                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
+                      <AndroidIcon size={11} />
+                      Android · APK
+                    </p>
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      Member app
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    size={15}
+                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                  />
+                </a>
 
-              {/* iOS Section */}
-              <div className="space-y-3 w-full max-w-2xl">
-                <div className="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
-                  <AppleIcon size={14} />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em]">
-                    iPhone &amp; iPad
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  <button
-                    onClick={() => setIosModal({ open: true, type: 'member' })}
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white hover:from-blue-600 hover:to-cyan-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-blue-500/20 group cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                      <AppleIcon size={15} className="text-white" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider opacity-80">
-                        Install on iOS
-                      </p>
-                      <p className="text-sm font-bold -mt-0.5">Member App</p>
-                    </div>
-                    <ExternalLink
-                      size={14}
-                      className="ml-1 opacity-60 group-hover:opacity-100 transition-all"
-                    />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setIosModal({ open: true, type: 'business' })
-                    }
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-600 text-white hover:from-orange-600 hover:to-rose-700 transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-500/20 group cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                      <AppleIcon size={15} className="text-white" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider opacity-80">
-                        Install on iOS
-                      </p>
-                      <p className="text-sm font-bold -mt-0.5">Business App</p>
-                    </div>
-                    <ExternalLink
-                      size={14}
-                      className="ml-1 opacity-60 group-hover:opacity-100 transition-all"
-                    />
-                  </button>
-                </div>
+                {/* Android — Business */}
+                <a
+                  href="/downloads/business-app.apk?v=20260513"
+                  download="FinFlo-Business.apk"
+                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 hover:-translate-y-0.5 transition-all"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
+                      <AndroidIcon size={11} />
+                      Android · APK
+                    </p>
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      Business app
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    size={15}
+                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                  />
+                </a>
+
+                {/* iOS — Member */}
+                <button
+                  onClick={() => setIosModal({ open: true, type: 'member' })}
+                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-md shadow-blue-500/20 hover:-translate-y-0.5 transition-all text-left"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
+                      <AppleIcon size={10} />
+                      iOS · Safari
+                    </p>
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      Member app
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    size={15}
+                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                  />
+                </button>
+
+                {/* iOS — Business */}
+                <button
+                  onClick={() => setIosModal({ open: true, type: 'business' })}
+                  className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white shadow-md shadow-orange-500/20 hover:-translate-y-0.5 transition-all text-left"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70 flex items-center gap-1.5">
+                      <AppleIcon size={10} />
+                      iOS · Safari
+                    </p>
+                    <p className="text-[13px] font-semibold text-white truncate">
+                      Business app
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    size={15}
+                    className="text-white/70 group-hover:text-white group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                  />
+                </button>
               </div>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-20 pt-8 border-t border-slate-100 dark:border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+          <div className="mt-16 pt-6 border-t border-slate-100 dark:border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-normal tracking-wide">
               © 2026 Finflo. All rights reserved.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-5">
               <Link
                 to="/privacy"
-                className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors font-normal"
+                className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-normal"
               >
                 Privacy
               </Link>
               <Link
                 to="/terms"
-                className="text-xs text-slate-400 dark:text-slate-500 hover:text-primary transition-colors font-normal"
+                className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-normal"
               >
                 Terms
               </Link>
+              <a
+                href="https://status.finflo.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-normal"
+              >
+                Status
+              </a>
             </div>
           </div>
         </div>
