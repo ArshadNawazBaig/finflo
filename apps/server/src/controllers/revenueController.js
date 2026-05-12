@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const SystemSettings = require('../models/SystemSettings');
 const Payment = require('../models/Payment');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // Get revenue overview
 const getRevenueOverview = async (req, res) => {
@@ -250,11 +251,12 @@ const getPaymentHistory = async (req, res) => {
 
     // If search is provided, we need to find matching users first
     if (search) {
+      const safeSearch = escapeRegExp(String(search));
       const matchingUsers = await User.find({
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { businessName: { $regex: search, $options: 'i' } },
+          { name: { $regex: safeSearch, $options: 'i' } },
+          { email: { $regex: safeSearch, $options: 'i' } },
+          { businessName: { $regex: safeSearch, $options: 'i' } },
         ],
       }).select('_id');
 

@@ -3,6 +3,7 @@ const Customer = require('../models/Customer');
 const Loan = require('../models/Loan');
 const Member = require('../models/Member');
 const { logActivity } = require('./activityLogController');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // Get dashboard statistics for super admin
 const getDashboardStats = async (req, res) => {
@@ -132,10 +133,11 @@ const getAllUsers = async (req, res) => {
     const query = { role: 'admin' };
 
     if (search) {
+      const safeSearch = escapeRegExp(String(search));
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { businessName: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+        { businessName: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 

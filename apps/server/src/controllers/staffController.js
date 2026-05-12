@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const ActivityLog = require('../models/ActivityLog');
 const { logActivity } = require('./activityLogController');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // Create Staff Member
 const createStaff = async (req, res) => {
@@ -85,9 +86,10 @@ const getStaff = async (req, res) => {
       }
     }
     if (search) {
+      const safeSearch = escapeRegExp(String(search));
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 

@@ -54,9 +54,26 @@ const createLoanProduct = async (req, res) => {
 // @access  Private (Admin)
 const updateLoanProduct = async (req, res) => {
   try {
+    // Whitelist updatable fields — never pass req.body straight into Mongo,
+    // or a caller can reassign `user` / `createdBy` and break tenant isolation.
+    const ALLOWED_FIELDS = [
+      'name',
+      'description',
+      'defaultRate',
+      'defaultDuration',
+      'minPrincipal',
+      'maxPrincipal',
+      'interestType',
+      'isActive',
+    ];
+    const update = {};
+    for (const f of ALLOWED_FIELDS) {
+      if (req.body[f] !== undefined) update[f] = req.body[f];
+    }
+
     const product = await LoanProduct.findOneAndUpdate(
       { _id: req.params.id, user: req.user.effectiveOwnerId },
-      req.body,
+      update,
       { new: true, runValidators: true },
     );
 

@@ -88,9 +88,14 @@ class RaastService {
    * @returns {Boolean} True if signature matches
    */
   verifyWebhook(payload, signatureHeader) {
-    if (!this.secretKey) {
-      // Allow bypass in local dev if no secret key configured
-      return process.env.NODE_ENV !== 'production';
+    // SECURITY: Always require a configured secret AND a signature header.
+    // Previously this returned `true` when secretKey was unset (any non-prod
+    // env), which let anyone reaching the endpoint forge `status: PAID` and
+    // credit any investment. There is no scenario where bypassing webhook
+    // signature verification is safe — a missing secret is a misconfiguration
+    // and must fail closed.
+    if (!this.secretKey || !signatureHeader) {
+      return false;
     }
 
     const expectedSignature = crypto
@@ -98,8 +103,11 @@ class RaastService {
       .update(JSON.stringify(payload))
       .digest('hex');
 
-    // Often banks provide a slightly different signature mechanism, adjust here if needed
-    return expectedSignature === signatureHeader;
+    // Constant-time comparison defeats timing side channels.
+    const a = Buffer.from(expectedSignature, 'hex');
+    const b = Buffer.from(String(signatureHeader), 'hex');
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   }
 }
 

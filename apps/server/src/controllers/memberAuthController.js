@@ -9,6 +9,9 @@ const googleAllowedAudiences = [
 ].filter(Boolean);
 
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const generate6DigitCode = () =>
+  crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 const { logActivity } = require('./activityLogController');
 const { authenticator } = require('otplib');
 const QRCode = require('qrcode');
@@ -20,7 +23,10 @@ const {
 const { validatePassword } = require('../utils/validation');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+  // type: 'member' prevents a User-collection token from being accepted by
+  // the Member middleware (and vice versa) — protects against cross-collection
+  // ObjectId collisions/token confusion.
+  return jwt.sign({ id, type: 'member' }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
 const cookieOptions = {
@@ -87,7 +93,27 @@ const loginMember = async (req, res) => {
       });
     }
 
+    // ── Brute-force protection ─────────────────────────────────────────────
+    // Mirrors the User-side lockout: 5 failed attempts → 15-minute lock.
+    // The fields are written via $set/$inc so a missing-field schema does not
+    // throw — they are treated as zero/undefined transparently.
+    const MAX_LOGIN_ATTEMPTS = 5;
+    const LOCK_TIME_MS = 15 * 60 * 1000;
+    if (member.lockUntil && member.lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((member.lockUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        message: `Account temporarily locked due to too many failed attempts. Try again in ${minutesLeft} minute(s).`,
+        locked: true,
+      });
+    }
+
     if (await member.matchPassword(password)) {
+      // Reset attempt counter on success.
+      if (member.failedLoginAttempts || member.lockUntil) {
+        await Member.findByIdAndUpdate(member._id, {
+          $set: { failedLoginAttempts: 0, lockUntil: null },
+        });
+      }
       // If 2FA is enabled, return a pending status and temporary token
       if (member.isTwoFactorEnabled) {
         const pendingToken = jwt.sign(
@@ -150,6 +176,14 @@ const loginMember = async (req, res) => {
         business: member.user, // The business this member belongs to
       });
     } else {
+      // Track failed attempt + lock if threshold reached.
+      const nextAttempts = (member.failedLoginAttempts || 0) + 1;
+      const update = { $set: { failedLoginAttempts: nextAttempts } };
+      if (nextAttempts >= MAX_LOGIN_ATTEMPTS) {
+        update.$set.lockUntil = Date.now() + LOCK_TIME_MS;
+        update.$set.failedLoginAttempts = 0;
+      }
+      await Member.findByIdAndUpdate(member._id, update);
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
@@ -762,6 +796,14 @@ const deleteAccount = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email, securityCode } = req.body;
 
+  // SECURITY: respond identically whether the business code or member email
+  // exists. Prior responses distinguished "Invalid business security code"
+  // from "No member found", letting attackers enumerate both axes.
+  const SAFE_RESPONSE = {
+    success: true,
+    data: 'If a matching member account exists, a reset link has been sent.',
+  };
+
   try {
     // 1. Find business by security code
     const User = require('../models/User');
@@ -770,9 +812,7 @@ const forgotPassword = async (req, res) => {
     });
 
     if (!business) {
-      return res
-        .status(404)
-        .json({ message: 'Invalid business security code' });
+      return res.status(200).json(SAFE_RESPONSE);
     }
 
     // 2. Find member in this business
@@ -782,9 +822,7 @@ const forgotPassword = async (req, res) => {
     });
 
     if (!member) {
-      return res
-        .status(404)
-        .json({ message: 'No member found with that email in this business' });
+      return res.status(200).json(SAFE_RESPONSE);
     }
 
     // 3. Get reset token
@@ -820,10 +858,7 @@ const forgotPassword = async (req, res) => {
         ),
       });
 
-      res.status(200).json({
-        success: true,
-        data: 'Email sent',
-      });
+      res.status(200).json(SAFE_RESPONSE);
 
       // Log activity
       await logActivity({
@@ -838,11 +873,7 @@ const forgotPassword = async (req, res) => {
       member.resetPasswordToken = undefined;
       member.resetPasswordExpire = undefined;
       await member.save({ validateBeforeSave: false });
-
-      return res.status(500).json({
-        message: 'Email could not be sent',
-        error: err.message,
-      });
+      return res.status(200).json(SAFE_RESPONSE);
     }
   } catch (error) {
     console.error('Member Forgot Password Error:', error);
@@ -945,9 +976,22 @@ const deleteProfilePicture = async (req, res) => {
 
 /** Generate a TOTP secret & return a QR code for the member */
 const generate2FA = async (req, res) => {
+  const { password } = req.body || {};
   try {
-    const member = await Member.findById(req.member._id);
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to enable 2FA' });
+    }
+    const member = await Member.findById(req.member._id).select('+password');
     if (!member) return res.status(404).json({ message: 'Member not found' });
+    if (member.isGoogleAuth && !member.password) {
+      return res.status(400).json({
+        message: 'Cannot enable 2FA on a Google-only account. Set a password first.',
+      });
+    }
+    const passwordOk = await member.matchPassword(password);
+    if (!passwordOk) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
     if (member.isTwoFactorEnabled)
       return res.status(400).json({ message: '2FA is already enabled' });
 
@@ -1109,8 +1153,8 @@ const requestMemberPasswordChangeCode = async (req, res) => {
     );
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit code (CSPRNG)
+    const code = generate6DigitCode();
     member.passwordChangeCode = code;
     member.passwordChangeCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await member.save({ validateBeforeSave: false });

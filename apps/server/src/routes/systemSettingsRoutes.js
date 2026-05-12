@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getSystemSettings,
+  getFullSystemSettings,
   updateSystemSettings,
   updateLoanConfiguration,
   getBusinessConfig,
@@ -10,13 +11,16 @@ const {
   testSmtpConnection,
   uploadPartnerLogo,
 } = require('../controllers/systemSettingsController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { superAdminProtect } = require('../middleware/superAdminMiddleware');
 const upload = require('../middleware/userUploadMiddleware');
 
-// Public route - anyone can view basic settings
+// Public route — returns sanitized settings only (no SMTP creds, no email templates)
 router.get('/', getSystemSettings);
+
+// Full settings (super admin only — includes SMTP credentials, email templates)
+router.get('/full', protect, superAdminProtect, getFullSystemSettings);
 
 // Per-business config (admin/staff) — returns config for the calling user's business
 router.get('/business-config', protect, getBusinessConfig);
@@ -30,7 +34,7 @@ router.post('/reset', protect, superAdminProtect, resetToDefaults);
 router.post('/test-connection', protect, superAdminProtect, testSmtpConnection);
 router.post('/upload-partner-logo', protect, superAdminProtect, upload.single('logo'), uploadPartnerLogo);
 
-// Protected routes - admin & super admin
-router.put('/loan-configuration', protect, updateLoanConfiguration);
+// Loan configuration — admin or super admin only
+router.put('/loan-configuration', protect, admin, updateLoanConfiguration);
 
 module.exports = router;

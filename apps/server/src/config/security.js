@@ -21,15 +21,21 @@ const allowedOrigins = [
   'https://finflo.org',
 ];
 
+// Pin Vercel previews to a specific project — the previous regex allowed any
+// `*.vercel.app` host to call the API with credentials, which let an attacker
+// who hosts on Vercel pivot to authenticated CSRF.
+const VERCEL_PROJECT_HOSTS = [
+  /^https:\/\/finflo-client(-[a-z0-9-]+)?\.vercel\.app$/,
+  /^https:\/\/loan-master-client(-[a-z0-9-]+)?\.vercel\.app$/,
+];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log(`[CORS] origin=${origin || 'none'} method=preflight-check`);
-
     const isAllowed =
       !origin ||
       allowedOrigins.includes(origin) ||
-      /^https:\/\/[a-z0-9-]+(\.vercel\.app)$/.test(origin) ||
-      /^https:\/\/[a-z0-9-]+(\.up\.railway\.app)$/.test(origin) ||
+      VERCEL_PROJECT_HOSTS.some((re) => re.test(origin)) ||
+      /^https:\/\/finflo-production\.up\.railway\.app$/.test(origin) ||
       /^https:\/\/(.*\.)?finflo\.org$/.test(origin) ||
       (process.env.NODE_ENV !== 'production' &&
         (/^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/.test(origin) ||
@@ -41,6 +47,8 @@ const corsOptions = {
     if (isAllowed) {
       callback(null, true);
     } else {
+      // Log only blocked origins — successful requests are a per-request firehose
+      // that reveals the allowlist to anyone reading logs.
       console.error(`CORS BLOCKED: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
@@ -71,27 +79,39 @@ const helmetOptions = {
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com', 'https://apis.google.com'],
+      // SECURITY: scripts must come from known origins only — removed
+      // 'unsafe-inline' which defeated CSP's primary XSS-mitigation value.
+      scriptSrc: ["'self'", 'https://accounts.google.com', 'https://apis.google.com', 'https://js.stripe.com'],
+      // 'unsafe-inline' for styles is kept because Tailwind+CSS-in-JS leaves
+      // inline styles in the bundle; that is a much smaller risk than inline
+      // scripts. Migrate to nonces later if you want full lockdown.
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
       connectSrc: [
         "'self'",
         'https://api.stripe.com',
-        'http://localhost:5174',
-        'http://localhost:*',
-        'http://127.0.0.1:*',
-        'http://192.168.*.*:*',
-        'ws://localhost:*',
-        'ws://127.0.0.1:*',
-        'wss://*',
         'https://accounts.google.com',
         'https://play.google.com',
+        ...(process.env.NODE_ENV === 'production'
+          ? []
+          : [
+              'http://localhost:5174',
+              'http://localhost:*',
+              'http://127.0.0.1:*',
+              'http://192.168.*.*:*',
+              'ws://localhost:*',
+              'ws://127.0.0.1:*',
+            ]),
+        // wss:// pinned to known socket origins instead of wildcard
+        'wss://finflo-production.up.railway.app',
+        'wss://app.finflo.org',
       ],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'self'", 'https://js.stripe.com', 'https://accounts.google.com'],
-      upgradeInsecureRequests: null,
+      frameAncestors: ["'none'"], // clickjacking defence
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     },
   },
   hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
@@ -118,10 +138,35 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Strict limiter for OTP / 2FA / PIN verification — 10⁶ codes is brute-forceable
+// without this. 8 attempts per 15-minute window per IP.
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  message: {
+    message: 'Too many verification attempts. Please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limiter for signup / password-reset request — prevents email-bomb / enumeration.
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  message: {
+    message: 'Too many signup or password-reset requests. Try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   corsMiddleware: cors(corsOptions),
   corsOptions,
   helmetMiddleware: helmet(helmetOptions),
   apiLimiter,
   authLimiter,
+  otpLimiter,
+  signupLimiter,
 };

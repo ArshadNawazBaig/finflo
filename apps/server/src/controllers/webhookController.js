@@ -1,6 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
 const Payment = require('../models/Payment');
+const ProcessedWebhookEvent = require('../models/ProcessedWebhookEvent');
 const { sendEmail } = require('../utils/email');
 const {
   superAdminSubscriptionNotificationEmail,
@@ -29,6 +30,27 @@ const handleWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  // ── Idempotency guard ───────────────────────────────────────────────────
+  // Stripe retries events for up to 30 days. Without de-dup, a redelivered
+  // `charge.refunded` would re-downgrade the plan; a redelivered
+  // `checkout.session.completed` would re-send confirmation emails and create
+  // duplicate Payment rows. The unique index on `eventId` makes the insert
+  // atomic — if we lose the race we return 200 without re-processing.
+  try {
+    await ProcessedWebhookEvent.create({
+      eventId: event.id,
+      provider: 'stripe',
+      type: event.type,
+    });
+  } catch (e) {
+    if (e && e.code === 11000) {
+      console.log(`[Stripe] Event ${event.id} already processed — skipping.`);
+      return res.json({ received: true, duplicate: true });
+    }
+    console.error('[Stripe] Idempotency record write failed:', e.message);
+    // Fall through — better to risk a duplicate than to drop a real event.
+  }
+
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed': {
@@ -54,19 +76,21 @@ const handleWebhook = async (req, res) => {
             priceId: subscription.items.data[0].price.id,
           });
 
-          // Determine plan from Price ID in subscription items
+          // Determine plan from Price ID in subscription items. The plan
+          // MUST come from the authenticated subscription, NEVER from
+          // session.metadata — metadata is client-controllable so an
+          // attacker could spoof `plan: "Pro"` on a free checkout. Reject
+          // unknown price IDs rather than defaulting to Pro.
           const priceId = subscription.items.data[0].price.id;
-          let plan = session.metadata.plan || 'Pro'; // Fallback
-
-          console.log('Price ID comparison:');
-          console.log('  Received:', priceId);
-          console.log('  Basic:', process.env.STRIPE_PRICE_ID_BASIC);
-          console.log('  Pro:', process.env.STRIPE_PRICE_ID_PRO);
-
+          let plan = null;
           if (priceId === process.env.STRIPE_PRICE_ID_BASIC) {
             plan = 'Basic';
           } else if (priceId === process.env.STRIPE_PRICE_ID_PRO) {
             plan = 'Pro';
+          }
+          if (!plan) {
+            console.error('[Stripe] Unknown priceId — refusing to upgrade:', priceId);
+            return res.status(400).json({ message: 'Unknown subscription plan' });
           }
 
           console.log('Determined plan:', plan);

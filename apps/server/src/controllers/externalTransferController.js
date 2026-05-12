@@ -8,6 +8,7 @@ const {
 } = require('../utils/notificationHelper');
 const Loan = require('../models/Loan');
 const loanRepaymentService = require('../services/loanRepaymentService');
+const { escapeRegExp } = require('../utils/stringUtils');
 const payoutService = require('../services/payoutService');
 
 /**
@@ -356,7 +357,7 @@ const getMyExternalTransfers = async (req, res) => {
 
     const query = { member: memberId };
     if (direction) query.direction = direction;
-    if (bankName) query.bankName = { $regex: bankName, $options: 'i' };
+    if (bankName) query.bankName = { $regex: escapeRegExp(String(bankName)), $options: 'i' };
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 

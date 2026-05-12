@@ -1,5 +1,6 @@
 const Branch = require('../models/Branch');
 const User = require('../models/User');
+const { escapeRegExp } = require('../utils/stringUtils');
 const Loan = require('../models/Loan');
 const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
@@ -430,7 +431,7 @@ const getBranchFinancials = async (req, res) => {
     }
 
     if (search) {
-      const searchRegex = new RegExp(search, 'i');
+      const searchRegex = new RegExp(escapeRegExp(search), 'i');
       const searchOr = [
         { description: searchRegex },
         { category: searchRegex },

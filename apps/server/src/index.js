@@ -8,13 +8,36 @@ try {
 }
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
+// ── Required-secrets startup assertion ───────────────────────────────────────
+// Fail fast if critical secrets are missing or obviously weak. This catches
+// misdeployments (missing JWT_SECRET → tokens would be signed with `undefined`,
+// breaking auth silently and inconsistently).
+(function assertRequiredSecrets() {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret || jwtSecret.length < 32) {
+    console.error(
+      '[FATAL] JWT_SECRET is missing or shorter than 32 chars. Generate a strong secret: `openssl rand -hex 64`',
+    );
+    process.exit(1);
+  }
+  const weakSecrets = ['secret', 'dev_secret_key_123', 'changeme', 'jwt_secret'];
+  if (weakSecrets.includes(jwtSecret.toLowerCase())) {
+    console.error('[FATAL] JWT_SECRET is set to a known-weak placeholder. Rotate it.');
+    process.exit(1);
+  }
+  if (!process.env.MONGO_URI) {
+    console.error('[FATAL] MONGO_URI is required.');
+    process.exit(1);
+  }
+})();
+
 const express = require('express');
 const http = require('http');
 const connectDB = require('./config/db');
 const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 const { initFinanceFlow } = require('./services/reminderService');
 const { initScheduledTasks } = require('./services/scheduledTasksService');
-const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter } = require('./config/security');
+const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter, otpLimiter, signupLimiter } = require('./config/security');
 const setupStandardMiddleware = require('./middleware/standard');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket/socketHandler');
@@ -44,23 +67,35 @@ setupStandardMiddleware(app);
 
 app.use(helmetMiddleware);
 
-// Security: Sanitize inputs against NoSQL injection & HTTP param pollution
+// Security: Sanitize inputs against NoSQL injection & HTTP param pollution.
+// We sanitize body, params AND query (the previous custom sanitizer skipped
+// req.query, which let attackers smuggle Mongo operators like ?status[$ne]=…).
 const hpp = require('hpp');
 
-// Custom NoSQL injection sanitizer (Express 5 compatible — req.query is immutable/safe)
-const sanitizeObject = (obj) => {
+const sanitizeMongoKeys = (obj) => {
   if (!obj || typeof obj !== 'object') return;
   for (const key of Object.keys(obj)) {
-    if (key.startsWith('$')) {
-      delete obj[key];
-    } else if (typeof obj[key] === 'object') {
-      sanitizeObject(obj[key]);
+    // Strip any key starting with `$` (operator injection) or containing `.`
+    // (path injection that can target nested fields like `__proto__.foo`).
+    if (key.startsWith('$') || key.includes('.')) {
+      try { delete obj[key]; } catch (_) { /* read-only — ignore */ }
+    } else if (obj[key] && typeof obj[key] === 'object') {
+      sanitizeMongoKeys(obj[key]);
     }
   }
 };
 app.use((req, res, next) => {
-  sanitizeObject(req.body);
-  sanitizeObject(req.params);
+  sanitizeMongoKeys(req.body);
+  sanitizeMongoKeys(req.params);
+  // Express 5 makes req.query a getter; deep-sanitize the underlying values
+  // (they're still mutable) — this neutralises operator injection in query
+  // strings such as `?status[$ne]=resolved`.
+  if (req.query && typeof req.query === 'object') {
+    for (const key of Object.keys(req.query)) {
+      const v = req.query[key];
+      if (v && typeof v === 'object') sanitizeMongoKeys(v);
+    }
+  }
   next();
 });
 app.use(hpp());
@@ -103,18 +138,35 @@ app.use('/api/', (req, res, next) => {
   if (req.method === 'OPTIONS') return next();
   apiLimiter(req, res, next);
 });
-app.use('/api/auth/login', (req, res, next) => {
+// Generic limiter wrapper that lets preflights through.
+const skipOptions = (limiter) => (req, res, next) => {
   if (req.method === 'OPTIONS') return next();
-  authLimiter(req, res, next);
-});
-app.use('/api/auth/forgotpassword', (req, res, next) => {
-  if (req.method === 'OPTIONS') return next();
-  authLimiter(req, res, next);
-});
-app.use('/api/member-auth/login', (req, res, next) => {
-  if (req.method === 'OPTIONS') return next();
-  authLimiter(req, res, next);
-});
+  limiter(req, res, next);
+};
+
+// Login endpoints — both User and Member portals.
+app.use('/api/auth/login', skipOptions(authLimiter));
+app.use('/api/auth/google', skipOptions(authLimiter));
+app.use('/api/member-auth/login', skipOptions(authLimiter));
+
+// Signup / password-reset request — anti-enumeration / email-bomb.
+app.use('/api/auth/register', skipOptions(signupLimiter));
+app.use('/api/auth/google/register', skipOptions(signupLimiter));
+app.use('/api/auth/forgotpassword', skipOptions(signupLimiter));
+app.use('/api/member-auth/forgotpassword', skipOptions(signupLimiter));
+
+// OTP / 2FA / PIN verification — keep the search space from being brute-forced.
+app.use('/api/auth/verify-email', skipOptions(otpLimiter));
+app.use('/api/auth/verify-2fa-login', skipOptions(otpLimiter));
+app.use('/api/auth/verify-2fa', skipOptions(otpLimiter));
+app.use('/api/auth/resetpassword', skipOptions(otpLimiter));
+app.use('/api/auth/force-change-password', skipOptions(otpLimiter));
+app.use('/api/member-auth/verify-email', skipOptions(otpLimiter));
+app.use('/api/member-auth/verify-2fa-login', skipOptions(otpLimiter));
+app.use('/api/member-auth/resetpassword', skipOptions(otpLimiter));
+app.use('/api/member-auth/force-change-password', skipOptions(otpLimiter));
+app.use('/api/transaction-pin/verify-reset-otp', skipOptions(otpLimiter));
+app.use('/api/transaction-pin/verify', skipOptions(otpLimiter));
 
 // Database Connection Middleware (Safety Net — only reconnects if disconnected)
 const mongoose = require('mongoose');

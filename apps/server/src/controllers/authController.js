@@ -14,6 +14,12 @@ const Branch = require('../models/Branch');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+// Cryptographically random 6-digit verification code. Math.random is not
+// suitable for security-bearing OTPs (predictable PRNG state).
+const generate6DigitCode = () =>
+  crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 const { logActivity } = require('./activityLogController');
 const { sendEmail } = require('../utils/email');
 const {
@@ -37,7 +43,10 @@ const googleAllowedAudiences = [
 ].filter(Boolean);
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+  // type: 'user' prevents a Member-collection token from being accepted by
+  // the User middleware (and vice versa) — protects against cross-collection
+  // ObjectId collisions/token confusion.
+  return jwt.sign({ id, type: 'user' }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
 const cookieOptions = {
@@ -58,10 +67,8 @@ const registerUser = async (req, res) => {
   const lowercaseEmail = email?.toLowerCase();
   const lowercaseName = name?.toLowerCase();
 
-  // Generate 6-digit verification code
-  const verificationCode = Math.floor(
-    100000 + Math.random() * 900000,
-  ).toString();
+  // Generate 6-digit verification code (CSPRNG)
+  const verificationCode = generate6DigitCode();
   const verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   try {
@@ -71,39 +78,36 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Check if registering as super admin
-    const isSuperAdmin =
-      lowercaseEmail === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-
+    // SECURITY: do NOT auto-promote based on a matching email env var.
+    // Super admins must be provisioned explicitly (script/DB), not via
+    // self-registration. Every public registration is a plain admin who must
+    // verify their email like everyone else.
     const user = await User.create({
       name: lowercaseName,
       email: lowercaseEmail,
       password,
-      role: isSuperAdmin ? 'super_admin' : 'admin',
-      isVerified: isSuperAdmin,
-      verificationCode: isSuperAdmin ? undefined : verificationCode,
-      verificationCodeExpire: isSuperAdmin ? undefined : verificationCodeExpire,
+      role: 'admin',
+      isVerified: false,
+      verificationCode,
+      verificationCodeExpire,
     });
 
     if (user) {
-      // Send verification email (skip for super admin)
-      if (!isSuperAdmin) {
-        try {
-          await sendEmail({
-            to: user.email,
-            subject: 'Action Required: Verify Your Email',
-            html: verificationEmail(
-              verificationCode,
-              user.businessName || user.name,
-              user.businessLogo,
-            ),
-          });
-        } catch (err) {
-          console.error('Verification email failed to send:', err);
-        }
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Action Required: Verify Your Email',
+          html: verificationEmail(
+            verificationCode,
+            user.businessName || user.name,
+            user.businessLogo,
+          ),
+        });
+      } catch (err) {
+        console.error('Verification email failed to send:', err);
       }
-      // Notify Super Admin (for regular admin registrations)
-      if (!isSuperAdmin) {
+      // Notify Super Admin of new business registration
+      {
         try {
           const superAdmin = await User.findOne({ role: 'super_admin' });
           if (superAdmin) {
@@ -870,11 +874,19 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const lowercaseEmail = email?.toLowerCase();
 
+  // SECURITY: respond identically whether the email exists or not. Account
+  // enumeration via the password-reset endpoint lets attackers harvest
+  // valid user emails for phishing / credential-stuffing.
+  const SAFE_RESPONSE = {
+    success: true,
+    data: 'If an account exists for that email, a reset link has been sent.',
+  };
+
   try {
     const user = await User.findOne({ email: lowercaseEmail });
 
     if (!user) {
-      return res.status(404).json({ message: 'No user with that email' });
+      return res.status(200).json(SAFE_RESPONSE);
     }
 
     // Get reset token
@@ -915,10 +927,7 @@ const forgotPassword = async (req, res) => {
         ),
       });
 
-      res.status(200).json({
-        success: true,
-        data: 'Email sent',
-      });
+      res.status(200).json(SAFE_RESPONSE);
 
       // Log activity
       await logActivity({
@@ -932,13 +941,11 @@ const forgotPassword = async (req, res) => {
       console.error('Email send error:', err);
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
-
       await user.save({ validateBeforeSave: false });
-
-      return res.status(500).json({
-        message: 'Email could not be sent',
-        error: err.message, // Providing the specific error message for debugging
-      });
+      // Still return the safe response — leaking "email could not be sent"
+      // here would distinguish valid emails (which trigger a send attempt)
+      // from invalid ones. Surface failures via server logs only.
+      return res.status(200).json(SAFE_RESPONSE);
     }
   } catch (error) {
     console.error('Forgot Password Error:', error);
@@ -1071,9 +1078,7 @@ const resendVerificationCode = async (req, res) => {
       return res.status(400).json({ message: 'Email is already verified' });
     }
 
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const verificationCode = generate6DigitCode();
     user.verificationCode = verificationCode;
     user.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
     await user.save();
@@ -1224,9 +1229,25 @@ const deleteProfilePicture = async (req, res) => {
 
 /** Generate a TOTP secret & return a QR code for the authenticator app */
 const generate2FA = async (req, res) => {
+  const { password } = req.body || {};
   try {
-    const user = await User.findById(req.user.id);
+    // SECURITY: require the account password to enable 2FA. Without this,
+    // a session-hijacker could enrol their own authenticator and lock the
+    // legitimate user out of their own account.
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to enable 2FA' });
+    }
+    const user = await User.findById(req.user.id).select('+password');
     if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.isGoogleAuth && !user.password) {
+      return res.status(400).json({
+        message: 'Cannot enable 2FA on a Google-only account. Set a password first.',
+      });
+    }
+    const passwordOk = await user.matchPassword(password);
+    if (!passwordOk) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
     if (user.isTwoFactorEnabled)
       return res.status(400).json({ message: '2FA is already enabled' });
 
@@ -1337,14 +1358,36 @@ const verifyLogin2FA = async (req, res) => {
     const user = await User.findById(decoded.id).populate('roleRef');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Per-account 2FA attempt lockout: 8 failed codes → 15-minute freeze.
+    // Combined with the per-IP otpLimiter this defeats both single-IP and
+    // distributed brute-force against the 10⁶ TOTP search space.
+    const TFA_LOCK_MS = 15 * 60 * 1000;
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(423).json({
+        message: `Too many failed 2FA attempts. Try again in ${minutesLeft} minute(s).`,
+        locked: true,
+      });
+    }
+
     const isValid = await authenticator.verify({
       token: code,
       secret: user.twoFactorSecret,
     });
-    if (!isValid)
+    if (!isValid) {
+      const nextAttempts = (user.failedLoginAttempts || 0) + 1;
+      const update = { failedLoginAttempts: nextAttempts };
+      if (nextAttempts >= 8) {
+        update.lockUntil = Date.now() + TFA_LOCK_MS;
+        update.failedLoginAttempts = 0;
+      }
+      await User.findByIdAndUpdate(user._id, { $set: update });
       return res.status(400).json({ message: 'Invalid or expired 2FA code' });
+    }
 
-    // Update last login
+    // Reset counter on success + update last login
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
     user.lastLoginAt = new Date();
     await user.save({ validateBeforeSave: false });
 
@@ -1389,8 +1432,8 @@ const requestPasswordChangeCode = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit code (CSPRNG)
+    const code = generate6DigitCode();
     user.passwordChangeCode = code;
     user.passwordChangeCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save({ validateBeforeSave: false });
@@ -1630,25 +1673,20 @@ const googleRegister = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const isSuperAdmin =
-      lowercaseEmail === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-
-    // Create the user
-    // Provide a random strong password for the DB requirement although we made it conditionally required,
-    // it's fine since isGoogleAuth is true, but doing it just in case.
-    // Since we updated User schema for `required: function() { return !this.isGoogleAuth; }`, password can be omitted.
+    // SECURITY: Never auto-promote to super_admin based on email match.
+    // Super admins are provisioned out-of-band only.
     const user = await User.create({
       name: lowercaseName,
       email: lowercaseEmail,
       googleId,
       isGoogleAuth: true,
       profilePicture: picture || '',
-      role: isSuperAdmin ? 'super_admin' : 'admin',
+      role: 'admin',
       isVerified: true, // Auto-verify since Google verified it
     });
 
-    // Notify Super Admin (for regular admin registrations)
-    if (!isSuperAdmin) {
+    // Notify Super Admin of every Google-based registration.
+    {
       try {
         const superAdmin = await User.findOne({ role: 'super_admin' });
         if (superAdmin) {

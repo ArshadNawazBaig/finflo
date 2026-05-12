@@ -25,14 +25,20 @@ module.exports = (app) => {
 
   // APK downloads — serve with correct MIME type so browsers don't extract as zip
   app.get('/downloads/:filename', (req, res) => {
-    const { filename } = req.params;
-    // Only allow .apk files
-    if (!filename.endsWith('.apk')) {
+    // path.basename strips any directory components, neutralising ../ traversal.
+    const safeName = path.basename(req.params.filename || '');
+    // Allow only simple .apk filenames composed of safe characters.
+    if (!/^[A-Za-z0-9._-]+\.apk$/.test(safeName)) {
       return res.status(404).send('Not found');
     }
-    const filePath = path.join(__dirname, '../../downloads', filename);
+    const downloadsRoot = path.resolve(__dirname, '../../downloads');
+    const filePath = path.resolve(downloadsRoot, safeName);
+    // Defence-in-depth: refuse anything that escapes the downloads root.
+    if (!filePath.startsWith(downloadsRoot + path.sep)) {
+      return res.status(404).send('Not found');
+    }
     res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
     res.sendFile(filePath, (err) => {
       if (err) res.status(404).send('File not found');
     });

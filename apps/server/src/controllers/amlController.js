@@ -67,9 +67,14 @@ const createRule = async (req, res) => {
 
 const updateRule = async (req, res) => {
   try {
+    const ALLOWED = ['name', 'description', 'threshold', 'severity', 'isActive', 'conditions', 'action'];
+    const update = {};
+    for (const f of ALLOWED) {
+      if (req.body[f] !== undefined) update[f] = req.body[f];
+    }
     const rule = await AmlRule.findOneAndUpdate(
       { _id: req.params.id, user: req.user.effectiveOwnerId },
-      req.body,
+      update,
       { new: true },
     );
     if (!rule) return res.status(404).json({ message: 'Rule not found' });
@@ -253,11 +258,24 @@ const getSARs = async (req, res) => {
 
 const createSAR = async (req, res) => {
   try {
-    const sar = await SuspiciousActivityReport.create({
-      ...req.body,
-      user: req.user.effectiveOwnerId,
-      preparedBy: req.user._id,
-    });
+    const ALLOWED_SAR_FIELDS = [
+      'reportNumber',
+      'subject',
+      'subjectModel',
+      'suspicionType',
+      'transactions',
+      'amount',
+      'narrative',
+      'evidence',
+      'priority',
+      'filingStatus',
+      'dueDate',
+    ];
+    const payload = { user: req.user.effectiveOwnerId, preparedBy: req.user._id };
+    for (const f of ALLOWED_SAR_FIELDS) {
+      if (req.body[f] !== undefined) payload[f] = req.body[f];
+    }
+    const sar = await SuspiciousActivityReport.create(payload);
 
     logSecurityEvent({
       action: `SAR created: ${sar.reportNumber}`,
@@ -276,9 +294,26 @@ const createSAR = async (req, res) => {
 
 const updateSAR = async (req, res) => {
   try {
+    const ALLOWED_SAR_UPDATE = [
+      'subject',
+      'subjectModel',
+      'suspicionType',
+      'transactions',
+      'amount',
+      'narrative',
+      'evidence',
+      'priority',
+      'filingStatus',
+      'dueDate',
+      'reviewNotes',
+    ];
+    const update = {};
+    for (const f of ALLOWED_SAR_UPDATE) {
+      if (req.body[f] !== undefined) update[f] = req.body[f];
+    }
     const sar = await SuspiciousActivityReport.findOneAndUpdate(
       { _id: req.params.id, user: req.user.effectiveOwnerId },
-      req.body,
+      update,
       { new: true },
     );
     if (!sar) return res.status(404).json({ message: 'SAR not found' });

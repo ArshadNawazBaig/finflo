@@ -5,6 +5,14 @@ const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
 const { logActivity } = require('./activityLogController');
 
+// Defuse CSV formula-injection: Excel / Sheets will execute a cell starting
+// with `=`, `+`, `-`, `@`, TAB or CR as a formula. Prefix any such cell with
+// a single-quote so it's treated as text.
+const defuseFormula = (s) => {
+  if (s.length > 0 && /^[=+\-@\t\r]/.test(s)) return `'${s}`;
+  return s;
+};
+
 // Helper function to convert JSON to CSV
 const jsonToCSV = (data, fields) => {
   if (!data || data.length === 0) return '';
@@ -19,9 +27,8 @@ const jsonToCSV = (data, fields) => {
         const value = fieldKey
           .split('.')
           .reduce((obj, key) => obj?.[key], item);
-        // Escape commas and quotes in CSV
         if (value === null || value === undefined) return '';
-        const stringValue = String(value);
+        let stringValue = defuseFormula(String(value));
         if (
           stringValue.includes(',') ||
           stringValue.includes('"') ||

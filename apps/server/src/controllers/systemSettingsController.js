@@ -3,13 +3,56 @@ const { logActivity } = require('./activityLogController');
 const { invalidateSettingsCache } = require('../utils/email');
 const { getEmailBranding } = require('../utils/brandingUtils');
 
-// Get system settings
+// Fields that are safe to expose unauthenticated (landing pages, maintenance banner).
+// Anything not on this list — SMTP creds, email templates, internal config — is filtered out.
+const PUBLIC_SETTINGS_FIELDS = [
+  'subscriptionPlans',
+  'defaultInterestRate',
+  'defaultLoanTerm',
+  'currency',
+  'maxLoanLimits',
+  'platformName',
+  'platformDescription',
+  'supportEmail',
+  'maintenanceMode',
+  'estimatedMaintenanceTime',
+  'partners',
+  'checkbookFees',
+  'lateFeeEnabled',
+  'lateFeeType',
+  'lateFeeRate',
+  'lateFeeGracePeriodDays',
+  'termDepositRates',
+  'termDepositEarlyBreakPenalty',
+];
+
+const pickPublicSettings = (settings) => {
+  const src = typeof settings.toObject === 'function' ? settings.toObject() : settings;
+  const out = {};
+  PUBLIC_SETTINGS_FIELDS.forEach((field) => {
+    if (src[field] !== undefined) out[field] = src[field];
+  });
+  return out;
+};
+
+// Get system settings (PUBLIC — sanitized; never returns SMTP credentials or email templates)
 const getSystemSettings = async (req, res) => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    res.json(pickPublicSettings(settings));
+  } catch (error) {
+    console.error('Error fetching system settings:', error);
+    res.status(500).json({ message: 'Failed to fetch system settings' });
+  }
+};
+
+// Get full system settings (super-admin only — includes SMTP credentials)
+const getFullSystemSettings = async (req, res) => {
   try {
     const settings = await SystemSettings.getSettings();
     res.json(settings);
   } catch (error) {
-    console.error('Error fetching system settings:', error);
+    console.error('Error fetching full system settings:', error);
     res.status(500).json({ message: 'Failed to fetch system settings' });
   }
 };
@@ -333,6 +376,7 @@ const uploadPartnerLogo = async (req, res) => {
 
 module.exports = {
   getSystemSettings,
+  getFullSystemSettings,
   updateSystemSettings,
   updateLoanConfiguration,
   getBusinessConfig,

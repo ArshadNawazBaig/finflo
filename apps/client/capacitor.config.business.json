@@ -6,7 +6,7 @@
   "server": {
     "url": "https://app.finflo.org",
     "errorPath": "error.html",
-    "cleartext": true,
+    "cleartext": false,
     "allowNavigation": ["app.finflo.org", "finflo.org"]
   },
   "plugins": {

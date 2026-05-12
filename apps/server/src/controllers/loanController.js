@@ -17,6 +17,7 @@ const {
   notifyAdminsOfMemberAction,
 } = require('../utils/notificationHelper');
 const { logActivity } = require('./activityLogController');
+const { escapeRegExp } = require('../utils/stringUtils');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const loanRepaymentService = require('../services/loanRepaymentService');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
@@ -416,7 +417,6 @@ const createLoan = async (req, res) => {
 const requestLoan = async (req, res) => {
   const {
     principal: principalInput,
-    rate: rateInput,
     duration: durationInput,
     grantor1Identifier,
     grantor2Identifier,
@@ -424,15 +424,14 @@ const requestLoan = async (req, res) => {
   } = req.body;
 
   const principal = Number(principalInput);
-  let rate = Number(rateInput || 0);
   const duration = Number(durationInput);
 
   try {
-    // If rate is 0 or not provided, get system default
-    if (!rate || rate === 0) {
-      const settings = await SystemSettings.getSettings();
-      rate = settings.defaultInterestRate || 0;
-    }
+    // SECURITY: ignore any borrower-supplied `rate`. The interest rate is
+    // ALWAYS sourced from server-side configuration. Previously a member could
+    // post `rate: 0` and the admin's approveLoan() preserved it unchanged.
+    const settings = await SystemSettings.getSettings();
+    const rate = settings.defaultInterestRate || 0;
 
     if (!principal || !duration) {
       return res
@@ -953,17 +952,18 @@ const getLoans = async (req, res) => {
     }
 
     if (search) {
+      const safeSearch = escapeRegExp(String(search));
       // Find customers matching search name
       const matchingCustomers = await Customer.find({
         user: req.user.effectiveOwnerId,
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } },
-          { cnic: { $regex: search, $options: 'i' } },
-          { savingAccountNumber: { $regex: search, $options: 'i' } },
-          { currentAccountNumber: { $regex: search, $options: 'i' } },
-          { loanAccountNumber: { $regex: search, $options: 'i' } },
+          { name: { $regex: safeSearch, $options: 'i' } },
+          { email: { $regex: safeSearch, $options: 'i' } },
+          { phone: { $regex: safeSearch, $options: 'i' } },
+          { cnic: { $regex: safeSearch, $options: 'i' } },
+          { savingAccountNumber: { $regex: safeSearch, $options: 'i' } },
+          { currentAccountNumber: { $regex: safeSearch, $options: 'i' } },
+          { loanAccountNumber: { $regex: safeSearch, $options: 'i' } },
         ],
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);
@@ -1087,8 +1087,14 @@ const getLoanById = async (req, res) => {
 
 const addRepayment = async (req, res) => {
   const { loanId, amount, date, notes, isSettlement, paymentMethod = 'cash', deductFromWallet = false } = req.body;
+  // Wrap the full repayment in a Mongo transaction so the Repayment, Loan
+  // ($inc paidAmount/remainingAmount), Member wallet debit and
+  // FinancialTransaction either ALL commit or all roll back. Without this,
+  // a mid-flow error left the member debited but the loan unupdated.
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const loan = await Loan.findById(loanId).populate('customer');
+    const loan = await Loan.findById(loanId).populate('customer').session(session);
     if (
       !loan ||
       (loan.user.toString() !== req.user.effectiveOwnerId.toString() &&
@@ -1097,16 +1103,15 @@ const addRepayment = async (req, res) => {
           loan.branchId?.toString() === req.user.branchId?.toString()
         ))
     ) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'Loan not found' });
     }
 
     if (loan.status === 'completed') {
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Loan is already completed' });
     }
 
-    // Use shared service to process repayment
-    // The service handles all interest calculation (daily-based), early settlement detection,
-    // and loan total adjustments internally using exact days elapsed.
     const { repayment } = await loanRepaymentService.processRepayment(
       loan,
       amount,
@@ -1118,12 +1123,14 @@ const addRepayment = async (req, res) => {
         notes: notes || '',
         allowEarlySettlement: true,
         paymentMethod,
+        session,
       },
     );
 
-    // ── Email Notification ────────────────────────────────────────────────
+    await session.commitTransaction();
 
-    // If loan is completed and customer is a member, update their credit limit
+    // Post-commit best-effort housekeeping (credit-limit update) — failure
+    // here should not poison the successful repayment.
     if (loan.status === 'completed' && loan.customer.memberId) {
       try {
         await updateMemberCreditLimit(loan.customer.memberId);
@@ -1137,10 +1144,13 @@ const addRepayment = async (req, res) => {
 
     res.status(201).json(repayment);
   } catch (error) {
+    try { await session.abortTransaction(); } catch (_) { /* ignore */ }
     console.error('Add Repayment Error:', error);
     res
       .status(500)
       .json({ message: error.message || 'Failed to add repayment' });
+  } finally {
+    session.endSession();
   }
 };
 
@@ -1172,7 +1182,7 @@ const getRepayments = async (req, res) => {
     if (search) {
       const matchingCustomers = await Customer.find({
         user: req.user.effectiveOwnerId,
-        name: { $regex: search, $options: 'i' },
+        name: { $regex: escapeRegExp(String(search)), $options: 'i' },
       }).select('_id');
       const customerIds = matchingCustomers.map((c) => c._id);
       query.customer = { $in: customerIds };
@@ -1227,6 +1237,19 @@ const updateLoan = async (req, res) => {
       if (status === 'active' && loan.status !== 'active') {
         loan.startDate = new Date();
       }
+    }
+
+    // SECURITY: financial terms (principal / rate / duration / interestType)
+    // are LOCKED once a loan leaves the `pending` state. Editing terms on an
+    // active or completed loan would let an admin retroactively zero-out the
+    // remaining amount or alter what the borrower owes. If terms genuinely
+    // need to change, the workflow is to issue a new loan / write-off.
+    const termsLocked = !['pending', 'rejected'].includes(loan.status);
+    if (termsLocked && (principal || rate || duration || interestType)) {
+      return res.status(400).json({
+        message:
+          'Loan terms (principal, rate, duration, interest type) cannot be edited once the loan is active. Issue a new loan or use the write-off flow instead.',
+      });
     }
 
     // Recalculate EMI and total if principal, rate, duration or interestType changed

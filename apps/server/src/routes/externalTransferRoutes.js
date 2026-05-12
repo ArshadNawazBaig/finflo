@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const {
   initiateExternalTransfer,
-  recordExternalReceive,
   getMyExternalTransfers,
   resolveExternalAccountTitle,
 } = require('../controllers/externalTransferController');
@@ -12,7 +11,10 @@ const { requireTransactionPin } = require('../middleware/transactionPinMiddlewar
 router.use(protectMember);
 
 router.post('/', requireTransactionPin, initiateExternalTransfer);
-router.post('/receive', requireTransactionPin, recordExternalReceive);
+// SECURITY: /receive route removed — it allowed a logged-in member to credit
+// their own balance by simply posting an amount, with no bank-side proof of
+// funds. Incoming deposits must come through a verified webhook (Raast, etc.)
+// or an admin-recorded reconciliation flow.
 router.post('/resolve-title', resolveExternalAccountTitle);
 router.get('/', getMyExternalTransfers);
 

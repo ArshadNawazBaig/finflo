@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { logActivity } = require('./activityLogController');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // Admin: Send Notification
 const sendNotification = async (req, res) => {
@@ -132,7 +133,7 @@ const getMyNotifications = async (req, res) => {
 
     // Search logic (appends to query if present)
     if (search) {
-      const searchRegex = new RegExp(search, 'i');
+      const searchRegex = new RegExp(escapeRegExp(search), 'i');
       const searchConditions = [
         { title: searchRegex },
         { message: searchRegex },
@@ -280,7 +281,7 @@ const getAllNotifications = async (req, res) => {
 
     // Search logic
     if (search) {
-      const searchRegex = new RegExp(search, 'i');
+      const searchRegex = new RegExp(escapeRegExp(search), 'i');
 
       // Get user IDs matching search
       const matchingUsers = await User.find({

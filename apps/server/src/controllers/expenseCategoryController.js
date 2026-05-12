@@ -1,4 +1,5 @@
 const ExpenseCategory = require('../models/ExpenseCategory');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // @desc    Get all expense categories
 // @route   GET /api/expense-categories
@@ -49,10 +50,12 @@ const createExpenseCategory = async (req, res) => {
       return res.status(400).json({ message: 'Category name is required' });
     }
 
-    // Check if it already exists (case-insensitive check for this user)
+    // Check if it already exists (case-insensitive check for this user).
+    // Escape regex metacharacters so a name like ".*" can't match every row.
+    const safeName = escapeRegExp(name);
     const existing = await ExpenseCategory.findOne({
       user: req.user.effectiveOwnerId,
-      name: { $regex: new RegExp(`^${name}$`, 'i') }
+      name: { $regex: new RegExp(`^${safeName}$`, 'i') }
     });
 
     if (existing) {
@@ -62,7 +65,7 @@ const createExpenseCategory = async (req, res) => {
     // Check system categories too
     const systemExisting = await ExpenseCategory.findOne({
       isSystem: true,
-      name: { $regex: new RegExp(`^${name}$`, 'i') }
+      name: { $regex: new RegExp(`^${safeName}$`, 'i') }
     });
 
     if (systemExisting) {

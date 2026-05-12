@@ -40,6 +40,10 @@ const ticketStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'loan-app/tickets',
+    // SECURITY: restrict to images + PDF only. Without this the previous
+    // `resource_type: auto` config let users upload SVG/HTML which Cloudinary
+    // would serve back and render as stored XSS in the support-ticket UI.
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'],
     resource_type: 'auto',
   },
 });
@@ -64,6 +68,8 @@ module.exports = {
     cloudinary,
     params: {
       folder: 'loan-app/chat',
+      // Restrict to images, audio and PDF. Bare `auto` allowed SVG/HTML.
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp3', 'wav', 'm4a', 'ogg', 'pdf'],
       resource_type: 'auto', // handles images and audio
     },
   }),

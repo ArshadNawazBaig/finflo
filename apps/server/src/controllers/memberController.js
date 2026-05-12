@@ -482,6 +482,15 @@ const createMember = async (req, res) => {
       });
     }
 
+    // SECURITY: every admin-created member gets a cryptographically random
+    // initial password. The plaintext is returned to the admin once for
+    // hand-off to the member; the member is forced to change it on first
+    // login. NEVER use a hardcoded constant — a single leak compromises
+    // every member account ever onboarded.
+    const cryptoLib = require('crypto');
+    const initialPassword =
+      cryptoLib.randomBytes(9).toString('base64')
+        .replace(/[+/=]/g, (c) => ({ '+': 'A', '/': 'B', '=': '' }[c])) + '!1';
     const memberData = {
       user: userId,
       branchId: req.user.branchId, // Assign creator's branch
@@ -493,7 +502,7 @@ const createMember = async (req, res) => {
       totalInvested: initialInvestment || 0,
       currentBalance: initialInvestment || 0,
       profitRate: profitRate || 0,
-      password: 'Welcome@123', // Default password for admin-created members
+      password: initialPassword,
       mustChangePassword: true,
       jobDetail,
       signature,
@@ -586,7 +595,12 @@ const createMember = async (req, res) => {
       req,
     });
 
-    res.status(201).json(member);
+    // Return the member document plus the one-time initial password so the
+    // admin can hand it to the member. The member is required to change it
+    // on first login (mustChangePassword=true).
+    const memberJson = member.toObject ? member.toObject() : { ...member };
+    delete memberJson.password;
+    res.status(201).json({ ...memberJson, initialPassword });
   } catch (error) {
     console.error('Create Member Error:', error);
     res.status(500).json({ message: 'Failed to create member' });
@@ -1075,19 +1089,26 @@ const withdrawInvestment = async (req, res) => {
     const balanceBefore = availableBalance;
     const withdrawnBefore = isSaving ? member.totalSavingWithdrawn : member.totalWithdrawn;
 
-    // Update member balances atomically
+    // Update member balances atomically — the `$gte` predicate closes the
+    // TOCTOU window: if two parallel requests both pass the read above, only
+    // the first one whose decrement keeps balance non-negative succeeds.
     const incFields = isSaving
       ? { savingBalance: -amount, totalSavingWithdrawn: amount }
       : { currentBalance: -amount, totalWithdrawn: amount };
 
+    const balanceField = isSaving ? 'savingBalance' : 'currentBalance';
     const updatedMember = await Member.findOneAndUpdate(
-      { _id: id, user: userId },
+      { _id: id, user: userId, [balanceField]: { $gte: amount } },
       { $inc: incFields },
       { new: true },
     );
 
     if (!updatedMember) {
-      return res.status(404).json({ message: 'Member not found' });
+      // Either the member is gone or another concurrent request consumed
+      // the funds — surface as insufficient balance to the caller.
+      return res
+        .status(400)
+        .json({ message: `Insufficient ${isSaving ? 'saving' : 'current'} account balance for withdrawal` });
     }
 
     const balanceAfter = isSaving ? updatedMember.savingBalance : updatedMember.currentBalance;
@@ -1751,7 +1772,7 @@ const getMemberActivity = async (req, res) => {
     }
 
     if (search) {
-      const searchRegex = { $regex: search, $options: 'i' };
+      const searchRegex = { $regex: escapeRegExp(String(search)), $options: 'i' };
       investmentQuery.description = searchRegex;
       // Note: Profit distributions might not have descriptions in the model,
       // but we'll apply it to the period if applicable or just filter after combining.
@@ -1929,38 +1950,33 @@ const transferFunds = async (req, res) => {
 
   try {
     const sender = await Member.findById(senderId).session(session);
+    if (!sender) throw new Error('Sender not found');
+    const tenantOwnerId = sender.user;
     const availableBalance = accountType === 'current' ? sender.currentBalance : sender.savingBalance;
-    console.log(
-      'Sender Balance:',
-      availableBalance,
-      'Transfer Amount:',
-      amount,
-    );
     if (availableBalance < parseFloat(amount)) {
-      console.log('Insufficient balance error');
       throw new Error(`Insufficient ${accountType} balance`);
     }
 
-    // Find recipient by ID, email, phone, or account numbers
+    // Find recipient by ID, email, phone, or account numbers — scoped to the
+    // sender's business so a member of tenant A cannot send funds to a member
+    // of tenant B (cross-tenant IDOR).
+    const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     let recipient;
     if (recipientId) {
-      recipient = await Member.findById(recipientId).session(session);
-    } else {
-      console.log('Finding recipient for:', recipientIdentifier);
       recipient = await Member.findOne({
+        _id: recipientId,
+        user: tenantOwnerId,
+      }).session(session);
+    } else {
+      const identifier = String(recipientIdentifier || '');
+      const exact = escapeRegex(identifier);
+      recipient = await Member.findOne({
+        user: tenantOwnerId,
         $or: [
-          { email: recipientIdentifier.toLowerCase() },
-          { phone: recipientIdentifier },
-          {
-            savingAccountNumber: {
-              $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
-            },
-          },
-          {
-            currentAccountNumber: {
-              $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
-            },
-          },
+          { email: identifier.toLowerCase() },
+          { phone: identifier },
+          { savingAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
+          { currentAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
         ],
       }).session(session);
     }
@@ -1975,16 +1991,21 @@ const transferFunds = async (req, res) => {
 
     const transferAmount = Math.round(parseFloat(amount));
 
-    // Update balances atomically inside session
-    const senderUpdate = accountType === 'current'
+    // Update balances atomically inside session, guarded by a $gte predicate
+    // that prevents concurrent overdrafts.
+    const senderField = accountType === 'current' ? 'currentBalance' : 'savingBalance';
+    const senderInc = accountType === 'current'
       ? { currentBalance: -transferAmount, totalWithdrawn: transferAmount }
       : { savingBalance: -transferAmount, totalSavingWithdrawn: transferAmount };
 
-    await Member.updateOne(
-      { _id: sender._id },
-      { $inc: senderUpdate },
+    const senderRes = await Member.updateOne(
+      { _id: sender._id, [senderField]: { $gte: transferAmount } },
+      { $inc: senderInc },
       { session },
     );
+    if (senderRes.modifiedCount !== 1) {
+      throw new Error(`Insufficient ${accountType} balance`);
+    }
     await Member.updateOne(
       { _id: recipient._id },
       {
@@ -2201,7 +2222,9 @@ const adminTransferFunds = async (req, res) => {
   session.startTransaction();
 
   try {
-    const sender = await Member.findById(senderId).session(session);
+    // Scope both sender and recipient to the calling admin's business.
+    const tenantOwnerId = req.user.effectiveOwnerId || req.user._id;
+    const sender = await Member.findOne({ _id: senderId, user: tenantOwnerId }).session(session);
     if (!sender) {
       throw new Error('Sender member not found');
     }
@@ -2211,21 +2234,18 @@ const adminTransferFunds = async (req, res) => {
       throw new Error(`Insufficient balance in sender ${accountType} account`);
     }
 
-    // Find recipient by email, phone, or account numbers
+    // Find recipient by email, phone, or account numbers — scoped to the
+    // same business as the admin/sender (prevents cross-tenant IDOR).
+    const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const identifier = String(recipientIdentifier || '');
+    const exact = escapeRegex(identifier);
     const recipient = await Member.findOne({
+      user: tenantOwnerId,
       $or: [
-        { email: recipientIdentifier.toLowerCase() },
-        { phone: recipientIdentifier },
-        {
-          savingAccountNumber: {
-            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
-          },
-        },
-        {
-          currentAccountNumber: {
-            $regex: new RegExp(`^${recipientIdentifier}$`, 'i'),
-          },
-        },
+        { email: identifier.toLowerCase() },
+        { phone: identifier },
+        { savingAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
+        { currentAccountNumber: { $regex: new RegExp(`^${exact}$`, 'i') } },
       ],
     }).session(session);
 
@@ -2239,16 +2259,21 @@ const adminTransferFunds = async (req, res) => {
 
     const transferAmount = Math.round(parseFloat(amount));
 
-    // Update balances atomically inside session
-    const senderUpdate = accountType === 'current'
+    // Atomic + concurrency-safe balance update: $gte predicate prevents
+    // two parallel admin transfers both passing the read-then-decrement check.
+    const senderField = accountType === 'current' ? 'currentBalance' : 'savingBalance';
+    const senderInc = accountType === 'current'
       ? { currentBalance: -transferAmount, totalWithdrawn: transferAmount }
       : { savingBalance: -transferAmount, totalSavingWithdrawn: transferAmount };
 
-    await Member.updateOne(
-      { _id: sender._id },
-      { $inc: senderUpdate },
+    const senderRes = await Member.updateOne(
+      { _id: sender._id, [senderField]: { $gte: transferAmount } },
+      { $inc: senderInc },
       { session },
     );
+    if (senderRes.modifiedCount !== 1) {
+      throw new Error(`Insufficient balance in sender ${accountType} account`);
+    }
     await Member.updateOne(
       { _id: recipient._id },
       {
@@ -2583,7 +2608,7 @@ const getPortalShares = async (req, res) => {
 
     const query = { member: memberId };
     if (search) {
-      query.description = { $regex: search, $options: 'i' };
+      query.description = { $regex: escapeRegExp(String(search)), $options: 'i' };
     }
 
     const [shares, total] = await Promise.all([
@@ -3192,7 +3217,7 @@ const getAllDistributions = async (req, res) => {
     // Add search functionality
     if (search) {
       const matchingMembers = await Member.find({
-        name: { $regex: search, $options: 'i' },
+        name: { $regex: escapeRegExp(String(search)), $options: 'i' },
       }).select('_id');
       const memberIds = matchingMembers.map((m) => m._id);
       query.member = { $in: memberIds };

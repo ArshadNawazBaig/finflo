@@ -26,6 +26,13 @@ const protect = async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Reject Member tokens, transaction-PIN tokens, and 2FA-pending tokens —
+      // each token type has its own dedicated middleware. A missing `type`
+      // claim is acceptable for backward-compatibility with already-issued
+      // sessions (they will rotate naturally when tokens expire / re-login).
+      if (decoded.type && decoded.type !== 'user') {
+        return res.status(401).json({ message: 'Not authorized, wrong token type' });
+      }
       req.user = await User.findById(decoded.id)
         .select('-password')
         .populate('roleRef');

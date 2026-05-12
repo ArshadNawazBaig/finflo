@@ -18,6 +18,12 @@ const protectMember = async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Reject User tokens, transaction-PIN tokens, and 2FA-pending tokens.
+      // A missing `type` claim is allowed for backward compatibility with
+      // sessions issued before this guard was added.
+      if (decoded.type && decoded.type !== 'member') {
+        return res.status(401).json({ message: 'Not authorized, wrong token type' });
+      }
       req.member = await Member.findById(decoded.id).select('-password');
 
       if (!req.member) {

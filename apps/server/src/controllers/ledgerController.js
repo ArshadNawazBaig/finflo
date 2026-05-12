@@ -6,6 +6,7 @@ const Investment = require('../models/Investment');
 const Loan = require('../models/Loan');
 const CashOpening = require('../models/CashOpening');
 const { logActivity } = require('./activityLogController');
+const { escapeRegExp } = require('../utils/stringUtils');
 
 // @desc    Get all financial transactions (Unified Ledger)
 // @route   GET /api/ledger
@@ -71,22 +72,24 @@ const getLedger = async (req, res) => {
       query.customer = customer;
     }
 
-    // Search logic (complex because of customer/member names)
+    // Search logic (complex because of customer/member names) — escape the
+    // search term so it can't be interpreted as regex metacharacters.
     if (search) {
+      const safeSearch = escapeRegExp(String(search));
       const [matchingCustomers, matchingMembers] = await Promise.all([
         Customer.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: search, $options: 'i' },
+          name: { $regex: safeSearch, $options: 'i' },
         }).select('_id'),
         Member.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: search, $options: 'i' },
+          name: { $regex: safeSearch, $options: 'i' },
         }).select('_id'),
       ]);
 
       query.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { notes: { $regex: search, $options: 'i' } },
+        { description: { $regex: safeSearch, $options: 'i' } },
+        { notes: { $regex: safeSearch, $options: 'i' } },
         { customer: { $in: matchingCustomers.map((c) => c._id) } },
         { member: { $in: matchingMembers.map((m) => m._id) } },
       ];
@@ -197,19 +200,20 @@ const exportLedgerExcel = async (req, res) => {
 
     if (search) {
       const { Customer, Member } = require('../models');
+      const safeSearch = escapeRegExp(String(search));
       const [matchingCustomers, matchingMembers] = await Promise.all([
         Customer.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: search, $options: 'i' },
+          name: { $regex: safeSearch, $options: 'i' },
         }).select('_id'),
         Member.find({
           user: req.user.effectiveOwnerId,
-          name: { $regex: search, $options: 'i' },
+          name: { $regex: safeSearch, $options: 'i' },
         }).select('_id'),
       ]);
 
       query.$or = [
-        { description: { $regex: search, $options: 'i' } },
+        { description: { $regex: safeSearch, $options: 'i' } },
         { customer: { $in: matchingCustomers.map((c) => c._id) } },
         { member: { $in: matchingMembers.map((m) => m._id) } },
       ];
