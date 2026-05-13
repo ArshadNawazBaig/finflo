@@ -451,7 +451,7 @@ const OnboardingSlide = ({ slide, isActive }) => {
         animate={isActive ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight text-foreground">
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] leading-tight text-slate-900 dark:text-white">
           {slide.title}{' '}
           <span
             className="bg-clip-text text-transparent"
@@ -462,7 +462,7 @@ const OnboardingSlide = ({ slide, isActive }) => {
             {slide.titleAccent}
           </span>
         </h2>
-        <p className="text-base text-muted-foreground leading-relaxed font-medium px-2">
+        <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed font-normal px-2">
           {slide.description}
         </p>
       </motion.div>
