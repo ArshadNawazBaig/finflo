@@ -53,90 +53,89 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         }
       }}
     >
-      <DialogContent className="sm:max-w-md max-h-[80vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2.5rem] border-border/50 shadow-2xl">
-        {/* Fixed Header */}
-        <div className="p-8 border-b bg-background z-10 shrink-0 relative">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-rose-500/10 text-rose-600 shadow-sm border border-rose-500/20">
-              <X className="w-6 h-6" />
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-black tracking-tight text-rose-600">
-                Reject Loan Request
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
-                This action is irreversible. Please provide a reason.
-              </DialogDescription>
-            </div>
+      <DialogContent className="sm:max-w-md !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <X />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-500 dark:text-rose-400 mb-1.5">
+              Destructive action
+            </p>
+            <DialogTitle>Reject Loan Request</DialogTitle>
+            <DialogDescription className="mt-1">
+              This action is irreversible. Please provide a reason.
+            </DialogDescription>
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
-          <div className="space-y-6">
-            <div className="p-5 rounded-[1.5rem] bg-rose-500/5 border border-rose-500/10 flex items-start gap-4 shadow-sm">
-              <div className="p-2 rounded-full bg-rose-500/10 text-rose-600 shrink-0">
-                <AlertCircle className="w-5 h-5" />
+        <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-5 custom-scrollbar">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-rose-500/15 bg-rose-500/5 p-4 flex items-start gap-3">
+              <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                <AlertCircle />
               </div>
               <div>
-                <p className="text-sm font-semibold text-rose-900/80 dark:text-rose-200/80 leading-relaxed">
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   You are about to reject the loan request for{' '}
-                  <span className="font-black underline decoration-rose-500/30 underline-offset-4 capitalize">
+                  <span className="font-bold text-slate-900 dark:text-white capitalize">
                     {loan.customer?.name || 'this member'}
                   </span>
                   .
                 </p>
-                <p className="text-[11px] font-bold text-rose-500/80 mt-2 uppercase tracking-wider">
+                <p className="text-[10px] font-bold text-rose-500 dark:text-rose-400 mt-2 uppercase tracking-[0.15em]">
                   Caution: This cannot be undone
                 </p>
               </div>
             </div>
 
             {/* Grantors Info */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {loan.grantor1 && (
-                <div className="p-5 rounded-[1.5rem] border border-border/50 bg-background/50 shadow-sm transition-all">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Grantor 1
                     </h4>
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                         loan.grantor1Status === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           : loan.grantor1Status === 'rejected'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       }`}
                     >
                       {loan.grantor1Status || 'Pending'}
                     </span>
                   </div>
-                  <p className="text-sm font-black text-foreground/90 capitalize">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
                     {loan.grantor1?.name}
                   </p>
                 </div>
               )}
 
               {loan.grantor2 && (
-                <div className="p-5 rounded-[1.5rem] border border-border/50 bg-background/50 shadow-sm transition-all">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Grantor 2
                     </h4>
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                         loan.grantor2Status === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           : loan.grantor2Status === 'rejected'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       }`}
                     >
                       {loan.grantor2Status || 'Pending'}
                     </span>
                   </div>
-                  <p className="text-sm font-black text-foreground/90 capitalize">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
                     {loan.grantor2?.name}
                   </p>
                 </div>
@@ -146,19 +145,19 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <form
               id="reject-loan-form"
               onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   Rejection Reason (Optional)
                 </label>
                 <div className="relative group">
                   <textarea
                     {...register('reason')}
                     placeholder="Provide a detailed reason for rejection..."
-                    className="w-full bg-background border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/50 transition-all hover:border-border min-h-[140px] resize-none leading-relaxed"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all min-h-[120px] resize-none leading-relaxed"
                   />
-                  <div className="absolute bottom-4 right-4 text-[10px] font-bold text-muted-foreground/40 pointer-events-none group-focus-within:text-rose-500/40 transition-colors">
+                  <div className="absolute bottom-3 right-3 text-[10px] font-bold text-slate-400/60 pointer-events-none group-focus-within:text-rose-500/60 transition-colors">
                     Optional Field
                   </div>
                 </div>
@@ -168,7 +167,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-8 border-t bg-background shrink-0 flex gap-4">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
           <button
             type="button"
             onClick={() => {
@@ -176,7 +175,7 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               onClose();
             }}
             disabled={loading}
-            className="flex-1 h-14 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-[1.25rem] border border-transparent hover:border-border/50 active:scale-95 disabled:opacity-50"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
           </button>
@@ -184,9 +183,9 @@ const RejectLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             form="reject-loan-form"
             type="submit"
             isLoading={loading}
-            className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] bg-rose-500 hover:bg-rose-600 text-white shadow-xl shadow-rose-500/20 transition-all active:scale-95"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-rose-500 hover:bg-rose-600 text-white shadow-[0_10px_30px_-10px_rgba(244,63,94,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
-            {!loading && <X className="w-4 h-4 mr-2" />}
+            {!loading && <X className="w-4 h-4" />}
             Reject Loan
           </Button>
         </div>

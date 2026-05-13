@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
@@ -67,31 +66,28 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[95vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader className="p-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-3 rounded-2xl bg-primary/10 text-primary shrink-0">
-                <Pencil className="w-5 h-5 sm:w-6 sm:h-6" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg sm:text-2xl font-black">
-                  Edit Loan Agreement
-                </DialogTitle>
-                <DialogDescription className="text-[11px] sm:text-sm font-medium">
-                  Modifying parameters for{' '}
-                  <span className="text-foreground font-bold">
-                    {loan.customer?.name}
-                  </span>
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <Pencil />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+              Edit Loan
+            </p>
+            <DialogTitle>Edit Loan Agreement</DialogTitle>
+            <DialogDescription className="mt-1">
+              Modifying parameters for{' '}
+              <span className="text-slate-900 dark:text-white font-semibold">
+                {loan.customer?.name}
+              </span>
+            </DialogDescription>
+          </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-6 custom-scrollbar">
           <form
             id="edit-loan-form"
             onSubmit={handleSubmit(onSubmit)}
@@ -100,7 +96,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <div className="space-y-1.5">
               <Label
                 htmlFor="principal"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
               >
                 <DollarSign className="w-3 h-3 text-emerald-500" /> Capital
                 Amount
@@ -108,42 +104,42 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <Input
                 id="principal"
                 type="number"
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 {...register('principal', {
                   required: 'Principal is required',
                   min: { value: 1, message: 'Must be greater than 0' },
                 })}
               />
               {errors.principal && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                   {errors.principal.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+              <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                 <Percent className="w-3 h-3 text-orange-500" /> Interest Type
               </Label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setInterestType('simple')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'simple' ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   Simple
                 </button>
                 <button
                   type="button"
                   onClick={() => setInterestType('emi')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'emi' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   EMI (Reducing)
                 </button>
                 <button
                   type="button"
                   onClick={() => setInterestType('compound')}
-                  className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'compound' ? 'border-rose-500 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                  className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                 >
                   Compound
                 </button>
@@ -154,7 +150,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <div className="space-y-1.5">
                 <Label
                   htmlFor="rate"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                  className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                 >
                   <Percent className="w-3 h-3 text-indigo-500" /> APR (%)
                 </Label>
@@ -162,14 +158,14 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   id="rate"
                   type="number"
                   step="0.1"
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('rate', {
                     required: 'Rate is required',
                     min: { value: 0, message: 'Must be ≥ 0' },
                   })}
                 />
                 {errors.rate && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                     {errors.rate.message}
                   </p>
                 )}
@@ -177,21 +173,21 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               <div className="space-y-1.5">
                 <Label
                   htmlFor="duration"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                  className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                 >
                   <Clock className="w-3 h-3" /> Term (Months)
                 </Label>
                 <Input
                   id="duration"
                   type="number"
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('duration', {
                     required: 'Duration is required',
                     min: { value: 1, message: 'Must be ≥ 1' },
                   })}
                 />
                 {errors.duration && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                     {errors.duration.message}
                   </p>
                 )}
@@ -199,14 +195,14 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+              <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                 <Activity className="w-3 h-3" /> Agreement Status
               </Label>
               <Select
                 value={status}
                 onValueChange={(value) => setStatus(value)}
               >
-                <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:ring-2 focus:ring-primary/20">
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -220,12 +216,12 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
           </button>
@@ -233,8 +229,7 @@ const EditLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             form="edit-loan-form"
             type="submit"
             isLoading={loading}
-            variant="gradient"
-            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             Confirm Changes
           </Button>

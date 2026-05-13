@@ -99,7 +99,7 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const renderPinInputs = (values, refs, setter) => (
-    <div className="flex gap-3 justify-center">
+    <div className="flex gap-2 justify-center">
       {values.map((digit, i) => (
         <input
           key={i}
@@ -111,8 +111,10 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
           onChange={(e) => handleChange(i, e.target.value, refs, setter, values)}
           onKeyDown={(e) => handleKeyDown(i, e, refs, setter, values)}
           className={cn(
-            'w-14 h-16 text-center text-2xl font-black rounded-2xl border-2 bg-background transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-inner',
-            digit ? 'border-primary/40' : 'border-border/50',
+            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+            digit
+              ? 'border-primary/40'
+              : 'border-slate-100 dark:border-white/[0.06]',
           )}
         />
       ))}
@@ -121,14 +123,17 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-sm !p-0 !gap-0 rounded-[2.5rem] overflow-hidden">
+      <DialogContent className="sm:max-w-sm">
         {/* Header */}
-        <div className="p-8 pb-4 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 mx-auto flex items-center justify-center mb-4 shadow-inner">
-            <ShieldCheck size={28} />
+        <div className="text-center pr-8">
+          <div className="h-9 w-9 rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 mx-auto flex items-center justify-center mb-3 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <ShieldCheck />
           </div>
-          <DialogTitle className="text-xl font-black">Set Transaction PIN</DialogTitle>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 dark:text-emerald-400 mb-1.5">
+            Secure setup
+          </p>
+          <DialogTitle>Set Transaction PIN</DialogTitle>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
             {step === 1 && 'Create a 4-digit PIN for secure transactions'}
             {step === 2 && 'Re-enter your PIN to confirm'}
             {step === 3 && 'Enter your account password to confirm'}
@@ -138,18 +143,18 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="flex items-center justify-center gap-2 mt-4">
             {[1, 2, 3].map((s) => (
               <div key={s} className={cn(
-                'w-2 h-2 rounded-full transition-all',
-                step >= s ? 'bg-emerald-500 w-6' : 'bg-muted/40',
+                'h-1.5 rounded-full transition-all',
+                step >= s ? 'bg-emerald-500 w-6' : 'w-1.5 bg-slate-100 dark:bg-white/[0.06]',
               )} />
             ))}
           </div>
         </div>
 
-        <div className="px-8 pb-8 space-y-5">
+        <div className="space-y-4">
           {step === 1 && (
             <>
               {renderPinInputs(pin, pinRefs, setPin)}
-              <p className="text-[10px] text-center text-muted-foreground/60">
+              <p className="text-[10px] text-center text-slate-400 dark:text-slate-500">
                 You'll need this PIN for transfers, withdrawals & repayments
               </p>
             </>
@@ -158,40 +163,39 @@ const SetTransactionPinModal = ({ isOpen, onClose, onSuccess }) => {
           {step === 2 && (
             <>
               {renderPinInputs(confirmPin, confirmRefs, setConfirmPin)}
-              {error && <p className="text-xs text-center text-red-500 font-bold">{error}</p>}
+              {error && <p className="text-[10px] text-center text-rose-500 font-bold">{error}</p>}
             </>
           )}
 
           {step === 3 && (
             <>
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                <Check size={16} className="text-emerald-500 shrink-0" />
-                <p className="text-xs font-bold text-emerald-600">PIN confirmed: ● ● ● ●</p>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/15 justify-center">
+                <Check size={14} className="text-emerald-500 shrink-0" />
+                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">PIN confirmed: ● ● ● ●</p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                   <KeyRound size={10} /> Account Password
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-inner"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="Enter your login password"
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
                 />
               </div>
 
-              {error && <p className="text-xs text-center text-red-500 font-bold">{error}</p>}
+              {error && <p className="text-[10px] text-center text-rose-500 font-bold">{error}</p>}
 
               <Button
                 onClick={handleSubmit}
                 isLoading={loading}
                 disabled={!password}
-                variant="gradient"
-                className="w-full min-h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20"
+                className="w-full h-11 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 Set Transaction PIN
               </Button>

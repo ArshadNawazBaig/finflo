@@ -305,20 +305,21 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2.5rem] border-border/50 shadow-2xl">
+      <DialogContent className="sm:max-w-md !p-0 !gap-0 flex flex-col overflow-hidden">
         <DialogDescription className="sr-only">Multi-step loan application form.</DialogDescription>
 
         {/* Header with step indicator */}
-        <div className="p-8 pb-6 border-b bg-background z-10 shrink-0 relative">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary shrink-0 shadow-inner">
-              <FileText className="w-6 h-6" />
+        <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] bg-white dark:bg-slate-950 z-10 shrink-0 relative">
+          <div className="flex items-start gap-3 mb-5 pr-8">
+            <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <FileText />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-xl font-black leading-tight text-foreground truncate">
-                Request Loan
-              </DialogTitle>
-              <p className="text-xs font-medium text-muted-foreground mt-1 truncate">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+                Loan application
+              </p>
+              <DialogTitle>Request Loan</DialogTitle>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 Step {step} of 3 — {STEPS[step - 1].label}
               </p>
             </div>
@@ -329,17 +330,17 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             {STEPS.map((s, i) => (
               <div key={s.id} className="flex items-center flex-1">
                 <div className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full text-xs font-black transition-all duration-300 shrink-0',
+                  'flex items-center justify-center w-8 h-8 rounded-full text-xs font-extrabold transition-all duration-300 shrink-0',
                   step > s.id ? 'bg-emerald-500 text-white' :
-                  step === s.id ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' :
-                  'bg-muted/50 text-muted-foreground/50',
+                  step === s.id ? 'bg-primary text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]' :
+                  'bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500',
                 )}>
                   {step > s.id ? <Check size={14} /> : s.id}
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className={cn(
                     'flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300',
-                    step > s.id ? 'bg-emerald-500' : 'bg-muted/30',
+                    step > s.id ? 'bg-emerald-500' : 'bg-slate-100 dark:bg-white/[0.06]',
                   )} />
                 )}
               </div>
@@ -348,78 +349,78 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
-          <form id="loan-request-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-7 custom-scrollbar">
+          <form id="loan-request-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
             {/* Step 1: Loan Details */}
             {step === 1 && (
               <>
                 {currentMember && (
-                  <div className="mb-4 p-5 rounded-[2rem] bg-amber-500/5 border border-amber-500/10 flex items-center justify-between group/eligible hover:bg-amber-500/10 transition-colors">
+                  <div className="rounded-2xl border border-amber-500/15 bg-amber-500/5 p-4 flex items-center justify-between hover:bg-amber-500/10 transition-colors">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600/70">Current Loan Eligibility</p>
-                      <p className="text-2xl font-black text-amber-600 tracking-tight">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400">Current Loan Eligibility</p>
+                      <p className="text-2xl font-extrabold tracking-tight tabular-nums text-amber-600 dark:text-amber-400">
                         {formatCurrency(currentMember.creditLimit || 0)}
                       </p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 group-hover/eligible:scale-110 transition-transform shadow-inner">
-                      <ShieldCheck size={24} />
+                    <div className="h-9 w-9 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center [&_svg]:w-4 [&_svg]:h-4">
+                      <ShieldCheck />
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <DollarSign className="w-3 h-3 text-emerald-500" /> Loan Amount (PKR)
                   </label>
                   <input
                     type="number"
                     {...register('principal', { required: 'Amount is required', min: { value: 1000, message: 'Minimum amount is 1000' } })}
-                    className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 shadow-inner"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     placeholder="e.g. 50000"
                   />
-                  {errors.principal && <p className="text-[10px] text-destructive font-bold ml-1">{errors.principal.message}</p>}
+                  {errors.principal && <p className="text-[10px] text-rose-500 font-bold">{errors.principal.message}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <Clock className="w-3 h-3 text-indigo-500" /> Duration (Months)
                   </label>
                   <Select onValueChange={(value) => { setValue('duration', value); clearErrors('duration'); }}>
-                    <SelectTrigger className="w-full px-5 py-3.5 h-auto rounded-2xl border border-border/50 bg-background text-sm font-medium focus:ring-2 focus:ring-primary/20 shadow-inner">
+                    <SelectTrigger className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all">
                       <SelectValue placeholder="Select Duration" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/50">
+                    <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                       {[3, 6, 9, 12, 18, 24, 36].map((m) => (
                         <SelectItem key={m} value={m.toString()} className="text-sm rounded-xl">{m} Months</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.duration && <p className="text-[10px] text-destructive font-bold ml-1">{errors.duration.message}</p>}
+                  {errors.duration && <p className="text-[10px] text-rose-500 font-bold">{errors.duration.message}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Purpose / Notes (Optional)
                   </label>
                   <textarea
                     {...register('notes')}
                     rows={3}
-                    className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/30 shadow-inner"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     placeholder="Briefly describe why you need this loan..."
                   />
                 </div>
 
                 {principal && duration && (
-                  <div className="bg-primary/5 border border-primary/10 rounded-[2rem] p-6 flex items-center gap-5">
-                    <div className="p-4 bg-primary/10 rounded-2xl text-primary shrink-0 shadow-inner">
-                      <Calculator size={24} />
+                  <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 flex items-center gap-4">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-4 [&_svg]:h-4">
+                      <Calculator />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Estimated Monthly Payment</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">Estimated Monthly Payment</p>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <p className="text-2xl font-black text-foreground tracking-tight">PKR {Number(estimatedMonthlyPayment).toLocaleString()}</p>
-                        <span className="text-xs font-bold text-muted-foreground opacity-60">/mo</span>
+                        <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">PKR {Number(estimatedMonthlyPayment).toLocaleString()}</p>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">/mo</span>
                       </div>
                     </div>
                   </div>
@@ -431,7 +432,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             {step === 2 && (
               <>
                 {renderGrantorSearch(1)}
-                <div className="h-px bg-border/30 my-2" />
+                <div className="h-px bg-slate-100 dark:bg-white/[0.06] my-2" />
                 {renderGrantorSearch(2)}
               </>
             )}
@@ -441,8 +442,8 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               <>
                 <div
                   className={cn(
-                    'border-2 border-dashed rounded-[2rem] p-8 text-center transition-all cursor-pointer',
-                    isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border/50 hover:border-primary/30 hover:bg-muted/10',
+                    'border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer',
+                    isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-slate-200 dark:border-white/[0.08] hover:border-primary/30 hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                     files.length >= 5 && 'opacity-50 pointer-events-none',
                   )}
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -458,39 +459,39 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     className="hidden"
                     onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
                   />
-                  <Upload size={32} className="mx-auto text-muted-foreground/40 mb-3" />
-                  <p className="text-sm font-bold text-muted-foreground">
+                  <Upload size={28} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                     {isDragging ? 'Drop files here' : 'Drag & drop or click to upload'}
                   </p>
-                  <p className="text-[10px] text-muted-foreground/50 font-medium mt-1">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
                     JPG, PNG, PDF — Max 5MB each — Up to 5 files
                   </p>
                 </div>
 
                 {files.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <div className="space-y-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Uploaded ({files.length}/5)
                     </p>
                     {files.map((f, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl border border-border/40 bg-card/50 group">
+                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] group">
                         {/* Thumbnail */}
-                        <div className="w-12 h-12 rounded-xl bg-muted/30 flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.04] flex items-center justify-center overflow-hidden shrink-0">
                           {f.preview ? (
                             <img src={f.preview} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <File size={20} className="text-red-500" />
+                            <File size={18} className="text-rose-500" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold truncate">{f.file.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{(f.file.size / 1024).toFixed(0)} KB</p>
+                          <p className="text-xs font-bold truncate text-slate-900 dark:text-white">{f.file.name}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{(f.file.size / 1024).toFixed(0)} KB</p>
                         </div>
                         {/* Type selector */}
                         <select
                           value={f.type}
                           onChange={(e) => updateFileType(idx, e.target.value)}
-                          className="text-[10px] font-bold bg-muted/30 border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30 cursor-pointer"
+                          className="text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30 cursor-pointer"
                         >
                           {DOC_TYPES.map((t) => (
                             <option key={t} value={t}>{t}</option>
@@ -499,7 +500,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                         <button
                           type="button"
                           onClick={() => removeFile(idx)}
-                          className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1.5 rounded-full hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <X size={14} />
                         </button>
@@ -508,7 +509,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                <p className="text-[10px] text-center text-muted-foreground/50 font-medium">
+                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-medium">
                   Documents are optional but help speed up your approval.
                 </p>
               </>
@@ -517,12 +518,12 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t bg-background z-10 shrink-0 flex gap-4">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] bg-white dark:bg-slate-950 z-10 shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           {step > 1 ? (
             <button
               type="button"
               onClick={() => setStep(step - 1)}
-              className="flex-1 min-h-12 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-2xl border border-transparent hover:border-border/50 active:scale-95 flex items-center justify-center gap-2"
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all flex items-center justify-center gap-2"
             >
               <ChevronLeft size={14} /> Back
             </button>
@@ -530,7 +531,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 min-h-12 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-2xl border border-transparent hover:border-border/50 active:scale-95"
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
             </button>
@@ -541,8 +542,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               type="button"
               onClick={() => setStep(step + 1)}
               disabled={!canProceed()}
-              variant="gradient"
-              className="flex-[2] min-h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
             >
               Continue <ChevronRight size={14} />
             </Button>
@@ -551,8 +551,7 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
               form="loan-request-form"
               type="submit"
               isLoading={loading}
-              variant="gradient"
-              className="flex-[2] min-h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20 active:scale-[0.98] transition-all"
+              className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Submit Request
             </Button>

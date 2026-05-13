@@ -8,9 +8,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -20,7 +17,7 @@ import {
 } from '@/components/ui/select';
 
 import { Button } from '@/components/ui/button';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, Bell } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -91,99 +88,111 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
-        {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black">
-              Send Notification
-            </DialogTitle>
-            <DialogDescription>
-              Send a message to {userId ? 'this user' : 'users'}.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Bell />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1.5">
+                Broadcast
+              </p>
+              <DialogTitle>Send Notification</DialogTitle>
+              <DialogDescription className="mt-1">
+                Send a message to {userId ? 'this user' : 'users'}.
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <form
-            id="notification-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
-            {!userId && (
-              <div className="space-y-2">
-                <Label>Recipient</Label>
-                <Select
-                  value={recipientId}
-                  onValueChange={(value) => setValue('recipientId', value)}
-                  disabled={fetchingUsers}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    {users.map((u) => (
-                      <SelectItem key={u._id} value={u._id}>
-                        {u.name} ({u.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label>Type</Label>
+        <form
+          id="notification-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          {!userId && (
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                Recipient
+              </label>
               <Select
-                value={type}
-                onValueChange={(value) => setValue('type', value)}
+                value={recipientId}
+                onValueChange={(value) => setValue('recipientId', value)}
+                disabled={fetchingUsers}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Type" />
+                <SelectTrigger className="rounded-2xl h-[46px] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-medium">
+                  <SelectValue placeholder="Select Recipient" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
-                  <SelectItem value="success">Success</SelectItem>
-                  <SelectItem value="error">Error</SelectItem>
+                <SelectContent className="rounded-2xl border border-slate-100 dark:border-white/[0.06] shadow-xl">
+                  <SelectItem value="all">All Users</SelectItem>
+                  {users.map((u) => (
+                    <SelectItem key={u._id} value={u._id}>
+                      {u.name} ({u.email})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input
-                placeholder="Notification Title"
-                {...register('title', { required: 'Title is required' })}
-              />
-              {errors.title && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.title.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Message</Label>
-              <Textarea
-                placeholder="Type your message here..."
-                rows={4}
-                {...register('message', { required: 'Message is required' })}
-              />
-              {errors.message && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.message.message}
-                </p>
-              )}
-            </div>
-          </form>
-        </div>
+          )}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Type
+            </label>
+            <Select
+              value={type}
+              onValueChange={(value) => setValue('type', value)}
+            >
+              <SelectTrigger className="rounded-2xl h-[46px] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-medium">
+                <SelectValue placeholder="Select Type" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border border-slate-100 dark:border-white/[0.06] shadow-xl">
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Title
+            </label>
+            <input
+              type="text"
+              placeholder="Notification Title"
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              {...register('title', { required: 'Title is required' })}
+            />
+            {errors.title && (
+              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Message
+            </label>
+            <textarea
+              placeholder="Type your message here..."
+              rows={4}
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+              {...register('message', { required: 'Message is required' })}
+            />
+            {errors.message && (
+              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.message.message}
+              </p>
+            )}
+          </div>
+        </form>
 
-        {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
+        <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
           </button>
@@ -191,8 +200,7 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
             form="notification-form"
             type="submit"
             disabled={loading}
-            variant="gradient"
-            className="px-8 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-2"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

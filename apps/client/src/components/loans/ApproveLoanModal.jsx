@@ -63,61 +63,63 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] !p-0 !gap-0 flex flex-col overflow-hidden rounded-[2rem] border-border/50 shadow-2xl">
-        {/* Fixed Header */}
-        <div className="p-8 border-b bg-background z-10 shrink-0 relative">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 shadow-sm border border-emerald-500/20">
-              <Check className="w-6 h-6" />
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-black tracking-tight">
-                Approve Loan
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-muted-foreground/80 mt-1">
-                Review and finalize the loan terms before activating it.
-              </DialogDescription>
-            </div>
+      <DialogContent className="sm:max-w-md !p-0 !gap-0 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <Check />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 dark:text-emerald-400 mb-1.5">
+              Approve & Activate
+            </p>
+            <DialogTitle>Approve Loan</DialogTitle>
+            <DialogDescription className="mt-1">
+              Review and finalize the loan terms before activating it.
+            </DialogDescription>
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-50/30 dark:bg-zinc-900/10">
-          <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-5 custom-scrollbar">
+          <div className="space-y-4">
             {loan.riskDetails ? (
               <div
-                className={`p-5 rounded-[1.5rem] border shadow-sm transition-all hover:shadow-md ${
+                className={`rounded-2xl border p-4 ${
                   ['A+', 'A'].includes(loan.riskDetails.grade)
-                    ? 'bg-emerald-500/5 border-emerald-500/10'
+                    ? 'bg-emerald-500/5 border-emerald-500/15'
                     : ['B', 'C'].includes(loan.riskDetails.grade)
-                      ? 'bg-amber-500/5 border-amber-500/10'
-                      : 'bg-red-500/5 border-red-500/10'
+                      ? 'bg-amber-500/5 border-amber-500/15'
+                      : 'bg-rose-500/5 border-rose-500/15'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     AI Risk Assessment
                   </h4>
                   <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                       ['A+', 'A'].includes(loan.riskDetails.grade)
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                         : ['B', 'C'].includes(loan.riskDetails.grade)
-                          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                          : 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                     }`}
                   >
                     Grade {loan.riskDetails.grade}
                   </span>
                 </div>
-                <p className="text-sm font-bold mb-3 text-foreground/90 leading-relaxed">
-                  Recommended: {loan.riskDetails.suggestion}
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    Recommended:
+                  </span>{' '}
+                  {loan.riskDetails.suggestion}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {loan.riskDetails.factors.map((factor, idx) => (
                     <span
                       key={idx}
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-background/50 border border-border/50 text-muted-foreground"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-white dark:bg-white/[0.05] text-slate-500 dark:text-slate-400"
                     >
                       • {factor}
                     </span>
@@ -125,42 +127,42 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 </div>
               </div>
             ) : (
-              <div className="p-6 rounded-[1.5rem] border border-dashed border-border/50 bg-muted/5 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+              <div className="rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/40 dark:bg-white/[0.02] p-4 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                   AI Risk Assessment
                 </span>
-                <span className="text-sm font-black text-muted-foreground/30">
+                <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">
                   Not Evaluated
                 </span>
               </div>
             )}
 
             {/* Grantors Grid */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {loan.grantor1 && (
-                <div className="p-5 rounded-[1.5rem] border border-border/50 bg-background/50 shadow-sm transition-all hover:border-primary/20 group">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Grantor 1 Verification
                     </h4>
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                         loan.grantor1Status === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           : loan.grantor1Status === 'rejected'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       }`}
                     >
                       {loan.grantor1Status || 'Pending'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-black text-foreground/90 group-hover:text-primary transition-colors capitalize">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
                       {loan.grantor1?.name || 'Assigned Grantor 1'}
                     </p>
                     {loan.grantor1ApprovedAt && (
-                      <p className="text-[10px] text-muted-foreground/60 font-medium">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                         {new Date(loan.grantor1ApprovedAt).toLocaleDateString()}
                       </p>
                     )}
@@ -169,29 +171,29 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               )}
 
               {loan.grantor2 && (
-                <div className="p-5 rounded-[1.5rem] border border-border/50 bg-background/50 shadow-sm transition-all hover:border-primary/20 group">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Grantor 2 Verification
                     </h4>
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                         loan.grantor2Status === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           : loan.grantor2Status === 'rejected'
-                            ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       }`}
                     >
                       {loan.grantor2Status || 'Pending'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-black text-foreground/90 group-hover:text-primary transition-colors capitalize">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
                       {loan.grantor2?.name || 'Assigned Grantor 2'}
                     </p>
                     {loan.grantor2ApprovedAt && (
-                      <p className="text-[10px] text-muted-foreground/60 font-medium">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                         {new Date(loan.grantor2ApprovedAt).toLocaleDateString()}
                       </p>
                     )}
@@ -203,60 +205,52 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <form
               id="approve-loan-form"
               onSubmit={handleSubmit(onSubmit)}
-              className="space-y-6 pt-2"
+              className="space-y-4 pt-1"
             >
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Principal
                   </label>
-                  <div className="relative group">
-                    <input
-                      type="number"
-                      {...register('principal', { required: true })}
-                      className="w-full bg-background border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all hover:border-border"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    {...register('principal', { required: true })}
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  />
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Rate (%)
                   </label>
-                  <div className="relative group">
-                    <input
-                      type="number"
-                      step="0.01"
-                      {...register('rate', { required: true })}
-                      className="w-full bg-background border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all hover:border-border"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register('rate', { required: true })}
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Duration (Mo)
                   </label>
-                  <div className="relative group">
-                    <input
-                      type="number"
-                      {...register('duration', { required: true })}
-                      className="w-full bg-background border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all hover:border-border"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    {...register('duration', { required: true })}
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                  />
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-1">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Start Date
                   </label>
-                  <div className="relative group">
-                    <input
-                      type="date"
-                      {...register('startDate', { required: true })}
-                      className="w-full bg-background border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all hover:border-border appearance-none"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    {...register('startDate', { required: true })}
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none"
+                  />
                 </div>
               </div>
             </form>
@@ -264,11 +258,11 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-8 border-t bg-background shrink-0 flex gap-4">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-14 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-muted transition-all rounded-[1.25rem] border border-transparent hover:border-border/50 active:scale-95"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
           </button>
@@ -276,9 +270,9 @@ const ApproveLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             form="approve-loan-form"
             type="submit"
             isLoading={loading}
-            className="flex-1 h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all active:scale-95"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
-            {!loading && <Check className="w-4 h-4 mr-2" />}
+            {!loading && <Check className="w-4 h-4" />}
             Confirm Approval
           </Button>
         </div>

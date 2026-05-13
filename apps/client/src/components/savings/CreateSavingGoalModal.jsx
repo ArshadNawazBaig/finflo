@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -16,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Tag } from 'lucide-react';
+import { Calendar, Tag, Target } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -59,121 +58,118 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[95vh] !p-0 flex flex-col overflow-hidden">
-        {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tighter">
-              New Saving Goal
-            </DialogTitle>
-            <DialogDescription className="text-sm font-medium">
-              What are you working towards?
-            </DialogDescription>
-          </DialogHeader>
-        </div>
-
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <form
-            id="create-goal-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6"
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Goal Title
-                </Label>
-                <input
-                  type="text"
-                  placeholder="e.g., New MacBook Pro"
-                  className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
-                  {...register('title', { required: 'Goal title is required' })}
-                />
-                {errors.title && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                  Target Amount (PKR)
-                </Label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm font-black"
-                  {...register('targetAmount', {
-                    required: 'Target amount is required',
-                    min: { value: 1, message: 'Amount must be greater than 0' },
-                  })}
-                />
-                {errors.targetAmount && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                    {errors.targetAmount.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1">
-                    <Tag size={10} /> Category
-                  </Label>
-                  <Select
-                    defaultValue="other"
-                    onValueChange={(val) => setValue('category', val)}
-                  >
-                    <SelectTrigger className="rounded-2xl h-12 bg-muted/30 border-none">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-none shadow-xl">
-                      <SelectItem value="emergency">Emergency</SelectItem>
-                      <SelectItem value="travel">Travel</SelectItem>
-                      <SelectItem value="car">Car</SelectItem>
-                      <SelectItem value="education">Education</SelectItem>
-                      <SelectItem value="home">Home</SelectItem>
-                      <SelectItem value="wedding">Wedding</SelectItem>
-                      <SelectItem value="gadget">Gadget</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-1">
-                    <Calendar size={10} /> Deadline
-                  </Label>
-                  <input
-                    type="date"
-                    className="w-full rounded-2xl h-12 bg-muted/30 border border-border/50 px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
-                    style={{ colorScheme: 'auto' }}
-                    {...register('deadline')}
-                  />
-                </div>
-              </div>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Target />
             </div>
-          </form>
-        </div>
-        {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex gap-3">
-          <Button
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1.5">
+                New Saving Goal
+              </p>
+              <DialogTitle>What are you working towards?</DialogTitle>
+              <DialogDescription className="mt-1">
+                Set a target and start building toward it.
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <form
+          id="create-goal-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Goal Title
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., New MacBook Pro"
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              {...register('title', { required: 'Goal title is required' })}
+            />
+            {errors.title && (
+              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Target Amount (PKR)
+            </label>
+            <input
+              type="number"
+              placeholder="0.00"
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              {...register('targetAmount', {
+                required: 'Target amount is required',
+                min: { value: 1, message: 'Amount must be greater than 0' },
+              })}
+            />
+            {errors.targetAmount && (
+              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.targetAmount.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+                <Tag size={11} /> Category
+              </label>
+              <Select
+                defaultValue="other"
+                onValueChange={(val) => setValue('category', val)}
+              >
+                <SelectTrigger className="rounded-2xl h-[46px] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-medium">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border border-slate-100 dark:border-white/[0.06] shadow-xl">
+                  <SelectItem value="emergency">Emergency</SelectItem>
+                  <SelectItem value="travel">Travel</SelectItem>
+                  <SelectItem value="car">Car</SelectItem>
+                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="home">Home</SelectItem>
+                  <SelectItem value="wedding">Wedding</SelectItem>
+                  <SelectItem value="gadget">Gadget</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+                <Calendar size={11} /> Deadline
+              </label>
+              <input
+                type="date"
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                style={{ colorScheme: 'auto' }}
+                {...register('deadline')}
+              />
+            </div>
+          </div>
+        </form>
+
+        <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button
             type="button"
-            form="create-goal-form"
-            variant="ghost"
-            className="flex-1 rounded-full h-12 font-black uppercase tracking-widest text-xs"
             onClick={onClose}
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </Button>
+          </button>
           <Button
             form="create-goal-form"
             type="submit"
-            variant="gradient"
-            className="flex-[2] rounded-full h-12 font-black uppercase tracking-widest text-xs"
             disabled={loading}
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             {loading ? 'Creating...' : 'Create Goal'}
           </Button>

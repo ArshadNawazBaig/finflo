@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { PiggyBank, ArrowRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -64,89 +63,88 @@ const ContributeGoalModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[95vh] !p-0 flex flex-col overflow-hidden">
-        {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tighter">
-              Allocate Funds
-            </DialogTitle>
-            <DialogDescription className="text-sm font-medium">
-              Add money to your "{goal?.title}" goal
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <PiggyBank />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1.5">
+                Allocate Funds
+              </p>
+              <DialogTitle>Add money to "{goal?.title}"</DialogTitle>
+              <DialogDescription className="mt-1">
+                Move funds from your main account into this goal.
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <form
-            id="contribute-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6"
-          >
-            <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white rounded-2xl shadow-sm text-primary">
-                  <PiggyBank size={24} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                    Available Balance
-                  </p>
-                  <p className="font-black tracking-tight">
-                    {formatCurrency(memberBalance)}
-                  </p>
-                </div>
+        <form
+          id="contribute-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                <PiggyBank />
               </div>
-              <ArrowRight className="text-muted-foreground/30" />
-              <div className="text-right">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Target Progress
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                  Available Balance
                 </p>
-                <p className="font-black tracking-tight text-primary">
-                  {goal?.progress}%
+                <p className="text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                  {formatCurrency(memberBalance)}
                 </p>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Contribution Amount (PKR)
-              </Label>
-              <input
-                type="number"
-                placeholder="Enter amount to save..."
-                className="w-full rounded-2xl h-14 bg-muted/30 border border-border/50 text-xl font-black tracking-tighter px-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                {...register('amount', {
-                  required: 'Amount is required',
-                  min: { value: 1, message: 'Amount must be greater than 0' },
-                })}
-              />
-              {errors.amount && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
-                  {errors.amount.message}
-                </p>
-              )}
+            <ArrowRight size={14} className="text-slate-300 dark:text-slate-600 shrink-0" />
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Target Progress
+              </p>
+              <p className="text-sm font-extrabold tracking-tight tabular-nums text-primary">
+                {goal?.progress}%
+              </p>
             </div>
-          </form>
-        </div>
+          </div>
 
-        {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex gap-3">
-          <Button
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Contribution Amount (PKR)
+            </label>
+            <input
+              type="number"
+              placeholder="Enter amount to save..."
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-4 text-xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              {...register('amount', {
+                required: 'Amount is required',
+                min: { value: 1, message: 'Amount must be greater than 0' },
+              })}
+            />
+            {errors.amount && (
+              <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                {errors.amount.message}
+              </p>
+            )}
+          </div>
+        </form>
+
+        <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button
             type="button"
-            variant="ghost"
-            className="flex-1 rounded-full h-12 font-black uppercase tracking-widest text-xs"
             onClick={onClose}
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </Button>
+          </button>
           <Button
             form="contribute-form"
             type="submit"
-            variant="gradient"
-            className="flex-[2] rounded-full h-12 font-black uppercase tracking-widest text-xs"
             disabled={loading}
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             {loading ? 'Processing...' : 'Allocate Funds'}
           </Button>

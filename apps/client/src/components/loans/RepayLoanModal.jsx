@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
@@ -296,61 +295,82 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
   return (
     <>
       <Dialog open={isOpen && !showTxnConfirm} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
-          {/* Fixed Header */}
-          <div className="p-6 border-b z-10">
-            <DialogHeader className="p-0">
-              <div className="flex items-center gap-2.5 sm:gap-3 mb-2 p-0 sm:p-0">
-                <div className="p-2 sm:p-3 rounded-2xl bg-emerald-500/10 text-emerald-500 shrink-0">
-                  <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
-                </div>
-                <div>
-                  <DialogTitle className="text-lg sm:text-2xl font-black">
-                    {isSettlement ? 'Early Loan Settlement' : 'Pay Back Loan'}
-                  </DialogTitle>
-                  <DialogDescription className="text-[11px] sm:text-sm font-medium">
-                    {isSettlement
-                      ? 'Calculate interest up to today and close the loan'
-                      : `Submit a new installment for ${loan.customer?.name}`}
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
+        <DialogContent className="sm:max-w-[500px] !p-0 !gap-0 flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+            <div
+              className={cn(
+                'h-9 w-9 rounded-full flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5',
+                isSettlement
+                  ? 'bg-blue-500/10 text-blue-500'
+                  : 'bg-emerald-500/10 text-emerald-500',
+              )}
+            >
+              <Wallet />
+            </div>
+            <div className="min-w-0 flex-1 pr-8">
+              <p
+                className={cn(
+                  'text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5',
+                  isSettlement
+                    ? 'text-blue-500 dark:text-blue-400'
+                    : 'text-emerald-500 dark:text-emerald-400',
+                )}
+              >
+                {isSettlement ? 'Early Settlement' : 'Loan Repayment'}
+              </p>
+              <DialogTitle>
+                {isSettlement ? 'Early Loan Settlement' : 'Pay Back Loan'}
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                {isSettlement
+                  ? 'Calculate interest up to today and close the loan'
+                  : `Submit a new installment for ${loan.customer?.name}`}
+              </DialogDescription>
+            </div>
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-5 custom-scrollbar">
             {/* Settlement Info Card */}
             <div
-              className={`mx-0 sm:mx-0 rounded-[1.25rem] sm:rounded-[1.5rem] p-3 sm:p-4 mb-4 border transition-colors ${
+              className={cn(
+                'rounded-2xl p-4 mb-4 border transition-colors',
                 isSettlement
-                  ? 'bg-blue-500/5 border-blue-500/20'
-                  : 'bg-emerald-500/5 border-emerald-500/10'
-              }`}
+                  ? 'bg-blue-500/5 border-blue-500/15'
+                  : 'bg-emerald-500/5 border-emerald-500/15',
+              )}
             >
-              <div className="flex items-center justify-between mb-3 last:mb-0">
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center justify-between mb-2 last:mb-0">
+                <div className="flex items-center gap-2.5">
                   <div
-                    className={`p-1.5 sm:p-2 rounded-xl ${
+                    className={cn(
+                      'h-8 w-8 rounded-full flex items-center justify-center [&_svg]:w-3.5 [&_svg]:h-3.5',
                       isSettlement
-                        ? 'bg-blue-500/20 text-blue-600'
-                        : 'bg-emerald-500/20 text-emerald-600'
-                    }`}
+                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                        : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+                    )}
                   >
-                    <ArrowDownCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <ArrowDownCircle />
                   </div>
                   <span
-                    className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${
-                      isSettlement ? 'text-blue-700/70' : 'text-emerald-700/70'
-                    }`}
+                    className={cn(
+                      'text-[10px] font-bold uppercase tracking-[0.15em]',
+                      isSettlement
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-emerald-600 dark:text-emerald-400',
+                    )}
                   >
                     {isSettlement ? 'Settlement Amount' : 'Outstanding'}
                   </span>
                 </div>
                 <span
-                  className={`text-base sm:text-lg font-black ${
-                    isSettlement ? 'text-blue-600' : 'text-emerald-600'
-                  }`}
+                  className={cn(
+                    'text-lg font-extrabold tracking-tight tabular-nums',
+                    isSettlement
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-emerald-600 dark:text-emerald-400',
+                  )}
                 >
                   {formatCurrency(
                     isSettlement ? settlementAmount : loan.remainingAmount,
@@ -359,22 +379,22 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
               </div>
 
               {isSettlement && (
-                <div className="p-3 bg-blue-500/10 rounded-xl space-y-2">
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                <div className="mt-3 p-3 bg-blue-500/10 rounded-xl space-y-1.5">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-blue-600/80 dark:text-blue-400/80">
                     <span>Annual Rate</span>
-                    <span>{loan.rate}%</span>
+                    <span className="tabular-nums">{loan.rate}%</span>
                   </div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-blue-600/80 dark:text-blue-400/80">
                     <span>Original Term</span>
-                    <span>{loan.duration} Months</span>
+                    <span className="tabular-nums">{loan.duration} Months</span>
                   </div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-blue-800/60">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-blue-600/80 dark:text-blue-400/80">
                     <span>Days Active</span>
-                    <span>{details.daysElapsed} Days</span>
+                    <span className="tabular-nums">{details.daysElapsed} Days</span>
                   </div>
-                  <div className="pt-1 border-t border-blue-500/20 flex justify-between text-[10px] font-black uppercase text-blue-600">
+                  <div className="pt-1.5 border-t border-blue-500/20 flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-blue-600 dark:text-blue-400">
                     <span>Adjusted Interest</span>
-                    <span>{formatCurrency(details.interest)}</span>
+                    <span className="tabular-nums">{formatCurrency(details.interest)}</span>
                   </div>
                 </div>
               )}
@@ -385,16 +405,16 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                   className={cn(
                     'mt-3 p-3 rounded-xl border flex gap-3 transition-colors',
                     Number(amount) > memberBalance
-                      ? 'bg-red-500/10 border-red-500/20 text-red-600'
-                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600',
+                      ? 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'
+                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
                   )}
                 >
                   <Wallet className="w-5 h-5 shrink-0" />
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] opacity-80">
                       Available Member Balance
                     </p>
-                    <p className="text-lg font-black tracking-tight">
+                    <p className="text-lg font-extrabold tracking-tight tabular-nums">
                       {isFetchingBalance ? (
                         <Loader2 size={16} className="animate-spin" />
                       ) : (
@@ -402,7 +422,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       )}
                     </p>
                     {Number(amount) > memberBalance && !isFetchingBalance && (
-                      <p className="text-[10px] font-black text-red-500 flex items-center gap-1 mt-1">
+                      <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1 mt-1">
                         <AlertTriangle size={12} /> Exceeds available funds
                       </p>
                     )}
@@ -414,9 +434,9 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
             <form
               id="repay-loan-form"
               onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4 sm:space-y-6 p-0 sm:px-0 sm:pb-0"
+              className="space-y-4"
             >
-              <div className="space-y-4 sm:space-y-5">
+              <div className="space-y-4">
                 {/* Quick Option: Monthly Installment */}
                 {loan.emi > 0 && !isSettlement && (
                   <div
@@ -430,45 +450,45 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     className={cn(
                       'p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center justify-between group',
                       Number(amount) === dailyInstallment.adjustedAmount
-                        ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
-                        : 'bg-muted/30 border-border/50 hover:border-emerald-500/30',
+                        ? 'bg-emerald-500/5 border-emerald-500/20'
+                        : 'bg-slate-50/40 dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:border-emerald-500/30',
                       isFetchingLastPayment && 'opacity-60 pointer-events-none',
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={cn(
-                          'p-2 rounded-xl transition-colors',
+                          'h-8 w-8 rounded-full flex items-center justify-center transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5',
                           Number(amount) === dailyInstallment.adjustedAmount
-                            ? 'bg-emerald-500/20 text-emerald-600'
-                            : 'bg-background text-muted-foreground group-hover:text-emerald-500',
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-white dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 group-hover:text-emerald-500',
                         )}
                       >
                         {isFetchingLastPayment ? (
-                          <Loader2 size={16} className="animate-spin" />
+                          <Loader2 className="animate-spin" />
                         ) : (
-                          <CalendarIcon size={16} />
+                          <CalendarIcon />
                         )}
                       </div>
                       <div className="space-y-0.5 text-left">
                         <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                             Monthly Installment
                           </p>
                           {!isFetchingLastPayment && (
-                            <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                               {dailyInstallment.daysPassed}d
                             </span>
                           )}
                         </div>
                         <div className="flex items-baseline gap-1.5">
-                          <p className="text-sm font-black text-foreground">
+                          <p className="text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">
                             {isFetchingLastPayment
                               ? '...'
                               : formatCurrency(dailyInstallment.adjustedAmount)}
                           </p>
                           {!isFetchingLastPayment && (
-                            <p className="text-[9px] font-bold text-muted-foreground">
+                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                               incl.{' '}
                               {formatCurrency(dailyInstallment.interestForDays)}{' '}
                               interest
@@ -484,15 +504,15 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 )}
 
                 {/* Settlement Toggle */}
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-2xl border border-border/50">
+                <div className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
                   <div className="space-y-0.5">
                     <Label
-                      className="text-xs font-black uppercase tracking-widest cursor-pointer"
+                      className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 cursor-pointer"
                       htmlFor="isSettlement"
                     >
                       Early Settlement
                     </Label>
-                    <p className="text-[10px] text-muted-foreground font-medium">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                       Recalculate interest for early payment
                     </p>
                   </div>
@@ -501,7 +521,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     type="checkbox"
                     checked={isSettlement}
                     onChange={(e) => handleSettlementToggle(e.target.checked)}
-                    className="w-5 h-5 rounded-lg border-border/50 text-primary focus:ring-primary/20 cursor-pointer"
+                    className="w-5 h-5 rounded-lg border-slate-200 dark:border-white/[0.1] text-primary focus:ring-primary/20 cursor-pointer"
                   />
                 </div>
 
@@ -509,7 +529,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="amount"
-                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                    className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                   >
                     <DollarSign className="w-3 h-3 text-emerald-500" /> Payment
                     Amount
@@ -519,7 +539,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     type="number"
                     placeholder="e.g. 5000"
                     max={isSettlement ? undefined : loan.remainingAmount}
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('amount', {
                       required: 'Payment amount is required',
                       min: {
@@ -529,7 +549,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     })}
                   />
                   {errors.amount && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.amount.message}
                     </p>
                   )}
@@ -539,7 +559,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="date"
-                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                    className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                   >
                     <CalendarIcon className="w-3 h-3" /> Transaction Date
                   </Label>
@@ -547,7 +567,7 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                     <input
                       id="date"
                       type="date"
-                      className="w-full px-4 py-2.5 sm:py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                      className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                       {...register('date', { required: 'Date is required' })}
                       onChange={(e) => {
                         const newDate = e.target.value;
@@ -559,11 +579,11 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                       }}
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                      <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <CalendarIcon className="w-3.5 h-3.5" />
                     </div>
                   </div>
                   {errors.date && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.date.message}
                     </p>
                   )}
@@ -573,14 +593,14 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="notes"
-                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2"
+                    className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2"
                   >
                     <MessageSquare className="w-3 h-3" /> Remarks (Optional)
                   </Label>
                   <Textarea
                     id="notes"
                     placeholder="e.g. Paid via Bank Transfer"
-                    className="w-full px-4 py-2.5 sm:py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] sm:min-h-[100px] resize-none"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[90px] resize-none"
                     {...register('notes')}
                   />
                 </div>
@@ -589,12 +609,12 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
           </div>
 
           {/* Fixed Footer */}
-          <div className="p-6 border-t  z-10 flex justify-end gap-3">
+          <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
             </button>
@@ -607,8 +627,12 @@ const RepayLoanModal = ({ isOpen, onClose, loan, onSuccess }) => {
                 Number(amount) > memberBalance &&
                 !isFetchingBalance
               }
-              variant={isSettlement ? 'gradient' : 'success'}
-              className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex items-center gap-2.5 sm:gap-3"
+              className={cn(
+                'h-11 px-7 rounded-full font-bold text-sm text-white hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2',
+                isSettlement
+                  ? 'bg-blue-500 hover:bg-blue-600 shadow-[0_10px_30px_-10px_rgba(59,130,246,0.5)]'
+                  : 'bg-emerald-500 hover:bg-emerald-600 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)]',
+              )}
             >
               {!loading &&
                 (isSettlement ? (

@@ -58,7 +58,6 @@ import InsightsWidget from '@/components/dashboard/InsightsWidget';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
@@ -918,266 +917,252 @@ const Dashboard = () => {
           setShowCapitalModal(open);
         }}
       >
-        <DialogContent className="sm:max-w-[520px] w-[95vw] rounded-[1.5rem] sm:rounded-[2.5rem] !p-0 border-none shadow-2xl overflow-hidden flex flex-col gap-0 bg-card">
-          {/* Gradient Header */}
-          <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 sm:p-10 text-white relative shrink-0">
-            <div className="absolute top-0 right-0 p-6 sm:p-10 opacity-10">
-              <Landmark size={64} className="sm:w-20 sm:h-20" />
+        <DialogContent className="sm:max-w-[520px] !p-0 !gap-0 !grid-cols-none !flex !flex-col !overflow-hidden max-h-[90vh]">
+          {/* Header (fixed) */}
+          <div className="p-6 sm:p-7 pb-5 flex items-start gap-3 shrink-0 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Landmark />
             </div>
-            <DialogHeader className="relative z-10 text-left items-start">
-              <DialogTitle className="text-2xl sm:text-4xl font-black tracking-tighter leading-none mb-2">
-                Business Capital
-              </DialogTitle>
-              <DialogDescription className="text-white/70 font-bold tracking-wide text-[10px] sm:text-xs">
-                Manage Owner&apos;s Equity & Funds
+            <div className="min-w-0 flex-1 pr-8">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1.5">
+                Owner&apos;s equity
+              </p>
+              <DialogTitle>Business Capital</DialogTitle>
+              <DialogDescription className="mt-1">
+                Inject or withdraw funds from the business capital pool.
               </DialogDescription>
-            </DialogHeader>
-            {/* Balance Badge */}
-            <div className="mt-4 flex items-center gap-3">
-              <div className="px-4 py-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">
-                  Current Balance
-                </p>
-                <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight">
-                  <SensitiveBalance iconSize={14}>
-                    {formatCurrency(stats?.businessCapital || 0)}
-                  </SensitiveBalance>
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">
-              {/* Payment Method */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Payment Method
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCapitalPaymentMethod('cash')}
-                    className={cn(
-                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
-                      capitalPaymentMethod === 'cash'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border/40 text-muted-foreground hover:border-primary/30',
-                    )}
-                  >
-                    <Wallet size={14} /> Cash
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCapitalPaymentMethod('online')}
-                    className={cn(
-                      'flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all duration-300 text-[10px] font-black uppercase tracking-widest',
-                      capitalPaymentMethod === 'online'
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-                        : 'border-border/40 text-muted-foreground hover:border-blue-500/30',
-                    )}
-                  >
-                    <CreditCard size={14} /> Online
-                  </button>
-                </div>
-              </div>
+          {/* Body (scrollable) */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-6 sm:px-7 py-5 space-y-5">
+            <div className="rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1.5">
+                Current balance
+              </p>
+              <p className="text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">
+                <SensitiveBalance iconSize={14}>
+                  {formatCurrency(stats?.businessCapital || 0)}
+                </SensitiveBalance>
+              </p>
+            </div>
 
-              {/* Type Toggle */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Transaction Type
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCapitalType('inject')}
+            <div className="space-y-2">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
+                Payment method
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCapitalPaymentMethod('cash')}
+                  className={cn(
+                    'flex items-center justify-center gap-2 py-3 rounded-full border transition-all text-xs font-semibold',
+                    capitalPaymentMethod === 'cash'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
+                  )}
+                >
+                  <Wallet size={14} /> Cash
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCapitalPaymentMethod('online')}
+                  className={cn(
+                    'flex items-center justify-center gap-2 py-3 rounded-full border transition-all text-xs font-semibold',
+                    capitalPaymentMethod === 'online'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
+                  )}
+                >
+                  <CreditCard size={14} /> Online
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
+                Transaction type
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCapitalType('inject')}
+                  className={cn(
+                    'flex items-center justify-center gap-2 py-3 rounded-2xl border transition-all text-sm font-semibold',
+                    capitalType === 'inject'
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
+                  )}
+                >
+                  <ArrowDownCircle size={16} />
+                  Inject
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCapitalType('withdraw')}
+                  className={cn(
+                    'flex items-center justify-center gap-2 py-3 rounded-2xl border transition-all text-sm font-semibold',
+                    capitalType === 'withdraw'
+                      ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 dark:text-rose-400'
+                      : 'border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]',
+                  )}
+                >
+                  <ArrowUpCircle size={16} />
+                  Withdraw
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
+                Amount
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Banknote
                     className={cn(
-                      'relative overflow-hidden flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 transition-all duration-300 font-black text-xs uppercase tracking-widest',
+                      'h-4 w-4 transition-colors',
                       capitalType === 'inject'
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 shadow-lg shadow-emerald-500/10 scale-[1.02]'
-                        : 'border-border/40 text-muted-foreground hover:border-emerald-500/30 hover:bg-emerald-500/5',
+                        ? 'text-emerald-500'
+                        : 'text-rose-500',
                     )}
-                  >
-                    <ArrowDownCircle size={18} />
-                    Inject
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCapitalType('withdraw')}
-                    className={cn(
-                      'relative overflow-hidden flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 transition-all duration-300 font-black text-xs uppercase tracking-widest',
-                      capitalType === 'withdraw'
-                        ? 'border-orange-500 bg-orange-500/10 text-orange-600 shadow-lg shadow-orange-500/10 scale-[1.02]'
-                        : 'border-border/40 text-muted-foreground hover:border-orange-500/30 hover:bg-orange-500/5',
-                    )}
-                  >
-                    <ArrowUpCircle size={18} />
-                    Withdraw
-                  </button>
-                </div>
-              </div>
-
-              {/* Amount Input */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Amount
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                    <Banknote
-                      className={cn(
-                        'h-5 w-5 transition-colors',
-                        capitalType === 'inject'
-                          ? 'text-emerald-500'
-                          : 'text-orange-500',
-                      )}
-                    />
-                  </div>
-                  <input
-                    type="number"
-                    min="1"
-                    step="any"
-                    placeholder="0.00"
-                    value={capitalAmount}
-                    onChange={(e) => setCapitalAmount(e.target.value)}
-                    className="w-full h-14 sm:h-16 pl-14 pr-5 rounded-2xl border border-border/40 bg-muted/30 font-black text-lg sm:text-xl tabular-nums tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                  Description (Optional)
-                </label>
                 <input
-                  type="text"
-                  placeholder={
-                    capitalType === 'inject'
-                      ? 'E.g. Owner equity injection, seed capital...'
-                      : 'E.g. Owner draw, business withdrawal...'
-                  }
-                  value={capitalDescription}
-                  onChange={(e) => setCapitalDescription(e.target.value)}
-                  className="w-full h-12 sm:h-14 px-5 rounded-2xl border border-border/40 bg-muted/30 font-bold text-sm tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  type="number"
+                  min="1"
+                  step="any"
+                  placeholder="0.00"
+                  value={capitalAmount}
+                  onChange={(e) => setCapitalAmount(e.target.value)}
+                  className="w-full h-12 pl-11 pr-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] font-extrabold text-lg tabular-nums tracking-tight focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
+            </div>
 
-              {/* Recent Capital History */}
-              {capitalHistory.length > 0 && (
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">
-                    Recent Capital Movements
-                  </label>
-                  <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar">
-                    {capitalHistory.map((txn) => (
-                      <div
-                        key={txn._id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/20"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              'h-8 w-8 rounded-lg flex items-center justify-center',
-                              txn.type === 'income'
-                                ? 'bg-emerald-500/10'
-                                : 'bg-orange-500/10',
-                            )}
-                          >
-                            {txn.type === 'income' ? (
-                              <ArrowDownCircle
-                                size={14}
-                                className="text-emerald-500"
-                              />
-                            ) : (
-                              <ArrowUpCircle
-                                size={14}
-                                className="text-orange-500"
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold truncate max-w-[150px]">
-                              {txn.description ||
-                                (txn.type === 'income'
-                                  ? 'Capital Injection'
-                                  : 'Capital Withdrawal')}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <p className="text-[9px] text-muted-foreground font-medium">
-                                {new Date(txn.date).toLocaleDateString()}
-                              </p>
-                              {txn.branchId?.name && (
-                                <>
-                                  <span className="w-1 h-1 rounded-full bg-border" />
-                                  <div className="flex items-center gap-1 text-[9px] font-bold text-primary/80 uppercase tracking-wider">
-                                    <Building2 size={9} />
-                                    {txn.branchId.name}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <span
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">
+                Description{' '}
+                <span className="text-slate-300 dark:text-slate-600 font-normal">
+                  (optional)
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder={
+                  capitalType === 'inject'
+                    ? 'E.g. Owner equity injection, seed capital...'
+                    : 'E.g. Owner draw, business withdrawal...'
+                }
+                value={capitalDescription}
+                onChange={(e) => setCapitalDescription(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+            </div>
+
+            {capitalHistory.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 block">
+                  Recent capital movements
+                </label>
+                <div className="space-y-2">
+                  {capitalHistory.map((txn) => (
+                    <div
+                      key={txn._id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div
                           className={cn(
-                            'text-sm font-black tabular-nums',
+                            'h-8 w-8 rounded-full flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5',
                             txn.type === 'income'
-                              ? 'text-emerald-600'
-                              : 'text-orange-600',
+                              ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400'
+                              : 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
                           )}
                         >
-                          {txn.type === 'income' ? '+' : '-'}
-                          {formatCurrency(txn.amount)}
-                        </span>
+                          {txn.type === 'income' ? (
+                            <ArrowDownCircle />
+                          ) : (
+                            <ArrowUpCircle />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {txn.description ||
+                              (txn.type === 'income'
+                                ? 'Capital Injection'
+                                : 'Capital Withdrawal')}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                              {new Date(txn.date).toLocaleDateString()}
+                            </p>
+                            {txn.branchId?.name && (
+                              <>
+                                <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase tracking-wider">
+                                  <Building2 size={9} />
+                                  {txn.branchId.name}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                      <span
+                        className={cn(
+                          'text-sm font-extrabold tabular-nums shrink-0',
+                          txn.type === 'income'
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-rose-500 dark:text-rose-400',
+                        )}
+                      >
+                        {txn.type === 'income' ? '+' : '-'}
+                        {formatCurrency(txn.amount)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Footer Buttons */}
-          <div className="px-6 sm:px-10 pb-6 sm:pb-8 shrink-0 mt-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowCapitalModal(false);
-                  setCapitalAmount('');
-                  setCapitalDescription('');
-                  setCapitalPaymentMethod('online');
-                }}
-                className="flex-1 rounded-xl min-h-12 font-black uppercase text-[10px] tracking-widest border-border/40 hover:bg-muted/50 order-2 sm:order-1 transition-all"
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={!capitalAmount || parseFloat(capitalAmount) <= 0}
-                onClick={handleCapitalSubmit}
-                className={cn(
-                  'flex-[1.5] rounded-xl min-h-12 font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transform transition-all active:scale-95 order-1 sm:order-2 gap-2 text-white',
-                  capitalType === 'inject'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-                    : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/20',
-                )}
-              >
-                {capitalProcessing ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : capitalType === 'inject' ? (
-                  <ArrowDownCircle size={14} />
-                ) : (
-                  <ArrowUpCircle size={14} />
-                )}
-                {capitalProcessing
-                  ? 'Processing...'
-                  : capitalType === 'inject'
-                    ? 'Inject Capital'
-                    : 'Withdraw Capital'}
-              </Button>
-            </div>
+          {/* Footer (fixed) */}
+          <div className="px-6 sm:px-7 py-4 sm:py-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-slate-950">
+            <button
+              onClick={() => {
+                setShowCapitalModal(false);
+                setCapitalAmount('');
+                setCapitalDescription('');
+                setCapitalPaymentMethod('online');
+              }}
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
+            >
+              Cancel
+            </button>
+            <Button
+              disabled={!capitalAmount || parseFloat(capitalAmount) <= 0}
+              onClick={handleCapitalSubmit}
+              className={cn(
+                'h-11 px-7 rounded-full font-bold text-sm text-white transition-all hover:-translate-y-0.5 flex items-center gap-2',
+                capitalType === 'inject'
+                  ? 'bg-emerald-500 hover:bg-emerald-600 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)]'
+                  : 'bg-rose-500 hover:bg-rose-600 shadow-[0_10px_30px_-10px_rgba(244,63,94,0.5)]',
+              )}
+            >
+              {capitalProcessing ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : capitalType === 'inject' ? (
+                <ArrowDownCircle size={14} strokeWidth={2.5} />
+              ) : (
+                <ArrowUpCircle size={14} strokeWidth={2.5} />
+              )}
+              {capitalProcessing
+                ? 'Processing...'
+                : capitalType === 'inject'
+                  ? 'Inject Capital'
+                  : 'Withdraw Capital'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

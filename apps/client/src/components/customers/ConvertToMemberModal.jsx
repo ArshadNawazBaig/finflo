@@ -52,7 +52,7 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -66,36 +66,43 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-[2rem] bg-card border border-border/50 p-8 text-left align-middle shadow-2xl transition-all">
-                <div className="flex items-center justify-between mb-8">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-2xl font-black tracking-tighter flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                      <UserPlus size={20} strokeWidth={3} />
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] p-6 sm:p-7 text-left align-middle shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] transition-all">
+                <div className="flex items-start justify-between mb-6 gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                      <UserPlus />
                     </div>
-                    Convert to Member
-                  </Dialog.Title>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+                        Member onboarding
+                      </p>
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg sm:text-xl font-extrabold tracking-[-0.025em] leading-tight text-slate-900 dark:text-white"
+                      >
+                        Convert to Member
+                      </Dialog.Title>
+                    </div>
+                  </div>
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+                    className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all shrink-0"
                   >
-                    <X size={20} className="text-muted-foreground" />
+                    <X size={14} strokeWidth={2.5} />
                   </button>
                 </div>
 
-                <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-sm text-blue-600 dark:text-blue-400">
-                  Converting <strong>{customer.name || 'this customer'}</strong>{' '}
-                  (CNIC: {customer.cnic}) to a Member will give them access to
+                <div className="mb-6 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Converting <strong className="font-bold text-slate-900 dark:text-white capitalize">{customer.name || 'this customer'}</strong>{' '}
+                  (CNIC: <span className="font-mono font-bold text-slate-900 dark:text-white">{customer.cnic}</span>) to a Member will give them access to
                   the Member Portal where they can view their loans and submit
                   new requests.
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {/* Password */}
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                       Set Password
                     </label>
                     <PasswordInput
@@ -108,30 +115,28 @@ const ConvertToMemberModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       })}
                       placeholder="Create a password for the member"
                       leftIcon={
-                        <Lock className="w-4 h-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                        <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors" />
                       }
                     />
                     {errors.password && (
-                      <p className="text-[11px] font-medium text-destructive ml-1">
+                      <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                         {errors.password.message}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex gap-3 pt-2">
-                    <Button
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06] pt-5">
+                    <button
                       type="button"
-                      variant="outline"
                       onClick={onClose}
-                      className="flex-1 rounded-xl h-11"
+                      className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
                     >
                       Cancel
-                    </Button>
+                    </button>
                     <Button
                       type="submit"
                       disabled={loading}
-                      variant="gradient"
-                      className="flex-1 rounded-xl h-11 text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                      className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

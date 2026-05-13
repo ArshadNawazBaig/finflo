@@ -85,153 +85,147 @@ const AddPaymentMethodModal = ({ isOpen, onClose, onSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-              <CreditCard className="w-6 h-6" />
+          <div className="flex items-start gap-3 pr-8">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <CreditCard />
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-black">
-                Add Payment Method
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1.5">
+                Payment Method
+              </p>
+              <DialogTitle>Add Payment Method</DialogTitle>
+              <DialogDescription className="mt-1">
                 Add a new card to your account.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-5">
-            {/* Card Number */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
-                <CreditCard className="w-3 h-3" /> Card Number
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+              <CreditCard className="w-3 h-3" /> Card Number
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="1234 5678 9012 3456"
+              value={formData.cardNumber}
+              onChange={handleCardNumberChange}
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                Month
+              </label>
+              <input
+                type="number"
+                required
+                placeholder="MM"
+                min="1"
+                max="12"
+                value={formData.expiryMonth}
+                onChange={(e) =>
+                  setFormData({ ...formData, expiryMonth: e.target.value })
+                }
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                Year
+              </label>
+              <input
+                type="number"
+                required
+                placeholder="YYYY"
+                min="2026"
+                max="2050"
+                value={formData.expiryYear}
+                onChange={(e) =>
+                  setFormData({ ...formData, expiryYear: e.target.value })
+                }
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                CVV
               </label>
               <input
                 type="text"
                 required
-                placeholder="1234 5678 9012 3456"
-                value={formData.cardNumber}
-                onChange={handleCardNumberChange}
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
-              />
-            </div>
-
-            {/* Expiry & CVV */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                  Month
-                </label>
-                <input
-                  type="number"
-                  required
-                  placeholder="MM"
-                  min="1"
-                  max="12"
-                  value={formData.expiryMonth}
-                  onChange={(e) =>
-                    setFormData({ ...formData, expiryMonth: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                  Year
-                </label>
-                <input
-                  type="number"
-                  required
-                  placeholder="YYYY"
-                  min="2026"
-                  max="2050"
-                  value={formData.expiryYear}
-                  onChange={(e) =>
-                    setFormData({ ...formData, expiryYear: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                  CVV
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="123"
-                  maxLength="4"
-                  value={formData.cvv}
-                  onChange={(e) =>
-                    /^\d*$/.test(e.target.value) &&
-                    setFormData({ ...formData, cvv: e.target.value })
-                  }
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Cardholder Name */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                Cardholder Name
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="John Doe"
-                value={formData.cardholderName}
+                placeholder="123"
+                maxLength="4"
+                value={formData.cvv}
                 onChange={(e) =>
-                  setFormData({ ...formData, cardholderName: e.target.value })
+                  /^\d*$/.test(e.target.value) &&
+                  setFormData({ ...formData, cvv: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
-            </div>
-
-            {/* Set as Default */}
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/20 border border-border/30">
-              <input
-                type="checkbox"
-                id="isDefault"
-                checked={formData.isDefault}
-                onChange={(e) =>
-                  setFormData({ ...formData, isDefault: e.target.checked })
-                }
-                className="w-4 h-4 rounded border-border/50 text-primary focus:ring-primary/20"
-              />
-              <label
-                htmlFor="isDefault"
-                className="text-sm font-medium cursor-pointer"
-              >
-                Set as default payment method
-              </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+              Cardholder Name
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="John Doe"
+              value={formData.cardholderName}
+              onChange={(e) =>
+                setFormData({ ...formData, cardholderName: e.target.value })
+              }
+              className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4">
+            <input
+              type="checkbox"
+              id="isDefault"
+              checked={formData.isDefault}
+              onChange={(e) =>
+                setFormData({ ...formData, isDefault: e.target.checked })
+              }
+              className="w-4 h-4 rounded border-slate-200 text-primary focus:ring-primary/20"
+            />
+            <label
+              htmlFor="isDefault"
+              className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+            >
+              Set as default payment method
+            </label>
+          </div>
+
+          <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
             >
               Cancel
             </button>
             <Button
               type="submit"
               disabled={loading}
-              variant="gradient"
-              className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+              className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                   Adding...
                 </>
               ) : (
                 <>
-                  <Plus size={16} />
+                  <Plus size={14} />
                   Add Card
                 </>
               )}

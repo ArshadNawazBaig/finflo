@@ -15,6 +15,7 @@ import {
   QrCode,
   CheckCircle2,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -77,113 +78,105 @@ const MemberDepositModal = ({ isOpen, onClose, onSuccess }) => {
         }
       }}
     >
-      <DialogContent className="sm:max-w-[450px] !p-0 rounded-[2.5rem] overflow-hidden border-none shadow-2xl">
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background p-8">
-          <DialogHeader className="mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-inner">
-                {step === 1 ? (
-                  <Wallet className="w-8 h-8" />
-                ) : (
-                  <QrCode className="w-8 h-8" />
-                )}
-              </div>
-              <div className="text-left">
-                <DialogTitle className="text-2xl font-black tracking-tight">
-                  {step === 1 ? 'Add Funds via Raast' : 'Scan to Pay'}
-                </DialogTitle>
-                <DialogDescription className="text-sm font-medium">
-                  {step === 1
-                    ? 'Instantly top up your balance with 0% fees.'
-                    : 'Open your banking app and scan this Raast QR.'}
-                </DialogDescription>
+      <DialogContent className="sm:max-w-[450px]">
+        <DialogHeader className="flex-row items-start gap-3 space-y-0">
+          <div className="h-9 w-9 rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            {step === 1 ? <Wallet /> : <QrCode />}
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 dark:text-emerald-400 mb-1.5">
+              {step === 1 ? 'Raast deposit' : 'QR payment'}
+            </p>
+            <DialogTitle>
+              {step === 1 ? 'Add Funds via Raast' : 'Scan to Pay'}
+            </DialogTitle>
+            <DialogDescription className="mt-1">
+              {step === 1
+                ? 'Instantly top up your balance with 0% fees.'
+                : 'Open your banking app and scan this Raast QR.'}
+            </DialogDescription>
+          </div>
+        </DialogHeader>
+
+        {step === 1 ? (
+          <form onSubmit={handleInitiateDeposit} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="dep-amount"
+                className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                Deposit Amount (PKR)
+              </Label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary group-focus-within:scale-110 transition-transform">
+                  <DollarSign size={18} strokeWidth={2.5} />
+                </div>
+                <Input
+                  id="dep-amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="h-14 pl-12 pr-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-lg font-extrabold tracking-tight tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                  min="1"
+                  required
+                />
               </div>
             </div>
-          </DialogHeader>
 
-          {step === 1 ? (
-            <form onSubmit={handleInitiateDeposit} className="space-y-6">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="dep-amount"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
-                >
-                  Deposit Amount (PKR)
-                </Label>
-                <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-primary group-focus-within:scale-110 transition-transform">
-                    <DollarSign size={20} strokeWidth={3} />
-                  </div>
-                  <Input
-                    id="dep-amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="h-16 pl-14 pr-6 rounded-2xl border-none bg-muted/50 text-xl font-black focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
-                    min="1"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all"
-                >
-                  Cancel
-                </button>
-                <Button
-                  type="submit"
-                  isLoading={loading}
-                  disabled={!amount || Number(amount) <= 0}
-                  className="flex-[2] h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all group"
-                >
-                  <div className="flex items-center gap-2">Generate QR</div>
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="flex flex-col items-center gap-6 animate-in zoom-in-95">
-              <div className="p-6 bg-white rounded-3xl shadow-inner border border-muted">
-                {qrData ? (
-                  <QRCodeSVG
-                    value={qrData}
-                    size={220}
-                    level="H"
-                    imageSettings={{
-                      src: '/logo.svg',
-                      height: 40,
-                      width: 40,
-                      excavate: true,
-                    }}
-                  />
-                ) : (
-                  <div className="w-[220px] h-[220px] flex items-center justify-center text-muted-foreground bg-muted/20 animate-pulse rounded-xl">
-                    Generating...
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-xl">
-                <CheckCircle2 size={16} />
-                <span className="text-xs font-bold">
-                  Waiting for payment confirmation...
-                </span>
-              </div>
-
-              <Button
-                onClick={handleDone}
-                variant="outline"
-                className="w-full h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest mt-2 border-border/50"
+            <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
               >
-                I have completed the payment
+                Cancel
+              </button>
+              <Button
+                type="submit"
+                isLoading={loading}
+                disabled={!amount || Number(amount) <= 0}
+                className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+              >
+                Generate QR
               </Button>
             </div>
-          )}
-        </div>
+          </form>
+        ) : (
+          <div className="flex flex-col items-center gap-5 animate-in zoom-in-95">
+            <div className="p-6 bg-white rounded-2xl border border-slate-100 dark:border-white/[0.06]">
+              {qrData ? (
+                <QRCodeSVG
+                  value={qrData}
+                  size={220}
+                  level="H"
+                  imageSettings={{
+                    src: '/logo.svg',
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
+              ) : (
+                <div className="w-[220px] h-[220px] flex items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-50/40 dark:bg-white/[0.02] animate-pulse rounded-xl">
+                  Generating...
+                </div>
+              )}
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 size={12} />
+              Waiting for payment confirmation...
+            </div>
+
+            <Button
+              onClick={handleDone}
+              className="w-full h-11 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+            >
+              I have completed the payment
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

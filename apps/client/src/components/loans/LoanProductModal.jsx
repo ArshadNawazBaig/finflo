@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Package } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
@@ -90,92 +91,123 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[95vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black tracking-tight">
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <Package />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+              {product ? 'Edit Product' : 'New Product'}
+            </p>
+            <DialogTitle>
               {product ? 'Edit Loan Product' : 'Create New Product'}
             </DialogTitle>
-          </DialogHeader>
+            <DialogDescription className="mt-1">
+              Configure standardized terms for loan issuance.
+            </DialogDescription>
+          </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-6 custom-scrollbar">
           <form
             id="loan-product-form"
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-5"
           >
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="name"
+                className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                Product Name
+              </Label>
               <Input
                 id="name"
                 placeholder="e.g., Standard 12% Gold Loan"
-                className="rounded-xl"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 {...register('name', { required: 'Product name is required' })}
               />
               {errors.name && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                   {errors.name.message}
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="description"
+                className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+              >
+                Description
+              </Label>
               <Textarea
                 id="description"
                 placeholder="Short description of the product"
-                className="rounded-xl min-h-[80px]"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px]"
                 {...register('description')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="interestRate">Interest Rate (%)</Label>
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="interestRate"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  Interest Rate (%)
+                </Label>
                 <Input
                   id="interestRate"
                   type="number"
                   placeholder="12"
-                  className="rounded-xl"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('interestRate', {
                     required: 'Interest rate is required',
                     min: { value: 0, message: 'Must be ≥ 0' },
                   })}
                 />
                 {errors.interestRate && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                     {errors.interestRate.message}
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="duration">Duration (Months)</Label>
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="duration"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  Duration (Months)
+                </Label>
                 <Input
                   id="duration"
                   type="number"
                   placeholder="12"
-                  className="rounded-xl"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('duration', {
                     required: 'Duration is required',
                     min: { value: 1, message: 'Must be ≥ 1' },
                   })}
                 />
                 {errors.duration && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                     {errors.duration.message}
                   </p>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Interest Type</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  Interest Type
+                </Label>
                 <Select
                   value={interestType}
                   onValueChange={(val) => setInterestType(val)}
                 >
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -185,15 +217,18 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/20">
-                <Label htmlFor="isActive" className="cursor-pointer">
+              <div className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                <Label
+                  htmlFor="isActive"
+                  className="cursor-pointer text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
                   Active Status
                 </Label>
                 <button
                   type="button"
                   id="isActive"
                   onClick={() => setIsActive(!isActive)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-muted'}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${isActive ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/[0.1]'}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
@@ -202,23 +237,33 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minAmount">Min Amount (Optional)</Label>
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="minAmount"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  Min Amount (Optional)
+                </Label>
                 <Input
                   id="minAmount"
                   type="number"
                   placeholder="0"
-                  className="rounded-xl"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('minAmount')}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxAmount">Max Amount (Optional)</Label>
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="maxAmount"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400"
+                >
+                  Max Amount (Optional)
+                </Label>
                 <Input
                   id="maxAmount"
                   type="number"
                   placeholder="100000"
-                  className="rounded-xl"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('maxAmount')}
                 />
               </div>
@@ -227,12 +272,12 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
           </button>
@@ -240,8 +285,7 @@ const LoanProductModal = ({ isOpen, onClose, onSuccess, product }) => {
             form="loan-product-form"
             type="submit"
             isLoading={loading}
-            variant="gradient"
-            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             {product ? 'Update Product' : 'Create Product'}
           </Button>

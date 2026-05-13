@@ -199,19 +199,20 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
+        <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] z-10">
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                <UserCircle className="w-6 h-6" />
+            <div className="flex items-start gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                <UserCircle />
               </div>
-              <div>
-                <DialogTitle className="text-2xl font-black">
-                  Update Profile
-                </DialogTitle>
-                <DialogDescription className="text-sm font-medium">
+              <div className="min-w-0 flex-1 pr-8">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+                  Update profile
+                </p>
+                <DialogTitle>Update Profile</DialogTitle>
+                <DialogDescription className="mt-1">
                   Modify details for{' '}
                   <span className="font-bold text-primary capitalize">
                     {customer?.name}
@@ -223,7 +224,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-7 pb-10 custom-scrollbar">
           <form
             id="edit-customer-form"
             onSubmit={handleSubmit(onSubmit)}
@@ -232,35 +233,35 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
             <div className="grid grid-cols-1 gap-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Full Name
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('name', { required: 'Name is required' })}
                   />
                   {errors.name && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                       {errors.name.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     CNIC Number
                   </label>
                   <input
                     type="text"
                     placeholder="00000-0000000-0"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                     {...register('cnic', { required: 'CNIC is required' })}
                     onChange={(e) =>
                       setValue('cnic', formatCNIC(e.target.value))
                     }
                   />
                   {errors.cnic && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                       {errors.cnic.message}
                     </p>
                   )}
@@ -269,31 +270,31 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Email Address
                   </label>
                   <input
                     type="email"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('email', { required: 'Email is required' })}
                   />
                   {errors.email && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                       {errors.email.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Phone Number
                   </label>
                   <input
                     type="tel"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('phone', { required: 'Phone is required' })}
                   />
                   {errors.phone && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                       {errors.phone.message}
                     </p>
                   )}
@@ -302,58 +303,58 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Occupation
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('job')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Monthly Income
                   </label>
                   <input
                     type="number"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('monthlyIncome')}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                   Job Detail & Office Address
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('jobDetail')}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                   Residential Address
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
                   {...register('address')}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                   Branch Selection
                 </label>
                 {user.role === 'staff' ? (
-                  <div className="w-full px-4 py-3 rounded-2xl bg-muted/30 text-xs font-bold text-muted-foreground italic border border-border/50">
+                  <div className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 italic">
                     Assigned to your branch
                   </div>
                 ) : (
                   <select
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                     {...register('branchId', {
                       required: 'Branch is required',
                     })}
@@ -367,15 +368,15 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </select>
                 )}
                 {errors.branchId && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.branchId.message}
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-3xl bg-muted/30 border border-border/50">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Saving Account
                   </label>
                   <div className="flex gap-2">
@@ -383,7 +384,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       readOnly
                       value={savingAccountNumber}
                       placeholder="Gen ->"
-                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
                     />
                     {!savingAccountNumber && (
                       <Button
@@ -391,7 +392,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('savingAccountNumber')
                         }
-                        className="rounded-2xl px-4 py-3"
+                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
                       >
                         Gen
                       </Button>
@@ -399,7 +400,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Current Account
                   </label>
                   <div className="flex gap-2">
@@ -407,7 +408,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       readOnly
                       value={currentAccountNumber}
                       placeholder="Gen ->"
-                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
                     />
                     {!currentAccountNumber && (
                       <Button
@@ -415,7 +416,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('currentAccountNumber')
                         }
-                        className="rounded-2xl px-4 py-3"
+                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
                       >
                         Gen
                       </Button>
@@ -424,9 +425,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-3xl bg-muted/30 border border-border/50">
+              <div className="p-4 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Loan Account
                   </label>
                   <div className="flex gap-2">
@@ -434,7 +435,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       readOnly
                       value={loanAccountNumber}
                       placeholder="Gen ->"
-                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black font-mono focus:outline-none"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums font-mono focus:outline-none"
                     />
                     {!loanAccountNumber && (
                       <Button
@@ -442,7 +443,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         onClick={() =>
                           generateAccountNumber('loanAccountNumber')
                         }
-                        className="rounded-2xl px-4 py-3"
+                        className="rounded-full px-4 py-3 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
                       >
                         Gen
                       </Button>
@@ -452,14 +453,14 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
               </div>
 
               {/* Nominee */}
-              <div className="space-y-3 p-4 rounded-3xl bg-amber-500/5 border border-amber-500/20">
-                <label className="text-[10px] font-black uppercase tracking-widest text-amber-600 px-1 flex items-center gap-2">
+              <div className="space-y-3 p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-amber-500/5">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />{' '}
                   Nominee Information
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                       Nominee Name
                     </label>
                     <input
@@ -469,11 +470,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         setNominee({ ...nominee, name: e.target.value })
                       }
                       placeholder="Full name of nominee"
-                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                    <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                       Nominee CNIC
                     </label>
                     <input
@@ -486,12 +487,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                         })
                       }
                       placeholder="00000-0000000-0"
-                      className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
+                      className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Relation to Customer
                   </label>
                   <input
@@ -501,16 +502,16 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       setNominee({ ...nominee, relation: e.target.value })
                     }
                     placeholder="e.g. Spouse, Father, Son"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Nominee CNIC Image
                   </label>
                   <div className="flex flex-col gap-3">
                     {nominee.cnicImage && (
-                      <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-border/50 bg-white shadow-sm flex items-center justify-center p-2">
+                      <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/[0.06] bg-white shadow-sm flex items-center justify-center p-2">
                         <img
                           src={nominee.cnicImage}
                           alt="CNIC Preview"
@@ -521,13 +522,13 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                           onClick={() =>
                             setNominee({ ...nominee, cnicImage: '' })
                           }
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-destructive text-white hover:scale-110 transition-transform shadow-lg"
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-500 text-white hover:scale-110 transition-transform shadow-lg"
                         >
                           <X size={12} />
                         </button>
                       </div>
                     )}
-                    <div className="relative group p-4 border-2 border-dashed border-border/50 rounded-[1.5rem] bg-background/50 text-center hover:bg-muted/10 transition-all overflow-hidden">
+                    <div className="relative group p-4 border-2 border-dashed border-slate-100 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-white/[0.02] text-center hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all overflow-hidden">
                       <input
                         type="file"
                         accept="image/*"
@@ -537,9 +538,9 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                       <div className="flex flex-col items-center gap-1">
                         <Upload
                           size={16}
-                          className="text-muted-foreground group-hover:text-amber-500 transition-colors"
+                          className="text-slate-400 dark:text-slate-500 group-hover:text-amber-500 transition-colors"
                         />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           {nominee.cnicImage
                             ? 'Replace CNIC Image'
                             : 'Upload CNIC Front'}
@@ -552,22 +553,22 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
 
               {existingDocs.length > 0 && (
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                     Existing Documents
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {existingDocs.map((doc) => (
                       <div
                         key={doc._id}
-                        className="flex items-center justify-between p-3 bg-muted/30 border border-border/50 rounded-2xl"
+                        className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]"
                       >
-                        <span className="text-[10px] font-bold truncate pr-2">
+                        <span className="text-[10px] font-bold truncate pr-2 text-slate-900 dark:text-white">
                           {doc.originalName}
                         </span>
                         <button
                           type="button"
                           onClick={() => removeExistingFile(doc._id)}
-                          className="text-destructive hover:scale-110 transition-transform"
+                          className="text-rose-500 hover:scale-110 transition-transform"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -578,18 +579,18 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
               )}
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                   New Documents (Max 5 Total)
                 </label>
-                <div className="relative p-6 border-2 border-dashed border-border/60 rounded-3xl text-center hover:bg-muted/10 transition-colors">
+                <div className="relative p-6 border-2 border-dashed border-slate-100 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-white/[0.02] text-center hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors">
                   <input
                     type="file"
                     multiple
                     onChange={handleFileChange}
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <Upload className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  <Upload className="w-8 h-8 mx-auto text-slate-400 dark:text-slate-500 mb-2" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Click or drag files
                   </p>
                 </div>
@@ -598,13 +599,13 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
                     {files.map((file, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-full"
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10 text-primary"
                       >
                         <span className="text-[10px] font-bold truncate max-w-[100px]">
                           {file.name}
                         </span>
                         <X
-                          className="w-3 h-3 cursor-pointer hover:text-destructive"
+                          className="w-3 h-3 cursor-pointer hover:text-rose-500"
                           onClick={() => removeFile(idx)}
                         />
                       </div>
@@ -614,12 +615,12 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex justify-between">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex justify-between">
                   Signature <span>*</span>
                 </label>
                 {signature && signature.startsWith('http') && (
-                  <div className="mb-2 p-2 bg-white rounded-2xl border border-border/20 flex flex-col items-center">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
+                  <div className="mb-2 p-2 bg-white rounded-2xl border border-slate-100 dark:border-white/[0.06] flex flex-col items-center">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
                       Current Signature
                     </p>
                     <img
@@ -639,11 +640,11 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] z-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
           </button>
@@ -651,8 +652,7 @@ const EditCustomerModal = ({ isOpen, onClose, customer, onSuccess }) => {
             form="edit-customer-form"
             type="submit"
             disabled={loading || uploading}
-            variant="gradient"
-            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
             {loading || uploading ? (
               <Loader2 size={16} className="animate-spin" />

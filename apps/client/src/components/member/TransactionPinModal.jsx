@@ -123,7 +123,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
   };
 
   const renderPinInputs = (values, refs, setter) => (
-    <div className="flex gap-3 justify-center">
+    <div className="flex gap-2 justify-center">
       {values.map((digit, i) => (
         <input
           key={i}
@@ -135,8 +135,10 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
           onChange={(e) => handlePinChange(i, e.target.value, refs, setter, values)}
           onKeyDown={(e) => handleKeyDown(i, e, refs, setter, values)}
           className={cn(
-            'w-14 h-16 text-center text-2xl font-black rounded-2xl border-2 bg-background transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-inner',
-            digit ? 'border-primary/40' : 'border-border/50',
+            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] w-12 h-14 text-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+            digit
+              ? 'border-primary/40'
+              : 'border-slate-100 dark:border-white/[0.06]',
           )}
         />
       ))}
@@ -145,26 +147,32 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-sm !p-0 !gap-0 rounded-[2.5rem] overflow-hidden">
+      <DialogContent className="sm:max-w-sm">
         {/* Header */}
-        <div className="p-8 pb-4 text-center">
+        <div className="text-center pr-8">
           <div className={cn(
-            'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-inner',
-            locked ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary',
+            'h-9 w-9 rounded-full mx-auto flex items-center justify-center mb-3 [&_svg]:w-3.5 [&_svg]:h-3.5',
+            locked ? 'bg-rose-500/10 text-rose-500 dark:text-rose-400' : 'bg-primary/10 text-primary',
           )}>
-            {locked ? <ShieldAlert size={28} /> : <Lock size={28} />}
+            {locked ? <ShieldAlert /> : <Lock />}
           </div>
-          <DialogTitle className="text-xl font-black">
+          <p className={cn(
+            'text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5',
+            locked ? 'text-rose-500 dark:text-rose-400' : 'text-primary',
+          )}>
+            {showOtpReset ? 'PIN recovery' : locked ? 'Locked' : 'Authorize'}
+          </p>
+          <DialogTitle>
             {showOtpReset ? 'Reset PIN' : 'Enter PIN'}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
             {showOtpReset
               ? 'Enter the OTP sent to your email and set a new PIN'
               : 'Enter your 4-digit transaction PIN to continue'}
           </p>
         </div>
 
-        <div className="px-8 pb-8 space-y-5">
+        <div className="space-y-4">
           {!showOtpReset ? (
             <>
               {/* PIN Input */}
@@ -173,17 +181,17 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
               </div>
 
               {error && (
-                <p className="text-xs text-center text-red-500 font-bold">{error}</p>
+                <p className="text-[10px] text-center text-rose-500 font-bold">{error}</p>
               )}
               {attemptsRemaining !== null && !locked && (
-                <p className="text-[10px] text-center text-amber-600 font-bold">
+                <p className="text-[10px] text-center text-amber-600 dark:text-amber-400 font-bold">
                   {attemptsRemaining} attempt{attemptsRemaining !== 1 ? 's' : ''} remaining
                 </p>
               )}
 
               {loading && (
                 <div className="flex justify-center">
-                  <Loader2 size={20} className="animate-spin text-primary" />
+                  <Loader2 size={18} className="animate-spin text-primary" />
                 </div>
               )}
 
@@ -192,7 +200,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                 type="button"
                 onClick={handleRequestOtp}
                 disabled={otpSending}
-                className="w-full text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary transition-colors py-2 flex items-center justify-center gap-2"
+                className="w-full text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 hover:text-primary transition-colors py-2 flex items-center justify-center gap-2"
               >
                 {otpSending ? (
                   <Loader2 size={12} className="animate-spin" />
@@ -205,8 +213,8 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
           ) : (
             <>
               {/* OTP Input */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   6-digit OTP
                 </label>
                 <input
@@ -215,15 +223,15 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-center text-lg font-black tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-inner"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-center text-lg font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="● ● ● ● ● ●"
                   autoFocus
                 />
               </div>
 
               {/* New PIN */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                   <KeyRound size={10} /> New 4-digit PIN
                 </label>
                 {renderPinInputs(newPin, newPinRefs, setNewPin)}
@@ -233,8 +241,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
                 onClick={handleResetPin}
                 isLoading={resetLoading}
                 disabled={otp.length !== 6 || newPin.some((d) => !d)}
-                variant="gradient"
-                className="w-full min-h-12 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px]"
+                className="w-full h-11 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 Reset & Set New PIN
               </Button>
@@ -242,7 +249,7 @@ const TransactionPinModal = ({ isOpen, onClose, onVerified }) => {
               <button
                 type="button"
                 onClick={() => setShowOtpReset(false)}
-                className="w-full text-[10px] font-bold text-muted-foreground hover:text-foreground py-1"
+                className="w-full text-[10px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors py-1"
               >
                 ← Back to PIN entry
               </button>

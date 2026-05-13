@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,78 +86,79 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
+        <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] z-10">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">
-              Edit Staff Member
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground">
-              Update profile details for {staff?.name}.
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+              Update profile
             </p>
+            <DialogTitle>Edit Staff Member</DialogTitle>
+            <DialogDescription className="mt-1">
+              Update profile details for {staff?.name}.
+            </DialogDescription>
           </DialogHeader>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-7 custom-scrollbar">
           <form
             id="edit-staff-form"
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-4"
           >
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+            <div>
+              <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Full Name
               </Label>
               <Input
-                className="rounded-xl border-border/50"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 {...register('name', { required: 'Full name is required' })}
               />
               {errors.name && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                   {errors.name.message}
                 </p>
               )}
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+            <div>
+              <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Email Address
               </Label>
               <Input
                 type="email"
-                className="rounded-xl border-border/50"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 {...register('email', { required: 'Email is required' })}
               />
               {errors.email && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                   {errors.email.message}
                 </p>
               )}
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+            <div>
+              <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 New Password (Leave blank to keep current)
               </Label>
               <PasswordInput
                 placeholder="Leave blank to keep current"
-                className="rounded-xl border-border/50"
+                className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 {...register('password', {
                   minLength: { value: 8, message: 'Minimum 8 characters' },
                 })}
               />
               {errors.password && (
-                <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+            <div>
+              <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Assign Branch
               </Label>
               <select
-                className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                 {...register('branchId')}
               >
                 <option value="">No Branch (Global Access)</option>
@@ -167,12 +169,12 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
                 ))}
               </select>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+            <div>
+              <Label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block">
                 Assign Role (Optional)
               </Label>
               <select
-                className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                 {...register('roleRef')}
               >
                 <option value="">Standard Staff</option>
@@ -187,21 +189,19 @@ const EditStaffModal = ({ isOpen, onClose, staff, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
-          <Button
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] z-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <button
             type="button"
-            variant="ghost"
             onClick={onClose}
-            className="rounded-full text-[10px] font-black uppercase tracking-widest"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
-          </Button>
+          </button>
           <Button
             form="edit-staff-form"
             type="submit"
             isLoading={loading}
-            variant="gradient"
-            className="rounded-full text-[10px] font-black uppercase tracking-widest px-8"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             Save Changes
           </Button>

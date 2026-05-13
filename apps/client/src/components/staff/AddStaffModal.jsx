@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,49 +87,52 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
+        <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] z-10">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1.5">
+              {isSuccess ? 'Account ready' : 'New staff'}
+            </p>
+            <DialogTitle>
               {isSuccess ? 'Staff Member Created!' : 'Add Staff Member'}
             </DialogTitle>
             {!isSuccess && (
-              <p className="text-xs text-muted-foreground">
+              <DialogDescription className="mt-1">
                 Create login credentials for a new team member.
-              </p>
+              </DialogDescription>
             )}
           </DialogHeader>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-7 custom-scrollbar">
           {isSuccess ? (
             <div className="space-y-6 flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-in zoom-in-50 duration-500">
-                <CheckCircle2 className="w-8 h-8 text-primary" />
+              <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center animate-in zoom-in-50 duration-500">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
               <div className="text-center space-y-1">
-                <h3 className="font-black text-lg">Staff Member Created!</h3>
-                <p className="text-xs text-muted-foreground px-4">
+                <h3 className="font-extrabold tracking-tight text-lg text-slate-900 dark:text-white">Staff Member Created!</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-4">
                   Please share these credentials with them. They will be forced
                   to change their password on first login.
                 </p>
               </div>
               <div className="w-full space-y-3 px-2">
-                <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-4">
+                <div className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] p-4 space-y-4">
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
+                    <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Email Address
                     </Label>
                     <div className="flex items-center justify-between gap-2">
-                      <code className="text-xs font-bold break-all">
+                      <code className="text-xs font-bold break-all text-slate-900 dark:text-white">
                         {successData?.email}
                       </code>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0 hover:bg-background"
+                        className="h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/[0.04]"
                         onClick={() => {
                           navigator.clipboard.writeText(successData?.email);
                           toast.success('Email copied');
@@ -139,17 +143,17 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
+                    <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Temporary Password
                     </Label>
                     <div className="flex items-center justify-between gap-2">
-                      <code className="text-xs font-bold break-all">
+                      <code className="text-xs font-bold break-all text-slate-900 dark:text-white">
                         {successData?.password}
                       </code>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0 hover:bg-background"
+                        className="h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/[0.04]"
                         onClick={() => {
                           navigator.clipboard.writeText(successData?.password);
                           toast.success('Password copied');
@@ -166,8 +170,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                   setIsSuccess(false);
                   onClose();
                 }}
-                variant="gradient"
-                className="w-full rounded-full h-12 font-black text-[11px] uppercase tracking-widest"
+                className="w-full h-11 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 Done &amp; Close
               </Button>
@@ -178,29 +181,29 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-4"
             >
-              <div className="space-y-2">
+              <div>
                 <Label
                   htmlFor="name"
-                  className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block"
                 >
                   Full Name
                 </Label>
                 <Input
                   id="name"
                   placeholder="Enter name"
-                  className="rounded-xl border-border/50"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('name', { required: 'Full name is required' })}
                 />
                 {errors.name && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.name.message}
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label
                   htmlFor="email"
-                  className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block"
                 >
                   Email Address
                 </Label>
@@ -208,47 +211,47 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                   id="email"
                   type="email"
                   placeholder="Enter email"
-                  className="rounded-xl border-border/50"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('email', { required: 'Email is required' })}
                 />
                 {errors.email && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.email.message}
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label
                   htmlFor="password"
-                  className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block"
                 >
                   Password
                 </Label>
                 <PasswordInput
                   id="password"
                   placeholder="Create password"
-                  className="rounded-xl border-border/50"
+                  className="rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   {...register('password', {
                     required: 'Password is required',
                     minLength: { value: 8, message: 'Minimum 8 characters' },
                   })}
                 />
                 {errors.password && (
-                  <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                  <p className="text-rose-500 text-[10px] font-bold pl-1 mt-1 animate-in fade-in slide-in-from-top-1">
                     {errors.password.message}
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label
                   htmlFor="branchId"
-                  className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block"
                 >
                   Assign Branch
                 </Label>
                 <select
                   id="branchId"
-                  className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                   {...register('branchId')}
                 >
                   <option value="">No Branch (Global Access)</option>
@@ -259,16 +262,16 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label
                   htmlFor="roleRef"
-                  className="text-[10px] font-black uppercase tracking-wider text-muted-foreground"
+                  className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 block"
                 >
                   Assign Role (Optional)
                 </Label>
                 <select
                   id="roleRef"
-                  className="flex h-10 w-full rounded-xl border border-border/50 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
                   {...register('roleRef')}
                 >
                   <option value="">Standard Staff</option>
@@ -285,21 +288,19 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Fixed Footer — only shown when in form state */}
         {!isSuccess && (
-          <div className="p-6 border-t  z-10 flex justify-end gap-3">
-            <Button
+          <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 border-t border-slate-100 dark:border-white/[0.06] z-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <button
               type="button"
-              variant="outline"
               onClick={onClose}
-              className="rounded-full px-6 text-xs font-bold"
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
             >
               Cancel
-            </Button>
+            </button>
             <Button
               form="add-staff-form"
               type="submit"
-              variant="gradient"
               isLoading={loading}
-              className="rounded-full px-8 text-xs font-black uppercase tracking-wider"
+              className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Create Staff
             </Button>

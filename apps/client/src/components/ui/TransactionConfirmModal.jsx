@@ -1,5 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Banknote, HandCoins, Send, Loader2, Fingerprint, ShieldCheck, ShieldAlert } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Banknote,
+  HandCoins,
+  Send,
+  Loader2,
+  Fingerprint,
+  ShieldCheck,
+  ShieldAlert,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,25 +22,6 @@ import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 
-/**
- * TransactionConfirmModal — Reusable confirmation dialog for financial transactions.
- * Now includes inline Transaction PIN verification.
- *
- * Props:
- *   isOpen       — boolean, controls visibility
- *   onClose      — function, close handler
- *   onConfirm    — function(transactionToken), execute the transaction (receives token)
- *   loading      — boolean, shows spinner on confirm button
- *   type         — 'credit' | 'debit' | 'transfer' | 'loan-payment' | 'cash-opening' | 'custom'
- *   title        — string, modal heading (auto-inferred from type if omitted)
- *   amount       — number, the transaction amount
- *   details      — array of { label, value } to display as summary rows
- *   description  — string, optional note/description
- *   confirmText  — string, confirm button label (defaults based on type)
- *   requirePin   — boolean, if true shows PIN entry (default: true for member transactions)
- *   transactionToken — string, if already have a valid token skip PIN entry
- *   isAdminTransaction — boolean, skip PIN for admin-initiated transactions
- */
 const TransactionConfirmModal = ({
   isOpen,
   onClose,
@@ -48,11 +40,11 @@ const TransactionConfirmModal = ({
   const [pin, setPin] = useState(['', '', '', '']);
   const [pinError, setPinError] = useState('');
   const [pinLoading, setPinLoading] = useState(false);
-  const [pinStatus, setPinStatus] = useState(null); // null = loading, { hasPin }
+  const [pinStatus, setPinStatus] = useState(null);
   const [showSetPin, setShowSetPin] = useState(false);
   const [newPin, setNewPin] = useState(['', '', '', '']);
   const [confirmNewPin, setConfirmNewPin] = useState(['', '', '', '']);
-  const [setupStep, setSetupStep] = useState(1); // 1: create, 2: confirm, 3: password
+  const [setupStep, setSetupStep] = useState(1);
   const [setupPassword, setSetupPassword] = useState('');
   const [setupLoading, setSetupLoading] = useState(false);
   const [setupError, setSetupError] = useState('');
@@ -64,7 +56,6 @@ const TransactionConfirmModal = ({
 
   const needsPin = requirePinProp && !isAdminTransaction && !existingToken;
 
-  // Check PIN status on open
   useEffect(() => {
     if (isOpen && needsPin) {
       setPin(['', '', '', '']);
@@ -90,11 +81,10 @@ const TransactionConfirmModal = ({
       };
       checkStatus();
     } else if (isOpen) {
-      setPinStatus({ hasPin: true }); // Admin or already have token
+      setPinStatus({ hasPin: true });
     }
   }, [isOpen, needsPin]);
 
-  // Auto-focus first PIN input
   useEffect(() => {
     if (isOpen && needsPin && pinStatus?.hasPin && !showSetPin) {
       setTimeout(() => pinRefs[0].current?.focus(), 200);
@@ -118,7 +108,6 @@ const TransactionConfirmModal = ({
     }
   };
 
-  // Handle confirm: verify PIN → get token → call onConfirm with token
   const handleConfirm = async () => {
     if (needsPin && pinStatus?.hasPin && !showSetPin) {
       const pinStr = pin.join('');
@@ -126,21 +115,18 @@ const TransactionConfirmModal = ({
         setPinError('Enter your 4-digit PIN');
         return;
       }
-      
+
       setPinLoading(true);
       setPinError('');
       try {
         const { data } = await api.post('/members/portal/verify-pin', { pin: pinStr });
-        // PIN verified — call onConfirm with token and await it
         await onConfirm(data.token);
       } catch (err) {
-        // Wrong PIN (422) or locked (423)
         if (err.response?.status === 422 || err.response?.status === 423) {
           failedAttempts.current += 1;
           const remaining = 3 - failedAttempts.current;
 
           if (remaining <= 0) {
-            // 3 failed attempts → logout
             toast.error('Too many wrong attempts — session ended for security.');
             localStorage.removeItem('member');
             setTimeout(() => {
@@ -149,7 +135,6 @@ const TransactionConfirmModal = ({
             return;
           }
 
-          // Still have attempts left
           setPinError(`Incorrect PIN (${remaining} attempt${remaining > 1 ? 's' : ''} left)`);
           setPin(['', '', '', '']);
           setTimeout(() => pinRefs[0].current?.focus(), 100);
@@ -158,15 +143,13 @@ const TransactionConfirmModal = ({
         setPinLoading(false);
       }
     } else {
-      // No PIN required or already have token
       await onConfirm(existingToken);
     }
   };
 
-  // Set PIN flow
   const handleSetPinNext = () => {
     if (setupStep === 1) {
-      if (newPin.some(d => !d)) return;
+      if (newPin.some((d) => !d)) return;
       setSetupStep(2);
       setConfirmNewPin(['', '', '', '']);
       setTimeout(() => confirmNewPinRefs[0].current?.focus(), 100);
@@ -183,15 +166,18 @@ const TransactionConfirmModal = ({
   };
 
   useEffect(() => {
-    if (showSetPin && setupStep === 1 && newPin.every(d => d !== '')) handleSetPinNext();
+    if (showSetPin && setupStep === 1 && newPin.every((d) => d !== '')) handleSetPinNext();
   }, [newPin, setupStep, showSetPin]);
 
   useEffect(() => {
-    if (showSetPin && setupStep === 2 && confirmNewPin.every(d => d !== '')) handleSetPinNext();
+    if (showSetPin && setupStep === 2 && confirmNewPin.every((d) => d !== '')) handleSetPinNext();
   }, [confirmNewPin, setupStep, showSetPin]);
 
   const handleSetPinSubmit = async () => {
-    if (!setupPassword) { setSetupError('Password is required'); return; }
+    if (!setupPassword) {
+      setSetupError('Password is required');
+      return;
+    }
     setSetupLoading(true);
     setSetupError('');
     try {
@@ -224,9 +210,11 @@ const TransactionConfirmModal = ({
           onChange={(e) => handlePinChange(i, e.target.value, refs, setter, values)}
           onKeyDown={(e) => handlePinKeyDown(i, e, refs, setter, values)}
           className={cn(
-            'text-center font-black rounded-xl border-2 bg-background transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
-            small ? 'w-10 h-11 text-lg' : 'w-12 h-14 text-xl',
-            digit ? 'border-primary/40' : 'border-border/50',
+            'text-center font-extrabold rounded-2xl border bg-white dark:bg-white/[0.02] transition-all focus:outline-none focus:ring-2 focus:ring-primary/30',
+            small ? 'w-11 h-12 text-lg' : 'w-12 h-14 text-xl',
+            digit
+              ? 'border-primary/40'
+              : 'border-slate-100 dark:border-white/[0.06]',
           )}
         />
       ))}
@@ -235,70 +223,70 @@ const TransactionConfirmModal = ({
 
   const typeConfig = {
     credit: {
-      icon: <ArrowDownCircle className="w-6 h-6" />,
-      iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-      gradient: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
-      amountColor: 'text-emerald-600',
-      btnClass: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20',
+      icon: <ArrowDownCircle size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400',
+      eyebrowTone: 'text-emerald-500 dark:text-emerald-400',
+      amountColor: 'text-emerald-600 dark:text-emerald-400',
+      btnClass:
+        'bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)]',
       defaultTitle: 'Confirm Deposit',
       defaultConfirm: 'Confirm Deposit',
-      badgeText: 'Credit Transaction',
-      badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+      badgeText: 'Credit transaction',
     },
     debit: {
-      icon: <ArrowUpCircle className="w-6 h-6" />,
-      iconBg: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-      gradient: 'from-rose-500/10 via-rose-500/5 to-transparent',
-      amountColor: 'text-rose-600',
-      btnClass: 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20',
+      icon: <ArrowUpCircle size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
+      eyebrowTone: 'text-rose-500 dark:text-rose-400',
+      amountColor: 'text-rose-600 dark:text-rose-400',
+      btnClass:
+        'bg-rose-500 hover:bg-rose-600 text-white shadow-[0_10px_30px_-10px_rgba(244,63,94,0.5)]',
       defaultTitle: 'Confirm Withdrawal',
       defaultConfirm: 'Confirm Withdrawal',
-      badgeText: 'Debit Transaction',
-      badgeClass: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+      badgeText: 'Debit transaction',
     },
     transfer: {
-      icon: <Send className="w-6 h-6" />,
-      iconBg: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-      gradient: 'from-indigo-500/10 via-indigo-500/5 to-transparent',
-      amountColor: 'text-indigo-600',
-      btnClass: 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20',
+      icon: <Send size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-primary/10 text-primary',
+      eyebrowTone: 'text-primary',
+      amountColor: 'text-primary',
+      btnClass:
+        'bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]',
       defaultTitle: 'Confirm Transfer',
       defaultConfirm: 'Confirm Transfer',
-      badgeText: 'Fund Transfer',
-      badgeClass: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+      badgeText: 'Fund transfer',
     },
     'loan-payment': {
-      icon: <Banknote className="w-6 h-6" />,
-      iconBg: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-      gradient: 'from-indigo-500/10 via-indigo-500/5 to-transparent',
-      amountColor: 'text-indigo-600',
-      btnClass: 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20',
+      icon: <Banknote size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-primary/10 text-primary',
+      eyebrowTone: 'text-primary',
+      amountColor: 'text-primary',
+      btnClass:
+        'bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]',
       defaultTitle: 'Confirm Loan Payment',
       defaultConfirm: 'Confirm Payment',
-      badgeText: 'Loan Repayment',
-      badgeClass: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+      badgeText: 'Loan repayment',
     },
     'cash-opening': {
-      icon: <HandCoins className="w-6 h-6" />,
-      iconBg: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-      gradient: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
-      amountColor: 'text-emerald-600',
-      btnClass: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20',
+      icon: <HandCoins size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400',
+      eyebrowTone: 'text-emerald-500 dark:text-emerald-400',
+      amountColor: 'text-emerald-600 dark:text-emerald-400',
+      btnClass:
+        'bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)]',
       defaultTitle: 'Set Cash in Hand',
       defaultConfirm: 'Confirm',
-      badgeText: 'Cash Opening',
-      badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+      badgeText: 'Cash opening',
     },
     custom: {
-      icon: <AlertTriangle className="w-6 h-6" />,
-      iconBg: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-      gradient: 'from-amber-500/10 via-amber-500/5 to-transparent',
-      amountColor: 'text-amber-600',
-      btnClass: 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20',
+      icon: <AlertTriangle size={16} strokeWidth={2.5} />,
+      chipTone: 'bg-amber-500/10 text-amber-500 dark:text-amber-400',
+      eyebrowTone: 'text-amber-500 dark:text-amber-400',
+      amountColor: 'text-amber-600 dark:text-amber-400',
+      btnClass:
+        'bg-amber-500 hover:bg-amber-600 text-white shadow-[0_10px_30px_-10px_rgba(245,158,11,0.5)]',
       defaultTitle: 'Confirm Transaction',
       defaultConfirm: 'Confirm',
       badgeText: 'Transaction',
-      badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
     },
   };
 
@@ -308,33 +296,47 @@ const TransactionConfirmModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-card border-border/50 rounded-3xl">
+      <DialogContent className="sm:max-w-[440px] !p-0 !gap-0 overflow-hidden">
         {/* Header */}
-        <div className={cn('relative p-6 pb-4 bg-gradient-to-br border-b border-border/50', config.gradient)}>
-          <div className="flex items-center gap-4">
-            <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner border', config.iconBg)}>
-              {config.icon}
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-black tracking-tight">
-                {modalTitle}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] font-bold text-muted-foreground/80 tracking-wide mt-1">
-                Please review and confirm
-              </DialogDescription>
-            </div>
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div
+            className={cn(
+              'h-9 w-9 rounded-full flex items-center justify-center shrink-0',
+              config.chipTone,
+            )}
+          >
+            {config.icon}
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p
+              className={cn(
+                'text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5',
+                config.eyebrowTone,
+              )}
+            >
+              {config.badgeText}
+            </p>
+            <DialogTitle>{modalTitle}</DialogTitle>
+            <DialogDescription className="mt-1">
+              Please review and confirm
+            </DialogDescription>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5">
+        <div className="px-6 sm:px-7 pb-6 space-y-4">
           {/* Amount Display */}
           {amount !== undefined && amount !== null && (
-            <div className="text-center py-4 rounded-2xl bg-muted/30 border border-border/50">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">
-                Transaction Amount
+            <div className="text-center py-5 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1.5">
+                Transaction amount
               </p>
-              <p className={cn('text-3xl font-black tracking-tight', config.amountColor)}>
+              <p
+                className={cn(
+                  'text-3xl font-extrabold tracking-tight tabular-nums',
+                  config.amountColor,
+                )}
+              >
                 {formatCurrency(amount)}
               </p>
             </div>
@@ -342,13 +344,16 @@ const TransactionConfirmModal = ({
 
           {/* Transaction Details */}
           {details.length > 0 && (
-            <div className="space-y-2 p-4 rounded-2xl bg-muted/20 border border-border/30">
+            <div className="rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-4 space-y-2.5">
               {details.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     {item.label}
                   </span>
-                  <span className="text-xs font-bold text-foreground truncate max-w-[55%] text-right">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[60%] text-right tabular-nums">
                     {item.value}
                   </span>
                 </div>
@@ -358,43 +363,45 @@ const TransactionConfirmModal = ({
 
           {/* Description */}
           {description && (
-            <div className="p-3 rounded-xl bg-muted/10 border border-border/20">
-              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Note</p>
-              <p className="text-xs font-medium text-muted-foreground leading-relaxed">{description}</p>
+            <div className="rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                Note
+              </p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                {description}
+              </p>
             </div>
           )}
 
-          {/* ─── PIN Entry Section ─── */}
+          {/* PIN Entry Section */}
           {needsPin && (
-            <div className="border-t border-border/30 pt-4 space-y-3">
+            <div className="border-t border-slate-100 dark:border-white/[0.06] pt-4 space-y-3">
               {pinStatus === null ? (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 size={20} className="animate-spin text-muted-foreground" />
+                  <Loader2 size={20} className="animate-spin text-slate-400" />
                 </div>
               ) : showSetPin ? (
-                /* ─── Inline Set PIN Flow ─── */
                 <div className="space-y-4 animate-in fade-in duration-300">
-                  {/* No PIN Banner */}
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
-                    <ShieldAlert size={15} className="text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 leading-relaxed">
+                  <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/15">
+                    <ShieldAlert size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 leading-relaxed">
                       A transaction PIN is required to authorize transfers, withdrawals, and repayments. Please set up your PIN to continue.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2 justify-center">
-                    <ShieldCheck size={16} className="text-emerald-500" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      {setupStep === 1 && 'Create a 4-Digit PIN'}
-                      {setupStep === 2 && 'Confirm Your PIN'}
-                      {setupStep === 3 && 'Verify With Password'}
+                    <ShieldCheck size={14} className="text-emerald-500" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                      {setupStep === 1 && 'Create a 4-digit PIN'}
+                      {setupStep === 2 && 'Confirm your PIN'}
+                      {setupStep === 3 && 'Verify with password'}
                     </p>
                   </div>
 
                   {setupStep === 1 && (
                     <>
                       {renderPinInputs(newPin, newPinRefs, setNewPin, true)}
-                      <p className="text-[9px] text-center text-muted-foreground/60">
+                      <p className="text-[10px] text-center text-slate-400 dark:text-slate-500">
                         This PIN secures all your transactions
                       </p>
                     </>
@@ -403,31 +410,43 @@ const TransactionConfirmModal = ({
                   {setupStep === 2 && (
                     <>
                       {renderPinInputs(confirmNewPin, confirmNewPinRefs, setConfirmNewPin, true)}
-                      {setupError && <p className="text-[10px] text-center text-red-500 font-bold">{setupError}</p>}
+                      {setupError && (
+                        <p className="text-[10px] text-center text-rose-500 font-bold">
+                          {setupError}
+                        </p>
+                      )}
                     </>
                   )}
 
                   {setupStep === 3 && (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 justify-center">
+                      <div className="flex items-center gap-2 p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/15 justify-center">
                         <ShieldCheck size={14} className="text-emerald-500" />
-                        <p className="text-[10px] font-bold text-emerald-600">PIN confirmed: ● ● ● ●</p>
+                        <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          PIN confirmed: ● ● ● ●
+                        </p>
                       </div>
                       <input
                         type="password"
                         value={setupPassword}
                         onChange={(e) => setSetupPassword(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
                         placeholder="Enter your login password"
                         autoFocus
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleSetPinSubmit(); }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSetPinSubmit();
+                        }}
                       />
-                      {setupError && <p className="text-[10px] text-center text-red-500 font-bold">{setupError}</p>}
+                      {setupError && (
+                        <p className="text-[10px] text-center text-rose-500 font-bold">
+                          {setupError}
+                        </p>
+                      )}
                       <Button
                         onClick={handleSetPinSubmit}
                         isLoading={setupLoading}
                         disabled={!setupPassword}
-                        className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-widest"
+                        className="w-full h-11 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
                       >
                         Set PIN & Continue
                       </Button>
@@ -435,52 +454,54 @@ const TransactionConfirmModal = ({
                   )}
                 </div>
               ) : (
-                /* ─── PIN Verify Input ─── */
                 <div className="space-y-3 animate-in fade-in duration-300">
                   <div className="flex items-center gap-2 justify-center">
-                    <Fingerprint size={16} className="text-primary" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Enter Transaction PIN
+                    <Fingerprint size={14} className="text-primary" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                      Enter transaction PIN
                     </p>
                   </div>
                   {renderPinInputs(pin, pinRefs, setPin, true)}
                   {pinError && (
-                    <p className="text-[10px] text-center text-red-500 font-bold animate-in fade-in">{pinError}</p>
+                    <p className="text-[10px] text-center text-rose-500 font-bold animate-in fade-in">
+                      {pinError}
+                    </p>
                   )}
                 </div>
               )}
             </div>
           )}
-
-          {/* Actions */}
-          {(!needsPin || !showSetPin || setupStep < 3) && !(showSetPin && setupStep === 3) && (
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                disabled={loading || pinLoading}
-                className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                disabled={loading || pinLoading || (needsPin && showSetPin)}
-                className={cn(
-                  'flex-[2] h-12 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95',
-                  config.btnClass,
-                )}
-              >
-                {(loading || pinLoading) ? <Loader2 size={16} className="animate-spin" /> : (
-                  <span className="flex items-center gap-2">
-                    {needsPin && <Fingerprint size={14} />}
-                    {btnText}
-                  </span>
-                )}
-              </Button>
-            </div>
-          )}
         </div>
+
+        {/* Footer */}
+        {(!needsPin || !showSetPin || setupStep < 3) && !(showSetPin && setupStep === 3) && (
+          <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
+            <button
+              onClick={onClose}
+              disabled={loading || pinLoading}
+              className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <Button
+              onClick={handleConfirm}
+              disabled={loading || pinLoading || (needsPin && showSetPin)}
+              className={cn(
+                'h-11 px-7 rounded-full font-bold text-sm transition-all hover:-translate-y-0.5',
+                config.btnClass,
+              )}
+            >
+              {loading || pinLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  {needsPin && <Fingerprint size={14} />}
+                  {btnText}
+                </span>
+              )}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

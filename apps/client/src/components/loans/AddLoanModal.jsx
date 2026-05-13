@@ -13,7 +13,6 @@ import UpgradePrompt from '@/components/pricing/UpgradePrompt';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
@@ -337,30 +336,27 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[550px] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b z-10">
-          <DialogHeader className="p-0">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 shrink-0">
-                <PlusCircle className="w-6 h-6" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg sm:text-2xl font-black">
-                  Issue New Loan
-                </DialogTitle>
-                <DialogDescription className="text-[11px] sm:text-sm font-medium">
-                  Set up a new lending agreement.
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
+        <div className="p-6 sm:p-7 pb-5 flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <PlusCircle />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500 mb-1.5">
+              New Loan
+            </p>
+            <DialogTitle>Issue New Loan</DialogTitle>
+            <DialogDescription className="mt-1">
+              Set up a new lending agreement.
+            </DialogDescription>
+          </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-7 pb-6 custom-scrollbar">
           {errors.root && (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-destructive/20 mb-6 animate-in fade-in zoom-in-95">
+            <div className="bg-rose-500/10 text-rose-500 p-4 rounded-2xl text-xs font-bold uppercase tracking-wider border border-rose-500/20 mb-5 animate-in fade-in zoom-in-95">
               {errors.root.message}
             </div>
           )}
@@ -373,17 +369,17 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
             <div className="space-y-5">
               {/* Loan Product Selection */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary flex items-center gap-2">
                   <BookOpen className="w-3 h-3" /> Select Loan Product Template
                 </label>
                 <Select value={productId} onValueChange={handleProductChange}>
-                  <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border-2 border-primary/20 bg-primary/5 text-sm font-black focus:ring-2 focus:ring-primary/20 capitalize">
+                  <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-primary/20 bg-primary/5 text-sm font-semibold focus:ring-2 focus:ring-primary/20 capitalize">
                     <SelectValue placeholder="Standardize terms... (Optional)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem
                       value="none"
-                      className="font-bold text-muted-foreground"
+                      className="font-semibold text-slate-500 dark:text-slate-400"
                     >
                       Custom (No Template)
                     </SelectItem>
@@ -391,7 +387,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       <SelectItem
                         key={p._id}
                         value={p._id}
-                        className="capitalize font-bold"
+                        className="capitalize font-semibold"
                       >
                         {p.name} ({p.interestRate}%)
                       </SelectItem>
@@ -402,7 +398,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
               {/* Customer Selection */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <User className="w-3 h-3" /> Select Borrower
                 </label>
                 <Select
@@ -410,7 +406,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   onValueChange={(value) => setCustomerId(value)}
                   required
                 >
-                  <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:ring-2 focus:ring-primary/20 capitalize">
+                  <SelectTrigger className="w-full px-4 py-3 h-auto rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:ring-2 focus:ring-primary/20 capitalize">
                     <SelectValue placeholder="Choose a customer..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -437,7 +433,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       !selected.loanAccountNumber
                     ) {
                       return (
-                        <p className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-tighter animate-pulse px-1">
+                        <p className="text-[10px] font-bold text-rose-500 mt-1 uppercase tracking-tighter animate-pulse px-1">
                           ⚠️ This customer has no account number
                           (Saving/Current/Loan). Assignment blocked.
                         </p>
@@ -449,28 +445,28 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
               {/* Interest Type */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <Percent className="w-3 h-3 text-orange-500" /> Interest Type
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setInterestType('simple')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'simple' ? 'border-orange-500 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'simple' ? 'border-orange-500/40 bg-orange-500/10 text-orange-500 ring-2 ring-orange-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     Simple
                   </button>
                   <button
                     type="button"
                     onClick={() => setInterestType('emi')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'emi' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'emi' ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     EMI (Reducing)
                   </button>
                   <button
                     type="button"
                     onClick={() => setInterestType('compound')}
-                    className={`px-3 py-3 rounded-2xl border text-xs font-black transition-all ${interestType === 'compound' ? 'border-rose-500 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-border/50 bg-background/50 text-muted-foreground hover:bg-muted'}`}
+                    className={`px-3 py-3 rounded-2xl border text-xs font-bold transition-all ${interestType === 'compound' ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 ring-2 ring-rose-500/20' : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}
                   >
                     Compound
                   </button>
@@ -479,7 +475,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
 
               {/* Grantor 1 Selection */}
               <div className="space-y-1.5 relative">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <User className="w-3 h-3 text-blue-500" /> Grantor 1 (Member
                   Name, CNIC or Phone)
                 </label>
@@ -502,15 +498,15 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults1([]);
                     }, 200);
                   }}
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
                 />
                 {isLookingUp1 && searchResults1.length === 0 && (
-                  <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
+                  <p className="text-[9px] text-slate-500 dark:text-slate-400 ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
                     <Loader2 size={10} className="animate-spin" /> Searching...
                   </p>
                 )}
                 {searchResults1.length > 0 && !grantor1Name && (
-                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                     {searchResults1.map((member) => {
                       const normalize = (val) => val?.replace(/\D/g, '') || '';
                       const isSelected =
@@ -529,17 +525,17 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor1Name(member.name);
                             setTimeout(() => setSearchResults1([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                               <User size={14} />
                             </div>
                             <div>
-                              <p className="text-xs font-black uppercase tracking-tight">
+                              <p className="text-xs font-bold tracking-tight text-slate-900 dark:text-white capitalize">
                                 {member.name}
                               </p>
-                              <p className="text-[10px] text-muted-foreground font-medium">
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                 {member.cnic
                                   ? `CNIC: ${member.cnic}`
                                   : `Phone: ${member.phone}`}
@@ -557,37 +553,37 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   grantor1Identifier.length >= 3 &&
                   searchResults1.length === 0 &&
                   !grantor1Name && (
-                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="flex flex-col items-center justify-center gap-2 py-2">
-                        <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
-                          <PlusCircle size={16} />
+                        <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                          <PlusCircle size={14} />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                           No Member Found
                         </p>
-                        <p className="text-[9px] text-muted-foreground font-medium text-center px-4">
+                        <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium text-center px-4">
                           No member matches "{grantor1Identifier}"
                         </p>
                       </div>
                     </div>
                   )}
                 {grantor1Name && (
-                  <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
+                  <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
-                    <span className="text-[10px] font-black uppercase tracking-tighter">
+                    <span className="text-[10px] font-black uppercase tracking-widest">
                       Verified: {grantor1Name} (
                       {grantor1Display || grantor1Identifier})
                     </span>
                   </div>
                 )}
-                <p className="text-[9px] text-muted-foreground px-1 font-medium">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
                   Type at least 3 digits. Leave empty for self-guaranteed.
                 </p>
               </div>
 
               {/* Grantor 2 Selection */}
               <div className="space-y-1.5 relative">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                   <User className="w-3 h-3 text-blue-500" /> Grantor 2 (Member
                   Name, CNIC or Phone)
                 </label>
@@ -610,15 +606,15 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                       setSearchResults2([]);
                     }, 200);
                   }}
-                  className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize"
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50 capitalize"
                 />
                 {isLookingUp2 && searchResults2.length === 0 && (
-                  <p className="text-[9px] text-muted-foreground ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
+                  <p className="text-[9px] text-slate-500 dark:text-slate-400 ml-1 flex items-center gap-1.5 animate-pulse absolute -bottom-4 left-0">
                     <Loader2 size={10} className="animate-spin" /> Searching...
                   </p>
                 )}
                 {searchResults2.length > 0 && !grantor2Name && (
-                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-card border border-border/50 shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
                     {searchResults2.map((member) => {
                       const normalize = (val) => val?.replace(/\D/g, '') || '';
                       const isSelected =
@@ -637,17 +633,17 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                             setGrantor2Name(member.name);
                             setTimeout(() => setSearchResults2([]), 100);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.04] text-left transition-colors group ${isSelected ? 'bg-primary/5 border border-primary/20' : ''}`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
                               <User size={14} />
                             </div>
                             <div>
-                              <p className="text-xs font-black uppercase tracking-tight">
+                              <p className="text-xs font-bold tracking-tight text-slate-900 dark:text-white capitalize">
                                 {member.name}
                               </p>
-                              <p className="text-[10px] text-muted-foreground font-medium">
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                 {member.cnic
                                   ? `CNIC: ${member.cnic}`
                                   : `Phone: ${member.phone}`}
@@ -665,30 +661,30 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                   grantor2Identifier.length >= 3 &&
                   searchResults2.length === 0 &&
                   !grantor2Name && (
-                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-card border border-border/50 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/[0.06] shadow-[0_40px_80px_-20px_rgba(15,23,42,0.35)] animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="flex flex-col items-center justify-center gap-2 py-2">
-                        <div className="p-2 rounded-xl bg-destructive/10 text-destructive">
-                          <PlusCircle size={16} />
+                        <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                          <PlusCircle size={14} />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                           No Member Found
                         </p>
-                        <p className="text-[9px] text-muted-foreground font-medium text-center px-4">
+                        <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium text-center px-4">
                           No member matches "{grantor2Identifier}"
                         </p>
                       </div>
                     </div>
                   )}
                 {grantor2Name && (
-                  <div className="mx-1 mt-1 flex items-center gap-2 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 animate-in fade-in zoom-in-95">
+                  <div className="mt-1.5 inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in-95">
                     <User size={10} className="shrink-0" />
-                    <span className="text-[10px] font-black uppercase tracking-tighter">
+                    <span className="text-[10px] font-black uppercase tracking-widest">
                       Verified: {grantor2Name} (
                       {grantor2Display || grantor2Identifier})
                     </span>
                   </div>
                 )}
-                <p className="text-[9px] text-muted-foreground px-1 font-medium">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-relaxed">
                   Type at least 3 digits. Leave empty for self-guaranteed.
                 </p>
               </div>
@@ -696,7 +692,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               {/* Principal & Rate */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                     <DollarSign className="w-3 h-3 text-emerald-500" />{' '}
                     Principal
                   </label>
@@ -704,20 +700,20 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     type="number"
                     placeholder="e.g. 50000"
                     min="0"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                     {...register('principal', {
                       required: 'Principal is required',
                       min: { value: 1, message: 'Must be greater than 0' },
                     })}
                   />
                   {errors.principal && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.principal.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                     <Percent className="w-3 h-3 text-indigo-500" /> Interest
                     Rate (%)
                   </label>
@@ -726,14 +722,14 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                     placeholder="e.g. 15"
                     min="0"
                     step="0.1"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400/50"
                     {...register('rate', {
                       required: 'Interest rate is required',
                       min: { value: 0, message: 'Must be ≥ 0' },
                     })}
                   />
                   {errors.rate && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.rate.message}
                     </p>
                   )}
@@ -743,34 +739,34 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
               {/* Duration & Start Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                     <Clock className="w-3 h-3" /> Term (Months)
                   </label>
                   <input
                     type="number"
                     placeholder="e.g. 12"
                     min="1"
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     {...register('duration', {
                       required: 'Duration is required',
                       min: { value: 1, message: 'Must be ≥ 1 month' },
                     })}
                   />
                   {errors.duration && (
-                    <p className="text-destructive text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-rose-500 text-[10px] font-bold pl-1 animate-in fade-in slide-in-from-top-1">
                       {errors.duration.message}
                     </p>
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 flex items-center gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 flex items-center gap-2">
                     <CalendarIcon className="w-3 h-3" /> Commencement
                   </label>
                   <input
                     type="date"
                     value={startDate.toISOString().split('T')[0]}
                     onChange={(e) => setStartDate(new Date(e.target.value))}
-                    className="w-full px-4 py-3 rounded-2xl border border-border/50 bg-background/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-muted-foreground"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-slate-500 dark:text-slate-400"
                   />
                 </div>
               </div>
@@ -779,11 +775,11 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t  z-10 flex justify-end gap-3">
+        <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 dark:border-white/[0.06]">
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all"
           >
             Cancel
           </button>
@@ -803,8 +799,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                 );
               })()
             }
-            variant="gradient"
-            className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
             {!loading && <PlusCircle size={14} />}
             Create Loan

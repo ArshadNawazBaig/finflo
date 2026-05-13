@@ -10,6 +10,7 @@ import { Check, Zap, Loader2, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -78,79 +79,80 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="p-0 sm:p-0">
-          <div className="flex items-center gap-2.5 sm:gap-3 mb-2 p-0 sm:p-0">
-            <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-indigo-600 text-white shrink-0">
-              <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
+      <DialogContent className="sm:max-w-[900px]">
+        <DialogHeader>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Crown />
             </div>
-            <div>
-              <DialogTitle className="text-lg sm:text-2xl font-black">
-                Choose Your Plan
-              </DialogTitle>
-              <DialogDescription className="text-[11px] sm:text-sm font-medium">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1.5">
+                Subscription
+              </p>
+              <DialogTitle>Choose Your Plan</DialogTitle>
+              <DialogDescription className="mt-1">
                 Select the plan that best fits your needs.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-2 sm:mt-6 p-0 sm:px-0">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {plans.map((plan) => (
             <div
               key={plan.name}
               onClick={() => setSelectedPlan(plan.name)}
-              className={`relative p-5 sm:p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+              className={cn(
+                'relative p-5 rounded-2xl border cursor-pointer transition-all duration-300',
                 selectedPlan === plan.name
-                  ? 'border-primary bg-primary/5 shadow-xl shadow-primary/20'
-                  : 'border-border/50 hover:border-primary/50 hover:bg-muted/30'
-              } ${plan.popular ? 'ring-2 ring-primary/20' : ''}`}
+                  ? 'border-primary bg-primary/[0.04] dark:bg-primary/[0.06] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.25)]'
+                  : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:border-primary/40',
+              )}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-primary to-indigo-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-lg">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]">
                     Popular
                   </span>
                 </div>
               )}
 
               {currentPlan === plan.name && (
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                  <span className="bg-emerald-500/10 text-emerald-600 text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
+                <div className="absolute top-3 right-3">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600">
                     Current
                   </span>
                 </div>
               )}
 
-              <div className="text-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black mb-1 sm:mb-2">
+              <div className="text-center mb-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1.5">
+                  {plan.name} Plan
+                </p>
+                <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white mb-1">
                   {plan.name}
                 </h3>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
                   {plan.description}
                 </p>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-3xl sm:text-4xl font-black">
+                  <span className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
                     ${plan.price}
                   </span>
-                  <span className="text-muted-foreground text-xs sm:text-sm font-medium">
+                  <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">
                     /month
                   </span>
                 </div>
               </div>
 
-              <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+              <ul className="space-y-2.5 mb-4">
                 {plan.features.map((feature, index) => (
                   <li
                     key={index}
-                    className="flex items-center gap-2 text-[11px] sm:text-sm font-medium"
+                    className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300"
                   >
-                    <div className="bg-emerald-500/10 p-0.5 rounded-full shrink-0">
-                      <Check
-                        size={10}
-                        className="text-emerald-600"
-                        strokeWidth={3}
-                      />
+                    <div className="h-4 w-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                      <Check size={10} strokeWidth={3} />
                     </div>
                     <span>{feature}</span>
                   </li>
@@ -164,20 +166,19 @@ const SubscriptionModal = ({ isOpen, onClose, currentPlan, onSuccess }) => {
           ))}
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-border/50 mt-6 p-0 pb-0 sm:px-0 sm:pb-0">
+        <div className="border-t border-slate-100 dark:border-white/[0.06] pt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-6 sm:px-8 py-2.5 sm:py-3.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all rounded-full hover:bg-muted"
+            className="px-5 py-3 rounded-full text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all disabled:opacity-50"
           >
             Cancel
           </button>
           <Button
             onClick={handleUpgrade}
             disabled={loading || selectedPlan === currentPlan}
-            variant="gradient"
-            className="px-8 sm:px-10 py-2.5 sm:py-3.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest"
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
           >
             {loading ? (
               <>
