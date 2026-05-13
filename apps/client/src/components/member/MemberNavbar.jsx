@@ -107,7 +107,7 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
 
   return (
     <header className="sticky top-0 z-40 w-full lg:border-b lg:border-border/50 lg:bg-card/50 lg:backdrop-blur-sm">
-      <div className="w-full lg:px-8 lg:h-16 flex items-center">
+      <div className="w-full lg:px-8 lg:h-[72px] flex items-center">
         <div
           className={cn(
             'flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.3,1,0.2,1)] w-full',

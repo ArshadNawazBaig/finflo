@@ -483,7 +483,7 @@ const runSavingProfitAccrual = async () => {
               },
             },
           ],
-          { new: true },
+          { new: true, updatePipeline: true },
         );
 
         if (!updatedMember) continue;
