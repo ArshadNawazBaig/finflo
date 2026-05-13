@@ -68,7 +68,7 @@ const MemberLayout = () => {
 
   return (
     <SocketProvider userType="member">
-      <div className="member-portal flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden text-sm">
+      <div className="member-portal flex h-[100dvh] bg-white dark:bg-background text-foreground font-sans relative overflow-hidden text-sm">
         <MemberSidebar
           isExpanded={isSidebarExpanded}
           isMobile={isMobile}

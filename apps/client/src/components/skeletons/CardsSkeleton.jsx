@@ -3,21 +3,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 const CardsSkeleton = ({ count = 4 }) => {
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 ${count === 3 ? 'md:grid-cols-3' : 'lg:grid-cols-4'} gap-4 sm:gap-6 lg:gap-8`}
+      className={`grid grid-cols-1 sm:grid-cols-2 ${count === 3 ? 'md:grid-cols-3' : 'lg:grid-cols-4'} gap-4 sm:gap-6`}
     >
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden rounded-[2rem] p-6 border border-border/50 bg-card/50 shadow-sm space-y-4 animate-pulse"
+          className="rounded-[1.5rem] p-5 border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]"
         >
-          <div className="flex justify-between items-start mb-4">
-            <Skeleton className="h-12 w-12 rounded-[1rem]" />
-            <Skeleton className="h-6 w-16 rounded-full" />
+          {/* Top row — eyebrow + icon chip */}
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <Skeleton className="h-3 w-20 rounded" />
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
           </div>
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-20 rounded-lg" />
-            <Skeleton className="h-8 w-32 rounded-xl" />
-            <Skeleton className="h-3 w-24 rounded-lg mt-1" />
+          {/* Value */}
+          <Skeleton className="h-7 w-28 rounded mb-3" />
+          {/* Delta + subtitle */}
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-10 rounded" />
+            <Skeleton className="h-3 w-20 rounded" />
           </div>
         </div>
       ))}
