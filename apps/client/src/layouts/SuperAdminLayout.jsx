@@ -36,7 +36,7 @@ const SuperAdminLayout = () => {
 
   return (
     <SocketProvider userType="user">
-      <div className="flex h-[100dvh] bg-background text-foreground font-sans relative overflow-hidden">
+      <div className="flex h-[100dvh] bg-white dark:bg-background text-foreground font-sans relative overflow-hidden">
         <SuperAdminSidebar
           isExpanded={isSidebarExpanded}
           isMobile={isMobile}
