@@ -31,7 +31,6 @@ import {
 import StatsCard from '@/components/StatsCard';
 import { SensitiveBalance } from '@/components/ui/SensitiveData';
 import AnalyticsChart from '@/components/AnalyticsChart';
-import PageHeader from '@/components/PageHeader';
 import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
@@ -297,56 +296,58 @@ const Dashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* ── Page Header ──────────────────────────────────────── */}
-      <PageHeader
-        title={
-          businessName ? `${businessName} Dashboard` : 'Financial Dashboard'
-        }
-        description={
-          <>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            {businessName ? `${capitalize(businessName)} workspace` : 'Workspace'}
+          </p>
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] text-slate-900 dark:text-white capitalize">
             Welcome back,{' '}
-            <strong className="text-foreground capitalize font-black">
-              {capitalize(userName)}
-            </strong>
-            . Here&apos;s your portfolio performance.
-          </>
-        }
-        action={
-          canViewReports ? (
-            <Button
-              onClick={() => {
-                setShowCapitalModal(true);
-                fetchCapitalHistory();
-              }}
-              className="rounded-2xl px-5 py-2.5 h-auto bg-teal-500 hover:bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-teal-500/20 gap-2 w-full sm:w-auto"
-            >
-              <Landmark size={16} />
-              Add Capital
-            </Button>
-          ) : null
-        }
-      />
+            <span className="text-primary">{capitalize(userName)}</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Here&apos;s your portfolio performance at a glance — track liquidity,
+            collections, and risk across every loan.
+          </p>
+        </div>
+        {canViewReports && (
+          <Button
+            onClick={() => {
+              setShowCapitalModal(true);
+              fetchCapitalHistory();
+            }}
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+          >
+            <Landmark size={14} strokeWidth={2.5} />
+            Add capital
+            <span className="ml-0.5 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+              <ArrowUpRight size={12} strokeWidth={3} />
+            </span>
+          </Button>
+        )}
+      </div>
 
       {/* ── Branch Scope Banner (branch managers only) ────────── */}
       {isManager && (
-        <div className="flex items-center gap-4 rounded-[1.75rem] border border-teal-500/25 bg-teal-500/8 px-5 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-teal-500/15 flex items-center justify-center">
+        <div className="flex items-center gap-4 rounded-[1.75rem] border border-teal-500/20 bg-teal-500/[0.06] px-5 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5 text-teal-500" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-500/80">
-                Branch View
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-teal-600 dark:text-teal-400">
+                Branch view
               </p>
               {branchName && (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 uppercase tracking-[0.12em]">
                   {branchName}
                 </span>
               )}
             </div>
-            <p className="text-sm font-semibold text-foreground/80 mt-0.5">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
               You&apos;re viewing data for your assigned branch only.{' '}
               {branchName && (
-                <span className="font-black text-teal-600 dark:text-teal-400">
+                <span className="font-extrabold text-teal-600 dark:text-teal-400">
                   {branchName}
                 </span>
               )}{' '}
@@ -358,22 +359,22 @@ const Dashboard = () => {
 
       {/* ── Overdue Alert ─────────────────────────────────────── */}
       {!loading && overdueCount > 0 && canViewReports && (
-        <div className="bg-gradient-to-r from-rose-500/10 to-orange-500/10 border border-rose-500/25 rounded-[2rem] p-5 sm:p-6 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="bg-gradient-to-r from-rose-500/[0.07] to-orange-500/[0.07] border border-rose-500/20 rounded-[2rem] p-5 sm:p-6 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 h-12 w-12 rounded-2xl bg-rose-500/15 flex items-center justify-center">
+              <div className="flex-shrink-0 h-12 w-12 rounded-2xl bg-rose-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-rose-500" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500/80 mb-0.5">
-                  Attention Required
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-rose-500 mb-1">
+                  Attention required
                 </p>
-                <h3 className="text-lg font-black text-foreground tracking-tight">
+                <h3 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
                   {overdueCount} Overdue Loan{overdueCount > 1 ? 's' : ''}
                 </h3>
-                <p className="text-sm text-muted-foreground font-medium mt-0.5">
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
                   Total overdue:{' '}
-                  <span className="font-black text-rose-500">
+                  <span className="font-extrabold text-rose-500 tabular-nums">
                     {formatCurrency(overdueAmount)}
                   </span>
                 </p>
@@ -382,9 +383,10 @@ const Dashboard = () => {
             {canManageLoans && (
               <Button
                 onClick={() => navigate('/loans?status=overdue')}
-                className="rounded-2xl px-6 py-2.5 h-auto bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 shadow-lg shadow-rose-500/20"
+                className="group inline-flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 h-auto rounded-full font-bold text-[12px] shadow-[0_10px_30px_-10px_rgba(244,63,94,0.5)] hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap"
               >
-                View Overdue
+                View overdue
+                <ArrowUpRight size={14} strokeWidth={2.5} />
               </Button>
             )}
           </div>
@@ -396,48 +398,30 @@ const Dashboard = () => {
         (loading ? (
           <QuickActionsSkeleton count={visibleActions.length || 4} />
         ) : (
-          <div className="flex flex-wrap gap-3 sm:gap-4">
+          <div className="flex flex-wrap gap-3">
             {visibleActions.map((action) => (
               <button
                 key={action.label}
                 onClick={() => navigate(action.route)}
-                className={cn(
-                  'group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 backdrop-blur-md p-2 pr-5 transition-all duration-300 hover:border-border/80 hover:-translate-y-0.5 hover:shadow-lg',
-                  action.glow,
-                )}
+                className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
               >
-                {/* Ambient hover glow inside the button */}
-                <div
-                  className={cn(
-                    'absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500',
-                    action.iconBg,
-                  )}
-                />
-
                 {/* Left Icon Pill */}
                 <div
                   className={cn(
-                    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3',
+                    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:scale-105',
                     action.iconBg,
                   )}
                 >
-                  {/* Subtle shine */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
                   {action.icon}
                 </div>
 
                 {/* Center Text */}
                 <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-                  <p
-                    className={cn(
-                      'text-sm font-black tracking-tight truncate leading-tight',
-                      action.accent,
-                    )}
-                  >
+                  <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
                     {action.label}
                   </p>
                   {action.description && (
-                    <p className="text-[10px] font-semibold text-muted-foreground/60 truncate uppercase tracking-widest mt-0.5 leading-tight">
+                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
                       {action.description}
                     </p>
                   )}
@@ -446,12 +430,13 @@ const Dashboard = () => {
                 {/* Right Arrow */}
                 <div
                   className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/30 transition-all duration-300 group-hover:bg-current/10',
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] transition-all duration-300 group-hover:bg-primary/10',
                     action.accent,
                   )}
                 >
                   <ArrowUpRight
-                    size={14}
+                    size={13}
+                    strokeWidth={2.5}
                     className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                 </div>
@@ -521,9 +506,9 @@ const Dashboard = () => {
         (loading ? (
           <StatsRiskRowSkeleton />
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
             {/* Left: 2×2 grid */}
-            <div className="xl:col-span-2 grid grid-cols-2 gap-4 sm:gap-6">
+            <div className="xl:col-span-2 grid grid-cols-2 gap-4">
               {/* Active Loans */}
               {hasAnyPermission([
                 'view_reports',
@@ -531,38 +516,49 @@ const Dashboard = () => {
                 'create_loan',
                 'view_assigned',
               ]) && (
-                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <CreditCard size={18} className="text-primary" />
+                <div className="group relative p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] transition-colors duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Active loans
+                    </p>
+                    <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CreditCard size={13} className="text-primary" strokeWidth={2.5} />
                     </div>
-                    {stats?.activeLoans?.percentage !== undefined && (
-                      <span
-                        className={cn(
-                          'text-[10px] font-black px-2.5 py-1 rounded-full',
-                          stats.activeLoans.percentage >= 0
-                            ? 'bg-emerald-500/10 text-emerald-600'
-                            : 'bg-rose-500/10 text-rose-600',
-                        )}
-                      >
-                        {stats.activeLoans.percentage >= 0 ? '+' : ''}
-                        {stats.activeLoans.percentage}%
-                      </span>
-                    )}
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
-                      Active Loans
-                    </p>
-                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
-                      {stats?.activeLoans?.count ?? 0}
-                    </p>
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                      Outstanding:{' '}
-                      <SensitiveBalance iconSize={11}>
+                  <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                    {stats?.activeLoans?.count ?? 0}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {stats?.activeLoans?.percentage !== undefined && (
+                      <>
+                        <ArrowUpRight
+                          size={11}
+                          strokeWidth={3}
+                          className={
+                            stats.activeLoans.percentage >= 0
+                              ? 'text-emerald-500'
+                              : 'text-rose-500 rotate-90'
+                          }
+                        />
+                        <span
+                          className={cn(
+                            'text-[10px] font-extrabold tabular-nums',
+                            stats.activeLoans.percentage >= 0
+                              ? 'text-emerald-600'
+                              : 'text-rose-600',
+                          )}
+                        >
+                          {stats.activeLoans.percentage >= 0 ? '+' : ''}
+                          {stats.activeLoans.percentage}%
+                        </span>
+                      </>
+                    )}
+                    <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                      Outstanding{' '}
+                      <SensitiveBalance iconSize={10}>
                         {formatCurrency(stats?.outstanding?.amount || 0)}
                       </SensitiveBalance>
-                    </p>
+                    </span>
                   </div>
                 </div>
               )}
@@ -573,73 +569,71 @@ const Dashboard = () => {
                 'manage_members',
                 'create_member',
               ]) && (
-                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                      <Users size={18} className="text-blue-500" />
+                <div className="group relative p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] transition-colors duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Total members
+                    </p>
+                    <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Users size={13} className="text-blue-500" strokeWidth={2.5} />
                     </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
-                      Total Members
-                    </p>
-                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
-                      {stats?.members?.total ?? 0}
-                    </p>
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                      Balance:{' '}
-                      <SensitiveBalance iconSize={11}>
-                        {formatCurrency(stats?.members?.deposits || 0)}
-                      </SensitiveBalance>
-                    </p>
-                  </div>
+                  <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                    {stats?.members?.total ?? 0}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-2">
+                    Deposits{' '}
+                    <SensitiveBalance iconSize={10}>
+                      {formatCurrency(stats?.members?.deposits || 0)}
+                    </SensitiveBalance>
+                  </p>
                 </div>
               )}
 
               {/* Collection Rate */}
               {canViewReports && (
-                <div className="group relative rounded-[1.5rem] bg-card border border-border/50 p-5 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300">
-                  <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                      <ShieldCheck size={18} className="text-emerald-500" />
+                <div className="group relative p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] transition-colors duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Collection rate
+                    </p>
+                    <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <ShieldCheck size={13} className="text-emerald-500" strokeWidth={2.5} />
                     </div>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                      {collectionRate}%
+                    </p>
                     <span
                       className={cn(
-                        'text-[10px] font-black px-2.5 py-1 rounded-full',
+                        'text-[10px] font-extrabold uppercase tracking-wider',
                         collectionRate >= 80
-                          ? 'bg-emerald-500/10 text-emerald-600'
+                          ? 'text-emerald-600'
                           : collectionRate >= 50
-                            ? 'bg-amber-500/10 text-amber-600'
-                            : 'bg-rose-500/10 text-rose-600',
+                            ? 'text-amber-600'
+                            : 'text-rose-600',
                       )}
                     >
                       {collectionRate >= 80
                         ? 'Healthy'
                         : collectionRate >= 50
                           ? 'Fair'
-                          : 'At Risk'}
+                          : 'At risk'}
                     </span>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
-                      Collection Rate
-                    </p>
-                    <p className="text-3xl font-black tabular-nums tracking-tight mt-0.5">
-                      {collectionRate}%
-                    </p>
-                    <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all duration-1000',
-                          collectionRate >= 80
-                            ? 'bg-emerald-500'
-                            : collectionRate >= 50
-                              ? 'bg-amber-500'
-                              : 'bg-rose-500',
-                        )}
-                        style={{ width: `${Math.min(100, collectionRate)}%` }}
-                      />
-                    </div>
+                  <div className="mt-3 h-1.5 w-full bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all duration-1000',
+                        collectionRate >= 80
+                          ? 'bg-emerald-500'
+                          : collectionRate >= 50
+                            ? 'bg-amber-500'
+                            : 'bg-rose-500',
+                      )}
+                      style={{ width: `${Math.min(100, collectionRate)}%` }}
+                    />
                   </div>
                 </div>
               )}
@@ -653,52 +647,48 @@ const Dashboard = () => {
               ]) && (
                 <div
                   className={cn(
-                    'group relative rounded-[1.5rem] bg-card border p-5 flex flex-col gap-3 hover:-translate-y-0.5 transition-all duration-300',
+                    'group relative p-5 rounded-2xl border transition-colors duration-300',
                     overdueCount > 0
-                      ? 'border-rose-500/30 hover:shadow-xl hover:shadow-rose-500/10'
-                      : 'border-border/50 hover:shadow-xl',
+                      ? 'border-rose-500/25 bg-rose-500/[0.04] hover:bg-rose-500/[0.07]'
+                      : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04]',
                   )}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Overdue loans
+                    </p>
                     <div
                       className={cn(
-                        'h-10 w-10 rounded-xl flex items-center justify-center',
-                        overdueCount > 0 ? 'bg-rose-500/10' : 'bg-muted',
+                        'h-7 w-7 rounded-lg flex items-center justify-center',
+                        overdueCount > 0
+                          ? 'bg-rose-500/15'
+                          : 'bg-slate-200/60 dark:bg-white/[0.06]',
                       )}
                     >
                       <AlertTriangle
-                        size={18}
+                        size={13}
+                        strokeWidth={2.5}
                         className={
                           overdueCount > 0
                             ? 'text-rose-500'
-                            : 'text-muted-foreground'
+                            : 'text-slate-400 dark:text-slate-500'
                         }
                       />
                     </div>
-                    {overdueCount > 0 && (
-                      <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600">
-                        Action Needed
-                      </span>
+                  </div>
+                  <p
+                    className={cn(
+                      'text-3xl font-extrabold tracking-tight tabular-nums',
+                      overdueCount > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white',
                     )}
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70">
-                      Overdue Loans
-                    </p>
-                    <p
-                      className={cn(
-                        'text-3xl font-black tabular-nums tracking-tight mt-0.5',
-                        overdueCount > 0 ? 'text-rose-500' : 'text-foreground',
-                      )}
-                    >
-                      {overdueCount}
-                    </p>
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                      {overdueCount > 0
-                        ? formatCurrency(overdueAmount) + ' at risk'
-                        : 'All loans on track'}
-                    </p>
-                  </div>
+                  >
+                    {overdueCount}
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-2">
+                    {overdueCount > 0
+                      ? formatCurrency(overdueAmount) + ' at risk'
+                      : 'All loans on track'}
+                  </p>
                 </div>
               )}
             </div>
@@ -707,94 +697,91 @@ const Dashboard = () => {
             {canViewReports && (
               <div className="xl:col-span-1">
                 {riskDist.length > 0 ? (
-                  <Card className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm h-full">
-                    <CardHeader className="p-4 sm:p-6 pb-3 border-b border-border/40">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <ShieldCheck className="w-4 h-4 text-primary" />
-                        <CardTitle className="text-lg font-black tracking-tight">
-                          Portfolio Risk
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
-                        Active loans by risk grade
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4 sm:p-6 pt-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <ResponsiveContainer width="50%" height={150}>
-                          <PieChart>
-                            <Pie
-                              data={riskDist}
-                              dataKey="count"
-                              nameKey="grade"
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={40}
-                              outerRadius={65}
-                              strokeWidth={2}
-                              stroke="hsl(var(--card))"
-                            >
-                              {riskDist.map((entry) => (
-                                <Cell
-                                  key={entry.grade}
-                                  fill={RISK_COLORS[entry.grade] || '#6b7280'}
-                                />
-                              ))}
-                            </Pie>
-                            <ReTooltip
-                              contentStyle={{
-                                background: 'hsl(var(--card))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: '1rem',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                              }}
-                              formatter={(v, n) => [v + ' loans', n]}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <div className="flex-1 space-y-2">
-                          {riskDist.map((r) => (
-                            <div
-                              key={r.grade}
-                              className="flex items-center justify-between gap-2"
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <div
-                                  className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                                  style={{
-                                    backgroundColor:
-                                      RISK_COLORS[r.grade] || '#6b7280',
-                                  }}
-                                />
-                                <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
-                                  Grade {r.grade}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-black tabular-nums">
-                                  {r.count}
-                                </span>
-                                <span className="text-[10px] text-muted-foreground font-bold">
-                                  (
-                                  {totalRiskLoans > 0
-                                    ? Math.round(
-                                        (r.count / totalRiskLoans) * 100,
-                                      )
-                                    : 0}
-                                  %)
-                                </span>
-                              </div>
+                  <div className="h-full rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-5 sm:p-6 flex flex-col">
+                    <div className="mb-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                        Portfolio
+                      </p>
+                      <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                        Risk distribution
+                      </h3>
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                        Active loans by grade
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 flex-1">
+                      <ResponsiveContainer width="50%" height={150}>
+                        <PieChart>
+                          <Pie
+                            data={riskDist}
+                            dataKey="count"
+                            nameKey="grade"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={65}
+                            strokeWidth={2}
+                            stroke="hsl(var(--card))"
+                          >
+                            {riskDist.map((entry) => (
+                              <Cell
+                                key={entry.grade}
+                                fill={RISK_COLORS[entry.grade] || '#6b7280'}
+                              />
+                            ))}
+                          </Pie>
+                          <ReTooltip
+                            contentStyle={{
+                              background: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '1rem',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                            }}
+                            formatter={(v, n) => [v + ' loans', n]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex-1 space-y-2.5">
+                        {riskDist.map((r) => (
+                          <div
+                            key={r.grade}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="h-2 w-2 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor:
+                                    RISK_COLORS[r.grade] || '#6b7280',
+                                }}
+                              />
+                              <span className="text-[11px] font-bold tracking-tight text-slate-600 dark:text-slate-300">
+                                Grade {r.grade}
+                              </span>
                             </div>
-                          ))}
-                        </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-extrabold tabular-nums text-slate-900 dark:text-white">
+                                {r.count}
+                              </span>
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium tabular-nums">
+                                {totalRiskLoans > 0
+                                  ? Math.round(
+                                      (r.count / totalRiskLoans) * 100,
+                                    )
+                                  : 0}
+                                %
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="h-full min-h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-border bg-card text-muted-foreground/50 gap-2">
-                    <ShieldCheck size={32} className="opacity-30" />
-                    <p className="text-xs font-black uppercase tracking-widest">
+                  <div className="h-full min-h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/40 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 gap-2">
+                    <ShieldCheck size={28} className="opacity-40" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em]">
                       No risk data yet
                     </p>
                   </div>
@@ -827,13 +814,16 @@ const Dashboard = () => {
               />
             )
           ) : hasAnyPermission(['manage_loans', 'create_loan']) ? (
-            <div className="h-[400px] flex items-center justify-center bg-card/50 rounded-[2rem] border border-border/50 text-muted-foreground p-8 text-center">
+            <div className="h-[400px] flex items-center justify-center bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] text-slate-500 dark:text-slate-400 p-8 text-center">
               <div>
-                <TrendingUp size={48} className="mx-auto mb-4 opacity-20" />
-                <h3 className="text-lg font-black tracking-tight">
-                  Reports Restricted
+                <TrendingUp size={40} className="mx-auto mb-4 opacity-20" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 mb-2">
+                  Restricted
+                </p>
+                <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Reports restricted
                 </h3>
-                <p className="text-sm font-medium mt-1">
+                <p className="text-sm font-medium mt-1 leading-relaxed">
                   Contact your admin to enable report access.
                 </p>
               </div>
@@ -844,41 +834,45 @@ const Dashboard = () => {
         {/* Recent Activity */}
         {canViewDashboard && (
           <div className="xl:col-span-1">
-            <Card className="rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden flex flex-col h-full">
-              <CardHeader className="p-4 sm:p-6 pb-2 border-b border-border/40">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-black tracking-tight">
-                      Recent Activity
+            <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none overflow-hidden flex flex-col h-full">
+              <CardHeader className="p-5 sm:p-6 pb-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Activity
+                    </p>
+                    <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Recent activity
                     </CardTitle>
-                    <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                    <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                       Real-time settlements
                     </CardDescription>
                   </div>
                   {!loading && canViewReports && (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 h-auto rounded-full bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                      className="text-[11px] font-bold px-3 py-1.5 h-auto rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all gap-1"
                       onClick={() => navigate('/transactions')}
                       isLoading={loading}
                     >
-                      View All
+                      View all
+                      <ArrowUpRight size={12} strokeWidth={2.5} />
                     </Button>
                   )}
                 </div>
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-hidden">
                 {loading ? (
-                  <div className="p-4 sm:p-6 space-y-5 animate-pulse">
+                  <div className="p-5 sm:p-6 space-y-5 animate-pulse">
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-muted/40 shrink-0" />
+                        <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] shrink-0" />
                         <div className="flex-1 space-y-2">
-                          <Skeleton className="h-3 w-1/2 rounded-lg bg-muted/30" />
-                          <Skeleton className="h-2 w-1/3 rounded-lg bg-muted/20" />
+                          <Skeleton className="h-3 w-1/2 rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
+                          <Skeleton className="h-2 w-1/3 rounded-lg bg-slate-100/70 dark:bg-white/[0.04]" />
                         </div>
-                        <Skeleton className="h-4 w-16 rounded-lg bg-muted/30" />
+                        <Skeleton className="h-4 w-16 rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
                       </div>
                     ))}
                   </div>

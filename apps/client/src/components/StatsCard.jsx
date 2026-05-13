@@ -1,7 +1,21 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
 import { SensitiveBalance } from '@/components/ui/SensitiveData';
+
+// Color prop comes in as one or more classes (e.g. "bg-emerald-500 shadow-emerald-500/20").
+// Extract the `bg-*` class so we can derive a soft tint for the chip and a saturated
+// matching text colour for the icon glyph.
+const parseColor = (raw = '') => {
+  const bgClass =
+    raw.split(/\s+/).find((cls) => /^bg-[a-z]+(-\d+)?$/.test(cls)) ||
+    raw.split(/\s+/).find((cls) => cls.startsWith('bg-')) ||
+    'bg-primary';
+  return {
+    chipBg: `${bgClass}/10`,
+    iconColor: bgClass.replace(/^bg-/, 'text-'),
+  };
+};
 
 const StatsCard = ({
   title,
@@ -14,90 +28,80 @@ const StatsCard = ({
   badgeTooltip,
   sensitive = false,
 }) => {
-  const isPositive = percentage > 0;
+  const hasDelta = percentage !== undefined && percentage !== null;
+  const isPositive = hasDelta && percentage >= 0;
+  const { chipBg, iconColor } = parseColor(color);
 
   return (
-    <div className="group relative rounded-[2rem] bg-card p-5 sm:p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 border border-border/50">
-      {/* Background Accent Gradient Wrapper */}
-      <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
-        <div
-          className={cn(
-            'absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-[0.03] transition-all duration-700 group-hover:scale-150 group-hover:opacity-[0.07]',
-            color.split(' ')[0],
-          )}
-        />
-      </div>
-
-      <div className="relative z-10 flex h-full flex-col justify-between space-y-4">
-        <div className="flex items-center justify-between">
-          <div
-            className={cn(
-              'flex h-12 w-12 items-center justify-center rounded-2xl shadow-inner transition-transform duration-500 group-hover:rotate-12',
-              color,
-              'bg-opacity-10 text-current overflow-hidden relative',
-            )}
-          >
-            <div className={cn('absolute inset-0 opacity-100', color)} />
-            <div className="relative z-10 text-white">{icon}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            {badge &&
-              (badgeTooltip ? (
-                <Tooltip content={badgeTooltip}>
-                  <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 hover:brightness-110">
-                    {badge}
-                  </div>
-                </Tooltip>
-              ) : (
-                <div className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 hover:brightness-110">
-                  {badge}
-                </div>
-              ))}
-            {percentage !== undefined && (
-              <div
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300',
-                  isPositive
-                    ? 'bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white'
-                    : 'bg-rose-500/10 text-rose-600 group-hover:bg-rose-500 group-hover:text-white',
-                )}
-              >
-                {isPositive ? (
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={12} />
-                    {Number(Math.abs(percentage)).toFixed(2)}%
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <TrendingDown size={12} />
-                    {Number(Math.abs(percentage)).toFixed(2)}%
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md bg-primary/10 text-primary inline-flex w-fit shadow-sm border border-primary/20">
+    <div className="group relative rounded-[1.5rem] bg-white dark:bg-white/[0.02] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)] border border-slate-100 dark:border-white/[0.06]">
+      {/* Top row — eyebrow + icon chip */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex flex-col gap-1.5 min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
             {title}
           </p>
-          <div className="flex flex-col">
-            <h3 className="text-md sm:text-lg font-black tracking-tight text-foreground tabular-nums capitalize">
-              {sensitive ? (
-                <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance>
-              ) : (
-                amount
-              )}
-            </h3>
-            {subtitle && (
-              <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          {badge &&
+            (badgeTooltip ? (
+              <Tooltip content={badgeTooltip}>
+                <span className="inline-flex items-center bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest w-fit">
+                  {badge}
+                </span>
+              </Tooltip>
+            ) : (
+              <span className="inline-flex items-center bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest w-fit">
+                {badge}
+              </span>
+            ))}
+        </div>
+
+        <div
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5',
+            chipBg,
+            iconColor,
+          )}
+        >
+          {icon}
         </div>
       </div>
+
+      {/* Value */}
+      <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums capitalize leading-none mb-2">
+        {sensitive ? (
+          <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance>
+        ) : (
+          amount
+        )}
+      </h3>
+
+      {/* Bottom row — delta + subtitle */}
+      {(hasDelta || subtitle) && (
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold">
+          {hasDelta && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-0.5 font-bold',
+                isPositive
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-500 dark:text-rose-400',
+              )}
+            >
+              {isPositive ? (
+                <ArrowUpRight size={12} strokeWidth={3} />
+              ) : (
+                <ArrowDownRight size={12} strokeWidth={3} />
+              )}
+              {isPositive ? '+' : ''}
+              {Number(percentage).toFixed(2)}%
+            </span>
+          )}
+          {subtitle && (
+            <span className="text-slate-400 dark:text-slate-500 font-medium">
+              {subtitle}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -112,7 +112,7 @@ const MemberNavbar = ({ onMenuClick, isSidebarExpanded, isVisible = true }) => {
           className={cn(
             'flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.3,1,0.2,1)] w-full',
             // Mobile: Floating Pill
-            'fixed top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm mx-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-full py-1.5 px-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)] z-[100] lg:relative lg:top-0 lg:left-0 lg:translate-x-0 lg:w-full lg:max-w-none lg:bg-transparent lg:border-0 lg:shadow-none lg:px-0 lg:py-0',
+            'fixed top-12 left-1/2 -translate-x-1/2 w-[92%] max-w-sm mx-auto bg-background/95 border border-border/40 rounded-full py-1.5 px-3 z-[100] lg:relative lg:top-0 lg:left-0 lg:translate-x-0 lg:w-full lg:max-w-none lg:bg-transparent lg:border-0 lg:shadow-none lg:px-0 lg:py-0',
             !isVisible &&
               'max-lg:-translate-y-[150%] max-lg:opacity-0 max-lg:pointer-events-none',
           )}

@@ -7,6 +7,7 @@ import {
   Plus,
   Target,
   ArrowRight,
+  ArrowUpRight,
   Download,
   Send,
 } from 'lucide-react';
@@ -20,7 +21,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
-import PageHeader from '@/components/PageHeader';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
 import CreditScoreCard from '@/components/member/CreditScoreCard';
@@ -33,7 +33,7 @@ import ContributeGoalModal from '@/components/savings/ContributeGoalModal';
 
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import EmptyState from '@/components/ui/EmptyState';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import UITooltip from '@/components/ui/Tooltip';
@@ -263,10 +263,31 @@ const MemberDashboard = () => {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
-      <PageHeader
-        title={`${businessName} Portal`}
-        description={`Welcome back, ${capitalize(member?.name)}. Manage your finances and financial targets.`}
-      />
+      {/* ── Page Header ──────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            {businessName} Portal
+          </p>
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] text-slate-900 dark:text-white capitalize">
+            Welcome back,{' '}
+            <span className="text-primary">{capitalize(member?.name)}</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Manage your finances and financial targets — track balances, repayments, and goals at a glance.
+          </p>
+        </div>
+        <Button
+          onClick={() => setIsRequestModalOpen(true)}
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+        >
+          <Plus size={14} strokeWidth={2.5} />
+          New request
+          <span className="ml-0.5 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+            <ArrowUpRight size={12} strokeWidth={3} />
+          </span>
+        </Button>
+      </div>
 
       {/* Credit Score, Financial Health & Account Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -281,50 +302,102 @@ const MemberDashboard = () => {
           {/* Financial Calendar — full width */}
           <FinancialCalendar className="my-8" />
 
-          <div className="flex flex-wrap gap-4 items-center justify-center sm:justify-start">
-            <Button
+          {/* Quick actions */}
+          <div className="flex flex-wrap gap-3">
+            <button
               onClick={() => setIsRequestModalOpen(true)}
-              variant="gradient"
-              className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-primary/20 w-full sm:w-auto"
+              className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
             >
-              <Plus size={18} strokeWidth={3} />
-              New Request
-            </Button>
-            <Button
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:scale-105">
+                <Plus size={18} strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
+                  New Request
+                </p>
+                <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
+                  Apply for a new loan
+                </p>
+              </div>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-primary transition-all duration-300 group-hover:bg-primary/10">
+                <ArrowUpRight
+                  size={13}
+                  strokeWidth={2.5}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </div>
+            </button>
+            <button
               onClick={() => navigate('/member/transfer')}
-              className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-primary/20 bg-primary transition-all w-full sm:w-auto"
+              className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
             >
-              <Send size={18} />
-              Transfer Funds
-            </Button>
-            <Button
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white transition-transform duration-300 group-hover:scale-105">
+                <Send size={18} strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
+                  Transfer Funds
+                </p>
+                <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
+                  Send or withdraw money
+                </p>
+              </div>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-blue-500 transition-all duration-300 group-hover:bg-blue-500/10">
+                <ArrowUpRight
+                  size={13}
+                  strokeWidth={2.5}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </div>
+            </button>
+            <button
               onClick={() => setIsGoalModalOpen(true)}
-              className="px-8 h-12 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border-2 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 transition-all w-full sm:w-auto"
+              className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
             >
-              <Target size={18} />
-              New Goal
-            </Button>
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white transition-transform duration-300 group-hover:scale-105">
+                <Target size={18} strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
+                <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
+                  New Goal
+                </p>
+                <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
+                  Set a saving target
+                </p>
+              </div>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500/10">
+                <ArrowUpRight
+                  size={13}
+                  strokeWidth={2.5}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </div>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-black tracking-tighter">
-                      Cash Flow
+              <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Cash flow
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Inflow vs outflow
                     </h3>
-                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                      Inflow vs Outflow (Last 6 Months)
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                      Last 6 months
                     </p>
                   </div>
                   <Link
                     to="/member/transactions"
-                    className="p-3 bg-muted hover:bg-muted/80 rounded-2xl transition-all group"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 hover:text-primary hover:bg-primary/10 transition-all group"
                   >
-                    <ArrowRight
-                      size={18}
-                      className="group-hover:translate-x-1 transition-transform"
+                    <ArrowUpRight
+                      size={14}
+                      strokeWidth={2.5}
+                      className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     />
                   </Link>
                 </div>
@@ -389,12 +462,15 @@ const MemberDashboard = () => {
                       l.grantor2Status === 'pending'))
                 );
               }) && (
-                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-primary/10 transition-all duration-500">
+                <div className="p-6 sm:p-8 rounded-[2rem] border border-primary/20 space-y-6 bg-primary/[0.06] transition-all duration-300">
                   <div>
-                    <h3 className="text-xl font-black tracking-tighter text-primary">
-                      Loans Pending My Approval (Grantor)
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1">
+                      Grantor approval
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Loans pending your approval
                     </h3>
-                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                       You have been requested as a grantor for these loans.
                     </p>
                   </div>
@@ -415,31 +491,35 @@ const MemberDashboard = () => {
                       .map((loan) => (
                         <div
                           key={loan._id}
-                          className="p-6 rounded-[2rem] border border-border/50 bg-card hover:bg-muted/30 transition-all group"
+                          className="p-5 sm:p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50/40 dark:hover:bg-white/[0.04] transition-colors duration-300 group"
                         >
                           <div className="flex items-center justify-between flex-wrap gap-4">
                             <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h4 className="font-bold text-lg capitalize">
+                              <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                                <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize text-slate-900 dark:text-white">
                                   {loan.customer?.name} -{' '}
-                                  {formatCurrency(loan.principal)}
+                                  <span className="tabular-nums">
+                                    {formatCurrency(loan.principal)}
+                                  </span>
                                 </h4>
-                                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600">
-                                  Your Approval Required
+                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] bg-amber-500/10 text-amber-600">
+                                  Your approval required
                                 </span>
                               </div>
-                              <p className="text-sm text-muted-foreground font-medium">
-                                Duration: {loan.duration} months | Amount:{' '}
-                                {formatCurrency(loan.principal)}
+                              <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                Duration: {loan.duration} months · Amount:{' '}
+                                <span className="font-extrabold tabular-nums text-slate-700 dark:text-slate-300">
+                                  {formatCurrency(loan.principal)}
+                                </span>
                               </p>
                             </div>
-                            <div className="flex items-center justify-end gap-2 pt-4 sm:pt-0 border-t sm:border-transparent border-border/10 mt-2 sm:mt-0">
+                            <div className="flex items-center justify-end gap-2 pt-4 sm:pt-0 border-t sm:border-transparent border-slate-100 dark:border-white/[0.06] mt-2 sm:mt-0 w-full sm:w-auto">
                               <Button
                                 onClick={() =>
                                   handleGrantorStatus(loan._id, 'approved')
                                 }
                                 variant="outline"
-                                className="flex-1 sm:flex-none rounded-full text-[10px] font-black uppercase tracking-widest border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
+                                className="flex-1 sm:flex-none rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white"
                               >
                                 Approve
                               </Button>
@@ -448,7 +528,7 @@ const MemberDashboard = () => {
                                   handleGrantorStatus(loan._id, 'rejected')
                                 }
                                 variant="outline"
-                                className="flex-1 sm:flex-none rounded-full text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
+                                className="flex-1 sm:flex-none rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white"
                               >
                                 Reject
                               </Button>
@@ -467,12 +547,15 @@ const MemberDashboard = () => {
                   (l.grantor2?._id === member?._id &&
                     l.grantor2Status !== 'pending'),
               ) && (
-                <div className="p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 bg-muted/20">
+                <div className="p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6 bg-slate-50/40 dark:bg-white/[0.02]">
                   <div>
-                    <h3 className="text-xl font-black tracking-tighter">
-                      My Grantor History
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Grantor
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      My grantor history
                     </h3>
-                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                       History of loans where you served as a grantor.
                     </p>
                   </div>
@@ -498,28 +581,31 @@ const MemberDashboard = () => {
                         return (
                           <div
                             key={loan._id}
-                            className="p-6 rounded-[2rem] border border-border/50 bg-card/60 backdrop-blur-sm transition-all"
+                            className="p-5 sm:p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] transition-all"
                           >
                             <div className="flex flex-col sm:flex-row justify-between gap-4">
                               <div className="flex-1">
-                                <div className="flex items-start sm:items-center justify-between sm:justify-start gap-3 mb-2">
-                                  <h4 className="font-bold text-lg capitalize leading-tight">
+                                <div className="flex items-start sm:items-center justify-between sm:justify-start gap-2.5 mb-2 flex-wrap">
+                                  <h4 className="font-extrabold tracking-[-0.02em] text-base capitalize leading-tight text-slate-900 dark:text-white">
                                     {loan.customer?.name} -{' '}
-                                    {formatCurrency(loan.principal)}
+                                    <span className="tabular-nums">
+                                      {formatCurrency(loan.principal)}
+                                    </span>
                                   </h4>
                                   <span
-                                    className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    className={cn(
+                                      'shrink-0 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em]',
                                       myStatus === 'approved'
                                         ? 'bg-emerald-500/10 text-emerald-600'
-                                        : 'bg-rose-500/10 text-rose-600'
-                                    }`}
+                                        : 'bg-rose-500/10 text-rose-600',
+                                    )}
                                   >
                                     {myStatus}
                                   </span>
                                 </div>
-                                <p className="text-sm text-muted-foreground font-medium">
-                                  Duration: {loan.duration} months | Loan
-                                  Status: {capitalize(loan.status)}
+                                <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                  Duration: {loan.duration} months · Loan
+                                  status: {capitalize(loan.status)}
                                 </p>
                               </div>
                             </div>
@@ -530,29 +616,32 @@ const MemberDashboard = () => {
                 </div>
               )}
 
-              <div className="bg-card p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+              <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6">
                 <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div>
-                    <h3 className="text-xl font-black tracking-tighter">
-                      My Loan Requests
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Loans
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      My loan requests
                     </h3>
-                    <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                       View and manage all your loan applications
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <Link
                       to="/member/loans"
-                      className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline px-4 py-2 bg-primary/5 rounded-full transition-all"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all"
                     >
-                      View All
+                      View all
+                      <ArrowUpRight size={12} strokeWidth={2.5} />
                     </Link>
                     <Button
-                      variant="gradient"
-                      className="rounded-full gap-2 text-xs font-black uppercase tracking-widest px-6 py-3"
                       onClick={() => setIsRequestModalOpen(true)}
+                      className="group inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-auto rounded-full font-bold text-[12px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                     >
-                      <Plus size={16} strokeWidth={3} /> Request Loan
+                      <Plus size={13} strokeWidth={2.5} /> Request loan
                     </Button>
                   </div>
                 </div>
@@ -570,16 +659,20 @@ const MemberDashboard = () => {
                       <div
                         key={loan._id}
                         onClick={() => navigate(`/member/loans/${loan._id}`)}
-                        className="p-6 rounded-[2rem] border border-border/50 hover:bg-muted/30 transition-all group cursor-pointer"
+                        className="p-5 sm:p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] transition-colors duration-300 group cursor-pointer"
                       >
                         <div className="flex flex-col sm:flex-row justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-start sm:items-center justify-between sm:justify-start gap-3 mb-2">
-                              <h4 className="font-bold text-lg leading-tight">
-                                {formatCurrency(loan.principal)} Loan
+                            <div className="flex items-start sm:items-center justify-between sm:justify-start gap-2.5 mb-2 flex-wrap">
+                              <h4 className="font-extrabold tracking-[-0.02em] text-base leading-tight text-slate-900 dark:text-white">
+                                <span className="tabular-nums">
+                                  {formatCurrency(loan.principal)}
+                                </span>{' '}
+                                Loan
                               </h4>
                               <span
-                                className={`shrink-0 px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                className={cn(
+                                  'shrink-0 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em]',
                                   loan.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-600'
                                     : loan.status === 'pending'
@@ -589,8 +682,8 @@ const MemberDashboard = () => {
                                         : 'bg-amber-500/10 text-amber-600'
                                       : loan.status === 'completed'
                                         ? 'bg-blue-500/10 text-blue-600'
-                                        : 'bg-muted/50 dark:bg-white/5 text-muted-foreground dark:text-muted-foreground/80'
-                                }`}
+                                        : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400',
+                                )}
                               >
                                 {loan.status === 'pending' &&
                                 (loan.grantor1Status === 'pending' ||
@@ -599,46 +692,52 @@ const MemberDashboard = () => {
                                   : loan.status}
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground font-medium">
-                              {loan.duration} months @ {loan.rate}% interest
+                            <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                              {loan.duration} months @{' '}
+                              <span className="font-extrabold tabular-nums text-slate-700 dark:text-slate-300">
+                                {loan.rate}%
+                              </span>{' '}
+                              interest
                             </p>
                             {loan.grantor1 && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                  Grantor 1:
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em]">
+                                  Grantor 1
                                 </span>
-                                <span className="text-xs font-bold capitalize">
+                                <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
                                   {loan.grantor1.name}
                                 </span>
                                 <span
-                                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${
+                                  className={cn(
+                                    'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.1em]',
                                     loan.grantor1Status === 'approved'
-                                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                      ? 'bg-emerald-500/10 text-emerald-600'
                                       : loan.grantor1Status === 'rejected'
-                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                                  }`}
+                                        ? 'bg-rose-500/10 text-rose-600'
+                                        : 'bg-amber-500/10 text-amber-600',
+                                  )}
                                 >
                                   {loan.grantor1Status || 'Pending'}
                                 </span>
                               </div>
                             )}
                             {loan.grantor2 && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                  Grantor 2:
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em]">
+                                  Grantor 2
                                 </span>
-                                <span className="text-xs font-bold capitalize">
+                                <span className="text-[12px] font-extrabold capitalize text-slate-700 dark:text-slate-200">
                                   {loan.grantor2.name}
                                 </span>
                                 <span
-                                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${
+                                  className={cn(
+                                    'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.1em]',
                                     loan.grantor2Status === 'approved'
-                                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                      ? 'bg-emerald-500/10 text-emerald-600'
                                       : loan.grantor2Status === 'rejected'
-                                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                                  }`}
+                                        ? 'bg-rose-500/10 text-rose-600'
+                                        : 'bg-amber-500/10 text-amber-600',
+                                  )}
                                 >
                                   {loan.grantor2Status || 'Pending'}
                                 </span>
@@ -646,19 +745,19 @@ const MemberDashboard = () => {
                             )}
                             {loan.status === 'active' && (
                               <div className="mt-3">
-                                <div className="flex items-center justify-between text-xs font-bold mb-1">
-                                  <span className="text-muted-foreground">
+                                <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
+                                  <span className="text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] text-[10px]">
                                     Remaining
                                   </span>
-                                  <span>
+                                  <span className="tabular-nums font-extrabold text-slate-900 dark:text-white">
                                     {formatCurrency(
                                       loan.remainingAmount || loan.totalAmount,
                                     )}
                                   </span>
                                 </div>
-                                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                <div className="h-1.5 w-full bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-primary rounded-full transition-all"
+                                    className="h-full bg-primary rounded-full transition-all duration-1000"
                                     style={{
                                       width: `${100 - ((loan.remainingAmount || loan.totalAmount) / loan.totalAmount) * 100}%`,
                                     }}
@@ -667,7 +766,7 @@ const MemberDashboard = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-border/10">
+                          <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-transparent border-slate-100 dark:border-white/[0.06]">
                             <UITooltip content="Download Statement">
                               <button
                                 onClick={(e) => {
@@ -678,14 +777,14 @@ const MemberDashboard = () => {
                                     member,
                                   );
                                 }}
-                                className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all active:scale-95"
+                                className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
                               >
-                                <Download size={16} />
+                                <Download size={14} />
                               </button>
                             </UITooltip>
                             <ArrowRight
-                              className="text-muted-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-4 sm:group-hover:translate-x-0 transition-all"
-                              size={20}
+                              className="text-slate-400 dark:text-slate-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:-translate-x-4 sm:group-hover:translate-x-0 transition-all"
+                              size={18}
                             />
                           </div>
                         </div>
@@ -700,14 +799,14 @@ const MemberDashboard = () => {
                           {[1, 2].map((i) => (
                             <div
                               key={i}
-                              className="p-6 rounded-[2rem] border border-border/50 bg-muted/20"
+                              className="p-5 sm:p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]"
                             >
                               <div className="flex items-center justify-between">
                                 <div className="space-y-2 flex-1">
-                                  <div className="h-4 w-32 bg-muted/50 rounded" />
-                                  <div className="h-3 w-24 bg-muted/40 rounded" />
+                                  <div className="h-4 w-32 bg-slate-100 dark:bg-white/[0.06] rounded-lg" />
+                                  <div className="h-3 w-24 bg-slate-100/70 dark:bg-white/[0.04] rounded-lg" />
                                 </div>
-                                <div className="h-8 w-20 bg-muted/50 rounded-full" />
+                                <div className="h-7 w-20 bg-slate-100 dark:bg-white/[0.06] rounded-full" />
                               </div>
                             </div>
                           ))}
@@ -747,7 +846,7 @@ const MemberDashboard = () => {
 
             <div className="lg:col-span-1">
               <div className="sticky top-10">
-                <div className="bg-card p-8 rounded-[2.5rem] border border-border/50 shadow-sm h-full">
+                <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] h-full">
                   <SavingGoalsList
                     goals={goals}
                     onAddGoal={() => setIsGoalModalOpen(true)}
