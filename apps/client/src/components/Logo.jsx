@@ -7,6 +7,7 @@ const Logo = ({
   showText = true,
   custom = false,
   innerTextColor = '',
+  onColor = false,
 }) => {
   const gradientId = useId().replace(/:/g, '');
   const user = useAtomValue(userAtom);
@@ -39,7 +40,13 @@ const Logo = ({
     : '';
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div
+      className={
+        onColor
+          ? 'inline-flex items-center gap-3 pl-2 pr-3 py-0.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/[0.06] shadow-sm'
+          : `flex items-center gap-3 ${className}`
+      }
+    >
       {/* Icon */}
       <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
         {logoUrl && custom ? (

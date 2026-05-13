@@ -52,6 +52,11 @@ const Navigation = ({
   const joinMenuRef = useRef(null);
   const loginMenuRef = useRef(null);
 
+  // True while the nav overlays the hero (transparent), false once scrolled past.
+  // Drives the "on-hero" colour variant so items stay readable against the
+  // brand-colour hero in light mode and slate-950 hero in dark mode.
+  const onHero = scrollY <= 30 && !isMobile;
+
   const AppLink = ({ to, children, ...props }) => {
     if (IS_LANDING_DOMAIN && !IS_DEV) {
       return (
@@ -90,7 +95,7 @@ const Navigation = ({
           isMobile
             ? 'top-12 px-4'
             : scrollY > 30
-              ? 'top-0 py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl border-b border-slate-100 dark:border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
+              ? 'top-0 py-3 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-white/[0.04] shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
               : 'top-0 py-6',
         )}
       >
@@ -106,7 +111,8 @@ const Navigation = ({
             className="hover:scale-105 transition-transform flex items-center"
           >
             <Logo
-              showText={!isMobile || scrollY <= 30}
+              showText
+              onColor={onHero}
               className="h-8 w-auto"
             />
           </Link>
@@ -116,10 +122,20 @@ const Navigation = ({
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors relative group uppercase tracking-wider"
+                className={cn(
+                  'text-[11px] font-semibold transition-colors relative group uppercase tracking-wider',
+                  onHero
+                    ? 'text-white/80 hover:text-white dark:text-slate-400 dark:hover:text-white'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                )}
               >
                 {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-primary transition-all group-hover:w-full" />
+                <span
+                  className={cn(
+                    'absolute -bottom-1 left-0 w-0 h-[1.5px] transition-all group-hover:w-full',
+                    onHero ? 'bg-white dark:bg-primary' : 'bg-primary',
+                  )}
+                />
               </a>
             ))}
           </div>
@@ -127,7 +143,12 @@ const Navigation = ({
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors text-slate-500 dark:text-slate-400"
+              className={cn(
+                'w-8 h-8 flex items-center justify-center rounded-lg transition-colors',
+                onHero
+                  ? 'bg-white/15 hover:bg-white/25 text-white dark:bg-white/[0.05] dark:hover:bg-white/[0.1] dark:text-slate-400'
+                  : 'bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] text-slate-500 dark:text-slate-400',
+              )}
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
@@ -136,13 +157,23 @@ const Navigation = ({
                 <>
                   <AppLink
                     to={isBusinessLoggedIn ? '/dashboard' : '/member/dashboard'}
-                    className="text-[13px] font-semibold px-4 py-2 hover:text-primary transition-colors"
+                    className={cn(
+                      'text-[13px] font-semibold px-4 py-2 transition-colors',
+                      onHero
+                        ? 'text-white/90 hover:text-white dark:text-slate-300 dark:hover:text-white'
+                        : 'hover:text-primary',
+                    )}
                   >
                     Dashboard
                   </AppLink>
                   <AppLink
                     to={isBusinessLoggedIn ? '/join' : '/register'}
-                    className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
+                    className={cn(
+                      'px-5 py-2.5 rounded-xl text-[13px] font-semibold hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group',
+                      onHero
+                        ? 'bg-white text-primary shadow-lg shadow-black/10 hover:shadow-xl dark:bg-primary dark:text-white dark:shadow-primary/30'
+                        : 'bg-primary text-white shadow-md shadow-primary/20 hover:shadow-primary/30',
+                    )}
                   >
                     {isBusinessLoggedIn ? 'Member Console' : 'Business Console'}
                     <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -156,7 +187,12 @@ const Navigation = ({
                         setIsLoginMenuOpen(!isLoginMenuOpen);
                         setIsJoinMenuOpen(false);
                       }}
-                      className="text-[13px] font-semibold px-4 py-2 hover:text-primary transition-colors flex items-center gap-1 group"
+                      className={cn(
+                        'text-[13px] font-semibold px-4 py-2 transition-colors flex items-center gap-1 group',
+                        onHero
+                          ? 'text-white/90 hover:text-white dark:text-slate-300 dark:hover:text-white'
+                          : 'hover:text-primary',
+                      )}
                     >
                       Login
                       <ChevronRight
@@ -221,7 +257,12 @@ const Navigation = ({
                         setIsJoinMenuOpen(!isJoinMenuOpen);
                         setIsLoginMenuOpen(false);
                       }}
-                      className="bg-primary text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group"
+                      className={cn(
+                        'px-5 py-2.5 rounded-xl text-[13px] font-semibold hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2 group',
+                        onHero
+                          ? 'bg-white text-primary shadow-lg shadow-black/10 hover:shadow-xl dark:bg-primary dark:text-white dark:shadow-primary/30'
+                          : 'bg-primary text-white shadow-md shadow-primary/20 hover:shadow-primary/30',
+                      )}
                     >
                       Join
                       <ChevronRight
