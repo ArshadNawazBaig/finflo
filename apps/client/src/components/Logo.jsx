@@ -43,12 +43,16 @@ const Logo = ({
     <div
       className={
         onColor
-          ? 'inline-flex items-center gap-3 pl-2 pr-3 py-0.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/[0.06] shadow-sm'
+          ? 'inline-flex items-center gap-2 pl-1.5 pr-3 py-0.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/[0.06] shadow-sm'
           : `flex items-center gap-3 ${className}`
       }
     >
       {/* Icon */}
-      <div className="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
+      <div
+        className={`relative flex-shrink-0 flex items-center justify-center ${
+          onColor ? 'w-8 h-8' : 'w-11 h-11'
+        }`}
+      >
         {logoUrl && custom ? (
           <img
             src={logoUrl}
@@ -103,7 +107,11 @@ const Logo = ({
       {/* Text */}
       {showText && (
         <div className="flex flex-col leading-tight">
-          <span className="text-[19px] font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1 capitalize">
+          <span
+            className={`font-black tracking-[-0.07em] text-slate-900 dark:text-white line-clamp-1 capitalize ${
+              onColor ? 'text-[14px]' : 'text-[19px]'
+            }`}
+          >
             {custom && companyName ? (
               companyName
             ) : (
@@ -117,7 +125,11 @@ const Logo = ({
               </>
             )}
           </span>
-          <span className="text-[7px] font-black tracking-[0.7em] text-slate-500 uppercase">
+          <span
+            className={`font-black tracking-[0.7em] text-slate-500 uppercase ${
+              onColor ? 'text-[6px]' : 'text-[7px]'
+            }`}
+          >
             {custom && companyName ? 'Partner Portal' : 'Banking OS'}
           </span>
         </div>
