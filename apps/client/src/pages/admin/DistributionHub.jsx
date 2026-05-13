@@ -22,7 +22,7 @@ import DistributionCard from '@/components/distributions/DistributionCard';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const DistributionCardSkeleton = () => (
-  <div className="p-5 rounded-[2rem] border border-border/50 bg-background/40 animate-pulse">
+  <div className="p-5 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] animate-pulse">
     <div className="flex justify-between items-start mb-4">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-muted/30" />
@@ -148,15 +148,14 @@ const DistributionHub = () => {
         description="Manage and track profit distributions for regular investments and business shares."
       >
         <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-          <div className="bg-teal-500/10 border border-teal-500/20 text-teal-600 px-4 py-2 rounded-xl text-xs font-bold leading-none flex items-center gap-2">
-            <Percent size={14} /> Saving profit is accrued automatically daily
+          <div className="bg-teal-500/10 border border-teal-500/20 text-teal-600 px-4 py-2 rounded-full text-[11px] font-bold leading-none flex items-center gap-2">
+            <Percent size={12} /> Saving profit is accrued automatically daily
           </div>
           <Button
             onClick={() => handleOpenModal('share')}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest flex-1 sm:flex-none shadow-indigo-500/20"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex-1 sm:flex-none"
           >
-            <TrendingUp size={16} />
+            <TrendingUp size={14} strokeWidth={2.5} />
             Share Profit
           </Button>
         </div>
@@ -184,14 +183,17 @@ const DistributionHub = () => {
       </div>
 
       {/* Distribution History Search & Title */}
-      <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="p-8">
+      <Card className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none rounded-[2rem] overflow-hidden">
+        <CardHeader className="p-6 sm:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-xl font-black tracking-tight">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                History
+              </p>
+              <CardTitle className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
                 Distribution History
               </CardTitle>
-              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                 A complete log of all earnings shared with members
               </p>
             </div>

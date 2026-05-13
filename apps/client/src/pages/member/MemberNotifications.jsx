@@ -278,52 +278,52 @@ const MemberNotifications = () => {
             title="Notifications"
             description="Stay updated with your account activity and alerts"
           />
-          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             {unreadCount > 0 && (
               <Button
                 onClick={handleMarkAllAsRead}
                 variant="outline"
                 size="sm"
-                className="rounded-lg font-bold bg-card border-border/50 hover:bg-primary hover:text-white transition-all duration-300"
+                className="rounded-full font-bold border-slate-100 dark:border-white/[0.06] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all duration-300"
               >
-                <Check size={16} className="mr-2" />
-                Mark all as read
+                <Check size={14} strokeWidth={2.5} className="mr-2" />
+                Mark all read
               </Button>
             )}
             <Button
               onClick={handleDeleteAll}
               variant="outline"
               size="sm"
-              className="rounded-lg font-bold border-destructive/20 text-destructive hover:bg-destructive/10 transition-all duration-300"
+              className="rounded-full font-bold border-rose-500/20 text-rose-500 hover:bg-rose-500/10 transition-all duration-300"
               disabled={notifications.length === 0}
             >
-              <Trash2 size={16} className="mr-2" />
-              Delete All
+              <Trash2 size={14} strokeWidth={2.5} className="mr-2" />
+              Delete all
             </Button>
-            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 uppercase">
-              {unreadCount} UNREAD
-            </div>
+            <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold tracking-[0.15em] uppercase tabular-nums">
+              {unreadCount} unread
+            </span>
           </div>
         </div>
 
         {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 group-focus-within:text-primary transition-colors duration-300" />
             <input
               type="text"
               placeholder="Search notifications..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-4 rounded-lg border border-border/50 bg-card text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 shadow-sm hover:shadow-md"
+              className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
             />
           </div>
           <div className="flex gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px] h-[54px] rounded-lg border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-300">
+              <SelectTrigger className="w-[180px] h-12 rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] transition-all duration-300">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="rounded-lg border-border/50 bg-card">
+              <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
               </SelectContent>

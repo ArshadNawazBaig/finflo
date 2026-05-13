@@ -339,7 +339,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader className="p-0">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 shrink-0">
@@ -524,9 +524,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                           type="button"
                           onClick={() => {
                             setGrantor1Identifier(member.name);
-                            setGrantor1IdentifierForBackend(
-                              member._id,
-                            );
+                            setGrantor1IdentifierForBackend(member._id);
                             setGrantor1Display(member.cnic || member.phone);
                             setGrantor1Name(member.name);
                             setTimeout(() => setSearchResults1([]), 100);
@@ -634,9 +632,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
                           type="button"
                           onClick={() => {
                             setGrantor2Identifier(member.name);
-                            setGrantor2IdentifierForBackend(
-                              member._id,
-                            );
+                            setGrantor2IdentifierForBackend(member._id);
                             setGrantor2Display(member.cnic || member.phone);
                             setGrantor2Name(member.name);
                             setTimeout(() => setSearchResults2([]), 100);
@@ -783,7 +779,7 @@ const AddLoanModal = ({ isOpen, onClose, onSuccess, initialCustomerId }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

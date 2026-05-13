@@ -10,77 +10,84 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
-import { Button } from '@/components/ui/button'; // Assuming Button component is imported from here
+import { Button } from '@/components/ui/button';
 
 const StaffCard = ({ item, onToggleStatus, onEdit, onDelete, togglingId }) => {
   const initials = item.name
     .split(' ')
     .map((n) => n[0])
     .join('')
-    .toUpperCase();
+    .toUpperCase()
+    .slice(0, 2);
+
+  const roleLabel =
+    item.roleRef?.name ||
+    (item.role === 'admin' ? 'admin' : item.isManager ? 'manager' : 'staff');
 
   return (
-    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
-      <div className="flex justify-between items-start mb-4">
+    <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden hover:shadow-[0_20px_60px_-25px_rgba(15,23,42,0.15)] transition-all duration-300 group">
+      {/* Banner header */}
+      <div className="h-24 bg-slate-50 dark:bg-white/[0.04] relative">
         <Link
           to={`/team/${item._id}`}
-          className="flex items-center gap-3 group/link cursor-pointer"
+          className="absolute bottom-0 left-6 translate-y-1/2"
+          aria-label={`View ${item.name}`}
         >
-          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shadow-sm group-hover/link:bg-primary group-hover/link:text-primary-foreground transition-all duration-300">
-            {initials.slice(0, 2)}
-          </div>
-          <div className="flex flex-col">
-            <h3 className="font-bold text-base block leading-tight group-hover/link:text-primary transition-colors">
-              {item.name}
-            </h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {item.role === 'admin' ? (
-                <Shield size={12} className="text-amber-500" />
-              ) : (
-                <UserIcon size={12} className="text-blue-500" />
-              )}
-              <span className="capitalize text-[10px] font-black tracking-widest text-muted-foreground/80">
-                {item.roleRef?.name ||
-                  (item.role === 'admin'
-                    ? 'admin'
-                    : item.isManager
-                      ? 'manager'
-                      : 'staff')}
-              </span>
-            </div>
+          <div className="h-16 w-16 rounded-full border-4 border-white dark:border-[#020617] bg-primary/10 text-primary flex items-center justify-center text-lg font-extrabold tracking-tight shadow-sm group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+            {initials}
           </div>
         </Link>
-        <span
-          className={cn(
-            'px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider',
-            item.isActive
-              ? 'bg-emerald-500/10 text-emerald-600'
-              : 'bg-red-500/10 text-red-600',
-          )}
-        >
-          {item.isActive ? 'Active' : 'Inactive'}
-        </span>
       </div>
 
-      <div className="space-y-3 mb-5">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <div className="h-7 w-7 rounded-lg bg-muted/50 flex items-center justify-center">
-            <Mail size={14} />
-          </div>
-          <span className="font-medium truncate">{item.email}</span>
+      {/* Body */}
+      <div className="pt-12 px-6 pb-5 space-y-4">
+        {/* Name + role + status */}
+        <div className="flex justify-between items-start gap-3">
+          <Link to={`/team/${item._id}`} className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1 flex items-center gap-1.5">
+              {item.role === 'admin' ? (
+                <Shield size={10} className="text-amber-500" />
+              ) : (
+                <UserIcon size={10} className="text-blue-500" />
+              )}
+              {roleLabel}
+            </p>
+            <h3 className="text-base font-extrabold tracking-[-0.02em] text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors capitalize">
+              {item.name}
+            </h3>
+          </Link>
+          <span
+            className={cn(
+              'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0',
+              item.isActive
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
+            )}
+          >
+            {item.isActive ? 'Active' : 'Inactive'}
+          </span>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-border/30">
-        <div className="flex items-center gap-1.5">
+        {/* Info rows */}
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <Mail />
+          </div>
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+            {item.email}
+          </span>
+        </div>
+
+        {/* Action row */}
+        <div className="flex items-center justify-end gap-1 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
           <Tooltip content="Edit Staff" position="top">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onEdit(item)}
-              className="p-2 h-9 w-9 rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-90"
+              className="p-2 h-9 w-9 rounded-full hover:bg-primary/10 text-slate-400 hover:text-primary transition-all active:scale-90"
             >
-              <Edit size={18} />
+              <Edit size={16} />
             </Button>
           </Tooltip>
 
@@ -94,13 +101,13 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete, togglingId }) => {
               onClick={() => onToggleStatus(item._id)}
               isLoading={togglingId === item._id}
               className={cn(
-                'p-2 h-9 w-9 rounded-xl transition-all active:scale-90',
+                'p-2 h-9 w-9 rounded-full transition-all active:scale-90 text-slate-400',
                 item.isActive
-                  ? 'hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600'
-                  : 'hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-600',
+                  ? 'hover:bg-amber-500/10 hover:text-amber-600'
+                  : 'hover:bg-emerald-500/10 hover:text-emerald-600',
               )}
             >
-              {item.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
+              {item.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
             </Button>
           </Tooltip>
 
@@ -109,9 +116,9 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete, togglingId }) => {
               variant="ghost"
               size="sm"
               onClick={() => onDelete(item._id)}
-              className="p-2 h-9 w-9 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-90"
+              className="p-2 h-9 w-9 rounded-full hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all active:scale-90"
             >
-              <Trash2 size={18} />
+              <Trash2 size={16} />
             </Button>
           </Tooltip>
         </div>

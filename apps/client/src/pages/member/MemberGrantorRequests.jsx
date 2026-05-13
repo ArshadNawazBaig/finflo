@@ -133,16 +133,16 @@ const MemberGrantorRequests = () => {
       {/* Pending Requests Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shadow-sm border border-amber-500/10">
-            <Clock size={20} />
+          <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <Clock />
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight">
-              Pending My Approval
-            </h2>
-            <p className="text-xs font-medium text-muted-foreground">
-              Action required on these requests
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Awaiting action
             </p>
+            <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+              Pending my approval
+            </h2>
           </div>
         </div>
 
@@ -151,27 +151,27 @@ const MemberGrantorRequests = () => {
             icon={ShieldCheck}
             title="No Pending Requests"
             description="You don't have any pending grantor requests at the moment."
-            className="bg-card/30 border-dashed"
+            className="bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06]"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             {pendingRequests.map((loan) => (
               <div
                 key={loan._id}
-                className="group p-6 sm:p-8 rounded-[2.5rem] border border-border/50 bg-card hover:bg-muted/30 transition-all duration-300 shadow-sm"
+                className="group p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50/40 dark:hover:bg-white/[0.04] transition-all duration-300"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="min-w-12 min-h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-sm">
                         {loan.customer?.name?.charAt(0)?.toUpperCase() || '#'}
                       </div>
                       <div>
-                        <h3 className="text-lg font-black tracking-tight capitalize">
+                        <h3 className="text-base font-extrabold tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
                           {loan.customer?.name}
                         </h3>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          Requested on{' '}
+                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          Requested{' '}
                           {new Date(loan.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -179,53 +179,46 @@ const MemberGrantorRequests = () => {
 
                     <div className="flex flex-wrap gap-6">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                          Loan Amount
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 block">
+                          Loan amount
                         </span>
-                        <span className="text-xl font-black tracking-tighter text-primary">
+                        <span className="text-xl font-extrabold tracking-tight tabular-nums text-primary">
                           {formatCurrency(loan.principal)}
                         </span>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 block">
                           Period
                         </span>
-                        <span className="text-base font-bold">
-                          {loan.duration} Months
+                        <span className="text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">
+                          {loan.duration} months
                         </span>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 block">
                           Installment
                         </span>
-                        <span className="text-base font-bold">
+                        <span className="text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">
                           {formatCurrency(loan.emi)}/mo
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/50">
+                  <div className="flex items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-white/[0.06]">
                     <Button
                       onClick={() => openAgreement(loan)}
-                      variant="default"
-                      className="rounded-full px-8 h-12 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                      className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[11px] uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                     >
-                      <PenTool size={16} className="mr-2" /> Review & Sign
+                      <PenTool size={12} strokeWidth={2.5} /> Review & sign
                     </Button>
                     <Button
                       onClick={() => handleGrantorStatus(loan._id, 'rejected')}
                       variant="outline"
-                      className="rounded-full px-8 h-12 text-[10px] font-black uppercase tracking-widest border-destructive/20 text-destructive hover:bg-destructive hover:text-white"
+                      className="rounded-full px-6 h-11 text-[11px] font-extrabold uppercase tracking-[0.12em] border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white"
                     >
-                      <XCircle size={16} className="mr-2" /> Reject
+                      <XCircle size={12} strokeWidth={2.5} className="mr-2" /> Reject
                     </Button>
-                    {/* <Link
-                      to={`/member/loans/${loan._id}`}
-                      className="p-3 bg-muted rounded-2xl hover:bg-primary/10 hover:text-primary transition-all shadow-sm"
-                    >
-                      <ChevronRight size={20} />
-                    </Link> */}
                   </div>
                 </div>
               </div>
@@ -237,16 +230,16 @@ const MemberGrantorRequests = () => {
       {/* History Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground shadow-sm border border-border/10">
-            <History size={20} />
+          <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <History />
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight">
-              Grantor History
-            </h2>
-            <p className="text-xs font-medium text-muted-foreground">
-              Previous requests you've reviewed
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Past activity
             </p>
+            <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+              Grantor history
+            </h2>
           </div>
         </div>
 
@@ -255,10 +248,10 @@ const MemberGrantorRequests = () => {
             icon={FileText}
             title="No History"
             description="Your grantor history will appear here once you review requests."
-            className="bg-muted/10 border-none"
+            className="bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06]"
           />
         ) : (
-          <div className="bg-card rounded-[2.5rem] border border-border/40 shadow-sm overflow-hidden divide-y divide-border/30">
+          <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden divide-y divide-slate-100 dark:divide-white/[0.06]">
             {historyRequests.map((loan) => {
               const g1Id = loan.grantor1?._id || loan.grantor1;
               const myStatus =
@@ -269,35 +262,35 @@ const MemberGrantorRequests = () => {
               return (
                 <div
                   key={loan._id}
-                  className="p-6 sm:p-8 hover:bg-muted/20 transition-all flex items-center justify-between gap-4"
+                  className="p-5 sm:p-6 hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-all flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`min-w-10 min-h-10 rounded-xl flex items-center justify-center ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-full [&_svg]:w-3.5 [&_svg]:h-3.5 ${
                         myStatus === 'approved'
-                          ? 'bg-emerald-500/10 text-emerald-600'
-                          : 'bg-rose-500/10 text-rose-600'
+                          ? 'bg-emerald-500/10 text-emerald-500'
+                          : 'bg-rose-500/10 text-rose-500'
                       }`}
                     >
                       {myStatus === 'approved' ? (
-                        <CheckCircle2 size={20} />
+                        <CheckCircle2 />
                       ) : (
-                        <XCircle size={20} />
+                        <XCircle />
                       )}
                     </div>
                     <div>
-                      <h4 className="font-bold text-base capitalize">
+                      <h4 className="font-extrabold text-sm tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
                         {loan.customer?.name}
                       </h4>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {formatCurrency(loan.principal)} | {loan.duration}{' '}
-                        Months | Status: {capitalize(loan.status)}
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
+                        {formatCurrency(loan.principal)} · {loan.duration}{' '}
+                        months · {capitalize(loan.status)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <span
-                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${
                         myStatus === 'approved'
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-rose-500/10 text-rose-600'
@@ -305,7 +298,7 @@ const MemberGrantorRequests = () => {
                     >
                       {myStatus}
                     </span>
-                    <p className="text-[10px] font-medium text-muted-foreground mt-1.5">
+                    <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1">
                       {loan.grantor1Status === myStatus
                         ? 'Grantor 1'
                         : 'Grantor 2'}

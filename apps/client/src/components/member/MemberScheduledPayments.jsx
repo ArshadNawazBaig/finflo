@@ -26,9 +26,17 @@ import { cn, formatCurrency } from '@/lib/utils';
 import api from '@/lib/axios';
 
 const STATUS_STYLES = {
-  active: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', label: 'Active' },
+  active: {
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-600',
+    label: 'Active',
+  },
   paused: { bg: 'bg-amber-500/10', text: 'text-amber-600', label: 'Paused' },
-  completed: { bg: 'bg-blue-500/10', text: 'text-blue-600', label: 'Completed' },
+  completed: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-600',
+    label: 'Completed',
+  },
   failed: { bg: 'bg-red-500/10', text: 'text-red-600', label: 'Failed' },
 };
 
@@ -58,7 +66,9 @@ const MemberScheduledPayments = ({ member }) => {
     try {
       const newStatus = currentStatus === 'active' ? 'paused' : 'active';
       await api.put(`/scheduled-payments/${id}`, { status: newStatus });
-      toast.success(`Schedule ${newStatus === 'active' ? 'resumed' : 'paused'}`);
+      toast.success(
+        `Schedule ${newStatus === 'active' ? 'resumed' : 'paused'}`,
+      );
       fetchPayments();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update');
@@ -68,7 +78,10 @@ const MemberScheduledPayments = ({ member }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to cancel this scheduled payment?')) return;
+    if (
+      !window.confirm('Are you sure you want to cancel this scheduled payment?')
+    )
+      return;
     setActionLoading(id);
     try {
       await api.delete(`/scheduled-payments/${id}`);
@@ -120,7 +133,9 @@ const MemberScheduledPayments = ({ member }) => {
           <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto">
             <CalendarClock size={28} className="text-muted-foreground/40" />
           </div>
-          <p className="text-sm font-bold text-muted-foreground">No scheduled payments yet</p>
+          <p className="text-sm font-bold text-muted-foreground">
+            No scheduled payments yet
+          </p>
           <p className="text-[10px] font-medium text-muted-foreground/60">
             Set up automatic monthly saving deposits or loan repayments.
           </p>
@@ -128,13 +143,18 @@ const MemberScheduledPayments = ({ member }) => {
       ) : (
         <div className="space-y-3">
           {payments.map((payment) => {
-            const statusStyle = STATUS_STYLES[payment.status] || STATUS_STYLES.active;
-            const Icon = payment.type === 'saving_deposit' ? PiggyBank : Landmark;
+            const statusStyle =
+              STATUS_STYLES[payment.status] || STATUS_STYLES.active;
+            const Icon =
+              payment.type === 'saving_deposit' ? PiggyBank : Landmark;
             const nextDate = payment.nextExecutionDate
-              ? new Date(payment.nextExecutionDate).toLocaleDateString('en-PK', {
-                  day: 'numeric',
-                  month: 'short',
-                })
+              ? new Date(payment.nextExecutionDate).toLocaleDateString(
+                  'en-PK',
+                  {
+                    day: 'numeric',
+                    month: 'short',
+                  },
+                )
               : '—';
 
             return (
@@ -142,19 +162,30 @@ const MemberScheduledPayments = ({ member }) => {
                 key={payment._id}
                 className="flex items-center gap-4 p-4 rounded-2xl border border-border/40 hover:bg-muted/10 transition-all group"
               >
-                <div className={cn('p-2.5 rounded-xl', payment.type === 'saving_deposit' ? 'bg-teal-500/10 text-teal-600' : 'bg-blue-500/10 text-blue-600')}>
+                <div
+                  className={cn(
+                    'p-2.5 rounded-xl',
+                    payment.type === 'saving_deposit'
+                      ? 'bg-teal-500/10 text-teal-600'
+                      : 'bg-blue-500/10 text-blue-600',
+                  )}
+                >
                   <Icon size={18} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold truncate">
-                    {payment.type === 'saving_deposit' ? 'Saving Deposit' : 'Loan Repayment'}
+                    {payment.type === 'saving_deposit'
+                      ? 'Saving Deposit'
+                      : 'Loan Repayment'}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] font-medium text-muted-foreground">
                       {formatCurrency(payment.amount)} / month
                     </span>
-                    <span className="text-[10px] font-medium text-muted-foreground/50">•</span>
+                    <span className="text-[10px] font-medium text-muted-foreground/50">
+                      •
+                    </span>
                     <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                       <Calendar size={9} /> Day {payment.dayOfMonth}
                     </span>
@@ -168,18 +199,30 @@ const MemberScheduledPayments = ({ member }) => {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className={cn('px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest', statusStyle.bg, statusStyle.text)}>
+                  <span
+                    className={cn(
+                      'px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest',
+                      statusStyle.bg,
+                      statusStyle.text,
+                    )}
+                  >
                     {statusStyle.label}
                   </span>
 
                   {payment.status !== 'completed' && (
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {(payment.status === 'active' || payment.status === 'paused' || payment.status === 'failed') && (
+                      {(payment.status === 'active' ||
+                        payment.status === 'paused' ||
+                        payment.status === 'failed') && (
                         <button
-                          onClick={() => handlePauseResume(payment._id, payment.status)}
+                          onClick={() =>
+                            handlePauseResume(payment._id, payment.status)
+                          }
                           disabled={actionLoading === payment._id}
                           className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground transition-colors"
-                          title={payment.status === 'active' ? 'Pause' : 'Resume'}
+                          title={
+                            payment.status === 'active' ? 'Pause' : 'Resume'
+                          }
                         >
                           {actionLoading === payment._id ? (
                             <Loader2 size={14} className="animate-spin" />
@@ -233,13 +276,17 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
 
     setLoading(true);
     try {
-      await api.post('/scheduled-payments', {
-        type,
-        amount: parseFloat(amount),
-        sourceAccount: 'current',
-        dayOfMonth: parseInt(dayOfMonth),
-        description: `Monthly ${type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'}`,
-      }, {});
+      await api.post(
+        '/scheduled-payments',
+        {
+          type,
+          amount: parseFloat(amount),
+          sourceAccount: 'current',
+          dayOfMonth: parseInt(dayOfMonth),
+          description: `Monthly ${type === 'saving_deposit' ? 'saving deposit' : 'loan repayment'}`,
+        },
+        {},
+      );
       toast.success('Scheduled payment created!');
       setAmount('');
       setDayOfMonth(1);
@@ -254,14 +301,16 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600">
                 <CalendarClock className="w-6 h-6" />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-black">New Schedule</DialogTitle>
+                <DialogTitle className="text-2xl font-black">
+                  New Schedule
+                </DialogTitle>
                 <DialogDescription className="text-sm font-medium">
                   Set up a monthly automatic payment.
                 </DialogDescription>
@@ -271,7 +320,11 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          <form id="create-schedule-form" onSubmit={handleSubmit} className="space-y-6">
+          <form
+            id="create-schedule-form"
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
             {/* Type */}
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
@@ -289,7 +342,9 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   )}
                 >
                   <PiggyBank size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Saving</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Saving
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -302,7 +357,9 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
                   )}
                 >
                   <Landmark size={18} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Loan</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Loan
+                  </span>
                 </button>
               </div>
             </div>
@@ -353,7 +410,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSuccess, member }) => {
           </form>
         </div>
 
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

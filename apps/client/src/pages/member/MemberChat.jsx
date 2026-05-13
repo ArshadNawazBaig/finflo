@@ -1063,46 +1063,51 @@ const MemberChat = () => {
       </div>
 
       {!isPremium ? (
-        <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
           <PremiumGate />
         </div>
       ) : (
-        <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden flex min-h-[70vh] max-h-[70vh]">
+        <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden flex min-h-[70vh] max-h-[70vh]">
           {/* Sidebar */}
           {(!isMobile || !showThread) && (
-            <div className="w-full lg:w-[320px] border-r border-border/40 flex flex-col shrink-0">
-              <div className="p-6 border-b border-border/40">
+            <div className="w-full lg:w-[320px] border-r border-slate-100 dark:border-white/[0.06] flex flex-col shrink-0">
+              <div className="p-5 border-b border-slate-100 dark:border-white/[0.06]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-black tracking-tight">
-                    Messages
-                  </h2>
-                  <div className="flex items-center gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Inbox
+                    </p>
+                    <h2 className="text-base font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Messages
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={deleteAllChats}
-                      className="p-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
                       title="Delete all chats"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 />
                     </button>
                     <button
                       onClick={() => setShowContacts((v) => !v)}
-                      className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors [&_svg]:w-3.5 [&_svg]:h-3.5"
                       title="Start new conversation"
                     >
-                      <Edit3 size={16} />
+                      <Edit3 />
                     </button>
                   </div>
                 </div>
                 <div className="relative">
                   <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={14}
                   />
                   <input
                     placeholder="Search conversations..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border/30 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               </div>

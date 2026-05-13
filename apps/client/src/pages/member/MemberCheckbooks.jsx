@@ -181,82 +181,59 @@ const MemberCheckbooks = () => {
         <>
           {/* Pricing Cards */}
           <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-primary/5 rounded-2xl border border-primary/10">
-                <BadgeDollarSign size={18} className="text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-black tracking-tight">
-                  Checkbook Pricing
-                </h2>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Fee varies based on number of leaves
-                </p>
-              </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                Pricing
+              </p>
+              <h2 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+                Checkbook pricing
+              </h2>
+              <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium mt-1">
+                Fee varies based on number of leaves
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {[25, 50, 100].map((leaves) => {
                 const meta = LEAF_META[leaves];
                 return (
                   <div
                     key={leaves}
-                    className={cn(
-                      'relative p-8 rounded-[2.5rem] border shadow-sm transition-all duration-500 group',
-                      meta.bg,
-                    )}
+                    className="group relative rounded-[1.5rem] bg-white dark:bg-white/[0.02] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)] border border-slate-100 dark:border-white/[0.06]"
                   >
                     {/* Popular badge */}
                     {meta.popular && (
-                      <div
-                        className={cn(
-                          'absolute top-6 right-6 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white bg-gradient-to-r',
-                          meta.gradient,
-                        )}
-                      >
+                      <span className="absolute top-5 right-5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] bg-primary/10 text-primary">
                         Popular
-                      </div>
+                      </span>
                     )}
 
-                    {/* Background glow */}
-                    <div
-                      className={cn(
-                        'absolute -right-10 -bottom-10 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-700 bg-gradient-to-br',
-                        meta.gradient,
-                      )}
-                    />
-
-                    <div className="relative z-10 space-y-5">
-                      <div
-                        className={cn(
-                          'w-14 h-14 rounded-2xl flex items-center justify-center',
-                          meta.iconBg,
-                        )}
-                      >
-                        <BookOpen size={24} />
+                    <div className="space-y-4">
+                      <div className={cn('h-8 w-8 rounded-full flex items-center justify-center [&_svg]:w-3.5 [&_svg]:h-3.5', meta.iconBg)}>
+                        <BookOpen />
                       </div>
 
                       <div>
-                        <h3 className="text-xl font-black tracking-tight">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                           {meta.label}
-                        </h3>
-                        <p className="text-xs font-medium text-muted-foreground mt-1">
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1">
                           {meta.description}
                         </p>
                       </div>
 
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-3xl font-black tracking-tighter">
+                        <span className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
                           {formatCurrency(fees[leaves])}
                         </span>
-                        <span className="text-xs font-bold text-muted-foreground">
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                           / book
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                        <Layers size={14} />
-                        <span>{leaves} Leaves</span>
+                      <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <Layers size={12} className="text-primary/60" />
+                        <span className="tabular-nums">{leaves} leaves</span>
                       </div>
                     </div>
                   </div>
@@ -266,34 +243,32 @@ const MemberCheckbooks = () => {
           </div>
 
           {/* Checkbook History */}
-          <div className="bg-card rounded-[3rem] border border-border/50 shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-primary/5 rounded-2xl border border-primary/10">
-                  <BookOpen size={20} className="text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-md sm:text-xl font-black tracking-tight uppercase">
-                    My Checkbooks
-                  </h2>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
-                    {totalEntries} total checkbook
-                    {totalEntries !== 1 ? 's' : ''} issued
-                  </p>
-                </div>
+          <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Issued
+                </p>
+                <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  My checkbooks
+                </h2>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
+                  {totalEntries} total checkbook
+                  {totalEntries !== 1 ? 's' : ''} issued
+                </p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => fetchCheckbooks(1, false)}
                 className={cn(
-                  'h-10 w-10 rounded-xl hover:bg-primary/5 hover:text-primary transition-all active:rotate-180 duration-500',
+                  'h-9 w-9 rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 hover:text-primary hover:bg-primary/10 transition-all duration-500',
                   loading && 'animate-spin cursor-not-allowed',
                 )}
                 disabled={loading}
                 title="Refresh"
               >
-                <RefreshCw size={18} />
+                <RefreshCw size={14} strokeWidth={2.5} />
               </Button>
             </div>
 
@@ -308,7 +283,7 @@ const MemberCheckbooks = () => {
             ) : (
               <div
                 className={cn(
-                  'divide-y divide-border/40',
+                  'divide-y divide-slate-100 dark:divide-white/[0.06]',
                   isMobile && 'p-4 space-y-4 divide-y-0',
                 )}
               >
@@ -318,33 +293,33 @@ const MemberCheckbooks = () => {
                     className={cn(
                       'group transition-all',
                       isMobile
-                        ? 'p-6 rounded-[2rem] border border-border/50 bg-card shadow-sm hover:shadow-md'
-                        : 'p-6 sm:p-8 hover:bg-muted/30',
+                        ? 'p-5 rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]'
+                        : 'p-5 sm:p-6 hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                     )}
                   >
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-5 flex-1 min-w-0">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div
                           className={cn(
-                            'p-4 rounded-2xl border shadow-sm shrink-0 group-hover:scale-110 transition-transform',
+                            'flex h-8 w-8 items-center justify-center rounded-full shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5',
                             cb.status === 'active'
-                              ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600'
+                              ? 'bg-emerald-500/10 text-emerald-500'
                               : cb.status === 'cancelled'
-                                ? 'bg-rose-500/5 border-rose-500/10 text-rose-500'
-                                : 'bg-blue-500/5 border-blue-500/10 text-blue-600',
+                                ? 'bg-rose-500/10 text-rose-500'
+                                : 'bg-blue-500/10 text-blue-500',
                           )}
                         >
-                          <BookOpen size={20} />
+                          <BookOpen />
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <h4 className="font-black text-lg tracking-tight">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-sm tracking-[-0.02em] text-slate-900 dark:text-white tabular-nums">
                               {cb.checkbookNumber}
                             </h4>
                             <span
                               className={cn(
-                                'px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border',
+                                'px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em]',
                                 getStatusClasses(cb.status),
                               )}
                             >
@@ -352,22 +327,22 @@ const MemberCheckbooks = () => {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-4 mt-2 flex-wrap">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                              <Layers size={12} className="text-primary/60" />
-                              <span>
-                                {cb.numberOfLeaves - (cb.usedLeaves || 0)} / {cb.numberOfLeaves} Leaves remaining
+                          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                              <Layers size={11} className="text-primary/60" />
+                              <span className="tabular-nums">
+                                {cb.numberOfLeaves - (cb.usedLeaves || 0)} / {cb.numberOfLeaves} leaves
                               </span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                               <BadgeDollarSign
-                                size={12}
+                                size={11}
                                 className="text-primary/60"
                               />
-                              <span>Fee: {formatCurrency(cb.fee)}</span>
+                              <span className="tabular-nums">{formatCurrency(cb.fee)}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                              <Calendar size={12} className="text-primary/60" />
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                              <Calendar size={11} className="text-primary/60" />
                               <span>
                                 {new Date(cb.createdAt).toLocaleDateString(
                                   undefined,
@@ -385,14 +360,14 @@ const MemberCheckbooks = () => {
                           {cb.status === 'active' && (
                             <div className="mt-3 space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                                  Leaf Usage
+                                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
+                                  Leaf usage
                                 </span>
-                                <span className="text-[9px] font-black text-muted-foreground">
-                                  {cb.usedLeaves || 0} / {cb.numberOfLeaves} used
+                                <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+                                  {cb.usedLeaves || 0} / {cb.numberOfLeaves}
                                 </span>
                               </div>
-                              <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">
                                 <div
                                   className={cn(
                                     'h-full rounded-full transition-all duration-700',
@@ -411,7 +386,7 @@ const MemberCheckbooks = () => {
                           )}
 
                           {cb.notes && (
-                            <p className="text-[10px] text-muted-foreground/60 mt-2 italic font-medium truncate max-w-xs">
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 italic font-medium truncate max-w-xs">
                               {cb.notes}
                             </p>
                           )}
@@ -428,8 +403,8 @@ const MemberCheckbooks = () => {
 
                       {!isMobile && (
                         <ChevronRight
-                          size={18}
-                          className="text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0"
+                          size={16}
+                          className="text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0"
                         />
                       )}
                     </div>

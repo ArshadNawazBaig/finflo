@@ -183,29 +183,17 @@ const Roles = () => {
             placeholder="Search roles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+            className="w-full pl-12 pr-4 py-3 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
           />
         </div>
 
         <Button
           onClick={() => handleOpenModal()}
-          variant="gradient"
-          className="rounded-2xl px-6 py-6 h-auto group"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
           isLoading={loading && roles.length === 0}
         >
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
-              <Plus size={18} />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 leading-none mb-1">
-                New Identity
-              </p>
-              <p className="font-black text-sm uppercase tracking-wider">
-                Create Custom Role
-              </p>
-            </div>
-          </div>
+          <Plus size={14} strokeWidth={2.5} />
+          Create Role
         </Button>
       </div>
 
@@ -221,7 +209,7 @@ const Roles = () => {
               transition={{ delay: idx * 0.05 }}
               className="group relative"
             >
-              <div className="h-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden">
+              <div className="h-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] transition-all duration-300 overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                   <Shield size={120} />
                 </div>
@@ -283,7 +271,7 @@ const Roles = () => {
                       {role.permissions.slice(0, 4).map((perm) => (
                         <span
                           key={perm}
-                          className="text-[9px] font-bold px-2 py-1 rounded-md bg-white/80 dark:bg-black/20 border border-border/50"
+                          className="text-[9px] font-bold px-2 py-1 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]"
                         >
                           {perm.replace('_', ' ')}
                         </span>
@@ -468,7 +456,7 @@ const DeleteRoleConfirmModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10 text-center">
+        <div className="p-6 border-b z-10 text-center">
           <DialogHeader>
             <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
               <AlertTriangle className="text-rose-500" size={24} />

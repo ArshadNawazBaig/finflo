@@ -178,10 +178,9 @@ const Support = () => {
         >
           <Button
             onClick={() => setShowNewTicketModal(true)}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center gap-2.5 text-[11px] font-black uppercase tracking-widest"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus size={14} strokeWidth={2.5} />
             New Ticket
           </Button>
         </PageHeader>
@@ -189,7 +188,7 @@ const Support = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-280px)] lg:h-[calc(100vh-280px)] min-h-[500px]">
           {/* Ticket List */}
           <div
-            className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 h-full`}
+            className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 h-full`}
           >
             <div className="flex gap-2 relative z-10">
               <div className="relative flex-1 group">
@@ -197,7 +196,7 @@ const Support = () => {
                 <input
                   type="text"
                   placeholder="Search tickets..."
-                  className="w-full pl-11 pr-4 h-11 rounded-xl border border-border/50 bg-background/50 focus:bg-background text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
+                  className="w-full pl-11 pr-4 h-11 rounded-full border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] focus:bg-white text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400"
                   onChange={(e) => {
                     // Logic to filter tickets if search is implemented
                   }}
@@ -210,7 +209,7 @@ const Support = () => {
                 [...Array(4)].map((_, i) => (
                   <div
                     key={i}
-                    className="h-28 rounded-2xl w-full bg-card/40 backdrop-blur-md border border-border/10 animate-pulse"
+                    className="h-28 rounded-2xl w-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] animate-pulse"
                   />
                 ))
               ) : tickets.length === 0 ? (
@@ -228,7 +227,7 @@ const Support = () => {
                     className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
                       selectedTicket?._id === ticket._id
                         ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-border/50 bg-card/50 hover:bg-muted/50 hover:border-border hover:shadow-sm'
+                        : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50/40 dark:hover:bg-white/[0.04]'
                     }`}
                   >
                     <div
@@ -275,8 +274,8 @@ const Support = () => {
             className={`${selectedTicket ? 'flex' : 'hidden lg:flex'} lg:col-span-8 overflow-hidden flex-col h-full`}
           >
             {selectedTicket ? (
-              <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden min-h-0">
-                <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-4 lg:p-6">
+              <Card className="flex-1 flex flex-col border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none rounded-[2rem] overflow-hidden min-h-0">
+                <CardHeader className="border-b border-slate-100 dark:border-white/[0.06] shrink-0 p-4 lg:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start sm:gap-4 flex-1 min-w-0">
                       <Button
@@ -297,7 +296,7 @@ const Support = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
-                          <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg border border-border/50 text-[7px]">
+                          <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/[0.04] px-2.5 py-1 rounded-full border border-slate-100 dark:border-white/[0.06] text-[7px]">
                             <div
                               className={`w-1.5 h-1.5 rounded-full ${
                                 selectedTicket.priority === 'High' ||
@@ -344,7 +343,7 @@ const Support = () => {
                 icon={MessageSquare}
                 title="Select a Ticket"
                 description="Choose a conversation from the list to view the support history and respond."
-                className="flex-1 h-full border-dashed bg-card/10"
+                className="flex-1 h-full border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/40 dark:bg-white/[0.02] rounded-[2rem]"
               />
             )}
           </div>

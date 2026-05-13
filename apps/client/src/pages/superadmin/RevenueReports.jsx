@@ -24,7 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import {
   AreaChart,
@@ -190,10 +189,19 @@ const RevenueReports = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <PageHeader
-        title="Revenue & Financial Reports"
-        description="Track revenue, MRR, and subscription metrics"
-      />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Revenue & financial <span className="text-primary">reports</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Track revenue, MRR, and subscription metrics across the platform.
+          </p>
+        </div>
+      </div>
 
       {loading ? (
         <div className="space-y-10">
@@ -245,19 +253,22 @@ const RevenueReports = () => {
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Revenue History */}
-            <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-              <CardHeader className="pb-2 border-b border-border/40">
+            <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+              <CardHeader className="p-5 sm:p-6 pb-3">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-black tracking-tight">
-                      Revenue Trend
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Trend
+                    </p>
+                    <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Revenue trend
                     </CardTitle>
-                    <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                      Monthly Revenue (6 Months)
+                    <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                      Monthly revenue (6 months)
                     </CardDescription>
                   </div>
-                  <div className="bg-primary/5 p-2 rounded-xl">
-                    <TrendingUp className="w-4 h-4 text-primary" />
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   </div>
                 </div>
               </CardHeader>
@@ -351,19 +362,22 @@ const RevenueReports = () => {
             </Card>
 
             {/* Revenue by Plan */}
-            <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-              <CardHeader className="pb-2 border-b border-border/40">
+            <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+              <CardHeader className="p-5 sm:p-6 pb-3">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-black tracking-tight">
-                      Revenue by Plan
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Plans
+                    </p>
+                    <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Revenue by plan
                     </CardTitle>
-                    <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                      Subscription Distribution
+                    <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                      Subscription distribution
                     </CardDescription>
                   </div>
-                  <div className="bg-purple-500/5 p-2 rounded-xl">
-                    <DollarSign className="w-4 h-4 text-purple-600" />
+                  <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center">
+                    <DollarSign className="w-3.5 h-3.5 text-purple-600" />
                   </div>
                 </div>
               </CardHeader>
@@ -466,47 +480,50 @@ const RevenueReports = () => {
 
           {/* Subscription Metrics */}
           {metrics && (
-            <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-              <CardHeader className="pb-2 border-b border-border/40">
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Subscription Metrics
+            <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+              <CardHeader className="p-5 sm:p-6 pb-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Metrics
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Subscription metrics
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  User Activity Overview
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  User activity overview
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <p className="text-4xl font-black text-primary mb-2">
+              <CardContent className="px-5 sm:px-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
+                      Active businesses
+                    </p>
+                    <p className="text-3xl font-extrabold tracking-tight tabular-nums text-primary">
                       {metrics.activeCount}
                     </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Active Businesses
-                    </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-black text-destructive mb-2">
+                  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
+                      Churn rate
+                    </p>
+                    <p className="text-3xl font-extrabold tracking-tight tabular-nums text-rose-500">
                       {metrics.churnRate.toFixed(1)}%
                     </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Churn Rate
-                    </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-black text-green-600 mb-2">
+                  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
+                      New this month
+                    </p>
+                    <p className="text-3xl font-extrabold tracking-tight tabular-nums text-emerald-600">
                       {metrics.newUsersThisMonth}
                     </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      New This Month
-                    </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-black mb-2">
-                      {metrics.totalUsers}
+                  <div className="p-5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
+                      Total businesses
                     </p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Total Businesses
+                    <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                      {metrics.totalUsers}
                     </p>
                   </div>
                 </div>
@@ -516,27 +533,29 @@ const RevenueReports = () => {
 
           {/* Payment History */}
           {(payments.length > 0 || search !== '') && (
-            <div className="bg-card/30 backdrop-blur-md rounded-[2rem] border border-border/50 overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-border/40 bg-muted/5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+              <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-white/[0.06]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-xl font-black tracking-tighter">
-                      Payment History
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                      Payments
+                    </p>
+                    <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                      Payment history
                     </h3>
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 mt-0.5">
-                      Complete Audit of Revenue Streams
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                      Complete audit of revenue streams
                     </p>
                   </div>
-                  <div className="relative group flex-1 max-w-sm">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
                     <input
                       type="text"
                       placeholder="Search by user or email..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                      className="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-[12px] font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
                     />
-                    <div className="absolute inset-0 rounded-xl animate-shimmer pointer-events-none opacity-0 group-focus-within:opacity-10" />
                   </div>
                 </div>
               </div>
@@ -565,31 +584,31 @@ const RevenueReports = () => {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-muted/50">
+                    <thead className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.06]">
                       <tr>
-                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           User
                         </th>
-                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           Plan
                         </th>
-                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           Amount
                         </th>
-                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           Date
                         </th>
-                        <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                        <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                           Status
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/50">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                       {payments.length === 0 ? (
                         <tr>
                           <td
                             colSpan="5"
-                            className="px-6 py-12 text-center text-muted-foreground font-black uppercase tracking-[0.2em] text-[10px]"
+                            className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.15em] text-[10px]"
                           >
                             No payment history found
                           </td>
@@ -598,40 +617,40 @@ const RevenueReports = () => {
                         payments.map((payment) => (
                           <tr
                             key={payment._id}
-                            className="hover:bg-muted/30 transition-colors"
+                            className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors"
                           >
                             <td className="px-6 py-4">
-                              <div className="text-sm">
-                                <p className="font-medium capitalize">
+                              <div>
+                                <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
                                   {payment.user.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                   {payment.user.email}
                                 </p>
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] bg-primary/10 text-primary">
                                 {payment.plan}
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="font-bold text-green-600">
+                              <span className="font-extrabold text-[13px] text-emerald-600 tabular-nums">
                                 ${payment.amount}
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar size={14} />
+                              <div className="flex items-center gap-1.5 text-[12px] text-slate-500 dark:text-slate-400 font-medium">
+                                <Calendar size={12} />
                                 {new Date(payment.date).toLocaleDateString()}
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <span
-                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                                className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${
                                   payment.status === 'active'
-                                    ? 'bg-green-500/10 text-green-600'
-                                    : 'bg-red-500/10 text-red-600'
+                                    ? 'bg-emerald-500/10 text-emerald-600'
+                                    : 'bg-rose-500/10 text-rose-600'
                                 }`}
                               >
                                 {payment.status}
@@ -646,7 +665,7 @@ const RevenueReports = () => {
               )}
 
               {!isMobile && pagination.total > 0 && (
-                <div className="p-6 border-t border-border/50">
+                <div className="p-5 border-t border-slate-100 dark:border-white/[0.06]">
                   <Pagination
                     currentPage={pagination.page}
                     totalPages={pagination.pages}

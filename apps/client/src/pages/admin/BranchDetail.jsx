@@ -665,7 +665,7 @@ const BranchDetail = () => {
           <span
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-500 ${
               loading
-                ? 'bg-muted/30 text-muted-foreground border-border/50'
+                ? 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border-slate-100 dark:border-white/[0.06]'
                 : branch?.isActive
                   ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/20'
                   : 'bg-red-500/5 text-red-500 border-red-500/20'
@@ -755,7 +755,7 @@ const BranchDetail = () => {
                 className={`flex-none lg:w-full flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-[1.5rem] text-xs sm:text-sm font-bold transition-all duration-500 snap-start whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]'
-                    : 'bg-card/50 text-muted-foreground hover:bg-card hover:text-foreground border border-transparent hover:border-border/50'
+                    : 'bg-white dark:bg-white/[0.02] text-slate-500 hover:bg-slate-50/40 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-100 dark:hover:border-white/[0.06]'
                 }`}
               >
                 {tab.icon}
@@ -789,7 +789,7 @@ const BranchDetail = () => {
                     />
                   )}
                 </div>
-                <Card className="rounded-[2.5rem] border-border/40 overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+                <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.02]">
                   <div className="h-48 relative overflow-hidden">
                     <div
                       className="absolute inset-0 opacity-20"
@@ -910,7 +910,7 @@ const BranchDetail = () => {
                       variant="outline"
                       size="icon"
                       isLoading={isDownloadingExpenses}
-                      className="relative rounded-[1.25rem] group overflow-hidden border-black/5 bg-black/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      className="relative rounded-full group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] h-11 w-11 shrink-0 transition-all duration-300 hover:border-primary/50"
                       onClick={handleExpenseDownload}
                       title="Download Expense Statement (PDF)"
                     >
@@ -918,7 +918,7 @@ const BranchDetail = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-white dark:bg-white/[0.02] p-5 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
                   <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full">
                     <TableSearch
                       value={expenseSearch}
@@ -943,7 +943,7 @@ const BranchDetail = () => {
                         <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-border/50">
+                        <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
                             className="rounded-xl text-xs font-bold uppercase tracking-widest"
@@ -975,7 +975,7 @@ const BranchDetail = () => {
                   {fetchingFinancials && !isFetchingMore ? (
                     <TableSkeleton />
                   ) : expenses.length === 0 ? (
-                    <div className="py-24 text-center bg-muted/10 rounded-[3rem] border-2 border-dashed border-border/50">
+                    <div className="py-24 text-center bg-slate-50/40 dark:bg-white/[0.02] rounded-[2rem] border border-dashed border-slate-200 dark:border-white/[0.08]">
                       <Receipt
                         size={64}
                         className="mx-auto text-muted-foreground/20 mb-6"
@@ -1061,7 +1061,7 @@ const BranchDetail = () => {
                       variant="outline"
                       size="icon"
                       isLoading={isDownloadingLedger}
-                      className="relative rounded-[1.25rem] group overflow-hidden border-black/5 bg-black/5 backdrop-blur-xl h-12 w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                      className="relative rounded-full group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] h-11 w-11 shrink-0 transition-all duration-300 hover:border-primary/50"
                       onClick={handleLedgerDownload}
                       title="Download Ledger Statement (PDF)"
                     >
@@ -1069,7 +1069,7 @@ const BranchDetail = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 bg-white dark:bg-white/[0.02] p-5 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
                   <div className="flex flex-col sm:flex-row items-center gap-3">
                     <TableSearch
                       value={ledgerSearch}
@@ -1094,7 +1094,7 @@ const BranchDetail = () => {
                         <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0 font-bold text-xs uppercase tracking-widest">
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-border/50">
+                        <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                           <SelectItem
                             value="all"
                             className="rounded-xl text-xs font-bold uppercase tracking-widest"
@@ -1166,7 +1166,7 @@ const BranchDetail = () => {
                   {fetchingFinancials && !isFetchingMore ? (
                     <TableSkeleton />
                   ) : ledger.length === 0 ? (
-                    <div className="py-24 text-center bg-muted/10 rounded-[3rem] border-2 border-dashed border-border/50">
+                    <div className="py-24 text-center bg-slate-50/40 dark:bg-white/[0.02] rounded-[2rem] border border-dashed border-slate-200 dark:border-white/[0.08]">
                       <History
                         size={64}
                         className="mx-auto text-muted-foreground/20 mb-6"
@@ -1244,7 +1244,7 @@ const BranchDetail = () => {
                   </p>
                 </div>
 
-                <div className="p-10 rounded-[3rem] bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-border/40 space-y-10">
+                <div className="p-6 sm:p-10 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] space-y-8">
                   <div className="flex items-center justify-between">
                     <div className="space-y-2">
                       <span className="text-xl font-black block tracking-tight">

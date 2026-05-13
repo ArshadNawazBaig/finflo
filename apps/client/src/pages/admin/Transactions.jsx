@@ -322,7 +322,7 @@ const Transactions = () => {
       {/* Filter and Table Section */}
       <div className="space-y-4">
         {/* Filter Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-white/[0.02] p-5 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
           <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full justify-between">
             <TableSearch
               value={searchQuery}
@@ -343,21 +343,21 @@ const Transactions = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl min-h-12 min-w-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+                  className="relative rounded-full flex-1 group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] min-h-11 min-w-11 shrink-0 transition-all duration-300 hover:border-primary/50"
                   onClick={() => setIsExportModalOpen(true)}
                   title="Download Statement (PDF)"
                 >
-                  <Download className="relative w-4 h-4 text-primary group-hover:scale-125 transition-transform duration-500" />
+                  <Download className="relative w-4 h-4 text-primary group-hover:scale-110 transition-transform duration-300" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="relative rounded-[1.25rem] flex-1 group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl min-h-12 min-w-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                  className="relative rounded-full flex-1 group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] min-h-11 min-w-11 shrink-0 transition-all duration-300 hover:border-emerald-500/50"
                   onClick={handleExportExcel}
                   isLoading={isExportingExcel}
                   title="Export to Excel"
                 >
-                  <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
+                  <FileSpreadsheet className="relative w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform duration-300" />
                 </Button>
               </div>
             </div>
@@ -392,12 +392,12 @@ const Transactions = () => {
                     ? "We couldn't find any transactions matching your search."
                     : 'No financial transactions have been recorded yet.'
                 }
-                className="border-none bg-card/50"
+                className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
               />
             )}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
+          <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden">
             <TransactionTable
               data={transactions}
               pagination={{

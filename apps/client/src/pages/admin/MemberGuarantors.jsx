@@ -118,7 +118,7 @@ const MemberGuarantors = () => {
                 className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   activeTab === tab.key
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                    : 'bg-muted/30 text-muted-foreground hover:bg-muted/50 border border-border/30'
+                    : 'bg-slate-50/40 dark:bg-white/[0.02] text-slate-500 hover:bg-slate-50 dark:hover:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]'
                 }`}
               >
                 {tab.label}
@@ -161,7 +161,7 @@ const MemberGuarantors = () => {
                     <div
                       key={g._id}
                       onClick={() => navigate(`/members/${g._id}`)}
-                      className="p-6 rounded-[2rem] bg-card border border-border/50 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all cursor-pointer group animate-in fade-in slide-in-from-bottom-4 duration-500"
+                      className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] hover:border-blue-500/30 hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] transition-all cursor-pointer group animate-in fade-in slide-in-from-bottom-4 duration-500"
                       style={{ animationDelay: `${idx * 80}ms` }}
                     >
                       <div className="flex items-start justify-between mb-4">
@@ -184,7 +184,7 @@ const MemberGuarantors = () => {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-border/30">
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/[0.06]">
                         <div className="flex flex-col">
                           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                             Loan Amount
@@ -211,7 +211,7 @@ const MemberGuarantors = () => {
                                 ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                                 : g.loanStatus === 'completed'
                                   ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
-                                  : 'bg-muted/50 text-muted-foreground border border-border/50'
+                                  : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border border-slate-100 dark:border-white/[0.06]'
                             }`}
                           >
                             {g.loanStatus}
@@ -222,11 +222,11 @@ const MemberGuarantors = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 rounded-[2.5rem] bg-card/30 border border-dashed border-border/50 flex flex-col items-center justify-center text-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-blue-500/5 flex items-center justify-center">
-                    <ShieldCheck size={24} className="text-blue-500/20" />
+                <div className="p-10 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/5 flex items-center justify-center">
+                    <ShieldCheck size={20} className="text-blue-500/20" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                     {activeTab === 'all'
                       ? "No guarantors assigned to this member's loans"
                       : `No guarantors with "${activeTab}" status`}
@@ -262,7 +262,7 @@ const MemberGuarantors = () => {
                     <div
                       key={g.loanId}
                       onClick={() => navigate(`/loans/${g.loanId}`)}
-                      className="p-6 rounded-[2rem] bg-card border border-border/50 hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/5 transition-all cursor-pointer group animate-in fade-in slide-in-from-bottom-4 duration-500"
+                      className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] hover:border-purple-500/30 hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] transition-all cursor-pointer group animate-in fade-in slide-in-from-bottom-4 duration-500"
                       style={{ animationDelay: `${idx * 80}ms` }}
                     >
                       <div className="flex items-start justify-between mb-4">
@@ -285,7 +285,7 @@ const MemberGuarantors = () => {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-border/30">
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/[0.06]">
                         <div className="flex flex-col">
                           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                             Loan Amount
@@ -314,7 +314,7 @@ const MemberGuarantors = () => {
                                   ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
                                   : g.loanStatus === 'defaulted'
                                     ? 'bg-red-500/10 text-red-600 border border-red-500/20'
-                                    : 'bg-muted/50 text-muted-foreground border border-border/50'
+                                    : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border border-slate-100 dark:border-white/[0.06]'
                             }`}
                           >
                             {g.loanStatus}
@@ -325,7 +325,7 @@ const MemberGuarantors = () => {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 rounded-[2.5rem] bg-card/30 border border-dashed border-border/50 flex flex-col items-center justify-center text-center gap-3">
+                <div className="p-10 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-3">
                   <div className="w-14 h-14 rounded-full bg-purple-500/5 flex items-center justify-center">
                     <FileBadge size={24} className="text-purple-500/20" />
                   </div>
@@ -341,7 +341,7 @@ const MemberGuarantors = () => {
 
           {/* No results at all for current filter */}
           {filteredGuarantors.length === 0 && filteredActingAs.length === 0 && activeTab !== 'all' && (
-            <div className="p-16 rounded-[2.5rem] bg-card/30 border border-dashed border-border/50 flex flex-col items-center justify-center text-center gap-4">
+            <div className="p-16 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-4">
               <div className="w-16 h-16 rounded-full bg-muted/10 flex items-center justify-center">
                 <ShieldCheck size={28} className="text-muted-foreground/15" />
               </div>

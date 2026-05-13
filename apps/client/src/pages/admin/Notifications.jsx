@@ -273,7 +273,7 @@ const Notifications = () => {
                 onClick={handleMarkAllAsRead}
                 variant="outline"
                 size="sm"
-                className="rounded-xl font-bold bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary hover:text-white transition-all duration-300"
+                className="rounded-full font-bold bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:bg-primary hover:text-white transition-all duration-300"
               >
                 <Check size={16} className="mr-2" />
                 Mark all as read
@@ -283,13 +283,13 @@ const Notifications = () => {
               onClick={handleDeleteAll}
               variant="outline"
               size="sm"
-              className="rounded-xl font-bold border-destructive/20 text-destructive hover:bg-destructive/10 transition-all duration-300"
+              className="rounded-full font-bold border-rose-500/20 text-rose-500 hover:bg-rose-500/10 transition-all duration-300"
               disabled={notifications.length === 0}
             >
               <Trash2 size={16} className="mr-2" />
               Delete All
             </Button>
-            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase">
+            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-[0.2em] border border-primary/20 uppercase">
               {unreadCount} UNREAD
             </div>
           </div>
@@ -304,15 +304,15 @@ const Notifications = () => {
               placeholder="Search notifications..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-4 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 shadow-sm hover:shadow-md"
+              className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
             />
           </div>
           <div className="space-y-2">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px] h-[54px] rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+              <SelectTrigger className="w-[180px] h-11 rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] transition-all duration-300">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border/50 bg-card/95 backdrop-blur-md">
+              <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                 <SelectItem value="newest">Newest First</SelectItem>
                 <SelectItem value="oldest">Oldest First</SelectItem>
               </SelectContent>
@@ -331,7 +331,7 @@ const Notifications = () => {
                   ? "We couldn't find any notifications matching your search."
                   : "You're all caught up! No recent activity to show."
               }
-              className="border-none bg-card/50 py-20"
+              className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem] py-20"
             />
           ) : isMobile ? (
             /* Mobile Card View with Infinite Scroll */
@@ -359,8 +359,8 @@ const Notifications = () => {
                   className={cn(
                     'group relative overflow-hidden rounded-2xl border transition-all duration-500 p-5',
                     notification.read
-                      ? 'bg-card/40 border-border/40 hover:bg-card/60 shadow-sm hover:shadow-md'
-                      : 'bg-card border-primary/20 shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10',
+                      ? 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/40 dark:hover:bg-white/[0.04]'
+                      : 'bg-white dark:bg-white/[0.04] border-primary/20',
                     notification.link && 'cursor-pointer active:scale-[0.98]',
                   )}
                 >
@@ -444,10 +444,10 @@ const Notifications = () => {
             </div>
           ) : (
             /* Desktop Table View */
-            <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
+            <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent border-border/50 bg-muted/30">
+                  <TableRow className="hover:bg-transparent border-slate-100 dark:border-white/[0.06]">
                     <TableHead className="w-[80px] font-black text-[10px] uppercase tracking-widest">
                       Type
                     </TableHead>
@@ -487,7 +487,7 @@ const Notifications = () => {
                         }
                       }}
                       className={cn(
-                        'group border-border/40 transition-colors',
+                        'group border-slate-100 dark:border-white/[0.06] transition-colors',
                         !notification.read
                           ? 'bg-primary/[0.02] hover:bg-primary/[0.04]'
                           : 'hover:bg-muted/20',
@@ -576,7 +576,7 @@ const Notifications = () => {
                   ))}
                 </TableBody>
               </Table>
-              <div className="p-4 border-t border-border/40">
+              <div className="p-4 border-t border-slate-100 dark:border-white/[0.06]">
                 <Pagination
                   currentPage={pagination.page}
                   totalPages={pagination.pages}
@@ -600,7 +600,7 @@ const Notifications = () => {
         open={!!deleteConfirmation}
         onOpenChange={(open) => !open && setDeleteConfirmation(null)}
       >
-        <AlertDialogContent className="rounded-lg border-border/50 bg-card shadow-2xl p-8 max-w-sm">
+        <AlertDialogContent className="rounded-[2rem] border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-8 max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-black tracking-tighter text-center">
               {deleteConfirmation === 'all'

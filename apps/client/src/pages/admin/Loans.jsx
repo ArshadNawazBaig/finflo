@@ -186,11 +186,10 @@ const Loans = () => {
       >
         <Button
           onClick={() => setIsModalOpen(true)}
-          variant="gradient"
-          className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
           isLoading={loading && loans.length === 0}
         >
-          <Plus size={16} strokeWidth={3} />
+          <Plus size={14} strokeWidth={2.5} />
           New Loan
         </Button>
       </PageHeader>
@@ -290,7 +289,7 @@ const Loans = () => {
                     ? "We couldn't find any loans matching your search."
                     : 'No loans have been issued yet. Start by creating a new loan for a customer.'
                 }
-                className="border-none bg-card/50"
+                className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
               />
             )}
           </div>

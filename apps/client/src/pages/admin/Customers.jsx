@@ -255,17 +255,16 @@ const Customers = () => {
         action={
           <Button
             onClick={() => setIsModalOpen(true)}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
             isLoading={loading && customers.length === 0}
           >
-            <Plus size={16} />
+            <Plus size={14} strokeWidth={2.5} />
             Add Customer
           </Button>
         }
       />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/10 p-6 rounded-[2rem] border border-border/40 backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-white/[0.02] p-5 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
         <div className="flex flex-col sm:flex-row items-center gap-3 flex-1 w-full justify-between">
           <TableSearch
             value={searchTerm}
@@ -279,13 +278,13 @@ const Customers = () => {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="flex-1 sm:w-48">
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-12 rounded-2xl bg-white/5 border-primary/10 px-4 focus:ring-0 backdrop-blur-xl">
+                <SelectTrigger className="h-11 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] px-4 focus:ring-0">
                   <div className="flex items-center gap-2">
-                    <Store size={16} className="text-primary/60" />
+                    <Store size={14} className="text-slate-400" />
                     <SelectValue placeholder="All Branches" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border/50 bg-white/95 backdrop-blur-md">
+                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                   <SelectItem value="all" className="rounded-xl">
                     All Branches
                   </SelectItem>
@@ -304,7 +303,7 @@ const Customers = () => {
             <Button
               variant="outline"
               size="icon"
-              className="relative rounded-[1.25rem] group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.15)]"
+              className="relative rounded-full group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] h-11 w-11 shrink-0 transition-all duration-300 hover:border-primary/50"
               onClick={() => fetchCustomers(false)}
               isLoading={loading}
               title="Refresh Data"
@@ -318,11 +317,11 @@ const Customers = () => {
             <Button
               variant="outline"
               size="icon"
-              className="relative rounded-[1.25rem] group overflow-hidden border-primary/10 bg-white/5 backdrop-blur-xl h-12 shrink-0 transition-all duration-500 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+              className="relative rounded-full group overflow-hidden border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] h-11 w-11 shrink-0 transition-all duration-300 hover:border-emerald-500/50"
               onClick={handleDownloadData}
               title="Download Data"
             >
-              <Download className="relative w-4 h-4 text-emerald-500 group-hover:scale-125 transition-transform duration-500" />
+              <Download className="relative w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform duration-300" />
             </Button>
           </div>
         </div>
@@ -361,7 +360,7 @@ const Customers = () => {
                   ? "We couldn't find any customers matching your search."
                   : 'Your customer list is currently empty. Start by adding your first client.'
               }
-              className="border-none bg-card/50"
+              className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
             />
           )}
         </div>

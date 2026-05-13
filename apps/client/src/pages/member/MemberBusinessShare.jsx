@@ -196,35 +196,35 @@ const MemberBusinessShare = () => {
 
       {/* Ownership indicator */}
       {member && (member.shareBalance || 0) > 0 && (
-        <div className="bg-card border border-border/50 rounded-2xl p-6 flex items-center gap-5">
-          <div className="p-4 rounded-2xl bg-violet-500/10 text-violet-500">
-            <PieChart size={22} />
+        <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[1.5rem] p-5 flex items-center gap-4">
+          <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 [&_svg]:w-3.5 [&_svg]:h-3.5">
+            <PieChart />
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-              Portfolio Allocation
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Portfolio allocation
             </p>
-            <p className="text-2xl font-black tracking-tight mt-1">
+            <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white mt-1">
               {sharePercent}
-              <span className="text-base font-bold text-muted-foreground ml-1">
+              <span className="text-sm font-bold text-slate-400 dark:text-slate-500 ml-1">
                 % of total
               </span>
             </p>
           </div>
           {/* Progress bar */}
           <div className="flex-1 hidden sm:block">
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">
               <div
                 className="h-full bg-violet-500 rounded-full transition-all duration-700"
                 style={{ width: `${Math.min(parseFloat(sharePercent), 100)}%` }}
               />
             </div>
             <div className="flex justify-between mt-1.5">
-              <p className="text-[10px] font-bold text-violet-500">
-                Share Balance
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-violet-500">
+                Share
               </p>
-              <p className="text-[10px] font-bold text-muted-foreground">
-                Main Balance
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
+                Main
               </p>
             </div>
           </div>
@@ -232,30 +232,32 @@ const MemberBusinessShare = () => {
       )}
 
       {/* Share Ledger */}
-      <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-border/50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-muted rounded-xl">
-              <History size={20} className="text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-bold tracking-tight">Share Ledger</h2>
+      <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+        <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1 flex items-center gap-1.5">
+              <History size={11} strokeWidth={2.5} /> Ledger
+            </p>
+            <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+              Share ledger
+            </h2>
           </div>
           <div className="relative w-full max-w-xs hidden sm:block">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={14}
             />
             <input
               type="text"
               placeholder="Search transactions..."
-              className="w-full pl-10 pr-4 py-2 bg-background border border-border/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="divide-y divide-border/40">
+        <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
           {loading && !isFetchingMore ? (
             <MemberInvestmentSkeleton count={5} />
           ) : (
@@ -274,7 +276,7 @@ const MemberBusinessShare = () => {
                     <div
                       className={cn(
                         'grid grid-cols-1 gap-4',
-                        !isMobile && 'divide-y divide-border/40 gap-0',
+                        !isMobile && 'divide-y divide-slate-100 dark:divide-white/[0.06] gap-0',
                       )}
                     >
                       {shares.map((item) => {
@@ -288,6 +290,12 @@ const MemberBusinessShare = () => {
                             : isCredit
                               ? 'text-violet-500'
                               : 'text-rose-500';
+                        const chipBg =
+                          item.type === 'share_profit'
+                            ? 'bg-amber-500/10 text-amber-500'
+                            : isCredit
+                              ? 'bg-violet-500/10 text-violet-500'
+                              : 'bg-rose-500/10 text-rose-500';
 
                         return isMobile ? (
                           <MemberActivityCard
@@ -297,64 +305,55 @@ const MemberBusinessShare = () => {
                         ) : (
                           <div
                             key={item._id}
-                            className="p-6 sm:p-8 hover:bg-muted/30 transition-all flex items-center justify-between group"
+                            className="p-5 sm:p-6 hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-all flex items-center justify-between group"
                           >
-                            <div className="flex items-center gap-5">
+                            <div className="flex items-center gap-4">
                               <div
-                                className={`p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform ${accentColor}`}
-                              >
-                                {isCredit ? (
-                                  <ArrowUpRight size={18} />
-                                ) : (
-                                  <ArrowDownLeft size={18} />
+                                className={cn(
+                                  'flex h-8 w-8 items-center justify-center rounded-full shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5',
+                                  chipBg,
                                 )}
+                              >
+                                {isCredit ? <ArrowUpRight /> : <ArrowDownLeft />}
                               </div>
                               <div>
-                                <h4 className="font-bold text-lg tracking-tight capitalize flex items-center gap-2">
+                                <h4 className="font-extrabold text-sm tracking-[-0.02em] capitalize text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                                   {item.description}
                                   {item.status && (
-                                    <div
+                                    <span
                                       className={cn(
-                                        'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1.5 border leading-none transition-all',
+                                        'text-[9px] font-extrabold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full leading-none',
                                         item.status === 'Completed' &&
-                                          'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                                          'bg-emerald-500/10 text-emerald-600',
                                         item.status === 'Pending' &&
-                                          'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                                          'bg-amber-500/10 text-amber-600',
                                         item.status === 'Failed' &&
-                                          'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                                          'bg-rose-500/10 text-rose-600',
                                       )}
                                     >
-                                      <span
-                                        className={cn(
-                                          'w-1 h-1 rounded-full',
-                                          item.status === 'Completed' &&
-                                            'bg-emerald-500',
-                                          item.status === 'Pending' &&
-                                            'bg-amber-500 animate-pulse',
-                                          item.status === 'Failed' &&
-                                            'bg-rose-500',
-                                        )}
-                                      />
                                       {item.status}
-                                    </div>
+                                    </span>
                                   )}
                                 </h4>
-                                <div className="flex items-center gap-3 mt-1">
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   <p
-                                    className={`text-[10px] font-black uppercase tracking-widest ${accentColor}`}
+                                    className={cn(
+                                      'text-[10px] font-extrabold uppercase tracking-[0.12em]',
+                                      accentColor,
+                                    )}
                                   >
                                     {typeLabel}
                                   </p>
                                   {item.period && (
                                     <>
-                                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/[0.12]" />
+                                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                         {item.period}
                                       </p>
                                     </>
                                   )}
-                                  <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/[0.12]" />
+                                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
                                     {new Date(item.date).toLocaleDateString(
                                       undefined,
                                       {
@@ -370,15 +369,17 @@ const MemberBusinessShare = () => {
 
                             <div className="text-right">
                               <p
-                                className={`text-xl font-black tracking-tighter ${accentColor}`}
+                                className={cn(
+                                  'text-base sm:text-lg font-extrabold tracking-tight tabular-nums',
+                                  accentColor,
+                                )}
                               >
                                 {isCredit ? '+' : '-'}
                                 {formatCurrency(item.amount)}
                               </p>
                               {item.shareBalanceAfter != null && (
-                                <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                                  Share:{' '}
-                                  {formatCurrency(item.shareBalanceAfter)}
+                                <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 tabular-nums">
+                                  Share {formatCurrency(item.shareBalanceAfter)}
                                 </p>
                               )}
                             </div>

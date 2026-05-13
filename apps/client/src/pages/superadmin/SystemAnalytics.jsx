@@ -30,7 +30,6 @@ import {
 import api from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
-import PageHeader from '@/components/PageHeader';
 import { formatCompactValue, formatCurrency } from '@/lib/utils';
 
 const SystemAnalytics = () => {
@@ -130,26 +129,38 @@ const SystemAnalytics = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
       {/* Header */}
-      <PageHeader
-        title="System Analytics"
-        description="Real-time platform intelligence and growth metrics."
-      />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            System <span className="text-primary">analytics</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Real-time platform intelligence and growth metrics.
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* User Growth Chart */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+        <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+          <CardHeader className="p-5 sm:p-6 pb-3">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  User Growth
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Users
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  User growth
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  New Signups (6 Months)
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  New signups (6 months)
                 </CardDescription>
               </div>
-              <div className="bg-primary/5 p-2 rounded-xl">
-                <Users className="w-4 h-4 text-primary" />
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="w-3.5 h-3.5 text-primary" />
               </div>
             </div>
           </CardHeader>
@@ -233,19 +244,22 @@ const SystemAnalytics = () => {
         </Card>
 
         {/* Loan Activity Chart */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+        <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+          <CardHeader className="p-5 sm:p-6 pb-3">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Loan Activity
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Lending
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Loan activity
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  Volume & Amount
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  Volume & amount
                 </CardDescription>
               </div>
-              <div className="bg-emerald-500/5 p-2 rounded-xl">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
+              <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
               </div>
             </div>
           </CardHeader>
@@ -363,19 +377,22 @@ const SystemAnalytics = () => {
         </Card>
 
         {/* Market Share Chart */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+        <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+          <CardHeader className="p-5 sm:p-6 pb-3">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Market Share
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Plans
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Market share
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  Subscription Distribution
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  Subscription distribution
                 </CardDescription>
               </div>
-              <div className="bg-violet-500/5 p-2 rounded-xl">
-                <PieChartIcon className="w-4 h-4 text-violet-600" />
+              <div className="h-8 w-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                <PieChartIcon className="w-3.5 h-3.5 text-violet-600" />
               </div>
             </div>
           </CardHeader>
@@ -426,19 +443,22 @@ const SystemAnalytics = () => {
         </Card>
 
         {/* Top Performers Chart */}
-        <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-3xl">
-          <CardHeader className="pb-2 border-b border-border/40">
+        <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+          <CardHeader className="p-5 sm:p-6 pb-3">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Top Performers
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Leaderboard
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Top performers
                 </CardTitle>
-                <CardDescription className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70 mt-1">
-                  Users by Loan Volume
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  Users by loan volume
                 </CardDescription>
               </div>
-              <div className="bg-orange-500/5 p-2 rounded-xl">
-                <TrendingUp className="w-4 h-4 text-orange-600" />
+              <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5 text-orange-600" />
               </div>
             </div>
           </CardHeader>

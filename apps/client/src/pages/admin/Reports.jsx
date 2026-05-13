@@ -222,64 +222,63 @@ const Reports = () => {
       >
         <Button
           onClick={handleExport}
-          variant="gradient"
-          className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
         >
-          <Download size={16} strokeWidth={3} />
+          <Download size={14} strokeWidth={2.5} />
           Export Insights
         </Button>
       </PageHeader>
 
       {/* Tab Navigation */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:flex items-center gap-1.5 sm:gap-2 p-1.5 bg-muted/20 border border-border/40 rounded-[1.5rem] w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:flex items-center gap-1.5 sm:gap-2 p-1.5 bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-full w-full">
         <button
           onClick={() => setActiveTab('performance')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'performance' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'performance' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-primary' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><Activity size={16} />Performance</button>
         <button
           onClick={() => setActiveTab('regulatory')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'regulatory' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-primary' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'regulatory' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-primary' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><ShieldCheck size={16} />Regulatory Center</button>
         <button
           onClick={() => setActiveTab('trial-balance')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'trial-balance' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-emerald-500' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'trial-balance' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-emerald-500' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><Layers size={16} />Trial Balance</button>
         <button
           onClick={() => setActiveTab('profit-loss')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'profit-loss' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-indigo-500' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'profit-loss' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-indigo-500' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><FileText size={16} />Profit & Loss</button>
         <button
           onClick={() => setActiveTab('balance-sheet')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'balance-sheet' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-teal-500' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'balance-sheet' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-teal-500' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><Landmark size={16} />Balance Sheet</button>
         <button
           onClick={() => setActiveTab('reconciliation')}
           className={cn(
-            'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-            activeTab === 'reconciliation' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-cyan-500' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+            'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+            activeTab === 'reconciliation' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-cyan-500' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
           )}
         ><Scale size={16} />Reconciliation</button>
         {isAdmin && (
           <button
             onClick={() => setActiveTab('branch-analytics')}
             className={cn(
-              'px-2 sm:px-5 py-2.5 sm:py-2.5 rounded-xl text-[10px] sm:text-[13px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
-              activeTab === 'branch-analytics' ? 'bg-background text-foreground shadow-sm border border-border/50 [&>svg]:text-purple-500' : 'bg-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground border border-transparent',
+              'px-2 sm:px-5 py-2 sm:py-2 rounded-full text-[10px] sm:text-[12px] font-bold capitalize transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 w-full xl:w-auto',
+              activeTab === 'branch-analytics' ? 'bg-white dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-sm border border-slate-100 dark:border-white/[0.06] [&>svg]:text-purple-500' : 'bg-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white border border-transparent',
             )}
           ><Banknote size={16} />Branch Analytics</button>
         )}

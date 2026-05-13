@@ -136,18 +136,17 @@ const CustomerProfile = () => {
           )}
           <Button
             onClick={() => setShowAddLoanModal(true)}
-            className="px-6 h-12 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 flex items-center gap-3 transition-all"
+            className="group inline-flex items-center justify-center gap-2.5 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
-            <PlusCircle size={16} />
+            <PlusCircle size={14} strokeWidth={2.5} />
             Issue Loan
           </Button>
           {!customer.isMember && (
             <Button
               onClick={() => setShowMemberForm(true)}
-              variant="gradient"
-              className="px-6 h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-3 transition-all"
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
-              <UserPlus size={16} />
+              <UserPlus size={14} strokeWidth={2.5} />
               Convert
             </Button>
           )}
@@ -180,14 +179,14 @@ const CustomerProfile = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-border/50 pb-1 overflow-x-auto mb-6">
+      <div className="flex items-center gap-2 border-b border-slate-100 dark:border-white/[0.06] pb-1 overflow-x-auto mb-6">
         <button
           onClick={() => setActiveTab('overview')}
           className={cn(
             'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap',
             activeTab === 'overview'
               ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
           )}
         >
           Overview & Loans
@@ -198,7 +197,7 @@ const CustomerProfile = () => {
             'px-6 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap flex items-center gap-2',
             activeTab === 'vault'
               ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white',
           )}
         >
           <ShieldCheck size={14} />
@@ -217,7 +216,7 @@ const CustomerProfile = () => {
             {/* Main Content Area */}
             <div className="lg:col-span-8 space-y-8">
               {/* Active Loans Registry */}
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+              <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-10 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6 sm:space-y-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-black tracking-tighter">
@@ -234,7 +233,7 @@ const CustomerProfile = () => {
 
                 <div className="space-y-4">
                   {loans.length === 0 ? (
-                    <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
+                    <div className="text-center py-20 border border-dashed border-slate-200 dark:border-white/[0.08] rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02]">
                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
                         No Recorded Loans
                       </p>
@@ -292,7 +291,7 @@ const CustomerProfile = () => {
                                   'pending',
                                   'rejected',
                                 ].includes(loan.status) &&
-                                  'bg-muted/50 text-muted-foreground border-border/50',
+                                  'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border-slate-100 dark:border-white/[0.06]',
                               )}
                             >
                               {loan.status}
@@ -364,7 +363,7 @@ const CustomerProfile = () => {
                           href={customer.nominee.cnicImage}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block relative h-48 w-full md:w-1/2 rounded-2xl border border-border/50 bg-white dark:bg-slate-800 overflow-hidden group/nom-cnic shadow-sm hover:border-amber-500/50 transition-colors"
+                          className="block relative h-48 w-full md:w-1/2 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden group/nom-cnic hover:border-amber-500/50 transition-colors"
                         >
                           <img
                             src={customer.nominee.cnicImage}
@@ -449,7 +448,7 @@ const CustomerProfile = () => {
               </div>
 
               {/* Professional & Identity Section */}
-              <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 rounded-[2rem] space-y-6">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
                   Professional & Identity
                   <ShieldCheck size={12} />
@@ -521,7 +520,7 @@ const CustomerProfile = () => {
                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                       Signature
                     </span>
-                    <div className="relative h-32 w-full rounded-xl border border-border/50 bg-muted/10 overflow-hidden group">
+                    <div className="relative h-32 w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] overflow-hidden group">
                       {customer.signature ? (
                         <img
                           src={customer.signature}
@@ -538,7 +537,7 @@ const CustomerProfile = () => {
                 </div>
 
                 {/* {customer.documents && customer.documents.length > 0 && (
-              <div className="pt-6 border-t border-border/50">
+              <div className="pt-6 border-t border-slate-100 dark:border-white/[0.06]">
                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3 block">
                   Vault Documents ({customer.documents.length})
                 </span>
@@ -569,7 +568,7 @@ const CustomerProfile = () => {
               </div>
 
               {/* Contact Details Card */}
-              <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6">
+              <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-5 sm:p-8 rounded-[2rem] space-y-6">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
                   Profile Metadata
                   <Mail size={12} />

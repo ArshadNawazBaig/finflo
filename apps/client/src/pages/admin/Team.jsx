@@ -9,10 +9,10 @@ import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import TableSearch from '@/components/ui/TableSearch';
 import AddStaffModal from '@/components/staff/AddStaffModal';
 import EditStaffModal from '@/components/staff/EditStaffModal';
-import StaffTable from '@/components/staff/StaffTable';
 import StaffCard from '@/components/staff/StaffCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import Pagination from '@/components/ui/Pagination';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -202,11 +202,10 @@ const Team = () => {
         {(user.role === 'admin' || user.isManager) && (
           <Button
             onClick={handleAddStaff}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider w-full sm:w-auto"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
             data-onboarding-id="add-staff-button"
           >
-            <Plus size={16} />
+            <Plus size={14} strokeWidth={2.5} />
             Add Staff
           </Button>
         )}
@@ -285,29 +284,49 @@ const Team = () => {
                         ? "We couldn't find any staff matching your search."
                         : "You haven't added any team members yet. Invite staff to help manage your operations."
                     }
-                    className="border-none bg-card/50"
+                    className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
                   />
                 )}
               </div>
             ) : (
-              <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
-                <StaffTable
-                  data={staff}
-                  onToggleStatus={handleToggleStatus}
-                  onEdit={handleEditStaff}
-                  onDelete={setDeleteStaffId}
-                  togglingId={togglingId}
-                  pagination={{
-                    currentPage,
-                    totalPages,
-                    totalEntries,
-                    limit,
-                    onPageChange: (page) => fetchStaff(false, page),
-                    onLimitChange: (newLimit) => {
-                      setLimit(newLimit);
-                    },
-                  }}
-                />
+              <div className="space-y-6">
+                {staff.length === 0 ? (
+                  <EmptyState
+                    icon={Users}
+                    title="No Team Members Found"
+                    description={
+                      searchTerm
+                        ? "We couldn't find any staff matching your search."
+                        : "You haven't added any team members yet. Invite staff to help manage your operations."
+                    }
+                    className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
+                  />
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                      {staff.map((item) => (
+                        <StaffCard
+                          key={item._id}
+                          item={item}
+                          onToggleStatus={handleToggleStatus}
+                          onEdit={handleEditStaff}
+                          onDelete={setDeleteStaffId}
+                          togglingId={togglingId}
+                        />
+                      ))}
+                    </div>
+                    {totalPages > 1 && (
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalEntries={totalEntries}
+                        limit={limit}
+                        onPageChange={(page) => fetchStaff(false, page)}
+                        onLimitChange={(newLimit) => setLimit(newLimit)}
+                      />
+                    )}
+                  </>
+                )}
               </div>
             )}
           </>

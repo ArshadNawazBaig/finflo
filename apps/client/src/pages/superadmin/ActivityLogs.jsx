@@ -17,7 +17,6 @@ import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
 import { ActivityLogsPageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import {
   Select,
@@ -162,37 +161,45 @@ const ActivityLogs = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <PageHeader
-        title="Activity Logs"
-        description="Monitor all system activities and user actions"
-      >
-        <span className="px-4 py-2 rounded-full bg-muted text-sm font-bold">
-          {pagination.total} Total Activities
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Activity <span className="text-primary">logs</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Monitor all system activities and user actions in real time.
+          </p>
+        </div>
+        <span className="px-4 py-2 rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] border border-slate-100 dark:border-white/[0.06] tabular-nums">
+          {pagination.total} total activities
         </span>
-      </PageHeader>
+      </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
           <input
             type="text"
             placeholder="Search by user, action, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
           />
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-3">
           <Select
             value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
           >
-            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-2xl">
-              <SelectValue placeholder="All Categories" />
+            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
+              <SelectValue placeholder="All categories" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
+              <SelectItem value="all">All categories</SelectItem>
               <SelectItem value="auth">Authentication</SelectItem>
               <SelectItem value="user">User</SelectItem>
               <SelectItem value="loan">Loan</SelectItem>
@@ -203,12 +210,12 @@ const ActivityLogs = () => {
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-2xl">
+            <SelectTrigger className="w-full sm:w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -244,74 +251,74 @@ const ActivityLogs = () => {
           )}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/10">
+        <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.02]">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted/50">
+              <thead className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.06]">
                 <tr>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Time
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     User
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Action
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Category
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Details
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/50">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                 {logs.map((log) => (
                   <tr
                     key={log._id}
-                    className="hover:bg-muted/30 transition-colors"
+                    className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar size={14} />
-                        <span className="font-medium">
+                      <div className="flex items-center gap-1.5 text-[12px] text-slate-500 dark:text-slate-400 font-medium">
+                        <Calendar size={12} />
+                        <span>
                           {new Date(log.createdAt).toLocaleString()}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       {log.user ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold capitalize">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[11px] font-extrabold capitalize">
                             {log.user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
-                          <div className="text-sm">
-                            <p className="font-medium capitalize">
+                          <div>
+                            <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
                               {log.user.name}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                               {log.user.email}
                             </p>
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-[12px] text-slate-500 dark:text-slate-400 font-medium">
                           System
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                         {getActionIcon(log.action)}
-                        <span className="text-sm font-medium">
+                        <span className="text-[12px] font-bold">
                           {log.action.replace(/_/g, ' ')}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize border ${getCategoryColor(
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] border ${getCategoryColor(
                           log.category,
                         )}`}
                       >
@@ -319,7 +326,7 @@ const ActivityLogs = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2 max-w-md">
+                      <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium line-clamp-2 max-w-md">
                         {log.details}
                       </p>
                     </td>

@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import KycOcrScanner from './kyc/KycOcrScanner';
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
-  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
   const [loading, setLoading] = useState(false);
   const [fetchingBranches, setFetchingBranches] = useState(false);
   const [branches, setBranches] = useState([]);
@@ -28,7 +28,12 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const [currentAccountNumber, setCurrentAccountNumber] = useState('');
   const [loanAccountNumber, setLoanAccountNumber] = useState('');
   const [signature, setSignature] = useState('');
-  const [nominee, setNominee] = useState({ name: '', cnic: '', relation: '', cnicImage: '' });
+  const [nominee, setNominee] = useState({
+    name: '',
+    cnic: '',
+    relation: '',
+    cnicImage: '',
+  });
 
   const {
     register,
@@ -82,7 +87,12 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const generateAccountNumber = (type = 'savingAccountNumber') => {
-    const prefix = type === 'savingAccountNumber' ? 'SAV' : type === 'currentAccountNumber' ? 'CUR' : 'LON';
+    const prefix =
+      type === 'savingAccountNumber'
+        ? 'SAV'
+        : type === 'currentAccountNumber'
+          ? 'CUR'
+          : 'LON';
     const result = generateDynamicAccountNumber(user, prefix);
     if (type === 'savingAccountNumber') setSavingAccountNumber(result);
     else if (type === 'currentAccountNumber') setCurrentAccountNumber(result);
@@ -120,7 +130,9 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         cnic: formData.cnic?.trim(),
         name: formData.name?.trim().toLowerCase(),
         email: formData.email?.trim().toLowerCase(),
-        monthlyIncome: formData.monthlyIncome ? Number(formData.monthlyIncome) : undefined,
+        monthlyIncome: formData.monthlyIncome
+          ? Number(formData.monthlyIncome)
+          : undefined,
         initialInvestment: parseFloat(formData.initialInvestment) || 0,
         profitRate: parseFloat(formData.profitRate) || 0,
         savingAccountNumber: savingAccountNumber || undefined,
@@ -157,7 +169,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[95vh] p-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -558,7 +570,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

@@ -244,59 +244,53 @@ const MemberLoanDetail = () => {
             });
             setIsExportModalOpen(true);
           }}
-          variant="default"
-          className="w-full sm:w-auto rounded-2xl gap-2 text-xs font-black uppercase tracking-widest px-6 py-6"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           isLoading={isExportingModal}
         >
-          <Download size={18} />
-          <span className="inline">Export PDF</span>
+          <Download size={14} strokeWidth={2.5} />
+          Export PDF
         </Button>
       </PageHeader>
 
       {/* Progress Overview */}
-      <div className="bg-card rounded-[3rem] p-8 sm:p-12 border border-border/50 shadow-sm overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-          <TrendingUp size={240} className="text-primary" />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
+      <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] p-6 sm:p-8 lg:p-10 border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-6">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-                  Repayment Progress
-                </span>
-                <span className="text-2xl font-black tracking-tighter">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                  Repayment progress
+                </p>
+                <span className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
                   {progressPercent}%
                 </span>
               </div>
               <Progress
                 value={progressPercent}
-                className="h-4 rounded-full bg-primary/10"
+                className="h-2 rounded-full bg-slate-100 dark:bg-white/[0.06]"
               />
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-2 rounded-2xl border border-emerald-500/20">
-                <CheckCircle2 size={16} />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  Paid: {formatCurrency(paidAmount)}
+            <div className="flex flex-wrap gap-3">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-full">
+                <CheckCircle2 size={12} strokeWidth={2.5} />
+                <span className="text-[11px] font-extrabold tabular-nums">
+                  Paid {formatCurrency(paidAmount)}
                 </span>
               </div>
-              <div className="flex items-center gap-2 bg-blue-500/10 text-blue-600 px-4 py-2 rounded-2xl border border-blue-500/20">
-                <Clock size={16} />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  Due: {formatCurrency(loan.remainingAmount)}
+              <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-3 py-1.5 rounded-full">
+                <Clock size={12} strokeWidth={2.5} />
+                <span className="text-[11px] font-extrabold tabular-nums">
+                  Due {formatCurrency(loan.remainingAmount)}
                 </span>
               </div>
               {loan.status === 'active' && (
                 <Button
                   onClick={() => setIsRepayModalOpen(true)}
-                  variant="gradient"
-                  className="w-full sm:w-auto rounded-2xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20"
+                  className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-auto rounded-full font-bold text-[11px] uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                 >
-                  <DollarSign size={14} strokeWidth={3} />
-                  Repay Now
+                  <DollarSign size={12} strokeWidth={3} />
+                  Repay now
                 </Button>
               )}
             </div>
@@ -304,30 +298,36 @@ const MemberLoanDetail = () => {
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                Interest Type
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Interest type
               </p>
-              <p className="text-lg font-bold capitalize">
-                {loan.interestType} Interest
+              <p className="text-base font-extrabold tracking-[-0.025em] capitalize text-slate-900 dark:text-white">
+                {loan.interestType}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                 Monthly EMI
               </p>
-              <p className="text-lg font-bold">{formatCurrency(loan.emi)}</p>
+              <p className="text-base font-extrabold tracking-[-0.025em] tabular-nums text-slate-900 dark:text-white">
+                {formatCurrency(loan.emi)}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                 Duration
               </p>
-              <p className="text-lg font-bold">{loan.duration} Months</p>
+              <p className="text-base font-extrabold tracking-[-0.025em] tabular-nums text-slate-900 dark:text-white">
+                {loan.duration} months
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                Interest Rate
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Interest rate
               </p>
-              <p className="text-lg font-bold">{loan.rate}% Annual</p>
+              <p className="text-base font-extrabold tracking-[-0.025em] tabular-nums text-slate-900 dark:text-white">
+                {loan.rate}% annual
+              </p>
             </div>
           </div>
         </div>
@@ -440,13 +440,15 @@ const MemberLoanDetail = () => {
       />
 
       {/* Helpful Hint */}
-      <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 flex gap-4 items-start">
-        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-          <AlertCircle size={20} />
+      <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[1.5rem] p-5 flex gap-4 items-start">
+        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary [&_svg]:w-3.5 [&_svg]:h-3.5 shrink-0">
+          <AlertCircle />
         </div>
         <div>
-          <h4 className="font-bold text-sm">Advisor Tip</h4>
-          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary mb-1">
+            Advisor tip
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
             Maintaining a perfect track record with your repayments
             significantly boosts your credit profile within our network,
             unlocking higher limits and lower rates for future ventures.

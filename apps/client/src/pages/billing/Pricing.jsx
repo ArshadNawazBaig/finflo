@@ -146,10 +146,10 @@ const Pricing = () => {
             {plans.map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative group p-6 sm:p-10 rounded-[2.5rem] flex flex-col transition-all duration-500 hover:shadow-2xl ${
+                className={`relative group p-6 sm:p-10 rounded-[2rem] flex flex-col transition-all duration-300 hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] ${
                   plan.highlight
-                    ? 'bg-card border-2 border-primary shadow-xl shadow-primary/10 scale-105 z-10'
-                    : 'bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30'
+                    ? 'bg-white dark:bg-white/[0.04] border-2 border-primary scale-105 z-10'
+                    : 'bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] hover:border-primary/30'
                 }`}
               >
                 {plan.badge && (
@@ -199,10 +199,14 @@ const Pricing = () => {
                   disabled={loading || currentPlan === plan.name}
                   variant={
                     plan.buttonClass === 'variant-gradient'
-                      ? 'gradient'
+                      ? undefined
                       : 'outline'
                   }
-                  className={`w-full py-4 rounded-full font-black uppercase tracking-widest text-[11px] ${
+                  className={`w-full py-3.5 rounded-full font-bold text-[13px] ${
+                    plan.buttonClass === 'variant-gradient'
+                      ? 'bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5'
+                      : 'border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
+                  } transition-all duration-300 ${
                     currentPlan === plan.name ? 'opacity-70' : ''
                   }`}
                 >
@@ -213,7 +217,7 @@ const Pricing = () => {
           </div>
 
           {/* Comparison Section (Visual Placeholder for depth) */}
-          <div className="mt-16 p-6 sm:p-12 rounded-[3rem] bg-card/30 border border-border/50 text-center space-y-6">
+          <div className="mt-16 p-6 sm:p-12 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-center space-y-6">
             <h3 className="text-2xl font-bold">Need a custom solution?</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
               Whether you're a startup or a global bank, we have the
@@ -223,14 +227,13 @@ const Pricing = () => {
             <div className="flex justify-center gap-4 pt-4 flex-col sm:flex-row">
               <Link
                 to="/documentation"
-                className="px-8 py-4 rounded-full border border-border font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
+                className="px-8 py-4 rounded-full border border-slate-100 dark:border-white/[0.06] font-bold text-[12px] hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-all"
               >
                 View Documentation
               </Link>
               <Button
                 onClick={() => setShowContactModal(true)}
-                variant="gradient"
-                className="px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest"
+                className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
               >
                 Schedule a Strategy Call
               </Button>

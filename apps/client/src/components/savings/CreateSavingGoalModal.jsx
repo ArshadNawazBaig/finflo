@@ -61,7 +61,7 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[95vh] !p-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black tracking-tighter">
               New Saving Goal

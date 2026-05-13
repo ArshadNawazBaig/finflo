@@ -80,22 +80,25 @@ const VerificationQueue = () => {
 
       <div className="flex-1 p-6 space-y-4 overflow-auto">
         {queue.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground bg-card rounded-3xl border border-border/50">
+          <div className="flex flex-col items-center justify-center h-64 text-center bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
             <ShieldCheck
-              size={48}
-              strokeWidth={1}
+              size={40}
+              strokeWidth={1.5}
               className="mb-4 text-emerald-500"
             />
-            <p className="text-sm font-black uppercase tracking-widest">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Status
+            </p>
+            <p className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white mt-1">
               All Clear
             </p>
-            <p className="text-xs mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
               No documents are pending verification.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
               {queue.length} document{queue.length !== 1 ? 's' : ''} awaiting
               review
             </p>
@@ -105,7 +108,7 @@ const VerificationQueue = () => {
               return (
                 <div
                   key={key}
-                  className="bg-card border border-border/50 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in"
+                  className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[1.5rem] p-5 flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in"
                 >
                   {/* Customer Info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">

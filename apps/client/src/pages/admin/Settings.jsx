@@ -146,7 +146,7 @@ const ReviewSection = ({ user }) => {
 
   if (reviewLoading) {
     return (
-      <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
+      <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
         <div className="space-y-4">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-20 w-full" />
@@ -156,7 +156,7 @@ const ReviewSection = ({ user }) => {
   }
 
   return (
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 delay-100 overflow-hidden relative group">
+    <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 delay-100 overflow-hidden relative group">
       <div className="absolute -left-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="flex flex-col md:flex-row items-start justify-between gap-4 relative z-10">
@@ -244,7 +244,7 @@ const ReviewSection = ({ user }) => {
               }))
             }
             placeholder="e.g. CEO, Founder, Manager"
-            className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            className="w-full px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
           />
         </div>
 
@@ -272,7 +272,7 @@ const ReviewSection = ({ user }) => {
             placeholder="Share what you love about FinFlo..."
             rows={3}
             maxLength={300}
-            className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background/50 text-sm font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            className="w-full px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
           />
         </div>
 
@@ -433,7 +433,7 @@ const Settings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         {/* Navigation Sidebar */}
         <aside className="lg:col-span-1 space-y-4">
-          <div className="p-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] shadow-2xl shadow-black/5">
+          <div className="p-2 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem]">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
@@ -459,7 +459,7 @@ const Settings = () => {
                     <Icon size={18} strokeWidth={isActive ? 3 : 2} />
                   </div>
                   <div className="text-left">
-                    <p className="font-black text-xs uppercase tracking-widest leading-none mb-1">
+                    <p className="font-semibold text-[11px] uppercase tracking-widest leading-none mb-1">
                       {tab.label}
                     </p>
                     <p
@@ -521,7 +521,7 @@ const Settings = () => {
               {activeSection === 'general' && (
                 <>
                   {/* Profile Section */}
-                  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group">
+                  <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group">
                     <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                     <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
@@ -686,7 +686,7 @@ const Settings = () => {
 
                   {/* Business Branding Section */}
                   {isAdmin && (
-                    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-50 overflow-hidden relative group">
+                    <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-50 overflow-hidden relative group">
                       <div className="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                       <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
@@ -728,7 +728,6 @@ const Settings = () => {
                               </div>
                               <Button
                                 onClick={() => navigate('/pricing')}
-                                variant="gradient"
                                 size="lg"
                                 className="rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                               >
@@ -966,7 +965,7 @@ const Settings = () => {
                               className={`relative group/stamp h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
                                 user.businessStamp
                                   ? 'border-primary/20 hover:border-primary/40'
-                                  : 'border-border/50 hover:border-primary/30'
+                                  : 'border-slate-100 dark:border-white/[0.06] hover:border-primary/30'
                               } ${stampLoading ? 'opacity-50 cursor-wait' : ''}`}
                             >
                               {stampLoading ? (
@@ -1100,7 +1099,7 @@ const Settings = () => {
                               className={`relative group/signature h-32 rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden flex items-center justify-center bg-muted/5 ${
                                 user.ceoSignature
                                   ? 'border-primary/20 hover:border-primary/40'
-                                  : 'border-border/50 hover:border-primary/30'
+                                  : 'border-slate-100 dark:border-white/[0.06] hover:border-primary/30'
                               } ${signatureLoading ? 'opacity-50 cursor-wait' : ''}`}
                             >
                               {signatureLoading ? (
@@ -1232,7 +1231,7 @@ const Settings = () => {
                   )}
 
                   {/* Appearance Section */}
-                  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
+                  <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
                     <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                     <div className="relative z-10">
@@ -1252,7 +1251,7 @@ const Settings = () => {
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'light'
                               ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
+                              : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
                           <div className="h-10 w-10 rounded-full bg-background border shadow-sm flex items-center justify-center">
@@ -1265,7 +1264,7 @@ const Settings = () => {
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'dark'
                               ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
+                              : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
                           <div className="h-10 w-10 rounded-full bg-slate-950 text-white border shadow-sm flex items-center justify-center">
@@ -1278,7 +1277,7 @@ const Settings = () => {
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             theme === 'system'
                               ? 'border-primary bg-primary/5'
-                              : 'border-border/50 hover:border-border hover:bg-muted/50'
+                              : 'border-slate-100 dark:border-white/[0.06] hover:border-slate-200 dark:hover:border-white/[0.1] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
                           <div className="h-10 w-10 rounded-full bg-gradient-to-r from-background to-slate-950 border shadow-sm flex items-center justify-center">
@@ -1348,7 +1347,7 @@ const Settings = () => {
 
               {/* Notifications Section */}
               {activeSection === 'notifications' && (
-                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+                <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
                   <div className="absolute -right-12 -top-12 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                   <div className="relative z-10">
@@ -1406,7 +1405,7 @@ const Settings = () => {
 
               {/* Security Section */}
               {activeSection === 'security' && (
-                <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
+                <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
                   <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                   <div className="relative z-10">
@@ -1799,7 +1798,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -1973,7 +1972,7 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -1985,7 +1984,6 @@ const EditProfileModal = ({ isOpen, onClose, user, setUser }) => {
             form="edit-profile-form"
             type="submit"
             isLoading={loading}
-            variant="gradient"
             className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
           >
             <User size={16} />
@@ -2039,7 +2037,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -2131,7 +2129,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -2143,7 +2141,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             form="change-password-form"
             type="submit"
             isLoading={loading}
-            variant="gradient"
             className="px-10 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-3"
           >
             <Shield size={16} />
@@ -2302,7 +2299,7 @@ const ConfigurationSection = ({ user }) => {
 
   if (loading) {
     return (
-      <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 animate-pulse mb-40 sm:mb-0 space-y-8">
+      <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 animate-pulse mb-40 sm:mb-0 space-y-8">
         <div className="space-y-2 mb-8">
           <Skeleton className="h-6 w-48 rounded" />
           <Skeleton className="h-3 w-64 rounded" />
@@ -2326,7 +2323,7 @@ const ConfigurationSection = ({ user }) => {
   }
 
   return (
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
+    <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group mb-40 sm:mb-0">
       <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="relative z-10">
@@ -3013,7 +3010,6 @@ const ConfigurationSection = ({ user }) => {
           <Button
             type="submit"
             isLoading={saving}
-            variant="gradient"
             className="h-11 px-8 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
             <Save size={14} className="mr-2" />

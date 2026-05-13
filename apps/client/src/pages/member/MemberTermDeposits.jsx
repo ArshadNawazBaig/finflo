@@ -312,17 +312,20 @@ const MemberTermDeposits = () => {
       )}
 
       {/* ─── Available Packages ─── */}
-      <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-border/50">
+      <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+        <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/[0.06]">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-rose-500/10 to-pink-500/10 rounded-xl border border-rose-500/20">
-              <Gem size={20} className="text-rose-500 fill-rose-500/10" />
+            <div className="h-8 w-8 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Gem />
             </div>
             <div>
-              <h2 className="text-xl font-bold tracking-tight">
-                Available Packages
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Packages
+              </p>
+              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                Available packages
               </h2>
-              <p className="text-xs font-medium text-muted-foreground mt-0.5">
+              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                 Choose a term and lock your savings to earn guaranteed profit
               </p>
             </div>
@@ -449,25 +452,30 @@ const MemberTermDeposits = () => {
       </div>
 
       {/* ─── Deposit Portfolio ─── */}
-      <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+        <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-muted rounded-xl">
-              <Lock size={20} className="text-muted-foreground" />
+            <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Lock />
             </div>
-            <h2 className="text-xl font-bold tracking-tight">
-              Deposit Portfolio
-            </h2>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Portfolio
+              </p>
+              <h2 className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                Deposit portfolio
+              </h2>
+            </div>
           </div>
           <div className="relative w-full sm:max-w-xs">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={14}
             />
             <input
               type="text"
               placeholder="Search deposits..."
-              className="w-full pl-10 pr-4 py-2.5 bg-background border border-border/50 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

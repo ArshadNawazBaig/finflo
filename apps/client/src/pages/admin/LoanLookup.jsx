@@ -169,7 +169,7 @@ const LoanLookup = () => {
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-400/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
         <main className="relative z-10 flex-1 container mx-auto px-6 py-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-6 rounded-2xl shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 rounded-[2rem]">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-black tracking-tighter capitalize">
@@ -191,9 +191,8 @@ const LoanLookup = () => {
               </div>
             </div>
             <Button
-              variant="gradient"
               onClick={resetLookup}
-              className="rounded-full px-8 h-12 font-black uppercase tracking-widest text-[10px] shadow-xs"
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
               Perform New Search
             </Button>
@@ -362,13 +361,13 @@ const LoanLookup = () => {
                 icon={FileText}
                 title="No Loans Found"
                 description="We couldn't find any loan records associated with these details."
-                className="col-span-full border-white/20 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl py-12 shadow-xs"
+                className="col-span-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem] py-12"
               />
             )}
           </div>
         </main>
 
-        <footer className="relative z-10 py-10 text-center border-t border-border/50 bg-background/50 backdrop-blur-sm">
+        <footer className="relative z-10 py-10 text-center border-t border-slate-100 dark:border-white/[0.06]">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-30">
             © 2026 Financial Flow Intelligence Portal • Immutable Records
           </p>
@@ -443,15 +442,11 @@ const LoanLookup = () => {
         <Button
           type="submit"
           isLoading={loading}
-          variant="gradient"
-          className="h-12 w-full rounded-xl font-black text-[10px] uppercase tracking-widest group relative overflow-hidden shadow-xs mt-4"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full mt-4"
         >
           <span className="flex items-center justify-center gap-2">
             Execute Search
-            <Search
-              size={14}
-              className="group-hover:scale-110 transition-transform"
-            />
+            <Search size={14} strokeWidth={2.5} />
           </span>
         </Button>
       </form>

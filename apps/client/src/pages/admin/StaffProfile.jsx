@@ -27,7 +27,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 const StaffProfileSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     {/* Page Header Skeleton */}
-    <div className="bg-card/30 p-5 sm:p-8 rounded-[2.5rem] border border-border/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+    <div className="bg-white dark:bg-white/[0.02] p-5 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
       <div className="space-y-4 flex-1">
         <div className="flex items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-2xl" />
@@ -50,14 +50,14 @@ const StaffProfileSkeleton = () => (
 
     {/* Stats Cards Skeleton */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Skeleton className="h-32 rounded-[2rem] border border-border/50 bg-card/50" />
-      <Skeleton className="h-32 rounded-[2rem] border border-border/50 bg-card/50" />
-      <Skeleton className="h-32 rounded-[2rem] border border-border/50 bg-card/50" />
+      <Skeleton className="h-32 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]" />
+      <Skeleton className="h-32 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]" />
+      <Skeleton className="h-32 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]" />
     </div>
 
     {/* Activity Table Skeleton */}
-    <div className="bg-card border border-border/50 rounded-[2rem] overflow-hidden">
-      <div className="p-6 border-b border-border/50 bg-muted/30">
+    <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] overflow-hidden">
+      <div className="p-6 border-b border-slate-100 dark:border-white/[0.06]">
         <Skeleton className="h-6 w-48 rounded-lg" />
       </div>
       <div className="p-6 space-y-4">
@@ -263,8 +263,8 @@ const StaffProfile = () => {
         />
       </div>
 
-      <div className="bg-card border border-border/50 rounded-[2rem] overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-border/50 bg-muted/30 flex items-center justify-between">
+      <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] overflow-hidden">
+        <div className="p-6 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <Clock size={20} />
@@ -292,7 +292,7 @@ const StaffProfile = () => {
                       key={log._id}
                       className="flex items-start gap-4 p-4 rounded-2xl bg-muted/30 border border-border/10 hover:border-primary/20 transition-all group"
                     >
-                      <div className="mt-1 p-2 rounded-full bg-background border border-border/50 text-muted-foreground group-hover:text-primary transition-colors">
+                      <div className="mt-1 p-2 rounded-full bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] text-slate-500 group-hover:text-primary transition-colors">
                         <Activity size={14} />
                       </div>
                       <div className="flex-1 space-y-1">

@@ -186,7 +186,7 @@ const AmlCompliance = () => {
               'flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap border',
               activeTab === tab.id
                 ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
-                : 'bg-card/50 border-border/50 hover:bg-card hover:border-border text-muted-foreground'
+                : 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500'
             )}>
             <tab.icon size={14} />
             {tab.label}
@@ -218,7 +218,7 @@ const AmlCompliance = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="p-6 rounded-[2rem] bg-card/50 border border-border/50">
+            <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
               <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-4">Alerts by Severity</h3>
               <div className="space-y-3">
                 {['critical', 'high', 'medium', 'low'].map((sev) => (
@@ -230,12 +230,12 @@ const AmlCompliance = () => {
               </div>
             </div>
 
-            <div className="p-6 rounded-[2rem] bg-card/50 border border-border/50">
+            <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
               <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-4">Recent Alerts</h3>
               {dashboard.recentAlerts?.length > 0 ? (
                 <div className="space-y-3">
                   {dashboard.recentAlerts.map((alert) => (
-                    <div key={alert._id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
+                    <div key={alert._id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className={cn('px-2 py-0.5 rounded text-[8px] font-black uppercase border shrink-0', SEVERITY_COLORS[alert.severity])}>{alert.severity}</span>
                         <span className="text-xs font-bold truncate">{alert.title}</span>
@@ -254,7 +254,7 @@ const AmlCompliance = () => {
 
       {/* Alerts Tab */}
       {activeTab === 'alerts' && (
-        <div className="rounded-[2rem] bg-card/50 border border-border/50 overflow-hidden">
+        <div className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
           {alerts.length === 0 ? (
             <EmptyState icon={ShieldAlert} title="No AML Alerts" description="No suspicious activity detected. All monitoring rules are running." className="py-20" />
           ) : (
@@ -294,7 +294,7 @@ const AmlCompliance = () => {
             </div>
           )}
           {rules.map((rule) => (
-            <div key={rule._id} className="p-4 sm:p-6 rounded-[2rem] bg-card/50 border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={rule._id} className="p-4 sm:p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start sm:items-center gap-4 min-w-0">
                 <button onClick={() => toggleRule(rule._id, rule.isActive)} className="shrink-0 mt-1 sm:mt-0">
                   {rule.isActive ? <ToggleRight size={24} className="text-emerald-400" /> : <ToggleLeft size={24} className="text-muted-foreground/40" />}
@@ -307,7 +307,7 @@ const AmlCompliance = () => {
                   <p className="text-xs text-muted-foreground/60">{rule.description}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-3 sm:pt-0 border-t border-border/30 sm:border-0 mt-2 sm:mt-0">
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto shrink-0 pt-3 sm:pt-0 border-t border-slate-100 dark:border-white/[0.06] sm:border-0 mt-2 sm:mt-0">
                 <span className="text-[10px] font-mono text-muted-foreground/40">Triggered: {rule.totalTriggered}</span>
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-1 rounded-lg bg-muted/30 text-[9px] font-black uppercase tracking-wider text-muted-foreground">{rule.type}</span>
@@ -323,7 +323,7 @@ const AmlCompliance = () => {
 
       {/* SAR Tab */}
       {activeTab === 'sar' && (
-        <div className="rounded-[2rem] bg-card/50 border border-border/50 overflow-hidden">
+        <div className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
           {sars.length === 0 ? (
             <EmptyState icon={FileWarning} title="No SAR Reports" description="Suspicious Activity Reports will appear here when generated from escalated alerts." className="py-20" />
           ) : (
@@ -348,7 +348,7 @@ const AmlCompliance = () => {
 
       {/* CTR Tab */}
       {activeTab === 'ctr' && (
-        <div className="rounded-[2rem] bg-card/50 border border-border/50 overflow-hidden">
+        <div className="rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
           {ctrs.length === 0 ? (
             <EmptyState icon={DollarSign} title="No CTR Reports" description="Currency Transaction Reports are auto-generated for cash transactions exceeding PKR 2,000,000." className="py-20" />
           ) : (
@@ -395,7 +395,7 @@ const AmlCompliance = () => {
               </div>
               <textarea value={reviewNote} onChange={(e) => setReviewNote(e.target.value)}
                 placeholder="Add review notes..." rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-muted/30 border border-border/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
             </div>
           )}
           <DialogFooter className="flex gap-2">

@@ -136,7 +136,7 @@ const MemberSettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         {/* Navigation Sidebar */}
         <aside className="lg:col-span-1 space-y-4">
-          <div className="p-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] shadow-2xl shadow-black/5">
+          <div className="p-2 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[1.75rem]">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeSection === tab.id;
@@ -145,64 +145,66 @@ const MemberSettings = () => {
                   key={tab.id}
                   onClick={() => setActiveSection(tab.id)}
                   className={cn(
-                    'w-full group flex items-center gap-4 p-4 rounded-[1.8rem] transition-all duration-500 relative overflow-hidden',
+                    'w-full group flex items-center gap-3 p-3 rounded-[1.25rem] transition-all duration-300 relative overflow-hidden',
                     isActive
-                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[1.02] z-10'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/60 dark:hover:bg-slate-800/60',
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                   )}
                 >
                   <div
                     className={cn(
-                      'p-3 rounded-2xl transition-all duration-500',
+                      'flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 [&_svg]:w-3.5 [&_svg]:h-3.5',
                       isActive
                         ? 'bg-white/20'
-                        : 'bg-muted/50 group-hover:scale-110 group-hover:rotate-3',
+                        : 'bg-slate-100 dark:bg-white/[0.06]',
                     )}
                   >
-                    <Icon size={18} strokeWidth={isActive ? 3 : 2} />
+                    <Icon strokeWidth={isActive ? 3 : 2} />
                   </div>
                   <div className="text-left">
-                    <p className="font-black text-xs uppercase tracking-widest leading-none mb-1">
+                    <p className="font-extrabold text-[11px] uppercase tracking-[0.15em] leading-none mb-1">
                       {tab.label}
                     </p>
                     <p
                       className={cn(
-                        'text-[10px] font-medium opacity-60',
-                        isActive ? 'text-white' : 'text-muted-foreground',
+                        'text-[10px] font-medium',
+                        isActive
+                          ? 'text-white/80'
+                          : 'text-slate-400 dark:text-slate-500',
                       )}
                     >
                       {tab.desc}
                     </p>
                   </div>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabGlow"
-                      className="absolute inset-0 bg-white/10 blur-xl opacity-50"
-                    />
-                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="p-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-150 transition-transform duration-700">
-              <Sparkles size={100} />
+          <div className="p-6 rounded-[1.75rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] relative overflow-hidden group">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Account status
+              </p>
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary [&_svg]:w-3.5 [&_svg]:h-3.5">
+                <Sparkles />
+              </div>
             </div>
-            <h4 className="font-black text-[10px] uppercase tracking-[0.3em] mb-3 opacity-80">
-              Account Status
-            </h4>
-            <div className="space-y-4 relative z-10">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold opacity-80">Status</span>
-                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Status
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[9px] font-extrabold uppercase tracking-[0.12em]">
                   {member.status?.toUpperCase() || 'ACTIVE'}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-bold opacity-80">Portal Access</span>
-                <span className="px-2 py-0.5 rounded-md bg-white/20 font-black tracking-widest text-[8px]">
-                  VERIFIED
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Portal access
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-extrabold uppercase tracking-[0.12em]">
+                  Verified
                 </span>
               </div>
             </div>
@@ -218,7 +220,7 @@ const MemberSettings = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/50 dark:border-slate-800/50 rounded-[3rem] p-0 sm:p-12 shadow-2xl shadow-black/5 min-h-[600px] relative overflow-hidden flex flex-col gap-6"
+              className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-0 sm:p-8 min-h-[600px] relative overflow-hidden flex flex-col gap-6"
             >
               {activeSection === 'general' && (
                 <>
@@ -330,7 +332,7 @@ const ProfileSection = ({
   };
 
   return (
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group">
+    <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden relative group">
       <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="flex flex-col md:flex-row items-start justify-between gap-6 relative z-10">
@@ -480,7 +482,7 @@ const AppearanceSection = ({
   primaryColor,
   setPrimaryColor,
 }) => (
-  <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
+  <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-75 overflow-hidden group">
     <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
     <div className="relative z-10">
@@ -567,7 +569,10 @@ const SecuritySection = ({
   disable2FAPassword,
   setDisable2FAPassword,
 }) => {
-  const [pinStatus, setPinStatus] = useState({ hasPin: false, isLocked: false });
+  const [pinStatus, setPinStatus] = useState({
+    hasPin: false,
+    isLocked: false,
+  });
   const [pinLoading, setPinLoading] = useState(true);
   const [showSetPinModal, setShowSetPinModal] = useState(false);
   const [showChangePinModal, setShowChangePinModal] = useState(false);
@@ -624,297 +629,236 @@ const SecuritySection = ({
 
   return (
     <>
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
-    <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+        <div className="absolute -left-12 -top-12 w-48 h-48 bg-violet-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-    <div className="relative z-10">
-      <h3 className="text-xl font-black tracking-tight">Portal Security</h3>
-      <p className="text-muted-foreground text-xs font-medium mt-1">
-        Secure your account and sessions.
-      </p>
-    </div>
-
-    <div className="space-y-6 relative z-10">
-      <div className="flex items-center justify-between pb-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-muted rounded-xl">
-            <Lock size={18} className="text-muted-foreground" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">Password</p>
-            <p className="text-[10px] text-muted-foreground font-medium">
-              Update your security credential
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onChangePassword}
-          className="rounded-xl text-[10px] font-black uppercase tracking-widest"
-        >
-          Update
-        </Button>
-      </div>
-
-      {/* Transaction PIN Panel */}
-      <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Fingerprint size={18} className="text-muted-foreground" />
-            <div>
-              <p className="font-bold text-sm">Transaction PIN</p>
-              <p className="text-[10px] text-muted-foreground font-medium">
-                {pinLoading
-                  ? 'Checking...'
-                  : pinStatus.hasPin
-                    ? 'Your 4-digit PIN is active for all transactions.'
-                    : 'Set a 4-digit PIN to secure every transaction.'}
-              </p>
-            </div>
-          </div>
-          <span
-            className={cn(
-              'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
-              pinLoading
-                ? 'bg-muted text-muted-foreground'
-                : pinStatus.isLocked
-                  ? 'bg-rose-500/10 text-rose-600'
-                  : pinStatus.hasPin
-                    ? 'bg-emerald-500/10 text-emerald-600'
-                    : 'bg-amber-500/10 text-amber-600',
-            )}
-          >
-            {pinLoading ? '...' : pinStatus.isLocked ? 'Locked' : pinStatus.hasPin ? 'Active' : 'Not Set'}
-          </span>
+        <div className="relative z-10">
+          <h3 className="text-xl font-black tracking-tight">Portal Security</h3>
+          <p className="text-muted-foreground text-xs font-medium mt-1">
+            Secure your account and sessions.
+          </p>
         </div>
 
-        {!pinLoading && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {!pinStatus.hasPin ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSetPinModal(true)}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
-              >
-                <Fingerprint size={14} />
-                Set PIN
-              </Button>
-            ) : (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSetPinModal(true)}
-                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
-                >
-                  <Lock size={14} />
-                  Change PIN
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowResetFlow(!showResetFlow);
-                    setResetOtpSent(false);
-                    setResetOtp('');
-                  }}
-                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5 text-amber-600 border-amber-500/20 hover:bg-amber-500/10"
-                >
-                  <RotateCcw size={14} />
-                  Forgot PIN
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* OTP Reset Flow */}
-        {showResetFlow && (
-          <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-            {!resetOtpSent ? (
-              <div className="space-y-2">
-                <p className="text-[10px] text-muted-foreground font-medium">
-                  We'll send a 6-digit code to your registered email to verify your identity.
-                </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  isLoading={resetLoading}
-                  onClick={handleSendResetOtp}
-                  className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
-                >
-                  <Mail size={14} />
-                  Send OTP
-                </Button>
+        <div className="space-y-6 relative z-10">
+          <div className="flex items-center justify-between pb-4 border-b border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-muted rounded-xl">
+                <Lock size={18} className="text-muted-foreground" />
               </div>
-            ) : (
-              <div className="space-y-2">
+              <div>
+                <p className="font-bold text-sm">Password</p>
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  Enter the 6-digit code sent to your email.
+                  Update your security credential
                 </p>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <KeyRound
-                      size={14}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="000000"
-                      value={resetOtp}
-                      onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, ''))}
-                      className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
-                    />
-                  </div>
-                  <Button
-                    size="sm"
-                    isLoading={resetLoading}
-                    disabled={resetOtp.length !== 6}
-                    onClick={handleVerifyResetOtp}
-                    className="rounded-xl text-[10px] font-black uppercase tracking-widest"
-                  >
-                    Reset
-                  </Button>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onChangePassword}
+              className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+            >
+              Update
+            </Button>
+          </div>
+
+          {/* Transaction PIN Panel */}
+          <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Fingerprint size={18} className="text-muted-foreground" />
+                <div>
+                  <p className="font-bold text-sm">Transaction PIN</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    {pinLoading
+                      ? 'Checking...'
+                      : pinStatus.hasPin
+                        ? 'Your 4-digit PIN is active for all transactions.'
+                        : 'Set a 4-digit PIN to secure every transaction.'}
+                  </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowResetFlow(false);
-                    setResetOtpSent(false);
-                    setResetOtp('');
-                  }}
-                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline"
-                >
-                  Cancel
-                </button>
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
+                  pinLoading
+                    ? 'bg-muted text-muted-foreground'
+                    : pinStatus.isLocked
+                      ? 'bg-rose-500/10 text-rose-600'
+                      : pinStatus.hasPin
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : 'bg-amber-500/10 text-amber-600',
+                )}
+              >
+                {pinLoading
+                  ? '...'
+                  : pinStatus.isLocked
+                    ? 'Locked'
+                    : pinStatus.hasPin
+                      ? 'Active'
+                      : 'Not Set'}
+              </span>
+            </div>
+
+            {!pinLoading && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {!pinStatus.hasPin ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSetPinModal(true)}
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+                  >
+                    <Fingerprint size={14} />
+                    Set PIN
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowSetPinModal(true)}
+                      className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+                    >
+                      <Lock size={14} />
+                      Change PIN
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowResetFlow(!showResetFlow);
+                        setResetOtpSent(false);
+                        setResetOtp('');
+                      }}
+                      className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5 text-amber-600 border-amber-500/20 hover:bg-amber-500/10"
+                    >
+                      <RotateCcw size={14} />
+                      Forgot PIN
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* OTP Reset Flow */}
+            {showResetFlow && (
+              <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                {!resetOtpSent ? (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      We'll send a 6-digit code to your registered email to
+                      verify your identity.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      isLoading={resetLoading}
+                      onClick={handleSendResetOtp}
+                      className="rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5"
+                    >
+                      <Mail size={14} />
+                      Send OTP
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Enter the 6-digit code sent to your email.
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <KeyRound
+                          size={14}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="000000"
+                          value={resetOtp}
+                          onChange={(e) =>
+                            setResetOtp(e.target.value.replace(/\D/g, ''))
+                          }
+                          className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        isLoading={resetLoading}
+                        disabled={resetOtp.length !== 6}
+                        onClick={handleVerifyResetOtp}
+                        className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowResetFlow(false);
+                        setResetOtpSent(false);
+                        setResetOtp('');
+                      }}
+                      className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* 2FA Panel */}
-      <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <QrCode size={18} className="text-muted-foreground" />
-            <div>
-              <p className="font-bold text-sm">Two-Factor Authentication</p>
-              <p className="text-[10px] text-muted-foreground font-medium">
-                {is2FAEnabled
-                  ? '2FA is currently active on your account.'
-                  : 'Add an extra layer of security via TOTP app.'}
-              </p>
-            </div>
-          </div>
-          <span
-            className={cn(
-              'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
-              is2FAEnabled
-                ? 'bg-emerald-500/10 text-emerald-600'
-                : 'bg-muted text-muted-foreground',
-            )}
-          >
-            {is2FAEnabled ? 'Enabled' : 'Disabled'}
-          </span>
-        </div>
-
-        {!is2FAEnabled && (
-          <div className="space-y-3">
-            {!qrCodeData ? (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={twoFALoading}
-                onClick={async () => {
-                  try {
-                    setTwoFALoading(true);
-                    const memberToken = localStorage.getItem('member');
-                    const { data } = await api.post(
-                      '/member-auth/2fa/generate',
-                      {},
-                      {
-                        headers: {
-                          /* Auth header handled by browser cookies */
-                        },
-                      },
-                    );
-                    setQrCodeData(data.qrCode);
-                  } catch (e) {
-                    toast.error(
-                      e.response?.data?.message || 'Failed to generate QR',
-                    );
-                  } finally {
-                    setTwoFALoading(false);
-                  }
-                }}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest"
-              >
-                {twoFALoading ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <QrCode size={14} />
+          {/* 2FA Panel */}
+          <div className="border border-border/50 rounded-2xl p-5 bg-muted/20 space-y-4 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <QrCode size={18} className="text-muted-foreground" />
+                <div>
+                  <p className="font-bold text-sm">Two-Factor Authentication</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    {is2FAEnabled
+                      ? '2FA is currently active on your account.'
+                      : 'Add an extra layer of security via TOTP app.'}
+                  </p>
+                </div>
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full',
+                  is2FAEnabled
+                    ? 'bg-emerald-500/10 text-emerald-600'
+                    : 'bg-muted text-muted-foreground',
                 )}
-                <span className="ml-2">Set Up 2FA</span>
-              </Button>
-            ) : (
-              <div className="space-y-3 animate-in fade-in">
-                <p className="text-[10px] text-muted-foreground font-medium">
-                  Scan this QR code with Google Authenticator or Authy, then
-                  enter the 6-digit code below to confirm.
-                </p>
-                <img
-                  src={qrCodeData}
-                  alt="2FA QR Code"
-                  className="w-40 h-40 rounded-xl border border-border/50 p-2 bg-white mx-auto"
-                />
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <KeyRound
-                      size={14}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="000000"
-                      value={twoFACode}
-                      onChange={(e) => setTwoFACode(e.target.value)}
-                      className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
-                    />
-                  </div>
+              >
+                {is2FAEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+
+            {!is2FAEnabled && (
+              <div className="space-y-3">
+                {!qrCodeData ? (
                   <Button
+                    variant="outline"
                     size="sm"
-                    isLoading={twoFALoading}
-                    disabled={twoFACode.length !== 6}
+                    disabled={twoFALoading}
                     onClick={async () => {
                       try {
                         setTwoFALoading(true);
                         const memberToken = localStorage.getItem('member');
                         const { data } = await api.post(
-                          '/member-auth/2fa/verify',
-                          { code: twoFACode },
+                          '/member-auth/2fa/generate',
+                          {},
                           {
                             headers: {
                               /* Auth header handled by browser cookies */
                             },
                           },
                         );
-                        if (data.success) {
-                          setIs2FAEnabled(true);
-                          setQrCodeData(null);
-                          setTwoFACode('');
-                          toast.success('2FA enabled successfully!');
-                          setMember((prev) => ({
-                            ...prev,
-                            isTwoFactorEnabled: true,
-                          }));
-                        }
+                        setQrCodeData(data.qrCode);
                       } catch (e) {
                         toast.error(
-                          e.response?.data?.message || 'Invalid code',
+                          e.response?.data?.message || 'Failed to generate QR',
                         );
                       } finally {
                         setTwoFALoading(false);
@@ -922,119 +866,189 @@ const SecuritySection = ({
                     }}
                     className="rounded-xl text-[10px] font-black uppercase tracking-widest"
                   >
-                    Verify
+                    {twoFALoading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <QrCode size={14} />
+                    )}
+                    <span className="ml-2">Set Up 2FA</span>
+                  </Button>
+                ) : (
+                  <div className="space-y-3 animate-in fade-in">
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Scan this QR code with Google Authenticator or Authy, then
+                      enter the 6-digit code below to confirm.
+                    </p>
+                    <img
+                      src={qrCodeData}
+                      alt="2FA QR Code"
+                      className="w-40 h-40 rounded-xl border border-border/50 p-2 bg-white mx-auto"
+                    />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <KeyRound
+                          size={14}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="000000"
+                          value={twoFACode}
+                          onChange={(e) => setTwoFACode(e.target.value)}
+                          className="w-full h-10 pl-9 pr-4 rounded-xl border border-border/50 bg-background outline-none focus:ring-2 focus:ring-primary/20 text-xs font-mono tracking-[0.5em]"
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        isLoading={twoFALoading}
+                        disabled={twoFACode.length !== 6}
+                        onClick={async () => {
+                          try {
+                            setTwoFALoading(true);
+                            const memberToken = localStorage.getItem('member');
+                            const { data } = await api.post(
+                              '/member-auth/2fa/verify',
+                              { code: twoFACode },
+                              {
+                                headers: {
+                                  /* Auth header handled by browser cookies */
+                                },
+                              },
+                            );
+                            if (data.success) {
+                              setIs2FAEnabled(true);
+                              setQrCodeData(null);
+                              setTwoFACode('');
+                              toast.success('2FA enabled successfully!');
+                              setMember((prev) => ({
+                                ...prev,
+                                isTwoFactorEnabled: true,
+                              }));
+                            }
+                          } catch (e) {
+                            toast.error(
+                              e.response?.data?.message || 'Invalid code',
+                            );
+                          } finally {
+                            setTwoFALoading(false);
+                          }
+                        }}
+                        className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+                      >
+                        Verify
+                      </Button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setQrCodeData(null);
+                        setTwoFACode('');
+                      }}
+                      className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline w-full text-center"
+                    >
+                      Cancel Setup
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {is2FAEnabled && (
+              <div className="pt-2 space-y-3">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  To disable 2FA, please enter your password for confirmation.
+                </p>
+                <div className="flex gap-2">
+                  <PasswordInput
+                    placeholder="Enter password"
+                    value={disable2FAPassword}
+                    onChange={(e) => setDisable2FAPassword(e.target.value)}
+                    className="h-10 flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    isLoading={twoFALoading}
+                    disabled={!disable2FAPassword}
+                    onClick={async () => {
+                      if (
+                        !window.confirm(
+                          'Are you sure you want to disable Two-Factor Authentication?',
+                        )
+                      )
+                        return;
+                      try {
+                        setTwoFALoading(true);
+                        const memberToken = localStorage.getItem('member');
+                        const { data } = await api.post(
+                          '/member-auth/2fa/disable',
+                          { password: disable2FAPassword },
+                          {
+                            headers: {
+                              /* Auth header handled by browser cookies */
+                            },
+                          },
+                        );
+                        if (data.success) {
+                          setIs2FAEnabled(false);
+                          setDisable2FAPassword('');
+                          toast.success('2FA disabled successfully');
+                          setMember((prev) => ({
+                            ...prev,
+                            isTwoFactorEnabled: false,
+                          }));
+                        }
+                      } catch (e) {
+                        toast.error(
+                          e.response?.data?.message || 'Failed to disable 2FA',
+                        );
+                      } finally {
+                        setTwoFALoading(false);
+                      }
+                    }}
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest"
+                  >
+                    Disable
                   </Button>
                 </div>
-                <button
-                  onClick={() => {
-                    setQrCodeData(null);
-                    setTwoFACode('');
-                  }}
-                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground underline w-full text-center"
-                >
-                  Cancel Setup
-                </button>
               </div>
             )}
           </div>
-        )}
 
-        {is2FAEnabled && (
-          <div className="pt-2 space-y-3">
-            <p className="text-[10px] text-muted-foreground font-medium">
-              To disable 2FA, please enter your password for confirmation.
-            </p>
-            <div className="flex gap-2">
-              <PasswordInput
-                placeholder="Enter password"
-                value={disable2FAPassword}
-                onChange={(e) => setDisable2FAPassword(e.target.value)}
-                className="h-10 flex-1"
-              />
-              <Button
-                size="sm"
-                variant="destructive"
-                isLoading={twoFALoading}
-                disabled={!disable2FAPassword}
-                onClick={async () => {
-                  if (
-                    !window.confirm(
-                      'Are you sure you want to disable Two-Factor Authentication?',
-                    )
-                  )
-                    return;
-                  try {
-                    setTwoFALoading(true);
-                    const memberToken = localStorage.getItem('member');
-                    const { data } = await api.post(
-                      '/member-auth/2fa/disable',
-                      { password: disable2FAPassword },
-                      {
-                        headers: {
-                          /* Auth header handled by browser cookies */
-                        },
-                      },
-                    );
-                    if (data.success) {
-                      setIs2FAEnabled(false);
-                      setDisable2FAPassword('');
-                      toast.success('2FA disabled successfully');
-                      setMember((prev) => ({
-                        ...prev,
-                        isTwoFactorEnabled: false,
-                      }));
-                    }
-                  } catch (e) {
-                    toast.error(
-                      e.response?.data?.message || 'Failed to disable 2FA',
-                    );
-                  } finally {
-                    setTwoFALoading(false);
-                  }
-                }}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest"
-              >
-                Disable
-              </Button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-rose-500/10 rounded-xl">
+                <LogOut size={18} className="text-rose-500" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Termination</p>
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Close current active session
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-500/10 rounded-xl">
-            <LogOut size={18} className="text-rose-500" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">Termination</p>
-            <p className="text-[10px] text-muted-foreground font-medium">
-              Close current active session
-            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLogout}
+              className="rounded-xl text-rose-500 border-rose-500/20 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-widest"
+            >
+              Log Out
+            </Button>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onLogout}
-          className="rounded-xl text-rose-500 border-rose-500/20 hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-widest"
-        >
-          Log Out
-        </Button>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  {/* PIN Modals */}
-  <SetTransactionPinModal
-    isOpen={showSetPinModal}
-    onClose={() => setShowSetPinModal(false)}
-    onSuccess={() => {
-      setPinStatus({ hasPin: true, isLocked: false });
-      setShowSetPinModal(false);
-    }}
-  />
-  </>
+      {/* PIN Modals */}
+      <SetTransactionPinModal
+        isOpen={showSetPinModal}
+        onClose={() => setShowSetPinModal(false)}
+        onSuccess={() => {
+          setPinStatus({ hasPin: true, isLocked: false });
+          setShowSetPinModal(false);
+        }}
+      />
+    </>
   );
 };
 
@@ -1051,8 +1065,20 @@ const NotificationSection = () => {
     } else {
       // Defaults
       setPrefs({
-        email: { loanUpdates: true, paymentReminders: true, profitCredits: true, securityAlerts: true, promotions: false },
-        inApp: { loanUpdates: true, paymentReminders: true, profitCredits: true, securityAlerts: true, promotions: true },
+        email: {
+          loanUpdates: true,
+          paymentReminders: true,
+          profitCredits: true,
+          securityAlerts: true,
+          promotions: false,
+        },
+        inApp: {
+          loanUpdates: true,
+          paymentReminders: true,
+          profitCredits: true,
+          securityAlerts: true,
+          promotions: true,
+        },
       });
     }
   }, [member]);
@@ -1081,17 +1107,52 @@ const NotificationSection = () => {
   };
 
   const NOTIF_EVENTS = [
-    { key: 'loanUpdates', label: 'Loan Updates', desc: 'Approvals, rejections, and status changes', icon: Mail, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-    { key: 'paymentReminders', label: 'Payment Reminders', desc: 'Upcoming EMIs and repayment due dates', icon: Bell, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
-    { key: 'profitCredits', label: 'Profit Credits', desc: 'Saving profit distributions and dividends', icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-    { key: 'securityAlerts', label: 'Security Alerts', desc: 'Login activity and 2FA notifications', icon: Shield, color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30' },
-    { key: 'promotions', label: 'Promotions', desc: 'Announcements and new feature updates', icon: Smartphone, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+    {
+      key: 'loanUpdates',
+      label: 'Loan Updates',
+      desc: 'Approvals, rejections, and status changes',
+      icon: Mail,
+      color: 'text-blue-600',
+      bg: 'bg-blue-100 dark:bg-blue-900/30',
+    },
+    {
+      key: 'paymentReminders',
+      label: 'Payment Reminders',
+      desc: 'Upcoming EMIs and repayment due dates',
+      icon: Bell,
+      color: 'text-amber-600',
+      bg: 'bg-amber-100 dark:bg-amber-900/30',
+    },
+    {
+      key: 'profitCredits',
+      label: 'Profit Credits',
+      desc: 'Saving profit distributions and dividends',
+      icon: Sparkles,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    },
+    {
+      key: 'securityAlerts',
+      label: 'Security Alerts',
+      desc: 'Login activity and 2FA notifications',
+      icon: Shield,
+      color: 'text-red-600',
+      bg: 'bg-red-100 dark:bg-red-900/30',
+    },
+    {
+      key: 'promotions',
+      label: 'Promotions',
+      desc: 'Announcements and new feature updates',
+      icon: Smartphone,
+      color: 'text-purple-600',
+      bg: 'bg-purple-100 dark:bg-purple-900/30',
+    },
   ];
 
   if (!prefs) return null;
 
   return (
-    <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-800/40 rounded-[2.5rem] p-8 shadow-2xl shadow-black/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
+    <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden group">
       <div className="absolute -right-12 -top-12 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       <div className="relative z-10">
@@ -1102,15 +1163,21 @@ const NotificationSection = () => {
               Control what notifications you receive and how.
             </p>
           </div>
-          {saving && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
+          {saving && (
+            <Loader2 size={16} className="animate-spin text-muted-foreground" />
+          )}
         </div>
       </div>
 
       <div className="space-y-4 relative z-10">
         {/* Column headers */}
         <div className="flex items-center justify-end gap-6 pr-2 mb-2">
-          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">Email</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">In-App</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">
+            Email
+          </span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 w-12 text-center">
+            In-App
+          </span>
         </div>
 
         {NOTIF_EVENTS.map((item) => (
@@ -1119,7 +1186,13 @@ const NotificationSection = () => {
             className="flex items-center justify-between p-4 rounded-2xl border border-border/50 hover:bg-muted/10 transition-colors"
           >
             <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', item.bg, item.color)}>
+              <div
+                className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center shrink-0',
+                  item.bg,
+                  item.color,
+                )}
+              >
                 <item.icon size={18} />
               </div>
               <div className="min-w-0">
@@ -1149,7 +1222,7 @@ const NotificationSection = () => {
 };
 
 const DangerZoneSection = ({ onDelete }) => (
-  <section className="bg-rose-500/5 dark:bg-rose-500/10 backdrop-blur-xl border border-rose-500/20 rounded-[2.5rem] p-8 shadow-2xl shadow-rose-500/5 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group mb-40 sm:mb-0">
+  <section className="bg-rose-500/[0.04] border border-rose-500/20 rounded-[2rem] p-6 sm:p-8 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 delay-150 overflow-hidden group mb-40 sm:mb-0">
     <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/20 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
     <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
@@ -1241,7 +1314,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -1330,7 +1403,7 @@ const EditProfileModal = ({ isOpen, onClose, member, setMember }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -1404,7 +1477,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -1497,7 +1570,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -1549,7 +1622,7 @@ const DeleteAccountModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[450px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10 text-center">
+        <div className="p-6 border-b z-10 text-center">
           <DialogHeader>
             <div className="mx-auto w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center mb-4">
               <AlertTriangle className="text-rose-500" size={24} />

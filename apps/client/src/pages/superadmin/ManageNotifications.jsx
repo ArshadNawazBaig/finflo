@@ -11,13 +11,13 @@ import {
   Send,
   Calendar,
   Trash2,
+  ArrowUpRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import Pagination from '@/components/ui/Pagination';
-import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -235,57 +235,65 @@ const ManageNotifications = () => {
 
       <div className="space-y-6 relative z-10">
         {/* Header */}
-        <PageHeader
-          title="Notification History"
-          description="View all notifications sent to business owners"
-        >
-          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-            <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-black tracking-widest border border-primary/20 backdrop-blur-sm uppercase min-w-[120px] justify-center flex w-full sm:w-auto">
-              {pagination.total} TOTAL SENT
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+          <div className="space-y-2 max-w-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Super admin
+            </p>
+            <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+              Notification <span className="text-primary">history</span>
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              View all notifications sent to business owners across the platform.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <span className="px-4 py-2 rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] border border-slate-100 dark:border-white/[0.06] tabular-nums">
+              {pagination.total} total sent
             </span>
             <Button
               onClick={handleDeleteAll}
               variant="outline"
-              className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto border-destructive/20 text-destructive hover:bg-destructive/10"
+              className="px-5 py-2.5 h-auto rounded-full flex items-center justify-center gap-2 text-[12px] font-bold border-rose-500/20 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
               disabled={notifications.length === 0}
             >
-              <Trash2 className="w-4 h-4" />
-              Delete All
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete all
             </Button>
             <Button
               onClick={() => setIsNotificationModalOpen(true)}
-              variant="gradient"
-              className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto shadow-lg shadow-primary/20"
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
-              <Send className="w-4 h-4" />
-              Send New
+              <Send size={14} strokeWidth={2.5} />
+              Send new
+              <span className="ml-0.5 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+                <ArrowUpRight size={12} strokeWidth={3} />
+              </span>
             </Button>
           </div>
-        </PageHeader>
+        </div>
 
         {/* Search & Sort */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10 group-focus-within:text-primary transition-colors duration-300" />
             <input
               type="text"
               placeholder="Search by title, message, or recipient..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 shadow-sm hover:shadow-md"
+              className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
             />
           </div>
-          <div className="space-y-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px] h-[54px] rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border/50 bg-card/95 backdrop-blur-md">
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px] h-[48px] rounded-full border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Content Area */}
@@ -327,32 +335,32 @@ const ManageNotifications = () => {
             )}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-border/40 bg-card/10 backdrop-blur-sm overflow-hidden">
+          <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-muted/30">
+                <thead className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.06]">
                   <tr>
-                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                    <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Notification
                     </th>
-                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                    <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Recipient
                     </th>
-                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                    <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Type
                     </th>
-                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
-                      Sent Date
+                    <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                      Sent date
                     </th>
-                    <th className="text-left px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                    <th className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Status
                     </th>
-                    <th className="text-right px-6 py-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                    <th className="text-right px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/40">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                   {notifications.map((notification) => (
                     <tr
                       key={notification._id}
@@ -371,38 +379,38 @@ const ManageNotifications = () => {
                         }
                       }}
                       className={cn(
-                        'hover:bg-primary/[0.04] transition-colors',
+                        'hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors',
                         notification.link && 'cursor-pointer',
                       )}
                     >
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-4">
                         <div className="space-y-0.5">
-                          <p className="font-black text-sm tracking-tight text-foreground">
+                          <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white">
                             {notification.title}
                           </p>
-                          <p className="text-xs font-medium text-muted-foreground line-clamp-1 max-w-md">
+                          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 line-clamp-1 max-w-md">
                             {notification.message}
                           </p>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black capitalize border border-primary/20">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[11px] font-extrabold capitalize">
                             {notification.recipient?.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           <div>
-                            <p className="font-bold text-sm capitalize tracking-tight text-foreground">
+                            <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
                               {notification.recipient?.name || 'Unknown User'}
                             </p>
-                            <p className="text-[10px] font-medium text-muted-foreground">
+                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
                               {notification.recipient?.email}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${getTypeStyles(
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] border ${getTypeStyles(
                             notification.type,
                           )}`}
                         >
@@ -410,39 +418,39 @@ const ManageNotifications = () => {
                           {notification.type}
                         </span>
                       </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground/70">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                           <Calendar
-                            size={14}
-                            className="text-muted-foreground/40"
+                            size={12}
+                            className="text-slate-400 dark:text-slate-500"
                           />
                           {new Date(
                             notification.createdAt,
                           ).toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-4">
                         {notification.read ? (
-                          <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
-                            <CheckCircle2 size={12} strokeWidth={3} /> Read
+                          <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-[0.12em] flex items-center gap-1">
+                            <CheckCircle2 size={11} strokeWidth={3} /> Read
                           </span>
                         ) : (
-                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                            <Info size={12} strokeWidth={3} /> Unread
+                          <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] flex items-center gap-1">
+                            <Info size={11} strokeWidth={3} /> Unread
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-5 text-right">
+                      <td className="px-6 py-4 text-right">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all active:scale-90"
+                          className="h-9 w-9 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDelete(notification._id);
                           }}
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={15} />
                         </Button>
                       </td>
                     </tr>
@@ -450,7 +458,7 @@ const ManageNotifications = () => {
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-border/40">
+            <div className="p-5 border-t border-slate-100 dark:border-white/[0.06]">
               <Pagination
                 currentPage={pagination.page}
                 totalPages={pagination.pages}

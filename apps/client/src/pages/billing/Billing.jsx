@@ -156,7 +156,7 @@ const Billing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Current Plan Section */}
             <div className="lg:col-span-2 space-y-6">
-              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm relative overflow-hidden">
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-5 sm:p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Zap size={120} />
                 </div>
@@ -194,8 +194,7 @@ const Billing = () => {
                         handleManageSubscription();
                       }
                     }}
-                    variant="gradient"
-                    className="px-6 py-2.5 rounded-full flex items-center gap-2 text-[11px] font-black uppercase tracking-widest"
+                    className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
                   >
                     {plan === 'Free' || !plan
                       ? 'Upgrade Plan'
@@ -203,7 +202,7 @@ const Billing = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-border/50">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-slate-100 dark:border-white/[0.06]">
                   <div className="space-y-1.5">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
                       Price
@@ -248,7 +247,7 @@ const Billing = () => {
               </section>
 
               {/* Payment Methods */}
-              <section className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm">
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-5 sm:p-8">
                 <div className="flex items-center justify-between mb-6 flex-col sm:flex-row gap-4">
                   <div>
                     <h3 className="text-lg font-bold">Payment Methods</h3>
@@ -300,7 +299,7 @@ const Billing = () => {
                           className={`flex items-center justify-between p-4 border rounded-xl transition-all duration-300 ${
                             pm.isDefault
                               ? 'border-primary/20 bg-primary/5'
-                              : 'border-border/50 hover:bg-muted/30'
+                              : 'border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/40 dark:hover:bg-white/[0.02]'
                           }`}
                         >
                           <div className="flex items-center gap-4">
@@ -339,8 +338,8 @@ const Billing = () => {
               </section>
 
               {/* Billing History */}
-              <section className="bg-card/10 backdrop-blur-sm border border-border/40 rounded-[2rem] overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-border/50 bg-muted/10">
+              <section className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] overflow-hidden">
+                <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-white/[0.06]">
                   <h3 className="text-lg font-bold">Billing History</h3>
                   <p className="text-muted-foreground text-sm">
                     Review and download your previous invoices.
@@ -376,7 +375,7 @@ const Billing = () => {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left border-collapse">
                         <thead>
-                          <tr className="bg-muted/30 border-b border-border/50">
+                          <tr className="border-b border-slate-100 dark:border-white/[0.06]">
                             <th className="px-4 py-4 font-medium text-sm text-muted-foreground text-nowrap">
                               Invoice
                             </th>
@@ -402,7 +401,7 @@ const Billing = () => {
                             displayInvoices.map((inv) => (
                               <tr
                                 key={inv._id}
-                                className="group hover:bg-muted/30 transition-colors border-b border-border/50 last:border-none"
+                                className="group hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-colors border-b border-slate-100 dark:border-white/[0.06] last:border-none"
                               >
                                 <td className="px-4 py-4 font-semibold text-foreground text-sm">
                                   {inv.type === 'subscription_canceled'
@@ -593,7 +592,7 @@ const Billing = () => {
                 </div>
               </div>
 
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-8 shadow-sm">
+              <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-5 sm:p-8">
                 <h3 className="font-bold mb-6 flex items-center gap-2.5 text-lg">
                   <Clock size={20} className="text-muted-foreground" />
                   Usage Limits

@@ -18,7 +18,6 @@ import {
 import api from '@/lib/axios';
 import { AdminDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import { Skeleton } from '@/components/ui/skeleton';
-import PageHeader from '@/components/PageHeader';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
 import ChartSkeleton from '@/components/skeletons/ChartSkeleton';
@@ -185,11 +184,18 @@ const SuperAdminDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <PageHeader
-          title="Platform Overview"
-          description="Welcome back, Super Admin. Here's a real-time summary of the platform."
-        />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Platform <span className="text-primary">overview</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Welcome back, Super Admin. Here&apos;s a real-time summary of the platform.
+          </p>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -197,55 +203,40 @@ const SuperAdminDashboard = () => {
         {loading ? (
           <QuickActionsSkeleton count={4} />
         ) : (
-          <div className="flex flex-wrap gap-3 sm:gap-4">
+          <div className="flex flex-wrap gap-3">
             {QUICK_ACTIONS.map((action) => (
               <button
                 key={action.label}
                 onClick={action.action || (() => navigate(action.route))}
-                className={cn(
-                  'group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-4 rounded-full border border-border/40 bg-card/40 backdrop-blur-md p-2 pr-5 transition-all duration-300 hover:border-border/80 hover:-translate-y-0.5 hover:shadow-lg',
-                  action.glow,
-                )}
+                className="group relative overflow-hidden flex-1 min-w-[240px] flex items-center gap-3.5 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-2 pr-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-12px_rgba(15,23,42,0.15)]"
               >
                 <div
                   className={cn(
-                    'absolute inset-0 opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500',
-                    action.iconBg,
-                  )}
-                />
-
-                <div
-                  className={cn(
-                    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3',
+                    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:scale-105',
                     action.iconBg,
                   )}
                 >
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
                   {action.icon}
                 </div>
 
                 <div className="flex-1 text-left min-w-0 flex flex-col justify-center">
-                  <p
-                    className={cn(
-                      'text-sm font-black tracking-tight truncate leading-tight',
-                      action.accent,
-                    )}
-                  >
+                  <p className="text-[13px] font-extrabold tracking-tight truncate leading-tight text-slate-900 dark:text-white">
                     {action.label}
                   </p>
-                  <p className="text-[10px] font-semibold text-muted-foreground/60 truncate uppercase tracking-widest mt-0.5 leading-tight">
+                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-tight">
                     {action.description}
                   </p>
                 </div>
 
                 <div
                   className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted/30 transition-all duration-300 group-hover:bg-current/10',
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] transition-all duration-300 group-hover:bg-primary/10',
                     action.accent,
                   )}
                 >
                   <ArrowUpRight
-                    size={14}
+                    size={13}
+                    strokeWidth={2.5}
                     className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                 </div>
@@ -280,19 +271,22 @@ const SuperAdminDashboard = () => {
         {loading ? (
           <ChartSkeleton />
         ) : (
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
-            <CardHeader className="pb-2 border-b border-border/40">
+          <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+            <CardHeader className="p-5 sm:p-6 pb-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-black tracking-tight">
-                    Business Growth
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                    Growth
+                  </p>
+                  <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                    Business growth
                   </CardTitle>
-                  <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
-                    New Signups (Last 30 Days)
+                  <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                    New signups (last 30 days)
                   </CardDescription>
                 </div>
-                <div className="bg-primary/5 p-2 rounded-xl">
-                  <TrendingUp className="w-4 h-4 text-primary" />
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 </div>
               </div>
             </CardHeader>
@@ -366,19 +360,22 @@ const SuperAdminDashboard = () => {
         {loading ? (
           <ChartSkeleton />
         ) : (
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem]">
-            <CardHeader className="pb-2 border-b border-border/40">
+          <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+            <CardHeader className="p-5 sm:p-6 pb-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-black tracking-tight">
-                    Premium Distribution
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                    Plans
+                  </p>
+                  <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                    Premium distribution
                   </CardTitle>
-                  <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
-                    Users by Plan
+                  <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                    Users by plan
                   </CardDescription>
                 </div>
-                <div className="bg-purple-500/5 p-2 rounded-xl">
-                  <CreditCard className="w-4 h-4 text-purple-600" />
+                <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center">
+                  <CreditCard className="w-3.5 h-3.5 text-purple-600" />
                 </div>
               </div>
             </CardHeader>
@@ -431,27 +428,31 @@ const SuperAdminDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Signups */}
-        <Card className="lg:col-span-2 border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden">
-          <CardHeader className="pb-4 border-b border-border/40">
+        <Card className="lg:col-span-2 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none overflow-hidden">
+          <CardHeader className="p-5 sm:p-6 pb-3">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black tracking-tight">
-                  Recent Platforms
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                  Platforms
+                </p>
+                <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                  Recent platforms
                 </CardTitle>
-                <CardDescription className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 mt-1">
+                <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                   Latest businesses to join the network
                 </CardDescription>
               </div>
               <Link
                 to="/super-admin/users"
-                className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity flex items-center gap-2"
+                className="text-[11px] font-bold px-3 py-1.5 h-auto rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all gap-1 inline-flex items-center"
               >
-                View All <ArrowRight className="w-4 h-4" />
+                View all
+                <ArrowUpRight size={12} strokeWidth={2.5} />
               </Link>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-border/50">
+            <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
               {loading ? (
                 [...Array(4)].map((_, i) => (
                   <div
@@ -471,40 +472,48 @@ const SuperAdminDashboard = () => {
                 stats.recentUsers.map((user) => (
                   <div
                     key={user._id}
-                    className="group flex items-center justify-between p-4 sm:p-5 hover:bg-primary/5 transition-colors duration-300"
+                    className="group flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors duration-300"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-sm group-hover:scale-105 transition-transform">
                         {user.name?.charAt(0)?.toUpperCase()}
                       </div>
-                      <div className="space-y-1">
-                        <p className="font-bold text-sm tracking-tight capitalize">
+                      <div className="space-y-0.5">
+                        <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
                           {user.name}
                         </p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-2">
-                          <Clock size={12} />
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                          <Clock size={11} />
                           {new Date(user.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${getPlanColor(user.plan)}`}
+                        className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${getPlanColor(user.plan)}`}
                       >
                         {user.plan}
                       </span>
                       {user.isActive ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-500" />
+                        <XCircle className="w-4 h-4 text-rose-500" />
                       )}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 text-muted-foreground flex flex-col items-center gap-3">
-                  <Activity className="w-8 h-8 text-muted-foreground/30" />
-                  <p className="text-sm font-medium">No new platforms yet.</p>
+                <div className="text-center py-12 px-6 flex flex-col items-center gap-3">
+                  <Activity className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                    Empty
+                  </p>
+                  <h3 className="text-base font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                    No new platforms yet
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                    New businesses will appear here as they sign up.
+                  </p>
                 </div>
               )}
             </div>
@@ -512,22 +521,27 @@ const SuperAdminDashboard = () => {
         </Card>
 
         {/* Quick Stats Panel */}
-        <div className="space-y-8">
-          <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden h-full flex flex-col">
-            <CardHeader className="pb-4 border-b border-border/40 bg-gradient-to-br from-indigo-500/5 to-primary/5">
-              <CardTitle className="text-lg font-black tracking-tight">
-                Quick Stats
+        <div className="space-y-6">
+          <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none overflow-hidden h-full flex flex-col">
+            <CardHeader className="p-5 sm:p-6 pb-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
+                Snapshot
+              </p>
+              <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
+                Quick stats
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-6 flex-1">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <span>Signups this week</span>
-                  <span className="text-emerald-500 flex items-center gap-1 font-black">
-                    <ArrowUpRight size={14} /> {stats?.recentSignups || 0}
+            <CardContent className="px-5 sm:px-6 pb-6 space-y-6 flex-1">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                    Signups this week
+                  </span>
+                  <span className="text-emerald-500 flex items-center gap-1 text-[11px] font-extrabold tabular-nums">
+                    <ArrowUpRight size={12} strokeWidth={3} /> {stats?.recentSignups || 0}
                   </span>
                 </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-1.5 bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                     style={{
@@ -537,44 +551,41 @@ const SuperAdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="p-5 rounded-2xl bg-muted/20 border border-border/50 hover:bg-muted/30 transition-colors">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
                     Members
                   </p>
-                  <p className="text-2xl font-black tabular-nums">
+                  <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
                     {stats?.totalMembers || 0}
                   </p>
                 </div>
-                <div className="p-5 rounded-2xl bg-muted/20 border border-border/50 hover:bg-muted/30 transition-colors">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
-                    Active Loans
+                <div className="p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-2">
+                    Active loans
                   </p>
-                  <p className="text-2xl font-black tabular-nums">
+                  <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
                     {stats?.activeLoans || 0}
                   </p>
                 </div>
               </div>
             </CardContent>
-
-            {/* System Health Section moved inside or kept as a separate card below? 
-                User said "exactly same", I'll keep the health element as its own premium card below. */}
           </Card>
 
           {/* System Health Card */}
-          <Card className="border border-border/50 bg-gradient-to-br from-card to-emerald-500/5 shadow-sm rounded-[2rem]">
-            <CardContent className="p-6">
+          <Card className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none">
+            <CardContent className="p-5 sm:p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 animate-pulse border border-emerald-500/20">
-                  <Activity size={24} />
+                <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <Activity size={16} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black tracking-tight uppercase">
-                    System Status
-                  </h4>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                    System status
+                  </p>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+                    <span className="text-sm font-extrabold tracking-[-0.025em] text-emerald-600">
                       Operational
                     </span>
                   </div>

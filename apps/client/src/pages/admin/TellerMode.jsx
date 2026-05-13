@@ -434,7 +434,8 @@ const TellerMode = () => {
         'Balance After',
       ];
       const tableRows = reportData.map((item) => {
-        const isWithdrawal = item.type?.toLowerCase() === 'expense' || item.type === 'debit';
+        const isWithdrawal =
+          item.type?.toLowerCase() === 'expense' || item.type === 'debit';
         return [
           format(new Date(item.date || item.createdAt), 'MMM dd, yyyy'),
           item.description || item.category?.replace(/_/g, ' ') || '—',
@@ -703,22 +704,20 @@ const TellerMode = () => {
     // received the funds.
     if (selectedCheckbookId && checkBearer === 'other') {
       if (!bearerName.trim()) return toast.error('Enter the bearer’s name');
-      if (!bearerCnic.trim())
-        return toast.error('Enter the bearer’s CNIC');
+      if (!bearerCnic.trim()) return toast.error('Enter the bearer’s CNIC');
     }
     setIsProcessing(true);
     try {
-      const bearer =
-        selectedCheckbookId
-          ? checkBearer === 'self'
-            ? { type: 'self' }
-            : {
-                type: 'other',
-                name: bearerName.trim(),
-                cnic: bearerCnic.trim(),
-                phone: bearerPhone.trim() || undefined,
-              }
-          : undefined;
+      const bearer = selectedCheckbookId
+        ? checkBearer === 'self'
+          ? { type: 'self' }
+          : {
+              type: 'other',
+              name: bearerName.trim(),
+              cnic: bearerCnic.trim(),
+              phone: bearerPhone.trim() || undefined,
+            }
+        : undefined;
       await api.post(`/members/${member._id}/withdraw`, {
         amount: parseFloat(amount),
         notes: description || undefined,
@@ -1159,7 +1158,7 @@ const TellerMode = () => {
   return (
     <div className="flex flex-col space-y-8 pb-20 animate-in fade-in duration-700 max-w-[1400px] mx-auto w-full">
       {/* ── Header ──────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-card/30 backdrop-blur-md border border-border/50 p-6 rounded-[2.5rem]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 rounded-[2rem]">
         <div className="flex items-center gap-5">
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 overflow-hidden">
@@ -1221,7 +1220,7 @@ const TellerMode = () => {
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* ── Left Column: Member Search & Info (4 cols) ── */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
-            <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] backdrop-blur-xl relative z-10 group">
+            <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] relative z-10 group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-focus-within:opacity-30 transition-opacity">
                 <Search size={40} className="text-primary" />
               </div>
@@ -1241,7 +1240,7 @@ const TellerMode = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-muted/30 border border-border/50 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium placeholder:text-muted-foreground/30"
+                  className="w-full pl-11 pr-11 py-3.5 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium placeholder:text-slate-400"
                 />
                 {query && (
                   <button
@@ -1273,7 +1272,7 @@ const TellerMode = () => {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 right-0 mt-3 p-2 bg-card/95 border border-border/50 rounded-[2rem] shadow-2xl backdrop-blur-2xl z-50 overflow-hidden"
+                    className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
                   >
                     <div className="max-h-[300px] overflow-y-auto space-y-1 custom-scrollbar">
                       {searchResults.map((result) => (
@@ -1305,7 +1304,7 @@ const TellerMode = () => {
               </AnimatePresence>
 
               {isSearching && (
-                <div className="absolute top-full left-0 right-0 mt-3 p-2 bg-card/95 border border-border/50 rounded-[2rem] shadow-2xl backdrop-blur-2xl z-50">
+                <div className="absolute top-full left-0 right-0 mt-3 p-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] z-50">
                   <TellerSearchSkeleton />
                 </div>
               )}
@@ -1329,7 +1328,7 @@ const TellerMode = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  <div className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
+                  <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                     <div className="flex items-start justify-between mb-8">
                       <div className="flex items-center gap-4">
                         <div className="relative">
@@ -1548,7 +1547,7 @@ const TellerMode = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="p-10 rounded-[2.5rem] bg-card/30 border border-dashed border-border/50 flex flex-col items-center justify-center text-center gap-4"
+                  className="p-10 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-4"
                 >
                   <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
                     <User size={24} className="text-primary/20" />
@@ -1590,7 +1589,7 @@ const TellerMode = () => {
                 ].map((stat, i) => (
                   <div
                     key={i}
-                    className="p-6 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] relative overflow-hidden"
+                    className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12">
                       <stat.icon size={80} />
@@ -1793,212 +1792,247 @@ const TellerMode = () => {
 
                             {/* Via Checkbook Toggle & Selector (withdrawal only) */}
                             {activeAction === 'withdraw' &&
-                              memberCheckbooks.filter((cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves).length > 0 && (
-                              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                                      <BookOpen size={16} />
+                              memberCheckbooks.filter(
+                                (cb) =>
+                                  cb.status === 'active' &&
+                                  (cb.usedLeaves || 0) < cb.numberOfLeaves,
+                              ).length > 0 && (
+                                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                                        <BookOpen size={16} />
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-black tracking-tight">
+                                          Via Checkbook
+                                        </p>
+                                        <p className="text-[9px] text-muted-foreground font-medium">
+                                          Withdraw against a checkbook leaf
+                                        </p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-xs font-black tracking-tight">
-                                        Via Checkbook
-                                      </p>
-                                      <p className="text-[9px] text-muted-foreground font-medium">
-                                        Withdraw against a checkbook leaf
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (selectedCheckbookId) {
-                                        setSelectedCheckbookId('');
-                                        setCheckNo('');
-                                        setCheckBearer('self');
-                                        setBearerName('');
-                                        setBearerCnic('');
-                                        setBearerPhone('');
-                                      } else {
-                                        const active = memberCheckbooks.find(
-                                          (cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves,
-                                        );
-                                        if (active) setSelectedCheckbookId(active._id);
-                                      }
-                                    }}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${selectedCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
-                                  >
-                                    <span
-                                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
-                                    />
-                                  </button>
-                                </div>
-
-                                {selectedCheckbookId && (
-                                  <div className="space-y-2 pt-1">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                      Select Checkbook
-                                    </label>
-                                    <div className="space-y-1.5 max-h-[120px] overflow-y-auto custom-scrollbar">
-                                      {memberCheckbooks
-                                        .filter((cb) => cb.status === 'active' && (cb.usedLeaves || 0) < cb.numberOfLeaves)
-                                        .map((cb) => (
-                                          <button
-                                            key={cb._id}
-                                            type="button"
-                                            onClick={() => setSelectedCheckbookId(cb._id)}
-                                            className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
-                                              selectedCheckbookId === cb._id
-                                                ? 'border-amber-500 bg-amber-500/5'
-                                                : 'border-border/30 hover:border-amber-500/30'
-                                            }`}
-                                          >
-                                            <div className="flex items-center gap-2.5">
-                                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                                                selectedCheckbookId === cb._id
-                                                  ? 'bg-amber-500 text-white'
-                                                  : 'bg-amber-500/10 text-amber-600'
-                                              }`}>
-                                                <BookOpen size={12} />
-                                              </div>
-                                              <div>
-                                                <p className="text-[11px] font-black group-hover:text-amber-600 transition-colors">
-                                                  {cb.checkbookNumber}
-                                                </p>
-                                                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
-                                                  {cb.numberOfLeaves - (cb.usedLeaves || 0)} leaves left
-                                                </p>
-                                              </div>
-                                            </div>
-                                            {selectedCheckbookId === cb._id && (
-                                              <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
-                                                <CheckCircle2 size={10} />
-                                              </div>
-                                            )}
-                                          </button>
-                                        ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {selectedCheckbookId && (
-                                  <div className="space-y-2 pt-1">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                      Check No
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={checkNo}
-                                      onChange={(e) => setCheckNo(e.target.value)}
-                                      placeholder="e.g. 001, 025"
-                                      className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                                    />
-                                  </div>
-                                )}
-
-                                {/* Check Bearer Identification */}
-                                {selectedCheckbookId && (
-                                  <div className="space-y-3 pt-1">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
-                                      Check Bearer
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (selectedCheckbookId) {
+                                          setSelectedCheckbookId('');
+                                          setCheckNo('');
                                           setCheckBearer('self');
                                           setBearerName('');
                                           setBearerCnic('');
                                           setBearerPhone('');
-                                        }}
-                                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                                          checkBearer === 'self'
-                                            ? 'border-amber-500 bg-amber-500/10 text-amber-700'
-                                            : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
-                                        }`}
-                                      >
-                                        <User size={12} />
-                                        Self
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => setCheckBearer('other')}
-                                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                                          checkBearer === 'other'
-                                            ? 'border-amber-500 bg-amber-500/10 text-amber-700'
-                                            : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
-                                        }`}
-                                      >
-                                        <UserCheck size={12} />
-                                        Someone Else
-                                      </button>
-                                    </div>
+                                        } else {
+                                          const active = memberCheckbooks.find(
+                                            (cb) =>
+                                              cb.status === 'active' &&
+                                              (cb.usedLeaves || 0) <
+                                                cb.numberOfLeaves,
+                                          );
+                                          if (active)
+                                            setSelectedCheckbookId(active._id);
+                                        }
+                                      }}
+                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${selectedCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
+                                    >
+                                      <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${selectedCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
+                                      />
+                                    </button>
+                                  </div>
 
-                                    {checkBearer === 'other' && (
-                                      <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
-                                        {/* CNIC Scanner trigger */}
+                                  {selectedCheckbookId && (
+                                    <div className="space-y-2 pt-1">
+                                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                        Select Checkbook
+                                      </label>
+                                      <div className="space-y-1.5 max-h-[120px] overflow-y-auto custom-scrollbar">
+                                        {memberCheckbooks
+                                          .filter(
+                                            (cb) =>
+                                              cb.status === 'active' &&
+                                              (cb.usedLeaves || 0) <
+                                                cb.numberOfLeaves,
+                                          )
+                                          .map((cb) => (
+                                            <button
+                                              key={cb._id}
+                                              type="button"
+                                              onClick={() =>
+                                                setSelectedCheckbookId(cb._id)
+                                              }
+                                              className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
+                                                selectedCheckbookId === cb._id
+                                                  ? 'border-amber-500 bg-amber-500/5'
+                                                  : 'border-border/30 hover:border-amber-500/30'
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-2.5">
+                                                <div
+                                                  className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                                                    selectedCheckbookId ===
+                                                    cb._id
+                                                      ? 'bg-amber-500 text-white'
+                                                      : 'bg-amber-500/10 text-amber-600'
+                                                  }`}
+                                                >
+                                                  <BookOpen size={12} />
+                                                </div>
+                                                <div>
+                                                  <p className="text-[11px] font-black group-hover:text-amber-600 transition-colors">
+                                                    {cb.checkbookNumber}
+                                                  </p>
+                                                  <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                    {cb.numberOfLeaves -
+                                                      (cb.usedLeaves || 0)}{' '}
+                                                    leaves left
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              {selectedCheckbookId ===
+                                                cb._id && (
+                                                <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                                                  <CheckCircle2 size={10} />
+                                                </div>
+                                              )}
+                                            </button>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {selectedCheckbookId && (
+                                    <div className="space-y-2 pt-1">
+                                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                        Check No
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={checkNo}
+                                        onChange={(e) =>
+                                          setCheckNo(e.target.value)
+                                        }
+                                        placeholder="e.g. 001, 025"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Check Bearer Identification */}
+                                  {selectedCheckbookId && (
+                                    <div className="space-y-3 pt-1">
+                                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                                        Check Bearer
+                                      </label>
+                                      <div className="grid grid-cols-2 gap-2">
                                         <button
                                           type="button"
-                                          onClick={() => setCnicScannerOpen(true)}
-                                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-amber-500/40 bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                                          onClick={() => {
+                                            setCheckBearer('self');
+                                            setBearerName('');
+                                            setBearerCnic('');
+                                            setBearerPhone('');
+                                          }}
+                                          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                            checkBearer === 'self'
+                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                              : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
+                                          }`}
                                         >
-                                          <ScanLine size={14} />
-                                          Scan CNIC to auto-fill
+                                          <User size={12} />
+                                          Self
                                         </button>
-
-                                        {/* Name */}
-                                        <div className="space-y-1.5">
-                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                            <User size={10} /> Bearer Name
-                                          </label>
-                                          <input
-                                            type="text"
-                                            value={bearerName}
-                                            onChange={(e) => setBearerName(e.target.value)}
-                                            placeholder="Full name as on CNIC"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                                          />
-                                        </div>
-
-                                        {/* CNIC */}
-                                        <div className="space-y-1.5">
-                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                            <IdCard size={10} /> CNIC Number
-                                          </label>
-                                          <input
-                                            type="text"
-                                            value={bearerCnic}
-                                            onChange={(e) =>
-                                              setBearerCnic(formatCNIC(e.target.value))
-                                            }
-                                            placeholder="00000-0000000-0"
-                                            inputMode="numeric"
-                                            maxLength={15}
-                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                                          />
-                                        </div>
-
-                                        {/* Phone */}
-                                        <div className="space-y-1.5">
-                                          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
-                                            <Phone size={10} /> Phone
-                                            <span className="text-muted-foreground/40 normal-case tracking-normal">(optional)</span>
-                                          </label>
-                                          <input
-                                            type="tel"
-                                            value={bearerPhone}
-                                            onChange={(e) => setBearerPhone(e.target.value)}
-                                            placeholder="03XX-XXXXXXX"
-                                            inputMode="tel"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                                          />
-                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setCheckBearer('other')
+                                          }
+                                          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                            checkBearer === 'other'
+                                              ? 'border-amber-500 bg-amber-500/10 text-amber-700'
+                                              : 'border-border/40 bg-card hover:border-amber-500/40 text-muted-foreground'
+                                          }`}
+                                        >
+                                          <UserCheck size={12} />
+                                          Someone Else
+                                        </button>
                                       </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+
+                                      {checkBearer === 'other' && (
+                                        <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
+                                          {/* CNIC Scanner trigger */}
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setCnicScannerOpen(true)
+                                            }
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-amber-500/40 bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                                          >
+                                            <ScanLine size={14} />
+                                            Scan CNIC to auto-fill
+                                          </button>
+
+                                          {/* Name */}
+                                          <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                              <User size={10} /> Bearer Name
+                                            </label>
+                                            <input
+                                              type="text"
+                                              value={bearerName}
+                                              onChange={(e) =>
+                                                setBearerName(e.target.value)
+                                              }
+                                              placeholder="Full name as on CNIC"
+                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                            />
+                                          </div>
+
+                                          {/* CNIC */}
+                                          <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                              <IdCard size={10} /> CNIC Number
+                                            </label>
+                                            <input
+                                              type="text"
+                                              value={bearerCnic}
+                                              onChange={(e) =>
+                                                setBearerCnic(
+                                                  formatCNIC(e.target.value),
+                                                )
+                                              }
+                                              placeholder="00000-0000000-0"
+                                              inputMode="numeric"
+                                              maxLength={15}
+                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                            />
+                                          </div>
+
+                                          {/* Phone */}
+                                          <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1 flex items-center gap-1">
+                                              <Phone size={10} /> Phone
+                                              <span className="text-muted-foreground/40 normal-case tracking-normal">
+                                                (optional)
+                                              </span>
+                                            </label>
+                                            <input
+                                              type="tel"
+                                              value={bearerPhone}
+                                              onChange={(e) =>
+                                                setBearerPhone(e.target.value)
+                                              }
+                                              placeholder="03XX-XXXXXXX"
+                                              inputMode="tel"
+                                              className="w-full px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
 
                             {/* Loan Selector */}
                             {activeAction === 'loan-pay' && (
@@ -2379,7 +2413,7 @@ const TellerMode = () => {
                   </AnimatePresence>
 
                   {/* Recent Activity Card */}
-                  <div className="p-4 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.01]">
+                  <div className="p-4 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground">
@@ -2423,7 +2457,7 @@ const TellerMode = () => {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.05 }}
                               key={txn._id || i}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl bg-muted/80 border border-border/10 hover:bg-muted transition-all group"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl border border-border/10 hover:bg-muted/30 transition-all group"
                             >
                               <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                                 <div
@@ -2560,7 +2594,7 @@ const TellerMode = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="h-[600px] rounded-[3rem] border-2 border-dashed border-border/50 bg-muted/5 flex flex-col items-center justify-center text-center p-12 overflow-hidden relative"
+                  className="h-[600px] rounded-[2rem] border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/40 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center p-12 overflow-hidden relative"
                 >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary-opacity)_0%,transparent_70%)] opacity-[0.03] pointer-events-none" />
                   <div className="w-32 h-32 rounded-[3.5rem] bg-gradient-to-br from-primary/10 to-indigo-500/10 flex items-center justify-center mb-8 relative">
@@ -2576,7 +2610,7 @@ const TellerMode = () => {
                   </p>
 
                   <div className="mt-12 grid grid-cols-2 gap-4 w-full max-w-md">
-                    <div className="p-4 rounded-2xl bg-card border border-border/50 text-left">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-left">
                       <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-3">
                         <Zap size={16} />
                       </div>
@@ -2587,7 +2621,7 @@ const TellerMode = () => {
                         Use keyboard shortcuts for speed
                       </p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-card border border-border/50 text-left">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-left">
                       <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-3">
                         <FileText size={16} />
                       </div>

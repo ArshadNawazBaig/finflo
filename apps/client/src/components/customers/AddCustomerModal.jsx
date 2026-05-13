@@ -21,7 +21,7 @@ import {
 import KycOcrScanner from '../kyc/KycOcrScanner';
 
 const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
-  const user = (JSON.parse(localStorage.getItem('user') || '{}') || {});
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fetchingBranches, setFetchingBranches] = useState(false);
@@ -194,7 +194,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[95vh] !p-0 !gap-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -546,7 +546,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

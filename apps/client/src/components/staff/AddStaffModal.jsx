@@ -88,7 +88,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <DialogTitle className="text-xl font-black">
               {isSuccess ? 'Staff Member Created!' : 'Add Staff Member'}
@@ -285,7 +285,7 @@ const AddStaffModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Fixed Footer — only shown when in form state */}
         {!isSuccess && (
-          <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <div className="p-6 border-t  z-10 flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"

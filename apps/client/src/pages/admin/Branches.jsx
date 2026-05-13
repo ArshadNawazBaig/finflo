@@ -268,15 +268,15 @@ const Branches = () => {
             resetForm();
             setIsDialogOpen(true);
           }}
-          className="rounded-full px-6 font-bold"
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
           data-onboarding-id="add-branch-button"
         >
-          <Plus size={18} className="mr-2" />
+          <Plus size={14} strokeWidth={2.5} />
           Add Branch
         </Button>
       </PageHeader>
 
-      <div className="flex items-center gap-4 bg-background/50 backdrop-blur-sm p-1 rounded-2xl border border-border/50 max-w-md">
+      <div className="flex items-center gap-4 bg-white dark:bg-white/[0.02] p-1 rounded-full border border-slate-100 dark:border-white/[0.06] max-w-md">
         <div className="pl-3 text-muted-foreground">
           <Search size={18} />
         </div>
@@ -305,7 +305,7 @@ const Branches = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[2.5rem] -m-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Card
                   onClick={() => handleOpenDetails(branch)}
-                  className="relative overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-primary/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] cursor-pointer"
+                  className="relative overflow-hidden border-slate-100 dark:border-white/[0.06] hover:border-primary/40 transition-all duration-300 shadow-none hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] bg-white dark:bg-white/[0.02] rounded-[2rem] cursor-pointer"
                 >
                   <CardContent className="p-0">
                     {/* Branding Preview Header */}
@@ -482,7 +482,7 @@ const Branches = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] !p-0 flex flex-col overflow-hidden">
           {/* Fixed Header */}
-          <div className="p-6 border-b bg-background z-10">
+          <div className="p-6 border-b z-10">
             <DialogHeader>
               <DialogTitle>
                 {currentBranch ? 'Edit Branch' : 'Add New Branch'}
@@ -762,7 +762,7 @@ const Branches = () => {
           </div>
 
           {/* Fixed Footer */}
-          <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+          <div className="p-6 border-t  z-10 flex justify-end gap-3">
             <Button
               variant="outline"
               onClick={() => setIsDialogOpen(false)}

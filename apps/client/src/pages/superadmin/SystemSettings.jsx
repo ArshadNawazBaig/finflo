@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import { SettingsPageSkeleton } from '@/components/ui/PageSkeletons';
-import PageHeader from '@/components/PageHeader';
+import { ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import ModernSlider from '@/components/ui/ModernSlider';
@@ -169,7 +169,10 @@ const SystemSettings = () => {
   const addPartner = () => {
     setSettings((prev) => ({
       ...prev,
-      partners: [...(prev.partners || []), { name: 'New Partner', logoUrl: '', active: true }],
+      partners: [
+        ...(prev.partners || []),
+        { name: 'New Partner', logoUrl: '', active: true },
+      ],
     }));
   };
 
@@ -198,13 +201,18 @@ const SystemSettings = () => {
 
     const formData = new FormData();
     formData.append('logo', file);
-    
+
     setUploadingLogoIndex(index);
     try {
-      const { data } = await api.post('/system-settings/upload-partner-logo', formData);
+      const { data } = await api.post(
+        '/system-settings/upload-partner-logo',
+        formData,
+      );
       if (data.success) {
         updatePartner(index, 'logoUrl', data.logoUrl);
-        toast.success('Partner logo uploaded temporarily. Save settings to persist.');
+        toast.success(
+          'Partner logo uploaded temporarily. Save settings to persist.',
+        );
       }
     } catch (error) {
       console.error(error);
@@ -246,50 +254,53 @@ const SystemSettings = () => {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-8rem)] pb-12 animate-in fade-in duration-1000">
-      {/* Dynamic Background Elements */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse delay-1000" />
-      </div>
-
+    <div className="relative min-h-[calc(100vh-8rem)] pb-12 animate-in fade-in duration-1000 space-y-10">
       {/* Header Section */}
-      <PageHeader
-        title="Engine Control"
-        description="Master configuration for the entire lending ecosystem."
-        className="mb-10"
-      >
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Engine <span className="text-primary">control</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Master configuration for the entire lending ecosystem.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
           <button
             onClick={() => setShowResetDialog(true)}
-            className="group flex items-center justify-center gap-2.5 px-6 h-12 rounded-2xl bg-muted/50 text-muted-foreground hover:bg-red-50 hover:text-red-600 border border-transparent hover:border-red-100 transition-all duration-300 font-bold text-xs uppercase tracking-widest active:scale-95"
+            className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:border-rose-500/30 transition-all duration-300 font-bold text-[12px]"
           >
             <RotateCcw
-              size={14}
+              size={13}
               className="group-hover:rotate-[-180deg] transition-transform duration-500"
             />
-            Reset Factory Defaults
+            Reset defaults
           </button>
           <Button
             onClick={handleSave}
             disabled={saving}
-            variant="gradient"
-            className="h-12 px-10 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all duration-300"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
             {saving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating Core...
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Updating core...
               </>
             ) : (
               <>
-                <Save size={14} className="mr-2" />
-                Synchronize Changes
+                <Save size={14} strokeWidth={2.5} />
+                Sync changes
+                <span className="ml-0.5 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+                  <ArrowUpRight size={12} strokeWidth={3} />
+                </span>
               </>
             )}
           </Button>
         </div>
-      </PageHeader>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         {/* Navigation Sidebar */}
@@ -320,7 +331,7 @@ const SystemSettings = () => {
                     <Icon size={18} strokeWidth={isActive ? 3 : 2} />
                   </div>
                   <div className="text-left">
-                    <p className="font-black text-xs uppercase tracking-widest leading-none mb-1">
+                    <p className="font-semibold text-[11px] uppercase tracking-widest leading-none mb-1">
                       {tab.label}
                     </p>
                     <p
@@ -899,40 +910,66 @@ const SystemSettings = () => {
                         Trusted Partners
                       </h2>
                       <p className="text-sm text-muted-foreground font-medium">
-                        Manage the partner logos displayed on the public landing page.
+                        Manage the partner logos displayed on the public landing
+                        page.
                       </p>
                     </div>
-                    <Button onClick={addPartner} variant="outline" className="rounded-xl">
+                    <Button
+                      onClick={addPartner}
+                      variant="outline"
+                      className="rounded-xl"
+                    >
                       <Plus size={16} className="mr-2" /> Add Partner
                     </Button>
                   </header>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(settings.partners || []).map((partner, index) => (
-                      <div key={index} className="bg-white/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 flex flex-col gap-6 relative group">
+                      <div
+                        key={index}
+                        className="bg-white/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-200 dark:border-white/5 p-6 flex flex-col gap-6 relative group"
+                      >
                         <button
                           onClick={() => removePartner(index)}
                           className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                         >
                           <Trash2 size={16} />
                         </button>
-                        
+
                         <div className="flex items-center gap-6">
                           <div
                             className="relative w-24 h-24 rounded-2xl bg-muted/30 border-2 border-dashed border-border/50 flex flex-col items-center justify-center overflow-hidden cursor-pointer hover:border-primary/50 transition-colors group/logo"
-                            onClick={() => document.getElementById(`partner-logo-${index}`).click()}
+                            onClick={() =>
+                              document
+                                .getElementById(`partner-logo-${index}`)
+                                .click()
+                            }
                           >
                             {uploadingLogoIndex === index ? (
                               <div className="flex flex-col items-center justify-center">
-                                <Loader2 className="animate-spin text-primary mb-1" size={24} />
-                                <span className="text-[9px] font-black uppercase text-primary">Uploading</span>
+                                <Loader2
+                                  className="animate-spin text-primary mb-1"
+                                  size={24}
+                                />
+                                <span className="text-[9px] font-black uppercase text-primary">
+                                  Uploading
+                                </span>
                               </div>
                             ) : partner.logoUrl ? (
-                              <img src={partner.logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
+                              <img
+                                src={partner.logoUrl}
+                                alt="Logo"
+                                className="w-full h-full object-contain p-2"
+                              />
                             ) : (
                               <div className="text-center">
-                                <Upload size={20} className="mx-auto text-muted-foreground opacity-50 mb-1" />
-                                <span className="text-[9px] font-black uppercase text-muted-foreground">Upload</span>
+                                <Upload
+                                  size={20}
+                                  className="mx-auto text-muted-foreground opacity-50 mb-1"
+                                />
+                                <span className="text-[9px] font-black uppercase text-muted-foreground">
+                                  Upload
+                                </span>
                               </div>
                             )}
                             {uploadingLogoIndex !== index && (
@@ -945,10 +982,12 @@ const SystemSettings = () => {
                               id={`partner-logo-${index}`}
                               className="hidden"
                               accept="image/*"
-                              onChange={(e) => handleLogoUpload(index, e.target.files[0])}
+                              onChange={(e) =>
+                                handleLogoUpload(index, e.target.files[0])
+                              }
                             />
                           </div>
-                          
+
                           <div className="flex-1 space-y-4">
                             <div className="space-y-1.5">
                               <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
@@ -957,7 +996,9 @@ const SystemSettings = () => {
                               <input
                                 type="text"
                                 value={partner.name}
-                                onChange={(e) => updatePartner(index, 'name', e.target.value)}
+                                onChange={(e) =>
+                                  updatePartner(index, 'name', e.target.value)
+                                }
                                 className="w-full bg-white dark:bg-slate-900 h-10 px-4 rounded-xl border border-border/50 font-bold text-sm focus:border-primary outline-none transition-all"
                               />
                             </div>
@@ -969,7 +1010,13 @@ const SystemSettings = () => {
                                 <input
                                   type="checkbox"
                                   checked={partner.active}
-                                  onChange={(e) => updatePartner(index, 'active', e.target.checked)}
+                                  onChange={(e) =>
+                                    updatePartner(
+                                      index,
+                                      'active',
+                                      e.target.checked,
+                                    )
+                                  }
                                   className="sr-only peer"
                                 />
                                 <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>

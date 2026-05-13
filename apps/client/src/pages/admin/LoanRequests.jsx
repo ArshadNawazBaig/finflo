@@ -290,7 +290,7 @@ const LoanRequests = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/50"
+            className="w-full pl-10 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -302,7 +302,7 @@ const LoanRequests = () => {
                 icon={FileQuestion}
                 title="No Loan Requests"
                 description="Check back later for new applications or try adjusting your search."
-                className="py-12 border-none bg-card/50"
+                className="py-12 border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
               />
             ) : (
               <div className="relative">
@@ -347,7 +347,7 @@ const LoanRequests = () => {
               icon={FileQuestion}
               title="No Loan Requests"
               description="Check back later for new applications or try adjusting your search."
-              className="py-12 border-none bg-card/50"
+              className="py-12 border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
             />
           ) : (
             <div className="space-y-3">
@@ -398,7 +398,7 @@ const LoanRequests = () => {
       {/* Floating Bulk Action Bar */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
-          <div className="bg-slate-900 border border-border/50 shadow-2xl rounded-full px-6 py-3 flex items-center gap-6">
+          <div className="bg-slate-900 border border-slate-800 shadow-[0_20px_40px_-20px_rgba(15,23,42,0.5)] rounded-full px-6 py-3 flex items-center gap-6">
             <span className="text-white font-bold text-sm tracking-tight">
               {selectedIds.length}{' '}
               <span className="text-white/60 font-medium">selected</span>

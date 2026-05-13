@@ -93,22 +93,27 @@ const PaymentSuccess = () => {
         </div>
 
         {/* Typography */}
-        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-foreground mb-4">
-          Payment <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Successful</span>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-3">
+          Confirmation
+        </p>
+        <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white mb-4">
+          Payment <span className="text-emerald-500">Successful</span>
         </h1>
-        
-        <p className="text-base text-muted-foreground max-w-sm mx-auto mb-10 font-medium leading-relaxed">
-          Thank you for your purchase. Your account is now on the <span className="text-foreground font-bold">{planName}</span> plan.
+
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-10 font-medium leading-relaxed">
+          Thank you for your purchase. Your account is now on the <span className="text-slate-900 dark:text-white font-bold">{planName}</span> plan.
         </p>
 
         {/* Action Button */}
-        <Button 
-          asChild 
-          className="h-12 px-10 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300 mb-10"
+        <Button
+          asChild
+          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-7 py-3.5 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 mb-10"
         >
           <Link to="/dashboard">
             Go to Dashboard
-            <ArrowRight className="ml-2 w-4 h-4" />
+            <span className="ml-1 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+              <ArrowRight size={12} strokeWidth={3} />
+            </span>
           </Link>
         </Button>
 

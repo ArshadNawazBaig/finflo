@@ -423,13 +423,13 @@ const LoanDetail = () => {
                       ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                       : loan.status === 'rejected'
                         ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                        : 'bg-muted/50 text-muted-foreground border border-border/50'
+                        : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border border-slate-100 dark:border-white/[0.06]'
               }`}
             >
               {loan.status}
             </span>
             {loan.status === 'pending' && (
-              <div className="pl-3 border-l border-border/50">
+              <div className="pl-3 border-l border-slate-100 dark:border-white/[0.06]">
                 <ApprovalActions loan={loan} onSuccess={fetchData} />
               </div>
             )}
@@ -468,7 +468,6 @@ const LoanDetail = () => {
 
           <Tooltip content="Download Loan Statement">
             <Button
-              variant="gradient"
               isLoading={isExportingModal}
               onClick={() => {
                 setReportDateRange({
@@ -477,9 +476,9 @@ const LoanDetail = () => {
                 });
                 setIsExportModalOpen(true);
               }}
-              className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
-              <Download size={16} />
+              <Download size={14} strokeWidth={2.5} />
               Statement
             </Button>
           </Tooltip>
@@ -534,7 +533,7 @@ const LoanDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content: Repayment History */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+          <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-10 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6 sm:space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -551,7 +550,7 @@ const LoanDetail = () => {
 
             <div className="space-y-4">
               {repayments.length === 0 ? (
-                <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
+                <div className="text-center py-20 border border-dashed border-slate-200 dark:border-white/[0.08] rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02]">
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-muted-foreground/80">
                     Zero Repayments Registered
                   </p>
@@ -664,7 +663,7 @@ const LoanDetail = () => {
 
           {/* Investment History Section (Only for Members) */}
           {member && (
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8">
+            <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-10 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6 sm:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black tracking-tighter">
@@ -681,7 +680,7 @@ const LoanDetail = () => {
 
               <div className="space-y-4">
                 {investments.length === 0 ? (
-                  <div className="text-center py-20 border-2 border-dashed border-border/50 rounded-[2rem] bg-muted/10">
+                  <div className="text-center py-20 border border-dashed border-slate-200 dark:border-white/[0.08] rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02]">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
                       Zero Investments Registered
                     </p>
@@ -774,7 +773,7 @@ const LoanDetail = () => {
           )}
 
           {/* Documents Section */}
-          <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm">
+          <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-10 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]">
             <DocumentManager
               loanId={loan._id}
               documents={loan.documents || []}
@@ -848,7 +847,7 @@ const LoanDetail = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 border border-border/50 border-dashed p-5 sm:p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center gap-4 text-center opacity-70">
+            <div className="bg-white dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] p-5 sm:p-8 rounded-[2rem] flex flex-col items-center justify-center gap-4 text-center">
               <Zap className="w-8 h-8 text-muted-foreground/30" />
               <div>
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
@@ -865,7 +864,7 @@ const LoanDetail = () => {
           )}
 
           {/* Agreement Terms */}
-          <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6">
+          <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-5 sm:p-8 rounded-[2rem] space-y-6">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
               Agreement Parameters
               <Info size={12} />
@@ -917,7 +916,7 @@ const LoanDetail = () => {
 
           {/* Member Settlement View */}
           {member && (
-            <div className="bg-white dark:bg-slate-900 border border-border/50 p-5 sm:p-8 rounded-[2.5rem] shadow-sm space-y-6 sm:space-y-8 relative overflow-hidden group">
+            <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-5 sm:p-8 rounded-[2rem] space-y-6 sm:space-y-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
                 <Wallet className="w-24 h-24 text-primary" />
               </div>
@@ -949,7 +948,7 @@ const LoanDetail = () => {
                   </span>
                 </div>
 
-                <div className="pt-6 border-t border-border/50">
+                <div className="pt-6 border-t border-slate-100 dark:border-white/[0.06]">
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -1001,7 +1000,7 @@ const LoanDetail = () => {
           )}
 
           {/* Progress Card */}
-          <div className="bg-white dark:bg-slate-900 border border-border/50 p-8 rounded-[2.5rem] shadow-sm space-y-6">
+          <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 sm:p-8 rounded-[2rem] space-y-6">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-between">
               Loan Maturity
               <Zap size={12} className="text-primary" />
@@ -1082,10 +1081,9 @@ const LoanDetail = () => {
               Cancel
             </Button>
             <Button
-              variant="gradient"
               onClick={handleDownloadStatement}
               disabled={isExportingModal}
-              className="flex-1 min-h-14 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all border border-primary/20 text-white"
+              className="flex-1 min-h-12 rounded-full text-[12px] font-bold transition-all bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]"
             >
               {isExportingModal ? (
                 <>

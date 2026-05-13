@@ -89,11 +89,10 @@ const LoanProducts = () => {
               setEditingProduct(null);
               setIsModalOpen(true);
             }}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-widest w-full sm:w-auto"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
             isLoading={loading && products.length === 0}
           >
-            <Plus size={16} />
+            <Plus size={14} strokeWidth={2.5} />
             Create Product
           </Button>
         )}
@@ -122,14 +121,17 @@ const LoanProducts = () => {
       </div>
 
       {/* Products Table */}
-      <Card className="border border-border/40 bg-card/10 backdrop-blur-sm rounded-[2rem] overflow-hidden">
-        <CardHeader className="p-8 pb-4 border-b border-border/40">
+      <Card className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none rounded-[2rem] overflow-hidden">
+        <CardHeader className="p-6 sm:p-8 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-xl font-black tracking-tight">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                Catalog
+              </p>
+              <CardTitle className="text-xl font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
                 Product Catalog
               </CardTitle>
-              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                 Standardized terms for consistent loan issuance
               </p>
             </div>
@@ -143,7 +145,7 @@ const LoanProducts = () => {
         <CardContent className="p-0">
           <div className="space-y-3">
             {/* Desktop Header */}
-            <div className="hidden lg:grid grid-cols-12 gap-4 px-8 py-4 bg-muted/30 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-6 sm:px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06]">
               <div className="col-span-3">Product Name</div>
               <div className="col-span-2">Interest Rate</div>
               <div className="col-span-2">Duration</div>
@@ -152,15 +154,15 @@ const LoanProducts = () => {
               {isAdmin && <div className="col-span-1 text-right">Actions</div>}
             </div>
 
-            <div className="space-y-3 lg:space-y-0 lg:divide-y lg:divide-border/30 px-4 pb-4 lg:px-0 lg:pb-0 pt-4 lg:pt-0">
+            <div className="space-y-3 lg:space-y-0 lg:divide-y lg:divide-slate-100 lg:dark:divide-white/[0.06] px-4 pb-4 lg:px-0 lg:pb-0 pt-4 lg:pt-0">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="group flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4 p-5 lg:px-8 lg:py-5 rounded-2xl lg:rounded-none bg-muted/5 lg:bg-transparent border border-border/30 lg:border-transparent hover:bg-muted/20 transition-all duration-300"
+                    className="group flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4 p-5 lg:px-6 lg:py-4 rounded-2xl lg:rounded-none bg-slate-50/40 dark:bg-white/[0.02] lg:bg-transparent border border-slate-100 dark:border-white/[0.06] lg:border-transparent hover:bg-slate-50/60 dark:hover:bg-white/[0.03] transition-all duration-300"
                   >
                     {/* Mobile Header: Name & Status */}
-                    <div className="flex lg:hidden items-center justify-between border-b border-border/10 pb-3 mb-2">
+                    <div className="flex lg:hidden items-center justify-between border-b border-slate-100 dark:border-white/[0.06] pb-3 mb-2">
                       <div className="text-sm font-black capitalize tracking-tight text-primary">
                         {product.name}
                       </div>
@@ -233,12 +235,12 @@ const LoanProducts = () => {
 
                     {/* Actions */}
                     {isAdmin && (
-                      <div className="flex items-center justify-end lg:justify-end col-span-1 mt-3 lg:mt-0 pt-3 lg:pt-0 border-t border-border/10 lg:border-transparent">
+                      <div className="flex items-center justify-end lg:justify-end col-span-1 mt-3 lg:mt-0 pt-3 lg:pt-0 border-t border-slate-100 dark:border-white/[0.06] lg:border-transparent">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 rounded-lg border-border/50 hover:bg-primary/5 hover:text-primary"
+                            className="h-8 w-8 rounded-full border-slate-100 dark:border-white/[0.06] hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                             onClick={() => {
                               setEditingProduct(product);
                               setIsModalOpen(true);
@@ -249,7 +251,7 @@ const LoanProducts = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 rounded-lg border-border/50 hover:bg-rose-500/5 hover:text-rose-500"
+                            className="h-8 w-8 rounded-full border-slate-100 dark:border-white/[0.06] hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30"
                             onClick={() => setDeleteProduct(product)}
                           >
                             <Trash2 size={14} />

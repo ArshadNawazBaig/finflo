@@ -1045,13 +1045,13 @@ const Chat = () => {
         />
       </div>
 
-      <div className="flex-1 bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden flex min-h-[70vh] max-h-[70vh]">
+      <div className="flex-1 bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden flex min-h-[70vh] max-h-[70vh]">
         {/* ── Sidebar ──────────────────────────────────────────────────────── */}
         {(!isMobile || !showThread) && (
-          <div className="w-full lg:w-[340px] xl:w-[380px] border-r border-border/40 flex flex-col shrink-0">
+          <div className="w-full lg:w-[340px] xl:w-[380px] border-r border-slate-100 dark:border-white/[0.06] flex flex-col shrink-0">
             {loading ? (
               <div className="flex-1 overflow-hidden">
-                <div className="p-6 border-b border-border/40 space-y-4">
+                <div className="p-6 border-b border-slate-100 dark:border-white/[0.06] space-y-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="h-6 w-24 bg-muted/40 rounded-lg animate-pulse" />
                     <div className="h-8 w-8 bg-muted/40 rounded-xl animate-pulse" />
@@ -1077,7 +1077,7 @@ const Chat = () => {
               /* ── Conversation list (inlined to prevent remount) ── */
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="p-6 border-b border-border/40">
+                <div className="p-6 border-b border-slate-100 dark:border-white/[0.06]">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-black tracking-tight">
                       Messages
@@ -1115,7 +1115,7 @@ const Chat = () => {
 
                 {/* Contact picker */}
                 {showContacts && (
-                  <div className="border-b border-border/40 bg-muted/10 max-h-[calc(100vh-20rem)] overflow-y-auto">
+                  <div className="border-b border-slate-100 dark:border-white/[0.06] bg-muted/10 max-h-[calc(100vh-20rem)] overflow-y-auto">
                     <div className="p-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-6">
                       Start a conversation
                     </div>
@@ -1231,7 +1231,7 @@ const Chat = () => {
           <div className="flex-1 flex flex-col min-w-0">
             {/* Header */}
             {activeConv ? (
-              <div className="p-4 sm:p-6 border-b border-border/40 bg-card/50 flex items-center gap-4">
+              <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-white/[0.06] bg-card/50 flex items-center gap-4">
                 {isMobile && (
                   <button
                     onClick={() => setShowThread(false)}
@@ -1273,7 +1273,7 @@ const Chat = () => {
                 </div>
               </div>
             ) : (
-              <div className="p-6 border-b border-border/40">
+              <div className="p-6 border-b border-slate-100 dark:border-white/[0.06]">
                 <p className="text-sm text-muted-foreground">
                   Select a conversation
                 </p>
@@ -1292,7 +1292,7 @@ const Chat = () => {
                 </div>
               ) : loadingMsgs ? (
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  <div className="p-5 border-b border-border/40 flex items-center gap-4 shrink-0">
+                  <div className="p-5 border-b border-slate-100 dark:border-white/[0.06] flex items-center gap-4 shrink-0">
                     <div className="w-10 h-10 rounded-full bg-muted/40 animate-pulse" />
                     <div className="space-y-2 flex-1">
                       <div className="h-4 bg-muted/40 rounded-full animate-pulse w-32" />
@@ -1396,7 +1396,7 @@ const Chat = () => {
 
             {/* Composer */}
             {activeConv && (
-              <div className="p-4 sm:p-6 border-t border-border/40 bg-card/30">
+              <div className="p-4 sm:p-6 border-t border-slate-100 dark:border-white/[0.06] bg-card/30">
                 <div className="flex items-center gap-2">
                   <input
                     ref={fileInputRef}

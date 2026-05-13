@@ -308,11 +308,10 @@ const Members = () => {
         action={
           <Button
             onClick={handleAddMember}
-            variant="gradient"
-            className="px-6 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider w-full sm:w-auto"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
             isLoading={loading && members.length === 0}
           >
-            <Plus size={16} />
+            <Plus size={14} strokeWidth={2.5} />
             Add Member
           </Button>
         }
@@ -349,28 +348,28 @@ const Members = () => {
       {/* Tabs and Search */}
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="flex items-center gap-1 bg-muted/50 p-1.5 rounded-2xl w-full sm:w-auto">
+          <div className="flex items-center gap-1 bg-slate-50 dark:bg-white/[0.04] p-1 rounded-full w-full sm:w-auto">
             <button
               onClick={() => handleTabChange('approved')}
-              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+              className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
                 activeTab === 'approved'
-                  ? 'bg-white shadow-sm text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-primary'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Active Members
             </button>
             <button
               onClick={() => handleTabChange('pending')}
-              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
                 activeTab === 'pending'
-                  ? 'bg-white shadow-sm text-amber-600'
-                  : 'text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10'
+                  ? 'bg-white dark:bg-white/[0.06] shadow-sm text-amber-600'
+                  : 'text-slate-500 hover:text-amber-600'
               }`}
             >
               Pending <span className="hidden sm:inline">Approvals</span>
               {pendingMembersCount > 0 && (
-                <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
+                <span className="flex items-center justify-center min-w-[18px] h-4.5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold">
                   {pendingMembersCount}
                 </span>
               )}
@@ -384,13 +383,13 @@ const Members = () => {
             />
             <div className="w-full sm:w-48">
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className="h-12 rounded-2xl bg-muted/50 border-none px-4 focus:ring-0">
+                <SelectTrigger className="h-11 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] px-4 focus:ring-0">
                   <div className="flex items-center gap-2">
-                    <Store size={16} className="text-muted-foreground" />
+                    <Store size={14} className="text-slate-400" />
                     <SelectValue placeholder="Filter by Branch" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border/50">
+                <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                   <SelectItem value="all" className="rounded-xl">
                     All Branches
                   </SelectItem>
@@ -440,7 +439,7 @@ const Members = () => {
                     ? "We couldn't find any members matching your search."
                     : 'No members have been added yet. Start by inviting or adding a new member.'
                 }
-                className="border-none bg-card/50"
+                className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem]"
               />
             )}
           </div>

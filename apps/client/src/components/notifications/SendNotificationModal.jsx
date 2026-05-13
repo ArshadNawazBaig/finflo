@@ -93,7 +93,7 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[95vh] !p-0 flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="p-6 border-b bg-background z-10">
+        <div className="p-6 border-b z-10">
           <DialogHeader>
             <DialogTitle className="text-xl font-black">
               Send Notification
@@ -179,7 +179,7 @@ const SendNotificationModal = ({ isOpen, onClose, userId = null }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div className="p-6 border-t bg-background z-10 flex justify-end gap-3">
+        <div className="p-6 border-t  z-10 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

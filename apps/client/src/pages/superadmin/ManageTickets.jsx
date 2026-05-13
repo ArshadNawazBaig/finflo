@@ -11,7 +11,6 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import api from '@/lib/axios';
-import PageHeader from '@/components/PageHeader';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -138,38 +137,40 @@ const ManageTickets = () => {
 
   return (
     <div className="relative space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Background Gradients */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1 relative z-10">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Manage <span className="text-primary">tickets</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            Respond to business inquiries and resolve issues.
+          </p>
+        </div>
       </div>
-
-      <PageHeader
-        title="Manage Tickets"
-        description="Respond to business inquiries and resolve issues."
-        className="relative z-10"
-      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-280px)] lg:h-[calc(100vh-280px)] min-h-[500px] relative z-10">
         {/* Ticket List */}
         <div
-          className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm p-4 h-full`}
+          className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col gap-4 overflow-hidden rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 h-full`}
         >
           <div className="flex gap-2 relative z-10">
             <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 group-focus-within:text-primary transition-colors duration-300" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10 group-focus-within:text-primary transition-colors duration-300" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full pl-11 pr-4 h-10 rounded-xl border border-border/50 bg-background/50 focus:bg-background text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
+                className="w-full pl-11 pr-4 h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white transition-all duration-300 focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <Select
               value={filters.status}
               onValueChange={(val) => setFilters({ ...filters, status: val })}
             >
-              <SelectTrigger className="w-[110px] h-10 rounded-xl border border-border/50 bg-background/50 focus:bg-background text-sm font-medium transition-all duration-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 px-3">
-                <Filter className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+              <SelectTrigger className="w-[110px] h-10 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-bold text-slate-900 dark:text-white px-3">
+                <Filter className="w-3.5 h-3.5 mr-2 text-slate-400 dark:text-slate-500" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -212,38 +213,38 @@ const ManageTickets = () => {
                 <div
                   key={ticket._id}
                   onClick={() => fetchTicketDetails(ticket._id)}
-                  className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
                     selectedTicket?._id === ticket._id
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-border/50 bg-card/50 hover:bg-muted/50 hover:border-border hover:shadow-sm'
+                      ? 'border-primary/40 bg-primary/[0.04]'
+                      : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04]'
                   }`}
                 >
                   <div
                     className={`absolute left-0 top-0 bottom-0 w-1 ${getStatusColor(ticket.status).replace('text-', 'bg-').split(' ')[0]} opacity-50`}
                   />
 
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider border ${getStatusColor(
+                      className={`text-[9px] font-extrabold px-2 py-1 rounded-full uppercase tracking-[0.12em] ${getStatusColor(
                         ticket.status,
-                      ).replace('bg-', 'bg-opacity-10 border-')}`}
+                      )}`}
                     >
                       {ticket.status}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-bold bg-muted/50 px-2 py-1 rounded-lg">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                       {new Date(ticket.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                   <h4
-                    className={`text-sm font-bold truncate mb-1 transition-colors ${
+                    className={`text-[13px] font-extrabold tracking-tight truncate mb-1 transition-colors ${
                       selectedTicket?._id === ticket._id
                         ? 'text-primary'
-                        : 'text-foreground group-hover:text-primary'
+                        : 'text-slate-900 dark:text-white group-hover:text-primary'
                     }`}
                   >
                     {ticket.subject}
                   </h4>
-                  <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground font-medium opacity-80">
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                     <Building2 className="w-3 h-3" />
                     <span className="truncate max-w-[150px]">
                       {ticket.user.businessName || ticket.user.name}
@@ -260,8 +261,8 @@ const ManageTickets = () => {
           className={`${selectedTicket ? 'flex' : 'hidden lg:flex'} lg:col-span-8 overflow-hidden flex-col h-full`}
         >
           {selectedTicket ? (
-            <Card className="flex-1 flex flex-col border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden min-h-0">
-              <CardHeader className="border-b border-border/50 shrink-0 bg-card/30 backdrop-blur-md p-4 lg:p-6">
+            <Card className="flex-1 flex flex-col rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] shadow-none overflow-hidden min-h-0">
+              <CardHeader className="border-b border-slate-100 dark:border-white/[0.06] shrink-0 p-4 lg:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start sm:gap-4 flex-1 min-w-0">
                     <Button

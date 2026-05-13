@@ -169,7 +169,7 @@ const AuditLogs = () => {
             placeholder="Trace by action, user, or details..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-12 py-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-border/50 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
+            className="w-full pl-12 pr-12 py-4 rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] text-sm font-bold focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-sm dark:shadow-none dark:text-white"
           />
           {search && (
             <button
@@ -185,10 +185,10 @@ const AuditLogs = () => {
             value={category || 'all'}
             onValueChange={(value) => setCategory(value === 'all' ? '' : value)}
           >
-            <SelectTrigger className="w-full h-[60px] rounded-[1.5rem] bg-white dark:bg-slate-900 border border-border/50 font-bold shadow-sm dark:shadow-none dark:text-white">
+            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
               <SelectValue placeholder="All Streams" />
             </SelectTrigger>
-            <SelectContent className="rounded-2xl border-border/50">
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
               <SelectItem value="all">All Streams</SelectItem>
               <SelectItem value="auth">Authentication</SelectItem>
               <SelectItem value="loan">Loan Activity</SelectItem>
@@ -199,10 +199,10 @@ const AuditLogs = () => {
         </div>
         <div className="lg:col-span-2">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full h-[60px] rounded-[1.5rem] bg-white dark:bg-slate-900 border border-border/50 font-bold shadow-sm dark:shadow-none dark:text-white">
+            <SelectTrigger className="w-full h-[60px] rounded-full bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] font-bold shadow-sm dark:shadow-none dark:text-white">
               <SelectValue placeholder="Timeline" />
             </SelectTrigger>
-            <SelectContent className="rounded-2xl border-border/50">
+            <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
               <SelectItem value="newest">Latest Traces</SelectItem>
               <SelectItem value="oldest">Historical Start</SelectItem>
             </SelectContent>
@@ -216,7 +216,7 @@ const AuditLogs = () => {
               setSortBy('newest');
             }}
             disabled={!search && category === 'all' && sortBy === 'newest'}
-            className="w-full h-[60px] rounded-[1.5rem] border border-border/50 bg-white dark:bg-slate-900 hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 shadow-sm dark:shadow-none dark:text-white"
+            className="w-full h-[60px] rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 text-[11px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-2 dark:text-white"
           >
             <X
               size={14}
@@ -238,7 +238,7 @@ const AuditLogs = () => {
                 ? `No system audits match your search for "${search}".`
                 : "The system's black box is currently clear. No audit traces recorded for this stream."
             }
-            className="border-border/50 bg-white/50 dark:bg-slate-900/50 py-20"
+            className="border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] rounded-[2rem] py-20"
           />
         ) : (
           logs.map((log, index) => (
@@ -246,7 +246,7 @@ const AuditLogs = () => {
               key={log._id}
               ref={index === logs.length - 1 ? lastLogElementRef : null}
               onClick={() => setSelectedLog(log)}
-              className="p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-border/50 shadow-lg active:scale-[0.98] transition-all relative overflow-hidden group"
+              className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] active:scale-[0.98] transition-all relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-4">
                 <span
@@ -276,7 +276,7 @@ const AuditLogs = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-muted/30 border border-border/30">
+              <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
                 <div className="p-1.5 rounded-lg bg-foreground/5 text-foreground/60 shrink-0">
                   {getActionIcon(log.action)}
                 </div>
@@ -301,30 +301,29 @@ const AuditLogs = () => {
       </div>
 
       {/* Desktop Trace Table */}
-      <div className="hidden lg:block rounded-[2rem] bg-card/10 backdrop-blur-sm border border-border/40 overflow-hidden relative group">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent pointer-events-none" />
+      <div className="hidden lg:block rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] overflow-hidden relative group">
         <div className="overflow-x-auto relative">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-border/50 bg-muted/20">
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 w-[180px]">
+              <tr className="border-b border-slate-100 dark:border-white/[0.06]">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 w-[180px]">
                   Timestamp
                 </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Agent
                 </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Execution
                 </th>
-                <th className="text-left px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Stream
                 </th>
-                <th className="text-right px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/30">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-8 py-20">
@@ -414,7 +413,7 @@ const AuditLogs = () => {
           </table>
         </div>
 
-        <div className="pt-6 border-t border-border/30 bg-muted/10">
+        <div className="pt-5 border-t border-slate-100 dark:border-white/[0.06]">
           <Pagination
             currentPage={pagination.page}
             totalPages={pagination.pages}

@@ -14,13 +14,13 @@ import {
   Users,
   Building2,
   Send,
+  ArrowUpRight,
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
 import Pagination from '@/components/ui/Pagination';
 import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import PageHeader from '@/components/PageHeader';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
@@ -198,55 +198,65 @@ const ManageUsers = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
-      <PageHeader
-        title="Manage Users"
-        description="View and manage all registered businesses"
-      >
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+            Super admin
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Manage <span className="text-primary">users</span>
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            View and manage all registered businesses across the platform.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-2 justify-end">
-          <span className="px-5 h-12 flex items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground text-xs font-black uppercase tracking-widest border border-border/50">
-            {pagination.total} Total
+          <span className="px-4 py-2 rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] border border-slate-100 dark:border-white/[0.06] tabular-nums">
+            {pagination.total} total
           </span>
           <Button
             onClick={() => setIsNotificationModalOpen(true)}
-            variant="gradient"
-            className="px-8 h-12 rounded-2xl flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
           >
-            <Send size={16} />
-            Notify All
+            <Send size={14} strokeWidth={2.5} />
+            Notify all
+            <span className="ml-0.5 w-6 h-6 rounded-full bg-white text-primary flex items-center justify-center">
+              <ArrowUpRight size={12} strokeWidth={3} />
+            </span>
           </Button>
         </div>
-      </PageHeader>
+      </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 z-10" />
           <input
             type="text"
             placeholder="Search by name, email, or business..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
           />
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center justify-center gap-2.5 px-6 py-3 rounded-full border transition-all w-full sm:w-auto text-[11px] font-black uppercase tracking-widest ${
+          className={`flex items-center justify-center gap-2 px-5 py-3 rounded-full border transition-all w-full sm:w-auto text-[11px] font-bold uppercase tracking-[0.15em] ${
             showFilters || filters.plan || filters.status
-              ? 'border-primary bg-primary/10 text-primary shadow-sm'
-              : 'border-border/50 hover:bg-muted text-muted-foreground'
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500 dark:text-slate-400'
           }`}
         >
-          <Filter size={14} />
+          <Filter size={13} />
           Filters
         </button>
       </div>
 
       {/* Filter Options */}
       {showFilters && (
-        <div className="flex flex-wrap gap-4 p-4 rounded-2xl bg-card border border-border/50">
+        <div className="flex flex-wrap gap-4 p-5 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-muted-foreground uppercase">
+            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
               Plan
             </label>
             <Select
@@ -267,7 +277,7 @@ const ManageUsers = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold text-muted-foreground uppercase">
+            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
               Status
             </label>
             <Select
@@ -288,9 +298,9 @@ const ManageUsers = () => {
           </div>
           <button
             onClick={() => setFilters({ plan: '', status: '' })}
-            className="self-end px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="self-end px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
-            Clear Filters
+            Clear filters
           </button>
         </div>
       )}
@@ -326,13 +336,13 @@ const ManageUsers = () => {
           )}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/10">
+        <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.02]">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted/50">
+              <thead className="bg-slate-50/60 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.06]">
                 <tr>
                   <th
-                    className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                    className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center">
@@ -341,7 +351,7 @@ const ManageUsers = () => {
                     </div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                    className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     onClick={() => handleSort('businessName')}
                   >
                     <div className="flex items-center">
@@ -350,7 +360,7 @@ const ManageUsers = () => {
                     </div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                    className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     onClick={() => handleSort('plan')}
                   >
                     <div className="flex items-center">
@@ -359,7 +369,7 @@ const ManageUsers = () => {
                     </div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                    className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     onClick={() => handleSort('customerCount')}
                   >
                     <div className="flex items-center">
@@ -368,7 +378,7 @@ const ManageUsers = () => {
                     </div>
                   </th>
                   <th
-                    className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                    className="text-left px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                     onClick={() => handleSort('isActive')}
                   >
                     <div className="flex items-center">
@@ -376,39 +386,39 @@ const ManageUsers = () => {
                       {renderSortIcon('isActive')}
                     </div>
                   </th>
-                  <th className="text-right px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">
+                  <th className="text-right px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/50">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                 {users.map((user) => (
                   <tr
                     key={user._id}
-                    className="hover:bg-muted/30 transition-colors"
+                    className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <Link
                           to={`/super-admin/users/${user._id}`}
-                          className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 capitalize"
+                          className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-extrabold text-sm hover:brightness-110 transition-all capitalize shrink-0"
                         >
                           {user.name?.charAt(0)?.toUpperCase()}
                         </Link>
                         <div>
                           <Link
                             to={`/super-admin/users/${user._id}`}
-                            className="font-bold text-sm hover:text-primary transition-colors cursor-pointer block capitalize"
+                            className="font-extrabold text-[13px] text-slate-900 dark:text-white hover:text-primary transition-colors cursor-pointer block capitalize tracking-tight"
                           >
                             {user.name}
                           </Link>
                           <div className="flex flex-col">
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                               {user.email}
                             </p>
                             <Link
                               to={`/super-admin/users/${user._id}`}
-                              className="text-[9px] font-black uppercase tracking-tighter text-primary/40 hover:text-primary transition-colors mt-0.5"
+                              className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-300 dark:text-slate-600 hover:text-primary transition-colors mt-0.5"
                             >
                               ID: {user._id.slice(-8).toUpperCase()}
                             </Link>
@@ -418,72 +428,72 @@ const ManageUsers = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                        <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">
                           {user.businessName || '-'}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${getPlanColor(user.plan)}`}
+                        className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-[0.12em] ${getPlanColor(user.plan)}`}
                       >
                         {user.plan}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-muted-foreground">
+                      <div className="flex items-center gap-4 text-[12px] font-medium tabular-nums">
+                        <span className="text-slate-500 dark:text-slate-400">
                           {user.customerCount} customers
                         </span>
-                        <span className="text-muted-foreground">
+                        <span className="text-slate-500 dark:text-slate-400">
                           {user.loanCount} loans
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       {user.isActive ? (
-                        <span className="flex items-center gap-1.5 text-emerald-600 text-sm font-bold">
-                          <CheckCircle2 size={14} /> Active
+                        <span className="flex items-center gap-1.5 text-emerald-600 text-[12px] font-extrabold">
+                          <CheckCircle2 size={13} /> Active
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1.5 text-red-500 text-sm font-bold">
-                          <XCircle size={14} /> Inactive
+                        <span className="flex items-center gap-1.5 text-rose-500 text-[12px] font-extrabold">
+                          <XCircle size={13} /> Inactive
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right relative">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         <Link
                           to={`/super-admin/users/${user._id}`}
-                          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 dark:text-slate-500 hover:text-primary hover:bg-primary/10 rounded-full transition-colors"
                           title="View Details"
                         >
-                          <Eye size={16} />
+                          <Eye size={15} />
                         </Link>
                         <button
                           onClick={() =>
                             handleToggleStatus(user._id, user.isActive)
                           }
-                          className={`p-2 rounded-lg transition-colors ${
+                          className={`p-2 rounded-full transition-colors ${
                             user.isActive
-                              ? 'text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10'
-                              : 'text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10'
+                              ? 'text-slate-400 dark:text-slate-500 hover:text-orange-500 hover:bg-orange-500/10'
+                              : 'text-slate-400 dark:text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10'
                           }`}
                           title={user.isActive ? 'Deactivate' : 'Activate'}
                         >
                           {user.isActive ? (
-                            <Ban size={16} />
+                            <Ban size={15} />
                           ) : (
-                            <CheckCircle2 size={16} />
+                            <CheckCircle2 size={15} />
                           )}
                         </button>
                         <button
                           onClick={() => setDeleteUser(user)}
-                          className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors"
                           title="Delete Permanently"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>

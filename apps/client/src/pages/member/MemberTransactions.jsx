@@ -408,18 +408,18 @@ const MemberTransactions = () => {
         </div>
       )}
 
-      <div className="bg-card rounded-[2.5rem] border border-border/50 shadow-sm overflow-hidden">
-        <div className="p-6 sm:p-10 border-b border-border/50 bg-muted/20">
+      <div className="bg-white dark:bg-white/[0.02] rounded-[2rem] border border-slate-100 dark:border-white/[0.06] overflow-hidden">
+        <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/[0.06]">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center gap-4 flex-1">
               <div className="relative flex-1 w-full max-w-md">
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={16}
                 />
                 <Input
                   placeholder="Search transactions..."
-                  className="pl-12 rounded-2xl h-12 bg-background border-none shadow-sm focus-visible:ring-primary/20 w-full"
+                  className="pl-11 rounded-full h-11 bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus-visible:ring-primary/20 w-full"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -431,38 +431,38 @@ const MemberTransactions = () => {
               />
             </div>
 
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide w-full sm:w-auto flex-wrap sm:flex-nowrap">
               {['ALL', 'INVESTMENT', 'PROFIT', 'REPAYMENT', 'GOAL'].map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f.toLowerCase())}
-                  className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                  className={cn(
+                    'px-4 py-2 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all whitespace-nowrap',
                     filter === f.toLowerCase()
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                  }`}
+                      ? 'bg-primary text-white shadow-[0_8px_24px_-8px_rgba(99,102,241,0.5)]'
+                      : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.04]',
+                  )}
                 >
                   {f}
                 </button>
               ))}
-              <div className="h-6 w-[1px] bg-border/50 mx-1 hidden md:block" />
+              <div className="h-6 w-[1px] bg-slate-100 dark:bg-white/[0.06] mx-1 hidden md:block" />
               <Button
                 onClick={() => {
                   setReportDateRange(dateRange);
                   setIsExportModalOpen(true);
                 }}
-                variant="outline"
                 size="sm"
-                className="rounded-full gap-2 text-[10px] font-black uppercase tracking-widest px-4 min-h-9 border-primary/20 hover:bg-primary/5 text-primary whitespace-nowrap w-full sm:w-auto"
+                className="rounded-full gap-2 text-[10px] font-extrabold uppercase tracking-[0.15em] px-4 min-h-9 bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap w-full sm:w-auto"
               >
-                <Download size={14} />
+                <Download size={12} strokeWidth={2.5} />
                 Export PDF
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="divide-y divide-border/40">
+        <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
           {loading ? (
             <MemberTransactionsSkeleton count={6} />
           ) : displayActivity.length === 0 ? (
@@ -496,46 +496,37 @@ const MemberTransactions = () => {
             displayActivity.map((item) => (
               <div
                 key={item._id}
-                className="p-6 sm:p-8 hover:bg-muted/30 transition-all flex items-center justify-between group"
+                className="p-5 sm:p-6 hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-all flex items-center justify-between group"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 min-w-0">
-                  <div className="p-4 rounded-2xl bg-background border border-border/50 shadow-sm group-hover:scale-110 transition-transform shrink-0 self-start sm:self-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] shrink-0 self-start sm:self-auto [&_svg]:w-3.5 [&_svg]:h-3.5">
                     {getItemStyle(item.category, item.type).icon}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-lg tracking-tight capitalize flex flex-wrap items-center gap-2">
+                    <h4 className="font-extrabold text-sm tracking-[-0.02em] capitalize text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
                       {item.description}
                       {item.status && (
-                        <div
+                        <span
                           className={cn(
-                            'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md flex items-center gap-1.5 border leading-none transition-all',
+                            'text-[9px] font-extrabold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full leading-none',
                             item.status === 'Completed' &&
-                              'bg-emerald-500/10 text-emerald-600 border-emerald-500/10',
+                              'bg-emerald-500/10 text-emerald-600',
                             item.status === 'Pending' &&
-                              'bg-amber-500/10 text-amber-600 border-amber-500/20',
+                              'bg-amber-500/10 text-amber-600',
                             item.status === 'Failed' &&
-                              'bg-rose-500/10 text-rose-600 border-rose-500/20',
+                              'bg-rose-500/10 text-rose-600',
                           )}
                         >
-                          <span
-                            className={cn(
-                              'w-1 h-1 rounded-full',
-                              item.status === 'Completed' && 'bg-emerald-500',
-                              item.status === 'Pending' &&
-                                'bg-amber-500 animate-pulse',
-                              item.status === 'Failed' && 'bg-rose-500',
-                            )}
-                          />
                           {item.status}
-                        </div>
+                        </span>
                       )}
                     </h4>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2 sm:mt-1">
-                      <p className="text-[10px] font-black uppercase text-primary tracking-widest">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                      <p className="text-[10px] font-extrabold uppercase text-primary tracking-[0.12em]">
                         {item.category}
                       </p>
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                      <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/[0.12]" />
+                      <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400 dark:text-slate-500">
                         <Calendar size={10} />
                         {new Date(item.date).toLocaleDateString(undefined, {
                           day: 'numeric',
@@ -548,16 +539,16 @@ const MemberTransactions = () => {
                       {(item.type === 'transfer_receive' ||
                         item.type === 'transfer_send') && (
                         <>
-                          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
+                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/[0.12]" />
+                          <div className="flex items-center gap-1 text-[10px] font-medium text-slate-400 dark:text-slate-500">
                             {item.type === 'transfer_receive' ? (
                               <>
                                 <ArrowDownLeft
                                   size={10}
                                   className="text-emerald-500"
                                 />
-                                From:{' '}
-                                <span className="text-foreground capitalize">
+                                From{' '}
+                                <span className="font-extrabold text-slate-700 dark:text-slate-300 capitalize">
                                   {item.metadata?.senderName ||
                                     item.description?.replace(
                                       /transfer from /i,
@@ -571,8 +562,8 @@ const MemberTransactions = () => {
                                   size={10}
                                   className="text-rose-500"
                                 />
-                                To:{' '}
-                                <span className="text-foreground capitalize">
+                                To{' '}
+                                <span className="font-extrabold text-slate-700 dark:text-slate-300 capitalize">
                                   {item.metadata?.recipientName ||
                                     item.description?.replace(
                                       /transfer to /i,
@@ -588,17 +579,20 @@ const MemberTransactions = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0 sm:mt-0">
+                <div className="flex items-center gap-3 shrink-0 sm:mt-0">
                   <div className="text-right">
                     <p
-                      className={`text-xl font-black tracking-tighter ${getItemStyle(item.category, item.type).color}`}
+                      className={cn(
+                        'text-base sm:text-lg font-extrabold tracking-tight tabular-nums',
+                        getItemStyle(item.category, item.type).color,
+                      )}
                     >
                       {getItemStyle(item.category, item.type).sign}
                       {formatCurrency(item.amount)}
                     </p>
                     {item.metadata?.balanceAfter && (
-                      <p className="text-[10px] font-bold text-muted-foreground/60 mt-0.5">
-                        Bal: {formatCurrency(item.metadata.balanceAfter)}
+                      <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 tabular-nums">
+                        Bal {formatCurrency(item.metadata.balanceAfter)}
                       </p>
                     )}
                   </div>
@@ -616,9 +610,9 @@ const MemberTransactions = () => {
                           accountType: 'current',
                         })
                       }
-                      className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100"
+                      className="h-8 w-8 flex items-center justify-center bg-primary/10 text-primary rounded-full hover:bg-primary hover:text-white transition-all active:scale-95 opacity-0 group-hover:opacity-100 [&_svg]:w-3.5 [&_svg]:h-3.5"
                     >
-                      <Download size={16} />
+                      <Download />
                     </button>
                   </Tooltip>
                 </div>

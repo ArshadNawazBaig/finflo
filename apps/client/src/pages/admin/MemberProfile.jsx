@@ -1135,7 +1135,7 @@ const MemberProfile = () => {
             className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
               member.status === 'active'
                 ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                : 'bg-muted/50 text-muted-foreground border border-border/50'
+                : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 border border-slate-100 dark:border-white/[0.06]'
             }`}
           >
             {member.status}
@@ -1235,7 +1235,6 @@ const MemberProfile = () => {
             </Button>
 
             <Button
-              variant="gradient"
               isLoading={isExportingModal}
               onClick={() => {
                 setReportDateRange({
@@ -1244,7 +1243,7 @@ const MemberProfile = () => {
                 });
                 setIsExportModalOpen(true);
               }}
-              className="h-12 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2"
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
             >
               <Download size={16} />
               Report
@@ -1681,7 +1680,6 @@ const MemberProfile = () => {
                     <Button
                       type="submit"
                       isLoading={isUpdatingMember}
-                      variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
                       Update Profile
@@ -1719,7 +1717,6 @@ const MemberProfile = () => {
                     <Button
                       type="submit"
                       isLoading={isSubmittingProfitRate}
-                      variant="gradient"
                       className="flex-1 rounded-2xl text-[10px] font-black uppercase tracking-widest"
                     >
                       Apply Rate
@@ -1871,7 +1868,6 @@ const MemberProfile = () => {
                     <Button
                       type="submit"
                       isLoading={isTransferring}
-                      variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
                       {!isTransferring && <Send size={16} className="mr-2" />}
@@ -1950,7 +1946,6 @@ const MemberProfile = () => {
                     <Button
                       type="submit"
                       isLoading={isIssuingCheckbook}
-                      variant="gradient"
                       className="w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
                     >
                       {!isIssuingCheckbook && (
