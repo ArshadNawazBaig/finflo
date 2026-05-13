@@ -59,20 +59,17 @@ const StatusPill = () => {
         : 'Checking status';
 
   return (
-    <a
-      href="https://status.finflo.org"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-    >
+    <div className="inline-flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
       <span className="relative flex h-1.5 w-1.5">
         {status === 'operational' && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
         )}
-        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dotClass}`} />
+        <span
+          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dotClass}`}
+        />
       </span>
       {label}
-    </a>
+    </div>
   );
 };
 
@@ -297,10 +294,25 @@ const Footer = () => {
               <StatusPill />
               <div className="flex items-center gap-5 pt-1">
                 {[
-                  { Icon: Globe, link: '#architecture', isApp: false, label: 'Architecture' },
+                  {
+                    Icon: Globe,
+                    link: '#architecture',
+                    isApp: false,
+                    label: 'Architecture',
+                  },
                   { Icon: Users, link: '/join', isApp: true, label: 'Join' },
-                  { Icon: Activity, link: '/documentation/api', isApp: false, label: 'API' },
-                  { Icon: Award, link: '/privacy', isApp: false, label: 'Privacy' },
+                  {
+                    Icon: Activity,
+                    link: '/documentation/api',
+                    isApp: false,
+                    label: 'API',
+                  },
+                  {
+                    Icon: Award,
+                    link: '/privacy',
+                    isApp: false,
+                    label: 'Privacy',
+                  },
                 ].map(({ Icon, link, isApp, label }, i) => {
                   const isAnchor = link.startsWith('#');
                   const className =
@@ -308,7 +320,12 @@ const Footer = () => {
 
                   if (isAnchor) {
                     return (
-                      <a key={i} href={link} aria-label={label} className={className}>
+                      <a
+                        key={i}
+                        href={link}
+                        aria-label={label}
+                        className={className}
+                      >
                         <Icon size={16} strokeWidth={1.75} />
                       </a>
                     );
@@ -520,14 +537,6 @@ const Footer = () => {
               >
                 Terms
               </Link>
-              <a
-                href="https://status.finflo.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-normal"
-              >
-                Status
-              </a>
             </div>
           </div>
         </div>
