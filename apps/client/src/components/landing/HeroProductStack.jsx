@@ -89,7 +89,7 @@ const HeroDashboardMock = () => {
             </div>
 
             {/* 3 stat cards */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
               {[
                 { label: 'Available', value: 'Rs 5,567', icon: Wallet, tone: 'primary' },
                 { label: 'Loans active', value: 'Rs 8,535', icon: Banknote, tone: 'emerald' },
@@ -104,23 +104,23 @@ const HeroDashboardMock = () => {
                 return (
                   <div
                     key={s.label}
-                    className="p-3 sm:p-4 rounded-2xl border border-slate-100 bg-slate-50/40"
+                    className="min-w-0 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100 bg-slate-50/40"
                   >
-                    <div className="flex items-center justify-between mb-2.5">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                    <div className="flex items-center justify-between gap-1 mb-2 sm:mb-2.5">
+                      <p className="min-w-0 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.12em] text-slate-400 truncate">
                         {s.label}
                       </p>
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${tones[s.tone]}`}>
-                        <Icon size={12} strokeWidth={2.5} />
+                      <div className={`shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg flex items-center justify-center ${tones[s.tone]}`}>
+                        <Icon size={11} strokeWidth={2.5} />
                       </div>
                     </div>
-                    <p className="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 tabular-nums">
+                    <p className="text-[12px] sm:text-lg font-extrabold tracking-tight text-slate-900 tabular-nums truncate">
                       {s.value}
                     </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <ArrowUpRight size={9} className="text-emerald-500" strokeWidth={3} />
+                    <div className="flex items-center gap-1 mt-1 min-w-0">
+                      <ArrowUpRight size={9} className="text-emerald-500 shrink-0" strokeWidth={3} />
                       <span className="text-[9px] font-bold text-emerald-600">+12%</span>
-                      <span className="text-[9px] font-medium text-slate-400">vs last week</span>
+                      <span className="hidden sm:inline text-[9px] font-medium text-slate-400 truncate">vs last week</span>
                     </div>
                   </div>
                 );

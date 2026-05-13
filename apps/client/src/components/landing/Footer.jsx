@@ -436,7 +436,7 @@ const Footer = () => {
               <div className="grid grid-cols-[auto_auto] gap-2.5 w-fit lg:ml-auto">
                 {/* Android — Member */}
                 <a
-                  href="/downloads/member-app.apk?v=20260513"
+                  href="/downloads/member-app.apk?v=20260514"
                   download="FinFlo-Member.apk"
                   className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-md shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
                 >
@@ -457,7 +457,7 @@ const Footer = () => {
 
                 {/* Android — Business */}
                 <a
-                  href="/downloads/business-app.apk?v=20260513"
+                  href="/downloads/business-app.apk?v=20260514"
                   download="FinFlo-Business.apk"
                   className="group inline-flex items-center gap-2.5 pl-3 pr-2.5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 hover:-translate-y-0.5 transition-all"
                 >

@@ -76,14 +76,20 @@ const Stats = () => {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              transition={{
+                delay: idx * 0.08,
+                duration: 0.5,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               className="group text-center space-y-4"
             >
-              <div className={`mx-auto w-11 h-11 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform duration-500`}>
+              <div
+                className={`mx-auto w-11 h-11 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] shadow-sm flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform duration-500`}
+              >
                 {stat.icon}
               </div>
               <div className="space-y-1">
-                <h4 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                <h4 className="text-xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {stat.value}
                 </h4>
                 <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">

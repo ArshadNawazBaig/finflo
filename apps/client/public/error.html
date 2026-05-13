@@ -6,200 +6,346 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <title>Connection Lost | Finflo</title>
+    <title>Connection lost · Finflo</title>
     <style>
       :root {
-        --background: #020617;
-        --foreground: #f8fafc;
-        --muted: #0f172a;
-        --muted-foreground: #94a3b8;
-        --border: #1e293b;
-        --primary: #3b82f6;
-        --primary-hover: #2563eb;
+        --bg: #ffffff;
+        --fg: #0f172a;
+        --muted: #64748b;
+        --muted-2: #94a3b8;
+        --border: rgba(15, 23, 42, 0.06);
+        --surface: rgba(15, 23, 42, 0.02);
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --rose-bg: rgba(244, 63, 94, 0.10);
+        --rose-fg: #f43f5e;
+        --dot: rgba(15, 23, 42, 0.04);
       }
-      
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #020617;
+          --fg: #ffffff;
+          --muted: #94a3b8;
+          --muted-2: #64748b;
+          --border: rgba(255, 255, 255, 0.06);
+          --surface: rgba(255, 255, 255, 0.02);
+          --rose-bg: rgba(244, 63, 94, 0.10);
+          --rose-fg: #fb7185;
+          --dot: rgba(255, 255, 255, 0.05);
+        }
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
 
+      html,
       body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: var(--background);
-        color: var(--foreground);
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        position: relative;
+        height: 100%;
       }
 
-      /* Glow Effects */
-      .glow-top {
+      body {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system,
+          BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background-color: var(--bg);
+        color: var(--fg);
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        overflow: hidden;
+        position: relative;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Subtle dot grid */
+      .dot-grid {
         position: absolute;
-        top: -15%;
-        left: -10%;
-        width: 70vw;
-        height: 70vw;
-        border-radius: 50%;
-        background-color: rgba(59, 130, 246, 0.1);
-        filter: blur(100px);
+        inset: 0;
+        background-image: radial-gradient(circle, var(--dot) 1px, transparent 1px);
+        background-size: 28px 28px;
         pointer-events: none;
       }
-      .glow-bottom {
+
+      /* Soft radial spotlight */
+      .spotlight {
         position: absolute;
-        bottom: -15%;
-        right: -10%;
-        width: 70vw;
-        height: 70vw;
+        left: 50%;
+        top: 33%;
+        width: 700px;
+        height: 700px;
+        max-width: 140vw;
+        max-height: 140vw;
+        transform: translate(-50%, -50%);
         border-radius: 50%;
-        background-color: rgba(16, 185, 129, 0.08);
-        filter: blur(100px);
+        background: radial-gradient(
+          circle at center,
+          rgba(79, 70, 229, 0.10),
+          rgba(139, 92, 246, 0.05) 45%,
+          transparent 70%
+        );
+        filter: blur(60px);
         pointer-events: none;
       }
 
       .container {
         position: relative;
         z-index: 10;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        width: 100%;
+        max-width: 640px;
         text-align: center;
-        padding: 2rem;
-        max-width: 400px;
-        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      .icon-container {
-        width: 80px;
-        height: 80px;
-        border-radius: 24px;
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
-        border: 1px solid var(--border);
-        display: flex;
+      .eyebrow {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
       }
 
-      .icon {
-        width: 32px;
-        height: 32px;
-        color: var(--primary);
+      .eyebrow-chip {
+        height: 2rem;
+        width: 2rem;
+        border-radius: 9999px;
+        background: var(--rose-bg);
+        color: var(--rose-fg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .eyebrow-chip svg {
+        width: 0.875rem;
+        height: 0.875rem;
+      }
+
+      .eyebrow-text {
+        font-size: 0.625rem;
+        font-weight: 700;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--muted-2);
       }
 
       h1 {
-        font-size: 1.5rem;
+        font-size: 2.5rem;
+        line-height: 1.05;
         font-weight: 800;
-        letter-spacing: -0.02em;
-        margin-bottom: 0.75rem;
+        letter-spacing: -0.035em;
+        margin-bottom: 1.25rem;
       }
 
-      p {
-        font-size: 0.95rem;
+      @media (min-width: 640px) {
+        h1 { font-size: 3rem; }
+      }
+
+      @media (min-width: 1024px) {
+        h1 { font-size: 3.75rem; }
+      }
+
+      p.subtext {
+        font-size: 1rem;
         line-height: 1.6;
-        color: var(--muted-foreground);
-        margin-bottom: 2.5rem;
+        color: var(--muted);
+        max-width: 32rem;
+        margin: 0 auto 2.5rem;
       }
 
-      button {
-        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-        color: white;
+      @media (min-width: 640px) {
+        p.subtext { font-size: 1.125rem; }
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+      }
+
+      button.try-again {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        background: var(--primary);
+        color: #ffffff;
         border: none;
-        padding: 1rem 2rem;
-        border-radius: 16px;
+        padding: 0.875rem 1.75rem;
+        border-radius: 9999px;
         font-family: inherit;
         font-size: 0.875rem;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
         cursor: pointer;
-        width: 100%;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.5);
+        transition:
+          transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+          background-color 0.3s,
+          opacity 0.2s;
       }
 
-      button:active {
-        transform: scale(0.96);
+      button.try-again:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
       }
 
-      button:disabled {
+      button.try-again:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      button.try-again:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-icon {
+        width: 0.875rem;
+        height: 0.875rem;
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      button.try-again:hover .btn-icon.rotate-on-hover {
+        transform: rotate(180deg);
+      }
+
+      .btn-icon.spin {
+        animation: spin 1s linear infinite;
+      }
+
+      .btn-arrow {
+        margin-left: 0.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 9999px;
+        background: #ffffff;
+        color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-arrow svg {
+        width: 0.75rem;
+        height: 0.75rem;
       }
 
       .status {
-        margin-top: 1rem;
-        font-size: 0.8rem;
-        color: var(--muted-foreground);
+        margin-top: 1.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted-2);
         min-height: 1.2em;
+        letter-spacing: 0.02em;
       }
 
       @keyframes fadeUp {
         from {
           opacity: 0;
-          transform: translateY(20px);
+          transform: translateY(24px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
-    <div class="glow-top"></div>
-    <div class="glow-bottom"></div>
+    <div class="dot-grid"></div>
+    <div class="spotlight"></div>
 
     <div class="container">
-      <div class="icon-container">
-        <!-- Wifi Off SVG -->
-        <svg
-          class="icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M2 2 22 22" />
-          <path d="M8.5 16.5a5 5 0 0 1 7 0" />
-          <path d="M2 8.82a15 15 0 0 1 4.17-2.65" />
-          <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.82" />
-          <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
-          <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
-        </svg>
+      <div class="eyebrow">
+        <span class="eyebrow-chip">
+          <!-- Wifi Off -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M2 2 22 22" />
+            <path d="M8.5 16.5a5 5 0 0 1 7 0" />
+            <path d="M2 8.82a15 15 0 0 1 4.17-2.65" />
+            <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.82" />
+            <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+            <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+          </svg>
+        </span>
+        <span class="eyebrow-text">503 · Network error</span>
       </div>
 
-      <h1>Connection Lost</h1>
-      <p>
-        Finflo requires an active network connection to securely synchronize your financial data. Please check your internet and try again.
+      <h1>Connection lost.</h1>
+      <p class="subtext">
+        Your device has lost its connection to the network. Check your internet
+        and try again — we'll reconnect you automatically when you're back online.
       </p>
 
-      <button id="retryBtn" onclick="retryConnection()">Try Again</button>
+      <div class="actions">
+        <button id="retryBtn" class="try-again" onclick="retryConnection()">
+          <!-- Refresh icon -->
+          <svg
+            id="retryIcon"
+            class="btn-icon rotate-on-hover"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M8 16H3v5" />
+          </svg>
+          <span id="retryLabel">Try again</span>
+          <span class="btn-arrow" id="retryArrow">
+            <!-- Arrow right -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
+          </span>
+        </button>
+      </div>
+
       <div class="status" id="status"></div>
     </div>
 
     <script>
-      // Get the correct server URL from the native Android bridge.
-      // The native MainActivity reads the flavor-specific capacitor.config.json
-      // and exposes it via window.NativeConfig.getServerUrl().
-      // Falls back to query param (if loaded with ?retry_url=...) or default.
+      // Resolve the correct server URL via the native bridge so the same page
+      // works for both flavors (member / business).
       var retryUrl = 'https://app.finflo.org';
       try {
         if (window.NativeConfig && window.NativeConfig.getServerUrl) {
@@ -207,15 +353,34 @@
         }
       } catch (e) { /* ignore */ }
 
-      // Also check query param as fallback
       try {
         var params = new URLSearchParams(window.location.search);
         var paramUrl = params.get('retry_url');
         if (paramUrl) retryUrl = paramUrl;
       } catch (e) { /* ignore */ }
 
-      function retryConnection() {
+      function setRetryingUI(retrying) {
         var btn = document.getElementById('retryBtn');
+        var icon = document.getElementById('retryIcon');
+        var label = document.getElementById('retryLabel');
+        var arrow = document.getElementById('retryArrow');
+
+        if (retrying) {
+          btn.disabled = true;
+          icon.classList.remove('rotate-on-hover');
+          icon.classList.add('spin');
+          label.textContent = 'Connecting...';
+          arrow.style.display = 'none';
+        } else {
+          btn.disabled = false;
+          icon.classList.remove('spin');
+          icon.classList.add('rotate-on-hover');
+          label.textContent = 'Try again';
+          arrow.style.display = '';
+        }
+      }
+
+      function retryConnection() {
         var status = document.getElementById('status');
 
         if (!navigator.onLine) {
@@ -223,25 +388,28 @@
           return;
         }
 
-        btn.disabled = true;
-        btn.textContent = 'Connecting...';
+        setRetryingUI(true);
         status.textContent = '';
 
-        // Test actual connectivity before navigating (prevents error flash)
-        fetch('https://app.finflo.org/favicon.ico?t=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
-          .then(function() {
+        // Pre-flight a real request so we don't bounce the user back to the
+        // error page if the connection is still flaky.
+        fetch('https://app.finflo.org/favicon.ico?t=' + Date.now(), {
+          mode: 'no-cors',
+          cache: 'no-store',
+        })
+          .then(function () {
             window.location.replace(retryUrl);
           })
-          .catch(function() {
-            btn.disabled = false;
-            btn.textContent = 'Try Again';
+          .catch(function () {
+            setRetryingUI(false);
             status.textContent = 'Connection failed. Please try again.';
           });
       }
 
       // Auto-retry when network comes back online
-      window.addEventListener('online', function() {
-        document.getElementById('status').textContent = 'Connection detected! Reconnecting...';
+      window.addEventListener('online', function () {
+        document.getElementById('status').textContent =
+          'Connection detected. Reconnecting...';
         setTimeout(retryConnection, 1000);
       });
     </script>
