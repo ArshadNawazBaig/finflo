@@ -144,7 +144,9 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
         <div
           className={cn(
             'w-full transition-all duration-300',
-            isMobile ? 'pt-16 pb-6 px-4' : 'border-b border-slate-100 dark:border-white/[0.06]',
+            isMobile
+              ? 'pt-16 pb-6 px-4'
+              : 'border-b border-slate-100 dark:border-white/[0.06]',
           )}
         >
           <div
@@ -349,7 +351,9 @@ const NavItem = ({
       data-onboarding-id={onboardingId}
       className={cn(
         'py-2.5 rounded-2xl transition-all duration-300 flex items-center relative group whitespace-nowrap',
-        isExpanded ? 'justify-start gap-3 px-3' : 'justify-center w-11 h-11 mx-auto',
+        isExpanded
+          ? 'justify-start gap-3 px-3'
+          : 'justify-center w-11 h-11 mx-auto',
         active
           ? 'bg-primary text-white hover:brightness-[1.05]'
           : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white',
@@ -365,7 +369,7 @@ const NavItem = ({
       </div>
       <span
         className={cn(
-          'transition-all duration-300 origin-left text-[12.5px] font-bold tracking-tight',
+          'transition-all duration-300 origin-left text-[12px] font-semibold',
           isExpanded
             ? 'opacity-100 translate-x-0'
             : 'opacity-0 -translate-x-4 w-0 hidden',
@@ -378,7 +382,9 @@ const NavItem = ({
         <div
           className={cn(
             'absolute bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center min-w-[18px] h-[18px] px-1 ring-2 ring-white dark:ring-slate-950 z-20 transition-all duration-300 tabular-nums',
-            isExpanded ? 'right-3 top-1/2 -translate-y-1/2' : 'right-0 -top-0.5',
+            isExpanded
+              ? 'right-3 top-1/2 -translate-y-1/2'
+              : 'right-0 -top-0.5',
           )}
         >
           {badge > 99 ? '99+' : badge}

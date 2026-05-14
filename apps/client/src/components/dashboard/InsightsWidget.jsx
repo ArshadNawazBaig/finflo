@@ -64,7 +64,9 @@ const InsightsWidget = ({ className }) => {
   }, []);
 
   const displayInsights = expanded ? insights : insights.slice(0, 5);
-  const criticalCount = insights.filter((i) => i.severity === 'critical').length;
+  const criticalCount = insights.filter(
+    (i) => i.severity === 'critical',
+  ).length;
   const warningCount = insights.filter((i) => i.severity === 'warning').length;
 
   return (
@@ -149,7 +151,8 @@ const InsightsWidget = ({ className }) => {
           </div>
         ) : (
           displayInsights.map((insight, idx) => {
-            const style = SEVERITY_STYLES[insight.severity] || SEVERITY_STYLES.info;
+            const style =
+              SEVERITY_STYLES[insight.severity] || SEVERITY_STYLES.info;
             const Icon = INSIGHT_ICONS[insight.type] || Activity;
 
             return (
