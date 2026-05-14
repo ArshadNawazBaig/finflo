@@ -691,7 +691,8 @@ const MemberProfile = () => {
           investmentType === 'deposit' && !isSaving ? applyDeduction : false,
         repaymentType:
           investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
-        checkbookId: isWithdrawal && investCheckbookId ? investCheckbookId : undefined,
+        checkbookId:
+          isWithdrawal && investCheckbookId ? investCheckbookId : undefined,
         checkNo: isWithdrawal && investCheckNo ? investCheckNo : undefined,
       });
       const accountLabel = isSaving ? 'Saving' : 'Current';
@@ -1253,7 +1254,7 @@ const MemberProfile = () => {
       </PageHeader>
 
       {/* Stats Row */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 lg:grid-cols-4">
         <StatsCard
           title="Current Account"
           amount={formatCurrency(member.currentBalance || 0)}
@@ -1286,14 +1287,14 @@ const MemberProfile = () => {
           sensitive
           isGlass
         />
-        <StatsCard
+        {/* <StatsCard
           title="Principal Invested"
           amount={formatCurrency(member.totalInvested || 0)}
           icon={<DollarSign size={18} />}
           color="bg-blue-500 text-blue-600 border-blue-500/20"
           sensitive
           isGlass
-        />
+        /> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-10">
@@ -2035,103 +2036,121 @@ const MemberProfile = () => {
                   </div>
 
                   {/* Via Checkbook Toggle & Selector (withdrawal only) */}
-                  {investmentType === 'withdrawal' && checkbooks.filter((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves).length > 0 && (
-                    <div className="p-4 rounded-[1.5rem] bg-amber-500/5 border border-amber-500/10 space-y-3 animate-in slide-in-from-top-4 duration-300">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                            <BookOpen size={18} />
+                  {investmentType === 'withdrawal' &&
+                    checkbooks.filter(
+                      (cb) =>
+                        cb.status === 'active' &&
+                        cb.usedLeaves < cb.numberOfLeaves,
+                    ).length > 0 && (
+                      <div className="p-4 rounded-[1.5rem] bg-amber-500/5 border border-amber-500/10 space-y-3 animate-in slide-in-from-top-4 duration-300">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                              <BookOpen size={18} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black tracking-tight">
+                                Via Checkbook
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-medium">
+                                Withdraw against a checkbook leaf
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-black tracking-tight">
-                              Via Checkbook
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-medium">
-                              Withdraw against a checkbook leaf
-                            </p>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (investCheckbookId) {
+                                setInvestCheckbookId('');
+                              } else {
+                                const active = checkbooks.find(
+                                  (cb) =>
+                                    cb.status === 'active' &&
+                                    cb.usedLeaves < cb.numberOfLeaves,
+                                );
+                                if (active) setInvestCheckbookId(active._id);
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${investCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${investCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
+                            />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (investCheckbookId) {
-                              setInvestCheckbookId('');
-                            } else {
-                              const active = checkbooks.find((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves);
-                              if (active) setInvestCheckbookId(active._id);
-                            }
-                          }}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${investCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${investCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
-                          />
-                        </button>
-                      </div>
 
-                      {investCheckbookId && (
-                        <div className="space-y-2 pt-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Select Checkbook
-                          </label>
-                          <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar">
-                            {checkbooks
-                              .filter((cb) => cb.status === 'active' && cb.usedLeaves < cb.numberOfLeaves)
-                              .map((cb) => (
-                                <button
-                                  key={cb._id}
-                                  type="button"
-                                  onClick={() => setInvestCheckbookId(cb._id)}
-                                  className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
-                                    investCheckbookId === cb._id
-                                      ? 'border-amber-500 bg-amber-500/5'
-                                      : 'border-border/30 hover:border-amber-500/30'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
+                        {investCheckbookId && (
+                          <div className="space-y-2 pt-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                              Select Checkbook
+                            </label>
+                            <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar">
+                              {checkbooks
+                                .filter(
+                                  (cb) =>
+                                    cb.status === 'active' &&
+                                    cb.usedLeaves < cb.numberOfLeaves,
+                                )
+                                .map((cb) => (
+                                  <button
+                                    key={cb._id}
+                                    type="button"
+                                    onClick={() => setInvestCheckbookId(cb._id)}
+                                    className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
                                       investCheckbookId === cb._id
-                                        ? 'bg-amber-500 text-white'
-                                        : 'bg-amber-500/10 text-amber-600'
-                                    }`}>
-                                      <BookOpen size={14} />
+                                        ? 'border-amber-500 bg-amber-500/5'
+                                        : 'border-border/30 hover:border-amber-500/30'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
+                                          investCheckbookId === cb._id
+                                            ? 'bg-amber-500 text-white'
+                                            : 'bg-amber-500/10 text-amber-600'
+                                        }`}
+                                      >
+                                        <BookOpen size={14} />
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-black group-hover:text-amber-600 transition-colors">
+                                          {cb.checkbookNumber}
+                                        </p>
+                                        <p className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
+                                          {cb.numberOfLeaves -
+                                            (cb.usedLeaves || 0)}{' '}
+                                          leaves left • {cb.numberOfLeaves}{' '}
+                                          total
+                                        </p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-xs font-black group-hover:text-amber-600 transition-colors">
-                                        {cb.checkbookNumber}
-                                      </p>
-                                      <p className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
-                                        {cb.numberOfLeaves - (cb.usedLeaves || 0)} leaves left • {cb.numberOfLeaves} total
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {investCheckbookId === cb._id && (
-                                    <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
-                                      <CheckCircle2 size={12} />
-                                    </div>
-                                  )}
-                                </button>
-                              ))}
+                                    {investCheckbookId === cb._id && (
+                                      <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                                        <CheckCircle2 size={12} />
+                                      </div>
+                                    )}
+                                  </button>
+                                ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {investCheckbookId && (
-                        <div className="space-y-2 pt-1">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                            Check No
-                          </label>
-                          <input
-                            type="text"
-                            value={investCheckNo}
-                            onChange={(e) => setInvestCheckNo(e.target.value)}
-                            placeholder="e.g. 001, 025"
-                            className="w-full px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        {investCheckbookId && (
+                          <div className="space-y-2 pt-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                              Check No
+                            </label>
+                            <input
+                              type="text"
+                              value={investCheckNo}
+                              onChange={(e) => setInvestCheckNo(e.target.value)}
+                              placeholder="e.g. 001, 025"
+                              className="w-full px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -3054,38 +3073,64 @@ const MemberProfile = () => {
       />
 
       {/* Break Term Deposit Confirmation Modal */}
-      {breakTDTarget && (() => {
-        const msElapsed = Date.now() - new Date(breakTDTarget.startDate).getTime();
-        const monthsElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24 * 30)));
-        const fullProfit = Math.round(
-          (breakTDTarget.principal * breakTDTarget.profitRate * (msElapsed / (1000 * 60 * 60 * 24 * 30))) / (12 * 100),
-        );
-        const penaltyRate = (breakTDTarget.earlyBreakPenaltyRate || 0) / 100;
-        const actualProfit = Math.max(0, Math.round(fullProfit * (1 - penaltyRate)));
-        const totalReturn = breakTDTarget.principal + actualProfit;
-        return (
-          <TransactionConfirmModal
-            isOpen={!!breakTDTarget}
-            onClose={() => setBreakTDTarget(null)}
-            onConfirm={() => handleBreakTermDeposit(breakTDTarget._id)}
-            loading={isBreakingTD === breakTDTarget._id}
-            type="custom"
-            title="Break Term Deposit Early"
-            amount={totalReturn}
-            confirmText="Break Deposit"
-            details={[
-              { label: 'Deposit', value: breakTDTarget.depositNumber || 'N/A' },
-              { label: 'Principal', value: formatCurrency(breakTDTarget.principal) },
-              { label: 'Months Elapsed', value: `${monthsElapsed} months` },
-              { label: 'Penalty Rate', value: `${breakTDTarget.earlyBreakPenaltyRate || 0}%` },
-              { label: 'Profit After Penalty', value: formatCurrency(actualProfit) },
-              { label: 'Est. Total Return', value: formatCurrency(totalReturn) },
-            ]}
-            description={`Breaking this deposit early will apply a ${breakTDTarget.earlyBreakPenaltyRate || 0}% penalty on accrued profit. The estimated return of ${formatCurrency(totalReturn)} will be credited to the member's ${breakTDTarget.sourceAccount || 'current'} account.`}
-            isAdminTransaction
-          />
-        );
-      })()}
+      {breakTDTarget &&
+        (() => {
+          const msElapsed =
+            Date.now() - new Date(breakTDTarget.startDate).getTime();
+          const monthsElapsed = Math.max(
+            0,
+            Math.floor(msElapsed / (1000 * 60 * 60 * 24 * 30)),
+          );
+          const fullProfit = Math.round(
+            (breakTDTarget.principal *
+              breakTDTarget.profitRate *
+              (msElapsed / (1000 * 60 * 60 * 24 * 30))) /
+              (12 * 100),
+          );
+          const penaltyRate = (breakTDTarget.earlyBreakPenaltyRate || 0) / 100;
+          const actualProfit = Math.max(
+            0,
+            Math.round(fullProfit * (1 - penaltyRate)),
+          );
+          const totalReturn = breakTDTarget.principal + actualProfit;
+          return (
+            <TransactionConfirmModal
+              isOpen={!!breakTDTarget}
+              onClose={() => setBreakTDTarget(null)}
+              onConfirm={() => handleBreakTermDeposit(breakTDTarget._id)}
+              loading={isBreakingTD === breakTDTarget._id}
+              type="custom"
+              title="Break Term Deposit Early"
+              amount={totalReturn}
+              confirmText="Break Deposit"
+              details={[
+                {
+                  label: 'Deposit',
+                  value: breakTDTarget.depositNumber || 'N/A',
+                },
+                {
+                  label: 'Principal',
+                  value: formatCurrency(breakTDTarget.principal),
+                },
+                { label: 'Months Elapsed', value: `${monthsElapsed} months` },
+                {
+                  label: 'Penalty Rate',
+                  value: `${breakTDTarget.earlyBreakPenaltyRate || 0}%`,
+                },
+                {
+                  label: 'Profit After Penalty',
+                  value: formatCurrency(actualProfit),
+                },
+                {
+                  label: 'Est. Total Return',
+                  value: formatCurrency(totalReturn),
+                },
+              ]}
+              description={`Breaking this deposit early will apply a ${breakTDTarget.earlyBreakPenaltyRate || 0}% penalty on accrued profit. The estimated return of ${formatCurrency(totalReturn)} will be credited to the member's ${breakTDTarget.sourceAccount || 'current'} account.`}
+              isAdminTransaction
+            />
+          );
+        })()}
     </div>
   );
 };

@@ -66,7 +66,7 @@ const StatsCard = ({
       </div>
 
       {/* Value */}
-      <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums capitalize leading-none mb-2">
+      <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums capitalize leading-none mb-2">
         {sensitive ? (
           <SensitiveBalance iconSize={14}>{amount}</SensitiveBalance>
         ) : (
