@@ -7,6 +7,7 @@ import {
   UserX,
   UserCheck,
   Mail,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
@@ -69,13 +70,24 @@ const StaffCard = ({ item, onToggleStatus, onEdit, onDelete, togglingId }) => {
         </div>
 
         {/* Info rows */}
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
-            <Mail />
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Mail />
+            </div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+              {item.email}
+            </span>
           </div>
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-            {item.email}
-          </span>
+
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+              <Building2 />
+            </div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate capitalize">
+              {item.branchId?.name || 'Global'}
+            </span>
+          </div>
         </div>
 
         {/* Action row */}
