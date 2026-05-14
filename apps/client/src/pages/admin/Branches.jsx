@@ -10,7 +10,6 @@ import {
   Store,
   Palette,
   Check,
-  MoreVertical,
   Edit,
   Power,
   PowerOff,
@@ -18,6 +17,8 @@ import {
   UserCog,
   Loader2,
 } from 'lucide-react';
+import Tooltip from '@/components/ui/Tooltip';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -35,17 +36,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
 import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
 import BranchCardSkeleton from '@/components/skeletons/BranchCardSkeleton';
@@ -302,163 +295,147 @@ const Branches = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="group relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[2.5rem] -m-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <Card
+                <div
                   onClick={() => handleOpenDetails(branch)}
-                  className="relative overflow-hidden border-slate-100 dark:border-white/[0.06] hover:border-primary/40 transition-all duration-300 shadow-none hover:shadow-[0_20px_40px_-20px_rgba(15,23,42,0.15)] bg-white dark:bg-white/[0.02] rounded-[2rem] cursor-pointer"
+                  className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden hover:shadow-[0_20px_60px_-25px_rgba(15,23,42,0.15)] transition-all duration-300 group cursor-pointer"
                 >
-                  <CardContent className="p-0">
-                    {/* Branding Preview Header */}
+                  {/* Banner header */}
+                  <div
+                    className="h-24 relative"
+                    style={{
+                      background: `linear-gradient(135deg, ${
+                        branch.branding?.primaryColor ||
+                        'hsl(var(--primary))'
+                      } 0%, ${
+                        branch.branding?.secondaryColor ||
+                        'hsl(var(--primary)/.8)'
+                      } 100%)`,
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black/5 mix-blend-overlay" />
                     <div
-                      className="h-32 relative flex items-end p-6"
-                      style={{
-                        background: `linear-gradient(135deg, ${
-                          branch.branding?.primaryColor || 'hsl(var(--primary))'
-                        } 0%, ${
-                          branch.branding?.secondaryColor ||
-                          'hsl(var(--primary)/.8)'
-                        } 100%)`,
-                      }}
+                      className="absolute bottom-0 left-6 translate-y-1/2"
+                      aria-label={`View ${branch.name}`}
                     >
-                      <div className="absolute inset-0 bg-black/10 mix-blend-overlay" />
-                      <div className="absolute top-4 right-4 z-10">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-9 w-9 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 transition-all duration-300"
-                            >
-                              <MoreVertical size={18} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-48 rounded-[1.2rem] border-border/40 p-1.5"
-                          >
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(branch);
-                              }}
-                              className="rounded-xl py-2.5 font-bold focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
-                            >
-                              <Edit size={14} className="mr-3" /> Edit Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleStatus(branch);
-                              }}
-                              disabled={togglingId === branch._id}
-                              className="rounded-xl py-2.5 font-bold focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
-                            >
-                              {togglingId === branch._id ? (
-                                <Loader2
-                                  size={14}
-                                  className="mr-3 animate-spin"
-                                />
-                              ) : branch.isActive ? (
-                                <PowerOff
-                                  size={14}
-                                  className="mr-3 text-red-500"
-                                />
-                              ) : (
-                                <Power
-                                  size={14}
-                                  className="mr-3 text-emerald-500"
-                                />
-                              )}
-                              {togglingId === branch._id
-                                ? 'Updating...'
-                                : branch.isActive
-                                  ? 'Deactivate'
-                                  : 'Activate'}
-                            </DropdownMenuItem>
-                            <div className="h-px bg-border/40 my-1 mx-2" />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteBranchId(branch._id);
-                              }}
-                              className="rounded-xl py-2.5 font-bold text-red-500 focus:bg-red-50 focus:text-red-600 transition-colors cursor-pointer"
-                            >
-                              <Trash2 size={14} className="mr-3" /> Delete
-                              Branch
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      <div className="flex items-center gap-4 translate-y-12 relative">
-                        <div className="w-20 h-20 rounded-[1.5rem] bg-white dark:bg-slate-950 border-[6px] border-white dark:border-slate-900 shadow-2xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                          {branch.branding?.logoUrl ? (
-                            <img
-                              src={branch.branding.logoUrl}
-                              alt="Logo"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Store
-                              className="text-primary opacity-20"
-                              size={36}
-                            />
-                          )}
-                        </div>
+                      <div className="h-16 w-16 rounded-full border-4 border-white dark:border-[#020617] bg-white dark:bg-[#020617] text-primary flex items-center justify-center text-lg font-extrabold tracking-tight shadow-sm overflow-hidden">
+                        {branch.branding?.logoUrl ? (
+                          <img
+                            src={branch.branding.logoUrl}
+                            alt={branch.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Store size={22} />
+                        )}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="pt-14 px-8 pb-8">
-                      <div className="flex justify-between items-start mb-5">
-                        <div className="space-y-1">
-                          <h3 className="font-black text-xl tracking-tight leading-tight group-hover:text-primary transition-colors">
-                            {branch.name}
-                          </h3>
-                          <Badge
-                            variant="subtle"
-                            className="text-[10px] font-black uppercase tracking-widest bg-muted/50 border-none px-2"
-                          >
-                            {branch.branding?.companyName || branch.name}
-                          </Badge>
+                  {/* Body */}
+                  <div className="pt-12 px-6 pb-5 space-y-4">
+                    {/* Name + label + status */}
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1 flex items-center gap-1.5">
+                          <Store size={10} className="text-primary" />
+                          {branch.branding?.companyName || 'Branch'}
+                        </p>
+                        <h3 className="text-base font-extrabold tracking-[-0.02em] text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors capitalize">
+                          {branch.name}
+                        </h3>
+                      </div>
+                      <span
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0',
+                          branch.isActive
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
+                        )}
+                      >
+                        {branch.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    {/* Info rows */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                          <MapPin />
                         </div>
-                        <span
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all duration-500 ${
-                            branch.isActive
-                              ? 'bg-emerald-500/5 text-emerald-600 border-emerald-500/20'
-                              : 'bg-red-500/5 text-red-500 border-red-500/20'
-                          }`}
-                        >
-                          <div
-                            className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                              branch.isActive ? 'bg-emerald-500' : 'bg-red-500'
-                            }`}
-                          />
-                          {branch.isActive ? 'Live' : 'Offline'}
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                          {branch.address}
                         </span>
                       </div>
 
-                      <div className="space-y-4 pt-2">
-                        <div className="flex items-start gap-4 p-3 rounded-2xl bg-muted/30 border border-transparent hover:border-border/40 hover:bg-muted/50 transition-all duration-300">
-                          <div className="bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-border/40">
-                            <MapPin size={14} className="text-primary" />
-                          </div>
-                          <span className="text-sm font-medium text-muted-foreground/80 line-clamp-2 leading-relaxed">
-                            {branch.address}
-                          </span>
+                      <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:w-3.5 [&_svg]:h-3.5">
+                          <Phone />
                         </div>
-                        <div className="flex items-center gap-4 p-3 rounded-2xl bg-muted/30 border border-transparent hover:border-border/40 hover:bg-muted/50 transition-all duration-300">
-                          <div className="bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-border/40">
-                            <Phone size={14} className="text-primary" />
-                          </div>
-                          <span className="text-sm font-bold text-foreground/80">
-                            {branch.contactNumber}
-                          </span>
-                        </div>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                          {branch.contactNumber}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Action row */}
+                    <div className="flex items-center justify-end gap-1 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      <Tooltip content="Edit Branch" position="top">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(branch);
+                          }}
+                          className="p-2 h-9 w-9 rounded-full hover:bg-primary/10 text-slate-400 hover:text-primary transition-all active:scale-90"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip
+                        content={branch.isActive ? 'Deactivate' : 'Activate'}
+                        position="top"
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStatus(branch);
+                          }}
+                          isLoading={togglingId === branch._id}
+                          className={cn(
+                            'p-2 h-9 w-9 rounded-full transition-all active:scale-90 text-slate-400',
+                            branch.isActive
+                              ? 'hover:bg-amber-500/10 hover:text-amber-600'
+                              : 'hover:bg-emerald-500/10 hover:text-emerald-600',
+                          )}
+                        >
+                          {branch.isActive ? (
+                            <PowerOff size={16} />
+                          ) : (
+                            <Power size={16} />
+                          )}
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip content="Delete" position="top">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteBranchId(branch._id);
+                          }}
+                          className="p-2 h-9 w-9 rounded-full hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all active:scale-90"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
