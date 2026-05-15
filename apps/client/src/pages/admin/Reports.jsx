@@ -27,6 +27,7 @@ import {
   getBusinessContext,
   renderPdfSignatures,
 } from '@/lib/pdfExportUtils';
+import { PDF_FONT, registerJakartaFonts } from '@/lib/pdfFonts';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -104,6 +105,7 @@ const Reports = () => {
       const pdfCharts = reportData.charts;
 
       const doc = new jsPDF();
+      await registerJakartaFonts(doc);
       const ctx = getBusinessContext();
 
       const startY = await renderPdfHeader(doc, {
@@ -123,8 +125,8 @@ const Reports = () => {
       });
 
       // Overview Stats
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setFont(PDF_FONT, 'bold');
       doc.setTextColor(64, 53, 100);
       doc.text('Performance KPI Overview', 14, startY + 12);
 
@@ -139,7 +141,7 @@ const Reports = () => {
         ],
         theme: 'grid',
         headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255] },
-        styles: { fontSize: 10, cellPadding: 5 },
+        styles: { font: PDF_FONT, fontSize: 9, cellPadding: 5 },
         columnStyles: {
           1: { fontStyle: 'bold', halign: 'right' },
           2: { fontStyle: 'bold', halign: 'center' },
@@ -148,8 +150,8 @@ const Reports = () => {
 
       // Monthly Performance Data
       const chartY = (doc.lastAutoTable?.finalY || 100) + 15;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setFont(PDF_FONT, 'bold');
       doc.setTextColor(64, 53, 100);
       doc.text('Monthly Lending Velocity', 14, chartY);
 
@@ -159,7 +161,7 @@ const Reports = () => {
         body: pdfCharts.monthlyLoans.map((d) => [d.name, formatCurrency(d.value)]),
         theme: 'striped',
         headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255] },
-        styles: { fontSize: 9 },
+        styles: { font: PDF_FONT, fontSize: 8 },
         columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
       });
 
@@ -167,8 +169,8 @@ const Reports = () => {
       const pdfPortfolio = reportData.portfolioOverview;
       if (pdfPortfolio) {
         const portfolioY = (doc.lastAutoTable?.finalY || 150) + 15;
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setFont(PDF_FONT, 'bold');
         doc.setTextColor(64, 53, 100);
         doc.text('Portfolio Overview', 14, portfolioY);
 
@@ -194,7 +196,7 @@ const Reports = () => {
           ],
           theme: 'grid',
           headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255] },
-          styles: { fontSize: 9, cellPadding: 4 },
+          styles: { font: PDF_FONT, fontSize: 8, cellPadding: 4 },
           columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
         });
       }

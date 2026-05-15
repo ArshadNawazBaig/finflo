@@ -381,6 +381,7 @@ const TellerMode = () => {
         toTitleCase,
         renderPdfSignatures,
       } = await import('@/lib/pdfExportUtils');
+      const { PDF_FONT, registerJakartaFonts } = await import('@/lib/pdfFonts');
 
       // Fetch ALL transactions for this member
       const { data } = await api.get('/ledger', {
@@ -401,6 +402,7 @@ const TellerMode = () => {
 
       const ctx = getBusinessContext();
       const doc = new jsPDF();
+      await registerJakartaFonts(doc);
 
       const startY = await renderPdfHeader(doc, {
         businessContext: ctx,
@@ -454,9 +456,9 @@ const TellerMode = () => {
           fillColor: [64, 53, 100],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: 9,
+          fontSize: 8,
         },
-        styles: { fontSize: 8, cellPadding: 3 },
+        styles: { font: PDF_FONT, fontSize: 7.5, cellPadding: 3 },
         columnStyles: {
           3: { halign: 'right' },
           4: { halign: 'right' },
@@ -495,6 +497,7 @@ const TellerMode = () => {
         toTitleCase,
         renderPdfSignatures,
       } = await import('@/lib/pdfExportUtils');
+      const { PDF_FONT, registerJakartaFonts } = await import('@/lib/pdfFonts');
 
       // Fetch ALL cash transactions for the selected date
       const { data } = await api.get('/ledger', {
@@ -513,6 +516,7 @@ const TellerMode = () => {
 
       const ctx = getBusinessContext();
       const doc = new jsPDF();
+      await registerJakartaFonts(doc);
       const dateStr = format(cashbookDate, 'MMMM dd, yyyy');
 
       const startY = await renderPdfHeader(doc, {
@@ -529,8 +533,8 @@ const TellerMode = () => {
       });
 
       // Cash Summary Table
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setFont(PDF_FONT, 'bold');
       doc.setTextColor(0);
       doc.text('Cash Position Summary', 14, startY);
 
@@ -549,9 +553,9 @@ const TellerMode = () => {
           fillColor: [64, 53, 100],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: 9,
+          fontSize: 8,
         },
-        styles: { fontSize: 9, cellPadding: 4 },
+        styles: { font: PDF_FONT, fontSize: 8, cellPadding: 4 },
         columnStyles: {
           0: { fontStyle: 'bold', textColor: [100, 100, 100] },
           1: { halign: 'right', fontStyle: 'bold' },
@@ -563,8 +567,8 @@ const TellerMode = () => {
       // Transaction Details
       if (reportData.length > 0) {
         const tableY = (doc.lastAutoTable?.finalY || 100) + 10;
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setFont(PDF_FONT, 'bold');
         doc.setTextColor(0);
         doc.text('Cash Transaction Details', 14, tableY);
 
@@ -602,9 +606,9 @@ const TellerMode = () => {
             fillColor: [64, 53, 100],
             textColor: 255,
             fontStyle: 'bold',
-            fontSize: 9,
+            fontSize: 8,
           },
-          styles: { fontSize: 8, cellPadding: 3 },
+          styles: { font: PDF_FONT, fontSize: 7.5, cellPadding: 3 },
           columnStyles: {
             4: { halign: 'right', fontStyle: 'bold' },
             5: { halign: 'right', fontStyle: 'bold' },

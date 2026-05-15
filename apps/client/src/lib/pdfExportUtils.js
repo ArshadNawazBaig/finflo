@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency } from './utils';
 import { savePdf } from './nativeDownload';
+import { PDF_FONT, registerJakartaFonts } from './pdfFonts';
 
 // ─── Title Case Helper ──────────────────────────────────────────────────────
 // Converts "john doe" or "JOHN DOE" → "John Doe"
@@ -142,15 +143,15 @@ export const renderPdfHeader = async (doc, {
       doc.addImage(logoBase64, 'PNG', 14, currentY, renderW, renderH);
       currentY += renderH + 2;
       // Business Name below logo
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setFont(PDF_FONT, 'bold');
       doc.setTextColor(40, 40, 40);
       doc.text(businessName, 14, currentY);
       currentY += 5;
       // Tagline / Address below name (like "The Premier Islamic Bank")
       if (businessAddress) {
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(6.5);
+        doc.setFont(PDF_FONT, 'italic');
         doc.setTextColor(100, 100, 100);
         const addressLines = doc.splitTextToSize(businessAddress, 80);
         doc.text(addressLines, 14, currentY);
@@ -158,14 +159,14 @@ export const renderPdfHeader = async (doc, {
       }
     } catch {
       // Fallback to text-only
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setFont(PDF_FONT, 'bold');
       doc.setTextColor(40, 40, 40);
       doc.text(businessName, 14, currentY + 6);
       currentY += 12;
       if (businessAddress) {
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(6.5);
+        doc.setFont(PDF_FONT, 'italic');
         doc.setTextColor(100, 100, 100);
         doc.text(businessAddress, 14, currentY);
         currentY += 5;
@@ -173,14 +174,14 @@ export const renderPdfHeader = async (doc, {
     }
   } else {
     // No logo — render business name as large text header
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setFont(PDF_FONT, 'bold');
     doc.setTextColor(40, 40, 40);
     doc.text(businessName, 14, currentY + 6);
     currentY += 12;
     if (businessAddress) {
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(6.5);
+      doc.setFont(PDF_FONT, 'italic');
       doc.setTextColor(100, 100, 100);
       doc.text(businessAddress, 14, currentY);
       currentY += 5;
@@ -206,15 +207,15 @@ export const renderPdfHeader = async (doc, {
       leftDetails.forEach(({ label, value }, idx) => {
         if (idx === 0) {
           // First item is the name — render bold and larger
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setFont(PDF_FONT, 'bold');
           doc.setTextColor(30, 30, 30);
           doc.text(String(value || '—'), 14, lY);
           lY += 5;
         } else {
           // Subsequent items — normal text like address lines
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setFont(PDF_FONT, 'normal');
           doc.setTextColor(60, 60, 60);
           doc.text(String(value || '—'), 14, lY);
           lY += 4.5;
@@ -227,14 +228,14 @@ export const renderPdfHeader = async (doc, {
       let rY = detailStartY;
       rightDetails.forEach(({ label, value }) => {
         // Label (bold)
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setFont(PDF_FONT, 'bold');
         doc.setTextColor(30, 30, 30);
         doc.text(label.toUpperCase() + ':', rightLabelX, rY);
 
         // Value (right-aligned)
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setFont(PDF_FONT, 'normal');
         doc.setTextColor(30, 30, 30);
         doc.text(String(value || '—'), rightValueX, rY, { align: 'right' });
         rY += 5;
@@ -249,8 +250,8 @@ export const renderPdfHeader = async (doc, {
   // ── Section Title (e.g. "ACCOUNT SUMMARY") ──
   if (title) {
     currentY += 2;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setFont(PDF_FONT, 'bold');
     doc.setTextColor(30, 30, 30);
     doc.text(title.toUpperCase(), 14, currentY);
 
@@ -286,22 +287,22 @@ export const renderPdfFooter = (doc, { businessContext = {} } = {}) => {
     doc.rect(0, pageHeight - footerHeight, pageWidth, footerHeight, 'F');
 
     // Business Name (centered, bold, white)
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'bold');
     doc.setTextColor(255, 255, 255);
     doc.text(businessName, pageWidth / 2, pageHeight - 15, { align: 'center' });
 
     // Business Address (centered, normal, light)
     if (businessAddress) {
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(6.5);
+      doc.setFont(PDF_FONT, 'italic');
       doc.setTextColor(220, 220, 230);
       doc.text(businessAddress, pageWidth / 2, pageHeight - 10, { align: 'center' });
     }
 
     // Page number + disclaimer (very small, light)
     doc.setFontSize(5.5);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(PDF_FONT, 'normal');
     doc.setTextColor(180, 180, 200);
 
     const hasSignature = businessContext.ceoSignature;
@@ -365,8 +366,8 @@ export const renderPdfSignatures = async (doc, { startY, businessContext = {} } 
       doc.addImage(sigBase64, 'PNG', pageWidth - margin - renderW, currentY - renderH, renderW, renderH);
     }
     doc.line(pageWidth - 64, currentY, pageWidth - margin, currentY);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setFont(PDF_FONT, 'bold');
     doc.setTextColor(50, 50, 50);
     doc.text('Authorized Signature (CEO)', pageWidth - 14, currentY + 5, {
       align: 'right',
@@ -388,8 +389,8 @@ export const renderPdfSignatures = async (doc, { startY, businessContext = {} } 
       // Draw stamp resting on the baseline
       doc.addImage(stampBase64, 'PNG', margin, currentY - renderH, renderW, renderH);
     }
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setFont(PDF_FONT, 'bold');
     doc.setTextColor(50, 50, 50);
     doc.text('Official Business Stamp', margin, currentY + 5, {
       align: 'left',
@@ -413,6 +414,7 @@ export const exportLoanStatement = async (
   const ctx = businessContext || getBusinessContext();
   const mCtx = getMemberContext(member);
   const doc = new jsPDF();
+  await registerJakartaFonts(doc);
 
   const customerName = toTitleCase(loan.customer?.name || mCtx.name || 'Valued Customer');
   const customerContact = loan.customer?.phone || loan.customer?.email || mCtx.phone || mCtx.email || '—';
@@ -435,8 +437,8 @@ export const exportLoanStatement = async (
   });
 
   // ── Financial Summary Table ──
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Loan Financial Summary', 14, startY);
 
@@ -457,8 +459,8 @@ export const exportLoanStatement = async (
       ],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },
     margin: { left: 14, right: 14 },
@@ -466,8 +468,8 @@ export const exportLoanStatement = async (
 
   // ── Transaction History ──
   const repaymentY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Transaction History', 14, repaymentY);
 
@@ -482,15 +484,15 @@ export const exportLoanStatement = async (
         'Confirmed',
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+      styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
       columnStyles: { 2: { halign: 'right' } },
       alternateRowStyles: { fillColor: [250, 250, 255] },
       margin: { left: 14, right: 14 },
     });
   } else {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'normal');
     doc.setTextColor(150);
     doc.text('No transaction records found.', 14, repaymentY + 10);
   }
@@ -518,6 +520,7 @@ export const exportMemberStatement = async (
   const ctx = businessContext || getBusinessContext();
   const mCtx = getMemberContext(member);
   const doc = new jsPDF();
+  await registerJakartaFonts(doc);
 
   const totalDeposits = investments
     .filter((inv) => inv.type === 'deposit')
@@ -550,8 +553,8 @@ export const exportMemberStatement = async (
   });
 
   // ── Financial Summary ──
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Financial Summary', 14, startY);
 
@@ -565,8 +568,8 @@ export const exportMemberStatement = async (
       ['Net Current Balance', formatCurrency(member.currentBalance || 0)],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     alternateRowStyles: { fillColor: [250, 250, 255] },
     margin: { left: 14, right: 14 },
@@ -591,8 +594,8 @@ export const exportMemberStatement = async (
   ].sort((a, b) => b.date - a.date);
 
   const ledgerY = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Transaction Ledger', 14, ledgerY);
 
@@ -607,8 +610,8 @@ export const exportMemberStatement = async (
         formatCurrency(Math.abs(t.amount)),
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+      styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
       columnStyles: { 3: { halign: 'right' } },
       alternateRowStyles: { fillColor: [250, 250, 255] },
       margin: { left: 14, right: 14 },
@@ -620,8 +623,8 @@ export const exportMemberStatement = async (
       },
     });
   } else {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'normal');
     doc.setTextColor(150);
     doc.text('No transaction records found.', 14, ledgerY + 10);
   }
@@ -654,6 +657,7 @@ export const generateTransactionReceipt = async ({
   const ctx = _bc || getBusinessContext();
   const mCtx = getMemberContext(member);
   const doc = new jsPDF({ format: 'a5' });
+  await registerJakartaFonts(doc);
   const txDate = new Date(date);
   const refCode = referenceId
     ? referenceId.toString().slice(-8).toUpperCase()
@@ -688,8 +692,8 @@ export const generateTransactionReceipt = async ({
   });
 
   // ── Transaction Details ──
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Transaction Details', 14, startY);
 
@@ -716,7 +720,7 @@ export const generateTransactionReceipt = async ({
     startY: startY + 4,
     body: txDetails,
     theme: 'grid',
-    styles: { fontSize: 9, cellPadding: 3 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: {
       0: { fontStyle: 'bold', cellWidth: 40, textColor: [100, 100, 100] },
       1: { fontStyle: 'bold', halign: 'right' },
@@ -739,6 +743,7 @@ export const generateTransactionReceipt = async ({
 export const exportJournalPDF = async (data, selectedDate, user) => {
   const ctx = getBusinessContext();
   const doc = new jsPDF();
+  await registerJakartaFonts(doc);
   const { format } = await import('date-fns');
 
   const reportData = data?.data || [];
@@ -758,8 +763,8 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
   });
 
   // ── Performance Summary ──
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Financial Performance Summary', 14, startY);
 
@@ -777,8 +782,8 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
       ['Total Transactions', reportData.length.toString()],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: {
       0: { fontStyle: 'bold', textColor: [100, 100, 100] },
       1: { fontStyle: 'bold', textColor: [0, 0, 0], halign: 'right' },
@@ -789,8 +794,8 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
 
   // ── Transaction Details ──
   const tableY = (doc.lastAutoTable?.finalY || 80) + 10;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Detailed Transaction Statement', 14, tableY);
 
@@ -844,8 +849,8 @@ export const exportJournalPDF = async (data, selectedDate, user) => {
     head: [tableColumn],
     body: tableRows,
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: 255, fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [64, 53, 100], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: {
       4: { halign: 'right', fontStyle: 'bold' },
       5: { halign: 'right', fontStyle: 'bold' },

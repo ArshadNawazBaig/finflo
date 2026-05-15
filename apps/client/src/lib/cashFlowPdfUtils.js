@@ -4,6 +4,7 @@ import { formatCurrency } from './utils';
 import { format } from 'date-fns';
 import { renderPdfHeader, renderPdfFooter, getBusinessContext, toTitleCase, renderPdfSignatures } from './pdfExportUtils';
 import { savePdf } from './nativeDownload';
+import { PDF_FONT, registerJakartaFonts } from './pdfFonts';
 
 export const exportCashFlowStatement = async (
   data = {},
@@ -14,6 +15,7 @@ export const exportCashFlowStatement = async (
   const { repayments = [], summary = {} } = data;
   const ctx = businessContext || getBusinessContext();
   const doc = new jsPDF();
+  await registerJakartaFonts(doc);
 
   const startY = await renderPdfHeader(doc, {
     businessContext: ctx,
@@ -29,8 +31,8 @@ export const exportCashFlowStatement = async (
   });
 
   // ── Performance Summary ──
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Financial Performance Summary', 14, startY);
 
@@ -47,8 +49,8 @@ export const exportCashFlowStatement = async (
       ['Total Transactions', (summary.totalTransactions || 0).toString()],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
-    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
     columnStyles: {
       0: { fontStyle: 'bold', textColor: [100, 100, 100] },
       1: { fontStyle: 'bold', textColor: [0, 0, 0], halign: 'right' },
@@ -59,8 +61,8 @@ export const exportCashFlowStatement = async (
 
   // ── Transaction Details ──
   const tableY = (doc.lastAutoTable?.finalY || 80) + 10;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
   doc.setTextColor(0);
   doc.text('Detailed Transaction Statement', 14, tableY);
 
@@ -80,16 +82,16 @@ export const exportCashFlowStatement = async (
         fillColor: [64, 53, 100],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 9,
+        fontSize: 8,
       },
-      styles: { fontSize: 9, cellPadding: 3 },
+      styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
       columnStyles: { 4: { halign: 'right', fontStyle: 'bold' } },
       alternateRowStyles: { fillColor: [250, 250, 255] },
       margin: { left: 14, right: 14 },
     });
   } else {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'normal');
     doc.setTextColor(150);
     doc.text('No transaction records found for this period.', 14, tableY + 12);
   }
