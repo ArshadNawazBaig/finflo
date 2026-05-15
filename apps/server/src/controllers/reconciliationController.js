@@ -3,9 +3,15 @@ const Loan = require('../models/Loan');
 const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Investment = require('../models/Investment');
+const ProfitDistribution = require('../models/ProfitDistribution');
 const BusinessShare = require('../models/BusinessShare');
 const CashOpening = require('../models/CashOpening');
 const Branch = require('../models/Branch');
+
+// NOTE: Per-member ledger rebuild is now done in-line inside
+// `resolveMemberBalances` (bulk path) and `runMemberBalanceReconcile` (nightly
+// cron). Both paths use aggregation + bulkWrite so we don't issue 10k separate
+// per-member queries.
 
 // ══════════════════════════════════════════════════════════════════════════════
 // @desc    Full-featured Reconciliation Engine
@@ -578,6 +584,13 @@ async function reconcileSavingShareAccounts(query, dateRange = {}) {
 
 // @desc    Resolve Member Balance discrepancies
 // @route   POST /api/reports/reconciliation/resolve/member-balance
+// Resolves by rebuilding currentBalance and all three current-account
+// aggregates (totalInvested, totalWithdrawn, totalProfit) from the ledger.
+// This is the authoritative source — if any aggregate drifted, the ledger wins.
+//
+// Scales to large member sets via cursor + bulkWrite (500 ops per batch). The
+// nightly cron (scheduledTasksService.runMemberBalanceReconcile) uses the same
+// logic — this endpoint is kept for ad-hoc admin triggering from the UI.
 const resolveMemberBalances = async (req, res) => {
   try {
     const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
@@ -586,23 +599,121 @@ const resolveMemberBalances = async (req, res) => {
       if (branchScope) query.branchId = branchScope;
     }
 
-    const members = await Member.find(query).select(
-      'name currentBalance totalInvested totalWithdrawn totalProfit',
-    );
-
-    let fixed = 0;
-    for (const member of members) {
-      const expected =
-        (member.totalInvested || 0) -
-        (member.totalWithdrawn || 0) +
-        (member.totalProfit || 0);
-      const actual = member.currentBalance || 0;
-
-      if (Math.abs(expected - actual) > 1) {
-        member.currentBalance = Math.round(expected);
-        await member.save();
-        fixed++;
+    // One aggregation per source (Investment + ProfitDistribution) regardless
+    // of member count. Then we cursor through Members and batch updates.
+    const invMatch = { accountType: 'current', status: { $ne: 'Reversed' } };
+    const profitMatch = { type: 'regular', status: { $ne: 'Failed' } };
+    if (!req.user.isSuperAdmin) {
+      invMatch.user = req.user.effectiveOwnerId;
+      profitMatch.user = req.user.effectiveOwnerId;
+    }
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) {
+        invMatch.branchId = branchScope;
+        profitMatch.branchId = branchScope;
       }
+    }
+
+    const invAgg = await Investment.aggregate([
+      { $match: invMatch },
+      {
+        $group: {
+          _id: '$member',
+          totalInvested: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['deposit', 'transfer_receive']] },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          totalWithdrawn: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['withdrawal', 'transfer_send']] },
+                '$amount',
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const profitAgg = await ProfitDistribution.aggregate([
+      { $match: profitMatch },
+      { $group: { _id: '$member', totalProfit: { $sum: '$amount' } } },
+    ]);
+
+    const ledger = new Map();
+    for (const row of invAgg) {
+      ledger.set(row._id.toString(), {
+        totalInvested: row.totalInvested,
+        totalWithdrawn: row.totalWithdrawn,
+        totalProfit: 0,
+      });
+    }
+    for (const row of profitAgg) {
+      const key = row._id.toString();
+      const entry = ledger.get(key) || {
+        totalInvested: 0,
+        totalWithdrawn: 0,
+        totalProfit: 0,
+      };
+      entry.totalProfit = row.totalProfit;
+      ledger.set(key, entry);
+    }
+
+    const BATCH = 500;
+    let fixed = 0;
+    let ops = [];
+
+    const cursor = Member.find(query)
+      .select('_id currentBalance totalInvested totalWithdrawn totalProfit')
+      .cursor();
+
+    for await (const member of cursor) {
+      const entry = ledger.get(member._id.toString()) || {
+        totalInvested: 0,
+        totalWithdrawn: 0,
+        totalProfit: 0,
+      };
+      const expectedBalance =
+        entry.totalInvested - entry.totalWithdrawn + entry.totalProfit;
+
+      const drift =
+        Math.abs(expectedBalance - (member.currentBalance || 0)) > 1 ||
+        Math.abs(entry.totalInvested - (member.totalInvested || 0)) > 1 ||
+        Math.abs(entry.totalWithdrawn - (member.totalWithdrawn || 0)) > 1 ||
+        Math.abs(entry.totalProfit - (member.totalProfit || 0)) > 1;
+
+      if (!drift) continue;
+
+      ops.push({
+        updateOne: {
+          filter: { _id: member._id },
+          update: {
+            $set: {
+              currentBalance: Math.round(expectedBalance),
+              totalInvested: Math.round(entry.totalInvested),
+              totalWithdrawn: Math.round(entry.totalWithdrawn),
+              totalProfit: Math.round(entry.totalProfit),
+            },
+          },
+        },
+      });
+      fixed++;
+
+      if (ops.length >= BATCH) {
+        await Member.bulkWrite(ops, { ordered: false });
+        ops = [];
+      }
+    }
+
+    if (ops.length) {
+      await Member.bulkWrite(ops, { ordered: false });
     }
 
     res.status(200).json({

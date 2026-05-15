@@ -2619,28 +2619,41 @@ const recalculateBalance = async (req, res) => {
     const results = [];
 
     for (const member of members) {
-      // Sum all Investment records for this member
-      const investments = await Investment.find({ member: member._id });
+      // Sum current-account Investment records only. Saving-account entries
+      // belong to savingBalance; Reversed entries never happened.
+      const investments = await Investment.find({
+        member: member._id,
+        accountType: 'current',
+        status: { $ne: 'Reversed' },
+      });
 
       let computed = 0;
       for (const inv of investments) {
         if (
           inv.type === 'deposit' ||
-          inv.type === 'transfer_receive' ||
-          inv.type === 'external_receive'
+          inv.type === 'transfer_receive'
         ) {
           computed += inv.amount;
         } else if (
           inv.type === 'withdrawal' ||
-          inv.type === 'transfer_send' ||
-          inv.type === 'external_send'
+          inv.type === 'transfer_send'
         ) {
           computed -= inv.amount;
         }
+        // 'profit' Investment type intentionally ignored — TD profit is baked
+        // into the matching 'deposit' Investment at maturity (amount =
+        // principal + profit), and regular profit is captured below via
+        // ProfitDistribution.
       }
 
-      // Also add profit distributions (separate documents, not in Investment)
-      const profits = await ProfitDistribution.find({ member: member._id });
+      // Only 'regular' profit lands in currentBalance. 'share' lives in
+      // shareBalance; 'saving' lives in savingBalance; 'term_deposit' is
+      // already in the corresponding Investment(deposit) row above.
+      const profits = await ProfitDistribution.find({
+        member: member._id,
+        type: 'regular',
+        status: { $ne: 'Failed' },
+      });
       const totalProfit = profits.reduce((s, p) => s + p.amount, 0);
       computed += totalProfit;
 
@@ -3131,14 +3144,18 @@ const distributeShareProfit = async (req, res) => {
 
       if (profitAmount <= 0) continue;
 
-      // Credit profit to share balance atomically
+      // Credit profit to share balance atomically.
+      // NOTE: totalProfit must NOT be incremented here. It tracks profit credited
+      // to currentBalance only; share profits live in shareBalance and are
+      // tracked by totalShareProfit. Including them in totalProfit caused the
+      // Member Balance reconciliation to flag a phantom drift equal to the
+      // cumulative share profit (currentBalance never sees this money).
       const updatedMember = await Member.findByIdAndUpdate(
         member._id,
         {
           $inc: {
             shareBalance: profitAmount,
             totalShareProfit: profitAmount,
-            totalProfit: profitAmount,
           },
         },
         { new: true },

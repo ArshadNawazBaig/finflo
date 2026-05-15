@@ -1210,6 +1210,161 @@ const runTermDepositAutoMaturity = async () => {
   }
 };
 
+// ─── Job 11: Member Balance Reconciliation ───────────────────────────────────
+/**
+ * Runs daily at 05:00 (after TD maturity, before scheduled payments).
+ * Rebuilds currentBalance + totalInvested/totalWithdrawn/totalProfit for every
+ * member from the ledger (Investment + ProfitDistribution) — the authoritative
+ * source. Cached aggregates can drift if any future write path is asymmetric
+ * (see commit history); this job sweeps drift before it accumulates.
+ *
+ * Implementation:
+ *   - Two aggregation queries roll up the ledger per-member in one shot.
+ *   - We cursor through Members and queue bulkWrite ops in 500-row batches.
+ *   - 10k members ⇒ ~2 aggs + 1 cursor + ~20 bulk writes ≈ seconds, not minutes.
+ */
+const runMemberBalanceReconcile = async () => {
+  console.log('[CRON] runMemberBalanceReconcile: starting...');
+
+  try {
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const ProfitDistribution = require('../models/ProfitDistribution');
+
+    // Roll up Investment ledger per member (current account only, exclude
+    // Reversed). $cond keeps deposit/withdrawal sums separate so we preserve
+    // the same numbers the Member doc tracks.
+    const invAgg = await Investment.aggregate([
+      {
+        $match: {
+          accountType: 'current',
+          status: { $ne: 'Reversed' },
+        },
+      },
+      {
+        $group: {
+          _id: '$member',
+          totalInvested: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['deposit', 'transfer_receive']] },
+                '$amount',
+                0,
+              ],
+            },
+          },
+          totalWithdrawn: {
+            $sum: {
+              $cond: [
+                { $in: ['$type', ['withdrawal', 'transfer_send']] },
+                '$amount',
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    // Only 'regular' profit lands in currentBalance. 'share' lives in
+    // shareBalance, 'saving' in savingBalance, and 'term_deposit' is baked
+    // into the matching Investment(deposit) at maturity.
+    const profitAgg = await ProfitDistribution.aggregate([
+      {
+        $match: {
+          type: 'regular',
+          status: { $ne: 'Failed' },
+        },
+      },
+      {
+        $group: {
+          _id: '$member',
+          totalProfit: { $sum: '$amount' },
+        },
+      },
+    ]);
+
+    // Build a fast lookup table keyed by memberId string.
+    const ledger = new Map();
+    for (const row of invAgg) {
+      ledger.set(row._id.toString(), {
+        totalInvested: row.totalInvested,
+        totalWithdrawn: row.totalWithdrawn,
+        totalProfit: 0,
+      });
+    }
+    for (const row of profitAgg) {
+      const key = row._id.toString();
+      const entry = ledger.get(key) || {
+        totalInvested: 0,
+        totalWithdrawn: 0,
+        totalProfit: 0,
+      };
+      entry.totalProfit = row.totalProfit;
+      ledger.set(key, entry);
+    }
+
+    const BATCH = 500;
+    let scanned = 0;
+    let fixed = 0;
+    let ops = [];
+
+    const cursor = Member.find({})
+      .select('_id currentBalance totalInvested totalWithdrawn totalProfit')
+      .cursor();
+
+    for await (const member of cursor) {
+      scanned++;
+
+      const entry = ledger.get(member._id.toString()) || {
+        totalInvested: 0,
+        totalWithdrawn: 0,
+        totalProfit: 0,
+      };
+      const expectedBalance =
+        entry.totalInvested - entry.totalWithdrawn + entry.totalProfit;
+
+      const drift =
+        Math.abs(expectedBalance - (member.currentBalance || 0)) > 1 ||
+        Math.abs(entry.totalInvested - (member.totalInvested || 0)) > 1 ||
+        Math.abs(entry.totalWithdrawn - (member.totalWithdrawn || 0)) > 1 ||
+        Math.abs(entry.totalProfit - (member.totalProfit || 0)) > 1;
+
+      if (!drift) continue;
+
+      ops.push({
+        updateOne: {
+          filter: { _id: member._id },
+          update: {
+            $set: {
+              currentBalance: Math.round(expectedBalance),
+              totalInvested: Math.round(entry.totalInvested),
+              totalWithdrawn: Math.round(entry.totalWithdrawn),
+              totalProfit: Math.round(entry.totalProfit),
+            },
+          },
+        },
+      });
+      fixed++;
+
+      if (ops.length >= BATCH) {
+        await Member.bulkWrite(ops, { ordered: false });
+        ops = [];
+      }
+    }
+
+    if (ops.length) {
+      await Member.bulkWrite(ops, { ordered: false });
+    }
+
+    console.log(
+      `[CRON] runMemberBalanceReconcile: scanned ${scanned}, fixed ${fixed} member(s).`,
+    );
+  } catch (err) {
+    console.error('[CRON] runMemberBalanceReconcile ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -1259,7 +1414,14 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 10 jobs registered.');
+  // Job 11: Member balance reconciliation daily at 05:00.
+  // Runs AFTER TD maturity (04:00) and BEFORE scheduled payments (06:00) so
+  // the rebuild reflects the night's accruals and isn't races against debits.
+  cron.schedule('0 5 * * *', runMemberBalanceReconcile, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 11 jobs registered.');
 };
 
 module.exports = {
@@ -1275,5 +1437,6 @@ module.exports = {
   runCompoundInterestAccrual,
   runScheduledPayments,
   runTermDepositAutoMaturity,
+  runMemberBalanceReconcile,
 };
 
