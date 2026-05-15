@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import PageHeader from '@/components/PageHeader';
-import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
+import SupportPageSkeleton from '@/components/support/SupportPageSkeleton';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -160,7 +160,7 @@ const Support = () => {
   };
 
   if (loading && tickets.length === 0) {
-    return <CardsPageSkeleton />;
+    return <SupportPageSkeleton />;
   }
 
   return (

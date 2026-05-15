@@ -19,6 +19,7 @@ import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
 import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
 import CustomerProfileSkeleton from '@/components/customers/CustomerProfileSkeleton';
 import LoanDetailSkeleton from '@/components/loans/LoanDetailSkeleton';
+import SupportPageSkeleton from '@/components/support/SupportPageSkeleton';
 
 // Lazy Load Pages
 const Dashboard = withSkeleton(() => import('@/pages/admin/Dashboard'), AdminDashboardSkeleton);
@@ -37,7 +38,7 @@ const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), CardsPageS
 const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), MemberProfileSkeleton);
 const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), MemberGuarantorsSkeleton);
 const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), CustomerProfileSkeleton);
-const Support = withSkeleton(() => import('@/pages/admin/Support'), CardsPageSkeleton);
+const Support = withSkeleton(() => import('@/pages/admin/Support'), SupportPageSkeleton);
 const Notifications = withSkeleton(() => import('@/pages/admin/Notifications'), RegistryPageSkeleton);
 const LoanDetail = withSkeleton(() => import('@/pages/admin/LoanDetail'), LoanDetailSkeleton);
 const LoanRequests = withSkeleton(() => import('@/pages/admin/LoanRequests'), TablePageSkeleton);
