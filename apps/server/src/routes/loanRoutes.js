@@ -22,6 +22,7 @@ const {
   getGrantorLoans,
   updateGrantorStatus,
   sendPaymentReminder,
+  sendBulkPaymentReminders,
 } = require('../controllers/loanController');
 const {
   protect,
@@ -37,6 +38,7 @@ const { loanValidation } = require('../middleware/validationMiddleware');
 
 router.route('/upcoming').get(protect, getUpcomingRepayments);
 router.post('/send-reminder', protect, sendPaymentReminder);
+router.post('/send-bulk-reminders', protect, sendBulkPaymentReminders);
 router.route('/request').post(protectMember, loanDocUpload.array('documents', 5), requestLoan);
 router.route('/my-loans').get(protectMember, getMyLoans);
 router.route('/grantor-loans').get(protectMember, getGrantorLoans);

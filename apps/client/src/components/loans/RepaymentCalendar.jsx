@@ -17,13 +17,12 @@ import {
   ChevronRight,
   Bell,
   AlertCircle,
-  MessageSquare,
   Mail,
   Loader2,
+  Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
-import { generateWhatsAppLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import api from '@/lib/axios';
 
@@ -31,6 +30,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [sendingEmail, setSendingEmail] = useState({});
+  const [sendingBulk, setSendingBulk] = useState(false);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -80,6 +80,39 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
       toast.error('Failed to send email. Check SMTP configuration.');
     } finally {
       setSendingEmail((prev) => ({ ...prev, [p._id]: false }));
+    }
+  };
+
+  const handleSendBulkEmails = async () => {
+    const eligible = selectedPayments.filter((p) => p.customer?.email);
+    const skipped = selectedPayments.length - eligible.length;
+    if (eligible.length === 0) {
+      toast.error('No customers with email on file for this day');
+      return;
+    }
+
+    setSendingBulk(true);
+    try {
+      const { data } = await api.post('/loans/send-bulk-reminders', {
+        recipients: eligible.map((p) => ({
+          id: p._id,
+          customerEmail: p.customer.email,
+          customerName: p.customer.name,
+          amount: p.amount,
+          dueDate: p.dueDate,
+          isOverdue: p.isOverdue,
+        })),
+      });
+      const sent = data?.sent ?? 0;
+      const failed = data?.failed ?? 0;
+      let msg = `Sent ${sent} reminder${sent === 1 ? '' : 's'}`;
+      if (failed > 0) msg += ` · ${failed} failed`;
+      if (skipped > 0) msg += ` · ${skipped} skipped (no email)`;
+      (failed > 0 ? toast.warning : toast.success)(msg);
+    } catch (err) {
+      toast.error('Failed to send bulk reminders. Check SMTP configuration.');
+    } finally {
+      setSendingBulk(false);
     }
   };
 
@@ -179,7 +212,7 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
       {/* Details Side-pane */}
       <div className="w-full lg:w-80 flex flex-col gap-6">
         <div className="flex-1 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-4 sm:p-6 shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 gap-3">
             <div>
               <h4 className="font-black text-sm tracking-tight capitalize">
                 {format(selectedDate, 'EEEE')}
@@ -188,9 +221,29 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                 {format(selectedDate, 'MMM d, yyyy')}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center">
-              <Bell size={18} className="text-muted-foreground" />
-            </div>
+            {selectedPayments.length > 1 ? (
+              <Tooltip
+                content={`Send email reminder to ${selectedPayments.filter((p) => p.customer?.email).length} customer(s)`}
+                position="top"
+              >
+                <button
+                  onClick={handleSendBulkEmails}
+                  disabled={sendingBulk}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-[0.18em] shadow-[0_8px_24px_-12px_rgba(99,102,241,0.55)] hover:bg-primary/90 disabled:opacity-60 transition-all"
+                >
+                  {sendingBulk ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Send size={12} />
+                  )}
+                  Email all ({selectedPayments.length})
+                </button>
+              </Tooltip>
+            ) : (
+              <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <Bell size={18} className="text-muted-foreground" />
+              </div>
+            )}
           </div>
 
           <div className="flex-1 space-y-4 py-8 -my-8 px-1">
@@ -228,37 +281,19 @@ const RepaymentCalendar = ({ upcomingPayments = [] }) => {
                     <p className="text-[10px] text-muted-foreground font-medium truncate">
                       Loan Settlement
                     </p>
-                    <div className="flex items-center gap-1">
-                      <Tooltip content="Send WhatsApp Reminder" position="top">
-                        <a
-                          href={generateWhatsAppLink(
-                            p.customer?.phone || '',
-                            p.customer?.name || '',
-                            p.amount,
-                            p.dueDate,
-                            p.isOverdue,
-                          )}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={`p-2 rounded-xl transition-all ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
-                        >
-                          <MessageSquare size={16} />
-                        </a>
-                      </Tooltip>
-                      <Tooltip content="Send Email Reminder" position="top">
-                        <button
-                          onClick={() => handleSendEmail(p)}
-                          disabled={sendingEmail[p._id]}
-                          className={`p-2 rounded-xl transition-all disabled:opacity-50 ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
-                        >
-                          {sendingEmail[p._id] ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Mail size={16} />
-                          )}
-                        </button>
-                      </Tooltip>
-                    </div>
+                    <Tooltip content="Send Email Reminder" position="top">
+                      <button
+                        onClick={() => handleSendEmail(p)}
+                        disabled={sendingEmail[p._id]}
+                        className={`p-2 rounded-xl transition-all disabled:opacity-50 ${p.isOverdue ? 'hover:bg-rose-500/20 text-rose-500' : 'hover:bg-primary/10 text-primary'}`}
+                      >
+                        {sendingEmail[p._id] ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Mail size={16} />
+                        )}
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               ))

@@ -23,12 +23,11 @@ const MemberProfileSkeleton = () => (
 
       <div className="flex flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto relative z-10">
         <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="w-12 h-12 rounded-2xl" />
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
-          <Skeleton className="h-12 w-32 rounded-2xl" />
           <Skeleton className="h-12 w-32 rounded-full" />
         </div>
       </div>

@@ -30,6 +30,90 @@ const {
 const { getEmailBranding } = require('../utils/brandingUtils');
 
 /**
+ * @desc    Send payment reminder emails to many loan holders in one request.
+ * @route   POST /api/loans/send-bulk-reminders
+ * @access  Private (Admin/Staff)
+ *
+ * Accepts: { recipients: [{ customerEmail, customerName, amount, dueDate, isOverdue, id? }, ...] }
+ * Fans out with bounded concurrency (5 at a time) so SMTP rate limits and the
+ * request timeout don't blow up on a 30+ recipient batch. Returns a per-recipient
+ * pass/fail summary so the UI can report exactly what got through.
+ */
+const sendBulkPaymentReminders = async (req, res) => {
+  try {
+    const { recipients } = req.body || {};
+    if (!Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({ message: 'recipients must be a non-empty array' });
+    }
+
+    const { loanReminderEmail } = require('../utils/emailTemplates');
+    const { format } = require('date-fns');
+
+    const reminderUser = await User.findById(req.user.effectiveOwnerId).select(
+      'businessName name businessLogo',
+    );
+    const reminderBrand = reminderUser
+      ? reminderUser.businessName || reminderUser.name
+      : null;
+    const reminderLogo = reminderUser?.businessLogo;
+
+    const sendOne = async (r) => {
+      const id = r.id || r.customerEmail || 'unknown';
+      try {
+        if (!r.customerEmail || !r.customerName || !r.amount || !r.dueDate) {
+          return { id, email: r.customerEmail || null, ok: false, reason: 'Missing required fields' };
+        }
+        const formattedDate = format(new Date(r.dueDate), 'MMMM d, yyyy');
+        const formattedAmount = Number(r.amount).toLocaleString();
+        const subject = r.isOverdue
+          ? `URGENT: Overdue Loan Repayment — ${formattedDate}`
+          : `Upcoming Loan Repayment Reminder — ${formattedDate}`;
+
+        const ok = await sendEmail({
+          to: r.customerEmail,
+          subject,
+          html: loanReminderEmail(
+            r.customerName,
+            `Rs. ${formattedAmount}`,
+            formattedDate,
+            r.isOverdue ? 'overdue' : 'upcoming',
+            reminderBrand,
+            reminderLogo,
+          ),
+        });
+
+        return ok
+          ? { id, email: r.customerEmail, ok: true }
+          : { id, email: r.customerEmail, ok: false, reason: 'SMTP send failed' };
+      } catch (err) {
+        return { id, email: r.customerEmail || null, ok: false, reason: err.message };
+      }
+    };
+
+    // Bounded parallelism: process in chunks of 5.
+    const CHUNK = 5;
+    const results = [];
+    for (let i = 0; i < recipients.length; i += CHUNK) {
+      const slice = recipients.slice(i, i + CHUNK);
+      const settled = await Promise.all(slice.map(sendOne));
+      results.push(...settled);
+    }
+
+    const sent = results.filter((r) => r.ok).length;
+    const failed = results.length - sent;
+    res.json({
+      sent,
+      failed,
+      total: results.length,
+      results,
+    });
+  } catch (error) {
+    console.error('sendBulkPaymentReminders Error:', error);
+    res.status(500).json({ message: 'Failed to send bulk reminders' });
+  }
+};
+
+/**
  * @desc    Send a payment reminder email to a loan holder/customer
  * @route   POST /api/loans/send-reminder
  * @access  Private (Admin/Staff)
@@ -2461,4 +2545,5 @@ module.exports = {
   updateGrantorStatus,
   memberRepayLoan,
   sendPaymentReminder,
+  sendBulkPaymentReminders,
 };

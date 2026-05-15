@@ -23,7 +23,6 @@ import {
   FileBadge,
   Send,
   CheckCircle2,
-  RefreshCw,
   Building2,
   BadgeDollarSign,
   ImagePlus,
@@ -99,7 +98,6 @@ const MemberProfile = () => {
   const [transferDescription, setTransferDescription] = useState('');
   const [transferAccountType, setTransferAccountType] = useState('current');
   const [isTransferring, setIsTransferring] = useState(false);
-  const [recalcLoading, setRecalcLoading] = useState(false);
   const [searchTransferResults, setSearchTransferResults] = useState([]);
   const [isLookingUpTransfer, setIsLookingUpTransfer] = useState(false);
   const [transferRecipientName, setTransferRecipientName] = useState('');
@@ -699,29 +697,6 @@ const MemberProfile = () => {
   };
   // ────────────────────────────────────────────────────────────────────────────
 
-  const handleRecalcBalance = async () => {
-    try {
-      setRecalcLoading(true);
-      const res = await api.post('/members/recalculate-balance', {
-        memberId: id,
-      });
-      const result = res.data.results?.[0];
-      if (result) {
-        toast.success(
-          `Balance synced: ${formatCurrency(result.oldBalance)} → ${formatCurrency(result.newBalance)}`,
-        );
-      } else {
-        toast.success('Balance recalculated successfully');
-      }
-      fetchMemberData();
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message || 'Failed to recalculate balance',
-      );
-    } finally {
-      setRecalcLoading(false);
-    }
-  };
 
   const handleMemberUpdate = async (e) => {
     e.preventDefault();
@@ -970,18 +945,6 @@ const MemberProfile = () => {
                 className="w-12 h-12 rounded-2xl bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all border border-primary/10"
               >
                 <Pencil size={18} />
-              </Button>
-            </Tooltip>
-
-            <Tooltip content="Sync Balance from Ledger">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRecalcBalance}
-                isLoading={recalcLoading}
-                className="w-12 h-12 rounded-2xl bg-rose-500/5 text-rose-600 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"
-              >
-                <RefreshCw size={18} />
               </Button>
             </Tooltip>
 
