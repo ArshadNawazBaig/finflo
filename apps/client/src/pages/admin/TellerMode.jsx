@@ -1158,43 +1158,42 @@ const TellerMode = () => {
   return (
     <div className="flex flex-col space-y-8 pb-20 animate-in fade-in duration-700 max-w-[1400px] mx-auto w-full">
       {/* ── Header ──────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-6 rounded-[2rem]">
-        <div className="flex items-center gap-5">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 overflow-hidden">
-              <Zap size={32} className="relative z-10" />
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+            Branch terminal
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-[-0.035em] leading-tight text-slate-900 dark:text-white">
+            Teller{' '}
+            <span className="text-primary">
+              {viewMode === 'pos' ? 'POS' : 'Cashbook'}
+            </span>
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Session active
             </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-background rounded-full animate-pulse shadow-sm" />
-          </div>
-          <div className="text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Teller POS
-            </h1>
-            <div className="flex items-center gap-3 mt-1.5">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                <User size={10} />
-                Session Active
-              </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                <Clock size={10} />
-                {new Date().toLocaleDateString('en-PK', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </div>
+            <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
+            <div className="flex items-center gap-1.5 text-xs">
+              <Clock size={12} className="text-primary" />
+              {new Date().toLocaleDateString('en-PK', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+              })}
             </div>
           </div>
         </div>
 
         {/* ── View Switcher ────────────────────────── */}
-        <div className="flex bg-muted/40 p-1.5 rounded-2xl w-full max-w-md shrink-0">
+        <div className="inline-flex p-1 rounded-full bg-slate-100/70 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] w-full md:w-auto">
           <button
             onClick={() => setViewMode('pos')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+            className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'pos'
-                ? 'bg-card text-primary shadow-lg shadow-black/5'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-white/[0.06] text-primary shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Zap size={12} />
@@ -1203,10 +1202,10 @@ const TellerMode = () => {
 
           <button
             onClick={() => setViewMode('cashbook')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+            className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] transition-all ${
               viewMode === 'cashbook'
-                ? 'bg-card text-emerald-600 shadow-lg shadow-black/5'
-                : 'text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-white/[0.06] text-emerald-600 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)]'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <HandCoins size={12} />
@@ -1221,26 +1220,22 @@ const TellerMode = () => {
           {/* ── Left Column: Member Search & Info (4 cols) ── */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
             <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] relative z-10 group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-focus-within:opacity-30 transition-opacity">
-                <Search size={40} className="text-primary" />
-              </div>
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-4 px-1 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                Member Search
-              </h3>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-4">
+                Member search
+              </p>
               <div className="relative">
                 <Search
                   size={16}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors"
                 />
                 <input
                   ref={searchRef}
                   type="text"
-                  placeholder="Name, CNIC, Phone..."
+                  placeholder="Name, CNIC, phone…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-11 pr-11 py-3.5 rounded-full bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium placeholder:text-slate-400"
+                  className="w-full pl-11 pr-11 py-3.5 rounded-full bg-slate-50/60 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium placeholder:text-slate-400"
                 />
                 {query && (
                   <button
@@ -1248,7 +1243,7 @@ const TellerMode = () => {
                       setQuery('');
                       setSearchResults([]);
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -1256,13 +1251,11 @@ const TellerMode = () => {
               </div>
 
               {/* keyboard indicator */}
-              <div className="mt-4 flex items-center justify-center gap-4 text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded border border-border/50 bg-muted/50 font-sans">
-                    ESC
-                  </kbd>{' '}
-                  to clear
-                </span>
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                <kbd className="px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.03] font-sans text-[9px] text-slate-500 dark:text-slate-400">
+                  ESC
+                </kbd>
+                to clear
               </div>
 
               {/* Search Results Dropdown */}
@@ -1329,28 +1322,28 @@ const TellerMode = () => {
                   className="space-y-6"
                 >
                   <div className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-                    <div className="flex items-start justify-between mb-8">
+                    <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           {member.profilePicture ? (
                             <img
                               src={member.profilePicture}
                               alt={member.name}
-                              className="w-14 h-14 rounded-2xl object-cover ring-2 ring-primary/10 shadow-lg"
+                              className="w-14 h-14 rounded-2xl object-cover ring-1 ring-slate-100 dark:ring-white/[0.06]"
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">
+                            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xl">
                               {member.name?.charAt(0)?.toUpperCase()}
                             </div>
                           )}
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-card rounded-full" />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                         </div>
                         <div>
-                          <h2 className="text-lg font-black tracking-tight capitalize leading-tight">
+                          <h2 className="text-lg font-extrabold tracking-tight capitalize leading-tight text-slate-900 dark:text-white">
                             {member.name}
                           </h2>
-                          <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mt-1">
+                          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 font-mono">
                             <SensitiveData maskLength={14} iconSize={11}>
                               {member.currentAccountNumber}
                             </SensitiveData>
@@ -1359,14 +1352,14 @@ const TellerMode = () => {
                       </div>
                       <button
                         onClick={clearMember}
-                        className="p-2 rounded-xl text-muted-foreground/30 hover:text-rose-500 hover:bg-rose-500/5 transition-all"
+                        className="p-2 rounded-full text-slate-400 hover:text-rose-500 hover:bg-rose-500/5 transition-all"
                         title="Clear Member"
                       >
-                        <X size={18} />
+                        <X size={16} />
                       </button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {[
                         {
                           label: 'Current Account',
@@ -1398,35 +1391,43 @@ const TellerMode = () => {
                           icon: Banknote,
                           color: 'amber',
                         },
-                      ].map((card, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/30 group hover:border-primary/20 transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-9 h-9 rounded-xl flex items-center justify-center bg-${card.color}-500/10 text-${card.color}-500 shadow-sm`}
-                            >
-                              <card.icon size={16} />
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">
-                                {card.label}
-                              </span>
-                              {card.subLabel && (
-                                <span className="text-[9px] font-bold text-muted-foreground/40 font-mono">
-                                  {card.subLabel}
+                      ].map((card, i) => {
+                        const tone = {
+                          emerald: 'bg-emerald-500/10 text-emerald-500',
+                          primary: 'bg-primary/10 text-primary',
+                          indigo: 'bg-indigo-500/10 text-indigo-500',
+                          amber: 'bg-amber-500/10 text-amber-500',
+                        }[card.color];
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${tone}`}
+                              >
+                                <card.icon size={14} />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                  {card.label}
                                 </span>
-                              )}
+                                {card.subLabel && (
+                                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 font-mono">
+                                    {card.subLabel}
+                                  </span>
+                                )}
+                              </div>
                             </div>
+                            <p className="text-sm font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                              <SensitiveBalance iconSize={12}>
+                                {formatCurrency(card.value || 0)}
+                              </SensitiveBalance>
+                            </p>
                           </div>
-                          <p className="text-sm font-black tracking-tight">
-                            <SensitiveBalance iconSize={12}>
-                              {formatCurrency(card.value || 0)}
-                            </SensitiveBalance>
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Guarantors Section */}
@@ -1547,14 +1548,19 @@ const TellerMode = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="p-10 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-4"
+                  className="p-10 rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] flex flex-col items-center justify-center text-center gap-3"
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
-                    <User size={24} className="text-primary/20" />
+                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] flex items-center justify-center text-slate-300 dark:text-slate-600">
+                    <Search size={18} />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-relaxed">
-                    Search above to start
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      Look up a member
+                    </p>
+                    <p className="text-xs font-medium text-slate-400 dark:text-slate-500 leading-relaxed">
+                      Search by name, CNIC, or phone to begin
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1569,42 +1575,41 @@ const TellerMode = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                 {[
                   {
-                    label: 'Today Balance In',
+                    label: 'Today balance in',
                     value: sessionStats.cashIn,
-                    color: 'emerald',
+                    tone: 'bg-emerald-500/10 text-emerald-500',
                     icon: ArrowDownCircle,
                   },
                   {
-                    label: 'Today Balance Out',
+                    label: 'Today balance out',
                     value: sessionStats.cashOut,
-                    color: 'rose',
+                    tone: 'bg-rose-500/10 text-rose-500',
                     icon: ArrowUpCircle,
                   },
                   {
-                    label: 'Net Position',
+                    label: 'Net position',
                     value: sessionStats.net,
-                    color: 'indigo',
+                    tone: 'bg-primary/10 text-primary',
                     icon: Wallet,
                   },
                 ].map((stat, i) => (
                   <div
                     key={i}
-                    className="p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] relative overflow-hidden"
+                    className="group relative rounded-[1.5rem] bg-white dark:bg-white/[0.02] p-5 border border-slate-100 dark:border-white/[0.06] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)]"
                   >
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12">
-                      <stat.icon size={80} />
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                        {stat.label}
+                      </p>
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full shrink-0 ${stat.tone}`}
+                      >
+                        <stat.icon size={14} />
+                      </div>
                     </div>
-                    <div
-                      className={`w-10 h-10 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-500 flex items-center justify-center mb-4 shadow-sm`}
-                    >
-                      <stat.icon size={20} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">
-                      {stat.label}
-                    </p>
-                    <p className={`text-2xl font-black tracking-tighter`}>
+                    <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
                       {formatCurrency(stat.value)}
-                    </p>
+                    </h3>
                   </div>
                 ))}
               </div>
@@ -1625,6 +1630,11 @@ const TellerMode = () => {
                     {Object.entries(actionConfig).map(([key, config]) => {
                       const Icon = config.icon;
                       const isActive = activeAction === key;
+                      const tone = {
+                        emerald: 'bg-emerald-500/10 text-emerald-500',
+                        rose: 'bg-rose-500/10 text-rose-500',
+                        indigo: 'bg-indigo-500/10 text-indigo-500',
+                      }[config.color];
                       return (
                         <button
                           key={key}
@@ -1638,49 +1648,43 @@ const TellerMode = () => {
                             setRepaymentType('installment');
                             setTimeout(() => amountRef.current?.focus(), 200);
                           }}
-                          className={`group p-5 rounded-[2rem] border-2 transition-all duration-500 flex items-center gap-4 relative overflow-hidden ${
+                          className={`group p-5 rounded-[2rem] border transition-all duration-300 flex items-center gap-4 text-left ${
                             isActive
                               ? `${config.activeClass} border-transparent`
-                              : `${config.bgClass} border-border/50 hover:border-primary/20 hover:bg-card`
+                              : 'bg-white dark:bg-white/[0.02] border-slate-100 dark:border-white/[0.06] hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)]'
                           }`}
                         >
                           <div
-                            className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-                              isActive
-                                ? 'bg-white/20'
-                                : `bg-${config.color}-500/10 text-${config.color}-500 group-hover:scale-110`
+                            className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                              isActive ? 'bg-white/20 text-white' : tone
                             }`}
                           >
-                            <Icon size={24} />
+                            <Icon size={20} />
                           </div>
-                          <div className="text-left">
+                          <div className="min-w-0">
                             <p
-                              className={`text-xs font-black uppercase tracking-widest ${
-                                isActive ? 'text-white' : ''
+                              className={`text-sm font-extrabold tracking-tight leading-tight ${
+                                isActive
+                                  ? 'text-white'
+                                  : 'text-slate-900 dark:text-white'
                               }`}
                             >
                               {config.label}
                             </p>
                             <p
-                              className={`text-[9px] font-bold mt-1 max-w-[120px] transition-colors ${
+                              className={`text-[10px] font-medium mt-1 transition-colors ${
                                 isActive
-                                  ? 'text-white/60'
-                                  : 'text-muted-foreground/50'
+                                  ? 'text-white/70'
+                                  : 'text-slate-400 dark:text-slate-500'
                               }`}
                             >
                               {key === 'deposit'
-                                ? 'Process Credit'
+                                ? 'Process credit'
                                 : key === 'withdraw'
-                                  ? 'Process Debit'
-                                  : 'Loan Repay'}
+                                  ? 'Process debit'
+                                  : 'Loan repayment'}
                             </p>
                           </div>
-                          {isActive && (
-                            <motion.div
-                              layoutId="active-bg"
-                              className="absolute inset-0 z-[-1]"
-                            />
-                          )}
                         </button>
                       );
                     })}
@@ -1690,27 +1694,27 @@ const TellerMode = () => {
                   <AnimatePresence>
                     {activeAction && (
                       <motion.form
-                        initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, height: 0, scale: 0.98 }}
                         animate={{ opacity: 1, height: 'auto', scale: 1 }}
-                        exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                        exit={{ opacity: 0, height: 0, scale: 0.98 }}
                         onSubmit={submitAction}
-                        className="p-8 rounded-[3rem] bg-card border-2 border-primary/20 shadow-2xl shadow-primary/5 space-y-8 overflow-hidden"
+                        className="p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] space-y-8 overflow-hidden"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div
-                              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${actionConfig[activeAction].activeClass} shadow-lg shadow-black/5`}
+                              className={`w-11 h-11 rounded-2xl flex items-center justify-center ${actionConfig[activeAction].activeClass}`}
                             >
                               {(() => {
                                 const Icon = actionConfig[activeAction].icon;
-                                return <Icon size={24} />;
+                                return <Icon size={20} />;
                               })()}
                             </div>
                             <div>
-                              <h3 className="text-xl font-black tracking-tight">
+                              <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
                                 {actionConfig[activeAction].label}
                               </h3>
-                              <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mt-1">
                                 Complete fields to process
                               </p>
                             </div>
@@ -1718,9 +1722,9 @@ const TellerMode = () => {
                           <button
                             type="button"
                             onClick={() => setActiveAction(null)}
-                            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground/30 hover:text-muted-foreground transition-all"
+                            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
                           >
-                            <X size={20} />
+                            <X size={18} />
                           </button>
                         </div>
 
@@ -2413,20 +2417,15 @@ const TellerMode = () => {
                   </AnimatePresence>
 
                   {/* Recent Activity Card */}
-                  <div className="p-4 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground">
-                          <Clock size={18} />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-black uppercase tracking-widest">
-                            Recent Transactions
-                          </h3>
-                          <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">
-                            Latest activity for this member
-                          </p>
-                        </div>
+                  <div className="p-5 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                          Activity
+                        </p>
+                        <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white mt-1">
+                          Recent transactions
+                        </h3>
                       </div>
                       <Button
                         variant="outline"
@@ -2434,7 +2433,7 @@ const TellerMode = () => {
                         onClick={handleExportMemberPDF}
                         isLoading={isExportingMemberPdf}
                         disabled={recentTxns.length === 0}
-                        className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all h-9 px-4"
+                        className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-[0.18em] border-slate-200 dark:border-white/[0.08] hover:bg-primary hover:text-white hover:border-primary transition-all h-9 px-4"
                       >
                         <Download size={14} />
                         PDF
@@ -2457,34 +2456,34 @@ const TellerMode = () => {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.05 }}
                               key={txn._id || i}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl border border-border/10 hover:bg-muted/30 transition-all group"
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all group"
                             >
                               <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                                 <div
-                                  className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm ${
+                                  className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${
                                     isIn
                                       ? 'bg-emerald-500/10 text-emerald-500'
                                       : 'bg-rose-500/10 text-rose-500'
                                   }`}
                                 >
                                   {isIn ? (
-                                    <ArrowDownCircle size={18} />
+                                    <ArrowDownCircle size={16} />
                                   ) : (
-                                    <ArrowUpCircle size={18} />
+                                    <ArrowUpCircle size={16} />
                                   )}
                                 </div>
-                                <div>
-                                  <p className="text-xs font-black capitalize group-hover:text-primary transition-colors">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-white capitalize">
                                     {txn.description ||
                                       txn.category?.replace('_', ' ') ||
                                       'Transaction'}
                                   </p>
                                   {txn.notes && (
-                                    <p className="text-[10px] text-muted-foreground/60 font-medium mt-0.5 truncate max-w-[180px] italic">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 truncate max-w-[200px]">
                                       {txn.notes}
                                     </p>
                                   )}
-                                  <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-1">
+                                  <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1">
                                     {format(
                                       new Date(txn.date || txn.createdAt),
                                       'MMM d, yyyy • p',
@@ -2492,13 +2491,13 @@ const TellerMode = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-between sm:justify-end gap-3 sm:pl-0 pt-2 sm:pt-0 border-t border-border/5 sm:border-0 mt-2 sm:mt-0 w-full sm:w-auto shrink-0">
+                              <div className="flex items-center justify-between sm:justify-end gap-3 sm:pl-0 pt-2 sm:pt-0 border-t border-slate-100/60 dark:border-white/[0.04] sm:border-0 mt-2 sm:mt-0 w-full sm:w-auto shrink-0">
                                 <div className="text-left sm:text-right">
                                   <p
-                                    className={`text-sm font-black ${
+                                    className={`text-sm font-extrabold tabular-nums ${
                                       isIn
-                                        ? 'text-emerald-500'
-                                        : 'text-rose-500'
+                                        ? 'text-emerald-600'
+                                        : 'text-rose-600'
                                     }`}
                                   >
                                     {isIn ? '+' : '-'}
@@ -2978,23 +2977,25 @@ const TellerMode = () => {
       {viewMode === 'cashbook' && (
         <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Date Navigation Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-[2.5rem] bg-card border border-border/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                <Calendar size={18} />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                  Daily journal
+                </p>
+                <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white mt-0.5">
+                  Cash in hand
+                </h3>
               </div>
-              <h3 className="text-lg font-black tracking-tight">
-                Cash in Hand
-              </h3>
               {/* Branch Selector */}
               {isAdmin && branches.length > 0 && (
                 <div className="relative ml-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/10">
-                    <Building2 size={14} className="text-primary/60" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]">
+                    <Building2 size={12} className="text-slate-400" />
                     <select
                       value={selectedBranchId}
                       onChange={(e) => setSelectedBranchId(e.target.value)}
-                      className="bg-transparent text-xs font-black text-primary outline-none cursor-pointer appearance-none pr-4"
+                      className="bg-transparent text-[11px] font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer appearance-none pr-4"
                     >
                       {branches.map((b) => (
                         <option key={b._id} value={b._id}>
@@ -3004,25 +3005,25 @@ const TellerMode = () => {
                     </select>
                     <ChevronDown
                       size={12}
-                      className="text-primary/40 absolute right-3 pointer-events-none"
+                      className="text-slate-400 absolute right-3 pointer-events-none"
                     />
                   </div>
                 </div>
               )}
               {!isAdmin && user?.branchName && (
-                <span className="ml-2 px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest">
+                <span className="ml-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.18em]">
                   {user.branchName}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setCashbookDate((prev) => addDays(prev, -1))}
-                className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
                 title="Previous Day"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={16} />
               </button>
               <DateRangePicker
                 date={{ from: cashbookDate, to: cashbookDate }}
@@ -3039,15 +3040,15 @@ const TellerMode = () => {
                   if (!isFuture(next) || isToday(next)) setCashbookDate(next);
                 }}
                 disabled={isToday(cashbookDate)}
-                className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Next Day"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={16} />
               </button>
               {!isCashbookToday && (
                 <button
                   onClick={() => setCashbookDate(new Date())}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all"
+                  className="ml-1 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-[0.18em] hover:bg-emerald-500/20 transition-all"
                 >
                   Today
                 </button>
@@ -3056,26 +3057,27 @@ const TellerMode = () => {
           </div>
 
           {/* Cash Opening Card */}
-          <div className="p-6 sm:p-8 rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02]">
+          <div className="p-6 sm:p-8 rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                  <HandCoins size={28} />
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <HandCoins size={22} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-black tracking-tight">
-                      {isCashbookToday
-                        ? 'Cash in Hand'
-                        : 'Cash in Hand (Historical)'}
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                    {isCashbookToday ? 'Today' : 'Historical'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+                      Cash in hand
                     </h3>
                     {cashSummary.isCarriedForward && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest text-amber-600 animate-in fade-in duration-300">
-                        Carried Forward
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-600 animate-in fade-in duration-300">
+                        Carried forward
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                     {cashbookDate.toLocaleDateString('en-PK', {
                       weekday: 'long',
                       month: 'long',
@@ -3142,12 +3144,12 @@ const TellerMode = () => {
 
                 <Button
                   onClick={() => setShowDenomModal(true)}
-                  className="h-12 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-amber-500/25 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
+                  className="h-12 px-6 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] uppercase tracking-[0.18em] shadow-[0_10px_30px_-12px_rgba(245,158,11,0.45)] gap-2 transition-all w-full sm:w-auto"
                 >
-                  <Banknote size={20} />
-                  Count Cash Counter
+                  <Banknote size={16} />
+                  Count cash counter
                   {denomTotal > 0 && (
-                    <span className="ml-1 px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-black">
+                    <span className="ml-1 px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">
                       {formatCurrency(denomTotal)}
                     </span>
                   )}
@@ -3163,81 +3165,78 @@ const TellerMode = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[
                 {
-                  label: 'Opening Cash',
+                  label: 'Opening cash',
                   value: cashSummary.openingCash,
-                  color: 'amber',
+                  tone: 'bg-amber-500/10 text-amber-500',
                   icon: Wallet,
                 },
                 {
-                  label: 'Cash In',
+                  label: 'Cash in',
                   value: cashSummary.cashIn,
-                  color: 'emerald',
+                  tone: 'bg-emerald-500/10 text-emerald-500',
                   icon: ArrowDownCircle,
                 },
                 {
-                  label: 'Cash Out',
+                  label: 'Cash out',
                   value: cashSummary.cashOut,
-                  color: 'rose',
+                  tone: 'bg-rose-500/10 text-rose-500',
                   icon: ArrowUpCircle,
                 },
                 {
-                  label: 'Closing Cash',
+                  label: 'Closing cash',
                   value: cashSummary.closingCash,
-                  color: 'indigo',
+                  tone: 'bg-indigo-500/10 text-indigo-500',
                   icon: HandCoins,
                 },
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="p-5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] bg-card border border-border/50 shadow-xl shadow-black/[0.02] relative overflow-hidden"
+                  className="group relative rounded-[1.5rem] bg-white dark:bg-white/[0.02] p-5 border border-slate-100 dark:border-white/[0.06] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)]"
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12">
-                    <stat.icon size={80} />
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                      {stat.label}
+                    </p>
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full shrink-0 ${stat.tone}`}
+                    >
+                      <stat.icon size={14} />
+                    </div>
                   </div>
-                  <div
-                    className={`w-10 h-10 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-500 flex items-center justify-center mb-4 shadow-sm`}
-                  >
-                    <stat.icon size={20} />
-                  </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">
-                    {stat.label}
-                  </p>
-                  <p
-                    className={`text-xl sm:text-2xl font-black tracking-tighter ${
-                      stat.label === 'Closing Cash'
+                  <h3
+                    className={`text-xl font-extrabold tracking-tight tabular-nums leading-none ${
+                      stat.label === 'Closing cash'
                         ? stat.value >= 0
                           ? 'text-emerald-600'
                           : 'text-rose-600'
-                        : ''
+                        : 'text-slate-900 dark:text-white'
                     }`}
                   >
                     {formatCurrency(stat.value)}
-                  </p>
+                  </h3>
                 </div>
               ))}
             </div>
           )}
 
           {/* Cash Transactions Log */}
-          <div className="py-4 px-1 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] md:bg-card md:border md:border-border/50 md:shadow-sm">
+          <div className="py-4 px-1 sm:p-8 rounded-[2rem] md:bg-white md:dark:bg-white/[0.02] md:border md:border-slate-100 md:dark:border-white/[0.06]">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                  <Banknote size={18} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-widest">
-                    {isCashbookToday
-                      ? "Today's"
-                      : format(cashbookDate, 'MMM d')}{' '}
-                    Cash Transactions
-                  </h3>
-                  <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-0.5">
-                    {cashTxnsTotalEntries} cash transaction
-                    {cashTxnsTotalEntries !== 1 ? 's' : ''}
-                    {isCashbookToday ? ' today' : ''}
-                  </p>
-                </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                  Journal
+                </p>
+                <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white mt-0.5">
+                  {isCashbookToday
+                    ? "Today's"
+                    : format(cashbookDate, 'MMM d')}{' '}
+                  cash transactions
+                </h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                  {cashTxnsTotalEntries} entr
+                  {cashTxnsTotalEntries !== 1 ? 'ies' : 'y'}
+                  {isCashbookToday ? ' today' : ''}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -3246,7 +3245,7 @@ const TellerMode = () => {
                   onClick={handleExportCashbookPDF}
                   isLoading={isExportingCashbook}
                   disabled={cashTxns.length === 0}
-                  className="rounded-[1rem] gap-2 text-[10px] font-black uppercase tracking-widest border-border/50 hover:bg-primary hover:text-white transition-all h-9 px-4"
+                  className="rounded-full gap-2 text-[10px] font-bold uppercase tracking-[0.18em] border-slate-200 dark:border-white/[0.08] hover:bg-primary hover:text-white hover:border-primary transition-all h-9 px-4"
                 >
                   <Download size={14} />
                   PDF
@@ -3256,9 +3255,9 @@ const TellerMode = () => {
                     fetchCashSummary(cashbookDate);
                     fetchCashTxns(cashTxnsPage, cashbookDate);
                   }}
-                  className="p-2.5 rounded-xl hover:bg-muted text-muted-foreground/50 hover:text-primary transition-all"
+                  className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-primary transition-all"
                 >
-                  <RefreshCw size={16} />
+                  <RefreshCw size={14} />
                 </button>
               </div>
             </div>
@@ -3266,13 +3265,15 @@ const TellerMode = () => {
             {cashTxnsLoading ? (
               <TellerJournalSkeleton />
             ) : cashTxns.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center gap-4 border-2 border-dashed border-border/50 rounded-[2rem]">
-                <HandCoins size={40} className="text-muted-foreground/20" />
-                <div>
-                  <h4 className="text-sm font-black uppercase tracking-widest">
-                    No Cash Transactions Yet
+              <div className="flex flex-col items-center justify-center py-16 text-center gap-3 border border-dashed border-slate-200 dark:border-white/[0.08] rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02]">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] flex items-center justify-center text-slate-300 dark:text-slate-600">
+                  <HandCoins size={18} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    No cash transactions yet
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
                     Cash transactions processed today will appear here.
                   </p>
                 </div>
@@ -3288,8 +3289,8 @@ const TellerMode = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 text-left">
-                        <th className="pb-4 pt-2 px-2">Date & Time</th>
+                      <tr className="border-b border-slate-100 dark:border-white/[0.06] text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 text-left">
+                        <th className="pb-4 pt-2 px-2">Date &amp; time</th>
                         <th className="pb-4 pt-2 px-2">Member</th>
                         <th className="pb-4 pt-2 px-2">Category</th>
                         <th className="pb-4 pt-2 px-2">Notes</th>
