@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/card';
 
 import StatsCard from '@/components/StatsCard';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -434,13 +435,13 @@ const SuperAdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
-                  Platforms
+                  Platforms owners
                 </p>
                 <CardTitle className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
-                  Recent platforms
+                  Recent platforms owners
                 </CardTitle>
                 <CardDescription className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                  Latest businesses to join the network
+                  Latest platform owners to join the network
                 </CardDescription>
               </div>
               <Link
@@ -476,9 +477,15 @@ const SuperAdminDashboard = () => {
                     className="group flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors duration-300"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-sm group-hover:scale-105 transition-transform">
-                        {user.name?.charAt(0)?.toUpperCase()}
-                      </div>
+                      <MemberAvatar
+                        name={user.businessName || user.name}
+                        profilePicture={
+                          user.businessLogo || user.profilePicture
+                        }
+                        size={40}
+                        rounded="rounded-full"
+                        className="text-sm group-hover:scale-105 transition-transform"
+                      />
                       <div className="space-y-0.5">
                         <p className="font-extrabold text-[13px] tracking-tight text-slate-900 dark:text-white capitalize">
                           {user.name}

@@ -127,7 +127,7 @@ const getAllActivityLogs = async (req, res) => {
 
     const total = await ActivityLog.countDocuments(query);
     const logs = await ActivityLog.find(query)
-      .populate('user', 'name email businessName')
+      .populate('user', 'name email businessName businessLogo profilePicture')
       .sort(sort)
       .skip(skip)
       .limit(limit);
@@ -156,7 +156,7 @@ const getUserActivityLogs = async (req, res) => {
 
     const total = await ActivityLog.countDocuments({ user: userId });
     const logs = await ActivityLog.find({ user: userId })
-      .populate('user', 'name email businessName')
+      .populate('user', 'name email businessName businessLogo profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

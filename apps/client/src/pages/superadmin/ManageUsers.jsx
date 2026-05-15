@@ -23,6 +23,7 @@ import { TablePageSkeleton } from '@/components/ui/PageSkeletons';
 import TableSkeleton from '@/components/skeletons/TableSkeleton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import SendNotificationModal from '@/components/notifications/SendNotificationModal';
 import UserCard from '@/components/UserCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -407,9 +408,17 @@ const ManageUsers = () => {
                       <div className="flex items-center gap-3">
                         <Link
                           to={`/super-admin/users/${user._id}`}
-                          className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-extrabold text-sm hover:brightness-110 transition-all capitalize shrink-0"
+                          className="inline-flex shrink-0 hover:brightness-110 transition-all"
                         >
-                          {user.name?.charAt(0)?.toUpperCase()}
+                          <MemberAvatar
+                            name={user.businessName || user.name}
+                            profilePicture={
+                              user.businessLogo || user.profilePicture
+                            }
+                            size={40}
+                            rounded="rounded-full"
+                            className="text-sm capitalize"
+                          />
                         </Link>
                         <div>
                           <Link

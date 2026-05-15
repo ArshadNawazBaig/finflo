@@ -59,7 +59,7 @@ const getDashboardStats = async (req, res) => {
 
     // Get recent users
     const recentUsers = await User.find({ role: 'admin' })
-      .select('name email businessName plan createdAt isActive')
+      .select('name email businessName businessLogo profilePicture plan createdAt isActive')
       .sort({ createdAt: -1 })
       .limit(5);
 

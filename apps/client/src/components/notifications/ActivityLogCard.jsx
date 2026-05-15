@@ -9,6 +9,7 @@ import {
   Trash2,
   Shield,
 } from 'lucide-react';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const ActivityLogCard = ({ log }) => {
   const getCategoryColor = (cat) => {
@@ -77,9 +78,13 @@ const ActivityLogCard = ({ log }) => {
 
       <div className="bg-muted/30 rounded-2xl p-3 space-y-2 mb-2">
         <div className="flex items-center gap-2 mb-2">
-          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black">
-            {log.user?.name?.charAt(0)?.toUpperCase() || 'S'}
-          </div>
+          <MemberAvatar
+            name={log.user?.name || 'S'}
+            profilePicture={log.user?.businessLogo || log.user?.profilePicture}
+            size={24}
+            rounded="rounded-full"
+            className="text-[10px]"
+          />
           <span className="text-xs font-bold text-foreground">
             {log.user?.name || 'System Auto'}
           </span>

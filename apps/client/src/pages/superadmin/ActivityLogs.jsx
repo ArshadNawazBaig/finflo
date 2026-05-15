@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ActivityLogCard from '@/components/notifications/ActivityLogCard';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -288,9 +289,15 @@ const ActivityLogs = () => {
                     <td className="px-6 py-4">
                       {log.user ? (
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[11px] font-extrabold capitalize">
-                            {log.user.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <MemberAvatar
+                            name={log.user.name || 'U'}
+                            profilePicture={
+                              log.user.businessLogo || log.user.profilePicture
+                            }
+                            size={36}
+                            rounded="rounded-full"
+                            className="text-[11px] capitalize"
+                          />
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">
                               {log.user.name}

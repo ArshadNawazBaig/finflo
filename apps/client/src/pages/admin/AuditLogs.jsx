@@ -18,6 +18,7 @@ import PageHeader from '@/components/PageHeader';
 import { RegistryPageSkeleton } from '@/components/ui/PageSkeletons';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
 import {
   Select,
@@ -260,9 +261,18 @@ const AuditLogs = () => {
               </div>
 
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[12px] font-black text-primary-foreground shadow-lg shadow-primary/20">
-                  {log.user?.name?.charAt(0)?.toUpperCase() || <Shield size={16} />}
-                </div>
+                <MemberAvatar
+                  name={log.user?.name || 'S'}
+                  profilePicture={
+                    log.user?.businessLogo || log.user?.profilePicture
+                  }
+                  size={40}
+                  rounded="rounded-full"
+                  className="text-[12px] shadow-lg shadow-primary/20"
+                  fallback={
+                    !log.user?.name ? <Shield size={16} /> : undefined
+                  }
+                />
                 <div>
                   <p className="text-xs font-black tracking-tight">
                     {log.user?.name || 'System Auto'}
@@ -362,9 +372,15 @@ const AuditLogs = () => {
                     <td className="px-8 py-5">
                       {log.user ? (
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary border border-primary/20 flex items-center justify-center text-[10px] font-black text-primary-foreground shadow-lg shadow-primary/20 capitalize">
-                            {log.user.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
+                          <MemberAvatar
+                            name={log.user.name || 'U'}
+                            profilePicture={
+                              log.user.businessLogo || log.user.profilePicture
+                            }
+                            size={32}
+                            rounded="rounded-full"
+                            className="text-[10px] capitalize shadow-lg shadow-primary/20"
+                          />
                           <div>
                             <p className="text-xs font-black tracking-tight leading-none mb-1 capitalize">
                               {log.user.name}
