@@ -20,6 +20,8 @@ import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkelet
 import CustomerProfileSkeleton from '@/components/customers/CustomerProfileSkeleton';
 import LoanDetailSkeleton from '@/components/loans/LoanDetailSkeleton';
 import SupportPageSkeleton from '@/components/support/SupportPageSkeleton';
+import BillingSkeleton from '@/components/pricing/BillingSkeleton';
+import PricingSkeleton from '@/components/pricing/PricingSkeleton';
 
 // Lazy Load Pages
 const Dashboard = withSkeleton(() => import('@/pages/admin/Dashboard'), AdminDashboardSkeleton);
@@ -33,8 +35,8 @@ const BranchDetail = withSkeleton(() => import('@/pages/admin/BranchDetail'), Pr
 const Team = withSkeleton(() => import('@/pages/admin/Team'), CardsPageSkeleton);
 const StaffProfile = withSkeleton(() => import('@/pages/admin/StaffProfile'), ProfilePageSkeleton);
 const Settings = withSkeleton(() => import('@/pages/admin/Settings'), SettingsPageSkeleton);
-const Billing = withSkeleton(() => import('@/pages/billing/Billing'), SettingsPageSkeleton);
-const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), CardsPageSkeleton);
+const Billing = withSkeleton(() => import('@/pages/billing/Billing'), BillingSkeleton);
+const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), PricingSkeleton);
 const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), MemberProfileSkeleton);
 const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), MemberGuarantorsSkeleton);
 const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), CustomerProfileSkeleton);
