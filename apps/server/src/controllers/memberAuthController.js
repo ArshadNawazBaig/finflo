@@ -1,6 +1,7 @@
 const Member = require('../models/Member');
 const { OAuth2Client } = require('google-auth-library');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
+const { mirrorRemoteImage } = require('../utils/cloudinaryHelper');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Accept tokens from both Web and Android native OAuth clients
@@ -248,11 +249,21 @@ const googleLogin = async (req, res) => {
         .json({ message: 'Account is inactive. Contact admin.' });
     }
 
-    if (!member.googleId) {
-      member.googleId = googleId;
-      member.isGoogleAuth = true;
-      if (!member.profilePicture && profilePicture) {
-        member.profilePicture = profilePicture;
+    // First-time Google link, OR existing record still hotlinked to Google's
+    // CDN — re-mirror to our own storage. Google's CDN rate-limits browser
+    // fetches (429) once the same URL is fetched too many times across the
+    // app, which breaks avatars; mirroring decouples display from their CDN.
+    const stillHotlinked =
+      typeof member.profilePicture === 'string' &&
+      /^https?:\/\/lh\d?\.googleusercontent\.com\//i.test(member.profilePicture);
+
+    if (!member.googleId || stillHotlinked) {
+      if (!member.googleId) {
+        member.googleId = googleId;
+        member.isGoogleAuth = true;
+      }
+      if ((!member.profilePicture || stillHotlinked) && profilePicture) {
+        member.profilePicture = await mirrorRemoteImage(profilePicture);
       }
       await member.save({ validateBeforeSave: false });
     }
@@ -354,6 +365,10 @@ const googleRegister = async (req, res) => {
       });
     }
 
+    // Mirror Google's CDN avatar once at signup so we don't hotlink to
+    // lh3.googleusercontent.com (which 429s under repeated browser fetches).
+    const mirroredAvatar = await mirrorRemoteImage(profilePicture);
+
     const member = await Member.create({
       user: businessOwner._id,
       name,
@@ -362,7 +377,7 @@ const googleRegister = async (req, res) => {
       cnic,
       googleId,
       isGoogleAuth: true,
-      profilePicture,
+      profilePicture: mirroredAvatar,
       approvalStatus: 'pending',
       isActive: false,
     });
@@ -385,7 +400,7 @@ const googleRegister = async (req, res) => {
           cnic,
           isMember: true,
           memberId: member._id,
-          profilePicture,
+          profilePicture: mirroredAvatar,
         });
       } else {
         await Customer.findByIdAndUpdate(customer._id, {

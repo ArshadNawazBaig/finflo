@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import EmptyState from '@/components/ui/EmptyState';
 import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import Tooltip from '@/components/ui/Tooltip';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
 
 const MemberTable = ({
@@ -109,9 +110,13 @@ const MemberTable = ({
               >
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize">
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
+                    <MemberAvatar
+                      name={member.name}
+                      profilePicture={member.profilePicture}
+                      size={36}
+                      rounded="rounded-full"
+                      className="text-sm"
+                    />
                     <Link
                       to={`/members/${member._id}`}
                       className="block hover:opacity-70 transition-opacity"

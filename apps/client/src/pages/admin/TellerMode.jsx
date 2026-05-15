@@ -71,6 +71,7 @@ import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
 import KycOcrScanner from '@/components/kyc/KycOcrScanner';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const TellerMode = () => {
   const navigate = useNavigate();
@@ -1278,9 +1279,13 @@ const TellerMode = () => {
                           onClick={() => selectMember(result.id)}
                           className="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left hover:bg-primary/5 group"
                         >
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black group-hover:bg-primary group-hover:text-white transition-colors">
-                            {result.title?.charAt(0)?.toUpperCase() || '?'}
-                          </div>
+                          <MemberAvatar
+                            name={result.title || '?'}
+                            profilePicture={result.profilePicture}
+                            size={40}
+                            rounded="rounded-xl"
+                            className="group-hover:bg-primary group-hover:text-white transition-colors"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-black capitalize truncate group-hover:text-primary transition-colors">
                               {result.title}
@@ -1329,18 +1334,12 @@ const TellerMode = () => {
                     <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          {member.profilePicture ? (
-                            <img
-                              src={member.profilePicture}
-                              alt={member.name}
-                              className="w-14 h-14 rounded-2xl object-cover ring-1 ring-slate-100 dark:ring-white/[0.06]"
-                              referrerPolicy="no-referrer"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xl">
-                              {member.name?.charAt(0)?.toUpperCase()}
-                            </div>
-                          )}
+                          <MemberAvatar
+                            name={member.name}
+                            profilePicture={member.profilePicture}
+                            size={56}
+                            className="text-xl"
+                          />
                           <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                         </div>
                         <div>
@@ -1450,9 +1449,13 @@ const TellerMode = () => {
                             onClick={() => selectMember(g._id)}
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 font-black text-[10px] shrink-0">
-                                {(g.name || '?')[0]?.toUpperCase()}
-                              </div>
+                              <MemberAvatar
+                                name={g.name || '?'}
+                                profilePicture={g.profilePicture}
+                                size={28}
+                                rounded="rounded-lg"
+                                className="bg-blue-500/10 text-blue-600 text-[10px]"
+                              />
                               <div className="min-w-0">
                                 <div className="text-xs font-black capitalize truncate group-hover:text-blue-600 transition-colors">
                                   {g.name || 'Unknown'}
@@ -1507,9 +1510,13 @@ const TellerMode = () => {
                             className="flex items-center justify-between p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 hover:border-purple-500/30 transition-all"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 font-black text-[10px] shrink-0">
-                                {(g.customerName || '?')[0]?.toUpperCase()}
-                              </div>
+                              <MemberAvatar
+                                name={g.customerName || '?'}
+                                profilePicture={g.customerProfilePicture}
+                                size={28}
+                                rounded="rounded-lg"
+                                className="bg-purple-500/10 text-purple-600 text-[10px]"
+                              />
                               <div className="min-w-0">
                                 <div className="text-xs font-black capitalize truncate">
                                   {g.customerName}
@@ -3329,9 +3336,13 @@ const TellerMode = () => {
                               <div className="flex items-center gap-2">
                                 {txn.member ? (
                                   <>
-                                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
-                                      {txn.member.name?.charAt(0).toUpperCase()}
-                                    </div>
+                                    <MemberAvatar
+                                      name={txn.member.name}
+                                      profilePicture={txn.member.profilePicture}
+                                      size={28}
+                                      rounded="rounded-lg"
+                                      className="text-[10px]"
+                                    />
                                     <p className="text-sm font-black capitalize truncate max-w-[120px]">
                                       {txn.member.name}
                                     </p>

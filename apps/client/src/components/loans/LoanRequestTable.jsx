@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 
 import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const grantorPillClasses = (status) => {
   if (status === 'approved')
@@ -146,11 +147,13 @@ const LoanRequestTable = ({
                     }
                     className="flex items-center gap-3 group/link hover:opacity-80 transition-opacity"
                   >
-                    <div className="h-9 w-9 min-w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize group-hover/link:bg-primary/20 transition-colors">
-                      {request.customer?.name
-                        ? request.customer.name.charAt(0).toUpperCase()
-                        : '?'}
-                    </div>
+                    <MemberAvatar
+                      name={request.customer?.name || '?'}
+                      profilePicture={request.customer?.profilePicture}
+                      size={36}
+                      rounded="rounded-full"
+                      className="text-sm capitalize group-hover/link:bg-primary/20 transition-colors"
+                    />
                     <div className="font-semibold text-sm group-hover/link:text-primary transition-colors">
                       {request.customer?.name
                         ? capitalize(request.customer.name)

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import api from '@/lib/axios';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -146,9 +147,12 @@ const MemberGuarantors = () => {
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 font-black text-lg group-hover:bg-blue-500 group-hover:text-white transition-all shadow-sm">
-                            {(g.name || '?')[0]?.toUpperCase()}
-                          </div>
+                          <MemberAvatar
+                            name={g.name || '?'}
+                            profilePicture={g.profilePicture}
+                            size={48}
+                            className="bg-blue-500/10 text-blue-600 text-lg group-hover:bg-blue-500 group-hover:text-white transition-all shadow-sm"
+                          />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
                               {g.name || 'Unknown'}
@@ -247,9 +251,12 @@ const MemberGuarantors = () => {
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-600 font-black text-lg group-hover:bg-purple-500 group-hover:text-white transition-all shadow-sm">
-                            {(g.customerName || '?')[0]?.toUpperCase()}
-                          </div>
+                          <MemberAvatar
+                            name={g.customerName || '?'}
+                            profilePicture={g.customerProfilePicture}
+                            size={48}
+                            className="bg-purple-500/10 text-purple-600 text-lg group-hover:bg-purple-500 group-hover:text-white transition-all shadow-sm"
+                          />
                           <div>
                             <h3 className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
                               {g.customerName}

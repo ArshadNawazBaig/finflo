@@ -142,7 +142,7 @@ const getAdminCalendarEvents = async (req, res) => {
     // 1. All active loan EMIs
     const activeLoans = await Loan.find(loanQuery)
       .select('principal emi duration startDate status customer')
-      .populate('customer', 'name')
+      .populate('customer', 'name profilePicture')
       .limit(200);
 
     for (const loan of activeLoans) {
@@ -175,7 +175,7 @@ const getAdminCalendarEvents = async (req, res) => {
 
     const scheduledPayments = await ScheduledPayment.find(spQuery)
       .select('type amount nextExecutionDate member')
-      .populate('member', 'name')
+      .populate('member', 'name profilePicture')
       .limit(200);
 
     for (const sp of scheduledPayments) {

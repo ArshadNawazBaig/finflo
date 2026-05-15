@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import Pagination from '../ui/Pagination';
 import Tooltip from '@/components/ui/Tooltip';
 import EmptyState from '@/components/ui/EmptyState';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import { capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -90,9 +91,15 @@ const CustomerTable = ({
                   <div className="flex items-center gap-3">
                     <Link
                       to={`/customers/${customer._id}`}
-                      className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-sm capitalize"
+                      className="inline-flex hover:scale-105 active:scale-95 transition-all"
                     >
-                      {customer.name.charAt(0).toUpperCase()}
+                      <MemberAvatar
+                        name={customer.name}
+                        profilePicture={customer.profilePicture}
+                        size={36}
+                        rounded="rounded-full"
+                        className="text-sm shadow-sm capitalize"
+                      />
                     </Link>
                     <div className="flex flex-col">
                       <Link

@@ -85,9 +85,45 @@ const uploadSignature = async (signatureData, folder = 'signatures') => {
   });
 };
 
+/**
+ * Mirror a remote image (typically a Google `lh3.googleusercontent.com`
+ * profile picture) into our Cloudinary account and return the new permanent
+ * URL. Cloudinary supports fetching remote URLs directly on upload, so we
+ * just hand it the source URL.
+ *
+ * Why this exists: Google's CDN rate-limits browser fetches (429), so if you
+ * have many Google-authenticated members on one page their avatars start
+ * failing. Mirroring on first login decouples display from Google's CDN.
+ *
+ * Returns the new Cloudinary URL on success; falls back to the original URL
+ * on any failure so login is never blocked.
+ *
+ * @param {string} url    Remote source URL
+ * @param {string} folder Cloudinary folder
+ * @returns {Promise<string|null>}
+ */
+const mirrorRemoteImage = async (url, folder = 'member_profiles') => {
+  if (!url) return null;
+  try {
+    const result = await cloudinary.uploader.upload(url, {
+      folder,
+      resource_type: 'image',
+      // 256x256 face-cropped thumb is plenty for avatars and bounds storage.
+      transformation: [
+        { width: 256, height: 256, crop: 'fill', gravity: 'face' },
+      ],
+    });
+    return result.secure_url || result.url || url;
+  } catch (err) {
+    console.error('[cloudinary] mirrorRemoteImage failed:', err?.message || err);
+    return url; // fall back to the original URL so login still completes
+  }
+};
+
 module.exports = {
   extractPublicId,
   deleteCloudinaryFile,
   deleteCloudinaryFileByUrl,
   uploadSignature,
+  mirrorRemoteImage,
 };

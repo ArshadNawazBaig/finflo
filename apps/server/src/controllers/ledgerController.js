@@ -97,8 +97,8 @@ const getLedger = async (req, res) => {
 
     const totalEntries = await FinancialTransaction.countDocuments(query);
     const transactions = await FinancialTransaction.find(query)
-      .populate('customer', 'name email')
-      .populate('member', 'name email')
+      .populate('customer', 'name email profilePicture')
+      .populate('member', 'name email profilePicture')
       .populate('loan', 'principal totalAmount Status')
       .populate('referenceId', 'name')
       .populate('branchId', 'name')
@@ -230,8 +230,8 @@ const exportLedgerExcel = async (req, res) => {
     }
 
     const transactions = await FinancialTransaction.find(query)
-      .populate('customer', 'name email')
-      .populate('member', 'name email')
+      .populate('customer', 'name email profilePicture')
+      .populate('member', 'name email profilePicture')
       .populate('loan', 'principal totalAmount status')
       .sort({ [sortBy]: sortOrder });
 
@@ -303,8 +303,8 @@ const reverseTransaction = async (req, res) => {
 
     // 1. Find the original transaction
     const originalTx = await FinancialTransaction.findById(id)
-      .populate('customer', 'name memberId')
-      .populate('member', 'name');
+      .populate('customer', 'name memberId profilePicture')
+      .populate('member', 'name profilePicture');
 
     if (!originalTx) {
       return res.status(404).json({ message: 'Transaction not found' });

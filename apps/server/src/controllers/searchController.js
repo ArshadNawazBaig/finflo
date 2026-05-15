@@ -73,13 +73,14 @@ const globalSearch = async (req, res) => {
           ],
         })
           .limit(5)
-          .select('name email phone _id');
+          .select('name email phone profilePicture _id');
 
         members.forEach((m) =>
           results.push({
             id: m._id,
             title: m.name,
             subtitle: m.email || m.phone,
+            profilePicture: m.profilePicture,
             type: 'Member',
             url: `/members/${m._id}`,
           }),
@@ -181,7 +182,7 @@ const globalSearch = async (req, res) => {
           const allGoals = await SavingGoal.find({
             title: searchRegex,
           })
-            .populate('member', 'name')
+            .populate('member', 'name profilePicture')
             .limit(5);
 
           allGoals.forEach((g) =>
@@ -219,7 +220,7 @@ const globalSearch = async (req, res) => {
       const loans = await Loan.find({
         customer: member.customer,
       })
-        .populate('customer', 'name')
+        .populate('customer', 'name profilePicture')
         .limit(5);
 
       const filteredLoans = loans.filter(

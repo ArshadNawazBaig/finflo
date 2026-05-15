@@ -65,6 +65,7 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import TransactionTimeline from '@/components/member/TransactionTimeline';
 import AssociatedLoans from '@/components/member/AssociatedLoans';
 import TermDepositsSection from '@/components/member/TermDepositsSection';
@@ -1812,9 +1813,13 @@ const MemberProfile = () => {
                     className="flex items-center justify-between p-4 rounded-2xl border border-border/30 bg-muted/20 hover:bg-blue-500/5 hover:border-blue-500/30 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 font-black text-sm">
-                        {(g.name || '?')[0]?.toUpperCase()}
-                      </div>
+                      <MemberAvatar
+                        name={g.name || '?'}
+                        profilePicture={g.profilePicture}
+                        size={40}
+                        rounded="rounded-full"
+                        className="bg-blue-500/10 text-blue-600 text-sm"
+                      />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-blue-600 transition-colors">
                           {g.name || 'Unknown'}
@@ -1877,9 +1882,13 @@ const MemberProfile = () => {
                     className="flex items-center justify-between p-4 rounded-2xl border border-border/30 bg-muted/20 hover:bg-purple-500/5 hover:border-purple-500/30 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-600 font-black text-sm">
-                        {(g.customerName || '?')[0]?.toUpperCase()}
-                      </div>
+                      <MemberAvatar
+                        name={g.customerName || '?'}
+                        profilePicture={g.customerProfilePicture}
+                        size={40}
+                        rounded="rounded-full"
+                        className="bg-purple-500/10 text-purple-600 text-sm"
+                      />
                       <div>
                         <div className="text-sm font-black capitalize group-hover:text-purple-600 transition-colors">
                           {g.customerName}

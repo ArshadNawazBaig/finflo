@@ -362,8 +362,8 @@ const getMemberById = async (req, res) => {
             ],
           })
             .select('grantor1 grantor1Status grantor2 grantor2Status principal status')
-            .populate('grantor1', 'name cnic')
-            .populate('grantor2', 'name cnic')
+            .populate('grantor1', 'name cnic profilePicture')
+            .populate('grantor2', 'name cnic profilePicture')
             .lean()
         : [],
       // 2. Loans where this member is a grantor for someone else
@@ -385,6 +385,7 @@ const getMemberById = async (req, res) => {
           _id: loan.grantor1._id,
           name: loan.grantor1.name,
           cnic: loan.grantor1.cnic,
+          profilePicture: loan.grantor1.profilePicture,
           status: loan.grantor1Status,
           loanAmount: loan.principal,
           loanStatus: loan.status,
@@ -396,6 +397,7 @@ const getMemberById = async (req, res) => {
           _id: loan.grantor2._id,
           name: loan.grantor2.name,
           cnic: loan.grantor2.cnic,
+          profilePicture: loan.grantor2.profilePicture,
           status: loan.grantor2Status,
           loanAmount: loan.principal,
           loanStatus: loan.status,

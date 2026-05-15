@@ -19,6 +19,7 @@ import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
 import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const LoanTable = ({
   data,
@@ -107,9 +108,13 @@ const LoanTable = ({
                 >
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm capitalize">
-                        {loan.customer?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </div>
+                      <MemberAvatar
+                        name={loan.customer?.name || 'U'}
+                        profilePicture={loan.customer?.profilePicture}
+                        size={36}
+                        rounded="rounded-full"
+                        className="text-sm capitalize"
+                      />
                       <Link
                         to={`/customers/${loan.customer?._id}`}
                         className="block hover:opacity-70 transition-opacity"

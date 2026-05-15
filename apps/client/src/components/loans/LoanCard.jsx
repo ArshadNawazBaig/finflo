@@ -13,6 +13,7 @@ import Tooltip from '@/components/ui/Tooltip';
 import ApprovalActions from '@/components/loans/ApprovalActions';
 import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import { Button } from '@/components/ui/button';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
   const progress = Math.min(
@@ -24,9 +25,13 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-xl p-4 shadow-xs hover:shadow-md transition-all duration-300 group">
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-base group-hover:bg-primary/20 transition-colors">
-            {loan.customer?.name?.charAt(0)?.toUpperCase() || 'U'}
-          </div>
+          <MemberAvatar
+            name={loan.customer?.name || 'U'}
+            profilePicture={loan.customer?.profilePicture}
+            size={40}
+            rounded="rounded-xl"
+            className="text-base group-hover:bg-primary/20 transition-colors"
+          />
           <div className="flex flex-col">
             <Link
               to={`/customers/${loan.customer?._id}`}

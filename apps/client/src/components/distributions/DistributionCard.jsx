@@ -1,5 +1,6 @@
 import { Calendar, Users } from 'lucide-react';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const DistributionCard = ({ dist, innerRef }) => {
   return (
@@ -9,16 +10,18 @@ const DistributionCard = ({ dist, innerRef }) => {
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div
+          <MemberAvatar
+            name={dist.member?.name || 'M'}
+            profilePicture={dist.member?.profilePicture}
+            size={40}
+            rounded="rounded-xl"
             className={cn(
-              'min-w-10 min-h-10 rounded-xl flex items-center justify-center font-black text-xs',
+              'text-xs',
               dist.type === 'share'
                 ? 'bg-indigo-500/10 text-indigo-500'
                 : 'bg-primary/10 text-primary',
             )}
-          >
-            {dist.member?.name?.[0]?.toUpperCase() || 'M'}
-          </div>
+          />
           <div>
             <div className="text-sm font-black capitalize tracking-tight group-hover:text-primary transition-colors">
               {dist.member?.name || 'Unknown Member'}

@@ -472,8 +472,8 @@ const getBranchFinancials = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
-      .populate('customer', 'name')
-      .populate('member', 'name')
+      .populate('customer', 'name profilePicture')
+      .populate('member', 'name profilePicture')
       .populate('loan', 'status')
       .populate('referenceId', 'name');
 

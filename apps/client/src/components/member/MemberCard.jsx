@@ -9,6 +9,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MemberAvatar from '@/components/member/MemberAvatar';
 
 const MemberCard = ({
   member,
@@ -23,9 +24,12 @@ const MemberCard = ({
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:bg-primary/20 transition-colors">
-            {member.name?.charAt(0)?.toUpperCase() || 'M'}
-          </div>
+          <MemberAvatar
+            name={member.name}
+            profilePicture={member.profilePicture}
+            size={48}
+            className="group-hover:bg-primary/20 transition-colors text-lg"
+          />
           <div className="flex flex-col">
             <Link
               to={`/members/${member._id}`}

@@ -19,6 +19,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import { MemberLoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
@@ -163,9 +164,13 @@ const MemberGrantorRequests = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-sm">
-                        {loan.customer?.name?.charAt(0)?.toUpperCase() || '#'}
-                      </div>
+                      <MemberAvatar
+                        name={loan.customer?.name || '#'}
+                        profilePicture={loan.customer?.profilePicture}
+                        size={32}
+                        rounded="rounded-full"
+                        className="text-sm"
+                      />
                       <div>
                         <h3 className="text-base font-extrabold tracking-[-0.02em] capitalize text-slate-900 dark:text-white">
                           {loan.customer?.name}

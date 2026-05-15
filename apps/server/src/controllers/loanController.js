@@ -1072,9 +1072,9 @@ const getLoans = async (req, res) => {
 
     const totalEntries = await Loan.countDocuments(query);
     const loans = await Loan.find(query)
-      .populate('customer', 'name email isMember memberId')
-      .populate('grantor1', 'name')
-      .populate('grantor2', 'name')
+      .populate('customer', 'name email isMember memberId profilePicture')
+      .populate('grantor1', 'name profilePicture')
+      .populate('grantor2', 'name profilePicture')
       .populate('product', 'name')
       .skip(skip)
       .limit(limit)
@@ -1149,7 +1149,7 @@ const getMyLoans = async (req, res) => {
 const getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id)
-      .populate('customer', 'name email phone trustRating')
+      .populate('customer', 'name email phone trustRating profilePicture')
       .populate('grantor1', 'name')
       .populate('grantor2', 'name')
       .populate('product', 'name');
@@ -2050,7 +2050,7 @@ const getMemberLoanById = async (req, res) => {
     const loan = await Loan.findOne({
       _id: req.params.id,
       customer: req.member.customer,
-    }).populate('customer', 'name accountNumber email phone');
+    }).populate('customer', 'name accountNumber email phone profilePicture');
 
     if (!loan) {
       return res.status(404).json({ message: 'Loan not found' });
@@ -2156,7 +2156,7 @@ const getMemberRepayments = async (req, res) => {
       .skip(skip)
       .limit(itemsPerPage)
       .populate('loan', 'principal remainingAmount emi totalAmount')
-      .populate('customer', 'name accountNumber');
+      .populate('customer', 'name accountNumber profilePicture');
 
     const total = await Repayment.countDocuments(query);
 

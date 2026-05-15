@@ -7,6 +7,7 @@ import Pagination from '../ui/Pagination';
 import EmptyState from '@/components/ui/EmptyState';
 import Tooltip from '@/components/ui/Tooltip';
 import { generateTransactionReceipt } from '@/lib/pdfExportUtils';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import { toast } from 'sonner';
 
 const NON_REVERSIBLE = ['loan_disbursement', 'profit_distribution'];
@@ -136,23 +137,27 @@ const TransactionTable = ({
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div
+                      <MemberAvatar
+                        name={
+                          transaction.customer?.name ||
+                          transaction.member?.name ||
+                          (transaction.category === 'salary' ? 'B' : 'U')
+                        }
+                        profilePicture={
+                          transaction.customer?.profilePicture ||
+                          transaction.member?.profilePicture
+                        }
+                        size={36}
+                        rounded="rounded-full"
                         className={cn(
-                          'h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm capitalize',
+                          'text-sm capitalize',
                           transaction.customer
                             ? 'bg-primary/10 text-primary'
                             : transaction.category === 'salary'
                               ? 'bg-orange-500/10 text-orange-600'
                               : 'bg-blue-500/10 text-blue-500',
                         )}
-                      >
-                        {(
-                          transaction.customer?.name ||
-                          transaction.member?.name ||
-                          (transaction.category === 'salary' && 'B') ||
-                          'U'
-                        ).charAt(0).toUpperCase()}
-                      </div>
+                      />
                       <div className="flex flex-col">
                         <div className="font-semibold text-sm text-nowrap truncate max-w-[150px]">
                           {capitalize(

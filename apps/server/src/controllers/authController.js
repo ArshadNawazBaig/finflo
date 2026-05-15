@@ -28,7 +28,7 @@ const {
   welcomeBusinessEmail,
   superAdminNewRegistrationEmail,
 } = require('../utils/emailTemplates');
-const { deleteCloudinaryFileByUrl } = require('../utils/cloudinaryHelper');
+const { deleteCloudinaryFileByUrl, mirrorRemoteImage } = require('../utils/cloudinaryHelper');
 const { validatePassword } = require('../utils/validation');
 const { getFriendlyErrorMessage } = require('../utils/errorHandler');
 const { authenticator } = require('otplib');
@@ -1576,9 +1576,15 @@ const googleLogin = async (req, res) => {
       user.isGoogleAuth = true;
     }
 
-    // Auto-update profile picture if none exists
-    if (!user.profilePicture && payload.picture) {
-      user.profilePicture = payload.picture;
+    // Auto-update profile picture if none exists. Mirror Google's CDN image
+    // to our Cloudinary on first link so subsequent renders don't hammer
+    // lh3.googleusercontent.com (which 429s under repeated browser fetches).
+    // Also re-mirror legacy records that still hotlink directly to Google.
+    const stillHotlinked =
+      typeof user.profilePicture === 'string' &&
+      /^https?:\/\/lh\d?\.googleusercontent\.com\//i.test(user.profilePicture);
+    if ((!user.profilePicture || stillHotlinked) && payload.picture) {
+      user.profilePicture = await mirrorRemoteImage(payload.picture);
     }
 
     await user.save();
@@ -1675,6 +1681,11 @@ const googleRegister = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Mirror Google's CDN avatar to our Cloudinary once at signup so
+    // subsequent renders never hotlink lh3.googleusercontent.com (which
+    // rate-limits browser fetches with 429).
+    const mirroredAvatar = picture ? await mirrorRemoteImage(picture) : '';
+
     // SECURITY: Never auto-promote to super_admin based on email match.
     // Super admins are provisioned out-of-band only.
     const user = await User.create({
@@ -1682,7 +1693,7 @@ const googleRegister = async (req, res) => {
       email: lowercaseEmail,
       googleId,
       isGoogleAuth: true,
-      profilePicture: picture || '',
+      profilePicture: mirroredAvatar,
       role: 'admin',
       isVerified: true, // Auto-verify since Google verified it
     });

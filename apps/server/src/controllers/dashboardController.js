@@ -414,7 +414,7 @@ const getDashboardStats = async (req, res) => {
     const recentTransactions = await Repayment.find(query)
       .sort({ date: -1 })
       .limit(5)
-      .populate('customer', 'name');
+      .populate('customer', 'name profilePicture');
 
     // 6. Monthly History Chart Data (Aggregated)
     const historyRangeStart = startDate
@@ -713,14 +713,14 @@ const downloadStatement = async (req, res) => {
       query.branchId = branchScope;
     }
     const repayments = await Repayment.find(query)
-      .populate('customer', 'name')
+      .populate('customer', 'name profilePicture')
       .populate('loan', 'loanId principal totalAmount')
       .sort({ date: -1 });
 
     // Fetch Deposits
     const depositQuery = { ...query, category: 'investment' };
     const deposits = await FinancialTransaction.find(depositQuery)
-      .populate('member', 'name')
+      .populate('member', 'name profilePicture')
       .sort({ date: -1 });
 
     const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
