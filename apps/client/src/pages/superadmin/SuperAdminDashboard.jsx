@@ -184,7 +184,7 @@ const SuperAdminDashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="space-y-2 max-w-2xl">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
             Super admin
@@ -193,7 +193,8 @@ const SuperAdminDashboard = () => {
             Platform <span className="text-primary">overview</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-            Welcome back, Super Admin. Here&apos;s a real-time summary of the platform.
+            Welcome back, Super Admin. Here&apos;s a real-time summary of the
+            platform.
           </p>
         </div>
       </div>
@@ -538,7 +539,8 @@ const SuperAdminDashboard = () => {
                     Signups this week
                   </span>
                   <span className="text-emerald-500 flex items-center gap-1 text-[11px] font-extrabold tabular-nums">
-                    <ArrowUpRight size={12} strokeWidth={3} /> {stats?.recentSignups || 0}
+                    <ArrowUpRight size={12} strokeWidth={3} />{' '}
+                    {stats?.recentSignups || 0}
                   </span>
                 </div>
                 <div className="h-1.5 bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden">

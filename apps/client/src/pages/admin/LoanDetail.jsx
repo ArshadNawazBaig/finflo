@@ -36,7 +36,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Tooltip from '@/components/ui/Tooltip';
 import PageHeader from '@/components/PageHeader';
-import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
+import LoanDetailSkeleton from '@/components/loans/LoanDetailSkeleton';
 import StatsCard from '@/components/StatsCard';
 import DocumentManager from '@/components/customers/DocumentManager';
 import InfiniteLoader from '@/components/InfiniteLoader';
@@ -364,7 +364,7 @@ const LoanDetail = () => {
     fetchData();
   }, [fetchData]);
 
-  if (loading) return <ProfilePageSkeleton />;
+  if (loading) return <LoanDetailSkeleton />;
   if (!loan) return null;
 
   const netBalance = member ? member.currentBalance || 0 : 0;

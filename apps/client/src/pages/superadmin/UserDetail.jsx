@@ -86,7 +86,7 @@ const UserDetail = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="flex items-start gap-4 max-w-3xl">
           <button
             onClick={() => navigate(-1)}

@@ -4,7 +4,6 @@ import Pagination from '@/components/ui/Pagination';
 import {
   Wallet,
   TrendingUp,
-  ArrowUpCircle,
   ArrowDownCircle,
   DollarSign,
   Pencil,
@@ -67,7 +66,6 @@ import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
-import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
 import TransactionTimeline from '@/components/member/TransactionTimeline';
 import AssociatedLoans from '@/components/member/AssociatedLoans';
 import TermDepositsSection from '@/components/member/TermDepositsSection';
@@ -93,15 +91,7 @@ const MemberProfile = () => {
     from: subMonths(new Date(), 1),
     to: new Date(),
   });
-  const [showInvestmentForm, setShowInvestmentForm] = useState(false);
   const [showProfitRateForm, setShowProfitRateForm] = useState(false);
-  const [investmentType, setInvestmentType] = useState('deposit');
-  const [investAccountType, setInvestAccountType] = useState('current');
-  const [investPaymentMethod, setInvestPaymentMethod] = useState('cash'); // 'cash' | 'online'
-  const [investCheckbookId, setInvestCheckbookId] = useState(''); // selected checkbook for via-checkbook transactions
-  const [investCheckNo, setInvestCheckNo] = useState(''); // check leaf number
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
   const [newProfitRate, setNewProfitRate] = useState('');
   const [showTransferForm, setShowTransferForm] = useState(false);
   const [recipientIdentifier, setRecipientIdentifier] = useState('');
@@ -161,19 +151,12 @@ const MemberProfile = () => {
   const [shareTotalPages, setShareTotalPages] = useState(1);
   const [shareTotal, setShareTotal] = useState(0);
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
-  const [isSubmittingInvestment, setIsSubmittingInvestment] = useState(false);
   const [isSubmittingProfitRate, setIsSubmittingProfitRate] = useState(false);
   const [isUpdatingMember, setIsUpdatingMember] = useState(false);
   const [shareProfitRate, setShareProfitRate] = useState('');
   const [isFetchingMoreShares, setIsFetchingMoreShares] = useState(false);
   const [shareLimit, setShareLimit] = useState(5);
-  const [applyDeduction, setApplyDeduction] = useState(true);
   const [deductFromBalance, setDeductFromBalance] = useState(false);
-  const [repaymentType, setRepaymentType] = useState('installment');
-  const [lastActiveLoanPaymentDate, setLastActiveLoanPaymentDate] =
-    useState(null);
-  const [isFetchingActiveLoanPayment, setIsFetchingActiveLoanPayment] =
-    useState(false);
 
   // Checkbook state
   const [checkbooks, setCheckbooks] = useState([]);
@@ -203,145 +186,7 @@ const MemberProfile = () => {
 
   // Transaction Confirm Modal State
   const [showTxnConfirm, setShowTxnConfirm] = useState(false);
-  const [pendingTxnType, setPendingTxnType] = useState(null); // 'investment' | 'transfer'
-
-  const getSettlementDetails = (loan) => {
-    if (!loan)
-      return { amount: 0, monthsElapsed: 0, interest: 0, isEarly: false };
-    const start = new Date(loan.startDate);
-    const now = new Date();
-
-    // In-sync with backend precise date calculation
-    let fullMonths =
-      now.getFullYear() * 12 +
-      now.getMonth() -
-      (start.getFullYear() * 12 + start.getMonth());
-    if (now.getDate() < start.getDate()) {
-      fullMonths -= 1;
-    }
-    fullMonths = Math.max(0, fullMonths);
-
-    const lastAnniversary = new Date(start);
-    lastAnniversary.setMonth(lastAnniversary.getMonth() + fullMonths);
-    const diffTime = Math.abs(now - lastAnniversary);
-    const daysIntoMonth = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (fullMonths >= loan.duration) {
-      return {
-        amount: Math.round(loan.remainingAmount),
-        monthsElapsed: loan.duration,
-        interest: Math.round(loan.totalAmount - loan.principal),
-        isEarly: false,
-      };
-    }
-
-    let adjustedInterest = 0;
-    let adjustedPrincipal = loan.principal;
-
-    if (loan.interestType === 'simple' || !loan.interestType) {
-      const monthlyInterest = (loan.principal * loan.rate) / 1200;
-      const dailyInterest = monthlyInterest / 30;
-      const calculatedInterest =
-        monthlyInterest * fullMonths + dailyInterest * daysIntoMonth;
-      adjustedInterest = Math.round(
-        Math.max(monthlyInterest, calculatedInterest),
-      );
-    } else if (loan.interestType === 'compound') {
-      // Compound: remainingAmount already includes compounded interest
-      return {
-        amount: Math.round(loan.remainingAmount),
-        adjustedPrincipal: Math.round(loan.remainingAmount),
-        adjustedInterest: Math.round(loan.compoundedAmount || 0),
-        monthsElapsed: fullMonths,
-        daysIntoMonth,
-        isEarly: true,
-      };
-    } else if (loan.interestType === 'emi') {
-      const monthlyRate = loan.rate / 12 / 100;
-      const r = monthlyRate;
-      const P = loan.principal;
-      const E = loan.emi;
-      const m = fullMonths;
-
-      // Principal balance after m months
-      adjustedPrincipal =
-        P * Math.pow(1 + r, m) - (E * (Math.pow(1 + r, m) - 1)) / r;
-      adjustedPrincipal = Math.max(0, Math.round(adjustedPrincipal));
-
-      const dailyInterest = (adjustedPrincipal * monthlyRate) / 30;
-      adjustedInterest = Math.round(dailyInterest * daysIntoMonth);
-    }
-
-    const adjustedTotal = adjustedPrincipal + adjustedInterest;
-    return {
-      amount: Math.round(Math.max(0, adjustedTotal - loan.paidAmount)),
-      adjustedPrincipal: Math.round(adjustedPrincipal),
-      adjustedInterest: Math.round(adjustedInterest),
-      monthsElapsed: fullMonths,
-      daysIntoMonth,
-      isEarly: true,
-    };
-  };
-
-  const activeLoan = loans.find((l) => l.status === 'active');
-  const settlementDetails = activeLoan
-    ? getSettlementDetails(activeLoan)
-    : null;
-
-  // Fetch last repayment date for active loan to show days-based installment
-  useEffect(() => {
-    if (!activeLoan?._id) return;
-    setIsFetchingActiveLoanPayment(true);
-    api
-      .get(
-        `/repayments?loanId=${activeLoan._id}&limit=1&sortBy=date&sortOrder=desc`,
-      )
-      .then(({ data }) => {
-        const reps = data?.data || [];
-        if (reps.length > 0) {
-          setLastActiveLoanPaymentDate(new Date(reps[0].date));
-        } else {
-          setLastActiveLoanPaymentDate(new Date(activeLoan.startDate));
-        }
-      })
-      .catch(() => setLastActiveLoanPaymentDate(new Date(activeLoan.startDate)))
-      .finally(() => setIsFetchingActiveLoanPayment(false));
-  }, [activeLoan?._id]);
-
-  // Daily-adjusted installment details based on days since last payment
-  const getAutoDeductionDailyDetails = () => {
-    if (!activeLoan)
-      return { daysPassed: 0, interestForDays: 0, adjustedAmount: 0 };
-    const refDate = lastActiveLoanPaymentDate || new Date(activeLoan.startDate);
-    const now = new Date();
-    let diff = now.getTime() - refDate.getTime();
-    if (diff < 0) diff = 0;
-    const daysPassed = Math.floor(diff / (1000 * 60 * 60 * 24));
-    let interestForDays, principalPerInstallment;
-
-    if (activeLoan.interestType === 'compound') {
-      // Compound: interest on remaining balance (which grows on missed payments)
-      const monthlyInterest =
-        (activeLoan.remainingAmount * activeLoan.rate) / 1200;
-      const dailyInterest = monthlyInterest / 30;
-      interestForDays = Math.round(dailyInterest * daysPassed);
-      principalPerInstallment = Math.round(
-        activeLoan.principal / (activeLoan.duration || 1),
-      );
-    } else {
-      // Simple interest (default)
-      const monthlyInterest = (activeLoan.principal * activeLoan.rate) / 1200;
-      const dailyInterest = monthlyInterest / 30;
-      interestForDays = Math.round(dailyInterest * daysPassed);
-      principalPerInstallment = Math.round(
-        activeLoan.principal / (activeLoan.duration || 1),
-      );
-    }
-
-    const adjustedAmount = principalPerInstallment + interestForDays;
-    return { daysPassed, interestForDays, adjustedAmount };
-  };
-  const autoDeductionDaily = getAutoDeductionDailyDetails();
+  const [pendingTxnType, setPendingTxnType] = useState(null); // 'transfer'
 
   const investmentObserverTarget = useRef(null);
   const loanObserverTarget = useRef(null);
@@ -665,54 +510,6 @@ const MemberProfile = () => {
     const timeoutId = setTimeout(lookup, 400);
     return () => clearTimeout(timeoutId);
   }, [recipientIdentifier, id, transferRecipientName]);
-
-  const handleInvestmentSubmit = async (e) => {
-    e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0)
-      return toast.error('Enter a valid amount');
-    setPendingTxnType('investment');
-    setShowTxnConfirm(true);
-  };
-
-  const executeInvestment = async () => {
-    setShowTxnConfirm(false);
-    setPendingTxnType(null);
-    try {
-      setIsSubmittingInvestment(true);
-      const endpoint = investmentType === 'deposit' ? 'invest' : 'withdraw';
-      const isSaving = investAccountType === 'saving';
-      const isWithdrawal = investmentType === 'withdrawal';
-      await api.post(`/members/${id}/${endpoint}`, {
-        amount: parseFloat(amount),
-        notes: description || undefined,
-        accountType: investAccountType,
-        paymentMethod: investPaymentMethod,
-        applyDeduction:
-          investmentType === 'deposit' && !isSaving ? applyDeduction : false,
-        repaymentType:
-          investmentType === 'deposit' && !isSaving ? repaymentType : undefined,
-        checkbookId:
-          isWithdrawal && investCheckbookId ? investCheckbookId : undefined,
-        checkNo: isWithdrawal && investCheckNo ? investCheckNo : undefined,
-      });
-      const accountLabel = isSaving ? 'Saving' : 'Current';
-      toast.success(
-        `${accountLabel} account ${investmentType === 'deposit' ? 'deposit' : 'withdrawal'} processed successfully`,
-      );
-      setAmount('');
-      setDescription('');
-      setInvestPaymentMethod('cash');
-      setInvestCheckbookId('');
-      setInvestCheckNo('');
-      setShowInvestmentForm(false);
-      fetchMemberData();
-      if (investCheckbookId) fetchCheckbooks(1); // Refresh checkbook data
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Operation failed');
-    } finally {
-      setIsSubmittingInvestment(false);
-    }
-  };
 
   const handleProfitRateUpdate = async (e) => {
     e.preventDefault();
@@ -1114,7 +911,7 @@ const MemberProfile = () => {
     }
   };
 
-  if (loading) return <ProfilePageSkeleton />;
+  if (loading) return <MemberProfileSkeleton />;
   if (!member) return null;
 
   return (
@@ -1224,18 +1021,6 @@ const MemberProfile = () => {
 
           <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-end">
             <Button
-              onClick={() => {
-                setInvestmentType('deposit');
-                setShowInvestmentForm(true);
-              }}
-              variant="outline"
-              className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/20 hover:bg-primary/5 text-primary flex items-center justify-center"
-            >
-              <ArrowUpCircle className="w-4 h-4" />
-              Balance
-            </Button>
-
-            <Button
               isLoading={isExportingModal}
               onClick={() => {
                 setReportDateRange({
@@ -1301,8 +1086,7 @@ const MemberProfile = () => {
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
           {/* Forms (Injected) */}
-          {(showInvestmentForm ||
-            showProfitRateForm ||
+          {(showProfitRateForm ||
             showTransferForm ||
             showMemberForm ||
             showCheckbookForm) && (
@@ -1316,10 +1100,8 @@ const MemberProfile = () => {
                       <Zap size={20} />
                     ) : showTransferForm ? (
                       <Send size={20} />
-                    ) : showCheckbookForm ? (
-                      <BookOpen size={20} />
                     ) : (
-                      <ArrowUpCircle size={20} />
+                      <BookOpen size={20} />
                     )}
                   </div>
                   {showMemberForm
@@ -1328,13 +1110,10 @@ const MemberProfile = () => {
                       ? 'Performance Configuration'
                       : showTransferForm
                         ? 'P2P Fund Transfer'
-                        : showCheckbookForm
-                          ? 'Issue Checkbook'
-                          : 'Fund Movement'}
+                        : 'Issue Checkbook'}
                 </h3>
                 <button
                   onClick={() => {
-                    setShowInvestmentForm(false);
                     setShowProfitRateForm(false);
                     setShowTransferForm(false);
                     setShowMemberForm(false);
@@ -1876,7 +1655,7 @@ const MemberProfile = () => {
                     </Button>
                   </div>
                 </form>
-              ) : showCheckbookForm ? (
+              ) : (
                 <form onSubmit={handleIssueCheckbook} className="space-y-6">
                   <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
                     <div className="flex items-center gap-2 text-indigo-600 mb-1">
@@ -1953,410 +1732,6 @@ const MemberProfile = () => {
                         <BookOpen size={16} className="mr-2" />
                       )}
                       Issue Checkbook
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <form onSubmit={handleInvestmentSubmit} className="space-y-6">
-                  <div className="flex flex-wrap gap-4">
-                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-                      <button
-                        type="button"
-                        onClick={() => setInvestmentType('deposit')}
-                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          investmentType === 'deposit'
-                            ? 'bg-emerald-500 text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Deposit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInvestmentType('withdrawal')}
-                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          investmentType === 'withdrawal'
-                            ? 'bg-indigo-500 text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Withdraw
-                      </button>
-                    </div>
-                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-                      <button
-                        type="button"
-                        onClick={() => setInvestAccountType('current')}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          investAccountType === 'current'
-                            ? 'bg-primary text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Current
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInvestAccountType('saving')}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                          investAccountType === 'saving'
-                            ? 'bg-teal-500 text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Saving
-                      </button>
-                    </div>
-                    <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl w-fit">
-                      <button
-                        type="button"
-                        onClick={() => setInvestPaymentMethod('cash')}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${
-                          investPaymentMethod === 'cash'
-                            ? 'bg-emerald-500 text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <Wallet size={12} />
-                        Cash
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInvestPaymentMethod('online')}
-                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 ${
-                          investPaymentMethod === 'online'
-                            ? 'bg-blue-500 text-white shadow-lg'
-                            : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <CreditCard size={12} />
-                        Online
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Via Checkbook Toggle & Selector (withdrawal only) */}
-                  {investmentType === 'withdrawal' &&
-                    checkbooks.filter(
-                      (cb) =>
-                        cb.status === 'active' &&
-                        cb.usedLeaves < cb.numberOfLeaves,
-                    ).length > 0 && (
-                      <div className="p-4 rounded-[1.5rem] bg-amber-500/5 border border-amber-500/10 space-y-3 animate-in slide-in-from-top-4 duration-300">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                              <BookOpen size={18} />
-                            </div>
-                            <div>
-                              <p className="text-sm font-black tracking-tight">
-                                Via Checkbook
-                              </p>
-                              <p className="text-[10px] text-muted-foreground font-medium">
-                                Withdraw against a checkbook leaf
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (investCheckbookId) {
-                                setInvestCheckbookId('');
-                              } else {
-                                const active = checkbooks.find(
-                                  (cb) =>
-                                    cb.status === 'active' &&
-                                    cb.usedLeaves < cb.numberOfLeaves,
-                                );
-                                if (active) setInvestCheckbookId(active._id);
-                              }
-                            }}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${investCheckbookId ? 'bg-amber-500' : 'bg-muted'}`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${investCheckbookId ? 'translate-x-6' : 'translate-x-1'}`}
-                            />
-                          </button>
-                        </div>
-
-                        {investCheckbookId && (
-                          <div className="space-y-2 pt-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                              Select Checkbook
-                            </label>
-                            <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar">
-                              {checkbooks
-                                .filter(
-                                  (cb) =>
-                                    cb.status === 'active' &&
-                                    cb.usedLeaves < cb.numberOfLeaves,
-                                )
-                                .map((cb) => (
-                                  <button
-                                    key={cb._id}
-                                    type="button"
-                                    onClick={() => setInvestCheckbookId(cb._id)}
-                                    className={`w-full p-3 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
-                                      investCheckbookId === cb._id
-                                        ? 'border-amber-500 bg-amber-500/5'
-                                        : 'border-border/30 hover:border-amber-500/30'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black ${
-                                          investCheckbookId === cb._id
-                                            ? 'bg-amber-500 text-white'
-                                            : 'bg-amber-500/10 text-amber-600'
-                                        }`}
-                                      >
-                                        <BookOpen size={14} />
-                                      </div>
-                                      <div>
-                                        <p className="text-xs font-black group-hover:text-amber-600 transition-colors">
-                                          {cb.checkbookNumber}
-                                        </p>
-                                        <p className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
-                                          {cb.numberOfLeaves -
-                                            (cb.usedLeaves || 0)}{' '}
-                                          leaves left • {cb.numberOfLeaves}{' '}
-                                          total
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {investCheckbookId === cb._id && (
-                                      <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
-                                        <CheckCircle2 size={12} />
-                                      </div>
-                                    )}
-                                  </button>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {investCheckbookId && (
-                          <div className="space-y-2 pt-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                              Check No
-                            </label>
-                            <input
-                              type="text"
-                              value={investCheckNo}
-                              onChange={(e) => setInvestCheckNo(e.target.value)}
-                              placeholder="e.g. 001, 025"
-                              className="w-full px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-sm font-black focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all placeholder:font-medium placeholder:text-muted-foreground/40"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Transaction Amount (PKR)
-                      </label>
-                      <input
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        required
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-black focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
-                        Purpose / Note
-                      </label>
-                      <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="e.g. Quarterly Rebalancing"
-                        className="w-full px-5 py-4 rounded-2xl border border-border/50 bg-muted/10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {investmentType === 'deposit' &&
-                    investAccountType === 'current' &&
-                    loans.some((l) => l.status === 'active') && (
-                      <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4 animate-in slide-in-from-top-4 duration-500">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
-                              <BadgeDollarSign size={20} />
-                            </div>
-                            <div>
-                              <p className="text-sm font-black tracking-tight">
-                                Loan Auto-Deduction
-                              </p>
-                              <p className="text-[10px] text-muted-foreground font-medium">
-                                Automatically use part of this deposit to repay
-                                active loan.
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setApplyDeduction(!applyDeduction)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${applyDeduction ? 'bg-indigo-600' : 'bg-muted'}`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${applyDeduction ? 'translate-x-6' : 'translate-x-1'}`}
-                            />
-                          </button>
-                        </div>
-
-                        {applyDeduction && activeLoan && (
-                          <div className="space-y-4 pt-2">
-                            {/* Loan Quick Info */}
-                            <div className="grid grid-cols-2 gap-4 px-2">
-                              <div className="space-y-1">
-                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
-                                  Current Remaining
-                                </p>
-                                <p className="text-xs font-black text-indigo-700">
-                                  {formatCurrency(activeLoan.remainingAmount)}
-                                </p>
-                              </div>
-                              <div className="space-y-1 text-right">
-                                <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground opacity-60">
-                                  Loan Type
-                                </p>
-                                <p className="text-[10px] font-black uppercase text-indigo-700">
-                                  {activeLoan.interestType || 'Simple'}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <button
-                                type="button"
-                                onClick={() => setRepaymentType('installment')}
-                                className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${repaymentType === 'installment' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
-                              >
-                                <div className="relative z-10">
-                                  <div className="flex items-center gap-1.5 mb-0.5">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">
-                                      EMI
-                                    </p>
-                                    {!isFetchingActiveLoanPayment && (
-                                      <span className="text-[8px] font-black uppercase bg-indigo-500/20 text-indigo-600 px-1 py-0.5 rounded-full">
-                                        {autoDeductionDaily.daysPassed}d
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] font-black mt-0.5">
-                                    {isFetchingActiveLoanPayment
-                                      ? '...'
-                                      : formatCurrency(
-                                          autoDeductionDaily.adjustedAmount,
-                                        )}
-                                  </p>
-                                  {!isFetchingActiveLoanPayment && (
-                                    <p className="text-[8px] font-medium text-indigo-600/70 mt-0.5">
-                                      incl.{' '}
-                                      {formatCurrency(
-                                        autoDeductionDaily.interestForDays,
-                                      )}{' '}
-                                      interest
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                  <Clock size={24} />
-                                </div>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => setRepaymentType('settlement')}
-                                className={`p-3 rounded-xl border-2 transition-all text-left relative overflow-hidden group ${repaymentType === 'settlement' ? 'border-indigo-500 bg-indigo-500/10 text-indigo-700' : 'border-border/50 hover:bg-muted'}`}
-                              >
-                                <div className="relative z-10">
-                                  <p className="text-[10px] font-black uppercase tracking-widest">
-                                    SETTLE
-                                  </p>
-                                  <p className="text-[11px] font-black mt-0.5">
-                                    {settlementDetails
-                                      ? formatCurrency(settlementDetails.amount)
-                                      : 'Calculating...'}
-                                  </p>
-                                </div>
-                                <div className="absolute right-2 bottom-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                  <ShieldCheck size={24} />
-                                </div>
-                              </button>
-                            </div>
-
-                            {/* Impact Analysis */}
-                            {amount && (
-                              <div className="mx-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600">
-                                    Auto-Deduction Amount
-                                  </span>
-                                  <span className="text-xs font-black text-indigo-700">
-                                    {repaymentType === 'installment'
-                                      ? formatCurrency(
-                                          Math.min(
-                                            parseFloat(amount) || 0,
-                                            activeLoan.emi,
-                                          ),
-                                        )
-                                      : formatCurrency(
-                                          Math.min(
-                                            parseFloat(amount) || 0,
-                                            settlementDetails?.amount || 0,
-                                          ),
-                                        )}
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between mt-1 pt-1 border-t border-indigo-500/10">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600/60">
-                                    Member Wallet Credit
-                                  </span>
-                                  <span className="text-xs font-black text-indigo-700/60">
-                                    {formatCurrency(
-                                      Math.max(
-                                        0,
-                                        (parseFloat(amount) || 0) -
-                                          (repaymentType === 'installment'
-                                            ? Math.min(
-                                                parseFloat(amount) || 0,
-                                                activeLoan.emi,
-                                              )
-                                            : Math.min(
-                                                parseFloat(amount) || 0,
-                                                settlementDetails?.amount || 0,
-                                              )),
-                                      ),
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                  <div className="flex gap-3 justify-end">
-                    <Button
-                      type="submit"
-                      isLoading={isSubmittingInvestment}
-                      className={`w-full md:w-auto px-12 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 text-white ${
-                        investmentType === 'deposit'
-                          ? 'bg-emerald-600 shadow-xl shadow-emerald-500/20 hover:bg-emerald-700'
-                          : 'bg-indigo-600 shadow-xl shadow-indigo-500/20 hover:bg-indigo-700'
-                      }`}
-                    >
-                      Execute Funds Movement
                     </Button>
                   </div>
                 </form>
@@ -3009,66 +2384,22 @@ const MemberProfile = () => {
           setShowTxnConfirm(false);
           setPendingTxnType(null);
         }}
-        onConfirm={
-          pendingTxnType === 'investment' ? executeInvestment : executeTransfer
-        }
-        loading={
-          pendingTxnType === 'investment'
-            ? isSubmittingInvestment
-            : isTransferring
-        }
-        type={
-          pendingTxnType === 'transfer'
-            ? 'transfer'
-            : investmentType === 'deposit'
-              ? 'credit'
-              : 'debit'
-        }
-        amount={
-          parseFloat(pendingTxnType === 'transfer' ? transferAmount : amount) ||
-          0
-        }
-        details={
-          pendingTxnType === 'transfer'
-            ? [
-                { label: 'From', value: capitalize(member?.name || '') },
-                {
-                  label: 'To',
-                  value: transferRecipientName || recipientIdentifier,
-                },
-                {
-                  label: 'Account',
-                  value:
-                    transferAccountType === 'saving' ? 'Saving' : 'Current',
-                },
-              ]
-            : [
-                { label: 'Member', value: capitalize(member?.name || '') },
-                {
-                  label: 'Type',
-                  value:
-                    investmentType === 'deposit' ? 'Deposit' : 'Withdrawal',
-                },
-                {
-                  label: 'Account',
-                  value: investAccountType === 'saving' ? 'Saving' : 'Current',
-                },
-                {
-                  label: 'Method',
-                  value:
-                    investPaymentMethod === 'cash'
-                      ? 'Cash'
-                      : investPaymentMethod === 'bank'
-                        ? 'Bank'
-                        : 'Online',
-                },
-              ]
-        }
-        description={
-          pendingTxnType === 'transfer'
-            ? transferDescription
-            : description || undefined
-        }
+        onConfirm={executeTransfer}
+        loading={isTransferring}
+        type="transfer"
+        amount={parseFloat(transferAmount) || 0}
+        details={[
+          { label: 'From', value: capitalize(member?.name || '') },
+          {
+            label: 'To',
+            value: transferRecipientName || recipientIdentifier,
+          },
+          {
+            label: 'Account',
+            value: transferAccountType === 'saving' ? 'Saving' : 'Current',
+          },
+        ]}
+        description={transferDescription}
         isAdminTransaction
       />
 

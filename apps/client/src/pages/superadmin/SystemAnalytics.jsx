@@ -129,7 +129,7 @@ const SystemAnalytics = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="space-y-2 max-w-2xl">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
             Super admin

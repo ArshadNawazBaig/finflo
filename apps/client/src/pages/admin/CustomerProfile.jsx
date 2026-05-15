@@ -17,7 +17,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { ProfilePageSkeleton } from '@/components/ui/PageSkeletons';
+import CustomerProfileSkeleton from '@/components/customers/CustomerProfileSkeleton';
 import StatsCard from '@/components/StatsCard';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import AddLoanModal from '@/components/loans/AddLoanModal';
@@ -64,7 +64,7 @@ const CustomerProfile = () => {
     fetchCustomerData();
   }, [fetchCustomerData]);
 
-  if (loading) return <ProfilePageSkeleton />;
+  if (loading) return <CustomerProfileSkeleton />;
   if (!customer) return null;
 
   const totalBorrowed = loans.reduce((sum, loan) => sum + loan.totalAmount, 0);

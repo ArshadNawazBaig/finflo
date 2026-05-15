@@ -15,6 +15,9 @@ import {
   ChatSkeleton,
   RegistryPageSkeleton,
 } from '@/components/ui/PageSkeletons';
+import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
+import CustomerProfileSkeleton from '@/components/customers/CustomerProfileSkeleton';
+import LoanDetailSkeleton from '@/components/loans/LoanDetailSkeleton';
 
 // Lazy Load Pages
 const Dashboard = withSkeleton(() => import('@/pages/admin/Dashboard'), AdminDashboardSkeleton);
@@ -30,12 +33,12 @@ const StaffProfile = withSkeleton(() => import('@/pages/admin/StaffProfile'), Pr
 const Settings = withSkeleton(() => import('@/pages/admin/Settings'), SettingsPageSkeleton);
 const Billing = withSkeleton(() => import('@/pages/billing/Billing'), SettingsPageSkeleton);
 const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), CardsPageSkeleton);
-const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), ProfilePageSkeleton);
+const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), MemberProfileSkeleton);
 const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), CardsPageSkeleton);
-const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), ProfilePageSkeleton);
+const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), CustomerProfileSkeleton);
 const Support = withSkeleton(() => import('@/pages/admin/Support'), CardsPageSkeleton);
 const Notifications = withSkeleton(() => import('@/pages/admin/Notifications'), RegistryPageSkeleton);
-const LoanDetail = withSkeleton(() => import('@/pages/admin/LoanDetail'), ProfilePageSkeleton);
+const LoanDetail = withSkeleton(() => import('@/pages/admin/LoanDetail'), LoanDetailSkeleton);
 const LoanRequests = withSkeleton(() => import('@/pages/admin/LoanRequests'), TablePageSkeleton);
 const LoanProducts = withSkeleton(() => import('@/pages/admin/LoanProducts'), TablePageSkeleton);
 const DistributionHub = withSkeleton(() => import('@/pages/admin/DistributionHub'), TablePageSkeleton);

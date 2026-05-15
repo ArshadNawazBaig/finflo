@@ -60,7 +60,7 @@ const PageHeader = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        'flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative',
+        'flex flex-col md:flex-row justify-between items-start md:items-start gap-6 relative',
         isCard
           ? 'bg-white dark:bg-white/[0.02] p-5 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06]'
           : 'mb-6 sm:mb-8',

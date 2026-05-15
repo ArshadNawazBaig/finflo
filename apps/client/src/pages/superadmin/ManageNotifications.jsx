@@ -42,7 +42,11 @@ import NotificationCard from '@/components/notifications/NotificationCard';
 import InfiniteLoader from '@/components/InfiniteLoader';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAtom, useAtomValue } from 'jotai';
-import { notificationsAtom, unreadNotificationsCountAtom, userAtom } from '@/atoms';
+import {
+  notificationsAtom,
+  unreadNotificationsCountAtom,
+  userAtom,
+} from '@/atoms';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const ManageNotifications = () => {
@@ -235,7 +239,7 @@ const ManageNotifications = () => {
 
       <div className="space-y-6 relative z-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
           <div className="space-y-2 max-w-2xl">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
               Super admin
@@ -244,7 +248,8 @@ const ManageNotifications = () => {
               Notification <span className="text-primary">history</span>
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-              View all notifications sent to business owners across the platform.
+              View all notifications sent to business owners across the
+              platform.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
@@ -396,7 +401,9 @@ const ManageNotifications = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[11px] font-extrabold capitalize">
-                            {notification.recipient?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            {notification.recipient?.name
+                              ?.charAt(0)
+                              ?.toUpperCase() || 'U'}
                           </div>
                           <div>
                             <p className="font-extrabold text-[13px] capitalize tracking-tight text-slate-900 dark:text-white">

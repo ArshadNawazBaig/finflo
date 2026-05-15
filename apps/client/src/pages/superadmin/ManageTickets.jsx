@@ -26,11 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -137,7 +133,7 @@ const ManageTickets = () => {
 
   return (
     <div className="relative space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1 relative z-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1 relative z-10">
         <div className="space-y-2 max-w-2xl">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
             Super admin

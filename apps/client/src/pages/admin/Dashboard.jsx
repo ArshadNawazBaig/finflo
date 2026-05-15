@@ -295,18 +295,20 @@ const Dashboard = () => {
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* ── Page Header ──────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="space-y-2 max-w-2xl">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-            {businessName ? `${capitalize(businessName)} workspace` : 'Workspace'}
+            {businessName
+              ? `${capitalize(businessName)} workspace`
+              : 'Workspace'}
           </p>
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] text-slate-900 dark:text-white capitalize">
             Welcome back,{' '}
             <span className="text-primary">{capitalize(userName)}</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-            Here&apos;s your portfolio performance at a glance — track liquidity,
-            collections, and risk across every loan.
+            Here&apos;s your portfolio performance at a glance — track
+            liquidity, collections, and risk across every loan.
           </p>
         </div>
         {canViewReports && (
@@ -521,7 +523,11 @@ const Dashboard = () => {
                       Active loans
                     </p>
                     <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <CreditCard size={13} className="text-primary" strokeWidth={2.5} />
+                      <CreditCard
+                        size={13}
+                        className="text-primary"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   </div>
                   <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
@@ -574,7 +580,11 @@ const Dashboard = () => {
                       Total members
                     </p>
                     <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Users size={13} className="text-blue-500" strokeWidth={2.5} />
+                      <Users
+                        size={13}
+                        className="text-blue-500"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   </div>
                   <p className="text-3xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
@@ -597,7 +607,11 @@ const Dashboard = () => {
                       Collection rate
                     </p>
                     <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                      <ShieldCheck size={13} className="text-emerald-500" strokeWidth={2.5} />
+                      <ShieldCheck
+                        size={13}
+                        className="text-emerald-500"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   </div>
                   <div className="flex items-baseline gap-2">
@@ -678,7 +692,9 @@ const Dashboard = () => {
                   <p
                     className={cn(
                       'text-3xl font-extrabold tracking-tight tabular-nums',
-                      overdueCount > 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white',
+                      overdueCount > 0
+                        ? 'text-rose-500'
+                        : 'text-slate-900 dark:text-white',
                     )}
                   >
                     {overdueCount}
@@ -765,9 +781,7 @@ const Dashboard = () => {
                               </span>
                               <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium tabular-nums">
                                 {totalRiskLoans > 0
-                                  ? Math.round(
-                                      (r.count / totalRiskLoans) * 100,
-                                    )
+                                  ? Math.round((r.count / totalRiskLoans) * 100)
                                   : 0}
                                 %
                               </span>

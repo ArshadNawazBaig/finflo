@@ -256,7 +256,7 @@ const SystemSettings = () => {
   return (
     <div className="relative min-h-[calc(100vh-8rem)] pb-12 animate-in fade-in duration-1000 space-y-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-1">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start gap-6 pt-1">
         <div className="space-y-2 max-w-2xl">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
             Super admin
