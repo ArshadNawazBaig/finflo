@@ -16,6 +16,7 @@ import {
   RegistryPageSkeleton,
 } from '@/components/ui/PageSkeletons';
 import MemberProfileSkeleton from '@/components/member/MemberProfileSkeleton';
+import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
 import CustomerProfileSkeleton from '@/components/customers/CustomerProfileSkeleton';
 import LoanDetailSkeleton from '@/components/loans/LoanDetailSkeleton';
 
@@ -34,7 +35,7 @@ const Settings = withSkeleton(() => import('@/pages/admin/Settings'), SettingsPa
 const Billing = withSkeleton(() => import('@/pages/billing/Billing'), SettingsPageSkeleton);
 const Pricing = withSkeleton(() => import('@/pages/billing/Pricing'), CardsPageSkeleton);
 const MemberProfile = withSkeleton(() => import('@/pages/admin/MemberProfile'), MemberProfileSkeleton);
-const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), CardsPageSkeleton);
+const MemberGuarantors = withSkeleton(() => import('@/pages/admin/MemberGuarantors'), MemberGuarantorsSkeleton);
 const CustomerProfile = withSkeleton(() => import('@/pages/admin/CustomerProfile'), CustomerProfileSkeleton);
 const Support = withSkeleton(() => import('@/pages/admin/Support'), CardsPageSkeleton);
 const Notifications = withSkeleton(() => import('@/pages/admin/Notifications'), RegistryPageSkeleton);

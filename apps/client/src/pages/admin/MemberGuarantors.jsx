@@ -6,8 +6,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { CardsPageSkeleton } from '@/components/ui/PageSkeletons';
-import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
+import MemberGuarantorsSkeleton from '@/components/member/MemberGuarantorsSkeleton';
 import api from '@/lib/axios';
 import { formatCurrency, formatCNIC, capitalize } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -73,42 +72,23 @@ const MemberGuarantors = () => {
     };
   }, [guarantors, actingAsGrantor]);
 
-  if (loading && !member) {
-    return <CardsPageSkeleton />;
+  if (loading) {
+    return <MemberGuarantorsSkeleton />;
   }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       <PageHeader
         title={
-          loading
-            ? 'Loading...'
-            : <>
-                Guarantor{' '}
-                <span className="text-primary">Details</span>
-              </>
+          <>
+            Guarantor <span className="text-primary">Details</span>
+          </>
         }
-        description={
-          loading
-            ? 'Fetching guarantor information...'
-            : `Guarantor information for ${capitalize(member?.name || 'member')}`
-        }
+        description={`Guarantor information for ${capitalize(member?.name || 'member')}`}
         onBack={() => navigate(`/members/${id}`)}
       />
 
-      {loading ? (
-        <div className="space-y-8">
-          {/* Tab skeleton */}
-          <div className="flex gap-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-9 w-24 rounded-full bg-muted/30 animate-pulse" />
-            ))}
-          </div>
-          <CardsSkeleton count={3} />
-          <CardsSkeleton count={3} />
-        </div>
-      ) : (
-        <div className="space-y-8">
+      <div className="space-y-8">
           {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2">
             {TABS.map((tab) => (
@@ -362,7 +342,6 @@ const MemberGuarantors = () => {
             </div>
           )}
         </div>
-      )}
     </div>
   );
 };
