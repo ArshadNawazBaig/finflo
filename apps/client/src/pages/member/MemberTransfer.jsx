@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Building2,
   ArrowDownLeft,
@@ -36,7 +36,6 @@ const MemberTransfer = () => {
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const transferFormRef = useRef(null);
 
   // Fetch Member
   const fetchMember = useCallback(async () => {
@@ -129,7 +128,6 @@ const MemberTransfer = () => {
                 member={member}
                 onSuccess={handleSuccess}
                 onScanQR={() => setShowQRScanner(true)}
-                ref={transferFormRef}
               />
             ) : (
               <BankWithdrawalForm member={member} onSuccess={handleSuccess} />

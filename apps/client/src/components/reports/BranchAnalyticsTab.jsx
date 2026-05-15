@@ -6,17 +6,103 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Building2 } from 'lucide-react';
-import TablePagination from '@/components/ui/table-pagination';
-import TableSkeleton from '@/components/skeletons/TableSkeleton';
-import api from '@/lib/axios';
 import {
-  formatFullCurrency as formatCurrency,
-  cn,
-} from '@/lib/utils';
+  Building2,
+  Users,
+  Wallet,
+  HandCoins,
+  TrendingUp,
+  AlertTriangle,
+  Activity,
+  Receipt,
+} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import TablePagination from '@/components/ui/table-pagination';
+import api from '@/lib/axios';
+import { formatFullCurrency as formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 9;
+
+const KPI_TILES = [
+  {
+    key: 'totalInvested',
+    label: 'Deposits',
+    icon: Wallet,
+    tone: 'bg-blue-500/10 text-blue-500',
+    valueTone: 'text-blue-600',
+    format: 'currency',
+  },
+  {
+    key: 'activeLoans',
+    label: 'Active loans',
+    icon: Activity,
+    tone: 'bg-primary/10 text-primary',
+    valueTone: 'text-slate-900 dark:text-white',
+    format: 'loanRatio',
+  },
+  {
+    key: 'totalVolume',
+    label: 'Disbursed',
+    icon: HandCoins,
+    tone: 'bg-emerald-500/10 text-emerald-500',
+    valueTone: 'text-emerald-600',
+    format: 'currency',
+  },
+  {
+    key: 'totalOutstanding',
+    label: 'Outstanding',
+    icon: AlertTriangle,
+    tone: 'bg-amber-500/10 text-amber-500',
+    valueTone: 'text-amber-600',
+    format: 'currency',
+  },
+  {
+    key: 'totalProfit',
+    label: 'Profit',
+    icon: TrendingUp,
+    tone: 'bg-indigo-500/10 text-indigo-500',
+    valueTone: 'text-indigo-600',
+    format: 'currency',
+  },
+  {
+    key: 'totalExpenses',
+    label: 'Expenses',
+    icon: Receipt,
+    tone: 'bg-rose-500/10 text-rose-500',
+    valueTone: 'text-rose-600',
+    format: 'currency',
+  },
+];
+
+const BranchCardSkeleton = () => (
+  <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-5 sm:p-6 space-y-5">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-11 w-11 rounded-2xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28 rounded" />
+          <Skeleton className="h-3 w-16 rounded-full" />
+        </div>
+      </div>
+      <Skeleton className="h-6 w-16 rounded-full" />
+    </div>
+    <div className="grid grid-cols-2 gap-3 pt-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-2.5 w-16 rounded-full" />
+            <Skeleton className="h-6 w-6 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-24 rounded" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const BranchAnalyticsTab = () => {
   const [branchSummaries, setBranchSummaries] = useState(null);
@@ -67,81 +153,16 @@ const BranchAnalyticsTab = () => {
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-4 sm:p-6">
           {loadingBranch ? (
-            <div className="p-6">
-              <TableSkeleton rows={5} columns={8} />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <BranchCardSkeleton key={i} />
+              ))}
             </div>
           ) : branchSummaries && branchSummaries.length > 0 ? (
             <>
-              {/* Desktop Table */}
-              <div className="hidden xl:block overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-black">
-                    <tr>
-                      <th className="px-6 py-3">Branch</th>
-                      <th className="px-6 py-3 text-center">Members</th>
-                      <th className="px-6 py-3 text-right">Deposits</th>
-                      <th className="px-6 py-3 text-center">
-                        Active Loans
-                      </th>
-                      <th className="px-6 py-3 text-right">
-                        Disbursed Volume
-                      </th>
-                      <th className="px-6 py-3 text-right">Outstanding</th>
-                      <th className="px-6 py-3 text-right">Profit</th>
-                      <th className="px-6 py-3 text-right">Expenses</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/20">
-                    {branchSummaries
-                      .slice(
-                        (branchPage - 1) * ROWS_PER_PAGE,
-                        branchPage * ROWS_PER_PAGE,
-                      )
-                      .map((branch) => (
-                        <tr
-                          key={branch._id}
-                          className="hover:bg-muted/10 transition-colors"
-                        >
-                          <td className="px-6 py-3 font-bold">
-                            {branch.name}
-                            <span className="text-[10px] text-muted-foreground tabular-nums block mt-0.5">
-                              {branch.code}
-                            </span>
-                          </td>
-                          <td className="px-6 py-3 text-center font-medium">
-                            {branch.stats.totalMembers}
-                          </td>
-                          <td className="px-6 py-3 text-right tabular-nums font-medium text-blue-500">
-                            {formatCurrency(branch.stats.totalInvested)}
-                          </td>
-                          <td className="px-6 py-3 text-center font-medium">
-                            {branch.stats.activeLoans}{' '}
-                            <span className="text-[10px] text-muted-foreground">
-                              / {branch.stats.totalLoans}
-                            </span>
-                          </td>
-                          <td className="px-6 py-3 text-right tabular-nums font-medium text-emerald-500">
-                            {formatCurrency(branch.stats.totalVolume)}
-                          </td>
-                          <td className="px-6 py-3 text-right tabular-nums font-medium text-amber-500">
-                            {formatCurrency(branch.stats.totalOutstanding)}
-                          </td>
-                          <td className="px-6 py-3 text-right tabular-nums font-medium text-indigo-500">
-                            {formatCurrency(branch.stats.totalProfit)}
-                          </td>
-                          <td className="px-6 py-3 text-right tabular-nums font-medium text-rose-500">
-                            {formatCurrency(branch.stats.totalExpenses)}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="xl:hidden flex flex-col gap-4 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {branchSummaries
                   .slice(
                     (branchPage - 1) * ROWS_PER_PAGE,
@@ -150,105 +171,114 @@ const BranchAnalyticsTab = () => {
                   .map((branch) => (
                     <div
                       key={branch._id}
-                      className="p-4 rounded-2xl bg-muted/5 border border-border/30 space-y-4"
+                      className="group relative rounded-[2rem] bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] p-5 sm:p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-22px_rgba(15,23,42,0.18)]"
                     >
-                      <div className="flex justify-between items-center border-b border-border/10 pb-3">
-                        <div>
-                          <div className="font-bold text-base">{branch.name}</div>
-                          <div className="text-[10px] font-mono font-bold text-muted-foreground tabular-nums mt-0.5">
-                            {branch.code}
+                      {/* Header */}
+                      <div className="flex items-center justify-between gap-3 mb-5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <Building2 size={18} />
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                            Members
-                          </div>
-                          <div className="font-bold">
-                            {branch.stats.totalMembers}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-y-4 gap-x-3 text-xs">
-                        <div>
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Deposits
-                          </div>
-                          <div className="font-bold text-blue-500 tabular-nums">
-                            {formatCurrency(branch.stats.totalInvested)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Loans
-                          </div>
-                          <div className="font-bold tabular-nums">
-                            {branch.stats.activeLoans}{' '}
-                            <span className="text-[9px] text-muted-foreground">
-                              / {branch.stats.totalLoans}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Disbursed
-                          </div>
-                          <div className="font-bold text-emerald-500 tabular-nums">
-                            {formatCurrency(branch.stats.totalVolume)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Outstanding
-                          </div>
-                          <div className="font-bold text-amber-500 tabular-nums">
-                            {formatCurrency(
-                              branch.stats.totalOutstanding,
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white capitalize truncate">
+                              {branch.name}
+                            </h3>
+                            {branch.code && (
+                              <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">
+                                {branch.code}
+                              </p>
                             )}
                           </div>
                         </div>
-                        <div>
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Profit
+                        <div className="flex flex-col items-end shrink-0">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06]">
+                            <Users
+                              size={11}
+                              className="text-slate-400 dark:text-slate-500"
+                            />
+                            <span className="text-[11px] font-bold tabular-nums text-slate-700 dark:text-slate-200">
+                              {branch.stats.totalMembers}
+                            </span>
                           </div>
-                          <div className="font-bold text-indigo-500 tabular-nums">
-                            {formatCurrency(branch.stats.totalProfit)}
-                          </div>
+                          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mt-1">
+                            Members
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
-                            Expenses
-                          </div>
-                          <div className="font-bold text-rose-500 tabular-nums">
-                            {formatCurrency(branch.stats.totalExpenses)}
-                          </div>
-                        </div>
+                      </div>
+
+                      {/* KPI Grid */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-white/[0.06] mt-1">
+                        {KPI_TILES.map((tile) => {
+                          const Icon = tile.icon;
+                          const raw = branch.stats[tile.key];
+                          let display;
+                          if (tile.format === 'currency') {
+                            display = formatCurrency(raw || 0);
+                          } else if (tile.format === 'loanRatio') {
+                            display = (
+                              <>
+                                {branch.stats.activeLoans}
+                                <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 ml-1">
+                                  / {branch.stats.totalLoans}
+                                </span>
+                              </>
+                            );
+                          } else {
+                            display = raw ?? 0;
+                          }
+                          return (
+                            <div
+                              key={tile.key}
+                              className="mt-3 p-3 rounded-2xl bg-slate-50/40 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06]"
+                            >
+                              <div className="flex items-center justify-between gap-2 mb-2">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+                                  {tile.label}
+                                </p>
+                                <div
+                                  className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 ${tile.tone}`}
+                                >
+                                  <Icon size={11} />
+                                </div>
+                              </div>
+                              <p
+                                className={`text-sm font-extrabold tracking-tight tabular-nums truncate ${tile.valueTone}`}
+                              >
+                                {display}
+                              </p>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
               </div>
-              <TablePagination
-                currentPage={branchPage}
-                totalPages={Math.ceil(
-                  branchSummaries.length / ROWS_PER_PAGE,
-                )}
-                onPageChange={setBranchPage}
-              />
+              {branchSummaries.length > ROWS_PER_PAGE && (
+                <div className="pt-4">
+                  <TablePagination
+                    currentPage={branchPage}
+                    totalPages={Math.ceil(
+                      branchSummaries.length / ROWS_PER_PAGE,
+                    )}
+                    onPageChange={setBranchPage}
+                  />
+                </div>
+              )}
             </>
           ) : (
-            <div className="p-12 text-center text-muted-foreground min-h-[300px] flex items-center justify-center">
-              <div className="flex flex-col items-center">
-                <Building2
-                  size={48}
-                  strokeWidth={1}
-                  className="mb-4 opacity-20"
-                />
-                <p className="text-xs font-black uppercase tracking-widest">
-                  No Branch Data Available
-                </p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">
-                  Ensure you have active branches with data.
-                </p>
+            <div className="p-12 text-center min-h-[300px] flex items-center justify-center border border-dashed border-slate-200 dark:border-white/[0.08] rounded-[2rem] bg-slate-50/40 dark:bg-white/[0.02]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] flex items-center justify-center text-slate-300 dark:text-slate-600">
+                  <Building2 size={18} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    No branch data available
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    Ensure you have active branches with data.
+                  </p>
+                </div>
               </div>
             </div>
           )}
