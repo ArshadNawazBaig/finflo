@@ -47,5 +47,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>FinFlo uses your camera to scan member QR codes for fast, secure transfers.</string>
 </dict>
 </plist>
