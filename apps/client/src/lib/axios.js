@@ -73,17 +73,19 @@ api.interceptors.request.use(
 
     const token = getToken(isMemberRoute);
 
-    // Token is missing or already expired — short-circuit the request and
-    // trigger the redirect immediately. Avoids the 401 round-trip and the
-    // resulting render-time error flash.
-    if (!token || isTokenExpired(token)) {
+    // If we *have* a token but it's expired, short-circuit so we don't waste
+    // a 401 round-trip and trigger the render-time error flash. A missing
+    // token is fine to send — the endpoint might be public (`/public/stats`,
+    // `/health`, etc.); if it isn't, the server returns 401 and the response
+    // interceptor takes over.
+    if (token && isTokenExpired(token)) {
       handleExpiredSession(isMemberRoute);
-      // Return a never-resolving promise so calling code doesn't try to
-      // handle this as a real error before the redirect lands.
       return new Promise(() => {});
     }
 
-    config.headers.Authorization = `Bearer ${token}`;
+    if (token && typeof token === 'string') {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error),
