@@ -158,8 +158,7 @@ const CreditScoreCard = ({ creditScore }) => {
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br transition-transform duration-500',
-                styles.gradient,
+                'p-2.5 rounded-2xl shadow-inner text-white bg-primary transition-transform duration-500',
                 isHovered && 'scale-110 rotate-6',
               )}
             >
@@ -170,19 +169,11 @@ const CreditScoreCard = ({ creditScore }) => {
                 Credit Score
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span
-                  className={cn(
-                    'text-xs font-black uppercase tracking-wider',
-                    styles.text,
-                  )}
-                >
+                <span className="text-xs font-black uppercase tracking-wider text-primary">
                   {grade}
                 </span>
                 {score >= 740 && (
-                  <Sparkles
-                    size={12}
-                    className={cn('animate-pulse', styles.text)}
-                  />
+                  <Sparkles size={12} className="animate-pulse text-primary" />
                 )}
               </div>
             </div>
@@ -217,8 +208,7 @@ const CreditScoreCard = ({ creditScore }) => {
             <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white transition-all',
-                  `bg-gradient-to-r ${styles.gradient}`,
+                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white transition-all bg-primary',
                   isHovered && 'shadow-lg',
                 )}
               >
@@ -262,10 +252,7 @@ const CreditScoreCard = ({ creditScore }) => {
                 cy="65"
                 r={radius}
                 fill="none"
-                className={cn(
-                  styles.ring,
-                  'transition-all duration-1000 ease-out',
-                )}
+                className="stroke-primary transition-all duration-1000 ease-out"
                 stroke="currentColor"
                 strokeWidth="10"
                 strokeDasharray={`${arc} ${circumference}`}
@@ -274,7 +261,7 @@ const CreditScoreCard = ({ creditScore }) => {
                 transform="rotate(-225 65 65)"
                 style={{
                   filter: isHovered
-                    ? `drop-shadow(0 0 6px ${styles.particle}40)`
+                    ? 'drop-shadow(0 0 6px hsl(var(--primary) / 0.25))'
                     : 'none',
                 }}
               />
@@ -283,7 +270,7 @@ const CreditScoreCard = ({ creditScore }) => {
                 cy="65"
                 r={radius}
                 fill="none"
-                className={cn(styles.ring, 'opacity-30')}
+                className="stroke-primary opacity-30"
                 stroke="currentColor"
                 strokeWidth="16"
                 strokeDasharray={`${arc} ${circumference}`}
@@ -294,7 +281,7 @@ const CreditScoreCard = ({ creditScore }) => {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={cn('text-lg font-black tracking-tighter', styles.text)}>
+              <span className="text-lg font-black tracking-tighter text-primary">
                 {animatedScore}
               </span>
               <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
@@ -324,8 +311,7 @@ const CreditScoreCard = ({ creditScore }) => {
             </div>
             <div
               className={cn(
-                'h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r relative',
-                styles.gradient,
+                'h-full rounded-full transition-all duration-1000 ease-out bg-primary relative',
               )}
               style={{ width: `${normalizedScore * 100}%` }}
             >

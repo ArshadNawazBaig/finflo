@@ -2590,7 +2590,7 @@ const lookupMember = async (req, res) => {
       $or: orConditions,
     })
       .select(
-        'name email phone cnic memberId savingAccountNumber currentAccountNumber',
+        'name email phone cnic memberId savingAccountNumber currentAccountNumber profilePicture',
       )
       .limit(6);
 

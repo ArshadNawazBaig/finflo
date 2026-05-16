@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import MemberAvatar from '@/components/member/MemberAvatar';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { formatCurrency, capitalize } from '@/lib/utils';
@@ -16,37 +18,44 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
   const [lookupData, setLookupData] = useState(null);
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [showTxnConfirm, setShowTxnConfirm] = useState(false);
 
   // Lookup internal recipient
   useEffect(() => {
+    if (recipient.length < 3) {
+      setResults([]);
+      setShowDropdown(false);
+      setSearching(false);
+      return;
+    }
+    // Show the dropdown immediately so the skeleton appears during the debounce
+    // window — otherwise the user sees nothing for ~500ms after typing.
+    setSearching(true);
+    setShowDropdown(true);
     const timeout = setTimeout(async () => {
-      if (recipient.length >= 3) {
-        try {
-          const { data } = await api.get(
-            `/members/portal/lookup?identifier=${recipient}`,
-          );
-          // Filter out current user
-          const filtered = data.filter((m) => m._id !== member?._id);
-          setResults(filtered);
-          setShowDropdown(filtered.length > 0);
+      try {
+        const { data } = await api.get(
+          `/members/portal/lookup?identifier=${recipient}`,
+        );
+        // Filter out current user
+        const filtered = data.filter((m) => m._id !== member?._id);
+        setResults(filtered);
+        setShowDropdown(true);
 
-          // Auto-select if exact match found (email or ID)
-          const exactMatch = filtered.find(
-            (m) =>
-              m.email.toLowerCase() === recipient.toLowerCase() ||
-              m.memberId === recipient,
-          );
-          if (exactMatch) {
-            setLookupData(exactMatch);
-          }
-        } catch (e) {
-          setResults([]);
-          setShowDropdown(false);
+        // Auto-select if exact match found (email or ID)
+        const exactMatch = filtered.find(
+          (m) =>
+            m.email.toLowerCase() === recipient.toLowerCase() ||
+            m.memberId === recipient,
+        );
+        if (exactMatch) {
+          setLookupData(exactMatch);
         }
-      } else {
+      } catch (e) {
         setResults([]);
-        setShowDropdown(false);
+      } finally {
+        setSearching(false);
       }
     }, 500);
     return () => clearTimeout(timeout);
@@ -185,40 +194,76 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
             />
 
             {showDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
-                {results.map((res) => (
-                  <button
-                    key={res._id}
-                    type="button"
-                    onClick={() => {
-                      setLookupData(res);
-                      setRecipient(res.email);
-                      setShowDropdown(false);
-                    }}
-                    className="w-full px-6 py-4 flex flex-col items-start gap-1 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none"
-                  >
-                    <span className="text-sm font-bold text-foreground capitalize">
-                      {res.name}
-                    </span>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                      CNIC: {res.cnic || 'N/A'} • {res.memberId}
-                    </span>
-                  </button>
-                ))}
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+                {searching ? (
+                  // Skeleton rows mirror the real row layout: avatar + name + meta
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={`s-${i}`}
+                      className="w-full px-6 py-4 flex items-center gap-3 border-b border-border/10 last:border-none animate-pulse"
+                    >
+                      <Skeleton className="h-10 w-10 rounded-2xl shrink-0 bg-muted/40" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-3.5 w-32 rounded bg-muted/40" />
+                        <Skeleton className="h-2.5 w-44 rounded bg-muted/30" />
+                      </div>
+                    </div>
+                  ))
+                ) : results.length === 0 ? (
+                  <div className="px-6 py-5 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    No members found
+                  </div>
+                ) : (
+                  results.map((res) => (
+                    <button
+                      key={res._id}
+                      type="button"
+                      onClick={() => {
+                        setLookupData(res);
+                        setRecipient(res.email);
+                        setShowDropdown(false);
+                      }}
+                      className="w-full px-6 py-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b border-border/10 last:border-none text-left"
+                    >
+                      <MemberAvatar
+                        name={res.name}
+                        profilePicture={res.profilePicture}
+                        size={40}
+                        rounded="rounded-2xl"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-foreground capitalize truncate">
+                          {res.name}
+                        </p>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest truncate">
+                          CNIC: {res.cnic || 'N/A'} • {res.memberId}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>
 
           {lookupData && (
             <div className="mx-2 mt-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-600">
-                <CheckCircle2 size={20} />
+              <div className="relative shrink-0">
+                <MemberAvatar
+                  name={lookupData.name}
+                  profilePicture={lookupData.profilePicture}
+                  size={40}
+                  rounded="rounded-full"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-2 ring-background">
+                  <CheckCircle2 size={12} strokeWidth={3} />
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-bold text-emerald-600 capitalize">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-emerald-600 capitalize truncate">
                   {lookupData.name}
                 </p>
-                <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-widest truncate">
                   {lookupData.memberId || 'VERIFIED'}
                 </p>
               </div>
