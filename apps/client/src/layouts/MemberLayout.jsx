@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import MemberSidebar from '@/components/member/MemberSidebar';
 import MemberNavbar from '@/components/member/MemberNavbar';
 import MemberBottomNav from '@/components/member/MemberBottomNav';
+import AppLockScreen from '@/components/member/AppLockScreen';
 import InstallPrompt from '@/components/InstallPrompt';
 import { SocketProvider } from '@/context/SocketContext';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
@@ -11,6 +12,7 @@ import { memberOnboardingSteps } from '@/config/onboardingSteps';
 import { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import useAppLock from '@/hooks/useAppLock';
 import api from '@/lib/axios';
 
 const MemberLayout = () => {
@@ -23,6 +25,7 @@ const MemberLayout = () => {
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const { isLocked, unlock } = useAppLock();
 
   const fetchData = async () => {
     try {
@@ -125,6 +128,7 @@ const MemberLayout = () => {
           userId={member?._id}
           role="member"
         />
+        {isLocked && <AppLockScreen onUnlock={unlock} />}
       </div>
     </SocketProvider>
   );

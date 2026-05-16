@@ -18,6 +18,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useSetAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
+import { markAppUnlocked } from '@/lib/appLock';
 
 const MemberLogin = () => {
   useDocumentTitle('Member Login');
@@ -68,11 +69,13 @@ const MemberLogin = () => {
     }
 
     if (responseData.mustChangePassword) {
+      markAppUnlocked();
       setMember(responseData);
       navigate('/member/force-password-change');
       return;
     }
 
+    markAppUnlocked();
     setMember(responseData);
     navigate('/member/dashboard');
   };
@@ -233,6 +236,7 @@ const MemberLogin = () => {
         code: otpCode,
       });
 
+      markAppUnlocked();
       setMember(data);
       navigate('/member/dashboard');
     } catch (err) {
