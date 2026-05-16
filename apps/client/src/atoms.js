@@ -11,6 +11,11 @@ export const memberAtom = atomWithStorage('member', null);
 export const memberTokenAtom = atom((get) => get(memberAtom)?.token || null);
 export const isMemberAuthenticatedAtom = atom((get) => !!get(memberTokenAtom));
 
+// Set to true while we're handling an expired/invalid session, so the
+// ErrorBoundary stays quiet and we don't flash an error screen during the
+// brief window before the login redirect completes.
+export const isRedirectingAtom = atom(false);
+
 export const statsAtom = atom({
   income: 0,
   growth: 0,

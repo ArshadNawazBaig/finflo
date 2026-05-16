@@ -1,18 +1,29 @@
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
+import { isTokenExpired } from '@/lib/jwt';
 
 const RequireMemberAuth = () => {
   const member = useAtomValue(memberAtom);
+  const setMember = useSetAtom(memberAtom);
   const location = useLocation();
+
+  const tokenExpired = !!member && isTokenExpired(member.token);
+
+  useEffect(() => {
+    if (tokenExpired) {
+      setMember(null);
+    }
+  }, [tokenExpired, setMember]);
 
   // Robust path normalized comparison
   const normalizedPath = location.pathname.endsWith('/')
     ? location.pathname.slice(0, -1)
     : location.pathname;
 
-  if (!member) {
+  if (!member || tokenExpired) {
     return <Navigate to="/member/login" state={{ from: location }} replace />;
   }
 

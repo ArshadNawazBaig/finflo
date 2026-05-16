@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { motion } from 'framer-motion';
+import { getDefaultStore } from 'jotai';
 import {
   RotateCcw,
   Home,
@@ -9,6 +10,7 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-react';
+import { isRedirectingAtom } from '@/atoms';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -23,6 +25,18 @@ class ErrorBoundary extends Component {
   }
 
   static getDerivedStateFromError(error) {
+    // If we're mid-redirect after an expired session, render errors are
+    // almost always cascade failures from components reading null auth
+    // state. Skip the error screen so the user gets a clean handoff to the
+    // login page.
+    try {
+      if (getDefaultStore().get(isRedirectingAtom)) {
+        return { hasError: false, error: null };
+      }
+    } catch {
+      // fall through to normal handling
+    }
+
     const isNetworkError =
       !navigator.onLine ||
       error?.message?.includes('Failed to fetch') ||

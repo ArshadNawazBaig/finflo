@@ -9,6 +9,7 @@ import {
   pendingMembersCountAtom,
 } from '@/atoms';
 import api from '@/lib/axios';
+import { isTokenExpired } from '@/lib/jwt';
 import { SOCKET_URL } from '@/lib/constants';
 
 /**
@@ -42,6 +43,10 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     }
 
     const fetchCounts = async () => {
+      // Skip when the token is already expired — the request interceptor
+      // will trigger a redirect, but bailing here avoids a needless fan-out
+      // of doomed requests on mount.
+      if (!token || isTokenExpired(token)) return;
       try {
         // Fetch Chat Conversations for badge
         const chatRes = await api.get('/chat/conversations');
