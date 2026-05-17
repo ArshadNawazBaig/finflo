@@ -57,6 +57,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import {
   exportMemberStatement,
   generateTransactionReceipt,
+  exportAccountStatement,
 } from '@/lib/pdfExportUtils';
 import { savePdf } from '@/lib/nativeDownload';
 import SignaturePad from '@/components/ui/SignaturePad';
@@ -84,6 +85,7 @@ const MemberProfile = () => {
   const [isInvestmentsLoading, setIsInvestmentsLoading] = useState(false);
   const [isLoansLoading, setIsLoansLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [downloadingAccount, setDownloadingAccount] = useState(null); // 'current' | 'saving' | null
 
   // Export Modal States
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -828,6 +830,28 @@ const MemberProfile = () => {
       toast.error('Failed to generate statement');
     } finally {
       setIsExportingModal(false);
+    }
+  };
+
+  // Download monthly statement for a single account (current or saving).
+  // Period defaults to the previous calendar month — backend handles default.
+  const handleDownloadAccountStatement = async (accountType) => {
+    try {
+      setDownloadingAccount(accountType);
+      const { data } = await api.get(`/members/${id}/account-statement`, {
+        params: { accountType },
+      });
+      await exportAccountStatement(data, member);
+      toast.success(
+        `${accountType === 'saving' ? 'Saving' : 'Current'} account statement downloaded`,
+      );
+    } catch (error) {
+      console.error('Account Statement Error:', error);
+      toast.error(
+        error?.response?.data?.message || 'Failed to generate account statement',
+      );
+    } finally {
+      setDownloadingAccount(null);
     }
   };
 
@@ -2136,19 +2160,55 @@ const MemberProfile = () => {
 
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                    <Wallet size={10} className="text-primary" />
-                    Saving Account
-                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <Wallet size={10} className="text-primary" />
+                      Saving Account
+                    </span>
+                    {member.savingAccountNumber && (
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAccountStatement('saving')}
+                        disabled={downloadingAccount === 'saving'}
+                        className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-primary hover:text-primary/80 disabled:opacity-50"
+                        title="Download last month's statement"
+                      >
+                        {downloadingAccount === 'saving' ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <Download size={10} />
+                        )}
+                        Statement
+                      </button>
+                    )}
+                  </div>
                   <span className="text-sm font-black font-mono text-primary">
                     {member.savingAccountNumber || 'Not Assigned'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                    <Wallet size={10} className="text-indigo-500" />
-                    Current Account
-                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <Wallet size={10} className="text-indigo-500" />
+                      Current Account
+                    </span>
+                    {member.currentAccountNumber && (
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAccountStatement('current')}
+                        disabled={downloadingAccount === 'current'}
+                        className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-400 disabled:opacity-50"
+                        title="Download last month's statement"
+                      >
+                        {downloadingAccount === 'current' ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <Download size={10} />
+                        )}
+                        Statement
+                      </button>
+                    )}
+                  </div>
                   <span className="text-sm font-black font-mono text-indigo-500">
                     {member.currentAccountNumber || 'Not Assigned'}
                   </span>

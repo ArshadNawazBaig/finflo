@@ -27,6 +27,7 @@ const {
   selfRegister,
   updateApprovalStatus,
   initiateRaastDeposit,
+  getAccountStatement,
 } = require('../controllers/memberController');
 const {
   setTransactionPin,
@@ -53,6 +54,7 @@ router.post('/portal/transfer', protectMember, requireTransactionPin, transferFu
 router.post('/portal/raast-deposit', protectMember, requireTransactionPin, initiateRaastDeposit);
 router.get('/portal/lookup', protectMember, lookupMember); // Member can lookup peers
 router.get('/portal/calendar', protectMember, getMemberCalendarEvents);
+router.get('/portal/account-statement', protectMember, getAccountStatement);
 
 // Transaction PIN routes
 router.get('/portal/pin-status', protectMember, getPinStatus);
@@ -77,6 +79,9 @@ router.put('/:id', updateMember);
 router.delete('/:id', deleteMember);
 router.post('/admin/transfer', adminTransferFunds);
 router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
+
+// Account statement (current/saving) — monthly PDF source data
+router.get('/:id/account-statement', getAccountStatement);
 
 // Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);

@@ -639,6 +639,160 @@ export const exportMemberStatement = async (
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+//  EXPORT: Account Statement (Current / Saving)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Generalized monthly statement for a single member account. Expects the
+// payload shape returned by GET /api/members/:id/account-statement (or the
+// /portal/account-statement variant): { account, period, opening, closing,
+// totals, transactions }.
+const TX_TYPE_LABELS = {
+  deposit: 'Deposit',
+  withdrawal: 'Withdrawal',
+  transfer_send: 'Transfer Out',
+  transfer_receive: 'Transfer In',
+  profit: 'Profit Credit',
+};
+
+export const exportAccountStatement = async (
+  statement,
+  member = null,
+  businessContext = null,
+) => {
+  if (!statement || !statement.account) return;
+
+  const ctx = businessContext || getBusinessContext();
+  const mCtx = getMemberContext(member);
+  const doc = new jsPDF();
+  await registerJakartaFonts(doc);
+
+  const { account, period, opening, closing, totals, transactions = [] } = statement;
+  const periodFrom = new Date(period.from);
+  const periodTo = new Date(period.to);
+
+  const fmtDate = (d) =>
+    new Date(d).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+
+  const accountLabel = account.type === 'saving' ? 'Saving Account' : 'Current Account';
+  const holderName = toTitleCase(account.holderName || mCtx.name || 'Valued Member');
+
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title: `${accountLabel} Statement`,
+    leftDetails: [
+      { label: 'Account Holder', value: holderName },
+      { label: 'CNIC', value: mCtx.cnic || '—' },
+      { label: 'Contact', value: mCtx.phone || mCtx.email || '—' },
+      { label: 'Member ID', value: mCtx.memberId || '—' },
+    ],
+    rightDetails: [
+      { label: 'Currency', value: ctx.currency || 'Rs.' },
+      { label: 'Account Type', value: accountLabel },
+      { label: 'Account #', value: account.number || '—' },
+      { label: 'Statement Period', value: `${fmtDate(periodFrom)} — ${fmtDate(periodTo)}` },
+    ],
+  });
+
+  // ── Balance Summary ──
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setTextColor(0);
+  doc.text('Balance Summary', 14, startY);
+
+  autoTable(doc, {
+    startY: startY + 4,
+    head: [['Description', 'Amount']],
+    body: [
+      ['Opening Balance', formatCurrency(opening)],
+      ['Total Credits', `+${formatCurrency(totals?.credits || 0)}`],
+      ['Total Debits', `-${formatCurrency(totals?.debits || 0)}`],
+      ['Net Movement', formatCurrency(totals?.net || 0)],
+      ['Closing Balance', formatCurrency(closing)],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
+  });
+
+  // ── Transaction Ledger ──
+  const ledgerY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setTextColor(0);
+  doc.text('Transaction Ledger', 14, ledgerY);
+
+  if (transactions.length > 0) {
+    autoTable(doc, {
+      startY: ledgerY + 4,
+      head: [['Date', 'Type', 'Description', 'Debit', 'Credit', 'Balance']],
+      body: [
+        // Opening balance row
+        [
+          {
+            content: fmtDate(periodFrom),
+            styles: { fontStyle: 'italic', textColor: [100, 100, 100] },
+          },
+          { content: 'Opening Balance', colSpan: 4, styles: { fontStyle: 'italic', textColor: [100, 100, 100] } },
+          { content: formatCurrency(opening), styles: { halign: 'right', fontStyle: 'bold' } },
+        ],
+        ...transactions.map((t) => [
+          fmtDate(t.date),
+          TX_TYPE_LABELS[t.type] || t.type,
+          t.description || '—',
+          t.direction === 'debit' ? `-${formatCurrency(t.amount)}` : '—',
+          t.direction === 'credit' ? `+${formatCurrency(t.amount)}` : '—',
+          formatCurrency(t.balanceAfter),
+        ]),
+        // Closing balance row
+        [
+          {
+            content: fmtDate(periodTo),
+            styles: { fontStyle: 'italic', fillColor: [240, 240, 250] },
+          },
+          {
+            content: 'Closing Balance',
+            colSpan: 4,
+            styles: { fontStyle: 'bold', fillColor: [240, 240, 250] },
+          },
+          {
+            content: formatCurrency(closing),
+            styles: { halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 250] },
+          },
+        ],
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+      styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        3: { halign: 'right', textColor: [225, 29, 72] },
+        4: { halign: 'right', textColor: [16, 185, 129] },
+        5: { halign: 'right', fontStyle: 'bold' },
+      },
+      alternateRowStyles: { fillColor: [250, 250, 255] },
+      margin: { left: 14, right: 14 },
+    });
+  } else {
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setTextColor(150);
+    doc.text('No transactions in the selected period.', 14, ledgerY + 10);
+  }
+
+  const finalY = doc.lastAutoTable?.finalY || ledgerY + 15;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
+  renderPdfFooter(doc, { businessContext: ctx });
+
+  const periodTag = `${periodFrom.getFullYear()}${String(periodFrom.getMonth() + 1).padStart(2, '0')}`;
+  const accTag = (account.number || account.type).toString().replace(/\s+/g, '');
+  const fileName = `Statement_${accTag}_${periodTag}_${holderName.replace(/\s+/g, '_')}.pdf`;
+  await savePdf(doc, fileName);
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 //  EXPORT: Transaction Receipt
 // ═══════════════════════════════════════════════════════════════════════════════
 export const generateTransactionReceipt = async ({

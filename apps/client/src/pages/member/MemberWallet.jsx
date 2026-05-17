@@ -13,7 +13,10 @@ import {
   Activity,
   RefreshCw,
   BadgeDollarSign,
+  Download,
+  Loader2,
 } from 'lucide-react';
+import { exportAccountStatement } from '@/lib/pdfExportUtils';
 import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
@@ -56,6 +59,7 @@ const MemberWallet = () => {
 
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [activeAccount, setActiveAccount] = useState('current');
+  const [isDownloadingStatement, setIsDownloadingStatement] = useState(false);
 
   const observerTarget = useRef(null);
   const isInitialMount = useRef(true);
@@ -146,6 +150,25 @@ const MemberWallet = () => {
 
     return () => observer.disconnect();
   }, [isFetchingMore, currentPage, totalPages, fetchWalletData]);
+
+  const handleDownloadStatement = async () => {
+    if (activeAccount === 'loan') return;
+    try {
+      setIsDownloadingStatement(true);
+      const { data } = await api.get('/members/portal/account-statement', {
+        params: { accountType: activeAccount },
+      });
+      await exportAccountStatement(data, member);
+      toast.success('Statement downloaded');
+    } catch (error) {
+      console.error('Statement download error:', error);
+      toast.error(
+        error?.response?.data?.message || 'Failed to download statement',
+      );
+    } finally {
+      setIsDownloadingStatement(false);
+    }
+  };
 
   if (loading && !member) {
     return <MemberWalletSkeleton />;
@@ -278,6 +301,21 @@ const MemberWallet = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                    {activeAccount !== 'loan' && (
+                      <Button
+                        onClick={handleDownloadStatement}
+                        disabled={isDownloadingStatement}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.06] px-5 py-3 h-auto rounded-full font-bold text-[11px] uppercase tracking-[0.12em] transition-all disabled:opacity-50"
+                        title="Download last month's statement"
+                      >
+                        {isDownloadingStatement ? (
+                          <Loader2 size={14} strokeWidth={2.5} className="animate-spin" />
+                        ) : (
+                          <Download size={14} strokeWidth={2.5} />
+                        )}
+                        Statement
+                      </Button>
+                    )}
                     <Button
                       onClick={() => setShowQRModal(true)}
                       className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.06] px-5 py-3 h-auto rounded-full font-bold text-[11px] uppercase tracking-[0.12em] transition-all"

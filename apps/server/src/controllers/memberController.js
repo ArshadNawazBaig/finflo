@@ -825,6 +825,125 @@ const deleteMember = async (req, res) => {
   }
 };
 
+// ── Account Statement (Current / Saving) ────────────────────────────────────
+// Returns opening balance, period transactions with running balance, and
+// closing balance for a single account (current or saving). Period defaults
+// to the previous calendar month if from/to are omitted — matching the
+// "monthly statement" mental model.
+//
+// Works for both staff/admin (uses req.params.id + req.user.effectiveOwnerId)
+// and the member portal (no :id param — uses req.member).
+const getAccountStatement = async (req, res) => {
+  try {
+    const isPortal = !!req.member;
+    const memberId = isPortal ? req.member._id : req.params.id;
+    const ownerId = isPortal ? req.member.user : req.user.effectiveOwnerId;
+
+    const accountType = (req.query.accountType || 'current').toLowerCase();
+    if (!['current', 'saving'].includes(accountType)) {
+      return res.status(400).json({ message: 'Invalid accountType' });
+    }
+
+    // Default period = previous calendar month
+    let fromDate;
+    let toDate;
+    if (req.query.from && req.query.to) {
+      fromDate = new Date(req.query.from);
+      toDate = new Date(req.query.to);
+      // Make `to` inclusive — push to end of day if a bare date was sent
+      if (req.query.to.length === 10) toDate.setHours(23, 59, 59, 999);
+    } else {
+      const now = new Date();
+      fromDate = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+      toDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    }
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid from/to date' });
+    }
+    if (fromDate > toDate) {
+      return res.status(400).json({ message: '`from` must be before `to`' });
+    }
+
+    const member = await Member.findOne({ _id: memberId, user: ownerId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    // Sign convention for each Investment type
+    const signFor = (t) =>
+      t === 'deposit' || t === 'transfer_receive' || t === 'profit' ? 1 : -1;
+
+    const baseQuery = {
+      member: member._id,
+      user: ownerId,
+      accountType,
+      status: { $ne: 'Reversed' },
+    };
+
+    const [priorTxns, periodTxns] = await Promise.all([
+      Investment.find({ ...baseQuery, date: { $lt: fromDate } })
+        .select('type amount date')
+        .lean(),
+      Investment.find({ ...baseQuery, date: { $gte: fromDate, $lte: toDate } })
+        .sort({ date: 1, createdAt: 1 })
+        .lean(),
+    ]);
+
+    const opening = priorTxns.reduce(
+      (sum, t) => sum + signFor(t.type) * t.amount,
+      0,
+    );
+
+    let running = opening;
+    let totalCredits = 0;
+    let totalDebits = 0;
+    const transactions = periodTxns.map((t) => {
+      const direction = signFor(t.type);
+      const signed = direction * t.amount;
+      running += signed;
+      if (direction > 0) totalCredits += t.amount;
+      else totalDebits += t.amount;
+      return {
+        _id: t._id,
+        date: t.date,
+        type: t.type,
+        amount: t.amount,
+        direction: direction > 0 ? 'credit' : 'debit',
+        description: t.description || '',
+        balanceAfter: running,
+      };
+    });
+
+    const accountNumber =
+      accountType === 'current'
+        ? member.currentAccountNumber
+        : member.savingAccountNumber;
+    const currentBalance =
+      accountType === 'current' ? member.currentBalance : member.savingBalance;
+
+    return res.json({
+      account: {
+        type: accountType,
+        number: accountNumber || null,
+        holderName: member.name,
+        memberId: member._id,
+        currentBalance,
+      },
+      period: { from: fromDate, to: toDate },
+      opening,
+      closing: running,
+      totals: {
+        credits: totalCredits,
+        debits: totalDebits,
+        net: totalCredits - totalDebits,
+        transactionCount: transactions.length,
+      },
+      transactions,
+    });
+  } catch (error) {
+    console.error('Account Statement Error:', error);
+    res.status(500).json({ message: 'Failed to generate account statement' });
+  }
+};
+
 // Get member's investment history
 const getMemberInvestments = async (req, res) => {
   try {
@@ -3709,4 +3828,5 @@ module.exports = {
   selfRegister,
   updateApprovalStatus,
   initiateRaastDeposit,
+  getAccountStatement,
 };
