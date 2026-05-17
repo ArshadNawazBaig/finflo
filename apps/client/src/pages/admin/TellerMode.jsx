@@ -1129,7 +1129,7 @@ const TellerMode = () => {
 
   const actionConfig = {
     deposit: {
-      label: 'Cash Deposit',
+      label: 'Deposit',
       icon: ArrowDownCircle,
       color: 'emerald',
       bgClass: 'bg-emerald-500/10 border-emerald-500/20',
@@ -1139,7 +1139,7 @@ const TellerMode = () => {
       focusClass: 'focus:border-emerald-500 focus:ring-emerald-500',
     },
     withdraw: {
-      label: 'Cash Withdrawal',
+      label: 'Withdrawal',
       icon: ArrowUpCircle,
       color: 'rose',
       bgClass: 'bg-rose-500/10 border-rose-500/20',

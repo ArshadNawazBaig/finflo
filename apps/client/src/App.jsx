@@ -129,7 +129,7 @@ function App() {
             <Suspense fallback={null}>
               <LandingRoutes DomainRedirect={DomainRedirect} />
             </Suspense>
-            <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '9999px', maxWidth: '500px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }} />
+            <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '1.25rem', maxWidth: 'min(560px, calc(100vw - 2rem))' } }} />
             {!IS_NATIVE && <FloatingSettings />}
           </TooltipProvider>
         </Router>
@@ -204,7 +204,7 @@ function App() {
             </Routes>
             )}
           </Suspense>
-          <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '9999px', maxWidth: '500px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }} />
+          <Toaster position="bottom-center" richColors toastOptions={{ style: { borderRadius: '1.25rem', maxWidth: 'min(560px, calc(100vw - 2rem))' } }} />
           {!IS_NATIVE && <FloatingSettings />}
         </TooltipProvider>
       </Router>
