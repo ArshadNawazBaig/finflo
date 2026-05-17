@@ -415,6 +415,42 @@ const superAdminSubscriptionNotificationEmail = (userData, planName) => {
   );
 };
 
+/**
+ * Generic broadcast / admin announcement email. Wraps admin-authored body
+ * content in the standard branded shell. Body may be plain text (newlines
+ * preserved) or trusted HTML — caller decides via `bodyHtml`. The caller is
+ * expected to sanitize untrusted markup; this template does NOT escape.
+ */
+const broadcastEmail = ({
+  title = 'A message from your account team',
+  greeting = 'Hello,',
+  bodyHtml,
+  bodyText,
+  businessName = null,
+  logoUrl = null,
+}) => {
+  const safeBody = bodyHtml
+    ? bodyHtml
+    : (bodyText || '')
+        .split(/\n\n+/)
+        .map(
+          (para) =>
+            `<p style="margin: 0 0 14px 0; color: #334155; font-size: 14px; line-height: 1.6;">${para
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/\n/g, '<br/>')}</p>`,
+        )
+        .join('\n');
+
+  const content = `
+    <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; font-weight: 700;">${title}</h2>
+    <p style="margin: 0 0 14px 0; color: #475569; font-size: 14px;">${greeting}</p>
+    ${safeBody}
+  `;
+  return getBaseTemplate(content, title, logoUrl, businessName);
+};
+
 module.exports = {
   verificationEmail,
   passwordResetEmail,
@@ -424,4 +460,5 @@ module.exports = {
   memberApprovalEmail,
   superAdminNewRegistrationEmail,
   superAdminSubscriptionNotificationEmail,
+  broadcastEmail,
 };

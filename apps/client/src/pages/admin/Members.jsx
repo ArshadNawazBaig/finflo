@@ -9,6 +9,8 @@ import {
   TrendingUp,
   Wallet,
   Store,
+  Upload,
+  Mail,
 } from 'lucide-react';
 import {
   Select,
@@ -23,6 +25,8 @@ import PageHeader from '@/components/PageHeader';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import TableSearch from '@/components/ui/TableSearch';
 import AddMemberModal from '@/components/AddMemberModal';
+import BulkImportMembersModal from '@/components/BulkImportMembersModal';
+import BulkEmailMembersModal from '@/components/BulkEmailMembersModal';
 import MemberTable from '@/components/member/MemberTable';
 import MemberCard from '@/components/member/MemberCard';
 import api from '@/lib/axios';
@@ -39,6 +43,8 @@ const Members = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isBulkEmailOpen, setIsBulkEmailOpen] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -297,7 +303,7 @@ const Members = () => {
   };
 
   if (loading && members.length === 0) {
-    return <TablePageSkeleton />;
+    return <TablePageSkeleton headerActions={3} />;
   }
 
   return (
@@ -306,14 +312,32 @@ const Members = () => {
         title="Members"
         description="Manage investors and track their investments and profits."
         action={
-          <Button
-            onClick={handleAddMember}
-            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
-            isLoading={loading && members.length === 0}
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            Add Member
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => setIsBulkEmailOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 h-auto font-bold text-[12px]"
+            >
+              <Mail size={14} strokeWidth={2.5} />
+              Bulk Email
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsBulkImportOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 h-auto font-bold text-[12px]"
+            >
+              <Upload size={14} strokeWidth={2.5} />
+              Import CSV
+            </Button>
+            <Button
+              onClick={handleAddMember}
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+              isLoading={loading && members.length === 0}
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              Add Member
+            </Button>
+          </div>
         }
       />
 
@@ -471,6 +495,17 @@ const Members = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={handleMemberAdded}
+      />
+
+      <BulkImportMembersModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        onSuccess={handleMemberAdded}
+      />
+
+      <BulkEmailMembersModal
+        isOpen={isBulkEmailOpen}
+        onClose={() => setIsBulkEmailOpen(false)}
       />
 
       <ConfirmActionModal

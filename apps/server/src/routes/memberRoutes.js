@@ -1,5 +1,22 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
+
+// In-memory upload — CSV is parsed inline and discarded. 5MB cap is generous
+// for member rosters (≈ 50k rows of typical width).
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok =
+      file.mimetype === 'text/csv' ||
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.originalname.toLowerCase().endsWith('.csv');
+    if (ok) cb(null, true);
+    else cb(new Error('Only CSV files are allowed'), false);
+  },
+});
+
 const {
   getMembers,
   getMemberById,
@@ -28,6 +45,7 @@ const {
   updateApprovalStatus,
   initiateRaastDeposit,
   getAccountStatement,
+  bulkImportMembers,
 } = require('../controllers/memberController');
 const {
   setTransactionPin,
@@ -67,6 +85,9 @@ router.get('/lookup', protect, lookupMember); // Admin can lookup members
 
 // All subsequent routes require staff/admin authentication
 router.use(protect);
+
+// Bulk import members from CSV (Admin/Staff)
+router.post('/bulk-import', csvUpload.single('file'), bulkImportMembers);
 
 // Member CRUD (Admin/Staff only)
 router.get('/', getMembers);

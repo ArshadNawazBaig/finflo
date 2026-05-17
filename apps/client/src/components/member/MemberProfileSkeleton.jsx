@@ -152,12 +152,44 @@ const MemberProfileSkeleton = () => (
             <Skeleton className="h-3 w-3 rounded-full" />
           </div>
           <div className="space-y-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-1.5">
+            {/* CNIC + Branch — simple label/value rows */}
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={`id-${i}`} className="flex flex-col gap-1.5">
                 <Skeleton className="h-2.5 w-24 rounded-full" />
                 <Skeleton className="h-4 w-full max-w-[200px] rounded" />
               </div>
             ))}
+
+            {/* Account number rows — Saving + Current carry a "Statement"
+                action chip on the right; Loan does not. Layout must mirror
+                the real Professional & Identity card. */}
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={`acc-${i}`} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <Skeleton className="h-2.5 w-28 rounded-full" />
+                    {i < 2 && <Skeleton className="h-3 w-20 rounded-full" />}
+                  </div>
+                  <Skeleton className="h-4 w-full max-w-[180px] rounded" />
+                </div>
+              ))}
+            </div>
+
+            {/* Occupation + Monthly Income — 2-col grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={`job-${i}`} className="flex flex-col gap-1.5">
+                  <Skeleton className="h-2.5 w-20 rounded-full" />
+                  <Skeleton className="h-3.5 w-16 rounded" />
+                </div>
+              ))}
+            </div>
+
+            {/* Signature block */}
+            <div className="pt-4 border-t border-slate-100 dark:border-white/[0.06] space-y-3">
+              <Skeleton className="h-2.5 w-20 rounded-full" />
+              <Skeleton className="h-32 w-full rounded-xl" />
+            </div>
           </div>
         </div>
       </div>

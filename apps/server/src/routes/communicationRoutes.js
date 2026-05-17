@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { triggerScan } = require('../controllers/communicationController');
+const {
+  triggerScan,
+  sendBulkEmailMembers,
+} = require('../controllers/communicationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const { applyLateFees } = require('../services/lateFeeService');
 
 router.post('/trigger-scan', protect, admin, triggerScan);
+router.post('/bulk-email-members', protect, sendBulkEmailMembers);
 
 // Late fee scan endpoint
 router.post('/apply-late-fees', protect, admin, async (req, res) => {

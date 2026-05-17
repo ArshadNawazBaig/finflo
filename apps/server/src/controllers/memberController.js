@@ -825,6 +825,271 @@ const deleteMember = async (req, res) => {
   }
 };
 
+// ── Minimal CSV parser (RFC 4180-ish) ───────────────────────────────────────
+// Tiny inline parser instead of adding a dependency. Handles double-quoted
+// fields, escaped quotes (""), commas inside quotes, and \r\n / \n line
+// endings. Not exotic enough for streaming or alt delimiters — fine for our
+// admin-uploaded member rosters which are small (capped at 5MB).
+const parseCsv = (text) => {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      row.push(field);
+      field = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
+    } else {
+      field += ch;
+    }
+  }
+  // Push trailing field/row when file doesn't end with newline
+  if (field !== '' || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((c) => String(c).trim() !== ''));
+};
+
+// ── Bulk Member Import (CSV) ────────────────────────────────────────────────
+// Accepts multipart/form-data with field `file`. Expected header columns
+// (case-insensitive, order-flexible): name, email, phone, cnic, address,
+// profitRate, initialInvestment. The endpoint validates each row before
+// touching the DB, then creates members one by one — failures on individual
+// rows do not abort the batch. Each successful row is given a random
+// initial password (admin must hand it off out-of-band).
+const bulkImportMembers = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: 'CSV file is required' });
+    }
+
+    const csvText = req.file.buffer.toString('utf8').replace(/^﻿/, '');
+    const rows = parseCsv(csvText);
+    if (rows.length < 2) {
+      return res.status(400).json({
+        message: 'CSV must contain a header row and at least one data row',
+      });
+    }
+
+    const header = rows[0].map((h) => h.trim().toLowerCase());
+    const dataRows = rows.slice(1);
+    const col = (name) => header.indexOf(name);
+    const required = ['name', 'email', 'phone', 'cnic'];
+    for (const r of required) {
+      if (col(r) === -1) {
+        return res.status(400).json({
+          message: `Missing required column: "${r}"`,
+        });
+      }
+    }
+
+    // Plan limit check — bail early if even the optimistic count exceeds it
+    const user = await User.findById(userId).select('plan customerCount');
+    const userPlan = user?.plan || 'Free';
+    const existingCount = await Member.countDocuments({ user: userId });
+    const limitCheck = await canAddMember(userPlan, existingCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: userPlan,
+        upgradeRequired: true,
+      });
+    }
+    const headroom = (limitCheck.limit ?? Infinity) - existingCount;
+
+    const { validateEmail } = require('../utils/emailValidator');
+    const cryptoLib = require('crypto');
+    const randomPassword = () =>
+      cryptoLib
+        .randomBytes(9)
+        .toString('base64')
+        .replace(/[+/=]/g, (c) => ({ '+': 'A', '/': 'B', '=': '' })[c]) + '!1';
+
+    // Track CNICs we've created in *this* batch so a duplicate row doesn't slip
+    // past the per-row uniqueness check (Member.findOne would return null until
+    // the previous row commits).
+    const seenCnicsInBatch = new Set();
+    const created = [];
+    const errors = [];
+    let createdCount = 0;
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const rowNum = i + 2; // +1 for header, +1 for 1-based humans
+      const raw = dataRows[i];
+      const get = (key) => {
+        const idx = col(key);
+        return idx === -1 ? '' : String(raw[idx] || '').trim();
+      };
+      const name = get('name');
+      const email = get('email').toLowerCase();
+      const phone = get('phone');
+      const cnic = get('cnic');
+      const address = get('address');
+      const profitRateRaw = get('profitrate');
+      const initialInvestmentRaw = get('initialinvestment');
+
+      if (!name || !email || !phone || !cnic) {
+        errors.push({
+          row: rowNum,
+          message: 'Missing required field (name / email / phone / cnic)',
+        });
+        continue;
+      }
+
+      const emailCheck = validateEmail(email);
+      if (!emailCheck.isValid) {
+        errors.push({ row: rowNum, message: emailCheck.message });
+        continue;
+      }
+
+      if (seenCnicsInBatch.has(cnic)) {
+        errors.push({ row: rowNum, message: 'Duplicate CNIC in CSV' });
+        continue;
+      }
+
+      const existing = await Member.findOne({ user: userId, cnic });
+      if (existing) {
+        errors.push({
+          row: rowNum,
+          message: `Member with CNIC ${cnic} already exists`,
+        });
+        continue;
+      }
+
+      if (createdCount >= headroom) {
+        errors.push({
+          row: rowNum,
+          message: `Plan limit reached (${limitCheck.limit}) — remaining rows skipped`,
+        });
+        // No point hammering the DB for the remaining rows; surface a single
+        // explicit error per skipped row so the admin sees what was dropped.
+        for (let j = i + 1; j < dataRows.length; j++) {
+          errors.push({
+            row: j + 2,
+            message: 'Skipped — plan limit reached',
+          });
+        }
+        break;
+      }
+
+      const profitRate = profitRateRaw ? Number(profitRateRaw) : 0;
+      const initialInvestment = initialInvestmentRaw
+        ? Number(initialInvestmentRaw)
+        : 0;
+      if (Number.isNaN(profitRate) || profitRate < 0) {
+        errors.push({ row: rowNum, message: 'Invalid profitRate' });
+        continue;
+      }
+      if (Number.isNaN(initialInvestment) || initialInvestment < 0) {
+        errors.push({ row: rowNum, message: 'Invalid initialInvestment' });
+        continue;
+      }
+
+      try {
+        const member = await Member.create({
+          user: userId,
+          branchId: req.user.branchId,
+          name: name.toLowerCase(),
+          email,
+          phone,
+          cnic,
+          address,
+          totalInvested: initialInvestment,
+          currentBalance: initialInvestment,
+          profitRate,
+          password: randomPassword(),
+          mustChangePassword: true,
+        });
+
+        if (initialInvestment > 0) {
+          const investment = await Investment.create({
+            user: userId,
+            member: member._id,
+            branchId: member.branchId,
+            type: 'deposit',
+            amount: initialInvestment,
+            description: 'Initial investment (CSV import)',
+            balanceAfter: initialInvestment,
+          });
+          await FinancialTransaction.create({
+            user: userId,
+            branchId: member.branchId,
+            type: 'credit',
+            category: 'investment',
+            amount: initialInvestment,
+            date: new Date(),
+            description: 'Initial investment (CSV import)',
+            member: member._id,
+            referenceId: investment._id,
+            referenceModel: 'Investment',
+          });
+        }
+
+        seenCnicsInBatch.add(cnic);
+        createdCount++;
+        created.push({
+          row: rowNum,
+          memberId: member._id,
+          name: member.name,
+          cnic: member.cnic,
+        });
+      } catch (rowErr) {
+        errors.push({
+          row: rowNum,
+          message: rowErr?.message || 'Failed to create member',
+        });
+      }
+    }
+
+    if (createdCount > 0) {
+      user.customerCount = (user.customerCount || 0) + createdCount;
+      await user.save();
+      await logActivity({
+        userId: req.user._id,
+        action: 'members_bulk_imported',
+        category: 'member',
+        details: `Bulk imported ${createdCount} member(s) from CSV (${errors.length} error rows)`,
+        metadata: { createdCount, errorCount: errors.length },
+        req,
+      });
+    }
+
+    return res.json({
+      total: dataRows.length,
+      created: createdCount,
+      errors,
+      createdMembers: created,
+    });
+  } catch (error) {
+    console.error('Bulk Import Members Error:', error);
+    res.status(500).json({ message: 'Failed to import members' });
+  }
+};
+
 // ── Account Statement (Current / Saving) ────────────────────────────────────
 // Returns opening balance, period transactions with running balance, and
 // closing balance for a single account (current or saving). Period defaults
@@ -3829,4 +4094,5 @@ module.exports = {
   updateApprovalStatus,
   initiateRaastDeposit,
   getAccountStatement,
+  bulkImportMembers,
 };

@@ -139,14 +139,28 @@ export const TableSkeleton = ({ rows = 5, columns = 5, className }) => {
 
 /** Matches <PageHeader> (no data fetch — renders instantly, so no skeleton needed here).
  *  Kept as a small utility only for pages that truly need a header placeholder. */
-export const PageHeaderSkeleton = () => (
-  <div className="flex items-start justify-between mb-6 md:mb-8 animate-in fade-in duration-200">
+// `actions` = number of action pills to render. Defaults to 1 (matches the
+// common "Add X" header). Pages with extra buttons (e.g. Members with Bulk
+// Email + Import CSV + Add) pass a higher count so the skeleton lines up
+// with the real layout and doesn't flash a single pill before settling.
+export const PageHeaderSkeleton = ({ actions = 1 }) => (
+  <div className="flex items-start justify-between mb-6 md:mb-8 animate-in fade-in duration-200 gap-4">
     <div className="flex flex-col gap-2.5">
       <Skeleton className="h-2.5 w-24 rounded-full" />
       <Skeleton className="h-7 w-48 md:w-64 rounded" />
       <Skeleton className="h-3 w-64 md:w-96 rounded" />
     </div>
-    <Skeleton className="h-10 w-32 rounded-full shrink-0" />
+    <div className="flex items-center gap-2 shrink-0">
+      {Array.from({ length: Math.max(1, actions) }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={cn(
+            'h-10 rounded-full shrink-0',
+            i === actions - 1 ? 'w-32' : 'w-28',
+          )}
+        />
+      ))}
+    </div>
   </div>
 );
 
@@ -283,10 +297,10 @@ export const AdminDashboardSkeleton = () => (
 // ─── Transactions / Generic Table Page ────────────────────────────────────────
 // Matches: PageHeader → 4 stats → filter bar (search + date + icon buttons) → table
 
-export const TablePageSkeleton = () => (
+export const TablePageSkeleton = ({ headerActions = 1 } = {}) => (
   <div className="space-y-8 animate-in fade-in duration-200">
     {/* Page Header */}
-    <PageHeaderSkeleton />
+    <PageHeaderSkeleton actions={headerActions} />
 
     {/* Stats Cards */}
     <CardsSkeleton count={4} />
@@ -1321,8 +1335,12 @@ export const MemberWalletSkeleton = () => (
               <Skeleton className="h-3 w-20 bg-slate-100/70 dark:bg-white/[0.04]" />
               <Skeleton className="h-5 w-40 bg-slate-100 dark:bg-white/[0.06]" />
             </div>
-            <div className="flex gap-3 w-full sm:w-auto">
-              <Skeleton className="h-11 flex-1 sm:w-36 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+            {/* Hero actions: Statement (shown for current/saving — the
+                default tab), My QR, Transfer. Three pills here keep the
+                skeleton width steady when the real card renders. */}
+            <div className="flex gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+              <Skeleton className="h-11 flex-1 sm:w-32 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+              <Skeleton className="h-11 flex-1 sm:w-28 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
               <Skeleton className="h-11 flex-1 sm:w-36 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
             </div>
           </div>
