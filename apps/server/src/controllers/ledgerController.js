@@ -679,6 +679,138 @@ const saveDenominations = async (req, res) => {
   }
 };
 
+// Friendly labels for income categories surfaced in the statement summary.
+// Anything not in this map still shows up — bucketed as "Other income".
+const INCOME_CATEGORY_LABELS = {
+  repayment: 'Loan repayments (interest)',
+  loan_repayment: 'Loan repayments (interest)',
+  checkbook_fee: 'Checkbook fees',
+  late_fee: 'Late fees',
+  tier_upgrade_fee: 'Tier upgrade fees',
+  term_deposit_break_fee: 'Term-deposit break penalties',
+  fee: 'Misc. fees',
+  investment: 'Member deposits (current)',
+  saving_deposit: 'Member deposits (saving)',
+  share_deposit: 'Share deposits',
+  manual_income: 'Manual income',
+  business_capital_injection: 'Capital injections',
+};
+
+// Categories considered "fees" for the headline "fee income" stat.
+const FEE_CATEGORIES = new Set([
+  'checkbook_fee',
+  'late_fee',
+  'tier_upgrade_fee',
+  'term_deposit_break_fee',
+  'fee',
+]);
+
+/**
+ * @desc    Income & fees statement for the business. Returns category-level
+ *          totals plus the underlying paginated transactions, so the admin
+ *          gets one round-trip for the whole page.
+ * @route   GET /api/ledger/business-statement
+ * @access  Private (Admin/Manager)
+ */
+const getBusinessStatement = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+    const { startDate, endDate, paymentMethod, category } = req.query;
+
+    const query = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
+
+    // Date range — same UTC-anchoring as the unified ledger so filtering by
+    // calendar date is consistent regardless of server timezone.
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) {
+        query.date.$gte = new Date(
+          startDate.includes('T') ? startDate : `${startDate}T00:00:00.000Z`,
+        );
+      }
+      if (endDate) {
+        query.date.$lte = new Date(
+          endDate.includes('T') ? endDate : `${endDate}T23:59:59.999Z`,
+        );
+      }
+    }
+
+    // Branch segregation for staff.
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) query.branchId = branchScope;
+    }
+
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+    if (category) query.category = category;
+
+    // The statement is income-only by definition. We exclude reversed entries
+    // so totals reflect what's actually on the books today.
+    query.type = 'income';
+    query.status = { $ne: 'Reversed' };
+
+    const [breakdown, totalEntries, transactions] = await Promise.all([
+      FinancialTransaction.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: '$category',
+            total: { $sum: '$amount' },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { total: -1 } },
+      ]),
+      FinancialTransaction.countDocuments(query),
+      FinancialTransaction.find(query)
+        .populate('customer', 'name email profilePicture')
+        .populate('member', 'name email profilePicture')
+        .populate('loan', 'principal totalAmount status')
+        .populate('branchId', 'name')
+        .sort({ date: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    const totalIncome = breakdown.reduce((s, r) => s + (r.total || 0), 0);
+    const feeIncome = breakdown
+      .filter((r) => FEE_CATEGORIES.has(r._id))
+      .reduce((s, r) => s + (r.total || 0), 0);
+
+    const categories = breakdown.map((r) => ({
+      key: r._id || 'uncategorised',
+      label: INCOME_CATEGORY_LABELS[r._id] || 'Other income',
+      total: r.total || 0,
+      count: r.count || 0,
+      isFee: FEE_CATEGORIES.has(r._id),
+      percentage:
+        totalIncome > 0 ? Math.round(((r.total || 0) / totalIncome) * 10000) / 100 : 0,
+    }));
+
+    res.json({
+      data: transactions,
+      totalEntries,
+      totalPages: Math.ceil(totalEntries / limit),
+      currentPage: page,
+      summary: {
+        totalIncome,
+        feeIncome,
+        nonFeeIncome: totalIncome - feeIncome,
+        transactionCount: totalEntries,
+      },
+      categories,
+    });
+  } catch (error) {
+    console.error('Business Statement Error:', error);
+    res.status(500).json({ message: 'Failed to load business statement' });
+  }
+};
+
 module.exports = {
   getLedger,
   exportLedgerExcel,
@@ -686,4 +818,5 @@ module.exports = {
   setCashOpening,
   getCashSummary,
   saveDenominations,
+  getBusinessStatement,
 };

@@ -245,6 +245,29 @@ const breakTermDeposit = async (req, res) => {
       { session },
     );
 
+    // Record the retained-profit penalty as fee income for the business so
+    // it surfaces in P&L / Reports. The "penalty" is whatever profit the
+    // business kept by paying out less than the full earned profit.
+    const penaltyAmount = Math.max(0, fullProfit - actualProfit);
+    if (penaltyAmount > 0) {
+      await FinancialTransaction.create(
+        [{
+          user: deposit.user,
+          branchId: deposit.branchId,
+          type: 'income',
+          category: 'term_deposit_break_fee',
+          amount: penaltyAmount,
+          date: now,
+          description: `TD ${deposit.depositNumber} early-break penalty (${deposit.earlyBreakPenaltyRate}% of profit)`,
+          member: deposit.member,
+          referenceId: deposit._id,
+          referenceModel: 'TermDeposit',
+          paymentMethod: 'online',
+        }],
+        { session },
+      );
+    }
+
     await session.commitTransaction();
 
     await logActivity({
@@ -252,7 +275,7 @@ const breakTermDeposit = async (req, res) => {
       action: 'term_deposit_broken',
       category: 'member',
       details: `Term Deposit ${deposit.depositNumber} broken early. Returned ${totalReturn} (${deposit.earlyBreakPenaltyRate}% penalty on profit)`,
-      metadata: { termDepositId: deposit._id, totalReturn, actualProfit },
+      metadata: { termDepositId: deposit._id, totalReturn, actualProfit, penaltyAmount },
       req,
     });
 
@@ -610,6 +633,27 @@ const breakPortalTermDeposit = async (req, res) => {
       { session },
     );
 
+    // Record the retained-profit penalty as fee income for the business.
+    const penaltyAmount = Math.max(0, fullProfit - actualProfit);
+    if (penaltyAmount > 0) {
+      await FinancialTransaction.create(
+        [{
+          user: deposit.user,
+          branchId: deposit.branchId,
+          type: 'income',
+          category: 'term_deposit_break_fee',
+          amount: penaltyAmount,
+          date: now,
+          description: `TD ${deposit.depositNumber} early-break penalty (self-service, ${deposit.earlyBreakPenaltyRate}% of profit)`,
+          member: deposit.member,
+          referenceId: deposit._id,
+          referenceModel: 'TermDeposit',
+          paymentMethod: 'online',
+        }],
+        { session },
+      );
+    }
+
     await session.commitTransaction();
 
     // Log activity
@@ -619,7 +663,7 @@ const breakPortalTermDeposit = async (req, res) => {
       action: 'term_deposit_broken',
       category: 'member',
       details: `Term Deposit ${deposit.depositNumber} broken early by ${member?.name || 'member'} (Self-Service). Returned ${totalReturn} (${deposit.earlyBreakPenaltyRate}% penalty)`,
-      metadata: { termDepositId: deposit._id, totalReturn, actualProfit, selfService: true },
+      metadata: { termDepositId: deposit._id, totalReturn, actualProfit, selfService: true, penaltyAmount },
       req,
     }).catch(() => {});
 

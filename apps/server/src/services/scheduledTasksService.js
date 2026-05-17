@@ -4,6 +4,7 @@ const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
 const Notification = require('../models/Notification');
 const SystemSettings = require('../models/SystemSettings');
+const FinancialTransaction = require('../models/FinancialTransaction');
 const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const {
   createTransactionNotification,
@@ -221,6 +222,33 @@ const runLateFeeAccrual = async () => {
           { new: true },
         );
         if (!updatedLoan) continue;
+
+        // Record the daily accrual as income for the business so it shows
+        // up in P&L / Reports alongside the manual `applyLateFees` path.
+        // (The other late-fee code path in `lateFeeService.js` already
+        // writes this; without it here, the cron's accruals were invisible
+        // to the books until repayment.)
+        try {
+          await FinancialTransaction.create({
+            user: loan.user,
+            branchId: loan.branchId,
+            type: 'income',
+            category: 'late_fee',
+            amount: applicableFee,
+            date: new Date(),
+            description: `Late fee accrual for loan #${loan._id.toString().slice(-6).toUpperCase()}`,
+            customer: loan.customer,
+            loan: loan._id,
+            referenceId: loan._id,
+            referenceModel: 'Loan',
+            paymentMethod: 'online',
+          });
+        } catch (ftErr) {
+          console.error(
+            `[CRON] runLateFeeAccrual: FinancialTransaction failed for loan ${loan._id}:`,
+            ftErr.message,
+          );
+        }
 
         totalProcessed++;
       }

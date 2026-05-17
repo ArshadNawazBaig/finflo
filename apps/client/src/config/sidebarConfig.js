@@ -21,6 +21,7 @@ import {
   LifeBuoy,
   Settings2,
   Zap,
+  Receipt,
 } from 'lucide-react';
 
 export const sidebarMenuConfig = [
@@ -117,6 +118,14 @@ export const sidebarMenuConfig = [
         label: 'Transactions',
         onboardingId: 'sidebar-transactions',
         permissions: ['view_all', 'view_reports', 'manage_loans'],
+        any: true,
+      },
+      {
+        to: '/statement',
+        icon: Receipt,
+        label: 'Statement',
+        onboardingId: 'sidebar-statement',
+        permissions: ['view_all', 'view_reports'],
         any: true,
       },
       {
