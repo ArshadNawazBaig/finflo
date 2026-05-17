@@ -18,6 +18,11 @@ const memberSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
+    transferLimitTier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TransferLimitTier',
+      default: null, // null falls back to the tenant's 'standard' tier
+    },
     name: { type: String, lowercase: true }, // Name now optional based on user feedback
     email: {
       type: String,
@@ -219,6 +224,30 @@ memberSchema.methods.getResetPasswordToken = function () {
 
   return resetToken;
 };
+
+// ── Default Transfer Limit Tier ──────────────────────────────────────────────
+// Every newly-created member starts on the tenant's Basic tier. We seed the
+// tier set on first use and look up the basic slot lazily so this hook stays
+// safe even before an admin has visited the Transfer Limits page.
+memberSchema.pre('save', async function () {
+  if (!this.isNew || this.transferLimitTier) return;
+  try {
+    const {
+      ensureSeededTiers,
+    } = require('../services/transferLimits');
+    const TransferLimitTier = require('./TransferLimitTier');
+    await ensureSeededTiers(this.user);
+    const basic = await TransferLimitTier.findOne({
+      user: this.user,
+      slot: 'basic',
+    });
+    if (basic) this.transferLimitTier = basic._id;
+  } catch (err) {
+    // Never block member creation on a tier-defaulting failure — the
+    // member can still be created and assigned a tier later.
+    console.warn('[Member] tier defaulting failed:', err.message);
+  }
+});
 
 // ── PII Encryption Hooks ─────────────────────────────────────────────────────
 // Encrypt PII fields before saving to database

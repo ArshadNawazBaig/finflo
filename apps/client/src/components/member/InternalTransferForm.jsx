@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, ArrowRight, ScanLine } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ScanLine, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import MemberAvatar from '@/components/member/MemberAvatar';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { formatCurrency, capitalize } from '@/lib/utils';
+import { formatCurrency, capitalize, cn } from '@/lib/utils';
 import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 
 const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
@@ -20,11 +20,26 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching] = useState(false);
   const [showTxnConfirm, setShowTxnConfirm] = useState(false);
+  const [limits, setLimits] = useState(null);
 
   // When we set `recipient` programmatically (clicking a result, QR scan
   // auto-fill), we don't want the lookup effect to immediately fire another
   // search using the inserted name/email and re-open the dropdown.
   const skipNextLookupRef = useRef(false);
+
+  // Pull the member's transfer-limit summary on mount. Re-fetched after each
+  // successful transfer so "remaining today" stays current.
+  const fetchLimits = async () => {
+    try {
+      const { data } = await api.get('/transfer-limit-tiers/portal/my-limits');
+      setLimits(data && data.tier ? data : null);
+    } catch {
+      setLimits(null);
+    }
+  };
+  useEffect(() => {
+    fetchLimits();
+  }, []);
 
   // Lookup internal recipient
   useEffect(() => {
@@ -148,6 +163,7 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
       setNote('');
       setRecipient('');
       setLookupData(null);
+      fetchLimits(); // refresh daily-remaining
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('[Transfer] API call failed:', error);
@@ -331,6 +347,62 @@ const InternalTransferForm = ({ member, onSuccess, onScanQR }) => {
                 }
               />
             </div>
+
+            {/* Transfer-limit indicator. Only renders if a tier is configured. */}
+            {limits?.tier &&
+              (() => {
+                const perTx = limits.perChannel?.internal_transfer?.perTransaction || 0;
+                const dailyCap = limits.daily?.cap || 0;
+                const dailyRemaining = limits.daily?.remaining;
+                const value = Math.round(Number(amount) || 0);
+                const exceedsPerTx = perTx > 0 && value > perTx;
+                const exceedsDaily =
+                  dailyRemaining !== null && value > (dailyRemaining || 0);
+                const warn = (value > 0 && (exceedsPerTx || exceedsDaily));
+                return (
+                  <div
+                    className={cn(
+                      'ml-2 flex items-center justify-between gap-3 px-3 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-[0.12em] transition-colors',
+                      warn
+                        ? 'border-rose-500/30 bg-rose-500/[0.06] text-rose-600 dark:text-rose-400'
+                        : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Shield size={11} strokeWidth={2.5} />
+                      {limits.tier.name} tier
+                    </span>
+                    <span className="tabular-nums normal-case tracking-normal text-[10px] font-medium">
+                      {dailyCap > 0 ? (
+                        <>
+                          Remaining today:{' '}
+                          <span className="font-extrabold">
+                            {formatCurrency(dailyRemaining || 0)}
+                          </span>
+                          {perTx > 0 && (
+                            <>
+                              {' · '}
+                              Per-transfer max:{' '}
+                              <span className="font-extrabold">
+                                {formatCurrency(perTx)}
+                              </span>
+                            </>
+                          )}
+                        </>
+                      ) : perTx > 0 ? (
+                        <>
+                          Per-transfer max:{' '}
+                          <span className="font-extrabold">
+                            {formatCurrency(perTx)}
+                          </span>
+                        </>
+                      ) : (
+                        'No transfer limits'
+                      )}
+                    </span>
+                  </div>
+                );
+              })()}
           </div>
 
           <div className="space-y-2 text-left">

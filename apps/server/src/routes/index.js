@@ -40,6 +40,7 @@ const routes = [
   ['/scheduled-payments', './scheduledPaymentRoutes'],
   ['/calendar', './calendarRoutes'],
   ['/insights', './insightsRoutes'],
+  ['/transfer-limit-tiers', './transferLimitTierRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

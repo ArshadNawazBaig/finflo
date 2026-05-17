@@ -39,6 +39,23 @@ const initiateExternalTransfer = async (req, res) => {
     return res.status(400).json({ message: 'Invalid transfer details' });
   }
 
+  // Per-tier limit check — short-circuit before any DB session opens.
+  try {
+    const { assertWithinLimits } = require('../services/transferLimits');
+    await assertWithinLimits({
+      memberId,
+      channel: 'external_transfer',
+      amount: parseFloat(amount),
+    });
+  } catch (limitErr) {
+    if (limitErr.code === 'LIMIT_EXCEEDED') {
+      return res
+        .status(limitErr.status || 403)
+        .json({ message: limitErr.message, code: limitErr.code, details: limitErr.details });
+    }
+    throw limitErr;
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
 

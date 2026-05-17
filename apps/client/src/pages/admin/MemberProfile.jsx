@@ -69,6 +69,7 @@ import MemberAvatar from '@/components/member/MemberAvatar';
 import TransactionTimeline from '@/components/member/TransactionTimeline';
 import AssociatedLoans from '@/components/member/AssociatedLoans';
 import TermDepositsSection from '@/components/member/TermDepositsSection';
+import MemberTierPicker from '@/components/admin/MemberTierPicker';
 import BusinessShareSection from '@/components/member/BusinessShareSection';
 import CheckbookSection from '@/components/member/CheckbookSection';
 const MemberProfile = () => {
@@ -1930,6 +1931,14 @@ const MemberProfile = () => {
               )}
             </div>
           )}
+
+          {/* ── Transfer Limits Tier Picker ──────────────────────── */}
+          <div className="mt-8">
+            <MemberTierPicker
+              memberId={member._id}
+              currentTierId={member.transferLimitTier}
+            />
+          </div>
 
           {/* ── Term Deposits Section ─────────────────────────────── */}
           <TermDepositsSection

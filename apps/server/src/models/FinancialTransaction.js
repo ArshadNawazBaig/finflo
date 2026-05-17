@@ -85,6 +85,7 @@ const financialTransactionSchema = new mongoose.Schema(
         'ProfitDistribution',
         'Checkbook',
         'TermDeposit',
+        'TransferLimitTier',
       ],
     },
     checkbookId: {

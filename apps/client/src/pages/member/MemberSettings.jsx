@@ -27,7 +27,9 @@ import {
   Fingerprint,
   CheckCircle2,
   RotateCcw,
+  TrendingUp,
 } from 'lucide-react';
+import MemberTierUpgradeSection from '@/components/member/MemberTierUpgradeSection';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatCNIC, validateEmail, validatePassword } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -102,6 +104,12 @@ const MemberSettings = () => {
       label: 'Security',
       icon: Shield,
       desc: 'Protection & Sessions',
+    },
+    {
+      id: 'membership',
+      label: 'Membership',
+      icon: TrendingUp,
+      desc: 'Tier & Transfer Limits',
     },
     {
       id: 'notifications',
@@ -261,6 +269,7 @@ const MemberSettings = () => {
                   setDisable2FAPassword={setDisable2FAPassword}
                 />
               )}
+              {activeSection === 'membership' && <MemberTierUpgradeSection />}
               {activeSection === 'notifications' && <NotificationSection />}
             </motion.div>
           </AnimatePresence>

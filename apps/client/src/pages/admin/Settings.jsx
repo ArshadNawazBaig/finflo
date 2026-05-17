@@ -53,6 +53,7 @@ import { toast } from 'sonner';
 import api from '@/lib/axios';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import ColorPalette from '@/components/ui/ColorPalette';
+import TransferLimitsSection from '@/components/admin/TransferLimitsSection';
 import { useAtom } from 'jotai';
 import { userAtom } from '@/atoms';
 
@@ -400,6 +401,15 @@ const Settings = () => {
       label: 'Configuration',
       icon: Sliders,
       desc: 'Global Parameter Rules',
+    });
+  }
+
+  if (isAdmin || user.role === 'super_admin') {
+    tabs.push({
+      id: 'transfer-limits',
+      label: 'Transfer Limits',
+      icon: ShieldCheck,
+      desc: 'Per-tier debit caps',
     });
   }
 
@@ -1705,6 +1715,9 @@ const Settings = () => {
               {activeSection === 'configuration' && (
                 <ConfigurationSection user={user} />
               )}
+
+              {/* Transfer Limits Section */}
+              {activeSection === 'transfer-limits' && <TransferLimitsSection />}
 
               {/* Review Section */}
               {activeSection === 'review' && <ReviewSection user={user} />}

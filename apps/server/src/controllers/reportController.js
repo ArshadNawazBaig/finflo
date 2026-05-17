@@ -536,7 +536,7 @@ const getTrialBalance = async (req, res) => {
 
     // Fee income
     const feeIncome = transactions
-      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
+      .filter((t) => ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee'].includes(t.category) && t.type === 'income')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const cashAtHand = totalDeposits - totalWithdrawn
@@ -677,7 +677,7 @@ const getProfitAndLoss = async (req, res) => {
 
     // Fee income (checkbook fees, late fees, etc.)
     const feeIncomeAgg = await FinancialTransaction.aggregate([
-      { $match: { ...query, date: dateFilter, category: { $in: ['checkbook_fee', 'late_fee', 'fee'] }, type: 'income' } },
+      { $match: { ...query, date: dateFilter, category: { $in: ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee'] }, type: 'income' } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
     const feeIncome = Math.round(feeIncomeAgg[0]?.total || 0);
@@ -944,7 +944,7 @@ const getBalanceSheet = async (req, res) => {
 
     // Fee income (checkbook, late fees, etc.)
     const feeIncome = transactions
-      .filter((t) => ['checkbook_fee', 'late_fee', 'fee'].includes(t.category) && t.type === 'income')
+      .filter((t) => ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee'].includes(t.category) && t.type === 'income')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const termDepositAssets = activeTermDeposits.reduce(

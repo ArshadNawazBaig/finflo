@@ -192,6 +192,23 @@ const contributeToGoal = async (req, res) => {
       return res.status(400).json({ message: 'Invalid contribution amount' });
     }
 
+    // Per-tier limit check before opening a session.
+    try {
+      const { assertWithinLimits } = require('../services/transferLimits');
+      await assertWithinLimits({
+        memberId: req.member._id,
+        channel: 'goal_contribution',
+        amount: contributionAmount,
+      });
+    } catch (limitErr) {
+      if (limitErr.code === 'LIMIT_EXCEEDED') {
+        return res
+          .status(limitErr.status || 403)
+          .json({ message: limitErr.message, code: limitErr.code, details: limitErr.details });
+      }
+      throw limitErr;
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
 
