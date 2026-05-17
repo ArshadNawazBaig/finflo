@@ -145,7 +145,7 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
 
   return (
     <div
-      className="group relative rounded-[2rem] bg-card p-6 sm:p-8 transition-all duration-500 border border-border/50 cursor-default shadow-xs"
+      className="group relative rounded-[2rem] bg-card p-6 sm:p-8 transition-all duration-500 border border-slate-100 dark:border-white/[0.06] cursor-default shadow-xs"
       id="financial-health-card"
     >
       <div className="relative z-10">

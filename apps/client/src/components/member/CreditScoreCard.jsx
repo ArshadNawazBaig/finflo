@@ -144,8 +144,7 @@ const CreditScoreCard = ({ creditScore }) => {
   return (
     <div
       className={cn(
-        'group relative rounded-[2rem] bg-card p-6 sm:p-8 transition-all duration-500 border cursor-default shadow-xs',
-        styles.border,
+        'group relative rounded-[2rem] bg-card p-6 sm:p-8 transition-all duration-500 border border-slate-100 dark:border-white/[0.06] cursor-default shadow-xs',
         isHovered && styles.glow,
       )}
       onMouseEnter={() => setIsHovered(true)}
