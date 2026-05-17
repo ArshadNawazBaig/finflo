@@ -130,6 +130,21 @@ export const SocketProvider = ({ children, userType = 'user' }) => {
     // Real-time branding updates
     socket.on('business:branding_updated', async (data) => {
       console.log('[Socket] Business Branding Updated:', data.businessName);
+      // Push the primary color into the theme immediately so the UI re-skins
+      // without waiting on the profile re-fetch below. Empty/invalid values
+      // are ignored (the validation in updateDetails on the server only
+      // saves valid HSL triplets, but be defensive in case of bad payloads).
+      if (typeof data?.primaryColor === 'string' && data.primaryColor.trim()) {
+        try {
+          localStorage.setItem('primary-color', data.primaryColor.trim());
+          const root = window.document.documentElement;
+          root.style.setProperty('--primary', data.primaryColor.trim());
+          root.style.setProperty('--ring', data.primaryColor.trim());
+        } catch (themeErr) {
+          console.warn('[Socket] Failed to apply primary color:', themeErr.message);
+        }
+      }
+
       try {
         const endpoint = userType === 'member' ? '/member-auth/me' : '/auth/me';
         const { data: profile } = await api.get(endpoint);

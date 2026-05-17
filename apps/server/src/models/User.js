@@ -60,6 +60,12 @@ const userSchema = new mongoose.Schema(
     businessAddress: { type: String, default: '' },
     businessStamp: { type: String, default: '' },
     ceoSignature: { type: String, default: '' },
+    // Tailwind-style HSL triplet ("H S% L%") for the business primary accent.
+    // Synced into ThemeContext on login and broadcast via the
+    // `business:branding_updated` socket event so every device follows the
+    // tenant's brand color. Empty string falls back to the app default
+    // (indigo). Hex equivalents are derived on the fly for email templates.
+    primaryColor: { type: String, default: '' },
     currency: { type: String, default: 'Rs.' },
     businessAbbreviation: {
       type: String,

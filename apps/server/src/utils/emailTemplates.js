@@ -7,9 +7,12 @@ const getBaseTemplate = (
   title,
   logoUrl = null,
   customBrandName = null,
+  customBrandColor = null,
 ) => {
   const brandName = customBrandName || process.env.FROM_NAME || 'FinFlo';
-  const primaryColor = '#2563eb'; // Modern Blue
+  // Tenant's brand color falls through when missing; #2563eb is the legacy
+  // FinFlo default so existing emails still render exactly as before.
+  const primaryColor = customBrandColor || '#2563eb';
 
   // Use custom logo if provided, otherwise fallback to default
   const logoPath =
@@ -28,13 +31,13 @@ const getBaseTemplate = (
       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
         <tr>
           <td align="center" style="padding: 40px 0;">
-            <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+            <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-top: 4px solid ${primaryColor};">
               
               <!-- Header -->
               <tr>
                 <td align="center" style="padding: 40px 40px 20px 40px;">
                   <img src="${logoPath}" alt="${brandName}" width="64" height="64" style="margin-bottom: 16px;">
-                  <h1 style="margin: 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">${brandName}</h1>
+                  <h1 style="margin: 0; color: ${primaryColor}; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">${brandName}</h1>
                 </td>
               </tr>
 
@@ -428,6 +431,7 @@ const broadcastEmail = ({
   bodyText,
   businessName = null,
   logoUrl = null,
+  brandColor = null,
 }) => {
   const safeBody = bodyHtml
     ? bodyHtml
@@ -448,7 +452,7 @@ const broadcastEmail = ({
     <p style="margin: 0 0 14px 0; color: #475569; font-size: 14px;">${greeting}</p>
     ${safeBody}
   `;
-  return getBaseTemplate(content, title, logoUrl, businessName);
+  return getBaseTemplate(content, title, logoUrl, businessName, brandColor);
 };
 
 module.exports = {

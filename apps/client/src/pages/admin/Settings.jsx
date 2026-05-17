@@ -1311,7 +1311,25 @@ const Settings = () => {
                         <div className="pt-2">
                           <ColorPalette
                             primaryColor={primaryColor}
-                            setPrimaryColor={setPrimaryColor}
+                            setPrimaryColor={(color) => {
+                              // Local first — the theme should respond
+                              // instantly. The server PUT below is a
+                              // best-effort sync so the color travels to
+                              // other devices, emails, and PDFs.
+                              setPrimaryColor(color);
+                              api
+                                .put('/auth/updatedetails', {
+                                  primaryColor: color,
+                                })
+                                .then(({ data }) => {
+                                  if (data?.data) setUser(data.data);
+                                })
+                                .catch(() => {
+                                  toast.error(
+                                    'Color updated locally, but failed to sync to your business profile.',
+                                  );
+                                });
+                            }}
                           />
                         </div>
                       </div>

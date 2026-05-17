@@ -418,6 +418,15 @@ const updateDetails = async (req, res) => {
     businessAbbreviation: req.body.businessAbbreviation?.toUpperCase(),
   };
 
+  // primaryColor is a Tailwind HSL triplet ("H S% L%"). Validate loosely so
+  // we don't accept arbitrary strings that would break CSS variables.
+  if (typeof req.body.primaryColor === 'string') {
+    const trimmed = req.body.primaryColor.trim();
+    if (trimmed === '' || /^\d+(\.\d+)?\s+\d+(\.\d+)?%\s+\d+(\.\d+)?%$/.test(trimmed)) {
+      fieldsToUpdate.primaryColor = trimmed;
+    }
+  }
+
   // Allow admins to update savingProfitRate
   if (req.body.savingProfitRate !== undefined) {
     const rate = parseFloat(req.body.savingProfitRate);
@@ -463,6 +472,7 @@ const updateDetails = async (req, res) => {
             businessLogo: user.businessLogo,
             businessStamp: user.businessStamp,
             ceoSignature: user.ceoSignature,
+            primaryColor: user.primaryColor,
           },
         );
       }
@@ -639,6 +649,7 @@ const uploadBusinessStamp = async (req, res) => {
             businessLogo: user.businessLogo,
             businessStamp: user.businessStamp,
             ceoSignature: user.ceoSignature,
+            primaryColor: user.primaryColor,
           },
         );
       }
@@ -730,6 +741,7 @@ const uploadCeoSignature = async (req, res) => {
             businessLogo: user.businessLogo,
             businessStamp: user.businessStamp,
             ceoSignature: user.ceoSignature,
+            primaryColor: user.primaryColor,
           },
         );
       }

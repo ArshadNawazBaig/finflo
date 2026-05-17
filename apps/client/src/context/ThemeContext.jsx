@@ -19,6 +19,19 @@ export const ThemeProvider = ({
   });
 
   const [primaryColor, setPrimaryColor] = useState(() => {
+    // Source-of-truth order:
+    //   1. The logged-in user's persisted primaryColor (synced across devices)
+    //   2. The previously cached value on this device
+    //   3. The app default
+    // The user atom isn't loaded yet at provider mount, so we read the
+    // serialized copy in localStorage directly. The SocketContext listener
+    // keeps this in sync if the color is changed elsewhere.
+    try {
+      const cached = JSON.parse(localStorage.getItem('user') || '{}');
+      if (cached?.primaryColor) return cached.primaryColor;
+    } catch {
+      // fall through
+    }
     return localStorage.getItem(colorKey) || defaultColor;
   });
 

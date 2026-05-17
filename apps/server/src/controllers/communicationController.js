@@ -116,10 +116,12 @@ const sendBulkEmailMembers = async (req, res) => {
     }
 
     const sender = await User.findById(userId).select(
-      'businessName name businessLogo',
+      'businessName name businessLogo primaryColor',
     );
     const brandName = sender?.businessName || sender?.name || null;
     const logoUrl = sender?.businessLogo || null;
+    const { hslTripletToHex } = require('../utils/brandingUtils');
+    const brandColor = hslTripletToHex(sender?.primaryColor) || null;
 
     const html = broadcastEmail({
       title: subject,
@@ -128,6 +130,7 @@ const sendBulkEmailMembers = async (req, res) => {
       bodyText: bodyHtml ? undefined : body,
       businessName: brandName,
       logoUrl,
+      brandColor,
     });
 
     const sendOne = async (m) => {
