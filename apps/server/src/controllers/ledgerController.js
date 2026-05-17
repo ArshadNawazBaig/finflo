@@ -811,6 +811,31 @@ const getBusinessStatement = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Backfill missing FinancialTransaction (income) entries for past
+ *          fee charges that only landed in the Investment ledger. Scoped to
+ *          the calling admin's tenant so it never touches other businesses.
+ * @route   POST /api/ledger/sync-fee-income
+ * @access  Admin
+ */
+const syncFeeIncome = async (req, res) => {
+  try {
+    const { runFeeBackfill } = require('../services/feeBackfillService');
+    const scope = req.body?.scope; // optional: 'tier' | 'late' | 'td'
+    const userId = req.user.isSuperAdmin ? undefined : req.user.effectiveOwnerId;
+    const result = await runFeeBackfill({ scope, userId });
+    res.json({
+      message: `Synced ${result.totalCreated} fee transaction${
+        result.totalCreated === 1 ? '' : 's'
+      }.`,
+      result,
+    });
+  } catch (error) {
+    console.error('syncFeeIncome Error:', error);
+    res.status(500).json({ message: 'Failed to sync fee income.' });
+  }
+};
+
 module.exports = {
   getLedger,
   exportLedgerExcel,
@@ -819,4 +844,5 @@ module.exports = {
   getCashSummary,
   saveDenominations,
   getBusinessStatement,
+  syncFeeIncome,
 };

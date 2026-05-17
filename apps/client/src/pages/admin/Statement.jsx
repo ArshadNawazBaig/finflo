@@ -8,6 +8,7 @@ import {
   ArrowDownLeft,
   Download,
   Loader2,
+  RefreshCcw,
 } from 'lucide-react';
 import { subYears, startOfDay, endOfDay, format } from 'date-fns';
 import PageHeader from '@/components/PageHeader';
@@ -27,6 +28,7 @@ const Statement = () => {
   const user = useAtomValue(userAtom);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [data, setData] = useState({
     data: [],
     summary: { totalIncome: 0, feeIncome: 0, nonFeeIncome: 0, transactionCount: 0 },
@@ -72,6 +74,28 @@ const Statement = () => {
   useEffect(() => {
     setPage(1);
   }, [dateRange?.from, dateRange?.to]);
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const { data: res } = await api.post('/ledger/sync-fee-income');
+      const total = res?.result?.totalCreated || 0;
+      toast.success(
+        total > 0
+          ? `Synced ${total} historical fee transaction${total === 1 ? '' : 's'}.`
+          : 'No missing fee transactions — everything is already on the books.',
+      );
+      // Re-fetch so the table reflects the new rows.
+      await fetchStatement();
+    } catch (err) {
+      console.error('Sync fees error:', err);
+      toast.error(
+        err.response?.data?.message || 'Failed to sync fee transactions.',
+      );
+    } finally {
+      setSyncing(false);
+    }
+  }, [fetchStatement]);
 
   const handleDownload = useCallback(async () => {
     setDownloading(true);
@@ -129,18 +153,33 @@ const Statement = () => {
             )}
           </span>
         </div>
-        <Button
-          onClick={handleDownload}
-          disabled={downloading || loading}
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 h-auto bg-primary hover:bg-primary/90 text-white text-[11px] font-extrabold uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-        >
-          {downloading ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Download size={13} strokeWidth={2.5} />
-          )}
-          {downloading ? 'Preparing…' : 'Download PDF'}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            onClick={handleSync}
+            disabled={syncing || loading}
+            title="Rebuild any fee income rows that didn't get logged before this code shipped"
+            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 h-auto bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/[0.08] text-[11px] font-extrabold uppercase tracking-[0.12em] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          >
+            {syncing ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <RefreshCcw size={13} strokeWidth={2.5} />
+            )}
+            {syncing ? 'Syncing…' : 'Sync historical fees'}
+          </Button>
+          <Button
+            onClick={handleDownload}
+            disabled={downloading || loading}
+            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 h-auto bg-primary hover:bg-primary/90 text-white text-[11px] font-extrabold uppercase tracking-[0.12em] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          >
+            {downloading ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Download size={13} strokeWidth={2.5} />
+            )}
+            {downloading ? 'Preparing…' : 'Download PDF'}
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
