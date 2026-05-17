@@ -1090,6 +1090,69 @@ const bulkImportMembers = async (req, res) => {
   }
 };
 
+// ── Audit Log (Per-Member Activity Timeline) ────────────────────────────────
+// Returns the ActivityLog records that explicitly reference this member via
+// `metadata.memberId`. Different controllers stamp memberId as either a raw
+// ObjectId or a stringified one (see e.g. termDepositController.js:539),
+// so we match both forms.
+const getMemberAuditLog = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+    const member = await Member.findOne({ _id: id, user: userId }).select('_id');
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit, 10) || 25, 100);
+    const skip = (page - 1) * limit;
+
+    let memberOid;
+    try {
+      memberOid = new mongoose.Types.ObjectId(id);
+    } catch {
+      memberOid = null;
+    }
+
+    const ActivityLog = require('../models/ActivityLog');
+    const query = {
+      $or: [
+        { 'metadata.memberId': id },
+        ...(memberOid ? [{ 'metadata.memberId': memberOid }] : []),
+      ],
+    };
+
+    // Staff are confined to their own branch — actions on this member from
+    // outside that branch shouldn't appear in their view.
+    if (req.user.role === 'staff') {
+      const scope = req.user.managedBranchId || req.user.branchId;
+      if (scope) query.branchId = scope;
+    }
+
+    const [total, logs] = await Promise.all([
+      ActivityLog.countDocuments(query),
+      ActivityLog.find(query)
+        .populate('user', 'name email role profilePicture')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    return res.json({
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Member Audit Log Error:', error);
+    res.status(500).json({ message: 'Failed to load audit log' });
+  }
+};
+
 // ── Account Statement (Current / Saving) ────────────────────────────────────
 // Returns opening balance, period transactions with running balance, and
 // closing balance for a single account (current or saving). Period defaults
@@ -4095,4 +4158,5 @@ module.exports = {
   initiateRaastDeposit,
   getAccountStatement,
   bulkImportMembers,
+  getMemberAuditLog,
 };

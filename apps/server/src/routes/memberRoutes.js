@@ -46,6 +46,7 @@ const {
   initiateRaastDeposit,
   getAccountStatement,
   bulkImportMembers,
+  getMemberAuditLog,
 } = require('../controllers/memberController');
 const {
   setTransactionPin,
@@ -103,6 +104,9 @@ router.post('/recalculate-balance', recalculateBalance); // Fix stale balances
 
 // Account statement (current/saving) — monthly PDF source data
 router.get('/:id/account-statement', getAccountStatement);
+
+// Per-member audit timeline (who did what, when)
+router.get('/:id/audit-log', getMemberAuditLog);
 
 // Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);

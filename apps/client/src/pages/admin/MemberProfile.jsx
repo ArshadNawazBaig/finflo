@@ -73,6 +73,7 @@ import TermDepositsSection from '@/components/member/TermDepositsSection';
 import MemberTierPicker from '@/components/admin/MemberTierPicker';
 import BusinessShareSection from '@/components/member/BusinessShareSection';
 import CheckbookSection from '@/components/member/CheckbookSection';
+import MemberAuditLog from '@/components/member/MemberAuditLog';
 const MemberProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -2032,6 +2033,10 @@ const MemberProfile = () => {
             checkbookPage={checkbookPage}
             fetchCheckbooks={fetchCheckbooks}
           />
+          {/* ────────────────────────────────────────────────────────── */}
+
+          {/* ── Audit Timeline ───────────────────────────────────────── */}
+          <MemberAuditLog memberId={id} />
           {/* ────────────────────────────────────────────────────────── */}
 
           {/* Document Vault Section */}
