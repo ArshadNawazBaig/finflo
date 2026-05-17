@@ -4,6 +4,8 @@ import {
   Calendar,
   Plus,
   Trash2,
+  Zap,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
@@ -68,9 +70,27 @@ const SavingGoalsList = ({
                     <h4 className="font-black tracking-tight text-lg">
                       {goal.title}
                     </h4>
-                    <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none mt-1">
-                      {goal.category}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">
+                        {goal.category}
+                      </p>
+                      {goal.autoContribute?.roundup?.enabled && (
+                        <span
+                          title="Round-up on every debit"
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-primary/10 text-primary leading-none"
+                        >
+                          <Zap size={8} strokeWidth={3} /> Round-up
+                        </span>
+                      )}
+                      {goal.autoContribute?.recurring?.enabled && (
+                        <span
+                          title={`Auto-deposit on day ${goal.autoContribute.recurring.dayOfMonth || 1}`}
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 leading-none"
+                        >
+                          <Repeat size={8} strokeWidth={3} /> Monthly
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <button

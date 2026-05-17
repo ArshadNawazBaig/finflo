@@ -15,12 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Tag, Target } from 'lucide-react';
+import { Calendar, Tag, Target, Zap, Repeat, Sparkles } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+
+  // Auto-contribute config — kept in local state since both modes are
+  // optional and have nested sub-fields. Sent up at submit time.
+  const [roundupEnabled, setRoundupEnabled] = useState(false);
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringAmount, setRecurringAmount] = useState('');
+  const [recurringDay, setRecurringDay] = useState(1);
 
   const {
     register,
@@ -40,7 +48,23 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
   const onSubmit = async (formData) => {
     setLoading(true);
     try {
-      await api.post('/saving-goals', formData, {
+      const autoContribute = {};
+      if (roundupEnabled) {
+        autoContribute.roundup = { enabled: true, sourceAccount: 'current' };
+      }
+      if (recurringEnabled && Number(recurringAmount) > 0) {
+        autoContribute.recurring = {
+          enabled: true,
+          amount: Math.round(Number(recurringAmount)),
+          dayOfMonth: Math.max(1, Math.min(28, parseInt(recurringDay, 10) || 1)),
+          sourceAccount: 'current',
+        };
+      }
+      const payload = Object.keys(autoContribute).length
+        ? { ...formData, autoContribute }
+        : formData;
+
+      await api.post('/saving-goals', payload, {
         headers: {
           /* Auth header handled by browser cookies */
         },
@@ -49,6 +73,10 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
       onSuccess();
       onClose();
       reset();
+      setRoundupEnabled(false);
+      setRecurringEnabled(false);
+      setRecurringAmount('');
+      setRecurringDay(1);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create goal');
     } finally {
@@ -153,6 +181,102 @@ const CreateSavingGoalModal = ({ isOpen, onClose, onSuccess }) => {
                 style={{ colorScheme: 'auto' }}
                 {...register('deadline')}
               />
+            </div>
+          </div>
+
+          {/* ── Auto-contribute (optional) ───────────────────────────────── */}
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-1.5">
+              <Sparkles size={11} className="text-primary" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                Auto-contribute · optional
+              </p>
+            </div>
+
+            {/* Round-up toggle */}
+            <label
+              className={cn(
+                'flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-colors',
+                roundupEnabled
+                  ? 'border-primary/30 bg-primary/[0.04]'
+                  : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:bg-slate-100/40 dark:hover:bg-white/[0.04]',
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={roundupEnabled}
+                onChange={(e) => setRoundupEnabled(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary/40"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <Zap size={11} className="text-primary" /> Round up every spend
+                </p>
+                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                  Each debit rounds up to the nearest Rs. 10 and the change goes
+                  into this goal.
+                </p>
+              </div>
+            </label>
+
+            {/* Monthly recurring */}
+            <div
+              className={cn(
+                'rounded-2xl border transition-colors overflow-hidden',
+                recurringEnabled
+                  ? 'border-primary/30 bg-primary/[0.04]'
+                  : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02]',
+              )}
+            >
+              <label className="flex items-start gap-3 p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={recurringEnabled}
+                  onChange={(e) => setRecurringEnabled(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary/40"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <Repeat size={11} className="text-primary" /> Auto-deposit
+                    monthly
+                  </p>
+                  <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                    Move a fixed amount from your current account on the same
+                    day each month.
+                  </p>
+                </div>
+              </label>
+
+              {recurringEnabled && (
+                <div className="grid grid-cols-[1fr,auto] gap-2 px-3 pb-3 animate-in fade-in slide-in-from-top-1">
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                      Amount (Rs.)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="e.g. 5000"
+                      value={recurringAmount}
+                      onChange={(e) => setRecurringAmount(e.target.value)}
+                      className="w-full rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                      Day
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={28}
+                      value={recurringDay}
+                      onChange={(e) => setRecurringDay(e.target.value)}
+                      className="w-20 rounded-xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-3 py-2 text-sm font-extrabold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </form>

@@ -21,11 +21,42 @@ const getMyGoals = async (req, res) => {
   }
 };
 
+// Pull the auto-contribute config out of an arbitrary request body. Strict
+// whitelisting — we never trust the caller for `lastRunAt` or unknown keys.
+const sanitizeAutoContribute = (input) => {
+  if (!input || typeof input !== 'object') return undefined;
+  const out = {};
+  if (input.roundup && typeof input.roundup === 'object') {
+    out.roundup = {
+      enabled: !!input.roundup.enabled,
+      unit: 10, // fixed for the MVP; ignore caller's value
+      sourceAccount:
+        input.roundup.sourceAccount === 'saving' ? 'saving' : 'current',
+    };
+  }
+  if (input.recurring && typeof input.recurring === 'object') {
+    const day = Math.max(
+      1,
+      Math.min(28, parseInt(input.recurring.dayOfMonth, 10) || 1),
+    );
+    const amount = Math.max(0, Math.round(Number(input.recurring.amount) || 0));
+    out.recurring = {
+      enabled: !!input.recurring.enabled && amount > 0,
+      amount,
+      dayOfMonth: day,
+      sourceAccount:
+        input.recurring.sourceAccount === 'saving' ? 'saving' : 'current',
+    };
+  }
+  return Object.keys(out).length ? out : undefined;
+};
+
 // @desc    Create a new saving goal
 // @route   POST /api/saving-goals
 // @access  Private (Member)
 const createGoal = async (req, res) => {
   const { title, targetAmount, category, deadline } = req.body;
+  const autoContribute = sanitizeAutoContribute(req.body.autoContribute);
 
   try {
     const goal = await SavingGoal.create({
@@ -35,6 +66,7 @@ const createGoal = async (req, res) => {
       targetAmount,
       category,
       deadline,
+      ...(autoContribute ? { autoContribute } : {}),
     });
 
     // Log activity
@@ -68,12 +100,29 @@ const updateGoal = async (req, res) => {
     }
 
     const { title, targetAmount, category, deadline, status } = req.body;
+    const autoContribute = sanitizeAutoContribute(req.body.autoContribute);
 
     goal.title = title || goal.title;
     goal.targetAmount = targetAmount || goal.targetAmount;
     goal.category = category || goal.category;
     goal.deadline = deadline || goal.deadline;
     goal.status = status || goal.status;
+    if (autoContribute) {
+      // Merge so the caller can update just one mode at a time. Preserve
+      // existing `lastRunAt` so a config update doesn't reset the
+      // already-fired-this-month guard.
+      const existing = goal.autoContribute?.toObject?.() || {};
+      const existingRecurring = existing.recurring || {};
+      goal.autoContribute = {
+        roundup: autoContribute.roundup || existing.roundup,
+        recurring: autoContribute.recurring
+          ? {
+              ...autoContribute.recurring,
+              lastRunAt: existingRecurring.lastRunAt,
+            }
+          : existing.recurring,
+      };
+    }
 
     const updatedGoal = await goal.save();
     // Log activity

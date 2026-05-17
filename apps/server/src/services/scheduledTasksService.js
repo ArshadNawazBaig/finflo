@@ -1421,7 +1421,31 @@ const initScheduledTasks = () => {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 11 jobs registered.');
+  // Job 12: Goal auto-contribute (recurring) daily at 06:15. Runs after the
+  // scheduled-payments job (06:00) so the source balance reflects any other
+  // morning debits. The service itself enforces day-of-month + once-per-month
+  // semantics; running daily is just a polling cadence.
+  cron.schedule(
+    '15 6 * * *',
+    async () => {
+      try {
+        const {
+          runMonthlyAutoContributions,
+        } = require('./goalAutoContribute');
+        const summary = await runMonthlyAutoContributions();
+        if (summary.total > 0) {
+          console.log(
+            `[CRON] runMonthlyAutoContributions: ${summary.success} ok, ${summary.skipped} skipped, ${summary.failed} failed of ${summary.total} due.`,
+          );
+        }
+      } catch (err) {
+        console.error('[CRON] runMonthlyAutoContributions ERROR:', err);
+      }
+    },
+    { timezone: 'Asia/Karachi' },
+  );
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 12 jobs registered.');
 };
 
 module.exports = {

@@ -53,6 +53,34 @@ const savingGoalSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // Could be used if members want to show off their progress to the admin
     },
+    // ── Auto-contribute configuration ─────────────────────────────────────
+    // Two modes can be active simultaneously. `roundup` is event-driven on
+    // every member debit; `recurring` is monthly via the scheduled task.
+    autoContribute: {
+      roundup: {
+        enabled: { type: Boolean, default: false },
+        // Fixed at 10 for the MVP — every debit rounds up to the nearest 10.
+        unit: { type: Number, default: 10 },
+        sourceAccount: {
+          type: String,
+          enum: ['current', 'saving'],
+          default: 'current',
+        },
+      },
+      recurring: {
+        enabled: { type: Boolean, default: false },
+        amount: { type: Number, default: 0, min: 0 },
+        // Monthly only for now — day-of-month the contribution should run.
+        dayOfMonth: { type: Number, default: 1, min: 1, max: 28 },
+        sourceAccount: {
+          type: String,
+          enum: ['current', 'saving'],
+          default: 'current',
+        },
+        // Bookkeeping for the cron — prevents double-firing within a month.
+        lastRunAt: { type: Date },
+      },
+    },
   },
   { timestamps: true },
 );

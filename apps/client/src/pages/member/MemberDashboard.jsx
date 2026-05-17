@@ -27,6 +27,8 @@ import CreditScoreCard from '@/components/member/CreditScoreCard';
 import FinancialHealthCard from '@/components/member/FinancialHealthCard';
 import AccountOverviewCard from '@/components/member/AccountOverviewCard';
 import FinancialCalendar from '@/components/member/FinancialCalendar';
+import TermDepositsWidget from '@/components/member/TermDepositsWidget';
+import DividendsWidget from '@/components/member/DividendsWidget';
 import SavingGoalsList from '@/components/savings/SavingGoalsList';
 import CreateSavingGoalModal from '@/components/savings/CreateSavingGoalModal';
 import ContributeGoalModal from '@/components/savings/ContributeGoalModal';
@@ -858,7 +860,9 @@ const MemberDashboard = () => {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="sticky top-10">
+          <div className="sticky top-10 space-y-6">
+            <TermDepositsWidget />
+            <DividendsWidget />
             <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] h-full">
               <SavingGoalsList
                 goals={goals}

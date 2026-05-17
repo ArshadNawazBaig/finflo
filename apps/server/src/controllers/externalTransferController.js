@@ -128,6 +128,20 @@ const initiateExternalTransfer = async (req, res) => {
 
     await session.commitTransaction();
 
+    // ── Goal round-up auto-contribute (best-effort) ────────────────────────
+    try {
+      const { applyRoundupOnDebit } = require('../services/goalAutoContribute');
+      await applyRoundupOnDebit({
+        memberId,
+        debitAmount: transferAmount,
+      });
+    } catch (roundupErr) {
+      console.warn(
+        '[ExternalTransfer] roundup hook failed:',
+        roundupErr.message,
+      );
+    }
+
     // ── Notifications ──────────────────────────────────────────────────────
     try {
       await createTransactionNotification({

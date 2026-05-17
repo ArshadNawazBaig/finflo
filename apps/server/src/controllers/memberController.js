@@ -2166,6 +2166,20 @@ const transferFunds = async (req, res) => {
 
     await session.commitTransaction();
 
+    // ── Goal round-up auto-contribute ──────────────────────────────────────
+    // Fire after the main transfer commits so a roundup failure can't
+    // unwind the user's actual transfer. Best-effort: if the member has no
+    // roundup-enabled goal or insufficient slack, this silently no-ops.
+    try {
+      const { applyRoundupOnDebit } = require('../services/goalAutoContribute');
+      await applyRoundupOnDebit({
+        memberId: sender._id,
+        debitAmount: transferAmount,
+      });
+    } catch (roundupErr) {
+      console.warn('[Transfer] roundup hook failed:', roundupErr.message);
+    }
+
     // ── Notifications (outside transaction for performance) ────────────────
     try {
       // Notify Sender
