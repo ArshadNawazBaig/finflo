@@ -36,10 +36,71 @@ const availablePermissions = [
     label: 'Approve Self-Registered Members',
     group: 'Members',
   },
+  // Operational — front-counter transaction processing (Teller Mode).
+  {
+    id: 'process_transactions',
+    label: 'Process Cash Transactions (Teller)',
+    group: 'Operations',
+  },
+  // Sensitive — undoing a posted transaction. Usually reserved for
+  // accountants / branch managers, not front-line tellers.
+  {
+    id: 'reverse_transactions',
+    label: 'Reverse Posted Transactions',
+    group: 'Operations',
+  },
   { id: 'manage_branches', label: 'Manage Branches', group: 'System' },
   { id: 'view_reports', label: 'View Reports', group: 'System' },
   { id: 'manage_roles', label: 'Manage Roles & Permissions', group: 'System' },
   { id: 'system_settings', label: 'System Settings', group: 'System' },
+];
+
+// Curated role bundles. Admins can click one to seed the create-role form
+// with the canonical permission set for that job, then tweak before saving.
+// Permissions are intentionally tight — broaden via the checkboxes if a
+// specific tenant needs more.
+const ROLE_TEMPLATES = [
+  {
+    slug: 'teller',
+    name: 'Teller',
+    description:
+      'Front-counter cashier. Processes deposits, withdrawals, and loan repayments for assigned branch.',
+    permissions: ['view_assigned', 'process_transactions'],
+    accent: 'from-emerald-500 to-emerald-600',
+  },
+  {
+    slug: 'branch_manager',
+    name: 'Branch Manager',
+    description:
+      'Runs a single branch. Approves loans/members in their branch and views branch-level reports.',
+    permissions: [
+      'view_assigned',
+      'manage_members',
+      'approve_members',
+      'manage_loans',
+      'approve_loans',
+      'disburse_loans',
+      'process_transactions',
+      'view_reports',
+    ],
+    accent: 'from-indigo-500 to-indigo-600',
+  },
+  {
+    slug: 'auditor',
+    name: 'Auditor',
+    description:
+      'Read-only access across the business. Cannot mutate any data — built for compliance reviews and external audits.',
+    permissions: ['view_all', 'view_reports'],
+    accent: 'from-amber-500 to-amber-600',
+  },
+  {
+    slug: 'accountant',
+    name: 'Accountant',
+    description:
+      'Books and reconciliation. Views reports, reverses miss-posted transactions, and reconciles ledgers — does not approve loans or members.',
+    permissions: ['view_all', 'view_reports', 'reverse_transactions'],
+    accent: 'from-purple-500 to-purple-600',
+  },
 ];
 
 import CardsSkeleton from '@/components/skeletons/CardsSkeleton';
@@ -98,6 +159,19 @@ const Roles = () => {
         permissions: [],
       });
     }
+    setIsModalOpen(true);
+  };
+
+  // Seed the create-role modal from one of the curated templates. The form
+  // is still editable — admins routinely want to add/remove a permission
+  // before saving (e.g. give a Teller `disburse_loans` for a small branch).
+  const handleUseTemplate = (template) => {
+    setEditingRole(null);
+    reset({
+      name: template.name,
+      description: template.description,
+      permissions: [...template.permissions],
+    });
     setIsModalOpen(true);
   };
 
@@ -171,6 +245,55 @@ const Roles = () => {
         description="Define granular access control levels for your team members."
         icon={Shield}
       />
+
+      {/* Role templates — curated bundles that pre-fill the create form.
+          Common shapes (Teller / Branch Manager / Auditor / Accountant)
+          ship as starting points so admins don't build them from scratch. */}
+      <div className="bg-white dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.06] rounded-[2rem] p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-extrabold tracking-tight">
+              Start from a template
+            </h3>
+            <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
+              Pre-curated permission bundles. Tweak before saving if you need a tighter or looser fit.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {ROLE_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.slug}
+              type="button"
+              onClick={() => handleUseTemplate(tpl)}
+              className="text-left group rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all p-4 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div
+                  className={`h-9 w-9 rounded-2xl bg-gradient-to-br ${tpl.accent} text-white flex items-center justify-center shadow-sm`}
+                >
+                  <Shield size={15} />
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                  {tpl.permissions.length} perms
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-extrabold tracking-tight">
+                  {tpl.name}
+                </p>
+                <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">
+                  {tpl.description}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                <Plus size={11} />
+                Use template
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full max-w-md group">

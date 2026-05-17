@@ -291,6 +291,11 @@ userSchema.methods.getPermissions = function () {
       'view_reports',
       'manage_roles',
       'system_settings',
+      // Operational permissions surfaced by the role-template flow. Admins
+      // implicitly hold both so existing tenants don't lose access when the
+      // new gates roll out.
+      'process_transactions',
+      'reverse_transactions',
     ];
   }
   if (this.role === 'staff') {

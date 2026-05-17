@@ -89,7 +89,19 @@ const AdminRoutes = () => (
         <Route path="/statement" element={<Statement />} />
       </Route>
 
-      <Route path="/teller" element={<TellerMode />} />
+      {/* Teller Mode — front-counter cash operations. `view_all` keeps
+          admins in; `process_transactions` is the dedicated capability the
+          Teller / Branch Manager / Accountant templates grant. */}
+      <Route
+        element={
+          <RequirePermissions
+            permissions={['view_all', 'process_transactions']}
+            any
+          />
+        }
+      >
+        <Route path="/teller" element={<TellerMode />} />
+      </Route>
 
       <Route element={<RequirePermissions permissions={['view_reports']} />}>
         <Route path="/reports" element={<Reports />} />
