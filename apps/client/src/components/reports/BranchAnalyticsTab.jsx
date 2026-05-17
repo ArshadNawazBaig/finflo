@@ -12,19 +12,66 @@ import {
   Wallet,
   HandCoins,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   Activity,
   Receipt,
+  ShieldAlert,
+  PiggyBank,
 } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import TablePagination from '@/components/ui/table-pagination';
 import api from '@/lib/axios';
-import { formatFullCurrency as formatCurrency } from '@/lib/utils';
+import {
+  formatFullCurrency as formatCurrency,
+  formatCompactCurrency,
+} from '@/lib/utils';
 import { toast } from 'sonner';
 
 const ROWS_PER_PAGE = 9;
 
 const KPI_TILES = [
+  {
+    key: 'aum',
+    label: 'AUM',
+    icon: PiggyBank,
+    tone: 'bg-purple-500/10 text-purple-500',
+    valueTone: 'text-purple-600',
+    format: 'currency',
+  },
+  {
+    key: 'nplRatio',
+    label: 'NPL ratio',
+    icon: ShieldAlert,
+    tone: 'bg-rose-500/10 text-rose-500',
+    valueTone: 'text-rose-600',
+    format: 'nplRatio',
+  },
+  {
+    key: 'inflow30d',
+    label: 'Inflow (30d)',
+    icon: TrendingUp,
+    tone: 'bg-emerald-500/10 text-emerald-500',
+    valueTone: 'text-emerald-600',
+    format: 'currency',
+  },
+  {
+    key: 'outflow30d',
+    label: 'Outflow (30d)',
+    icon: TrendingDown,
+    tone: 'bg-rose-500/10 text-rose-500',
+    valueTone: 'text-rose-600',
+    format: 'currency',
+  },
   {
     key: 'totalInvested',
     label: 'Deposits',
@@ -108,6 +155,8 @@ const BranchAnalyticsTab = () => {
   const [branchSummaries, setBranchSummaries] = useState(null);
   const [loadingBranch, setLoadingBranch] = useState(false);
   const [branchPage, setBranchPage] = useState(1);
+  const [aumTrend, setAumTrend] = useState(null);
+  const [loadingAum, setLoadingAum] = useState(false);
 
   const fetchBranchSummaries = async () => {
     try {
@@ -121,14 +170,206 @@ const BranchAnalyticsTab = () => {
     }
   };
 
+  const fetchAumTrend = async () => {
+    try {
+      setLoadingAum(true);
+      const { data } = await api.get('/reports/aum-trend', {
+        params: { months: 12 },
+      });
+      setAumTrend(data);
+    } catch {
+      // Non-fatal — branch tiles remain usable without the trend chart.
+    } finally {
+      setLoadingAum(false);
+    }
+  };
+
   useEffect(() => {
     if (!branchSummaries) {
       fetchBranchSummaries();
     }
+    if (!aumTrend) {
+      fetchAumTrend();
+    }
   }, []);
+
+  // Roll-up across all branches for the header strip.
+  const rollup = branchSummaries
+    ? branchSummaries.reduce(
+        (acc, b) => {
+          acc.aum += b.stats.aum || 0;
+          acc.inflow += b.stats.inflow30d || 0;
+          acc.outflow += b.stats.outflow30d || 0;
+          acc.nplOutstanding += b.stats.nplOutstanding || 0;
+          acc.totalOutstanding += b.stats.totalOutstanding || 0;
+          return acc;
+        },
+        { aum: 0, inflow: 0, outflow: 0, nplOutstanding: 0, totalOutstanding: 0 },
+      )
+    : null;
+  const portfolioNpl =
+    rollup && rollup.totalOutstanding > 0
+      ? (rollup.nplOutstanding / rollup.totalOutstanding) * 100
+      : 0;
+  const aumDelta =
+    aumTrend?.series?.length >= 2
+      ? aumTrend.series.at(-1).aum - aumTrend.series.at(-2).aum
+      : 0;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+      {/* Roll-up strip — portfolio totals across every branch in scope. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {[
+          {
+            label: 'Total AUM',
+            value: rollup ? formatCompactCurrency(rollup.aum) : '—',
+            sub:
+              aumDelta !== 0 && aumTrend
+                ? `${aumDelta > 0 ? '+' : ''}${formatCompactCurrency(aumDelta)} vs last month`
+                : '12-month series',
+            icon: PiggyBank,
+            tone: 'bg-purple-500/10 text-purple-500',
+            valueTone: 'text-purple-600',
+          },
+          {
+            label: 'Portfolio NPL',
+            value: rollup ? `${portfolioNpl.toFixed(2)}%` : '—',
+            sub: rollup
+              ? `${formatCompactCurrency(rollup.nplOutstanding)} non-performing`
+              : '—',
+            icon: ShieldAlert,
+            tone: 'bg-rose-500/10 text-rose-500',
+            valueTone: 'text-rose-600',
+          },
+          {
+            label: 'Inflow (30d)',
+            value: rollup ? formatCompactCurrency(rollup.inflow) : '—',
+            sub: 'Deposits + repayments + income',
+            icon: TrendingUp,
+            tone: 'bg-emerald-500/10 text-emerald-500',
+            valueTone: 'text-emerald-600',
+          },
+          {
+            label: 'Outflow (30d)',
+            value: rollup ? formatCompactCurrency(rollup.outflow) : '—',
+            sub: 'Disbursements + withdrawals + expenses',
+            icon: TrendingDown,
+            tone: 'bg-rose-500/10 text-rose-500',
+            valueTone: 'text-rose-600',
+          },
+        ].map((tile) => {
+          const Icon = tile.icon;
+          return (
+            <div
+              key={tile.label}
+              className="rounded-[1.5rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sm:p-5"
+            >
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+                  {tile.label}
+                </p>
+                <div
+                  className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${tile.tone}`}
+                >
+                  <Icon size={14} />
+                </div>
+              </div>
+              <p
+                className={`text-lg sm:text-xl font-extrabold tabular-nums tracking-tight ${tile.valueTone}`}
+              >
+                {tile.value}
+              </p>
+              <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1 truncate">
+                {tile.sub}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* AUM Trend Chart — 12-month line. */}
+      <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
+        <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/25">
+                <TrendingUp size={20} className="text-white" />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-black tracking-tight truncate">
+                  AUM Trend
+                </CardTitle>
+                <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
+                  Assets under management · last 12 months
+                </CardDescription>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          {loadingAum ? (
+            <Skeleton className="h-[260px] w-full rounded-2xl" />
+          ) : aumTrend?.series?.length ? (
+            <div className="h-[260px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={aumTrend.series}
+                  margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="aumGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(148, 163, 184, 0.18)"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: '#94a3b8' }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#94a3b8' }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(v) => formatCompactCurrency(v)}
+                    width={70}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: 'rgba(99, 102, 241, 0.25)', strokeWidth: 1 }}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                      fontSize: 12,
+                    }}
+                    formatter={(v) => [formatCurrency(v), 'AUM']}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="aum"
+                    stroke="#6366f1"
+                    strokeWidth={2.5}
+                    fill="url(#aumGradient)"
+                    dot={{ r: 3, fill: '#6366f1' }}
+                    activeDot={{ r: 5 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-[200px] flex items-center justify-center text-xs font-medium text-muted-foreground">
+              No AUM history available yet.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
         <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
           <div className="flex items-center justify-between gap-3">
@@ -220,6 +461,17 @@ const BranchAnalyticsTab = () => {
                                 {branch.stats.activeLoans}
                                 <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 ml-1">
                                   / {branch.stats.totalLoans}
+                                </span>
+                              </>
+                            );
+                          } else if (tile.format === 'nplRatio') {
+                            const pct = ((raw || 0) * 100).toFixed(2);
+                            display = (
+                              <>
+                                {pct}%
+                                <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 ml-1">
+                                  · {branch.stats.nplCount} loan
+                                  {branch.stats.nplCount === 1 ? '' : 's'}
                                 </span>
                               </>
                             );

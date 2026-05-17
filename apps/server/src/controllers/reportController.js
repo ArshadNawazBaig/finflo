@@ -756,7 +756,13 @@ const getBranchSummary = async (req, res) => {
 
     const query = req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId };
 
-    // Aggregate Member data (total members, total invested grouped by branch)
+    // Rolling 30-day window for inflow/outflow KPIs. Anchored to "now" so the
+    // numbers represent recent trading momentum, not lifetime aggregates.
+    const since30d = new Date();
+    since30d.setDate(since30d.getDate() - 30);
+
+    // Aggregate Member data — adds `aum` (current + saving balance) so the
+    // analytics tab can show live Assets Under Management per branch.
     const memberStats = await Member.aggregate([
       { $match: query },
       {
@@ -765,11 +771,20 @@ const getBranchSummary = async (req, res) => {
           totalMembers: { $sum: 1 },
           totalInvested: { $sum: '$totalInvested' }, // cumulative deposits, not net balance
           totalProfit: { $sum: '$totalProfit' },
+          aum: {
+            $sum: {
+              $add: [
+                { $ifNull: ['$currentBalance', 0] },
+                { $ifNull: ['$savingBalance', 0] },
+              ],
+            },
+          },
         },
       },
     ]);
 
-    // Aggregate Loan data (total loans, active volume grouped by branch)
+    // Aggregate Loan data — adds NPL aggregates (outstanding on overdue +
+    // defaulted loans) so the ratio can be derived per branch.
     const loanStats = await Loan.aggregate([
       { $match: { ...query, status: { $ne: 'rejected' } } },
       {
@@ -781,21 +796,77 @@ const getBranchSummary = async (req, res) => {
           activeCount: {
             $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] },
           },
+          nplCount: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['overdue', 'defaulted']] },
+                1,
+                0,
+              ],
+            },
+          },
+          nplOutstanding: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['overdue', 'defaulted']] },
+                '$remainingAmount',
+                0,
+              ],
+            },
+          },
         },
       },
     ]);
 
-    // Aggregate Expenses by branch
+    // Aggregate FinancialTransaction data — three derived metrics per branch:
+    //  • totalExpenses (lifetime)            — for the existing tile
+    //  • inflow30d / outflow30d              — rolling 30-day cash flow
+    // Signed via $facet so we only scan the FT collection once.
     const FinancialTransaction = require('../models/FinancialTransaction');
-    const expenseStats = await FinancialTransaction.aggregate([
-      { $match: { ...query, type: 'expense', category: { $ne: 'business_capital' } } },
+    const ftAgg = await FinancialTransaction.aggregate([
+      { $match: query },
       {
-        $group: {
-          _id: '$branchId',
-          totalExpenses: { $sum: '$amount' },
+        $facet: {
+          expenses: [
+            {
+              $match: {
+                type: 'expense',
+                category: { $ne: 'business_capital' },
+              },
+            },
+            { $group: { _id: '$branchId', totalExpenses: { $sum: '$amount' } } },
+          ],
+          flow30d: [
+            { $match: { date: { $gte: since30d }, status: { $ne: 'Reversed' } } },
+            {
+              $group: {
+                _id: '$branchId',
+                inflow: {
+                  $sum: {
+                    $cond: [
+                      { $in: ['$type', ['income', 'credit']] },
+                      '$amount',
+                      0,
+                    ],
+                  },
+                },
+                outflow: {
+                  $sum: {
+                    $cond: [
+                      { $in: ['$type', ['expense', 'debit', 'loan']] },
+                      '$amount',
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
         },
       },
     ]);
+    const expenseStats = ftAgg[0]?.expenses || [];
+    const flowStats = ftAgg[0]?.flow30d || [];
 
     const branchQuery = req.user.isSuperAdmin ? {} : { owner: req.user.effectiveOwnerId };
     const branches = await Branch.find(branchQuery);
@@ -804,7 +875,7 @@ const getBranchSummary = async (req, res) => {
       const branchIdStr = branch._id.toString();
       const mStats = memberStats.find(
         (s) => s._id?.toString() === branchIdStr,
-      ) || { totalMembers: 0, totalInvested: 0, totalProfit: 0 };
+      ) || { totalMembers: 0, totalInvested: 0, totalProfit: 0, aum: 0 };
       const lStats = loanStats.find(
         (s) => s._id?.toString() === branchIdStr,
       ) || {
@@ -812,10 +883,20 @@ const getBranchSummary = async (req, res) => {
         totalVolume: 0,
         totalOutstanding: 0,
         activeCount: 0,
+        nplCount: 0,
+        nplOutstanding: 0,
       };
       const eStats = expenseStats.find(
         (s) => s._id?.toString() === branchIdStr,
       ) || { totalExpenses: 0 };
+      const fStats = flowStats.find(
+        (s) => s._id?.toString() === branchIdStr,
+      ) || { inflow: 0, outflow: 0 };
+
+      const nplRatio =
+        lStats.totalOutstanding > 0
+          ? lStats.nplOutstanding / lStats.totalOutstanding
+          : 0;
 
       return {
         _id: branch._id,
@@ -831,6 +912,12 @@ const getBranchSummary = async (req, res) => {
           totalOutstanding: lStats.totalOutstanding,
           activeLoans: lStats.activeCount,
           totalExpenses: eStats.totalExpenses,
+          aum: Math.round(mStats.aum || 0),
+          nplCount: lStats.nplCount,
+          nplOutstanding: Math.round(lStats.nplOutstanding || 0),
+          nplRatio: Number(nplRatio.toFixed(4)),
+          inflow30d: Math.round(fStats.inflow || 0),
+          outflow30d: Math.round(fStats.outflow || 0),
         },
       };
     });
@@ -1040,6 +1127,150 @@ const getBalanceSheet = async (req, res) => {
   }
 };
 
+// @desc    AUM (Assets Under Management) trend over the last N months.
+// @route   GET /api/reports/aum-trend?months=12&branchId=
+// @access  Private (view_reports)
+//
+// AUM isn't snapshotted historically anywhere — we have current balances on
+// Member and the per-event Investment/ProfitDistribution ledger. So we
+// compute backwards: start from today's AUM, then for each month boundary
+// subtract that month's net additions (deposits + profit credits −
+// withdrawals/transfers-out). Cheap (two aggregations regardless of month
+// count) and accurate as long as the ledger is the source of truth.
+const getAumTrend = async (req, res) => {
+  try {
+    const Member = require('../models/Member');
+    const Investment = require('../models/Investment');
+    const ProfitDistribution = require('../models/ProfitDistribution');
+
+    const months = Math.min(Math.max(parseInt(req.query.months, 10) || 12, 1), 36);
+    const branchId = req.query.branchId || null;
+
+    const baseQuery = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
+    if (req.user.role === 'staff') {
+      const scope = req.user.managedBranchId || req.user.branchId;
+      if (scope) baseQuery.branchId = scope;
+    } else if (branchId) {
+      baseQuery.branchId = new mongoose.Types.ObjectId(branchId);
+    }
+
+    // 1. Current AUM (sum of currentBalance + savingBalance for in-scope members).
+    const aumAgg = await Member.aggregate([
+      { $match: baseQuery },
+      {
+        $group: {
+          _id: null,
+          aum: {
+            $sum: {
+              $add: [
+                { $ifNull: ['$currentBalance', 0] },
+                { $ifNull: ['$savingBalance', 0] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+    let runningAum = Math.round(aumAgg[0]?.aum || 0);
+
+    // 2. Per-month net Investment movement (deposit + transfer_receive +
+    //    profit − withdrawal − transfer_send). Reversed records are skipped.
+    const now = new Date();
+    const windowStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - (months - 1),
+      1,
+      0,
+      0,
+      0,
+      0,
+    );
+
+    const invMatch = { ...baseQuery, status: { $ne: 'Reversed' } };
+    const invFlow = await Investment.aggregate([
+      { $match: { ...invMatch, date: { $gte: windowStart } } },
+      {
+        $project: {
+          y: { $year: '$date' },
+          m: { $month: '$date' },
+          signed: {
+            $cond: [
+              { $in: ['$type', ['deposit', 'transfer_receive', 'profit']] },
+              '$amount',
+              { $multiply: ['$amount', -1] },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { y: '$y', m: '$m' },
+          net: { $sum: '$signed' },
+        },
+      },
+    ]);
+
+    // 3. Per-month profit distributions (regular profit credits). These
+    //    increase AUM and aren't always captured as Investment records on
+    //    older data, so we add them explicitly.
+    const profitMatch = { ...baseQuery };
+    const profitFlow = await ProfitDistribution.aggregate([
+      { $match: { ...profitMatch, date: { $gte: windowStart } } },
+      {
+        $project: {
+          y: { $year: '$date' },
+          m: { $month: '$date' },
+          amount: 1,
+        },
+      },
+      {
+        $group: {
+          _id: { y: '$y', m: '$m' },
+          net: { $sum: '$amount' },
+        },
+      },
+    ]);
+
+    // Combine into a single lookup keyed by YYYY-MM.
+    const flowByMonth = new Map();
+    for (const row of invFlow) {
+      const key = `${row._id.y}-${row._id.m}`;
+      flowByMonth.set(key, (flowByMonth.get(key) || 0) + row.net);
+    }
+    for (const row of profitFlow) {
+      const key = `${row._id.y}-${row._id.m}`;
+      flowByMonth.set(key, (flowByMonth.get(key) || 0) + row.net);
+    }
+
+    // Walk backwards from current month, peeling off each month's net to
+    // reveal the opening balance, then advance forward to build the series.
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    const series = [];
+    for (let i = 0; i < months; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      const net = flowByMonth.get(key) || 0;
+      series.unshift({
+        name: `${monthNames[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`,
+        aum: runningAum,
+        net: Math.round(net),
+        ts: d.toISOString(),
+      });
+      runningAum = Math.round(runningAum - net);
+    }
+
+    return res.json({ months, branchId, currentAum: series.at(-1)?.aum || 0, series });
+  } catch (error) {
+    console.error('AUM Trend Error:', error);
+    res.status(500).json({ message: 'Failed to compute AUM trend' });
+  }
+};
+
 module.exports = {
   getReportStats,
   generateIFRS9Report,
@@ -1050,4 +1281,5 @@ module.exports = {
   getBranchSummary,
   saveRegulatorySnapshot,
   getRegulatorySavedSnapshots,
+  getAumTrend,
 };

@@ -91,17 +91,32 @@ export const formatFullCurrency = (num) => {
   const absNum = Math.abs(num);
   return `${isNegative ? '-' : ''}${symbol}${absNum.toLocaleString()}`;
 };
+// Compact short-form for chart axes and tight KPI tiles. Mirrors the
+// banking convention: K for thousands, M for millions, B for billions,
+// T for trillions. One decimal max, dropped when whole (e.g. "12M" not
+// "12.0M"). Use the long-form `formatCurrency` in tooltips/detail views
+// where precision matters.
 export const formatCompactValue = (num) => {
   if (num === undefined || num === null) return '0';
   num = Math.round(num);
   const absNum = Math.abs(num);
-  let formatted;
-  if (absNum >= 1000000) {
-    formatted = (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  } else {
-    formatted = num.toLocaleString();
-  }
-  return formatted;
+  const sign = num < 0 ? '-' : '';
+  const scale = (divisor, suffix) =>
+    `${sign}${(absNum / divisor).toFixed(1).replace(/\.0$/, '')}${suffix}`;
+  if (absNum >= 1e12) return scale(1e12, 'T');
+  if (absNum >= 1e9) return scale(1e9, 'B');
+  if (absNum >= 1e6) return scale(1e6, 'M');
+  if (absNum >= 1e3) return scale(1e3, 'K');
+  return `${sign}${absNum.toLocaleString()}`;
+};
+
+// Currency-prefixed compact form. Uses the active business currency from
+// the user atom (same source `formatCurrency` reads), so the symbol stays
+// consistent across the app.
+export const formatCompactCurrency = (num) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}') || {};
+  const symbol = user.currency || user.business?.currency || 'Rs.';
+  return `${symbol}${formatCompactValue(num)}`;
 };
 
 export const capitalize = (str) => {
