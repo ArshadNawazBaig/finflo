@@ -893,6 +893,209 @@ export const generateTransactionReceipt = async ({
   await savePdf(doc, fileName);
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  EXPORT: End-of-Day Close Report
+// ═══════════════════════════════════════════════════════════════════════════════
+// Comprehensive daily-close PDF. Combines cash position summary, denomination
+// breakdown, variance line, and the full list of cash transactions for the
+// day. Designed for re-print from the persisted DailyClose record — so it
+// also works as an audit document long after the day was closed.
+const EOD_DENOMS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1];
+
+export const exportEndOfDayReport = async ({
+  close,
+  transactions = [],
+  branchName = null,
+  user = null,
+  businessContext = null,
+}) => {
+  if (!close) return;
+  const ctx = businessContext || getBusinessContext();
+  const doc = new jsPDF();
+  await registerJakartaFonts(doc);
+  const { format } = await import('date-fns');
+
+  const closeDate = new Date(close.date);
+  const closedAt = close.closedAt ? new Date(close.closedAt) : new Date();
+  const closedByName =
+    close.closedByName ||
+    close.closedBy?.name ||
+    user?.name ||
+    'Teller';
+
+  const variance = Math.round(close.variance ?? 0);
+  const varianceLabel =
+    variance === 0 ? 'BALANCED' : variance > 0 ? 'OVER' : 'SHORT';
+  const varianceColor =
+    variance === 0 ? [16, 185, 129] : variance > 0 ? [37, 99, 235] : [225, 29, 72];
+
+  const startY = await renderPdfHeader(doc, {
+    businessContext: ctx,
+    title: 'End-of-Day Close Report',
+    leftDetails: [
+      { label: 'Closed By', value: toTitleCase(closedByName) },
+      { label: 'Branch', value: branchName || '— All Branches —' },
+      { label: 'Report Type', value: 'Daily Cash Close' },
+    ],
+    rightDetails: [
+      { label: 'Business Date', value: format(closeDate, 'MMMM dd, yyyy') },
+      { label: 'Closed At', value: format(closedAt, 'MMM dd, yyyy hh:mm a') },
+      { label: 'Currency', value: ctx.currency || 'Rs.' },
+    ],
+  });
+
+  // ── Cash Position Summary ──
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setTextColor(0);
+  doc.text('Cash Position Summary', 14, startY);
+
+  autoTable(doc, {
+    startY: startY + 4,
+    head: [['Description', 'Amount']],
+    body: [
+      ['Opening Cash', formatCurrency(close.openingCash || 0)],
+      ['Total Cash In', `+${formatCurrency(close.cashIn || 0)}`],
+      ['Total Cash Out', `-${formatCurrency(close.cashOut || 0)}`],
+      ['Expected Closing (System)', formatCurrency(close.expectedClosing || 0)],
+      ['Counted Closing (Physical)', formatCurrency(close.countedClosing || 0)],
+      [
+        {
+          content: `Variance (${varianceLabel})`,
+          styles: { fontStyle: 'bold', textColor: varianceColor },
+        },
+        {
+          content: `${variance > 0 ? '+' : ''}${formatCurrency(variance)}`,
+          styles: {
+            halign: 'right',
+            fontStyle: 'bold',
+            textColor: varianceColor,
+          },
+        },
+      ],
+      ['Cash Transactions Recorded', String(close.transactionCount ?? transactions.length)],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [100, 100, 100] },
+      1: { halign: 'right', fontStyle: 'bold' },
+    },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
+  });
+
+  // ── Denomination Breakdown ──
+  const denomY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(10);
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setTextColor(0);
+  doc.text('Denomination Breakdown', 14, denomY);
+
+  const denomRows = EOD_DENOMS.map((d) => {
+    const count = Number(close.denominations?.[`d${d}`] || 0);
+    const subtotal = count * d;
+    return [
+      `Rs. ${d.toLocaleString()}`,
+      String(count),
+      formatCurrency(subtotal),
+    ];
+  });
+  const denomTotal = EOD_DENOMS.reduce(
+    (sum, d) => sum + d * Number(close.denominations?.[`d${d}`] || 0),
+    0,
+  );
+  denomRows.push([
+    { content: 'Total Counted', styles: { fontStyle: 'bold', fillColor: [240, 240, 250] } },
+    { content: '', styles: { fillColor: [240, 240, 250] } },
+    {
+      content: formatCurrency(denomTotal),
+      styles: { halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 250] },
+    },
+  ]);
+
+  autoTable(doc, {
+    startY: denomY + 4,
+    head: [['Denomination', 'Count', 'Subtotal']],
+    body: denomRows,
+    theme: 'grid',
+    headStyles: { fillColor: [64, 53, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { font: PDF_FONT, fontSize: 8, cellPadding: 3 },
+    columnStyles: {
+      0: { fontStyle: 'bold' },
+      1: { halign: 'center' },
+      2: { halign: 'right', fontStyle: 'bold' },
+    },
+    alternateRowStyles: { fillColor: [250, 250, 255] },
+    margin: { left: 14, right: 14 },
+  });
+
+  // ── Variance Notes ──
+  if (close.notes) {
+    const notesY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setFont(PDF_FONT, 'bold');
+    doc.setTextColor(0);
+    doc.text('Notes', 14, notesY);
+    doc.setFontSize(8);
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setTextColor(60, 60, 60);
+    const wrapped = doc.splitTextToSize(close.notes, doc.internal.pageSize.width - 28);
+    doc.text(wrapped, 14, notesY + 5);
+  }
+
+  // ── Transaction Ledger ──
+  if (transactions.length > 0) {
+    const tableY = (doc.lastAutoTable?.finalY || denomY + 60) + 10;
+    doc.setFontSize(10);
+    doc.setFont(PDF_FONT, 'bold');
+    doc.setTextColor(0);
+    doc.text('Cash Transaction Detail', 14, tableY);
+
+    const rows = transactions.map((txn) => {
+      const isIn =
+        txn.type === 'income' ||
+        txn.type === 'credit' ||
+        (txn.category || '').includes('deposit') ||
+        (txn.category || '').includes('repayment') ||
+        (txn.category || '') === 'investment';
+      return [
+        format(new Date(txn.date || txn.createdAt), 'hh:mm a'),
+        txn.member?.name || '—',
+        (txn.category || '').replace(/_/g, ' ').toUpperCase(),
+        txn.description || txn.notes || '—',
+        !isIn ? `-${formatCurrency(txn.amount)}` : '—',
+        isIn ? `+${formatCurrency(txn.amount)}` : '—',
+      ];
+    });
+
+    autoTable(doc, {
+      startY: tableY + 4,
+      head: [['Time', 'Member', 'Category', 'Description', 'Cash Out', 'Cash In']],
+      body: rows,
+      theme: 'grid',
+      headStyles: { fillColor: [64, 53, 100], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      styles: { font: PDF_FONT, fontSize: 7.5, cellPadding: 3 },
+      columnStyles: {
+        4: { halign: 'right', fontStyle: 'bold', textColor: [225, 29, 72] },
+        5: { halign: 'right', fontStyle: 'bold', textColor: [16, 185, 129] },
+      },
+      alternateRowStyles: { fillColor: [250, 250, 255] },
+      margin: { left: 14, right: 14 },
+    });
+  }
+
+  const finalY = doc.lastAutoTable?.finalY || startY + 40;
+  await renderPdfSignatures(doc, { startY: finalY, businessContext: ctx });
+  renderPdfFooter(doc, { businessContext: ctx });
+
+  const fileName = `EOD_Close_${format(closeDate, 'yyyyMMdd')}${
+    branchName ? `_${branchName.replace(/\s+/g, '_')}` : ''
+  }.pdf`;
+  await savePdf(doc, fileName);
+};
+
 // ─── Export Journal PDF ──────────────────────────────────────────────────────
 export const exportJournalPDF = async (data, selectedDate, user) => {
   const ctx = getBusinessContext();

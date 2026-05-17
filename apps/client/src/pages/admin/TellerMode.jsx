@@ -72,6 +72,7 @@ import TransactionConfirmModal from '@/components/ui/TransactionConfirmModal';
 import SensitiveData, { SensitiveBalance } from '@/components/ui/SensitiveData';
 import KycOcrScanner from '@/components/kyc/KycOcrScanner';
 import MemberAvatar from '@/components/member/MemberAvatar';
+import DailyCloseModal from '@/components/teller/DailyCloseModal';
 
 const TellerMode = () => {
   const navigate = useNavigate();
@@ -166,31 +167,11 @@ const TellerMode = () => {
   const [cashTxnsTotalPages, setCashTxnsTotalPages] = useState(0);
   const [cashTxnsTotalEntries, setCashTxnsTotalEntries] = useState(0);
   const isCashbookToday = isToday(cashbookDate);
-  const [showDenomModal, setShowDenomModal] = useState(false);
+  const [showDailyCloseModal, setShowDailyCloseModal] = useState(false);
 
   // ── Branch Dropdown State ──────────────────────
   const [branches, setBranches] = useState([]);
   const [selectedBranchId, setSelectedBranchId] = useState('');
-
-  // Denomination tracking
-  const DENOMINATIONS = [5000, 1000, 500, 100, 50, 20, 10, 5, 2, 1];
-  const [denomCounts, setDenomCounts] = useState({
-    d1: 0,
-    d2: 0,
-    d5: 0,
-    d10: 0,
-    d20: 0,
-    d50: 0,
-    d100: 0,
-    d500: 0,
-    d1000: 0,
-    d5000: 0,
-  });
-  const [isSavingDenoms, setIsSavingDenoms] = useState(false);
-  const denomTotal = DENOMINATIONS.reduce(
-    (sum, d) => sum + d * (denomCounts[`d${d}`] || 0),
-    0,
-  );
 
   const [user] = useState(() =>
     JSON.parse(localStorage.getItem('user') || '{}'),
@@ -853,10 +834,6 @@ const TellerMode = () => {
         setCashOpeningInput('');
         setCashOpeningDescription('');
       }
-      // Load saved denominations
-      if (data.denominations) {
-        setDenomCounts(data.denominations);
-      }
     } catch {
       // Ignore
     } finally {
@@ -908,22 +885,6 @@ const TellerMode = () => {
       toast.error(err.response?.data?.message || 'Failed to set cash opening');
     } finally {
       setIsSettingOpening(false);
-    }
-  };
-
-  const handleSaveDenominations = async () => {
-    setIsSavingDenoms(true);
-    try {
-      const body = { denominations: denomCounts };
-      if (cashBranchId) body.branchId = cashBranchId;
-      await api.post('/ledger/cash-denominations', body);
-      toast.success('Denomination count saved');
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message || 'Failed to save denominations',
-      );
-    } finally {
-      setIsSavingDenoms(false);
     }
   };
 
@@ -3154,16 +3115,11 @@ const TellerMode = () => {
                 )}
 
                 <Button
-                  onClick={() => setShowDenomModal(true)}
-                  className="h-12 px-6 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] uppercase tracking-[0.18em] shadow-[0_10px_30px_-12px_rgba(245,158,11,0.45)] gap-2 transition-all w-full sm:w-auto"
+                  onClick={() => setShowDailyCloseModal(true)}
+                  className="h-12 px-6 rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-[10px] uppercase tracking-[0.18em] shadow-[0_10px_30px_-12px_rgba(99,102,241,0.45)] gap-2 transition-all w-full sm:w-auto"
                 >
-                  <Banknote size={16} />
-                  Count cash counter
-                  {denomTotal > 0 && (
-                    <span className="ml-1 px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold">
-                      {formatCurrency(denomTotal)}
-                    </span>
-                  )}
+                  <Lock size={16} />
+                  Close Day
                 </Button>
               </div>
             </div>
@@ -3416,181 +3372,6 @@ const TellerMode = () => {
             )}
           </div>
 
-          {/* Denomination Counter Modal */}
-          <Dialog open={showDenomModal} onOpenChange={setShowDenomModal}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] p-0 gap-0">
-              <DialogHeader className="p-6 pb-4 border-b border-border/40">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-                    <Banknote size={24} />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-xl font-black tracking-tight">
-                      Denomination Counter
-                    </DialogTitle>
-                    <DialogDescription className="text-[10px] font-bold tracking-wide text-muted-foreground/60 mt-1">
-                      {isCashbookToday
-                        ? 'Count physical currency notes & coins'
-                        : 'View only — historical date'}
-                    </DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <div className="p-4 sm:p-6 space-y-4">
-                {/* Notes Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2">
-                  {DENOMINATIONS.map((d) => {
-                    const key = `d${d}`;
-                    const count = denomCounts[key] || 0;
-                    const subtotal = d * count;
-                    return (
-                      <div
-                        key={d}
-                        className="p-2 rounded-xl bg-muted/20 border border-border/40 hover:border-amber-500/30 transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-black text-amber-600">
-                            ₨{d.toLocaleString()}
-                          </span>
-                          <span className="text-[8px] font-black text-muted-foreground/40 tracking-wider">
-                            {formatCurrency(subtotal)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() =>
-                              setDenomCounts((prev) => ({
-                                ...prev,
-                                [key]: Math.max(0, (prev[key] || 0) - 1),
-                              }))
-                            }
-                            disabled={!isCashbookToday || count === 0}
-                            className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 flex items-center justify-center font-black text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
-                          >
-                            −
-                          </button>
-                          <input
-                            type="number"
-                            min="0"
-                            value={count || ''}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              setDenomCounts((prev) => ({
-                                ...prev,
-                                [key]: val,
-                              }));
-                            }}
-                            placeholder="0"
-                            disabled={!isCashbookToday}
-                            className="w-full min-w-0 h-7 px-1 rounded-lg border border-border/50 bg-background text-center text-sm font-black focus:border-amber-500 focus:ring-1 focus:ring-amber-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-                          <button
-                            onClick={() =>
-                              setDenomCounts((prev) => ({
-                                ...prev,
-                                [key]: (prev[key] || 0) + 1,
-                              }))
-                            }
-                            disabled={!isCashbookToday}
-                            className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 flex items-center justify-center font-black text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Reconciliation Summary */}
-                <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/5 to-orange-500/5 border border-amber-500/15">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                        Cash Count
-                      </p>
-                      <p className="text-xl font-black tracking-tighter">
-                        {formatCurrency(denomTotal)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                        Expected
-                      </p>
-                      <p className="text-xl font-black tracking-tighter">
-                        {formatCurrency(cashSummary.closingCash)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
-                        Difference
-                      </p>
-                      {(() => {
-                        const diff = denomTotal - cashSummary.closingCash;
-                        const isMatch = Math.abs(diff) < 1;
-                        return (
-                          <div>
-                            <p
-                              className={`text-xl font-black tracking-tighter ${
-                                isMatch ? 'text-emerald-600' : 'text-rose-600'
-                              }`}
-                            >
-                              {isMatch
-                                ? '✓ Match'
-                                : (diff > 0 ? '+' : '') + formatCurrency(diff)}
-                            </p>
-                            {!isMatch && (
-                              <span
-                                className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full mt-1 inline-block ${
-                                  diff > 0
-                                    ? 'bg-blue-500/10 text-blue-600'
-                                    : 'bg-rose-500/10 text-rose-600'
-                                }`}
-                              >
-                                {diff > 0 ? 'Excess' : 'Short'}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                {isCashbookToday && (
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setDenomCounts(
-                          Object.fromEntries(
-                            DENOMINATIONS.map((d) => [`d${d}`, 0]),
-                          ),
-                        );
-                      }}
-                      className="flex-1 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest"
-                    >
-                      Reset All
-                    </Button>
-                    <Button
-                      onClick={async () => {
-                        await handleSaveDenominations();
-                        setShowDenomModal(false);
-                      }}
-                      disabled={isSavingDenoms}
-                      isLoading={isSavingDenoms}
-                      className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/20"
-                    >
-                      {!isSavingDenoms && 'Save & Close'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-
           {/* Cash Opening Setup Modal */}
           <Dialog
             open={showCashOpeningModal}
@@ -3693,6 +3474,26 @@ const TellerMode = () => {
 
       {/* ── POS Specific Views (Retired in Sidebar) ───────────────────── */}
       {/* Handled in the split-layout above */}
+
+      {/* ── End-of-Day Close Modal ─────────────────────────────────────── */}
+      <DailyCloseModal
+        isOpen={showDailyCloseModal}
+        onClose={() => setShowDailyCloseModal(false)}
+        cashSummary={cashSummary}
+        cashbookDate={cashbookDate}
+        branchId={selectedBranchId || null}
+        branchName={
+          branches.find((b) => b._id === selectedBranchId)?.name || null
+        }
+        cashTransactions={cashTxns}
+        user={user}
+        onClosed={() => {
+          // Refresh cashbook stats after close so the journal reflects any
+          // late-arriving state (e.g. denomination tally just persisted).
+          fetchCashSummary(cashbookDate);
+          fetchCashTxns(cashTxnsPage, cashbookDate);
+        }}
+      />
 
       {/* ── Transaction Confirmation Modal ─────────────────────────────── */}
       <TransactionConfirmModal

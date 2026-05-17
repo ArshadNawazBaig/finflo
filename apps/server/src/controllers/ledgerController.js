@@ -5,6 +5,7 @@ const Repayment = require('../models/Repayment');
 const Investment = require('../models/Investment');
 const Loan = require('../models/Loan');
 const CashOpening = require('../models/CashOpening');
+const DailyClose = require('../models/DailyClose');
 const { logActivity } = require('./activityLogController');
 const { escapeRegExp } = require('../utils/stringUtils');
 
@@ -639,43 +640,11 @@ const getCashSummary = async (req, res) => {
       isCarriedForward,
       description: openingDoc?.description || '',
       totalTransactions: cashTxns.length,
-      denominations: openingDoc?.denominations || { d10: 0, d20: 0, d50: 0, d100: 0, d500: 0, d1000: 0, d5000: 0 },
       branchId: branchId || null,
     });
   } catch (error) {
     console.error('Cash Summary Error:', error);
     res.status(500).json({ message: 'Failed to get cash summary' });
-  }
-};
-
-// @desc    Save denomination count for the day
-// @route   POST /api/ledger/cash-denominations
-// @access  Private
-const saveDenominations = async (req, res) => {
-  try {
-    const userId = req.user.effectiveOwnerId;
-    const { denominations, branchId: bodyBranchId } = req.body;
-
-    if (!denominations) {
-      return res.status(400).json({ message: 'Denominations data is required' });
-    }
-
-    // Determine branch scope
-    const branchId = bodyBranchId || req.user.managedBranchId || req.user.branchId || null;
-
-    const dayStart = new Date();
-    dayStart.setHours(0, 0, 0, 0);
-
-    const opening = await CashOpening.findOneAndUpdate(
-      { user: userId, branchId: branchId || null, date: dayStart },
-      { denominations, ...(branchId ? { branchId } : {}) },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
-
-    res.status(200).json({ message: 'Denominations saved', opening });
-  } catch (error) {
-    console.error('Save Denominations Error:', error);
-    res.status(500).json({ message: 'Failed to save denominations' });
   }
 };
 
@@ -836,13 +805,246 @@ const syncFeeIncome = async (req, res) => {
   }
 };
 
+// ── Daily Close (End-of-Day) ─────────────────────────────────────────────────
+// Compute the canonical cash position for a given date + branch from
+// CashOpening + cash transactions. Shared by both POST (close) and GET (look
+// up an existing close). Returns the same shape as getCashSummary's compute
+// path, but inline so the close endpoint doesn't make an HTTP self-call.
+const computeCashPositionForDate = async ({ userId, branchId, dayStart, dayEnd }) => {
+  // 1. Opening — explicit doc, else carry-forward from the prior CashOpening.
+  const openingFilter = { user: userId, date: dayStart };
+  if (branchId) openingFilter.branchId = branchId;
+  else openingFilter.$or = [{ branchId: null }, { branchId: { $exists: false } }];
+  const openingDoc = await CashOpening.findOne(openingFilter);
+
+  let openingCash = 0;
+  if (openingDoc) {
+    openingCash = openingDoc.amount || 0;
+  } else {
+    const priorFilter = { user: userId, date: { $lt: dayStart } };
+    if (branchId) priorFilter.branchId = branchId;
+    else priorFilter.$or = [{ branchId: null }, { branchId: { $exists: false } }];
+    const priorOpening = await CashOpening.findOne(priorFilter).sort({ date: -1 });
+    if (priorOpening) {
+      const priorDayStart = new Date(priorOpening.date);
+      priorDayStart.setHours(0, 0, 0, 0);
+      const priorDayEnd = new Date(dayStart);
+      priorDayEnd.setMilliseconds(-1);
+      const txnFilter = {
+        user: userId,
+        date: { $gte: priorDayStart, $lte: priorDayEnd },
+        paymentMethod: 'cash',
+        category: { $ne: 'cash_opening' },
+        status: 'Completed',
+      };
+      if (branchId) txnFilter.branchId = branchId;
+      const interim = await FinancialTransaction.find(txnFilter).select('type amount');
+      let interimIn = 0;
+      let interimOut = 0;
+      const isIncome = (t) => {
+        const type = (t.type || '').toLowerCase();
+        return type === 'income' || type === 'credit';
+      };
+      interim.forEach((t) => {
+        if (isIncome(t)) interimIn += t.amount || 0;
+        else interimOut += t.amount || 0;
+      });
+      openingCash = (priorOpening.amount || 0) + interimIn - interimOut;
+    }
+  }
+
+  // 2. Day movement
+  const dayTxnFilter = {
+    user: userId,
+    date: { $gte: dayStart, $lte: dayEnd },
+    paymentMethod: 'cash',
+    category: { $ne: 'cash_opening' },
+    status: 'Completed',
+  };
+  if (branchId) dayTxnFilter.branchId = branchId;
+  const cashTxns = await FinancialTransaction.find(dayTxnFilter).select('type amount');
+
+  let cashIn = 0;
+  let cashOut = 0;
+  const isIncome = (t) => {
+    const type = (t.type || '').toLowerCase();
+    return type === 'income' || type === 'credit';
+  };
+  cashTxns.forEach((t) => {
+    if (isIncome(t)) cashIn += t.amount || 0;
+    else cashOut += t.amount || 0;
+  });
+
+  return {
+    openingCash: Math.round(openingCash),
+    cashIn: Math.round(cashIn),
+    cashOut: Math.round(cashOut),
+    expectedClosing: Math.round(openingCash + cashIn - cashOut),
+    transactionCount: cashTxns.length,
+  };
+};
+
+// @desc    Close the day — record counted cash, variance, and audit trail.
+// @route   POST /api/ledger/daily-close
+// @access  Private
+//
+// Body: { date?: ISO, branchId?: ObjectId, denominations?: {d1..d5000},
+//         countedClosing?: number, notes?: string }
+//
+// If `denominations` is provided we derive countedClosing from it; otherwise
+// the caller can pass `countedClosing` directly (e.g. for branches that
+// reconcile against a teller-counted single number). A new DailyClose record
+// is created each time — any prior close for the same (user, branch, date)
+// is marked `supersededBy` so the latest one wins on lookup, but history is
+// preserved.
+const closeDay = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const {
+      date: dateStr,
+      branchId: bodyBranchId,
+      denominations = {},
+      countedClosing: countedInput,
+      notes = '',
+    } = req.body || {};
+
+    const branchId =
+      bodyBranchId || req.user.managedBranchId || req.user.branchId || null;
+
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    if (Number.isNaN(targetDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(targetDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const { openingCash, cashIn, cashOut, expectedClosing, transactionCount } =
+      await computeCashPositionForDate({ userId, branchId, dayStart, dayEnd });
+
+    // Derive countedClosing from denominations when present. We accept both
+    // the count-of-notes shape ({d100: 5, …}) and a precomputed number.
+    const denomTotal = [1, 2, 5, 10, 20, 50, 100, 500, 1000, 5000].reduce(
+      (sum, d) => sum + d * Number(denominations[`d${d}`] || 0),
+      0,
+    );
+    const hasDenominations = denomTotal > 0;
+    const countedClosing = hasDenominations
+      ? denomTotal
+      : Number(countedInput) || 0;
+    const variance = Math.round(countedClosing - expectedClosing);
+
+    // Mark any prior open close for this slot as superseded so the "current"
+    // close is unambiguous.
+    const closeQuery = { user: userId, date: dayStart, supersededBy: null };
+    if (branchId) closeQuery.branchId = branchId;
+    else
+      closeQuery.$or = [
+        { branchId: null },
+        { branchId: { $exists: false } },
+      ];
+
+    const prior = await DailyClose.findOne(closeQuery);
+
+    const close = await DailyClose.create({
+      user: userId,
+      branchId: branchId || undefined,
+      date: dayStart,
+      openingCash,
+      cashIn,
+      cashOut,
+      expectedClosing,
+      countedClosing: Math.round(countedClosing),
+      variance,
+      denominations: {
+        d1: Number(denominations.d1) || 0,
+        d2: Number(denominations.d2) || 0,
+        d5: Number(denominations.d5) || 0,
+        d10: Number(denominations.d10) || 0,
+        d20: Number(denominations.d20) || 0,
+        d50: Number(denominations.d50) || 0,
+        d100: Number(denominations.d100) || 0,
+        d500: Number(denominations.d500) || 0,
+        d1000: Number(denominations.d1000) || 0,
+        d5000: Number(denominations.d5000) || 0,
+      },
+      notes: (notes || '').trim().slice(0, 1000),
+      transactionCount,
+      closedBy: req.user._id,
+      closedByName: req.user.name || '',
+    });
+
+    if (prior) {
+      prior.supersededBy = close._id;
+      await prior.save();
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: prior ? 'daily_close_replaced' : 'daily_close_recorded',
+      category: 'ledger',
+      details: `End-of-day close: expected ${expectedClosing}, counted ${countedClosing}, variance ${variance}`,
+      metadata: {
+        closeId: close._id,
+        date: dayStart,
+        branchId,
+        expectedClosing,
+        countedClosing,
+        variance,
+        replaced: prior ? prior._id : null,
+      },
+      req,
+    });
+
+    return res.status(201).json({ close });
+  } catch (error) {
+    console.error('closeDay Error:', error);
+    res.status(500).json({ message: 'Failed to close day' });
+  }
+};
+
+// @desc    Fetch the current (non-superseded) close for a date + branch.
+// @route   GET /api/ledger/daily-close?date=&branchId=
+// @access  Private
+const getDailyClose = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { date: dateStr, branchId: queryBranchId } = req.query;
+    const branchId =
+      queryBranchId || req.user.managedBranchId || req.user.branchId || null;
+
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    if (Number.isNaN(targetDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const filter = { user: userId, date: dayStart, supersededBy: null };
+    if (branchId) filter.branchId = branchId;
+    else filter.$or = [{ branchId: null }, { branchId: { $exists: false } }];
+
+    const close = await DailyClose.findOne(filter)
+      .populate('closedBy', 'name email')
+      .lean();
+    if (!close) return res.json({ close: null });
+
+    return res.json({ close });
+  } catch (error) {
+    console.error('getDailyClose Error:', error);
+    res.status(500).json({ message: 'Failed to load daily close' });
+  }
+};
+
 module.exports = {
   getLedger,
   exportLedgerExcel,
   reverseTransaction,
   setCashOpening,
   getCashSummary,
-  saveDenominations,
   getBusinessStatement,
   syncFeeIncome,
+  closeDay,
+  getDailyClose,
 };
