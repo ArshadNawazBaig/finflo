@@ -1393,6 +1393,146 @@ const runMemberBalanceReconcile = async () => {
   }
 };
 
+// ─── Document Expiry Scan ────────────────────────────────────────────────────
+// Daily sweep over Customer and Member document arrays. Two responsibilities:
+//   1. Auto-flip status to "Expired" when expiryDate < now (so the UI shows
+//      stale CNICs/POAs without the admin having to remember).
+//   2. Surface 30-day and 7-day reminders to the member as in-app
+//      notifications. Each reminder is stamped on the doc so we never
+//      re-fire the same reminder on subsequent runs.
+const runDocumentExpiryScan = async () => {
+  try {
+    const Member = require('../models/Member');
+    const Customer = require('../models/Customer');
+    const {
+      createTransactionNotification,
+    } = require('../utils/notificationHelper');
+
+    const now = new Date();
+    const ms30d = 30 * 24 * 3600 * 1000;
+    const ms7d = 7 * 24 * 3600 * 1000;
+
+    let expiredFlipped = 0;
+    let reminders30d = 0;
+    let reminders7d = 0;
+
+    // Pull only docs that *could* need action — those with an expiryDate
+    // and a non-Rejected status. Rejected docs are dead anyway.
+    const memberCursor = Member.find({
+      'documents.expiryDate': { $exists: true, $ne: null },
+      'documents.status': { $in: ['Pending', 'Verified'] },
+    }).cursor();
+
+    for await (const member of memberCursor) {
+      let dirty = false;
+      for (const doc of member.documents) {
+        if (!doc.expiryDate || doc.status === 'Rejected') continue;
+        const exp = new Date(doc.expiryDate);
+        const diff = exp.getTime() - now.getTime();
+
+        // (1) Auto-flip past-due to Expired
+        if (diff <= 0 && doc.status !== 'Expired') {
+          doc.status = 'Expired';
+          dirty = true;
+          expiredFlipped++;
+          // Mirror onto the linked Customer doc if any
+          if (member.customer) {
+            await Customer.updateOne(
+              { _id: member.customer, 'documents._id': doc._id },
+              { $set: { 'documents.$.status': 'Expired' } },
+            );
+          }
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: `${doc.type} expired`,
+              message: `Your ${doc.type} on file has expired. Please upload a replacement to remain verified.`,
+              type: 'warning',
+              branchId: member.branchId,
+              action: 'document_expired',
+              metadata: { docId: doc._id, type: doc.type },
+            });
+          } catch (_) {
+            // Don't let notification failures break the sweep.
+          }
+          continue;
+        }
+
+        // (2) 30-day reminder (fired once)
+        if (
+          diff > 0 &&
+          diff <= ms30d &&
+          diff > ms7d &&
+          !doc.expiryReminder30dSentAt
+        ) {
+          doc.expiryReminder30dSentAt = now;
+          dirty = true;
+          reminders30d++;
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: `${doc.type} expires in 30 days`,
+              message: `Your ${doc.type} expires on ${exp.toLocaleDateString()}. Upload a fresh copy before then.`,
+              type: 'info',
+              branchId: member.branchId,
+              action: 'document_expiry_reminder',
+              metadata: { docId: doc._id, type: doc.type, daysOut: 30 },
+            });
+          } catch (_) {
+            /* swallow */
+          }
+        }
+
+        // (3) 7-day reminder (fired once)
+        if (diff > 0 && diff <= ms7d && !doc.expiryReminder7dSentAt) {
+          doc.expiryReminder7dSentAt = now;
+          dirty = true;
+          reminders7d++;
+          try {
+            await createTransactionNotification({
+              recipientId: member._id,
+              title: `${doc.type} expires this week`,
+              message: `Your ${doc.type} expires on ${exp.toLocaleDateString()}. Please replace it as soon as possible.`,
+              type: 'warning',
+              branchId: member.branchId,
+              action: 'document_expiry_reminder',
+              metadata: { docId: doc._id, type: doc.type, daysOut: 7 },
+            });
+          } catch (_) {
+            /* swallow */
+          }
+        }
+      }
+      if (dirty) await member.save();
+    }
+
+    // Customers without a Member link still need their docs flipped to
+    // Expired (so they show in the verification queue correctly). We don't
+    // fire member-side reminders for them.
+    const custResult = await Customer.updateMany(
+      {
+        'documents.expiryDate': { $lt: now },
+        'documents.status': { $in: ['Pending', 'Verified'] },
+      },
+      { $set: { 'documents.$[doc].status': 'Expired' } },
+      {
+        arrayFilters: [
+          {
+            'doc.expiryDate': { $lt: now },
+            'doc.status': { $in: ['Pending', 'Verified'] },
+          },
+        ],
+      },
+    );
+
+    console.log(
+      `[CRON] runDocumentExpiryScan: ${expiredFlipped} member docs expired, ${reminders30d}/30d + ${reminders7d}/7d reminders fired, ${custResult.modifiedCount || 0} customer docs flipped.`,
+    );
+  } catch (err) {
+    console.error('[CRON] runDocumentExpiryScan ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
@@ -1473,7 +1613,14 @@ const initScheduledTasks = () => {
     { timezone: 'Asia/Karachi' },
   );
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 12 jobs registered.');
+  // Job 13: Document expiry scan + reminder fire at 07:00. Runs after the
+  // morning reconcile/payment jobs so notifications don't compete for
+  // member attention with payment alerts.
+  cron.schedule('0 7 * * *', runDocumentExpiryScan, {
+    timezone: 'Asia/Karachi',
+  });
+
+  console.log('[CRON] Scheduled Tasks Engine initialized. 13 jobs registered.');
 };
 
 module.exports = {
@@ -1490,5 +1637,6 @@ module.exports = {
   runScheduledPayments,
   runTermDepositAutoMaturity,
   runMemberBalanceReconcile,
+  runDocumentExpiryScan,
 };
 

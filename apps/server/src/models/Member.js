@@ -111,7 +111,35 @@ const memberSchema = new mongoose.Schema(
       {
         name: { type: String },
         url: { type: String },
+        // KYC categories surface in the verification queue UI; admins/staff
+        // approve, reject, or mark expired. Selfie covers liveness checks
+        // for high-risk onboarding flows.
+        type: {
+          type: String,
+          enum: [
+            'CNIC',
+            'Selfie',
+            'Utility Bill',
+            'Tax Return',
+            'Proof of Residence',
+            'Other',
+          ],
+          default: 'Other',
+        },
+        status: {
+          type: String,
+          enum: ['Pending', 'Verified', 'Rejected', 'Expired'],
+          default: 'Pending',
+        },
+        expiryDate: { type: Date },
+        isEncrypted: { type: Boolean, default: false },
+        rejectionReason: { type: String, default: '' },
         uploadedAt: { type: Date, default: Date.now },
+        verifiedAt: { type: Date },
+        // Cron stamps these so the daily expiry scan doesn't re-fire the
+        // same reminder every night. Cleared on re-upload (new url).
+        expiryReminder30dSentAt: { type: Date },
+        expiryReminder7dSentAt: { type: Date },
       },
     ],
     resetPasswordToken: String,

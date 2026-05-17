@@ -74,6 +74,7 @@ import MemberTierPicker from '@/components/admin/MemberTierPicker';
 import BusinessShareSection from '@/components/member/BusinessShareSection';
 import CheckbookSection from '@/components/member/CheckbookSection';
 import MemberAuditLog from '@/components/member/MemberAuditLog';
+import MemberDocumentsSection from '@/components/member/MemberDocumentsSection';
 const MemberProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -2039,52 +2040,14 @@ const MemberProfile = () => {
           <MemberAuditLog memberId={id} />
           {/* ────────────────────────────────────────────────────────── */}
 
-          {/* Document Vault Section */}
-          {member.documents && member.documents.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-[2.5rem] border border-border/50 shadow-sm space-y-6 sm:space-y-8 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-black tracking-tighter text-primary">
-                    Document Vault
-                  </h3>
-                  <p className="text-xs font-medium text-muted-foreground mt-0.5">
-                    Securely stored identity and professional documents.
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-primary/10">
-                  <ShieldCheck className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {member.documents.map((doc, idx) => (
-                  <a
-                    key={idx}
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group p-4 rounded-3xl border border-border/30 bg-muted/5 hover:bg-primary/5 hover:border-primary/30 transition-all flex flex-col items-center gap-3 text-center"
-                  >
-                    <div
-                      className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors"
-                      title={doc.name}
-                    >
-                      <FileBadge size={28} strokeWidth={1.5} />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-[10px] font-black uppercase tracking-tight truncate max-w-[120px]">
-                        {doc.name}
-                      </div>
-                      <div className="flex items-center justify-center gap-1 text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
-                        <Download size={8} />
-                        Click to View
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Documents — upload, verify/reject, expiry tracking */}
+          <MemberDocumentsSection
+            memberId={id}
+            documents={member.documents || []}
+            onChange={(documents) =>
+              setMember((prev) => ({ ...prev, documents }))
+            }
+          />
         </div>
 
         {/* Sidebar Components */}

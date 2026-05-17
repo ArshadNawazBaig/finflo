@@ -47,7 +47,11 @@ const {
   getAccountStatement,
   bulkImportMembers,
   getMemberAuditLog,
+  uploadMemberDocuments,
+  updateMemberDocumentStatus,
+  deleteMemberDocument,
 } = require('../controllers/memberController');
+const upload = require('../middleware/uploadMiddleware');
 const {
   setTransactionPin,
   verifyTransactionPin,
@@ -107,6 +111,15 @@ router.get('/:id/account-statement', getAccountStatement);
 
 // Per-member audit timeline (who did what, when)
 router.get('/:id/audit-log', getMemberAuditLog);
+
+// KYC documents — upload, verify/reject, delete
+router.post(
+  '/:id/documents',
+  upload.array('documents', 5),
+  uploadMemberDocuments,
+);
+router.patch('/:id/documents/:docId', updateMemberDocumentStatus);
+router.delete('/:id/documents/:docId', deleteMemberDocument);
 
 // Investment management (main balance — auto loan deduction applies on deposit)
 router.get('/:id/investments', getMemberInvestments);

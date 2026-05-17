@@ -43,20 +43,30 @@ const VerificationQueue = () => {
     fetchQueue();
   }, []);
 
-  const handleAction = async (customerId, docId, status) => {
-    const key = `${customerId}-${docId}`;
+  const handleAction = async (entry, status) => {
+    const docId = entry.doc._id;
+    const key = `${entry.entityId || entry.customerId}-${docId}`;
+    // Route to the correct controller based on which entity owns the doc.
+    // Member docs uploaded directly via the member portal aren't mirrored
+    // onto a Customer record, so the customer endpoint would 404 on them.
+    const basePath =
+      entry.entityType === 'member' ? '/members' : '/customers';
+    const entityId = entry.entityId || entry.customerId;
     try {
       setActionLoading((p) => ({ ...p, [key]: true }));
-      await api.patch(`/customers/${customerId}/documents/${docId}`, {
+      await api.patch(`${basePath}/${entityId}/documents/${docId}`, {
         status,
       });
       toast.success(
         `Document ${status === 'Verified' ? 'verified' : 'rejected'} successfully`,
       );
-      // Remove from queue
       setQueue((prev) =>
         prev.filter(
-          (e) => !(e.customerId === customerId && e.doc._id === docId),
+          (e) =>
+            !(
+              (e.entityId || e.customerId) === entityId &&
+              e.doc._id === docId
+            ),
         ),
       );
     } catch (err) {
@@ -103,8 +113,15 @@ const VerificationQueue = () => {
               review
             </p>
             {queue.map((entry) => {
-              const key = `${entry.customerId}-${entry.doc._id}`;
+              const entityId = entry.entityId || entry.customerId;
+              const key = `${entityId}-${entry.doc._id}`;
               const isActing = actionLoading[key];
+              const isMember = entry.entityType === 'member';
+              const expiry = entry.doc.expiryDate
+                ? new Date(entry.doc.expiryDate)
+                : null;
+              const expirySoon =
+                expiry && expiry.getTime() - Date.now() < 30 * 24 * 3600 * 1000;
               return (
                 <div
                   key={key}
@@ -116,9 +133,21 @@ const VerificationQueue = () => {
                       <User size={18} className="text-primary" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm capitalize truncate">
-                        {entry.customerName}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm capitalize truncate">
+                          {entry.customerName}
+                        </p>
+                        <span
+                          className={cn(
+                            'text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border',
+                            isMember
+                              ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+                              : 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+                          )}
+                        >
+                          {isMember ? 'Member' : 'Customer'}
+                        </span>
+                      </div>
                       <p className="text-xs text-muted-foreground truncate">
                         {entry.customerEmail}
                       </p>
@@ -149,9 +178,24 @@ const VerificationQueue = () => {
                   </div>
 
                   {/* Meta */}
-                  <div className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
-                    <Clock size={12} />
-                    {new Date(entry.doc.uploadedAt).toLocaleDateString()}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock size={12} />
+                      Uploaded{' '}
+                      {new Date(entry.doc.uploadedAt).toLocaleDateString()}
+                    </div>
+                    {expiry && (
+                      <div
+                        className={cn(
+                          'text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border',
+                          expirySoon
+                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                            : 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+                        )}
+                      >
+                        Expires {expiry.toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
@@ -171,13 +215,7 @@ const VerificationQueue = () => {
                       size="sm"
                       isLoading={isActing}
                       className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-8 px-3"
-                      onClick={() =>
-                        handleAction(
-                          entry.customerId,
-                          entry.doc._id,
-                          'Verified',
-                        )
-                      }
+                      onClick={() => handleAction(entry, 'Verified')}
                     >
                       <ShieldCheck size={13} />
                       <span className="ml-1 text-xs">Verify</span>
@@ -187,21 +225,21 @@ const VerificationQueue = () => {
                       variant="destructive"
                       isLoading={isActing}
                       className="rounded-xl h-8 px-3"
-                      onClick={() =>
-                        handleAction(
-                          entry.customerId,
-                          entry.doc._id,
-                          'Rejected',
-                        )
-                      }
+                      onClick={() => handleAction(entry, 'Rejected')}
                     >
                       <XCircle size={13} />
                       <span className="ml-1 text-xs">Reject</span>
                     </Button>
                     <Link
-                      to={`/customers/${entry.customerId}`}
+                      to={
+                        isMember
+                          ? `/members/${entityId}`
+                          : `/customers/${entityId}`
+                      }
                       className="p-2 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      title="Open customer profile"
+                      title={
+                        isMember ? 'Open member profile' : 'Open customer profile'
+                      }
                     >
                       Profile
                     </Link>

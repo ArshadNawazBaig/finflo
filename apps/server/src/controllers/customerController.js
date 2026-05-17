@@ -668,17 +668,65 @@ const getPendingDocuments = async (req, res) => {
       'name email phone documents',
     );
 
-    // Flatten into a list of pending-doc entries for easy rendering
+    // Flatten into a list of pending-doc entries for easy rendering.
+    // Each entry tags `entityType` so the verification queue UI can route
+    // verify/reject calls to the correct controller (customer- vs member-
+    // owned documents).
     const queue = [];
     customers.forEach((c) => {
       c.documents
         .filter((d) => d.status === 'Pending')
         .forEach((d) => {
           queue.push({
+            entityType: 'customer',
+            entityId: c._id,
+            // Legacy shape kept for backwards compatibility with the
+            // existing VerificationQueue.jsx until it's migrated to use
+            // entityType/entityId.
             customerId: c._id,
             customerName: c.name,
             customerEmail: c.email,
             customerPhone: c.phone,
+            doc: d,
+          });
+        });
+    });
+
+    // Members may have direct uploads that aren't mirrored to a Customer
+    // (e.g. self-register flow). Pull those too so the queue is complete.
+    const Member = require('../models/Member');
+    const memberQuery = {
+      user: req.user.effectiveOwnerId,
+      'documents.status': 'Pending',
+    };
+    if (req.user.role === 'staff') {
+      const scope = req.user.managedBranchId || req.user.branchId;
+      if (scope) memberQuery.branchId = scope;
+    }
+    const members = await Member.find(memberQuery).select(
+      'name email phone documents customer',
+    );
+    members.forEach((m) => {
+      m.documents
+        .filter((d) => d.status === 'Pending')
+        .forEach((d) => {
+          // Skip if this document is already in the queue via the Customer
+          // mirror — Customer is the canonical source when the link exists.
+          if (
+            m.customer &&
+            queue.some(
+              (q) => q.doc?._id?.toString() === d._id.toString(),
+            )
+          ) {
+            return;
+          }
+          queue.push({
+            entityType: 'member',
+            entityId: m._id,
+            customerId: m._id, // legacy alias for existing UI
+            customerName: m.name,
+            customerEmail: m.email,
+            customerPhone: m.phone,
             doc: d,
           });
         });

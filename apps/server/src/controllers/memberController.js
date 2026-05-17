@@ -1090,6 +1090,212 @@ const bulkImportMembers = async (req, res) => {
   }
 };
 
+// ── Member Documents (KYC: CNIC / Selfie / Proof of Address / etc.) ─────────
+// Multipart upload helper — multer's req.files is already in Cloudinary by
+// the time the handler runs (uploadMiddleware uses generalStorage). The
+// handler just appends to the member's documents array with the chosen
+// type and optional expiry date. Status defaults to Pending so the
+// verification queue picks it up.
+const uploadMemberDocuments = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id } = req.params;
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded' });
+    }
+
+    const ALLOWED_TYPES = [
+      'CNIC',
+      'Selfie',
+      'Utility Bill',
+      'Tax Return',
+      'Proof of Residence',
+      'Other',
+    ];
+    const docType = ALLOWED_TYPES.includes(req.body.type)
+      ? req.body.type
+      : 'Other';
+    let expiryDate = null;
+    if (req.body.expiryDate) {
+      const d = new Date(req.body.expiryDate);
+      if (!Number.isNaN(d.getTime())) expiryDate = d;
+    }
+
+    const newDocs = req.files.map((file) => ({
+      name: file.originalname,
+      url: file.path,
+      type: docType,
+      expiryDate,
+      status: 'Pending',
+    }));
+    member.documents.push(...newDocs);
+    await member.save();
+
+    // Also mirror onto the linked Customer record (Customer is the
+    // canonical KYC entity in this codebase; Member.documents is the
+    // member-facing view). Existing customerController.uploadDocuments
+    // mirrors the opposite direction; we match that pattern.
+    if (member.customer) {
+      const Customer = require('../models/Customer');
+      const customer = await Customer.findById(member.customer);
+      if (customer) {
+        customer.documents.push(...newDocs);
+        await customer.save();
+      }
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_document_uploaded',
+      category: 'member',
+      details: `Uploaded ${newDocs.length} ${docType} document(s) for member: ${member.name}`,
+      metadata: { memberId: member._id, type: docType, count: newDocs.length },
+      req,
+    });
+
+    return res.status(201).json({ documents: member.documents });
+  } catch (error) {
+    console.error('Upload Member Documents Error:', error);
+    res.status(500).json({ message: 'Failed to upload documents' });
+  }
+};
+
+// PATCH status: Verified | Rejected | Pending. Verified stamps verifiedAt;
+// Rejected stores an optional `rejectionReason` to relay back to the member.
+const updateMemberDocumentStatus = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id, docId } = req.params;
+    const { status, rejectionReason } = req.body || {};
+
+    if (!['Pending', 'Verified', 'Rejected', 'Expired'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    const doc = member.documents.id(docId);
+    if (!doc) return res.status(404).json({ message: 'Document not found' });
+
+    doc.status = status;
+    if (status === 'Verified') {
+      doc.verifiedAt = new Date();
+      doc.rejectionReason = '';
+    }
+    if (status === 'Rejected') {
+      doc.rejectionReason = (rejectionReason || '').slice(0, 500);
+      doc.verifiedAt = undefined;
+    }
+    await member.save();
+
+    // Keep the Customer record in lockstep — it's the source of truth for
+    // KYC and feeds the legacy customer-side verification queue.
+    if (member.customer) {
+      const Customer = require('../models/Customer');
+      const customer = await Customer.findById(member.customer);
+      if (customer) {
+        const mirror = customer.documents.id(docId);
+        if (mirror) {
+          mirror.status = status;
+          if (status === 'Verified') mirror.verifiedAt = doc.verifiedAt;
+          if (status === 'Rejected') mirror.rejectionReason = doc.rejectionReason;
+          await customer.save();
+        }
+      }
+    }
+
+    // Notify the member when a doc is approved or rejected so they don't
+    // need to refresh to find out.
+    try {
+      const { createTransactionNotification } = require('../utils/notificationHelper');
+      if (status === 'Verified' || status === 'Rejected') {
+        await createTransactionNotification({
+          recipientId: member._id,
+          title: status === 'Verified' ? 'Document approved' : 'Document rejected',
+          message:
+            status === 'Verified'
+              ? `Your ${doc.type} document has been approved.`
+              : `Your ${doc.type} was rejected${doc.rejectionReason ? `: ${doc.rejectionReason}` : '.'}`,
+          type: status === 'Verified' ? 'success' : 'warning',
+          branchId: member.branchId,
+          action: 'document_status_change',
+          metadata: { docId, type: doc.type, status, link: '/member/dashboard' },
+        });
+      }
+    } catch (notifyErr) {
+      console.warn('[Documents] Notification failed:', notifyErr.message);
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_document_status_updated',
+      category: 'member',
+      details: `Document "${doc.name}" set to ${status} for member: ${member.name}`,
+      metadata: { memberId: member._id, docId, status },
+      req,
+    });
+
+    return res.json({ document: doc });
+  } catch (error) {
+    console.error('Update Member Doc Status Error:', error);
+    res.status(500).json({ message: 'Failed to update document status' });
+  }
+};
+
+const deleteMemberDocument = async (req, res) => {
+  try {
+    const userId = req.user.effectiveOwnerId;
+    const { id, docId } = req.params;
+
+    const member = await Member.findOne({ _id: id, user: userId });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+
+    const doc = member.documents.id(docId);
+    if (!doc) return res.status(404).json({ message: 'Document not found' });
+
+    try {
+      if (doc.url) await deleteCloudinaryFileByUrl(doc.url, 'file');
+    } catch (cleanupErr) {
+      console.warn('[Documents] Cloudinary cleanup failed:', cleanupErr.message);
+    }
+
+    member.documents = member.documents.filter(
+      (d) => d._id.toString() !== docId,
+    );
+    await member.save();
+
+    if (member.customer) {
+      const Customer = require('../models/Customer');
+      const customer = await Customer.findById(member.customer);
+      if (customer) {
+        customer.documents = customer.documents.filter(
+          (d) => d._id.toString() !== docId,
+        );
+        await customer.save();
+      }
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'member_document_deleted',
+      category: 'member',
+      details: `Deleted document "${doc.name}" for member: ${member.name}`,
+      metadata: { memberId: member._id, docId, type: doc.type },
+      req,
+    });
+
+    return res.json({ message: 'Document deleted' });
+  } catch (error) {
+    console.error('Delete Member Doc Error:', error);
+    res.status(500).json({ message: 'Failed to delete document' });
+  }
+};
+
 // ── Audit Log (Per-Member Activity Timeline) ────────────────────────────────
 // Returns the ActivityLog records that explicitly reference this member via
 // `metadata.memberId`. Different controllers stamp memberId as either a raw
@@ -4159,4 +4365,7 @@ module.exports = {
   getAccountStatement,
   bulkImportMembers,
   getMemberAuditLog,
+  uploadMemberDocuments,
+  updateMemberDocumentStatus,
+  deleteMemberDocument,
 };

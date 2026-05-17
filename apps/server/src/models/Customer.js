@@ -63,6 +63,7 @@ const customerSchema = new mongoose.Schema(
           type: String,
           enum: [
             'CNIC',
+            'Selfie',
             'Utility Bill',
             'Tax Return',
             'Proof of Residence',
@@ -77,8 +78,13 @@ const customerSchema = new mongoose.Schema(
         },
         expiryDate: { type: Date },
         isEncrypted: { type: Boolean, default: false },
+        rejectionReason: { type: String, default: '' },
         uploadedAt: { type: Date, default: Date.now },
         verifiedAt: { type: Date },
+        // Cron stamps these so the daily expiry scan doesn't re-fire the
+        // same reminder every night.
+        expiryReminder30dSentAt: { type: Date },
+        expiryReminder7dSentAt: { type: Date },
       },
     ],
   },
