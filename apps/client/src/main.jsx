@@ -4,15 +4,11 @@ import App from './App.jsx';
 import './index.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 
-// Redirect www → non-www (must run before anything else)
-if (
-  window.location.hostname === 'www.finflo.org' &&
-  window.location.protocol === 'https:'
-) {
-  window.location.replace(
-    `https://finflo.org${window.location.pathname}${window.location.search}${window.location.hash}`,
-  );
-}
+// NOTE: canonical-domain enforcement (www ↔ apex) must happen at the
+// hosting/CDN layer, not here. A client-side window.location.replace from
+// www → apex collides with any hosting-layer redirect going the other
+// direction and creates an infinite refresh loop. Configure the canonical
+// in Vercel/Cloudflare/etc. and let the platform 301 once.
 
 // Handle ChunkLoadError (common after deployment when old assets are removed)
 window.addEventListener(
