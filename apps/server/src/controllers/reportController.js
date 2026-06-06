@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const {
   calculatePercentageChange,
   getMonthDates,
+  isOperatingExpense,
+  opexMatchStage,
 } = require('../utils/reportUtils');
 
 const getReportStats = async (req, res) => {
@@ -523,20 +525,25 @@ const getTrialBalance = async (req, res) => {
       0,
     );
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense' && t.category !== 'business_capital' && t.category !== 'profit_distribution')
+      .filter(isOperatingExpense)
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const businessCapitalInjections = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'income')
+      .filter((t) => t.category === 'business_capital' && t.type === 'income' && t.status !== 'Reversed')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
     const businessCapitalWithdrawals = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'expense')
+      .filter((t) => t.category === 'business_capital' && t.type === 'expense' && t.status !== 'Reversed')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
     const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
 
-    // Fee income
+    // Fee income — exclude reversed/refunded fees so cash isn't overstated.
     const feeIncome = transactions
-      .filter((t) => ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) && t.type === 'income')
+      .filter((t) =>
+        ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) &&
+        t.type === 'income' &&
+        t.status !== 'Reversed' &&
+        !t.originalTransaction,
+      )
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const cashAtHand = totalDeposits - totalWithdrawn
@@ -650,7 +657,14 @@ const getProfitAndLoss = async (req, res) => {
     }
 
     // 1. Revenue
-    const repaymentsQuery = { ...query, date: dateFilter };
+    // Exclude reversed repayments — the ledgerController reversal flips the
+    // Repayment.status to 'Reversed' and writes a counter-entry, so the
+    // economic effect should be zero, not double-counted on the revenue side.
+    const repaymentsQuery = {
+      ...query,
+      date: dateFilter,
+      status: { $ne: 'Reversed' },
+    };
     const repayments = await Repayment.find(repaymentsQuery).populate(
       'loan',
       'principal totalAmount',
@@ -675,18 +689,30 @@ const getProfitAndLoss = async (req, res) => {
 
     const interestRevenue = Math.round(calculateProfit(repayments));
 
-    // Fee income (checkbook fees, late fees, etc.)
+    // Fee income (checkbook fees, late fees, etc.) — exclude reversed/counter
+    // so a refunded fee doesn't inflate gross revenue.
     const feeIncomeAgg = await FinancialTransaction.aggregate([
-      { $match: { ...query, date: dateFilter, category: { $in: ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'] }, type: 'income' } },
+      {
+        $match: {
+          ...query,
+          date: dateFilter,
+          category: { $in: ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'] },
+          type: 'income',
+          status: { $ne: 'Reversed' },
+          originalTransaction: { $in: [null, undefined] },
+        },
+      },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
     const feeIncome = Math.round(feeIncomeAgg[0]?.total || 0);
 
     const totalRevenue = interestRevenue + feeIncome;
 
-    // 2. Expenses
+    // 2. Expenses — opex only. The helper excludes distribution-shadow
+    // categories (saving_profit, share_profit, profit_distribution), business
+    // capital flows, reversed originals, and reversal counter-entries.
     const expensesAgg = await FinancialTransaction.aggregate([
-      { $match: { ...query, date: dateFilter, type: 'expense', category: { $nin: ['business_capital', 'profit_distribution'] } } },
+      { $match: { ...query, date: dateFilter, ...opexMatchStage() } },
       { $group: { _id: '$category', total: { $sum: '$amount' } } },
     ]);
 
@@ -1015,23 +1041,30 @@ const getBalanceSheet = async (req, res) => {
     const totalRepaid = loans.reduce((sum, l) => sum + (l.paidAmount || 0), 0);
     const totalDisbursed = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
-    // Operating expenses (exclude business_capital and profit_distribution — distributions handled separately)
+    // Operating expenses — use shared helper so the exclusion list stays in
+    // lockstep with the P&L. Excludes distribution-shadow categories,
+    // business capital flows, reversed originals, and reversal counter-entries.
     const totalExpenses = transactions
-      .filter((t) => t.type === 'expense' && t.category !== 'business_capital' && t.category !== 'profit_distribution')
+      .filter(isOperatingExpense)
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     // Business Capital
     const businessCapitalInjections = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'income')
+      .filter((t) => t.category === 'business_capital' && t.type === 'income' && t.status !== 'Reversed')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
     const businessCapitalWithdrawals = transactions
-      .filter((t) => t.category === 'business_capital' && t.type === 'expense')
+      .filter((t) => t.category === 'business_capital' && t.type === 'expense' && t.status !== 'Reversed')
       .reduce((sum, t) => sum + (t.amount || 0), 0);
     const netBusinessCapital = businessCapitalInjections - businessCapitalWithdrawals;
 
-    // Fee income (checkbook, late fees, etc.)
+    // Fee income (checkbook, late fees, etc.) — exclude reversed/refunded.
     const feeIncome = transactions
-      .filter((t) => ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) && t.type === 'income')
+      .filter((t) =>
+        ['checkbook_fee', 'late_fee', 'fee', 'tier_upgrade_fee', 'term_deposit_break_fee'].includes(t.category) &&
+        t.type === 'income' &&
+        t.status !== 'Reversed' &&
+        !t.originalTransaction,
+      )
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
     const termDepositAssets = activeTermDeposits.reduce(
@@ -1062,7 +1095,12 @@ const getBalanceSheet = async (req, res) => {
     const totalLiabilities = memberCurrentBalances + memberSavingBalances + memberShareBalances + termDepositObligations;
 
     // ══════ EQUITY ══════
-    const populatedRepayments = await Repayment.find(query).populate('loan', 'principal totalAmount');
+    // Exclude reversed repayments from interest earned — reversal already
+    // restored the loan balance, so the interest should not flow into equity.
+    const populatedRepayments = await Repayment.find({
+      ...query,
+      status: { $ne: 'Reversed' },
+    }).populate('loan', 'principal totalAmount');
     const totalInterestEarned = populatedRepayments.reduce((sum, r) => {
       if (r.interestAmount != null) return sum + r.interestAmount;
       if (!r.loan || !r.loan.totalAmount || r.loan.totalAmount === 0 || !r.loan.principal) return sum;

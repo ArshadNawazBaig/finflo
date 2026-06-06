@@ -501,9 +501,12 @@ const getBranchFinancials = async (req, res) => {
           ],
           status: { $ne: 'rejected' },
         }).select('principal paidAmount'),
+        // Use the shared opex filter so distribution-shadow categories
+        // (saving_profit, profit_distribution, share_profit) and reversal
+        // counter-entries are not double-counted as branch expenses.
         FinancialTransaction.find({
           ...allTimeBranchQuery,
-          type: 'expense',
+          ...require('../utils/reportUtils').opexMatchStage(),
         }).select('amount'),
       ]);
 
@@ -533,11 +536,12 @@ const getBranchFinancials = async (req, res) => {
       0,
     );
 
-    // Calculate Net Profit from Repayments (Interest Portion)
-    const repayments = await Repayment.find(allTimeBranchQuery).populate(
-      'loan',
-      'principal totalAmount',
-    );
+    // Calculate Net Profit from Repayments (Interest Portion). Exclude
+    // reversed repayments — they don't contribute economically.
+    const repayments = await Repayment.find({
+      ...allTimeBranchQuery,
+      status: { $ne: 'Reversed' },
+    }).populate('loan', 'principal totalAmount');
 
     const calculateProfit = (repaymentsList) => {
       return repaymentsList.reduce((sum, r) => {

@@ -629,12 +629,19 @@ const runMonthlySavingProfitDistribution = async () => {
           investmentSharePercent: annualRate,
         });
 
-        // Create Financial Transaction
+        // Create Financial Transaction. Use category 'profit_distribution'
+        // to stay consistent with the regular/share profit code paths in
+        // memberController — this is the category every P&L/Balance-Sheet
+        // aggregator excludes from operating expenses (the payout is already
+        // accounted for via the ProfitDistribution document above). Using a
+        // different label (the legacy 'saving_profit') made these rows leak
+        // into operating-expense rollups and double-counted them against net
+        // income.
         await new FinancialTransaction({
           user: admin._id,
           branchId: member.branchId,
           type: 'expense',
-          category: 'saving_profit',
+          category: 'profit_distribution',
           amount: distributedProfit,
           date: new Date(),
           description: `Monthly saving profit for ${member.name}`,

@@ -41,8 +41,77 @@ const getMonthDates = (monthsAgo = 0) => {
   return { start, end };
 };
 
+// ─── Financial-aggregation conventions ────────────────────────────────────
+//
+// Categories that appear on `FinancialTransaction` with `type: 'expense'` but
+// are NOT real operating expenses. Each category here is double-bookkept in
+// another collection (ProfitDistribution, Investment, etc.) and must be
+// excluded from operating-expense rollups to avoid double-counting in:
+//   • P&L net income          (subtracts expenses AND distributions)
+//   • Balance sheet equity    (retained earnings = revenue − opex − payouts)
+//   • Dashboard expense tile
+//   • Branch summary expenses
+//
+// Keep this list in lockstep with every place that subtracts opex from cash.
+const DISTRIBUTION_SHADOW_EXPENSE_CATEGORIES = [
+  'profit_distribution', // regular + share + saving profit distributions
+  'saving_profit',       // legacy alias still emitted by some code paths
+  'share_profit',        // defensive — if any code path drifts to this label
+  'regular_profit',      // ditto
+];
+
+// Categories tracked outside operating expenses for their own reasons.
+// Currently just `business_capital` (owner injections / withdrawals are equity
+// flows, not P&L expenses).
+const NON_OPEX_EXPENSE_CATEGORIES = ['business_capital'];
+
+// One blacklist to rule them all. Use this anywhere you aggregate operating
+// expenses from FinancialTransaction.
+const EXCLUDED_OPEX_CATEGORIES = [
+  ...DISTRIBUTION_SHADOW_EXPENSE_CATEGORIES,
+  ...NON_OPEX_EXPENSE_CATEGORIES,
+];
+
+/**
+ * Returns true if the given FinancialTransaction row should count toward
+ * operating expenses. Excludes:
+ *   • distribution-shadow categories (see above)
+ *   • business capital injections/withdrawals
+ *   • reversed originals (`status === 'Reversed'`)
+ *   • reversal counter-entries (`originalTransaction` is set)
+ *
+ * Use this when filtering an already-fetched array of transactions. For
+ * Mongo aggregations, use the matching `$match` filter — see
+ * `opexMatchStage` below.
+ */
+const isOperatingExpense = (tx) => {
+  if (!tx || tx.type !== 'expense') return false;
+  if (tx.status === 'Reversed') return false;
+  if (tx.originalTransaction) return false;
+  if (EXCLUDED_OPEX_CATEGORIES.includes(tx.category)) return false;
+  return true;
+};
+
+/**
+ * `$match` stage filter for Mongo aggregations that compute operating
+ * expenses from FinancialTransaction. Spread it into your match clause:
+ *
+ *   { $match: { ...query, date: dateFilter, ...opexMatchStage() } }
+ */
+const opexMatchStage = () => ({
+  type: 'expense',
+  category: { $nin: EXCLUDED_OPEX_CATEGORIES },
+  status: { $ne: 'Reversed' },
+  originalTransaction: { $in: [null, undefined] },
+});
+
 module.exports = {
   calculatePercentageChange,
   getMonthDates,
   addMonthsSafe,
+  DISTRIBUTION_SHADOW_EXPENSE_CATEGORIES,
+  NON_OPEX_EXPENSE_CATEGORIES,
+  EXCLUDED_OPEX_CATEGORIES,
+  isOperatingExpense,
+  opexMatchStage,
 };

@@ -781,11 +781,12 @@ const downloadStatement = async (req, res) => {
     const loans = await Loan.find(loanQuery);
     const outflow = loans.reduce((sum, l) => sum + (l.principal || 0), 0);
 
-    // Fetch Operating Expenses + Withdrawals for the period
-    const expenseQuery = {
-      ...query,
-      type: 'expense',
-    };
+    // Fetch Operating Expenses for the period. Use the shared opex filter so
+    // distribution-shadow categories (saving_profit, profit_distribution,
+    // share_profit) and reversal counter-entries are not double-counted as
+    // expenses on the dashboard.
+    const { opexMatchStage } = require('../utils/reportUtils');
+    const expenseQuery = { ...query, ...opexMatchStage() };
     const expenses = await FinancialTransaction.find(expenseQuery);
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
