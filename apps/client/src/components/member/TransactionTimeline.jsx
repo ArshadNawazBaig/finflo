@@ -57,7 +57,15 @@ const TransactionTimeline = ({
             className="py-12 border-none bg-transparent"
           />
         ) : (
-          investments.map((inv) => (
+          investments.map((inv) => {
+            // Inflow vs outflow from the MEMBER's perspective. `profit` is
+            // money credited to the member (saving profit, share profit,
+            // term-deposit maturity) — it must render with a + sign.
+            const isCredit =
+              inv.type === 'deposit' ||
+              inv.type === 'transfer_receive' ||
+              inv.type === 'profit';
+            return (
             <div
               key={inv._id}
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 rounded-3xl border border-border/30 bg-muted/5 hover:bg-muted/10 transition-all group gap-4 sm:gap-0"
@@ -65,12 +73,12 @@ const TransactionTimeline = ({
               <div className="flex items-center gap-5">
                 <div
                   className={`min-w-12 min-h-12 rounded-2xl flex items-center justify-center transition-all ${
-                    inv.type === 'deposit' || inv.type === 'transfer_receive'
+                    isCredit
                       ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white'
                       : 'bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white'
                   }`}
                 >
-                  {inv.type === 'deposit' || inv.type === 'transfer_receive' ? (
+                  {isCredit ? (
                     <ArrowUpCircle size={22} />
                   ) : (
                     <ArrowDownCircle size={22} />
@@ -163,15 +171,10 @@ const TransactionTimeline = ({
                 <div>
                   <div
                     className={`text-lg font-black ${
-                      inv.type === 'deposit' || inv.type === 'transfer_receive'
-                        ? 'text-emerald-600'
-                        : 'text-indigo-600'
+                      isCredit ? 'text-emerald-600' : 'text-indigo-600'
                     }`}
                   >
-                    {inv.type === 'deposit' || inv.type === 'transfer_receive'
-                      ? '+'
-                      : '-'}{' '}
-                    {formatCurrency(inv.amount)}
+                    {isCredit ? '+' : '-'} {formatCurrency(inv.amount)}
                   </div>
                   <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                     Balance: {formatCurrency(inv.balanceAfter)}
@@ -179,7 +182,8 @@ const TransactionTimeline = ({
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
 
         {/* Infinite Scroll Trigger for Investments (Mobile only) */}
