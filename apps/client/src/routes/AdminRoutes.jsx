@@ -55,6 +55,9 @@ const TellerMode = withSkeleton(() => import('@/pages/admin/TellerMode'), TableP
 const Statement = withSkeleton(() => import('@/pages/admin/Statement'), TablePageSkeleton);
 const PaymentSuccess = withSkeleton(() => import('@/pages/billing/PaymentSuccess'), CardsPageSkeleton);
 const PaymentCancel = withSkeleton(() => import('@/pages/billing/PaymentCancel'), CardsPageSkeleton);
+const CashFlowForecast = withSkeleton(() => import('@/pages/admin/CashFlowForecast'), ReportsSkeleton);
+const BulkOperations = withSkeleton(() => import('@/pages/admin/BulkOperations'), TablePageSkeleton);
+const Disputes = withSkeleton(() => import('@/pages/admin/Disputes'), RegistryPageSkeleton);
 
 const AdminRoutes = () => (
   <Route element={<RequireAuth />}>
@@ -105,6 +108,15 @@ const AdminRoutes = () => (
 
       <Route element={<RequirePermissions permissions={['view_reports']} />}>
         <Route path="/reports" element={<Reports />} />
+        <Route path="/cash-flow-forecast" element={<CashFlowForecast />} />
+      </Route>
+
+      <Route element={<RequirePermissions permissions={['view_all', 'manage_loans', 'manage_members']} any />}>
+        <Route path="/bulk-operations" element={<BulkOperations />} />
+      </Route>
+
+      <Route element={<RequirePermissions permissions={['view_all', 'manage_members']} any />}>
+        <Route path="/disputes" element={<Disputes />} />
       </Route>
 
       <Route element={<RequirePermissions permissions={['manage_branches']} />}>

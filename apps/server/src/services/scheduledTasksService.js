@@ -1139,9 +1139,117 @@ const runTermDepositAutoMaturity = async () => {
     });
 
     let matured = 0;
+    let rolledOver = 0;
+
+    const User = require('../models/User');
+    const { addMonthsSafe } = require('../utils/reportUtils');
 
     for (const deposit of dueDeposits) {
       try {
+        // ── Auto-rollover path ──────────────────────────────────────────────
+        // Mature the original (status flip + actualProfit) but DO NOT credit
+        // the member's account — instead spin up a new active deposit for
+        // (principal + earned profit) at the prevailing rate.
+        if (deposit.autoRollover) {
+          const tdLock = await TermDeposit.findOneAndUpdate(
+            { _id: deposit._id, status: 'active' },
+            {
+              $set: {
+                status: 'matured',
+                maturedAt: now,
+                actualProfit: deposit.projectedProfit,
+              },
+            },
+            { new: true },
+          );
+          if (!tdLock) continue;
+
+          // Prevailing rate from the tenant's current rate table — falls back
+          // to the original deposit's rate if the duration is no longer offered.
+          const adminUser = await User.findById(deposit.user).select(
+            'termDepositRates termDepositEarlyBreakPenalty',
+          );
+          const rateConfig = (adminUser?.termDepositRates || []).find(
+            (r) => r.duration === deposit.duration,
+          );
+          const newRate = rateConfig ? rateConfig.rate : deposit.profitRate;
+          const newPenalty = adminUser?.termDepositEarlyBreakPenalty ?? deposit.earlyBreakPenaltyRate;
+
+          const newPrincipal = deposit.principal + deposit.projectedProfit;
+          const newProjected = Math.round(
+            (newPrincipal * newRate * deposit.duration) / (12 * 100),
+          );
+          const newStart = now;
+          const newMaturity = addMonthsSafe(newStart, deposit.duration);
+
+          const newDeposit = await TermDeposit.create({
+            user: deposit.user,
+            member: deposit.member,
+            branchId: deposit.branchId,
+            principal: newPrincipal,
+            profitRate: newRate,
+            duration: deposit.duration,
+            sourceAccount: deposit.sourceAccount,
+            startDate: newStart,
+            maturityDate: newMaturity,
+            projectedProfit: newProjected,
+            earlyBreakPenaltyRate: newPenalty,
+            autoRollover: true,
+            rolledOverFrom: deposit._id,
+            rolloverCount: (deposit.rolloverCount || 0) + 1,
+            notes: `Auto-rolled over from ${deposit.depositNumber}`,
+          });
+
+          // Book the earned profit even though it isn't paid out — equity
+          // still moves and the member's totalProfit should reflect it.
+          if (deposit.projectedProfit > 0) {
+            await ProfitDistribution.create({
+              user: deposit.user,
+              member: deposit.member,
+              branchId: deposit.branchId,
+              amount: deposit.projectedProfit,
+              type: 'term_deposit',
+              period: now.toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              }),
+              calculationMethod: `Auto-rollover ${deposit.depositNumber} → ${newDeposit.depositNumber}`,
+              date: now,
+            });
+          }
+
+          // Cosmetic balance tracking on the member: totalSavingProfit / totalProfit
+          // accumulate the earned profit; currentBalance/savingBalance unchanged.
+          const trackingFields =
+            deposit.sourceAccount === 'saving'
+              ? { totalSavingProfit: deposit.projectedProfit }
+              : { totalProfit: deposit.projectedProfit };
+          if (deposit.projectedProfit > 0) {
+            await Member.findByIdAndUpdate(deposit.member, { $inc: trackingFields });
+          }
+
+          await TermDeposit.findByIdAndUpdate(deposit._id, {
+            $set: { rolledOverTo: newDeposit._id },
+          });
+
+          rolledOver++;
+
+          try {
+            await createTransactionNotification({
+              recipientId: deposit.member,
+              title: '🔁 Term Deposit Rolled Over',
+              message: `Your term deposit ${deposit.depositNumber} matured and has been auto-rolled into ${newDeposit.depositNumber} (Rs. ${newPrincipal.toLocaleString()} @ ${newRate}% for ${deposit.duration} months).`,
+              type: 'success',
+              branchId: deposit.branchId,
+              action: 'term_deposit_rolled_over',
+            });
+          } catch (notifErr) {
+            console.error('[CRON] TD rollover notification error:', notifErr.message);
+          }
+          continue;
+        }
+
+        // ── Standard maturity path ─────────────────────────────────────────
         const totalReturn = deposit.principal + deposit.projectedProfit;
 
         const creditFields =
@@ -1231,7 +1339,7 @@ const runTermDepositAutoMaturity = async () => {
     }
 
     console.log(
-      `[CRON] runTermDepositAutoMaturity: matured ${matured} deposit(s).`,
+      `[CRON] runTermDepositAutoMaturity: matured ${matured}, rolled-over ${rolledOver} deposit(s).`,
     );
   } catch (err) {
     console.error('[CRON] runTermDepositAutoMaturity ERROR:', err);

@@ -17,6 +17,7 @@ import {
   Lock,
   BookOpen,
   Calculator,
+  MessageSquareWarning,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -296,6 +297,14 @@ const MemberSidebar = ({ isExpanded, isMobile, onClose }) => {
             label="Chat"
             isExpanded={isLayoutExpanded}
             badge={unreadChatCount > 0 ? unreadChatCount : null}
+          />
+          <NavItem
+            to="/member/disputes"
+            icon={<MessageSquareWarning size={18} />}
+            active={isActive('/member/disputes')}
+            onboardingId="sidebar-disputes"
+            label="Disputes"
+            isExpanded={isLayoutExpanded}
           />
           <NavItem
             to="/member/notifications"

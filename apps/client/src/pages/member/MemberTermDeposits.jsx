@@ -51,7 +51,9 @@ const MemberTermDeposits = () => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [principal, setPrincipal] = useState('');
   const [sourceAccount, setSourceAccount] = useState('current');
+  const [autoRollover, setAutoRollover] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [togglingRollover, setTogglingRollover] = useState(null);
 
   // Confirmation modal for create
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
@@ -180,6 +182,7 @@ const MemberTermDeposits = () => {
         principal: principalNum,
         duration: selectedPackage.duration,
         sourceAccount,
+        autoRollover,
       }, {
         headers: {
           ...(token ? { 'x-transaction-token': token } : {}),
@@ -189,6 +192,7 @@ const MemberTermDeposits = () => {
       setShowCreateConfirm(false);
       setSelectedPackage(null);
       setPrincipal('');
+      setAutoRollover(false);
       fetchDeposits();
       fetchConfig();
     } catch (error) {
@@ -508,6 +512,29 @@ const MemberTermDeposits = () => {
                       )
                 }
                 setBreakTarget={setBreakTarget}
+                togglingRollover={togglingRollover}
+                onToggleRollover={async (td) => {
+                  try {
+                    setTogglingRollover(td._id);
+                    const { data } = await api.patch(
+                      `/term-deposits/portal/${td._id}/auto-rollover`,
+                      { autoRollover: !td.autoRollover },
+                    );
+                    toast.success(
+                      data.autoRollover
+                        ? 'Auto-rollover enabled'
+                        : 'Auto-rollover disabled',
+                    );
+                    fetchDeposits();
+                  } catch (err) {
+                    toast.error(
+                      err.response?.data?.message ||
+                        'Failed to update auto-rollover',
+                    );
+                  } finally {
+                    setTogglingRollover(null);
+                  }
+                }}
               />
               {/* Mobile Infinite Scroll */}
               {isMobile && mobileVisibleCount < filteredDeposits.length && (
@@ -663,6 +690,22 @@ const MemberTermDeposits = () => {
                     profit
                   </div>
                 )}
+                <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-border/50 bg-background/60 hover:border-emerald-500/30 transition-all">
+                  <input
+                    type="checkbox"
+                    checked={autoRollover}
+                    onChange={(e) => setAutoRollover(e.target.checked)}
+                    className="w-4 h-4 rounded accent-emerald-600"
+                  />
+                  <div className="flex-1">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                      Auto-rollover on maturity
+                    </p>
+                    <p className="text-[10px] font-medium text-muted-foreground mt-0.5">
+                      Re-lock principal + earned profit for another {selectedPackage.duration} months at the then-prevailing rate.
+                    </p>
+                  </div>
+                </label>
               </div>
             )}
           </div>
@@ -767,7 +810,7 @@ const MemberTermDeposits = () => {
 };
 
 // ─── Extracted Deposit Card Grid ───
-const DepositGrid = ({ deposits, setBreakTarget }) => (
+const DepositGrid = ({ deposits, setBreakTarget, onToggleRollover, togglingRollover }) => (
   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
     {deposits.map((deposit) => {
       const isActive = deposit.status === 'active';
@@ -887,13 +930,42 @@ const DepositGrid = ({ deposits, setBreakTarget }) => (
             </div>
           )}
           {isActive && (
-            <button
-              onClick={() => setBreakTarget(deposit)}
-              className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all active:scale-[0.98]"
-            >
-              <Unlock size={14} />
-              Break Early
-            </button>
+            <>
+              <button
+                onClick={() => onToggleRollover?.(deposit)}
+                disabled={togglingRollover === deposit._id}
+                className={cn(
+                  'mt-5 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border-2 transition-all active:scale-[0.98]',
+                  deposit.autoRollover
+                    ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600'
+                    : 'border-border/50 hover:border-emerald-500/30',
+                )}
+              >
+                <span className="text-[10px] font-black uppercase tracking-widest text-left">
+                  Auto-Rollover{' '}
+                  <span className="text-muted-foreground/70 normal-case font-bold tracking-normal">
+                    — re-lock on maturity
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
+                    deposit.autoRollover
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {deposit.autoRollover ? 'On' : 'Off'}
+                </span>
+              </button>
+              <button
+                onClick={() => setBreakTarget(deposit)}
+                className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all active:scale-[0.98]"
+              >
+                <Unlock size={14} />
+                Break Early
+              </button>
+            </>
           )}
         </div>
       );

@@ -69,6 +69,19 @@ const termDepositSchema = new mongoose.Schema(
     brokenAt: { type: Date },
     withdrawnAt: { type: Date },
     notes: { type: String },
+    // Auto-rollover: on maturity, re-lock principal + earned profit for the
+    // same duration at the prevailing rate. Set at creation time; can be
+    // toggled before maturity by either the admin or the member.
+    autoRollover: { type: Boolean, default: false },
+    rolledOverFrom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TermDeposit',
+    },
+    rolledOverTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TermDeposit',
+    },
+    rolloverCount: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

@@ -22,6 +22,9 @@ import {
   Settings2,
   Zap,
   Receipt,
+  TrendingUp,
+  Layers,
+  MessageSquareWarning,
 } from 'lucide-react';
 
 export const sidebarMenuConfig = [
@@ -136,6 +139,21 @@ export const sidebarMenuConfig = [
         permissions: ['manage_members', 'view_reports'],
         any: true,
       },
+      {
+        to: '/cash-flow-forecast',
+        icon: TrendingUp,
+        label: 'Cash Flow',
+        onboardingId: 'sidebar-cash-flow',
+        permissions: ['view_reports'],
+      },
+      {
+        to: '/bulk-operations',
+        icon: Layers,
+        label: 'Bulk Ops',
+        onboardingId: 'sidebar-bulk-ops',
+        permissions: ['view_all', 'manage_loans', 'manage_members'],
+        any: true,
+      },
     ],
   },
   {
@@ -224,6 +242,14 @@ export const sidebarMenuConfig = [
         icon: LifeBuoy,
         label: 'Support',
         onboardingId: 'sidebar-support',
+      },
+      {
+        to: '/disputes',
+        icon: MessageSquareWarning,
+        label: 'Disputes',
+        onboardingId: 'sidebar-disputes',
+        permissions: ['view_all', 'manage_members'],
+        any: true,
       },
     ],
     condition: (user) =>

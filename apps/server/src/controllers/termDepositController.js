@@ -17,7 +17,7 @@ const createTermDeposit = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { memberId, principal, duration, sourceAccount = 'current', notes } = req.body;
+    const { memberId, principal, duration, sourceAccount = 'current', notes, autoRollover = false } = req.body;
 
     if (!memberId || !principal || !duration) {
       return res.status(400).json({ message: 'Member, principal, and duration are required' });
@@ -80,6 +80,7 @@ const createTermDeposit = async (req, res) => {
         projectedProfit,
         earlyBreakPenaltyRate: earlyBreakPenalty,
         notes,
+        autoRollover: !!autoRollover,
       }],
       { session },
     );
@@ -414,7 +415,7 @@ const createPortalTermDeposit = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { principal, duration, sourceAccount = 'current' } = req.body;
+    const { principal, duration, sourceAccount = 'current', autoRollover = false } = req.body;
     const memberId = req.member._id;
     const ownerId = req.member.user; // business owner
 
@@ -489,6 +490,7 @@ const createPortalTermDeposit = async (req, res) => {
         projectedProfit,
         earlyBreakPenaltyRate: earlyBreakPenalty,
         notes: 'Self-created via Member Portal',
+        autoRollover: !!autoRollover,
       }],
       { session },
     );
@@ -677,6 +679,64 @@ const breakPortalTermDeposit = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Toggle auto-rollover on an active term deposit (admin path).
+ * @route   PATCH /api/term-deposits/:id/auto-rollover
+ * @access  Private (Admin)
+ */
+const setAutoRolloverAdmin = async (req, res) => {
+  try {
+    const { autoRollover } = req.body || {};
+    const deposit = await TermDeposit.findById(req.params.id);
+    if (!deposit || deposit.user.toString() !== req.user.effectiveOwnerId.toString()) {
+      return res.status(404).json({ message: 'Term deposit not found' });
+    }
+    if (deposit.status !== 'active') {
+      return res.status(400).json({ message: 'Only active deposits can change auto-rollover' });
+    }
+    deposit.autoRollover = !!autoRollover;
+    await deposit.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'term_deposit_auto_rollover_toggle',
+      category: 'member',
+      details: `TD ${deposit.depositNumber} auto-rollover ${deposit.autoRollover ? 'enabled' : 'disabled'}`,
+      metadata: { termDepositId: deposit._id, autoRollover: deposit.autoRollover },
+      req,
+    });
+
+    res.json({ depositNumber: deposit.depositNumber, autoRollover: deposit.autoRollover });
+  } catch (error) {
+    console.error('Set Auto-Rollover Error:', error);
+    res.status(500).json({ message: 'Failed to update auto-rollover' });
+  }
+};
+
+/**
+ * @desc    Member self-toggle auto-rollover on their own active term deposit.
+ * @route   PATCH /api/term-deposits/portal/:id/auto-rollover
+ * @access  Private (Member)
+ */
+const setAutoRolloverPortal = async (req, res) => {
+  try {
+    const { autoRollover } = req.body || {};
+    const deposit = await TermDeposit.findById(req.params.id);
+    if (!deposit || deposit.member.toString() !== req.member._id.toString()) {
+      return res.status(404).json({ message: 'Term deposit not found' });
+    }
+    if (deposit.status !== 'active') {
+      return res.status(400).json({ message: 'Only active deposits can change auto-rollover' });
+    }
+    deposit.autoRollover = !!autoRollover;
+    await deposit.save();
+    res.json({ depositNumber: deposit.depositNumber, autoRollover: deposit.autoRollover });
+  } catch (error) {
+    console.error('Portal Auto-Rollover Error:', error);
+    res.status(500).json({ message: 'Failed to update auto-rollover' });
+  }
+};
+
 module.exports = {
   createTermDeposit,
   getTermDeposits,
@@ -685,5 +745,7 @@ module.exports = {
   getPortalTermDeposits,
   createPortalTermDeposit,
   breakPortalTermDeposit,
+  setAutoRolloverAdmin,
+  setAutoRolloverPortal,
 };
 

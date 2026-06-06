@@ -37,6 +37,7 @@ const MemberCalculator = withSkeleton(() => import('@/pages/member/MemberCalcula
 const MemberSettings = withSkeleton(() => import('@/pages/member/MemberSettings'), SettingsPageSkeleton);
 const MemberNotifications = withSkeleton(() => import('@/pages/member/MemberNotifications'), MemberNotificationsPageSkeleton);
 const MemberChat = withSkeleton(() => import('@/pages/member/MemberChat'), ChatSkeleton);
+const MemberDisputes = withSkeleton(() => import('@/pages/member/MemberDisputes'), MemberActivityPageSkeleton);
 
 const MemberRoutes = () => (
   <>
@@ -65,6 +66,7 @@ const MemberRoutes = () => (
         <Route path="/member/settings" element={<MemberSettings />} />
         <Route path="/member/notifications" element={<MemberNotifications />} />
         <Route path="/member/chat" element={<MemberChat />} />
+        <Route path="/member/disputes" element={<MemberDisputes />} />
       </Route>
     </Route>
   </>
