@@ -7,6 +7,7 @@ const ProfitDistribution = require('../models/ProfitDistribution');
 const BusinessShare = require('../models/BusinessShare');
 const CashOpening = require('../models/CashOpening');
 const Branch = require('../models/Branch');
+const { isOperatingExpense } = require('../utils/reportUtils');
 
 // NOTE: Per-member ledger rebuild is now done in-line inside
 // `resolveMemberBalances` (bulk path) and `runMemberBalanceReconcile` (nightly
@@ -266,8 +267,14 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
     const loans = await Loan.find({ ...baseQuery, status: { $ne: 'rejected' } }).select(
       'principal paidAmount branchId',
     );
+    // `category`, `status`, and `originalTransaction` are required for the
+    // expense and income filters below. The previous select() omitted them,
+    // so every `t.category !== '...'` test evaluated `undefined !== '...'`
+    // which is always true — every transaction was treated as opex/other,
+    // and distribution-shadow rows + reversal counter-entries silently
+    // skewed the per-branch cash position.
     const transactions = await FinancialTransaction.find(baseQuery).select(
-      'type amount branchId paymentMethod',
+      'type amount branchId paymentMethod category status originalTransaction',
     );
 
     const discrepancies = [];
@@ -286,17 +293,30 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
       const totalWithdrawn = branchMembers.reduce((s, m) => s + (m.totalWithdrawn || 0) + (m.totalSavingWithdrawn || 0), 0);
       const totalRepaid = branchLoans.reduce((s, l) => s + (l.paidAmount || 0), 0);
       const totalDisbursed = branchLoans.reduce((s, l) => s + (l.principal || 0), 0);
+      // Shared opex filter — drops distribution-shadow categories, business
+      // capital flows, reversed originals, and reversal counter-entries.
       const totalExpenses = branchTxns
-        .filter((t) => t.type === 'expense' && t.category !== 'profit_distribution' && t.category !== 'business_capital')
+        .filter(isOperatingExpense)
         .reduce((s, t) => s + (t.amount || 0), 0);
-      
+
+      // Other income = fee income only. Repayments are already captured via
+      // `totalRepaid` (from loans) and term_deposit deposits are captured via
+      // the member balance flow, so including them here would double-count.
+      // Exclude reversed/counter-entries for symmetry with the opex filter.
       const otherIncome = branchTxns
-        .filter((t) => t.type === 'income' && t.category !== 'repayment' && t.category !== 'term_deposit')
+        .filter(
+          (t) =>
+            t.type === 'income' &&
+            t.category !== 'repayment' &&
+            t.category !== 'term_deposit' &&
+            t.status !== 'Reversed' &&
+            !t.originalTransaction,
+        )
         .reduce((s, t) => s + (t.amount || 0), 0);
 
       // Cash-only transactions (physical cash flow)
       const cashInflow = branchTxns
-        .filter((t) => t.type === 'income' && t.paymentMethod === 'cash')
+        .filter((t) => t.type === 'income' && t.paymentMethod === 'cash' && t.status !== 'Reversed' && !t.originalTransaction)
         .reduce((s, t) => s + (t.amount || 0), 0);
 
       const expectedCash = totalDeposits - totalWithdrawn + totalRepaid - totalDisbursed + otherIncome - totalExpenses;
@@ -499,6 +519,44 @@ async function reconcileSavingShareAccounts(query, dateRange = {}) {
       'name savingBalance totalSavingDeposited totalSavingWithdrawn totalSavingProfit shareBalance totalShareInvested totalShareProfit branchId',
     );
 
+    // Build the source-of-truth share ledger from BusinessShare. The Member
+    // doc has `totalShareInvested` + `totalShareProfit` but NO matching
+    // `totalShareWithdrawn` field, so the old formula (invested + profit)
+    // silently ignored every share liquidation and flagged the entire
+    // population as discrepant. Aggregating BusinessShare gives us the true
+    // expected balance: deposits + profit − withdrawals.
+    const shareAgg = await BusinessShare.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$member',
+          deposited: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_deposit'] }, '$amount', 0],
+            },
+          },
+          withdrawn: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_withdrawal'] }, '$amount', 0],
+            },
+          },
+          profit: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_profit'] }, '$amount', 0],
+            },
+          },
+        },
+      },
+    ]);
+    const shareLedger = new Map();
+    for (const row of shareAgg) {
+      shareLedger.set(row._id.toString(), {
+        deposited: row.deposited || 0,
+        withdrawn: row.withdrawn || 0,
+        profit: row.profit || 0,
+      });
+    }
+
     const discrepancies = [];
     let checked = 0;
 
@@ -531,14 +589,20 @@ async function reconcileSavingShareAccounts(query, dateRange = {}) {
       }
 
       // ── Share Account Check ──
+      const sourceShare = shareLedger.get(member._id.toString()) || {
+        deposited: 0,
+        withdrawn: 0,
+        profit: 0,
+      };
       const hasShareActivity =
+        sourceShare.deposited > 0 ||
         (member.totalShareInvested || 0) > 0 ||
         (member.shareBalance || 0) > 0;
 
       if (hasShareActivity) {
         checked++;
         const expectedShare =
-          (member.totalShareInvested || 0) + (member.totalShareProfit || 0);
+          sourceShare.deposited - sourceShare.withdrawn + sourceShare.profit;
         const actualShare = member.shareBalance || 0;
         const shareDiff = Math.round(expectedShare - actualShare);
 
@@ -802,6 +866,42 @@ const resolveSavingShare = async (req, res) => {
       'savingBalance totalSavingDeposited totalSavingWithdrawn totalSavingProfit shareBalance totalShareInvested totalShareProfit',
     );
 
+    // Build the share ledger from BusinessShare so the resolve path uses the
+    // same source-of-truth as the detection path. Without this, the resolve
+    // step would rewrite shareBalance to (invested + profit), restoring shares
+    // the member had already withdrawn — silent data corruption.
+    const shareAgg = await BusinessShare.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$member',
+          deposited: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_deposit'] }, '$amount', 0],
+            },
+          },
+          withdrawn: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_withdrawal'] }, '$amount', 0],
+            },
+          },
+          profit: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'share_profit'] }, '$amount', 0],
+            },
+          },
+        },
+      },
+    ]);
+    const shareLedger = new Map();
+    for (const row of shareAgg) {
+      shareLedger.set(row._id.toString(), {
+        deposited: row.deposited || 0,
+        withdrawn: row.withdrawn || 0,
+        profit: row.profit || 0,
+      });
+    }
+
     let fixed = 0;
     for (const member of members) {
       let changed = false;
@@ -819,11 +919,19 @@ const resolveSavingShare = async (req, res) => {
         }
       }
 
-      // Fix share balance
-      const hasShare = (member.totalShareInvested || 0) > 0 || (member.shareBalance || 0) > 0;
+      // Fix share balance from BusinessShare ledger (subtracts withdrawals).
+      const sourceShare = shareLedger.get(member._id.toString()) || {
+        deposited: 0,
+        withdrawn: 0,
+        profit: 0,
+      };
+      const hasShare =
+        sourceShare.deposited > 0 ||
+        (member.totalShareInvested || 0) > 0 ||
+        (member.shareBalance || 0) > 0;
       if (hasShare) {
         const expectedShare =
-          (member.totalShareInvested || 0) + (member.totalShareProfit || 0);
+          sourceShare.deposited - sourceShare.withdrawn + sourceShare.profit;
         if (Math.abs(expectedShare - (member.shareBalance || 0)) > 1) {
           member.shareBalance = Math.round(expectedShare);
           changed = true;

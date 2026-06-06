@@ -55,9 +55,10 @@ const getReportStats = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
 
-    // Aggregate monthly repayments
+    // Aggregate monthly repayments — exclude reversed ones so the chart
+    // reflects realised cash flow, not gross-of-reversal noise.
     const monthlyRepayments = await Repayment.aggregate([
-      { $match: query },
+      { $match: { ...query, status: { $ne: 'Reversed' } } },
       {
         $group: {
           _id: {
@@ -113,8 +114,31 @@ const getReportStats = async (req, res) => {
     const prevVolume = prevLoans.reduce((sum, l) => sum + l.principal, 0);
     const volumeChange = calculatePercentageChange(totalVolume, prevVolume);
 
-    const allRepayments = await Repayment.find(query);
+    // `allRepayments` is the in-range set used for `totalRepaid` and the
+    // collection rate. For the prev-vs-current MoM comparison further down we
+    // need an unfiltered set — otherwise when the user picks a non-current
+    // date range, `prevMonthRevenue` would always be 0 (the query's date
+    // filter already eliminates anything outside the range).
+    const allRepayments = await Repayment.find({
+      ...query,
+      status: { $ne: 'Reversed' },
+    });
     const totalRepaid = allRepayments.reduce((sum, r) => sum + r.amount, 0);
+
+    // Separate scope-of-tenant query without the date filter, used only for
+    // MoM growth metrics that must look at fixed calendar months regardless
+    // of the user-selected range.
+    const tenantOnlyQuery = req.user.isSuperAdmin
+      ? {}
+      : { user: req.user.effectiveOwnerId };
+    if (req.user.role === 'staff') {
+      const branchScope = req.user.managedBranchId || req.user.branchId;
+      if (branchScope) tenantOnlyQuery.branchId = branchScope;
+    }
+    const repaymentsAllTime = await Repayment.find({
+      ...tenantOnlyQuery,
+      status: { $ne: 'Reversed' },
+    }).select('amount date');
 
     // Average Interest (weighted by principal)
     const avgInterest =
@@ -143,7 +167,10 @@ const getReportStats = async (req, res) => {
       totalDue > 0 ? ((totalRepaid / totalDue) * 100).toFixed(1) : 0;
 
     const prevDue = prevLoans.reduce((sum, l) => sum + l.totalAmount, 0);
-    const prevRepaid = allRepayments
+    // Use the unfiltered all-time repayments here. If the user picked a
+    // custom date range, `allRepayments` is already pinned to that range —
+    // filtering it again by prev-month would never find anything.
+    const prevRepaid = repaymentsAllTime
       .filter((r) => {
         const d = new Date(r.date);
         return d >= prevStart && d <= prevEnd;
@@ -160,13 +187,15 @@ const getReportStats = async (req, res) => {
       (l) => l.status === 'active',
     ).length;
 
-    // Revenue Growth Calculation (Current Month vs Previous Month)
+    // Revenue Growth Calculation (Current Month vs Previous Month). MoM growth
+    // is computed on fixed calendar months regardless of the user-selected
+    // range, so we read off `repaymentsAllTime` rather than `allRepayments`.
     const { start: currMonthStart, end: currMonthEnd } = getMonthDates(0);
-    const currMonthRevenue = allRepayments
+    const currMonthRevenue = repaymentsAllTime
       .filter((r) => r.date >= currMonthStart && r.date <= currMonthEnd)
       .reduce((sum, r) => sum + r.amount, 0);
 
-    const prevMonthRevenue = allRepayments
+    const prevMonthRevenue = repaymentsAllTime
       .filter((r) => r.date >= prevStart && r.date <= prevEnd)
       .reduce((sum, r) => sum + r.amount, 0);
 
@@ -189,10 +218,16 @@ const getReportStats = async (req, res) => {
     const activeMembers = allMembers.filter(m => m.status === 'Active').length;
     const inactiveMembers = allMembers.filter(m => m.status === 'Inactive').length;
 
-    // Loan status breakdown
+    // Loan status breakdown — use managedBranchId for branch managers so the
+    // portfolio overview reflects the branch they administer, not their home
+    // branch. This matches the priority used in the primary `query` above.
+    const overviewBranchScope =
+      req.user.role === 'staff'
+        ? req.user.managedBranchId || req.user.branchId
+        : null;
     const loanOverviewQuery = {
       ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
-      ...(req.user.role === 'staff' && req.user.branchId ? { branchId: req.user.branchId } : {}),
+      ...(overviewBranchScope ? { branchId: overviewBranchScope } : {}),
       status: { $ne: 'rejected' },
     };
     const allLoansForOverview = await Loan.find(loanOverviewQuery);
@@ -266,10 +301,14 @@ const getReportStats = async (req, res) => {
       };
     });
 
-    // Populate per-branch repaid amounts
-    const allRepaymentsForBranch = await Repayment.find(
-      req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }
-    ).select('amount branchId');
+    // Populate per-branch repaid amounts. The branch breakdown is a portfolio
+    // health view, not a period statement, so we intentionally use all-time
+    // figures regardless of the date range filter. Exclude reversed
+    // repayments so reversed amounts don't inflate the branch total.
+    const allRepaymentsForBranch = await Repayment.find({
+      ...(req.user.isSuperAdmin ? {} : { user: req.user.effectiveOwnerId }),
+      status: { $ne: 'Reversed' },
+    }).select('amount branchId');
     branchBreakdown.forEach((bb) => {
       const branchReps = allRepaymentsForBranch.filter(
         r => r.branchId?.toString() === bb.branchId.toString()
@@ -582,27 +621,32 @@ const getTrialBalance = async (req, res) => {
       }, 0);
     };
 
-    const populatedRepayments = await Repayment.find(query).populate(
-      'loan',
-      'principal totalAmount',
-    );
+    // Exclude reversed repayments — the reversal restored the loan balance,
+    // so the interest should not flow into retained earnings.
+    const populatedRepayments = await Repayment.find({
+      ...query,
+      status: { $ne: 'Reversed' },
+    }).populate('loan', 'principal totalAmount');
     const totalInterestEarned = calculateProfit(populatedRepayments);
 
     const ProfitDistribution = require('../models/ProfitDistribution');
-    const distributions = await ProfitDistribution.find(query);
+    // `totalDistributed` covers ALL distribution types (regular + share +
+    // saving + term_deposit). Subtracting it from retained earnings once is
+    // correct. Adding `totalSavingProfit` + `totalShareProfit` from member
+    // aggregates on top of it (as the old code did) would double-subtract
+    // those payouts and understate equity. Filter out failed distributions
+    // so a bookkeeping error upstream doesn't decimate equity.
+    const distributions = await ProfitDistribution.find({
+      ...query,
+      status: { $ne: 'Failed' },
+    });
     const totalDistributed = distributions.reduce(
       (sum, d) => sum + (d.amount || 0),
       0,
     );
 
-    // Saving/share profit distributions
-    const totalSavingProfitDistributed = members.reduce((sum, m) => sum + (m.totalSavingProfit || 0), 0);
-    const totalShareProfitDistributed = members.reduce((sum, m) => sum + (m.totalShareProfit || 0), 0);
-
     const retainedEarnings = totalInterestEarned + feeIncome
-      - totalDistributed - totalExpenses
-      - totalSavingProfitDistributed
-      - totalShareProfitDistributed;
+      - totalDistributed - totalExpenses;
     const totalEquity = retainedEarnings + netBusinessCapital;
 
     const discrepancy = totalAssets - (totalLiabilities + totalEquity);
@@ -724,12 +768,14 @@ const getProfitAndLoss = async (req, res) => {
       totalExpenses += exp.total;
     });
 
-    // 3. Distributions
+    // 3. Distributions — exclude Failed distributions so a bookkeeping error
+    // upstream doesn't show up as a phantom payout.
     const ProfitDistribution = require('../models/ProfitDistribution');
-    // ProfitDistribution stores its timestamp on `date`, not `distributionDate`.
-    // The previous field name silently matched nothing, so this section always
-    // returned an empty breakdown.
-    const distributionsQuery = { ...query, date: dateFilter };
+    const distributionsQuery = {
+      ...query,
+      date: dateFilter,
+      status: { $ne: 'Failed' },
+    };
     const distributionsAgg = await ProfitDistribution.aggregate([
       { $match: distributionsQuery },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },
@@ -848,7 +894,16 @@ const getBranchSummary = async (req, res) => {
     //  • totalExpenses (lifetime)            — for the existing tile
     //  • inflow30d / outflow30d              — rolling 30-day cash flow
     // Signed via $facet so we only scan the FT collection once.
+    //
+    // The expense filter uses the same blacklist as `opexMatchStage()` from
+    // reportUtils — distribution-shadow categories (profit_distribution,
+    // saving_profit, share_profit, regular_profit) and business capital are
+    // excluded, and reversal counter-entries are filtered out so the per-
+    // branch totalExpenses isn't inflated by phantom payouts. (We don't call
+    // the helper directly because it's defined synchronously and we need the
+    // values inlined into the aggregation pipeline.)
     const FinancialTransaction = require('../models/FinancialTransaction');
+    const { EXCLUDED_OPEX_CATEGORIES } = require('../utils/reportUtils');
     const ftAgg = await FinancialTransaction.aggregate([
       { $match: query },
       {
@@ -857,13 +912,24 @@ const getBranchSummary = async (req, res) => {
             {
               $match: {
                 type: 'expense',
-                category: { $ne: 'business_capital' },
+                category: { $nin: EXCLUDED_OPEX_CATEGORIES },
+                status: { $ne: 'Reversed' },
+                originalTransaction: { $in: [null, undefined] },
               },
             },
             { $group: { _id: '$branchId', totalExpenses: { $sum: '$amount' } } },
           ],
           flow30d: [
-            { $match: { date: { $gte: since30d }, status: { $ne: 'Reversed' } } },
+            // Symmetric reversal handling: drop both the original Reversed
+            // rows AND their counter-entries. Including only one side made
+            // outflow look 1× larger and inflow look 1× smaller than reality.
+            {
+              $match: {
+                date: { $gte: since30d },
+                status: { $ne: 'Reversed' },
+                originalTransaction: { $in: [null, undefined] },
+              },
+            },
             {
               $group: {
                 _id: '$branchId',
@@ -1110,7 +1176,11 @@ const getBalanceSheet = async (req, res) => {
     }, 0);
 
     const ProfitDistribution = require('../models/ProfitDistribution');
-    const distributions = await ProfitDistribution.find(query);
+    // Exclude Failed distributions so phantom payouts don't decimate equity.
+    const distributions = await ProfitDistribution.find({
+      ...query,
+      status: { $ne: 'Failed' },
+    });
     const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
 
     // Term deposit projected profit is an obligation (liability) that also needs equity offset
@@ -1250,10 +1320,16 @@ const getAumTrend = async (req, res) => {
       },
     ]);
 
-    // 3. Per-month profit distributions (regular profit credits). These
-    //    increase AUM and aren't always captured as Investment records on
-    //    older data, so we add them explicitly.
-    const profitMatch = { ...baseQuery };
+    // 3. Per-month profit distributions that hit currentBalance or
+    //    savingBalance — these are the components of AUM. Share profit goes
+    //    to shareBalance (NOT part of AUM as defined on line ~1206) so we
+    //    explicitly exclude type='share'. Failed distributions are also
+    //    excluded so a bookkeeping error doesn't show as a phantom inflow.
+    const profitMatch = {
+      ...baseQuery,
+      type: { $in: ['regular', 'saving', 'term_deposit'] },
+      status: { $ne: 'Failed' },
+    };
     const profitFlow = await ProfitDistribution.aggregate([
       { $match: { ...profitMatch, date: { $gte: windowStart } } },
       {
