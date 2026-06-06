@@ -5,6 +5,7 @@ import {
   TrendingUp,
   AlertTriangle,
   RefreshCw,
+  CalendarRange,
 } from 'lucide-react';
 import {
   BarChart,
@@ -182,6 +183,7 @@ const CashFlowForecast = () => {
         <CardContent>
           {chartData.length === 0 ? (
             <EmptyState
+              icon={CalendarRange}
               title="No forecast data"
               description="No upcoming cash events were found for this horizon."
             />
