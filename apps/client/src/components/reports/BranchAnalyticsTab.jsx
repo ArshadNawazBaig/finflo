@@ -27,7 +27,12 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  ReferenceLine,
 } from 'recharts';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import TablePagination from '@/components/ui/table-pagination';
 import api from '@/lib/axios';
@@ -122,6 +127,88 @@ const KPI_TILES = [
   },
 ];
 
+// Pill-style tab matching the Cash Flow Forecast toggle.
+const AumViewTab = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cn(
+      'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all',
+      active
+        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
+    )}
+  >
+    {children}
+  </button>
+);
+
+// Custom backdrop-blurred tooltip — same visual language as the Cash Flow
+// Forecast chart. `mode` controls which rows are shown.
+const AumTooltip = ({ active, payload, label, mode }) => {
+  if (!active || !payload || !payload.length) return null;
+  const row = payload[0]?.payload || {};
+  const positiveNet = (row.net || 0) >= 0;
+  return (
+    <div className="bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl ring-1 ring-black/5 min-w-[200px]">
+      <p className="text-[10px] font-black text-muted-foreground mb-3 uppercase tracking-[0.2em] border-b border-border/50 pb-2">
+        {row.name || label}
+      </p>
+      {mode === 'cumulative' ? (
+        <div className="space-y-2.5">
+          <AumTooltipRow
+            label="AUM"
+            value={row.aum}
+            colorClass={row.aum >= 0 ? 'text-primary' : 'text-rose-500'}
+            dotColor={row.aum >= 0 ? 'hsl(var(--primary))' : '#f43f5e'}
+            bold
+          />
+          {row.net != null && (
+            <AumTooltipRow
+              label="Net flow"
+              value={row.net}
+              colorClass={positiveNet ? 'text-emerald-500' : 'text-rose-500'}
+              dotColor={positiveNet ? '#10b981' : '#f43f5e'}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          <AumTooltipRow
+            label="Net flow"
+            value={row.net}
+            colorClass={positiveNet ? 'text-emerald-500' : 'text-rose-500'}
+            dotColor={positiveNet ? '#10b981' : '#f43f5e'}
+            bold
+          />
+          <div className="pt-2 mt-1 border-t border-border/50">
+            <AumTooltipRow
+              label="Running AUM"
+              value={row.aum}
+              colorClass="text-primary"
+              dotColor="hsl(var(--primary))"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AumTooltipRow = ({ label, value, colorClass, dotColor, bold }) => (
+  <div className="flex items-center justify-between gap-8">
+    <div className="flex items-center gap-2">
+      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dotColor }} />
+      <span className="text-[10px] uppercase font-black text-muted-foreground/70 tracking-wider">
+        {label}
+      </span>
+    </div>
+    <span className={cn('tabular-nums', bold ? 'text-sm font-black' : 'text-xs font-extrabold', colorClass)}>
+      {formatCurrency(value || 0)}
+    </span>
+  </div>
+);
+
 const BranchCardSkeleton = () => (
   <div className="rounded-[2rem] border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-5 sm:p-6 space-y-5">
     <div className="flex items-center justify-between">
@@ -157,6 +244,10 @@ const BranchAnalyticsTab = () => {
   const [branchPage, setBranchPage] = useState(1);
   const [aumTrend, setAumTrend] = useState(null);
   const [loadingAum, setLoadingAum] = useState(false);
+  // View toggle for the AUM chart — 'cumulative' (running balance area) is
+  // the default. 'bucketed' switches to per-month net-flow bars with the
+  // running balance overlaid as a line.
+  const [aumView, setAumView] = useState('cumulative');
 
   const fetchBranchSummaries = async () => {
     try {
@@ -288,10 +379,11 @@ const BranchAnalyticsTab = () => {
         })}
       </div>
 
-      {/* AUM Trend Chart — 12-month line. */}
+      {/* AUM Trend Chart — modern composed chart with view toggle, matching
+          the Cash Flow Forecast visual language. */}
       <Card className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm rounded-[2rem] overflow-hidden transition-all duration-300">
         <CardHeader className="p-4 sm:p-6 pb-3 bg-muted/10 border-b border-border/30">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-4 min-w-0">
               <div className="p-3 rounded-2xl shrink-0 bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/25">
                 <TrendingUp size={20} className="text-white" />
@@ -301,65 +393,202 @@ const BranchAnalyticsTab = () => {
                   AUM Trend
                 </CardTitle>
                 <CardDescription className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 mt-0.5 truncate">
-                  Assets under management · last 12 months
+                  {aumView === 'cumulative'
+                    ? 'Running assets under management · last 12 months'
+                    : 'Monthly net flow · last 12 months · line is running AUM'}
                 </CardDescription>
               </div>
+            </div>
+            <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
+              <AumViewTab
+                active={aumView === 'cumulative'}
+                onClick={() => setAumView('cumulative')}
+              >
+                Cumulative
+              </AumViewTab>
+              <AumViewTab
+                active={aumView === 'bucketed'}
+                onClick={() => setAumView('bucketed')}
+              >
+                Monthly
+              </AumViewTab>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
           {loadingAum ? (
-            <Skeleton className="h-[260px] w-full rounded-2xl" />
+            <Skeleton className="h-[320px] w-full rounded-2xl" />
           ) : aumTrend?.series?.length ? (
-            <div className="h-[260px] w-full">
+            <div className="h-[320px] w-full -ml-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={aumTrend.series}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="aumGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(148, 163, 184, 0.18)"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 11, fill: '#94a3b8' }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: '#94a3b8' }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => formatCompactCurrency(v)}
-                    width={70}
-                  />
-                  <Tooltip
-                    cursor={{ stroke: 'rgba(99, 102, 241, 0.25)', strokeWidth: 1 }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: '1px solid rgba(148, 163, 184, 0.2)',
-                      fontSize: 12,
-                    }}
-                    formatter={(v) => [formatCurrency(v), 'AUM']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="aum"
-                    stroke="#6366f1"
-                    strokeWidth={2.5}
-                    fill="url(#aumGradient)"
-                    dot={{ r: 3, fill: '#6366f1' }}
-                    activeDot={{ r: 5 }}
-                  />
-                </AreaChart>
+                {aumView === 'cumulative' ? (
+                  <AreaChart
+                    data={aumTrend.series}
+                    margin={{ top: 16, right: 12, left: 4, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="aum-pos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="hsl(var(--muted-foreground)/0.15)"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={8}
+                      className="font-bold uppercase tracking-widest opacity-60"
+                    />
+                    <YAxis
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => formatCompactCurrency(v)}
+                      width={66}
+                      className="font-bold opacity-50"
+                    />
+                    <ReferenceLine
+                      y={0}
+                      stroke="hsl(var(--muted-foreground)/0.5)"
+                      strokeDasharray="4 4"
+                    />
+                    <Tooltip
+                      content={<AumTooltip mode="cumulative" />}
+                      cursor={{
+                        stroke: 'hsl(var(--primary))',
+                        strokeWidth: 1,
+                        strokeDasharray: '4 4',
+                      }}
+                      animationDuration={150}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="aum"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={3}
+                      fill="url(#aum-pos)"
+                      activeDot={{
+                        r: 6,
+                        strokeWidth: 3,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                      animationDuration={1200}
+                    />
+                  </AreaChart>
+                ) : (
+                  <ComposedChart
+                    data={aumTrend.series.map((s) => ({
+                      ...s,
+                      netPos: s.net > 0 ? s.net : 0,
+                      netNeg: s.net < 0 ? s.net : 0,
+                    }))}
+                    margin={{ top: 16, right: 12, left: 4, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="aum-flow-pos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.35} />
+                      </linearGradient>
+                      <linearGradient id="aum-flow-neg" x1="0" y1="1" x2="0" y2="0">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.35} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="hsl(var(--muted-foreground)/0.15)"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={8}
+                      className="font-bold uppercase tracking-widest opacity-60"
+                    />
+                    <YAxis
+                      yAxisId="flow"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => formatCompactCurrency(Math.abs(v))}
+                      width={66}
+                      className="font-bold opacity-50"
+                    />
+                    <YAxis
+                      yAxisId="aum"
+                      orientation="right"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => formatCompactCurrency(v)}
+                      width={66}
+                      className="font-bold opacity-50"
+                    />
+                    <ReferenceLine
+                      yAxisId="flow"
+                      y={0}
+                      stroke="hsl(var(--muted-foreground)/0.4)"
+                    />
+                    <Tooltip
+                      content={<AumTooltip mode="bucketed" />}
+                      cursor={{ fill: 'hsl(var(--primary)/0.06)' }}
+                      animationDuration={150}
+                    />
+                    <Bar
+                      yAxisId="flow"
+                      dataKey="netPos"
+                      name="Net inflow"
+                      fill="url(#aum-flow-pos)"
+                      radius={[10, 10, 0, 0]}
+                      maxBarSize={36}
+                      animationDuration={900}
+                    />
+                    <Bar
+                      yAxisId="flow"
+                      dataKey="netNeg"
+                      name="Net outflow"
+                      fill="url(#aum-flow-neg)"
+                      radius={[0, 0, 10, 10]}
+                      maxBarSize={36}
+                      animationDuration={900}
+                    />
+                    <Line
+                      yAxisId="aum"
+                      type="monotone"
+                      dataKey="aum"
+                      name="Running AUM"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2.5}
+                      dot={{
+                        r: 4,
+                        strokeWidth: 2,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                      activeDot={{
+                        r: 6,
+                        strokeWidth: 3,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                      animationDuration={1100}
+                    />
+                  </ComposedChart>
+                )}
               </ResponsiveContainer>
             </div>
           ) : (
