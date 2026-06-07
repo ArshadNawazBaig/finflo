@@ -1,16 +1,28 @@
-name: Deployment Pipeline
+name: CI Pipeline
 
+# Gates every change before it reaches an environment.
+#   PRs into `staging`  → must pass before merging to test
+#   PRs into `main`     → must pass before merging to production
+#   Pushes to either    → re-verify (Railway performs the actual deploy from
+#                         these branches via its native GitHub integration).
 on:
   push:
     branches:
       - main
+      - staging
   pull_request:
     branches:
       - main
+      - staging
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-    name: Verify Code (Build)
+  verify:
+    name: Lint & Build Verification
     runs-on: ubuntu-latest
 
     steps:
@@ -23,70 +35,38 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Root Dependencies
+      - name: Install Dependencies (workspaces)
         run: npm install
 
-      - name: Install Client Dependencies
-        run: npm install --workspace=apps/client
-
-      - name: Install Server Dependencies
-        run: npm install --workspace=apps/server
+      # ── Client ────────────────────────────────────────────────────────────
+      # Non-blocking for now: the client has a large backlog of existing lint
+      # errors. This surfaces them in the run without failing the gate. Once the
+      # backlog is cleared, remove `continue-on-error` to make lint blocking.
+      - name: Lint Frontend (non-blocking)
+        continue-on-error: true
+        run: npm run lint --workspace=apps/client
 
       - name: Build Frontend
         run: npm run build --workspace=apps/client
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          # CI build is a verification gate only; the real per-environment
+          # VITE_API_URL is injected by Railway at deploy time. Falls back to a
+          # placeholder so the build never fails on a missing secret.
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://ci-build-placeholder.invalid' }}
 
-      - name: Verify Backend
+      # ── Server ────────────────────────────────────────────────────────────
+      - name: Verify Backend (syntax check)
         run: |
           cd apps/server
-          npm run build || echo "No build step required for server"
+          npm run build
+          # Byte-compile every source file to catch syntax errors before deploy.
+          find src -name '*.js' -print0 | xargs -0 -n1 node --check
+          echo "Backend syntax verification passed."
 
-  deploy:
-    name: Deploy to Production
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  ci-passed:
+    name: CI Passed
+    needs: verify
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Deploy Announcement
-        run: echo "Starting deployment to production host..."
-
-      # ========================================================================
-      # DEPLOYMENT PLACEHOLDERS
-      # Uncomment the section that matches your hosting provider
-      # ========================================================================
-
-      # --- OPTION A: Vercel (Frontend + Serverless) ---
-      # - name: Deploy to Vercel
-      #   uses: amondnet/vercel-action@v20
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      #     vercel-args: '--prod'
-
-      # --- OPTION B: Railway ---
-      # - name: Deploy to Railway
-      #   run: npx @railway/cli up --service loan-app-service
-      #   env:
-      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      # --- OPTION C: Traditional VPS via SSH ---
-      # - name: Deploy to VPS
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.SSH_KEY }}
-      #     script: |
-      #       cd /var/www/loan-app
-      #       git pull origin main
-      #       npm install
-      #       pm2 restart loan-app
-
-      - name: Success Notification
-        run: echo "Deployment workflow completed successfully."
+      - name: Report
+        run: echo "All checks passed. Railway will deploy this branch to its mapped environment."
