@@ -41,11 +41,12 @@ const createSmtpTransporter = async (settings, debug = false) => {
           '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
         );
         // Use nodemailer's built-in Gmail service (smtp.gmail.com:465, SMTPS).
-        // The previous forced 587/STARTTLS + IPv4-only (family:4) config timed
-        // out on Railway; this mirrors the working utils/sendEmail.js transport.
+        // family:4 forces IPv4 — Railway has no IPv6 route, so leaving it to
+        // resolve AAAA first wastes a connection attempt (ENETUNREACH).
         return nodemailer.createTransport({
           service: 'gmail',
           auth: { user: config.auth.user, pass: config.auth.pass },
+          family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
@@ -85,12 +86,13 @@ const createSmtpTransporter = async (settings, debug = false) => {
         console.log(
           '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
         );
-        // Mirror the working utils/sendEmail.js transport — service:'gmail'
-        // connects over SMTPS (465). The previous 587/STARTTLS + family:4 config
-        // timed out on Railway.
+        // service:'gmail' connects over SMTPS (465). family:4 forces IPv4 —
+        // Railway has no IPv6 route, so resolving AAAA first wastes a connection
+        // attempt (ENETUNREACH).
         return nodemailer.createTransport({
           service: 'gmail',
           auth: { user, pass },
+          family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
