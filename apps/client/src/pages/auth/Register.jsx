@@ -65,14 +65,21 @@ const Register = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/google-register', {
+      const response = await api.post('/auth/google-register', {
         googleToken: credentialResponse.credential,
       });
 
-      // Auto login on successful register — update both atom and localStorage
-      setUser(data);
+      // 201 = a brand-new account was just created. Prompt the user to click
+      // the Google button once more to sign in (the second click logs them in).
+      if (response.status === 201) {
+        toast.success(
+          'Account created! Click "Sign up with Google" again to log in.',
+        );
+        return;
+      }
 
-      toast.success(data.message || 'Registration successful!');
+      // 200 = account already existed → logged in.
+      setUser(response.data);
       navigate('/dashboard');
     } catch (err) {
       setError('root', {
@@ -103,15 +110,20 @@ const Register = () => {
       console.log('[GoogleAuth] Register: Initialization successful, calling signIn...');
       const googleUser = await GoogleAuth.signIn();
       console.log('[GoogleAuth] Register: Sign-in success, idToken present:', !!googleUser?.authentication?.idToken);
-      const { data } = await api.post(
-        '/auth/google-register', {
+      const response = await api.post('/auth/google-register', {
         googleToken: googleUser.authentication.idToken,
       });
 
-      // Auto login on successful register — update both atom and localStorage
-      setUser(data);
+      // 201 = brand-new account → prompt to tap again to sign in.
+      if (response.status === 201) {
+        toast.success(
+          'Account created! Tap "Sign up with Google" again to log in.',
+        );
+        return;
+      }
 
-      toast.success(data.message || 'Registration successful!');
+      // 200 = existing account → logged in.
+      setUser(response.data);
       navigate('/dashboard');
     } catch (err) {
       console.error('[GoogleAuth] Register error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
