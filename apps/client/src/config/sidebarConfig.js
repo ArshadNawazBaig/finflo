@@ -235,6 +235,7 @@ export const sidebarMenuConfig = [
         icon: MessageSquare,
         label: 'Chat',
         onboardingId: 'sidebar-chat',
+        premium: true,
         getBadge: (atoms) => atoms.unreadChatCount,
       },
       {
@@ -242,6 +243,7 @@ export const sidebarMenuConfig = [
         icon: LifeBuoy,
         label: 'Support',
         onboardingId: 'sidebar-support',
+        premium: true,
       },
       {
         to: '/disputes',
