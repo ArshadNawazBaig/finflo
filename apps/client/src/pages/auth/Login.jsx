@@ -484,11 +484,11 @@ const Login = () => {
           </div>
 
           <div className="text-center pt-4">
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-sm text-slate-500 dark:text-white/70 font-medium">
               New to the platform?{' '}
               <Link
                 to="/register"
-                className="text-primary font-semibold hover:text-primary/80 transition-colors"
+                className="text-primary dark:text-white dark:underline font-semibold hover:text-primary/80 dark:hover:text-white/80 transition-colors"
               >
                 Create Account
               </Link>

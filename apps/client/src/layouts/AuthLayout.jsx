@@ -17,12 +17,6 @@ const AuthLayout = ({
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background relative overflow-hidden">
       {/* ─── Branding Side (Desktop Only) ─────────────────────── */}
       <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden bg-slate-950">
-        {/* Animated Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_60%)]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05),transparent_60%)]" />
-        </div>
-
         {/* Logo Section */}
         {showLogo && (
           <motion.div
@@ -107,15 +101,7 @@ const AuthLayout = ({
       </div>
 
       {/* ─── Form Side ───────────────────────────────────────── */}
-      <div className="flex flex-col items-center justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background min-h-screen overflow-y-auto overflow-x-hidden">
-        {/* Decorative elements — static on native to prevent WebView flickering */}
-        {!IS_NATIVE && (
-          <>
-            <div className="absolute top-0 -left-10 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_60%)] pointer-events-none" />
-            <div className="absolute bottom-0 -right-10 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03),transparent_60%)] pointer-events-none" />
-          </>
-        )}
-
+      <div className="flex flex-col items-center justify-center p-4 lg:p-10 pt-12 lg:pt-10 relative bg-background dark:bg-slate-900 min-h-screen overflow-y-auto overflow-x-hidden">
         <div className="w-full max-w-lg lg:max-w-md relative z-10 lg:py-0">
           <div className="bg-white/90 dark:bg-slate-950/90 lg:bg-transparent lg:dark:bg-transparent border lg:border-none border-slate-100 dark:border-white/[0.04] shadow-xl lg:shadow-none shadow-black/[0.02] rounded-3xl p-8 lg:p-0 overflow-hidden lg:overflow-visible relative">
             {/* Top accent line - only on mobile */}
@@ -137,7 +123,7 @@ const AuthLayout = ({
                   {title}
                 </h2>
                 {description && (
-                  <p className="text-slate-500 dark:text-slate-400 text-sm lg:text-[15px] font-normal leading-relaxed opacity-80 lg:opacity-100">
+                  <p className="text-slate-500 dark:text-white/80 text-sm lg:text-[15px] font-normal leading-relaxed opacity-80 lg:opacity-100">
                     {description}
                   </p>
                 )}
@@ -152,7 +138,7 @@ const AuthLayout = ({
               <div className="pt-10 border-t border-slate-100 dark:border-white/[0.04] mt-12 animate-in fade-in duration-500 delay-200">
                 <a
                   href={IS_DEV ? '/' : getLandingUrl('/')}
-                  className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 group"
+                  className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-900 dark:text-white/70 dark:hover:text-white transition-all duration-300 group"
                 >
                   <ArrowLeft
                     size={15}
