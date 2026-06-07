@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { pendingMembersCountAtom } from '@/atoms';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -58,6 +58,7 @@ const Members = () => {
     searchParams.get('type') === 'pending' ? 'pending' : 'approved';
   const [activeTab, setActiveTab] = useState(initialTab); // 'approved' or 'pending'
   const pendingMembersCount = useAtomValue(pendingMembersCountAtom);
+  const setPendingMembersCount = useSetAtom(pendingMembersCountAtom);
   const [summary, setSummary] = useState({
     totalInvested: 0,
     activeMembers: 0,
@@ -254,6 +255,9 @@ const Members = () => {
       setApprovingId(id);
       await api.put(`/members/${id}/approval`, { status: 'approved' });
       toast.success('Member approved successfully');
+      // Decrement the pending badge immediately (the layout only refreshes it
+      // on its own fetch, which the approve/reject action doesn't trigger).
+      setPendingMembersCount((c) => Math.max(0, c - 1));
       fetchMembers(false);
       fetchSummary();
       window.dispatchEvent(new CustomEvent('userUpdated'));
@@ -283,6 +287,7 @@ const Members = () => {
         rejectionReason: rejectionReason.trim(),
       });
       toast.success('Member application rejected');
+      setPendingMembersCount((c) => Math.max(0, c - 1));
       setRejectMemberId(null);
       setRejectionReason('');
       fetchMembers(false);

@@ -294,15 +294,17 @@ const OnboardingGuide = ({ steps, userId, role }) => {
               />
             </svg>
 
-            {/* Interactive Overlay - Allows clicking highlighted item while dismissing on backdrop */}
+            {/* Interactive Overlay — captures backdrop clicks (so the page
+                behind isn't interactable) but does NOT dismiss the guide.
+                The guide only closes via the Skip/Close or finish buttons.
+                The highlighted item stays clickable through the clipPath hole. */}
             <div
-              className="absolute inset-0 pointer-events-auto"
+              className="absolute inset-0 pointer-events-auto cursor-default"
               style={{
                 clipPath: targetRect
                   ? `polygon(0% 0%, 0% 100%, ${targetRect.left}px 100%, ${targetRect.left}px ${targetRect.top}px, ${targetRect.right}px ${targetRect.top}px, ${targetRect.right}px ${targetRect.bottom}px, ${targetRect.left}px ${targetRect.bottom}px, ${targetRect.left}px 100%, 100% 100%, 100% 0%)`
                   : 'none',
               }}
-              onClick={handleComplete}
             />
 
             {/* Premium Focal Highlights */}
