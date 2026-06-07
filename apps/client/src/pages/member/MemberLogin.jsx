@@ -19,6 +19,7 @@ import { useSetAtom } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { cn } from '@/lib/utils';
 import { markAppUnlocked } from '@/lib/appLock';
+import { EMAIL_AUTH_ENABLED } from '@/lib/constants';
 
 const MemberLogin = () => {
   useDocumentTitle('Member Login');
@@ -530,6 +531,8 @@ const MemberLogin = () => {
           )}
         </div>
 
+        {EMAIL_AUTH_ENABLED && (
+          <>
         <div className="space-y-1.5">
           <label
             className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
@@ -623,6 +626,8 @@ const MemberLogin = () => {
             </span>
           </div>
         </div>
+          </>
+        )}
 
         <div className="pt-2 text-center w-full flex flex-col items-center">
           <p className="text-[10px] text-muted-foreground/70 mb-4 max-w-[280px] leading-relaxed">
@@ -688,11 +693,11 @@ const MemberLogin = () => {
         </div>
 
         <div className="text-center pt-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-1.5">
+          <p className="text-sm text-slate-500 dark:text-white/70 font-medium flex items-center justify-center gap-1.5">
             Not a member yet?
             <Link
               to={`/join`}
-              className="text-primary font-semibold hover:text-primary/80 transition-colors"
+              className="text-primary dark:text-white dark:underline font-semibold hover:text-primary/80 dark:hover:text-white/80 transition-colors"
             >
               Sign up here.
             </Link>

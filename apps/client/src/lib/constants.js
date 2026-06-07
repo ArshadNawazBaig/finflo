@@ -7,6 +7,12 @@ export const SOCKET_URL =
     : window.location.origin);
 
 export const IS_PRODUCTION = import.meta.env.MODE === 'production';
+
+// Email/password auth is temporarily disabled while email verification (SMTP)
+// is unavailable on Railway — only Google sign-in is offered. The email login
+// and registration UI is preserved (not removed); flip this to `true` to
+// restore it everywhere once SMTP/email delivery works again.
+export const EMAIL_AUTH_ENABLED = false;
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
 
@@ -29,6 +35,10 @@ export const IS_LANDING_DOMAIN =
   hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
 export const IS_APP_DOMAIN = hostname === APP_DOMAIN;
 export const IS_DEV =
+  // True whenever the Vite dev server is running, regardless of the host/IP
+  // used to reach it (vite `host: true` also serves on the LAN IP, where
+  // hostname-based checks would otherwise fail and bounce `/` to /login).
+  import.meta.env.DEV ||
   hostname === 'localhost' ||
   hostname === '127.0.0.1' ||
   hostname.includes('.local');

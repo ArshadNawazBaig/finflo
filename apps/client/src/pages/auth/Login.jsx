@@ -20,6 +20,7 @@ import { useSetAtom } from 'jotai';
 import { userAtom } from '@/atoms';
 import { Capacitor } from '@capacitor/core';
 import SEO from '@/components/SEO';
+import { EMAIL_AUTH_ENABLED } from '@/lib/constants';
 
 const Login = () => {
   useDocumentTitle('Login');
@@ -327,6 +328,8 @@ const Login = () => {
             </div>
           )}
 
+          {EMAIL_AUTH_ENABLED && (
+            <>
           <div className="space-y-1.5">
             <label
               className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
@@ -422,6 +425,8 @@ const Login = () => {
               </span>
             </div>
           </div>
+            </>
+          )}
 
           <div className="flex flex-col items-center justify-center w-full space-y-4">
             {(() => {
@@ -479,11 +484,11 @@ const Login = () => {
           </div>
 
           <div className="text-center pt-4">
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-sm text-slate-500 dark:text-white/70 font-medium">
               New to the platform?{' '}
               <Link
                 to="/register"
-                className="text-primary font-semibold hover:text-primary/80 transition-colors"
+                className="text-primary dark:text-white dark:underline font-semibold hover:text-primary/80 dark:hover:text-white/80 transition-colors"
               >
                 Create Account
               </Link>

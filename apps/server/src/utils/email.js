@@ -38,12 +38,13 @@ const createSmtpTransporter = async (settings, debug = false) => {
 
       if (config.host.toLowerCase().includes('gmail.com')) {
         console.log(
-          '[SMTP CONFIG] Detected Gmail: Forcing Port 587 and STARTTLS.',
+          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
         );
+        // Use nodemailer's built-in Gmail service (smtp.gmail.com:465, SMTPS).
+        // family:4 forces IPv4 — Railway has no IPv6 route, so leaving it to
+        // resolve AAAA first wastes a connection attempt (ENETUNREACH).
         return nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
+          service: 'gmail',
           auth: { user: config.auth.user, pass: config.auth.pass },
           family: 4,
           connectionTimeout: 30000,
@@ -51,7 +52,6 @@ const createSmtpTransporter = async (settings, debug = false) => {
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
@@ -83,10 +83,14 @@ const createSmtpTransporter = async (settings, debug = false) => {
       );
 
       if (host.toLowerCase().includes('gmail.com')) {
+        console.log(
+          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
+        );
+        // service:'gmail' connects over SMTPS (465). family:4 forces IPv4 —
+        // Railway has no IPv6 route, so resolving AAAA first wastes a connection
+        // attempt (ENETUNREACH).
         return nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
+          service: 'gmail',
           auth: { user, pass },
           family: 4,
           connectionTimeout: 30000,
@@ -94,7 +98,6 @@ const createSmtpTransporter = async (settings, debug = false) => {
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
@@ -128,6 +131,35 @@ const createSmtpTransporter = async (settings, debug = false) => {
  * @param {Object} options - { to, subject, html, text, debug }
  * @returns {Boolean} - success status
  */
+// ── Resend HTTP API sender (works on hosts that block outbound SMTP) ──────────
+// Railway (and many PaaS) block outbound SMTP ports (25/465/587), so nodemailer
+// → Gmail times out / ENETUNREACHes. Resend sends over HTTPS (443) via a plain
+// fetch — no npm package required (Node 18+ has global fetch). The sender domain
+// must be verified in Resend (e.g. noreply@finflo.org), NOT a gmail.com address.
+const sendViaResend = async ({ to, subject, html, text, fromEmail, fromName }) => {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: `${fromName} <${fromEmail}>`,
+      to: [to],
+      subject,
+      html,
+      text,
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Resend API ${res.status}: ${detail}`);
+  }
+  const data = await res.json().catch(() => ({}));
+  return data?.id;
+};
+
 const sendEmail = async (options) => {
   try {
     const settings = await getCachedSettings();
@@ -143,6 +175,21 @@ const sendEmail = async (options) => {
       process.env.SMTP_FROM_NAME ||
       settings.platformName;
 
+    // Primary: Resend HTTP API (the only path that works behind an SMTP block).
+    if (process.env.RESEND_API_KEY) {
+      const id = await sendViaResend({
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        fromEmail,
+        fromName,
+      });
+      console.log(`[EMAIL] Sent via Resend to ${options.to} [${id}]`);
+      return true;
+    }
+
+    // Fallback: SMTP (local dev, or hosts that allow outbound SMTP).
     const transporter = await createSmtpTransporter(
       settings,
       options.debug || false,
