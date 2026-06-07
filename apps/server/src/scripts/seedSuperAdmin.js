@@ -9,8 +9,8 @@ const seedSuperAdmin = async () => {
   try {
     await connectDB();
 
-    const superAdminEmail = 'arshadnawazbaig@gmail.com';
-    const superAdminPassword = 'Arshadnb@10';
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
+    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
 
     // Check if super admin already exists
     let superAdmin = await User.findOne({ role: 'super_admin' });

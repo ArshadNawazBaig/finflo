@@ -38,20 +38,19 @@ const createSmtpTransporter = async (settings, debug = false) => {
 
       if (config.host.toLowerCase().includes('gmail.com')) {
         console.log(
-          '[SMTP CONFIG] Detected Gmail: Forcing Port 587 and STARTTLS.',
+          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
         );
+        // Use nodemailer's built-in Gmail service (smtp.gmail.com:465, SMTPS).
+        // The previous forced 587/STARTTLS + IPv4-only (family:4) config timed
+        // out on Railway; this mirrors the working utils/sendEmail.js transport.
         return nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
+          service: 'gmail',
           auth: { user: config.auth.user, pass: config.auth.pass },
-          family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
@@ -83,18 +82,20 @@ const createSmtpTransporter = async (settings, debug = false) => {
       );
 
       if (host.toLowerCase().includes('gmail.com')) {
+        console.log(
+          '[SMTP CONFIG] Detected Gmail: using Gmail service (SMTPS 465).',
+        );
+        // Mirror the working utils/sendEmail.js transport — service:'gmail'
+        // connects over SMTPS (465). The previous 587/STARTTLS + family:4 config
+        // timed out on Railway.
         return nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
+          service: 'gmail',
           auth: { user, pass },
-          family: 4,
           connectionTimeout: 30000,
           greetingTimeout: 30000,
           socketTimeout: 30000,
           logger: debug,
           debug: debug,
-          tls: { rejectUnauthorized: false, minVersion: 'TLSv1.2' },
         });
       }
 
