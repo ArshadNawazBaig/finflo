@@ -12,6 +12,7 @@ import AuthLayout from '@/layouts/AuthLayout';
 import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 import { userAtom } from '@/atoms';
+import { EMAIL_AUTH_ENABLED } from '@/lib/constants';
 
 const Register = () => {
   useDocumentTitle('Register');
@@ -141,6 +142,8 @@ const Register = () => {
           </div>
         )}
 
+        {EMAIL_AUTH_ENABLED && (
+          <>
         <div className="space-y-1.5">
           <label
             className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1"
@@ -258,6 +261,8 @@ const Register = () => {
             </span>
           </div>
         </div>
+          </>
+        )}
 
         <div className="flex flex-col items-center justify-center w-full space-y-4">
           <div className="w-full flex justify-center">

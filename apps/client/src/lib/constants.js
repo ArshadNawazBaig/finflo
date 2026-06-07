@@ -7,6 +7,12 @@ export const SOCKET_URL =
     : window.location.origin);
 
 export const IS_PRODUCTION = import.meta.env.MODE === 'production';
+
+// Email/password auth is temporarily disabled while email verification (SMTP)
+// is unavailable on Railway — only Google sign-in is offered. The email login
+// and registration UI is preserved (not removed); flip this to `true` to
+// restore it everywhere once SMTP/email delivery works again.
+export const EMAIL_AUTH_ENABLED = false;
 export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
 
