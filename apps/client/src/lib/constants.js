@@ -11,10 +11,20 @@ export const MOBILE_PAGE_LIMIT = 5;
 export const DESKTOP_PAGE_LIMIT = 10;
 
 // Domain Configuration
-export const LANDING_DOMAIN = 'finflo.org';
-export const APP_DOMAIN = 'app.finflo.org';
-
+// The same client build serves both production and staging; the landing/app
+// domain pair is selected from the current hostname so the two-domain split
+// and cross-domain links (getAppUrl/getLandingUrl) resolve within the right
+// environment instead of bouncing a staging visitor to production.
+//   Production: finflo.org (landing)      + app.finflo.org (app)
+//   Staging:    test.finflo.org (landing) + app-test.finflo.org (app)
 const hostname = window.location.hostname;
+
+const IS_STAGING_HOST =
+  hostname === 'test.finflo.org' || hostname === 'app-test.finflo.org';
+
+export const LANDING_DOMAIN = IS_STAGING_HOST ? 'test.finflo.org' : 'finflo.org';
+export const APP_DOMAIN = IS_STAGING_HOST ? 'app-test.finflo.org' : 'app.finflo.org';
+
 export const IS_LANDING_DOMAIN =
   hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
 export const IS_APP_DOMAIN = hostname === APP_DOMAIN;
