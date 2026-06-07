@@ -41,12 +41,12 @@ export const memberOnboardingSteps = [
     path: '/member/transactions',
   },
   {
-    title: 'Investment Portfolio',
+    title: 'Term Deposits',
     description:
-      'Track your growing wealth and monthly profit distributions from our diversified investment pools.',
+      'Grow your wealth with fixed-term deposits and track your monthly profit distributions.',
     icon: <TrendingUp size={32} strokeWidth={2.5} />,
-    elementId: 'sidebar-investments',
-    path: '/member/investments',
+    elementId: 'sidebar-term-deposits',
+    path: '/member/term-deposits',
   },
   {
     title: 'Business Shares',
