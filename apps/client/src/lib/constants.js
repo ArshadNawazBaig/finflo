@@ -35,6 +35,10 @@ export const IS_LANDING_DOMAIN =
   hostname === LANDING_DOMAIN || hostname === `www.${LANDING_DOMAIN}`;
 export const IS_APP_DOMAIN = hostname === APP_DOMAIN;
 export const IS_DEV =
+  // True whenever the Vite dev server is running, regardless of the host/IP
+  // used to reach it (vite `host: true` also serves on the LAN IP, where
+  // hostname-based checks would otherwise fail and bounce `/` to /login).
+  import.meta.env.DEV ||
   hostname === 'localhost' ||
   hostname === '127.0.0.1' ||
   hostname.includes('.local');
