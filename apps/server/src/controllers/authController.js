@@ -1690,7 +1690,50 @@ const googleRegister = async (req, res) => {
 
     const existingUser = await User.findOne({ email: lowercaseEmail });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      // Account already exists — log them in instead of erroring, so
+      // "Continue with Google" works whether the account is new or existing.
+      if (!existingUser.isActive) {
+        return res.status(403).json({
+          message:
+            'Your account has been deactivated. Please contact support.',
+        });
+      }
+
+      // Link the Google identity / mark verified on first Google sign-in.
+      if (!existingUser.googleId) {
+        existingUser.googleId = googleId;
+        existingUser.isGoogleAuth = true;
+      }
+      if (!existingUser.isVerified) existingUser.isVerified = true;
+      existingUser.lastLoginAt = new Date();
+      await existingUser.save({ validateBeforeSave: false });
+
+      if (existingUser.isTwoFactorEnabled) {
+        const pendingToken = jwt.sign(
+          { id: existingUser._id, pending2FA: true },
+          process.env.JWT_SECRET,
+          { expiresIn: '5m' },
+        );
+        return res.json({ requires2FA: true, pendingToken });
+      }
+
+      const loginToken = generateToken(existingUser._id);
+      return res.cookie('token', loginToken, cookieOptions).json({
+        token: loginToken,
+        _id: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+        role: existingUser.role,
+        isManager: false,
+        branchId: existingUser.branchId || null,
+        businessName: existingUser.businessName,
+        securityCode: existingUser.securityCode,
+        businessAbbreviation: existingUser.businessAbbreviation,
+        profilePicture: existingUser.profilePicture,
+        currency: existingUser.currency,
+        permissions: existingUser.getPermissions(),
+        message: 'Logged in successfully.',
+      });
     }
 
     // Mirror Google's CDN avatar to our Cloudinary once at signup so
