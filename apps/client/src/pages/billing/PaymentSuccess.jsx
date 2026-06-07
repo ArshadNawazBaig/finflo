@@ -4,11 +4,14 @@ import { CheckCircle2, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import axios from '@/lib/axios';
+import { useSetAtom } from 'jotai';
+import { userAtom } from '@/atoms';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [planName, setPlanName] = useState('Pro');
+  const setUser = useSetAtom(userAtom);
 
   // Verify and sync subscription status
   useEffect(() => {
@@ -29,13 +32,13 @@ const PaymentSuccess = () => {
             const userResponse = await axios.get('/auth/me');
             const updatedUser = userResponse.data;
 
-            // Update localStorage with new user data
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            // Update the in-memory user atom (merge to keep the token) so the
+            // sidebar and route guards react immediately — premium features
+            // unlock without a page refresh. atomWithStorage also persists it.
+            setUser((prev) => ({ ...(prev || {}), ...updatedUser }));
 
-            // Dispatch custom event to notify other components
-            window.dispatchEvent(new Event('userUpdated'));
-
-            console.log('User data updated in localStorage:', updatedUser.plan);
+            // Sync subscription limits in the layout as well.
+            window.dispatchEvent(new Event('subscriptionUpdated'));
           } catch (userError) {
             console.error('Error fetching updated user data:', userError);
           }
