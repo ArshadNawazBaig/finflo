@@ -9,6 +9,7 @@ const {
   superAdminSubscriptionNotificationEmail,
 } = require('../utils/emailTemplates');
 const { getPlanLimits } = require('../utils/planLimits');
+const { getSubscriptionPeriodEnd } = require('../utils/stripeHelpers');
 
 const getBaseUrl = (req) => {
   // Try environment variable first (best for consistent email links)
@@ -244,6 +245,7 @@ const getBillingInfo = async (req, res) => {
 
     // Sync Plan from Stripe if needed
     let currentPlan = user.plan;
+    let needsSave = false;
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
       const priceId = subscription.items.data[0].price.id;
@@ -263,10 +265,32 @@ const getBillingInfo = async (req, res) => {
         user.plan = stripePlan;
         user.subscriptionStatus = 'active';
         user.stripeSubscriptionId = subscription.id;
-        await user.save();
         currentPlan = stripePlan;
+        needsSave = true;
+      }
+
+      // Self-heal the renewal date from Stripe (covers records where
+      // verify-session failed to persist it). Prefer the subscription period
+      // end; fall back to the latest invoice's period end.
+      let periodEnd = getSubscriptionPeriodEnd(subscription);
+      if (!periodEnd && invoices.data[0]) {
+        const inv = invoices.data[0];
+        const ts = inv.lines?.data?.[0]?.period?.end || inv.period_end;
+        if (ts) {
+          const d = new Date(ts * 1000);
+          if (!Number.isNaN(d.valueOf())) periodEnd = d;
+        }
+      }
+      if (
+        periodEnd &&
+        (!user.nextBillingDate ||
+          new Date(user.nextBillingDate).getTime() !== periodEnd.getTime())
+      ) {
+        user.nextBillingDate = periodEnd;
+        needsSave = true;
       }
     }
+    if (needsSave) await user.save();
 
     const defaultPaymentMethodId =
       customer.invoice_settings.default_payment_method;
@@ -345,9 +369,7 @@ const getBillingInfo = async (req, res) => {
           periodStart: sub.current_period_start
             ? new Date(sub.current_period_start * 1000)
             : null,
-          periodEnd: sub.current_period_end
-            ? new Date(sub.current_period_end * 1000)
-            : null,
+          periodEnd: getSubscriptionPeriodEnd(sub),
           type: 'subscription_canceled',
           planName: planName,
         };
@@ -492,17 +514,18 @@ const verifySession = async (req, res) => {
     console.log(`Determined plan: ${plan} from price ID: ${priceId}`);
 
     // Update user in database
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        stripeCustomerId: session.customer,
-        stripeSubscriptionId: session.subscription,
-        subscriptionStatus: 'active',
-        plan: plan,
-        nextBillingDate: new Date(subscription.current_period_end * 1000),
-      },
-      { new: true },
-    );
+    const update = {
+      stripeCustomerId: session.customer,
+      stripeSubscriptionId: session.subscription,
+      subscriptionStatus: 'active',
+      plan: plan,
+    };
+    const periodEnd = getSubscriptionPeriodEnd(subscription);
+    if (periodEnd) update.nextBillingDate = periodEnd;
+
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      returnDocument: 'after',
+    });
 
     console.log(`User ${userId} updated to ${plan} plan`);
 

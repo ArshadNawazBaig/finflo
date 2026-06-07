@@ -7,6 +7,7 @@ const {
   superAdminSubscriptionNotificationEmail,
 } = require('../utils/emailTemplates');
 const Notification = require('../models/Notification');
+const { getSubscriptionPeriodEnd } = require('../utils/stripeHelpers');
 
 const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -102,7 +103,9 @@ const handleWebhook = async (req, res) => {
               stripeSubscriptionId: session.subscription,
               subscriptionStatus: 'active',
               plan: plan,
-              nextBillingDate: new Date(subscription.current_period_end * 1000),
+              ...(getSubscriptionPeriodEnd(subscription)
+                ? { nextBillingDate: getSubscriptionPeriodEnd(subscription) }
+                : {}),
             },
             { new: true },
           );
@@ -179,9 +182,8 @@ const handleWebhook = async (req, res) => {
           const subscription = await stripe.subscriptions.retrieve(
             invoice.subscription,
           );
-          user.nextBillingDate = new Date(
-            subscription.current_period_end * 1000,
-          );
+          const invoicePeriodEnd = getSubscriptionPeriodEnd(subscription);
+          if (invoicePeriodEnd) user.nextBillingDate = invoicePeriodEnd;
           user.subscriptionStatus = 'active';
 
           // Add invoice to history
@@ -234,9 +236,8 @@ const handleWebhook = async (req, res) => {
           console.log(`Found user ${user._id} for customer ${customerId}`);
           user.subscriptionStatus = subscription.status;
           user.stripeSubscriptionId = subscription.id;
-          user.nextBillingDate = new Date(
-            subscription.current_period_end * 1000,
-          );
+          const subPeriodEnd = getSubscriptionPeriodEnd(subscription);
+          if (subPeriodEnd) user.nextBillingDate = subPeriodEnd;
 
           // Sync Plan based on Price ID
           if (subscription.items && subscription.items.data.length > 0) {
