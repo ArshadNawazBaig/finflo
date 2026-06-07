@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronUp, ChevronDown, LogOut, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, LogOut, X, Crown } from 'lucide-react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn, capitalize } from '@/lib/utils';
@@ -210,6 +210,16 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                       : item.label;
                   const badge = item.getBadge ? item.getBadge(atoms) : null;
 
+                  // Premium items are locked until the business is on a paid
+                  // plan. Mirror RequirePaidPlan: Free plan is blocked unless
+                  // the user is staff/manager (who inherit the owner's access).
+                  const isStaffOrManager =
+                    user?.role === 'staff' || user?.isManager;
+                  const locked =
+                    !!item.premium &&
+                    (user?.plan || 'Free') === 'Free' &&
+                    !isStaffOrManager;
+
                   return (
                     <NavItem
                       key={itemIdx}
@@ -220,6 +230,7 @@ const Sidebar = ({ isExpanded, isMobile, onClose }) => {
                       label={label}
                       isExpanded={isLayoutExpanded}
                       badge={badge > 0 ? badge : null}
+                      locked={locked}
                     />
                   );
                 })}
@@ -344,8 +355,72 @@ const NavItem = ({
   isExpanded,
   badge,
   onboardingId,
+  locked = false,
 }) => {
-  const content = (
+  const inner = (
+    <>
+      <div
+        className={cn(
+          'relative z-10 shrink-0 transition-transform duration-300 group-hover:scale-105',
+          active && !locked ? 'scale-105' : '',
+        )}
+      >
+        {icon}
+      </div>
+      <span
+        className={cn(
+          'transition-all duration-300 origin-left text-[12px] font-semibold',
+          isExpanded
+            ? 'opacity-100 translate-x-0'
+            : 'opacity-0 -translate-x-4 w-0 hidden',
+          active && !locked ? 'text-white' : '',
+        )}
+      >
+        {label}
+      </span>
+      {locked ? (
+        // Premium lock indicator — replaces the badge slot.
+        <div
+          className={cn(
+            'absolute z-20 transition-all duration-300',
+            isExpanded ? 'right-3 top-1/2 -translate-y-1/2' : 'right-0 -top-0.5',
+          )}
+        >
+          <Crown size={14} className="text-amber-500 fill-amber-400/40" />
+        </div>
+      ) : (
+        badge && (
+          <div
+            className={cn(
+              'absolute bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center min-w-[18px] h-[18px] px-1 ring-2 ring-white dark:ring-slate-950 z-20 transition-all duration-300 tabular-nums',
+              isExpanded
+                ? 'right-3 top-1/2 -translate-y-1/2'
+                : 'right-0 -top-0.5',
+            )}
+          >
+            {badge > 99 ? '99+' : badge}
+          </div>
+        )
+      )}
+    </>
+  );
+
+  // Locked premium items are disabled (not navigable) until the plan is upgraded.
+  const content = locked ? (
+    <div
+      data-onboarding-id={onboardingId}
+      aria-disabled="true"
+      className={cn(
+        'py-2.5 rounded-2xl flex items-center relative group whitespace-nowrap cursor-not-allowed select-none opacity-60',
+        isExpanded
+          ? 'justify-start gap-3 px-3'
+          : 'justify-center w-11 h-11 mx-auto',
+        'text-slate-400 dark:text-slate-500',
+      )}
+    >
+      {inner}
+    </div>
+  ) : (
     <Link
       to={to}
       data-onboarding-id={onboardingId}
@@ -359,37 +434,7 @@ const NavItem = ({
           : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white',
       )}
     >
-      <div
-        className={cn(
-          'relative z-10 shrink-0 transition-transform duration-300 group-hover:scale-105',
-          active ? 'scale-105' : '',
-        )}
-      >
-        {icon}
-      </div>
-      <span
-        className={cn(
-          'transition-all duration-300 origin-left text-[12px] font-semibold',
-          isExpanded
-            ? 'opacity-100 translate-x-0'
-            : 'opacity-0 -translate-x-4 w-0 hidden',
-          active ? 'text-white' : '',
-        )}
-      >
-        {label}
-      </span>
-      {badge && (
-        <div
-          className={cn(
-            'absolute bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center min-w-[18px] h-[18px] px-1 ring-2 ring-white dark:ring-slate-950 z-20 transition-all duration-300 tabular-nums',
-            isExpanded
-              ? 'right-3 top-1/2 -translate-y-1/2'
-              : 'right-0 -top-0.5',
-          )}
-        >
-          {badge > 99 ? '99+' : badge}
-        </div>
-      )}
+      {inner}
     </Link>
   );
 
@@ -399,7 +444,7 @@ const NavItem = ({
     <Tooltip>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
       <TooltipContent side="right" sideOffset={12}>
-        {label}
+        {locked ? `${label} · Premium` : label}
       </TooltipContent>
     </Tooltip>
   );
