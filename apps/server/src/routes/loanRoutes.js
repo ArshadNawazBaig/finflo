@@ -1,7 +1,25 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
+
+// In-memory upload for the historical-loans CSV importer. 5MB is plenty
+// (~50k rows). Parsed inline in the controller and discarded.
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok =
+      file.mimetype === 'text/csv' ||
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.originalname.toLowerCase().endsWith('.csv');
+    if (ok) cb(null, true);
+    else cb(new Error('Only CSV files are allowed'), false);
+  },
+});
+
 const {
   createLoan,
+  bulkImportLoans,
   getLoans,
   getLoanById,
   updateLoan,
@@ -46,6 +64,15 @@ router.patch('/:id/grantor-status', protectMember, updateGrantorStatus);
 router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
 router.post('/my-loans/:id/documents', protectMember, loanDocUpload.array('documents', 5), memberUploadDocuments);
+
+// Bulk import historical loans from CSV (Admin only)
+router.post(
+  '/bulk-import',
+  protect,
+  admin,
+  csvUpload.single('file'),
+  bulkImportLoans,
+);
 
 // Bulk actions
 router.post('/bulk-approve', protect, staffOrAdmin, bulkApproveLoans);
