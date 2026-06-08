@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Coins,
   Download,
+  Upload,
 } from 'lucide-react';
 import TableSearch from '@/components/ui/TableSearch';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -12,6 +13,7 @@ import LoanTable from '@/components/loans/LoanTable';
 import LoanCard from '@/components/loans/LoanCard';
 import PageHeader from '@/components/PageHeader';
 import AddLoanModal from '@/components/loans/AddLoanModal';
+import BulkImportLoansModal from '@/components/loans/BulkImportLoansModal';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import LoanDetailsModal from '@/components/loans/LoanDetailsModal';
 import EditLoanModal from '@/components/loans/EditLoanModal';
@@ -33,6 +35,7 @@ const Loans = () => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [repayLoan, setRepayLoan] = useState(null);
   const [detailLoan, setDetailLoan] = useState(null);
   const [editLoan, setEditLoan] = useState(null);
@@ -184,14 +187,24 @@ const Loans = () => {
         title="Loan Portfolio"
         description="Monitor active loans and track repayment status."
       >
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
-          isLoading={loading && loans.length === 0}
-        >
-          <Plus size={14} strokeWidth={2.5} />
-          New Loan
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setIsImportOpen(true)}
+            className="group inline-flex items-center justify-center gap-2.5 px-6 py-3 h-auto rounded-full font-bold text-[13px] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+          >
+            <Upload size={14} strokeWidth={2.5} />
+            Import Old Loans
+          </Button>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+            isLoading={loading && loans.length === 0}
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            New Loan
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Stats Grid - Moved from Dashboard */}
@@ -325,6 +338,15 @@ const Loans = () => {
       <AddLoanModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          fetchLoans();
+          fetchStats();
+        }}
+      />
+
+      <BulkImportLoansModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
         onSuccess={() => {
           fetchLoans();
           fetchStats();
