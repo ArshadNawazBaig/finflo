@@ -37,6 +37,31 @@ class ErrorBoundary extends Component {
       // fall through to normal handling
     }
 
+    // A failed dynamic import — almost always a stale chunk after a new deploy:
+    // the server returns index.html for a chunk URL that no longer exists,
+    // yielding "'text/html' is not a valid JavaScript MIME type". Reload once
+    // (guarded against loops) to pick up the fresh manifest instead of showing
+    // the error screen.
+    const message = error?.message || '';
+    const isChunkError =
+      error?.name === 'ChunkLoadError' ||
+      /dynamically imported module/i.test(message) ||
+      /Importing a module script failed/i.test(message) ||
+      /valid JavaScript MIME type/i.test(message);
+    if (isChunkError) {
+      try {
+        const KEY = 'chunk-reload-at';
+        const last = Number(sessionStorage.getItem(KEY) || 0);
+        if (Date.now() - last > 10000) {
+          sessionStorage.setItem(KEY, String(Date.now()));
+          window.location.reload();
+        }
+      } catch {
+        window.location.reload();
+      }
+      return { hasError: false, error: null };
+    }
+
     const isNetworkError =
       !navigator.onLine ||
       error?.message?.includes('Failed to fetch') ||

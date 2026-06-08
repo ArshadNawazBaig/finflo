@@ -10,28 +10,48 @@ import { ThemeProvider } from '@/context/ThemeContext';
 // direction and creates an infinite refresh loop. Configure the canonical
 // in Vercel/Cloudflare/etc. and let the platform 301 once.
 
-// Handle ChunkLoadError (common after deployment when old assets are removed)
+// Stale-chunk recovery: after a new deploy, old hashed chunk URLs 404 and the
+// server returns index.html, so dynamic imports fail with a MIME-type error
+// ("'text/html' is not a valid JavaScript MIME type"). Reload once — guarded
+// against loops, and sharing its key with ErrorBoundary so we never double-reload.
+const reloadOnceForStaleChunk = () => {
+  try {
+    const KEY = 'chunk-reload-at';
+    const last = Number(sessionStorage.getItem(KEY) || 0);
+    if (Date.now() - last > 10000) {
+      sessionStorage.setItem(KEY, String(Date.now()));
+      window.location.reload();
+    }
+  } catch {
+    window.location.reload();
+  }
+};
+
+const isStaleChunkMessage = (msg = '') =>
+  /Loading chunk|CSS chunk|dynamically imported module|Importing a module script failed|valid JavaScript MIME type/i.test(
+    msg || '',
+  );
+
+// Vite emits this when a dynamically-imported module fails to preload/load.
+window.addEventListener('vite:preloadError', (e) => {
+  e.preventDefault();
+  reloadOnceForStaleChunk();
+});
+
 window.addEventListener(
   'error',
   (e) => {
-    if (
-      e.message?.includes('Loading chunk') ||
-      e.message?.includes('CSS chunk')
-    ) {
-      const lastReload = sessionStorage.getItem('last-chunk-reload');
-      const now = Date.now();
-      // Only reload if we haven't reloaded in the last 10 seconds (prevent loops)
-      if (!lastReload || now - parseInt(lastReload) > 10000) {
-        sessionStorage.setItem('last-chunk-reload', now.toString());
-        window.location.reload();
-      }
-    }
+    if (isStaleChunkMessage(e.message)) reloadOnceForStaleChunk();
   },
   true,
 );
 
 // Global Unhandled Rejection Handler for silent startup crashes
 window.addEventListener('unhandledrejection', (event) => {
+  if (isStaleChunkMessage(event.reason?.message)) {
+    reloadOnceForStaleChunk();
+    return;
+  }
   console.error('🔥 CRITICAL: Unhandled Promise Rejection:', event.reason);
   if (import.meta.env.DEV) {
     console.warn('Startup might be stuck due to above error.');
