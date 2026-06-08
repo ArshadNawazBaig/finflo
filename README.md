@@ -72,10 +72,10 @@ Create a `.env` file in the `apps/server` directory and configure the following 
 PORT=5001
 
 # Database
-MONGO_URI=mongodb+srv://arshadnawazbaig:arshadnawazbaig@cluster0.ds395jn.mongodb.net/loan-management
+MONGO_URI=mongodb+srv://********:********@********.mongodb.net/********
 
-# Security
-JWT_SECRET=dev_secret_key_123
+# Security (generate a strong secret: `openssl rand -hex 64`)
+JWT_SECRET=********************************
 
 # Payment Gateway (Stripe)
 STRIPE_SECRET_KEY=sk_test_...
@@ -102,7 +102,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 CLOUDINARY_URL=cloudinary://...
 
 # Google Auth
-GOOGLE_CLIENT_ID=52862721923-1ut2ktl2fdm15chs5rsfej989911b4mm.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=********-********.apps.googleusercontent.com
 ```
 
 ### Client Configuration

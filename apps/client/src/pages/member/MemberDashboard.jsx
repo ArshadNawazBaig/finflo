@@ -12,12 +12,16 @@ import {
   Send,
 } from 'lucide-react';
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
+  Area,
+  AreaChart,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
   ResponsiveContainer,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
@@ -42,6 +46,48 @@ import UITooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
+// Tooltip for the bucketed/cumulative cash-flow chart.
+const CashFlowTooltip = ({ active, payload, label, mode }) => {
+  if (!active || !payload || !payload.length) return null;
+  const row = payload[0]?.payload || {};
+  const rows =
+    mode === 'cumulative'
+      ? [{ k: 'balance', l: 'Net Position', v: row.balance, c: 'hsl(var(--primary))' }]
+      : [
+          { k: 'in', l: 'Inflow', v: row.inflow, c: '#10b981' },
+          { k: 'out', l: 'Outflow', v: row.outflow, c: '#f43f5e' },
+          { k: 'net', l: 'Net', v: row.net, c: 'hsl(var(--primary))' },
+        ];
+  return (
+    <div className="bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl ring-1 ring-black/5 min-w-[180px]">
+      <p className="text-[10px] font-black text-muted-foreground mb-3 uppercase tracking-[0.2em] border-b border-border/50 pb-2">
+        {label}
+      </p>
+      <div className="space-y-2.5">
+        {rows.map((e) => (
+          <div key={e.k} className="flex items-center justify-between gap-8">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: e.c }}
+              />
+              <span className="text-[10px] uppercase font-black text-muted-foreground/70 tracking-wider">
+                {e.l}:
+              </span>
+            </div>
+            <span
+              className="text-xs font-black tabular-nums"
+              style={{ color: e.c }}
+            >
+              {formatCurrency(e.v || 0)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const [member, setMember] = useAtom(memberAtom);
@@ -61,6 +107,7 @@ const MemberDashboard = () => {
   const [totalEntries, setTotalEntries] = useState(0);
   const [limit, setLimit] = useState(5);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [cashFlowView, setCashFlowView] = useState('bucketed'); // 'bucketed' | 'cumulative'
   const isMobile = useMediaQuery('(max-width: 1024px)');
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -263,6 +310,23 @@ const MemberDashboard = () => {
     return <MemberDashboardSkeleton />;
   }
 
+  // Bucketed view: inflow positive, outflow mirrored below zero, with a net
+  // line through. Cumulative view: running net cash position month over month.
+  const cashFlowRaw = getChartData();
+  const cashFlowData = cashFlowRaw.map((d) => ({
+    ...d,
+    outflowNeg: -(d.outflow || 0),
+    net: (d.inflow || 0) - (d.outflow || 0),
+  }));
+  let cashFlowRunning = 0;
+  const cashFlowCumulative = cashFlowRaw.map((d) => {
+    cashFlowRunning += (d.inflow || 0) - (d.outflow || 0);
+    return { month: d.month, balance: cashFlowRunning };
+  });
+  const cashFlowEndsNegative =
+    cashFlowCumulative.length > 0 &&
+    cashFlowCumulative[cashFlowCumulative.length - 1].balance < 0;
+
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       {/* ── Page Header ──────────────────────────────────────── */}
@@ -389,28 +453,60 @@ const MemberDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white dark:bg-white/[0.02] p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/[0.06] space-y-6">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">
                   Cash flow
                 </p>
                 <h3 className="text-lg font-extrabold tracking-[-0.025em] text-slate-900 dark:text-white">
-                  Inflow vs outflow
+                  {cashFlowView === 'bucketed'
+                    ? 'Inflow vs outflow'
+                    : 'Cash position'}
                 </h3>
                 <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                  Last 6 months
+                  {cashFlowView === 'bucketed'
+                    ? 'Green is money in · Red is money out · Line is net'
+                    : 'Running net cash position · Last 6 months'}
                 </p>
               </div>
-              <Link
-                to="/member/transactions"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 hover:text-primary hover:bg-primary/10 transition-all group"
-              >
-                <ArrowUpRight
-                  size={14}
-                  strokeWidth={2.5}
-                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                />
-              </Link>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex rounded-full p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => setCashFlowView('bucketed')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] transition-all',
+                      cashFlowView === 'bucketed'
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    Bucketed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCashFlowView('cumulative')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-[0.12em] transition-all',
+                      cashFlowView === 'cumulative'
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400',
+                    )}
+                  >
+                    Cumulative
+                  </button>
+                </div>
+                <Link
+                  to="/member/transactions"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 dark:bg-white/[0.04] text-slate-500 hover:text-primary hover:bg-primary/10 transition-all group"
+                >
+                  <ArrowUpRight
+                    size={14}
+                    strokeWidth={2.5}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </Link>
+              </div>
             </div>
             <div className="h-[300px] w-full outline-none focus:outline-none">
               <ResponsiveContainer
@@ -418,50 +514,134 @@ const MemberDashboard = () => {
                 height="100%"
                 className="outline-none focus:outline-none"
               >
-                <BarChart
-                  data={getChartData()}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  style={{ outline: 'none' }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="rgba(255,255,255,0.05)"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 'bold' }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fontWeight: 'bold' }}
-                    tickFormatter={formatChartValue}
-                    width={40}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderRadius: '1rem',
-                      border: 'none',
-                      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                    }}
-                    itemStyle={{ fontSize: '10px', fontWeight: 'bold' }}
-                    formatter={(value) => formatCurrency(value)}
-                  />
-                  <Bar
-                    dataKey="inflow"
-                    fill="#10b981"
-                    radius={[10, 10, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="outflow"
-                    fill="#f43f5e"
-                    radius={[10, 10, 0, 0]}
-                  />
-                </BarChart>
+                {cashFlowView === 'bucketed' ? (
+                  <ComposedChart
+                    data={cashFlowData}
+                    margin={{ top: 16, right: 12, left: 8, bottom: 0 }}
+                    style={{ outline: 'none' }}
+                  >
+                    <defs>
+                      <linearGradient id="md-inflow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.35} />
+                      </linearGradient>
+                      <linearGradient id="md-outflow" x1="0" y1="1" x2="0" y2="0">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.35} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="hsl(var(--muted-foreground)/0.1)"
+                    />
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 'bold' }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 'bold' }}
+                      tickFormatter={(v) => formatChartValue(Math.abs(v))}
+                      width={44}
+                    />
+                    <ReferenceLine
+                      y={0}
+                      stroke="hsl(var(--muted-foreground)/0.4)"
+                    />
+                    <Tooltip
+                      content={<CashFlowTooltip mode="bucketed" />}
+                      cursor={{ fill: 'hsl(var(--primary)/0.06)' }}
+                    />
+                    <Bar
+                      dataKey="inflow"
+                      fill="url(#md-inflow)"
+                      radius={[10, 10, 0, 0]}
+                      maxBarSize={36}
+                    />
+                    <Bar
+                      dataKey="outflowNeg"
+                      fill="url(#md-outflow)"
+                      radius={[0, 0, 10, 10]}
+                      maxBarSize={36}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="net"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2.5}
+                      dot={{
+                        r: 4,
+                        strokeWidth: 2,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                      activeDot={{
+                        r: 6,
+                        strokeWidth: 3,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                    />
+                  </ComposedChart>
+                ) : (
+                  <AreaChart
+                    data={cashFlowCumulative}
+                    margin={{ top: 16, right: 12, left: 8, bottom: 0 }}
+                    style={{ outline: 'none' }}
+                  >
+                    <defs>
+                      <linearGradient id="md-pos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                      </linearGradient>
+                      <linearGradient id="md-neg" x1="0" y1="1" x2="0" y2="0">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.5} />
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="hsl(var(--muted-foreground)/0.1)"
+                    />
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 'bold' }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 'bold' }}
+                      tickFormatter={formatChartValue}
+                      width={44}
+                    />
+                    <ReferenceLine
+                      y={0}
+                      stroke="hsl(var(--muted-foreground)/0.5)"
+                      strokeDasharray="4 4"
+                    />
+                    <Tooltip content={<CashFlowTooltip mode="cumulative" />} />
+                    <Area
+                      type="monotone"
+                      dataKey="balance"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={3}
+                      fill={cashFlowEndsNegative ? 'url(#md-neg)' : 'url(#md-pos)'}
+                      activeDot={{
+                        r: 6,
+                        strokeWidth: 3,
+                        stroke: 'hsl(var(--background))',
+                        fill: 'hsl(var(--primary))',
+                      }}
+                    />
+                  </AreaChart>
+                )}
               </ResponsiveContainer>
             </div>
           </div>
