@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Mail,
   Download,
+  RotateCw,
 } from 'lucide-react';
 import { formatCurrency, capitalize } from '@/lib/utils';
 import { generateWhatsAppLink, generateEmailLink } from '@/lib/reminderUtils';
@@ -15,11 +16,13 @@ import { exportLoanStatement } from '@/lib/pdfExportUtils';
 import { Button } from '@/components/ui/button';
 import MemberAvatar from '@/components/member/MemberAvatar';
 
-const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
+const LoanCard = ({ loan, onEdit, onDelete, onRenew, onRefresh }) => {
   const progress = Math.min(
     Math.round((loan.paidAmount / loan.totalAmount) * 100),
     100,
   );
+
+  const canRenew = ['active', 'overdue', 'completed'].includes(loan.status);
 
   return (
     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-xl p-4 shadow-xs hover:shadow-md transition-all duration-300 group">
@@ -54,7 +57,9 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
                   ? 'bg-amber-500/10 text-amber-600'
                   : loan.status === 'rejected'
                     ? 'bg-red-500/10 text-red-600'
-                    : 'bg-slate-500/10 text-slate-600'
+                    : loan.status === 'renewed'
+                      ? 'bg-indigo-500/10 text-indigo-600'
+                      : 'bg-slate-500/10 text-slate-600'
           }`}
         >
           {loan.status}
@@ -156,6 +161,18 @@ const LoanCard = ({ loan, onEdit, onDelete, onRefresh }) => {
               <Edit size={16} />
             </Button>
           </Tooltip>
+          {canRenew && onRenew && (
+            <Tooltip content="Renew" position="top">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onRenew(loan)}
+                className="h-8 w-8 rounded-lg border-border/50 text-muted-foreground hover:bg-indigo-500/10 hover:text-indigo-600 transition-all active:scale-90"
+              >
+                <RotateCw size={16} />
+              </Button>
+            </Tooltip>
+          )}
           <Tooltip content="Delete" position="top">
             <Button
               variant="outline"

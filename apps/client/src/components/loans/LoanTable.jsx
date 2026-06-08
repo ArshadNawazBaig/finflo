@@ -11,6 +11,7 @@ import {
   Mail,
   CreditCard,
   Download,
+  RotateCw,
 } from 'lucide-react';
 import Pagination from '../ui/Pagination';
 import { Link } from 'react-router-dom';
@@ -28,11 +29,21 @@ const LoanTable = ({
   onDetails,
   onEdit,
   onDelete,
+  onRenew,
   sortBy,
   sortOrder,
   onSort,
   onRefresh,
 }) => {
+  // A loan is near/after maturity once startDate + duration months has (nearly)
+  // arrived — used to emphasise the Renew action.
+  const isNearMaturity = (loan) => {
+    if (!loan?.startDate || !loan?.duration) return false;
+    const maturity = new Date(loan.startDate);
+    maturity.setMonth(maturity.getMonth() + Number(loan.duration));
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    return maturity.getTime() - Date.now() <= THIRTY_DAYS;
+  };
   const renderSortIcon = (column) => {
     if (sortBy !== column)
       return <ChevronsUpDown size={14} className="text-muted-foreground/50" />;
@@ -168,7 +179,9 @@ const LoanTable = ({
                               ? 'bg-amber-500/10 text-amber-600'
                               : loan.status === 'rejected'
                                 ? 'bg-red-500/10 text-red-600'
-                                : 'bg-slate-500/10 text-slate-600'
+                                : loan.status === 'renewed'
+                                  ? 'bg-indigo-500/10 text-indigo-600'
+                                  : 'bg-slate-500/10 text-slate-600'
                       }`}
                     >
                       {loan.status}
@@ -264,6 +277,30 @@ const LoanTable = ({
                               </button>
                             </Tooltip>
                           </>
+                        )}
+                      {['active', 'overdue', 'completed'].includes(
+                        loan.status,
+                      ) &&
+                        onRenew && (
+                          <Tooltip
+                            content={
+                              isNearMaturity(loan)
+                                ? 'Renew Loan (due/matured)'
+                                : 'Renew Loan'
+                            }
+                            position="top"
+                          >
+                            <button
+                              onClick={() => onRenew(loan)}
+                              className={`p-1.5 rounded-md transition-colors ${
+                                isNearMaturity(loan)
+                                  ? 'bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20'
+                                  : 'hover:bg-indigo-500/10 text-muted-foreground hover:text-indigo-600'
+                              }`}
+                            >
+                              <RotateCw size={16} />
+                            </button>
+                          </Tooltip>
                         )}
                       <Tooltip content="View Details" position="top">
                         <Link

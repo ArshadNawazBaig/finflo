@@ -203,6 +203,42 @@ const calculateCompoundInterest = (principal, rate, duration) => {
   return { emi, totalAmount };
 };
 
+// Resolve emi/totalAmount for a set of terms using the same rules as
+// createLoan/approveLoan. Centralised so the renewal flows stay in lock-step
+// with new-loan issuance.
+const computeLoanTerms = (principal, rate, duration, interestType) => {
+  if (interestType === 'simple' || interestType === 'compound') {
+    const calcFn =
+      interestType === 'compound'
+        ? calculateCompoundInterest
+        : calculateSimpleInterest;
+    const result = calcFn(principal, rate, duration);
+    return { emi: Math.round(result.emi), totalAmount: Math.round(result.totalAmount) };
+  }
+  const emi = Math.round(calculateEMI(principal, rate, duration));
+  return { emi, totalAmount: emi * duration };
+};
+
+// Resolve a grantor Member by _id → cnicHash → name (same fallback chain as
+// createLoan). Returns the Member _id, or null if `identifier` is falsy, or
+// undefined if an identifier was given but no member matched.
+const resolveGrantorMember = async (identifier, ownerId) => {
+  if (!identifier) return null;
+  const { hash } = require('../utils/encryption');
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    const byId = await Member.findOne({ _id: identifier, user: ownerId });
+    if (byId) return byId._id;
+  }
+  let member = await Member.findOne({ user: ownerId, cnicHash: hash(identifier) });
+  if (!member) {
+    member = await Member.findOne({
+      user: ownerId,
+      name: String(identifier).toLowerCase().trim(),
+    });
+  }
+  return member ? member._id : undefined;
+};
+
 const createLoan = async (req, res) => {
   const {
     customerId,
@@ -1703,6 +1739,93 @@ const approveLoan = async (req, res) => {
       return res.status(400).json({ message: 'Loan is not in pending status' });
     }
 
+    // ── Renewal request approval ────────────────────────────────────────────
+    // A pending loan carrying `renewedFrom` is a member renewal request, not a
+    // fresh loan. Finalize it as a restructure (close the old loan; disburse
+    // only top-up cash) instead of the standard full-principal disbursement.
+    if (loan.renewedFrom) {
+      const oldLoan = await Loan.findById(loan.renewedFrom);
+      if (!oldLoan) {
+        return res
+          .status(400)
+          .json({ message: 'Original loan for this renewal no longer exists.' });
+      }
+
+      const newDuration = duration ? Number(duration) : loan.duration;
+      let newRate = rate !== undefined && rate !== '' ? Number(rate) : loan.rate;
+      if (!newRate || newRate === 0) {
+        const settings = await SystemSettings.getSettings();
+        newRate = settings.defaultInterestRate || 0;
+      }
+      const newInterestType = interestType || loan.interestType || 'simple';
+
+      // Re-snapshot the outstanding at approval time so a rollover always
+      // carries the true current balance (it may have changed since request).
+      const oldOutstanding = oldLoan.remainingAmount || 0;
+      const newPrincipal =
+        loan.renewalType === 'rollover'
+          ? Math.round(oldOutstanding)
+          : principal
+            ? Number(principal)
+            : loan.principal;
+
+      if (loan.renewalType === 'topup' && newPrincipal <= oldOutstanding) {
+        return res.status(400).json({
+          message: `Top-up amount must exceed the outstanding balance (Rs. ${Math.round(oldOutstanding).toLocaleString()}).`,
+        });
+      }
+
+      const { emi, totalAmount } = computeLoanTerms(
+        newPrincipal,
+        newRate,
+        newDuration,
+        newInterestType,
+      );
+
+      loan.principal = newPrincipal;
+      loan.rate = newRate;
+      loan.duration = newDuration;
+      loan.interestType = newInterestType;
+      loan.emi = emi;
+      loan.totalAmount = totalAmount;
+      loan.paidAmount = 0;
+      loan.remainingAmount = totalAmount;
+      loan.status = 'active';
+      loan.grantor1Status = loan.grantor1 ? 'approved' : loan.grantor1Status;
+      loan.grantor2Status = loan.grantor2 ? 'approved' : loan.grantor2Status;
+      loan.approvedBy = req.user._id;
+      loan.approvedAt = new Date();
+      loan.startDate = startDate ? new Date(startDate) : new Date();
+      await loan.save();
+
+      await applyRenewalSettlement({
+        oldLoan,
+        newLoan: loan,
+        renewalType: loan.renewalType,
+        req,
+      });
+
+      // Notify member
+      try {
+        const customerDoc = await Customer.findById(loan.customer);
+        if (customerDoc?.isMember && customerDoc?.memberId) {
+          await createTransactionNotification({
+            recipientId: customerDoc.memberId,
+            title: 'Loan Renewal Approved',
+            message: `Your loan renewal (${loan.renewalType}) has been approved. New loan amount: Rs. ${loan.principal.toLocaleString()}.`,
+            type: 'success',
+            branchId: loan.branchId,
+            action: 'loan_approved',
+            metadata: { link: '/member/loans', loanId: loan._id },
+          });
+        }
+      } catch (notifError) {
+        console.error('Renewal approval notification error:', notifError);
+      }
+
+      return res.json(loan);
+    }
+
     // Apply term overrides if provided or if current terms are missing/zero
     if (principal || rate || duration || interestType || loan.rate === 0) {
       const newPrincipal = principal ? Number(principal) : loan.principal;
@@ -2827,9 +2950,467 @@ const bulkImportLoans = async (req, res) => {
   }
 };
 
+// ── Renewal: close the old loan + disburse top-up cash ───────────────────────
+// Shared by admin-direct renewals and approval of member renewal requests so
+// the two paths can never diverge. Restructure model: rollover moves NO cash
+// and is never counted as recovered; top-up disburses ONLY the extra above the
+// carried-over balance. `newLoan` must already be saved.
+const applyRenewalSettlement = async ({ oldLoan, newLoan, renewalType, req }) => {
+  const ownerId = req.user.effectiveOwnerId;
+  const oldOutstanding = oldLoan.remainingAmount || 0;
+
+  // 1. Close the old loan — debt is moved into the new loan, not repaid.
+  oldLoan.status = 'renewed';
+  oldLoan.remainingAmount = 0;
+  oldLoan.renewedTo = newLoan._id;
+  oldLoan.lastRenewedAt = new Date();
+  await oldLoan.save();
+
+  // 2. Top-up only: disburse the extra cash above the carried-over balance.
+  if (renewalType === 'topup') {
+    const extraCash = Math.max(
+      0,
+      Math.round((newLoan.principal || 0) - oldOutstanding),
+    );
+    if (extraCash > 0) {
+      const customerDoc = await Customer.findById(newLoan.customer);
+      await FinancialTransaction.create({
+        user: ownerId,
+        branchId: newLoan.branchId || customerDoc?.branchId,
+        type: 'loan',
+        category: 'loan_disbursement',
+        amount: extraCash,
+        date: new Date(),
+        description: `Loan top-up disbursement (renewal) for ${customerDoc?.name || 'customer'}`,
+        customer: newLoan.customer,
+        member: customerDoc?.memberId || null,
+        loan: newLoan._id,
+        referenceId: newLoan._id,
+        referenceModel: 'Loan',
+        paymentMethod: 'online',
+      });
+
+      if (customerDoc?.isMember && customerDoc?.memberId) {
+        const updatedMember = await Member.findByIdAndUpdate(
+          customerDoc.memberId,
+          { $inc: { currentBalance: extraCash, totalInvested: extraCash } },
+          { new: true },
+        );
+        if (updatedMember) {
+          await Investment.create({
+            user: ownerId,
+            member: customerDoc.memberId,
+            branchId: newLoan.branchId || updatedMember.branchId,
+            type: 'deposit',
+            amount: extraCash,
+            balanceAfter: updatedMember.currentBalance,
+            description: `Loan Top-up — #${newLoan._id.toString().slice(-6).toUpperCase()}`,
+            date: new Date(),
+          });
+        }
+      }
+    }
+  }
+
+  // 3. Audit log
+  await logActivity({
+    userId: req.user?._id || ownerId,
+    action: 'loan_renewed',
+    category: 'loan',
+    details: `Renewed loan #${oldLoan._id.toString().slice(-6).toUpperCase()} → #${newLoan._id.toString().slice(-6).toUpperCase()} (${renewalType})`,
+    metadata: {
+      oldLoanId: oldLoan._id,
+      newLoanId: newLoan._id,
+      renewalType,
+    },
+    req,
+  });
+};
+
+// ── Admin: renew a loan directly (rollover / top-up / extend) ─────────────────
+const renewLoan = async (req, res) => {
+  try {
+    const oldLoan = await Loan.findById(req.params.id).populate('customer');
+    if (
+      !oldLoan ||
+      (oldLoan.user.toString() !== req.user.effectiveOwnerId.toString() &&
+        !(
+          req.user.role === 'staff' &&
+          oldLoan.branchId?.toString() === req.user.branchId?.toString()
+        ))
+    ) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    const {
+      renewalType,
+      principal,
+      rate,
+      duration,
+      interestType,
+      startDate,
+      grantor1Identifier,
+      grantor2Identifier,
+      notes,
+    } = req.body;
+
+    if (!['rollover', 'topup', 'extend'].includes(renewalType)) {
+      return res
+        .status(400)
+        .json({ message: 'renewalType must be rollover, topup, or extend.' });
+    }
+
+    if (['pending', 'rejected', 'renewed'].includes(oldLoan.status)) {
+      return res
+        .status(400)
+        .json({ message: `Cannot renew a ${oldLoan.status} loan.` });
+    }
+
+    const ownerId = req.user.effectiveOwnerId;
+
+    // ── EXTEND: mutate the same loan, no new loan, no ledger movement ──
+    if (renewalType === 'extend') {
+      const newDuration = duration ? Number(duration) : oldLoan.duration;
+      if (!newDuration || newDuration < 1) {
+        return res
+          .status(400)
+          .json({ message: 'A valid new duration (months) is required to extend.' });
+      }
+      let newRate =
+        rate !== undefined && rate !== '' ? Number(rate) : oldLoan.rate;
+      if (!newRate || newRate === 0) {
+        const settings = await SystemSettings.getSettings();
+        newRate = settings.defaultInterestRate || oldLoan.rate || 0;
+      }
+      const newInterestType = interestType || oldLoan.interestType || 'simple';
+      const { emi, totalAmount } = computeLoanTerms(
+        oldLoan.principal,
+        newRate,
+        newDuration,
+        newInterestType,
+      );
+
+      oldLoan.rate = newRate;
+      oldLoan.duration = newDuration;
+      oldLoan.interestType = newInterestType;
+      oldLoan.emi = emi;
+      oldLoan.totalAmount = totalAmount;
+      oldLoan.remainingAmount = Math.max(
+        0,
+        Math.round(totalAmount - (oldLoan.paidAmount || 0)),
+      );
+      oldLoan.renewalType = 'extend';
+      oldLoan.renewalCount = (oldLoan.renewalCount || 0) + 1;
+      oldLoan.lastRenewedAt = new Date();
+      if (notes) oldLoan.notes = notes;
+      // A balance after extending means the loan is live again; only a fully
+      // covered balance stays/ becomes completed.
+      oldLoan.status = oldLoan.remainingAmount <= 0 ? 'completed' : 'active';
+      await oldLoan.save();
+
+      await logActivity({
+        userId: req.user._id,
+        action: 'loan_renewed',
+        category: 'loan',
+        details: `Extended loan #${oldLoan._id.toString().slice(-6).toUpperCase()} to ${newDuration} months`,
+        metadata: { loanId: oldLoan._id, renewalType: 'extend', newDuration },
+        req,
+      });
+
+      return res.json(oldLoan);
+    }
+
+    // ── ROLLOVER / TOP-UP: create a new loan, then settle the old one ──
+    const user = await User.findById(ownerId).select('plan');
+    const loanCount = await Loan.countDocuments({ user: ownerId });
+    const limitCheck = await canCreateLoan(user?.plan || 'Free', loanCount);
+    if (!limitCheck.allowed) {
+      return res.status(403).json({
+        message: limitCheck.message,
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+        plan: user?.plan || 'Free',
+        upgradeRequired: true,
+      });
+    }
+
+    const oldOutstanding = oldLoan.remainingAmount || 0;
+
+    let newPrincipal;
+    if (renewalType === 'rollover') {
+      newPrincipal = Math.round(oldOutstanding);
+      if (newPrincipal <= 0) {
+        return res.status(400).json({
+          message:
+            'Nothing outstanding to roll over. Use a top-up to issue a fresh amount.',
+        });
+      }
+    } else {
+      newPrincipal = Number(principal);
+      if (!newPrincipal || newPrincipal <= oldOutstanding) {
+        return res.status(400).json({
+          message: `Top-up amount must be greater than the outstanding balance (Rs. ${Math.round(oldOutstanding).toLocaleString()}).`,
+        });
+      }
+    }
+
+    let newRate =
+      rate !== undefined && rate !== '' ? Number(rate) : oldLoan.rate;
+    if (!newRate || newRate === 0) {
+      const settings = await SystemSettings.getSettings();
+      newRate = settings.defaultInterestRate || 0;
+    }
+    const newDuration = duration ? Number(duration) : oldLoan.duration;
+    const newInterestType = interestType || oldLoan.interestType || 'simple';
+
+    const customer =
+      oldLoan.customer && typeof oldLoan.customer === 'object'
+        ? oldLoan.customer
+        : await Customer.findById(oldLoan.customer);
+
+    // Credit-limit check for members (top-up issues new exposure)
+    if (customer?.memberId && renewalType === 'topup') {
+      const member = await Member.findById(customer.memberId);
+      if (member) {
+        const effectiveCreditLimit = await calculateCreditLimit(member._id);
+        if (newPrincipal > effectiveCreditLimit) {
+          return res.status(400).json({
+            message: `Loan amount (${newPrincipal.toLocaleString()}) exceeds the member's credit limit of Rs. ${effectiveCreditLimit.toLocaleString()} (based on share balance).`,
+          });
+        }
+        await Member.findByIdAndUpdate(member._id, {
+          creditLimit: effectiveCreditLimit,
+        });
+      }
+    }
+
+    // Grantors: carry over the old loan's unless overridden.
+    let grantor1Id = oldLoan.grantor1 || undefined;
+    let grantor2Id = oldLoan.grantor2 || undefined;
+    if (grantor1Identifier) {
+      const g = await resolveGrantorMember(grantor1Identifier, ownerId);
+      if (!g) {
+        return res
+          .status(404)
+          .json({ message: 'Grantor 1 not found. Provide a valid Member CNIC/phone.' });
+      }
+      grantor1Id = g;
+    }
+    if (grantor2Identifier) {
+      const g = await resolveGrantorMember(grantor2Identifier, ownerId);
+      if (!g) {
+        return res
+          .status(404)
+          .json({ message: 'Grantor 2 not found. Provide a valid Member CNIC/phone.' });
+      }
+      grantor2Id = g;
+    }
+    if (
+      grantor1Id &&
+      grantor2Id &&
+      grantor1Id.toString() === grantor2Id.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Grantor 1 and Grantor 2 must be different members.' });
+    }
+
+    const { emi, totalAmount } = computeLoanTerms(
+      newPrincipal,
+      newRate,
+      newDuration,
+      newInterestType,
+    );
+
+    const newLoan = new Loan({
+      user: ownerId,
+      customer: customer._id,
+      branchId: oldLoan.branchId || customer.branchId,
+      principal: newPrincipal,
+      rate: newRate,
+      duration: newDuration,
+      emi,
+      totalAmount,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      remainingAmount: totalAmount,
+      paidAmount: 0,
+      interestType: newInterestType,
+      status: 'active',
+      grantor1: grantor1Id,
+      grantor1Status: grantor1Id ? 'approved' : 'pending',
+      grantor2: grantor2Id,
+      grantor2Status: grantor2Id ? 'approved' : 'pending',
+      approvedBy: req.user._id,
+      approvedAt: new Date(),
+      renewedFrom: oldLoan._id,
+      renewalType,
+      renewalCount: (oldLoan.renewalCount || 0) + 1,
+      notes: notes || undefined,
+    });
+    await newLoan.save();
+
+    await applyRenewalSettlement({ oldLoan, newLoan, renewalType, req });
+
+    // Notify member
+    try {
+      if (customer?.isMember && customer?.memberId) {
+        await createTransactionNotification({
+          recipientId: customer.memberId,
+          title: 'Loan Renewed',
+          message: `Your loan has been renewed (${renewalType}). New loan amount: Rs. ${newPrincipal.toLocaleString()}.`,
+          type: 'success',
+          branchId: newLoan.branchId,
+          action: 'loan_approved',
+          metadata: { link: '/member/loans', loanId: newLoan._id },
+        });
+      }
+    } catch (notifError) {
+      console.error('Renewal notification error:', notifError);
+    }
+
+    return res.status(201).json(newLoan);
+  } catch (error) {
+    console.error('renewLoan Error:', error);
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// ── Member: request a renewal (rollover / top-up) for admin approval ──────────
+const requestLoanRenewal = async (req, res) => {
+  const {
+    renewalType,
+    principal: principalInput,
+    duration: durationInput,
+    notes,
+    grantor1Identifier,
+    grantor2Identifier,
+  } = req.body;
+
+  try {
+    if (!['rollover', 'topup'].includes(renewalType)) {
+      return res
+        .status(400)
+        .json({ message: 'renewalType must be rollover or topup.' });
+    }
+
+    const oldLoan = await Loan.findById(req.params.id);
+    if (
+      !oldLoan ||
+      !req.member.customer ||
+      oldLoan.customer.toString() !== req.member.customer.toString()
+    ) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    if (!['active', 'overdue', 'completed'].includes(oldLoan.status)) {
+      return res
+        .status(400)
+        .json({ message: `This loan (${oldLoan.status}) is not eligible for renewal.` });
+    }
+
+    const ownerId = oldLoan.user;
+    const settings = await SystemSettings.getSettings();
+    const rate = settings.defaultInterestRate || 0; // server-sourced, never client
+
+    const oldOutstanding = oldLoan.remainingAmount || 0;
+    let newPrincipal;
+    if (renewalType === 'rollover') {
+      newPrincipal = Math.round(oldOutstanding);
+      if (newPrincipal <= 0) {
+        return res.status(400).json({
+          message:
+            'Nothing outstanding to roll over. Request a top-up for a fresh amount.',
+        });
+      }
+    } else {
+      newPrincipal = Number(principalInput);
+      if (!newPrincipal || newPrincipal <= oldOutstanding) {
+        return res.status(400).json({
+          message: `Top-up amount must be greater than your outstanding balance (Rs. ${Math.round(oldOutstanding).toLocaleString()}).`,
+        });
+      }
+    }
+
+    const duration = durationInput ? Number(durationInput) : oldLoan.duration;
+    const interestType = oldLoan.interestType || 'simple';
+
+    // Carry over grantors unless the member supplied new ones.
+    let grantor1Id = oldLoan.grantor1 || undefined;
+    let grantor2Id = oldLoan.grantor2 || undefined;
+    if (grantor1Identifier) {
+      const g = await resolveGrantorMember(grantor1Identifier, ownerId);
+      if (!g) {
+        return res.status(404).json({ message: 'Grantor 1 not found.' });
+      }
+      grantor1Id = g;
+    }
+    if (grantor2Identifier) {
+      const g = await resolveGrantorMember(grantor2Identifier, ownerId);
+      if (!g) {
+        return res.status(404).json({ message: 'Grantor 2 not found.' });
+      }
+      grantor2Id = g;
+    }
+
+    const { emi, totalAmount } = computeLoanTerms(
+      newPrincipal,
+      rate,
+      duration,
+      interestType,
+    );
+
+    const newLoan = new Loan({
+      user: ownerId,
+      customer: oldLoan.customer,
+      branchId: oldLoan.branchId,
+      principal: newPrincipal,
+      rate,
+      duration,
+      emi,
+      totalAmount,
+      startDate: new Date(),
+      remainingAmount: totalAmount,
+      paidAmount: 0,
+      interestType,
+      status: 'pending',
+      grantor1: grantor1Id,
+      grantor1Status: 'pending',
+      grantor2: grantor2Id,
+      grantor2Status: 'pending',
+      renewedFrom: oldLoan._id,
+      renewalType,
+      renewalCount: (oldLoan.renewalCount || 0) + 1,
+      notes: notes || undefined,
+    });
+    await newLoan.save();
+
+    // Notify admins/branch managers/owner
+    try {
+      await notifyAdminsOfMemberAction({
+        title: 'Loan Renewal Requested',
+        message: `${req.member.name || 'A member'} requested a ${renewalType} renewal for Rs. ${newPrincipal.toLocaleString()}.`,
+        type: 'info',
+        branchId: oldLoan.branchId,
+        ownerId,
+        link: '/loans',
+        metadata: { loanId: newLoan._id, renewalType },
+      });
+    } catch (notifError) {
+      console.error('Renewal request notification error:', notifError);
+    }
+
+    return res.status(201).json(newLoan);
+  } catch (error) {
+    console.error('requestLoanRenewal Error:', error);
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createLoan,
   bulkImportLoans,
+  renewLoan,
+  requestLoanRenewal,
   getLoans,
   getLoanById,
   addRepayment,
