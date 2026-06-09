@@ -532,6 +532,62 @@ const createMember = async (req, res) => {
     if (!customerId) {
       user.customerCount = (user.customerCount || 0) + 1;
       await user.save();
+
+      // Mirror the new member into the Customer table. A member IS a customer
+      // with portal access, so a directly-added member must also show up on the
+      // Customers page. Never let a failure here roll back the created member —
+      // the linkage is best-effort and recoverable.
+      try {
+        const { hash } = require('../utils/encryption');
+
+        // If a customer with the same CNIC or email already exists (e.g. added
+        // earlier as a plain customer), link to it instead of inserting a
+        // duplicate — the (user, cnic) / (user, email) unique indexes would
+        // otherwise reject the insert.
+        let linkedCustomer = await Customer.findOne({
+          user: userId,
+          $or: [
+            { cnicHash: hash(cnic?.trim()) },
+            { email: lowercaseEmail },
+          ],
+        });
+
+        if (linkedCustomer) {
+          if (!linkedCustomer.isMember || !linkedCustomer.memberId) {
+            linkedCustomer.isMember = true;
+            linkedCustomer.memberId = member._id;
+            await linkedCustomer.save();
+          }
+        } else {
+          linkedCustomer = await Customer.create({
+            user: userId,
+            branchId: member.branchId,
+            name: lowercaseName,
+            email: lowercaseEmail,
+            phone,
+            address,
+            cnic: cnic?.trim(),
+            jobDetail,
+            signature,
+            isMember: true,
+            memberId: member._id,
+            // Reuse the member's generated account numbers so both records
+            // reference the same accounts.
+            savingAccountNumber: member.savingAccountNumber,
+            currentAccountNumber: member.currentAccountNumber,
+            loanAccountNumber: member.loanAccountNumber,
+          });
+        }
+
+        // Back-link the member to its customer record.
+        member.customer = linkedCustomer._id;
+        await member.save();
+      } catch (custErr) {
+        console.error(
+          'Failed to mirror member into Customer table:',
+          custErr.message,
+        );
+      }
     }
 
     // Create initial investment record AND financial transaction if there's an initial investment

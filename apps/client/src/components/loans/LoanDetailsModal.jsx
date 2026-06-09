@@ -36,6 +36,8 @@ const LoanDetailsModal = ({ isOpen, onClose, loan, onUpdate }) => {
         return 'bg-blue-500/10 text-blue-600 dark:text-blue-400';
       case 'defaulted':
         return 'bg-rose-500/10 text-rose-600 dark:text-rose-400';
+      case 'renewed':
+        return 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400';
       default:
         return 'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400';
     }

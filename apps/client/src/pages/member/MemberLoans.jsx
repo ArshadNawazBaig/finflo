@@ -2,10 +2,18 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAtomValue } from 'jotai';
 import { memberAtom } from '@/atoms';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, ArrowRight, Download, Search } from 'lucide-react';
+import {
+  FileText,
+  Plus,
+  ArrowRight,
+  Download,
+  Search,
+  RotateCw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
+import MemberLoanRenewalModal from '@/components/member/MemberLoanRenewalModal';
 import { MemberLoansSkeleton, MemberLoansPageSkeleton } from '@/components/ui/PageSkeletons';
 import api from '@/lib/axios';
 import { MOBILE_PAGE_LIMIT, DESKTOP_PAGE_LIMIT } from '@/lib/constants';
@@ -24,6 +32,7 @@ const MemberLoans = () => {
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [renewalLoan, setRenewalLoan] = useState(null);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -155,7 +164,7 @@ const MemberLoans = () => {
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-              {['all', 'pending', 'active', 'completed', 'rejected'].map(
+              {['all', 'pending', 'active', 'completed', 'renewed', 'rejected'].map(
                 (f) => (
                   <button
                     key={f}
@@ -221,7 +230,9 @@ const MemberLoans = () => {
                             ? 'bg-amber-500/10 text-amber-600'
                             : loan.status === 'completed'
                               ? 'bg-blue-500/10 text-blue-600'
-                              : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400',
+                              : loan.status === 'renewed'
+                                ? 'bg-indigo-500/10 text-indigo-600'
+                                : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400',
                       )}
                     >
                       {loan.status}
@@ -283,17 +294,34 @@ const MemberLoans = () => {
                   )}
 
                   <div className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-white/[0.06]">
-                    <UITooltip content="Download Full Statement">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          exportLoanStatement(loan, loan.repayments || []);
-                        }}
-                        className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
-                      >
-                        <Download />
-                      </button>
-                    </UITooltip>
+                    <div className="flex items-center gap-2">
+                      <UITooltip content="Download Full Statement">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            exportLoanStatement(loan, loan.repayments || []);
+                          }}
+                          className="h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
+                        >
+                          <Download />
+                        </button>
+                      </UITooltip>
+                      {['active', 'overdue', 'completed'].includes(
+                        loan.status,
+                      ) && (
+                        <UITooltip content="Request Renewal">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRenewalLoan(loan);
+                            }}
+                            className="h-9 w-9 flex items-center justify-center rounded-full bg-indigo-500/10 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 [&_svg]:w-3.5 [&_svg]:h-3.5"
+                          >
+                            <RotateCw />
+                          </button>
+                        </UITooltip>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1 text-primary font-extrabold text-[10px] uppercase tracking-[0.15em] group-hover:translate-x-0.5 transition-transform">
                       View
@@ -333,6 +361,13 @@ const MemberLoans = () => {
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
         onSuccess={() => fetchLoans(false)}
+      />
+
+      <MemberLoanRenewalModal
+        isOpen={!!renewalLoan}
+        loan={renewalLoan}
+        onClose={() => setRenewalLoan(null)}
+        onSuccess={() => fetchLoans(1, false)}
       />
     </div>
   );

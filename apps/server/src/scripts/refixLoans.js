@@ -12,7 +12,9 @@ async function run() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log('✅ Connected\n');
 
-  const loans = await Loan.find({ status: { $ne: 'rejected' } });
+  // Exclude rejected (never funded) and renewed (debt moved into a successor
+  // loan; remainingAmount is intentionally 0 and must not be recomputed).
+  const loans = await Loan.find({ status: { $nin: ['rejected', 'renewed'] } });
 
   // Use corrected filter: include all non-Reversed repayments
   const repaymentAgg = await Repayment.aggregate([

@@ -257,13 +257,24 @@ const googleLogin = async (req, res) => {
       typeof member.profilePicture === 'string' &&
       /^https?:\/\/lh\d?\.googleusercontent\.com\//i.test(member.profilePicture);
 
-    if (!member.googleId || stillHotlinked) {
-      if (!member.googleId) {
+    // A Google-authenticated member never needs the forced password change that
+    // admin-created accounts get — they have no password to rotate, and Google
+    // is a stronger identity proof than the one-time temp password. Clear the
+    // flag in the DB so getMe() (which returns the raw document) can't re-trigger
+    // the "Security Update Required" gate on the next data sync.
+    const needsGoogleLink = !member.googleId;
+    const needsFlagClear = member.mustChangePassword;
+
+    if (needsGoogleLink || stillHotlinked || needsFlagClear) {
+      if (needsGoogleLink) {
         member.googleId = googleId;
         member.isGoogleAuth = true;
       }
       if ((!member.profilePicture || stillHotlinked) && profilePicture) {
         member.profilePicture = await mirrorRemoteImage(profilePicture);
+      }
+      if (needsFlagClear) {
+        member.mustChangePassword = false;
       }
       await member.save({ validateBeforeSave: false });
     }
