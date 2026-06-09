@@ -14,6 +14,7 @@ import LoanCard from '@/components/loans/LoanCard';
 import PageHeader from '@/components/PageHeader';
 import AddLoanModal from '@/components/loans/AddLoanModal';
 import BulkImportLoansModal from '@/components/loans/BulkImportLoansModal';
+import RenewLoanModal from '@/components/loans/RenewLoanModal';
 import RepayLoanModal from '@/components/loans/RepayLoanModal';
 import LoanDetailsModal from '@/components/loans/LoanDetailsModal';
 import EditLoanModal from '@/components/loans/EditLoanModal';
@@ -39,6 +40,7 @@ const Loans = () => {
   const [repayLoan, setRepayLoan] = useState(null);
   const [detailLoan, setDetailLoan] = useState(null);
   const [editLoan, setEditLoan] = useState(null);
+  const [renewLoan, setRenewLoan] = useState(null);
   const [deleteLoan, setDeleteLoan] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -278,6 +280,7 @@ const Loans = () => {
                   loan={loan}
                   onEdit={setEditLoan}
                   onDelete={setDeleteLoan}
+                  onRenew={setRenewLoan}
                   onRefresh={() => {
                     fetchLoans();
                     fetchStats();
@@ -330,6 +333,7 @@ const Loans = () => {
             onRepay={(loan) => setRepayLoan(loan)}
             onDetails={(loan) => setDetailLoan(loan)}
             onEdit={(loan) => setEditLoan(loan)}
+            onRenew={(loan) => setRenewLoan(loan)}
             onDelete={(loan) => setDeleteLoan(loan)}
           />
         )}
@@ -347,6 +351,16 @@ const Loans = () => {
       <BulkImportLoansModal
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
+        onSuccess={() => {
+          fetchLoans();
+          fetchStats();
+        }}
+      />
+
+      <RenewLoanModal
+        isOpen={!!renewLoan}
+        loan={renewLoan}
+        onClose={() => setRenewLoan(null)}
         onSuccess={() => {
           fetchLoans();
           fetchStats();

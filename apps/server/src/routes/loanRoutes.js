@@ -20,6 +20,8 @@ const csvUpload = multer({
 const {
   createLoan,
   bulkImportLoans,
+  renewLoan,
+  requestLoanRenewal,
   getLoans,
   getLoanById,
   updateLoan,
@@ -63,6 +65,7 @@ router.route('/grantor-loans').get(protectMember, getGrantorLoans);
 router.patch('/:id/grantor-status', protectMember, updateGrantorStatus);
 router.get('/my-loans/:id', protectMember, getMemberLoanById);
 router.get('/my-loans/:id/schedule', protectMember, getMemberLoanSchedule);
+router.post('/my-loans/:id/renew-request', protectMember, requestLoanRenewal);
 router.post('/my-loans/:id/documents', protectMember, loanDocUpload.array('documents', 5), memberUploadDocuments);
 
 // Bulk import historical loans from CSV (Admin only)
@@ -80,6 +83,7 @@ router.post('/bulk-reject', protect, staffOrAdmin, bulkRejectLoans);
 
 router.patch('/:id/approve', protect, staffOrAdmin, approveLoan);
 router.patch('/:id/reject', protect, staffOrAdmin, rejectLoan);
+router.patch('/:id/renew', protect, staffOrAdmin, renewLoan);
 router.get('/:id/schedule', protect, getLoanSchedule);
 router
   .route('/:id/documents')

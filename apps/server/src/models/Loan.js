@@ -27,6 +27,7 @@ const loanSchema = new mongoose.Schema(
         'completed',
         'defaulted',
         'rejected',
+        'renewed',
       ],
       default: 'active',
     },
@@ -98,6 +99,25 @@ const loanSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LoanProduct',
     },
+    // ── Renewal linkage ──────────────────────────────────────────────────────
+    // renewedFrom is set on the NEW loan and points back to the loan it renewed.
+    // renewedTo is set on the OLD loan and points forward to its replacement.
+    // For 'extend' renewals no new loan is created — the same record is mutated
+    // and renewalCount/lastRenewedAt are bumped in place.
+    renewedFrom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Loan',
+    },
+    renewedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Loan',
+    },
+    renewalType: {
+      type: String,
+      enum: ['rollover', 'topup', 'extend'],
+    },
+    renewalCount: { type: Number, default: 0 },
+    lastRenewedAt: { type: Date },
   },
   { timestamps: true },
 );
@@ -108,5 +128,6 @@ loanSchema.index({ customer: 1 });
 loanSchema.index({ branchId: 1 });
 loanSchema.index({ status: 1 });
 loanSchema.index({ createdAt: -1 });
+loanSchema.index({ renewedFrom: 1 });
 
 module.exports = mongoose.model('Loan', loanSchema);
