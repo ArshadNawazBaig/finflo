@@ -374,20 +374,18 @@ const createLoan = async (req, res) => {
       });
     }
 
-    // Credit Limit Enforcement
-    // - If the customer is a member: limit is derived from shareBalance (business share investment).
-    // - If the customer is NOT a member: no credit limit is enforced (no investment balance exists).
+    // Credit Limit (members only).
+    // The share-based credit limit is a guardrail for member SELF-SERVICE loan
+    // requests (see requestLoan). When an admin / branch manager assigns a loan
+    // directly — and this endpoint is admin/manager-only — they may lend to any
+    // member regardless of share balance, including members with no shares. So
+    // we DON'T block here; we only recompute and store the limit for
+    // display/reporting so it stays in sync.
     if (customer.memberId) {
       const member = await Member.findById(customer.memberId);
       if (member) {
         // Dynamically calculate from live shareBalance to avoid stale stored values
         const effectiveCreditLimit = await calculateCreditLimit(member._id);
-        if (principal > effectiveCreditLimit) {
-          return res.status(400).json({
-            message: `Loan amount (${principal.toLocaleString()}) exceeds the member's credit limit of Rs. ${effectiveCreditLimit.toLocaleString()} (based on share balance).`,
-          });
-        }
-        // Keep the stored value in sync
         await Member.findByIdAndUpdate(member._id, {
           creditLimit: effectiveCreditLimit,
         });
@@ -3168,16 +3166,16 @@ const renewLoan = async (req, res) => {
         ? oldLoan.customer
         : await Customer.findById(oldLoan.customer);
 
-    // Credit-limit check for members (top-up issues new exposure)
+    // Credit limit (members only, top-up issues new exposure).
+    // This renewal is admin/manager/staff-initiated, so — like createLoan — we
+    // don't block on the share-based limit (admins may lend to any member,
+    // including those with no shares). We only recompute and store it for
+    // display/reporting. The limit stays enforced on member self-service
+    // requests (see requestLoan).
     if (customer?.memberId && renewalType === 'topup') {
       const member = await Member.findById(customer.memberId);
       if (member) {
         const effectiveCreditLimit = await calculateCreditLimit(member._id);
-        if (newPrincipal > effectiveCreditLimit) {
-          return res.status(400).json({
-            message: `Loan amount (${newPrincipal.toLocaleString()}) exceeds the member's credit limit of Rs. ${effectiveCreditLimit.toLocaleString()} (based on share balance).`,
-          });
-        }
         await Member.findByIdAndUpdate(member._id, {
           creditLimit: effectiveCreditLimit,
         });

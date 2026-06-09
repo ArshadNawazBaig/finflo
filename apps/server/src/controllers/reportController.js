@@ -535,11 +535,6 @@ const getTrialBalance = async (req, res) => {
     const members = await Member.find(query);
     const transactions = await FinancialTransaction.find(query);
 
-    const loansReceivable = loans.reduce(
-      (sum, loan) => sum + (loan.remainingAmount || 0),
-      0,
-    );
-
     // Current account cash flows
     const totalDeposits = members.reduce(
       (sum, m) => sum + (m.totalInvested || 0),
@@ -592,7 +587,6 @@ const getTrialBalance = async (req, res) => {
       - totalExpenses
       + feeIncome
       + netBusinessCapital;
-    const totalAssets = loansReceivable + cashAtHand;
 
     // 2. Liabilities
     const memberCurrentBalance = members.reduce(
@@ -628,6 +622,19 @@ const getTrialBalance = async (req, res) => {
       status: { $ne: 'Reversed' },
     }).populate('loan', 'principal totalAmount');
     const totalInterestEarned = calculateProfit(populatedRepayments);
+
+    // Loans Receivable = outstanding PRINCIPAL only. A loan's remainingAmount
+    // includes its unearned interest (totalAmount = principal + interest), but
+    // that interest is not a recognized asset until it's actually collected and
+    // booked into retained earnings. Counting gross remainingAmount inflates
+    // assets by the uncollected interest and breaks the accounting equation
+    // (A = L + E). Principal repaid = total repaid − interest earned, so
+    // outstanding principal = disbursed − (repaid − interest earned).
+    const loansReceivable = Math.max(
+      0,
+      totalDisbursed - (totalRepaid - totalInterestEarned),
+    );
+    const totalAssets = loansReceivable + cashAtHand;
 
     const ProfitDistribution = require('../models/ProfitDistribution');
     // `totalDistributed` covers ALL distribution types (regular + share +
@@ -1090,8 +1097,6 @@ const getBalanceSheet = async (req, res) => {
       : [];
 
     // ══════ ASSETS ══════
-    const loansReceivable = loans.reduce((sum, l) => sum + (l.remainingAmount || 0), 0);
-
     // Current account cash flows
     const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
     const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
@@ -1146,8 +1151,6 @@ const getBalanceSheet = async (req, res) => {
       + feeIncome                                      // Bug Fix #2
       + netBusinessCapital;                            // Business capital
 
-    const totalAssets = loansReceivable + cashAtHand + termDepositAssets;
-
     // ══════ LIABILITIES ══════
     const memberCurrentBalances = members.reduce((sum, m) => sum + (m.currentBalance || 0), 0);
     const memberSavingBalances = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
@@ -1174,6 +1177,17 @@ const getBalanceSheet = async (req, res) => {
       const profitRatio = totalInterest / r.loan.totalAmount;
       return sum + r.amount * profitRatio;
     }, 0);
+
+    // Loans Receivable = outstanding PRINCIPAL only. remainingAmount includes
+    // the loan's unearned interest, which is not a recognized asset until it's
+    // collected and booked into retained earnings. Counting it gross inflates
+    // assets and breaks A = L + E. Outstanding principal = disbursed −
+    // (repaid − interest earned).
+    const loansReceivable = Math.max(
+      0,
+      totalDisbursed - (totalRepaid - totalInterestEarned),
+    );
+    const totalAssets = loansReceivable + cashAtHand + termDepositAssets;
 
     const ProfitDistribution = require('../models/ProfitDistribution');
     // Exclude Failed distributions so phantom payouts don't decimate equity.
