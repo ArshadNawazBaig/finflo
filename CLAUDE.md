@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-FinFlo is a multi-tenant Finance Management SaaS for lending institutions — it covers the full loan lifecycle (onboarding, issuance, repayment, late fees, profit distribution) plus savings, term deposits, transfers, KYC, AML, and white-label branding. A single Express service serves both the JSON API and the built React SPA in production.
+FinFlo is a multi-tenant **Finance Management SaaS** for lending institutions (micro-finance lenders, lending cooperatives, savings committees). Each business that signs up is an isolated **tenant**; its end-customers sign into a separate **member portal**. The platform covers the full loan lifecycle — customer onboarding/KYC, issuance, repayment scheduling, late fees, default detection, profit distribution — plus savings accounts, term deposits, internal & external (Raast/bank) transfers, AML/CTR compliance, branch-scoped staff with role-based permissions, Stripe billing, and white-label branding. In production a single Express service serves both the JSON API and the built React SPA; the same client also ships as two Capacitor mobile apps (member + business).
 
 ## Monorepo layout
 
@@ -13,6 +13,25 @@ npm workspaces with two apps:
 - [apps/client](apps/client) — React 18 + Vite. Entry: [apps/client/src/main.jsx](apps/client/src/main.jsx) → [apps/client/src/App.jsx](apps/client/src/App.jsx).
 
 The same client build is also packaged as **two Capacitor mobile apps** (member + business) from one codebase, selected at runtime by `APP_MODE`.
+
+## Tech stack & languages
+
+**Language:** JavaScript everywhere — **no TypeScript**. The server is CommonJS (`require` / `module.exports`, Node 18+); the client is ES modules + JSX. Use `.jsx` for React components, `.js` elsewhere.
+
+**Server** ([apps/server](apps/server)) — Node.js + **Express 5**, **Mongoose 9** on MongoDB Atlas.
+- Auth & security: `jsonwebtoken`, `bcryptjs`, `otplib` (TOTP 2FA), `google-auth-library` (Google sign-in); `helmet`, `cors`, `express-rate-limit`, `express-mongo-sanitize`, `hpp`, `express-validator`.
+- Services: **Socket.io** (realtime), `node-cron` (scheduled jobs), **Stripe** (billing/webhooks), `multer` + **Cloudinary** (uploads), `nodemailer` (email).
+- Documents/KYC: `tesseract.js` (OCR), `pdf-parse`, `exceljs`, `qrcode`.
+- Tests: **Vitest** + `mongodb-memory-server`.
+
+**Client** ([apps/client](apps/client)) — **React 18** + **Vite 5**.
+- State **Jotai**, routing **React Router 6**, HTTP `axios`.
+- UI: **Tailwind CSS 3** + **Radix UI** (shadcn-style primitives) + `class-variance-authority` + `lucide-react` + `framer-motion`; forms `react-hook-form`; toasts `sonner`; dates `date-fns`.
+- Viz/media: `recharts` (charts), `three` + `@react-three/fiber` (3D), `jspdf`, `html5-qrcode`; `socket.io-client`.
+- Mobile: **Capacitor 8** (Android + iOS).
+- Tests: **Vitest** + Testing Library + jsdom.
+
+**Tooling:** npm workspaces (monorepo), ESLint (client, `--max-warnings 0`), Docker / docker-compose, GitHub Actions (CI), Vercel + Railway (deploy targets).
 
 ## Commands
 
@@ -98,12 +117,20 @@ Socket.io is initialized in [socket/socketHandler.js](apps/server/src/socket/soc
 
 ## Conventions
 
-[.agent/PROJECT_RULES.md](.agent/PROJECT_RULES.md) is the authoritative style guide — read it before adding features. Highlights:
-- Controllers: `async/await` in `try/catch`, return `{ message }` on error, validate ownership (return **404** not 403 to avoid leaking existence).
-- List endpoints: always paginate, returning `{ data, totalEntries, totalPages, currentPage }`.
-- Models: include the tenant `user` ref, `{ timestamps: true }`, enums for fixed-value fields.
-- File naming: components/pages/models `PascalCase`, controllers/routes `camelCase` matching their resource.
+The concise, always-on coding rules live in [.claude/rules/](.claude/rules) (imported below) — that's canonical for day-to-day work. [.agent/PROJECT_RULES.md](.agent/PROJECT_RULES.md) is the extended handbook (design system, API design, UI/UX standards) and the rule source for the Cline tool; consult it for depth.
 
-Sensitive Member fields are encrypted at rest via [utils/encryption.js](apps/server/src/utils/encryption.js) (`encryptFields`/`decryptFields`). Input is sanitized against NoSQL operator injection (strips `$`/`.` keys on body, params, and query) and HPP in [index.js](apps/server/src/index.js).
+Two repo-specific guards that aren't obvious from the code:
+- Sensitive Member fields are encrypted at rest via [utils/encryption.js](apps/server/src/utils/encryption.js) (`encryptFields` / `decryptFields`).
+- Input is sanitized against NoSQL operator injection (strips `$` / `.` keys on body, params, query) and HPP in [index.js](apps/server/src/index.js).
 
 One-off maintenance/migration scripts live in [apps/server/src/scripts](apps/server/src/scripts) and [apps/server/scripts](apps/server/scripts) (e.g. `seedSuperAdmin.js`, `backfillLedger.js`); run with `node`.
+
+## Claude toolkit (`.claude/`)
+
+This repo ships project subagents, skills, and modular rules. The shared code-style rule is always-on (imported below). The backend and frontend rules are **scoped**: each app has a nested `CLAUDE.md` ([apps/server/CLAUDE.md](apps/server/CLAUDE.md) / [apps/client/CLAUDE.md](apps/client/CLAUDE.md)) that Claude Code loads automatically when you work in that workspace, so app-specific conventions layer in only when relevant.
+
+@.claude/rules/code-style.md
+
+- **Subagents** ([.claude/agents](.claude/agents)) — `backend-engineer`, `frontend-engineer`, `test-engineer`, `code-reviewer`. Delegate matching work to them via the Agent tool.
+- **Skills** ([.claude/skills](.claude/skills)) — `/scaffold-resource`, `/write-tests`.
+- **Rules** ([.claude/rules](.claude/rules)) — `code-style.md` (shared, always-on); `backend/express.md` (via apps/server/CLAUDE.md); `frontend/react.md` (via apps/client/CLAUDE.md).
