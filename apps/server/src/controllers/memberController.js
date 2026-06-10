@@ -484,6 +484,18 @@ const createMember = async (req, res) => {
       });
     }
 
+    // A tenant must create at least one branch before any member can be added,
+    // so every member is attributable to a branch. New members land in the
+    // tenant's default branch unless an explicit branch is chosen.
+    const { getDefaultBranchId, hasAnyBranch } = require('../utils/branchUtils');
+    if (!(await hasAnyBranch(userId))) {
+      return res.status(400).json({
+        message: 'Create a branch before adding members.',
+        code: 'NO_BRANCH',
+      });
+    }
+    const defaultBranchId = await getDefaultBranchId(userId);
+
     // SECURITY: every admin-created member gets a cryptographically random
     // initial password. The plaintext is returned to the admin once for
     // hand-off to the member; the member is forced to change it on first
@@ -495,7 +507,10 @@ const createMember = async (req, res) => {
         .replace(/[+/=]/g, (c) => ({ '+': 'A', '/': 'B', '=': '' }[c])) + '!1';
     const memberData = {
       user: userId,
-      branchId: req.user.branchId, // Assign creator's branch
+      // Staff (branch managers) can only create within their own branch; admins
+      // may pick a branch in the form, otherwise it falls back to the tenant's
+      // default branch. Admin/manager can move the member afterwards.
+      branchId: req.user.branchId || req.body.branchId || defaultBranchId,
       name: lowercaseName,
       email: lowercaseEmail,
       phone,
@@ -941,6 +956,17 @@ const bulkImportMembers = async (req, res) => {
       return res.status(400).json({ message: 'CSV file is required' });
     }
 
+    // Block imports until the tenant has a branch; attribute each imported member
+    // to the creator's branch (managers) or the tenant default (admins).
+    const { getDefaultBranchId, hasAnyBranch } = require('../utils/branchUtils');
+    if (!(await hasAnyBranch(userId))) {
+      return res.status(400).json({
+        message: 'Create a branch before importing members.',
+        code: 'NO_BRANCH',
+      });
+    }
+    const defaultBranchId = await getDefaultBranchId(userId);
+
     const csvText = req.file.buffer.toString('utf8').replace(/^﻿/, '');
     const rows = parseCsv(csvText);
     if (rows.length < 2) {
@@ -1068,7 +1094,7 @@ const bulkImportMembers = async (req, res) => {
       try {
         const member = await Member.create({
           user: userId,
-          branchId: req.user.branchId,
+          branchId: req.user.branchId || defaultBranchId,
           name: name.toLowerCase(),
           email,
           phone,
@@ -4249,6 +4275,18 @@ const selfRegister = async (req, res) => {
         .json({ message: 'Invalid security code. Business not found.' });
     }
 
+    // The business must have at least one branch before it can accept members.
+    // New self-registered members are attributed to the tenant's default branch
+    // (an admin can move them after approval).
+    const { getDefaultBranchId } = require('../utils/branchUtils');
+    const defaultBranchId = await getDefaultBranchId(businessOwner._id);
+    if (!defaultBranchId) {
+      return res.status(400).json({
+        message: 'This business is not accepting registrations yet.',
+        code: 'NO_BRANCH',
+      });
+    }
+
     // Check if phone, email, or cnic already exists for this business
     const existingMember = await Member.findOne({
       user: businessOwner._id,
@@ -4274,6 +4312,7 @@ const selfRegister = async (req, res) => {
     // Create the member as pending (password will be hashed by Member model pre-save hook)
     const member = await Member.create({
       user: businessOwner._id,
+      branchId: defaultBranchId,
       name,
       phone,
       email: email || undefined,
@@ -4298,6 +4337,7 @@ const selfRegister = async (req, res) => {
       if (!customer) {
         customer = await Customer.create({
           user: businessOwner._id,
+          branchId: defaultBranchId,
           name,
           phone,
           email: email || undefined,

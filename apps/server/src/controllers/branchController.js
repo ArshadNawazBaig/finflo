@@ -69,6 +69,9 @@ const createBranch = async (req, res) => {
       manager: managerId || null,
       owner: req.user._id,
       branding,
+      // The very first branch a tenant creates becomes their default, so there is
+      // always a default to attribute new members to once any branch exists.
+      isDefault: branchCount === 0,
     });
 
     if (managerId) {
@@ -325,6 +328,18 @@ const deleteBranch = async (req, res) => {
       { $unset: { branchId: '' } },
     );
 
+    // If we removed the default branch, promote the oldest remaining branch so a
+    // tenant with branches always has exactly one default for member attribution.
+    if (branch.isDefault) {
+      const next = await Branch.findOne({ owner: req.user._id }).sort({
+        createdAt: 1,
+      });
+      if (next) {
+        next.isDefault = true;
+        await next.save();
+      }
+    }
+
     // Log activity
     await logActivity({
       userId: req.user._id,
@@ -336,6 +351,48 @@ const deleteBranch = async (req, res) => {
     });
 
     res.json({ message: 'Branch removed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Mark a branch as the tenant's default (new members land here)
+// @route   PUT /api/branches/:id/default
+// @access  Private (Admin only — managers cannot change the default branch)
+const setDefaultBranch = async (req, res) => {
+  try {
+    if (req.user.role === 'staff') {
+      return res
+        .status(403)
+        .json({ message: 'Not authorized to change the default branch' });
+    }
+
+    const ownerId = req.user._id;
+    const branch = await Branch.findOne({ _id: req.params.id, owner: ownerId });
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    // Exactly one default per tenant: clear the flag on every other branch first,
+    // then set it on the target.
+    await Branch.updateMany(
+      { owner: ownerId, _id: { $ne: branch._id } },
+      { $set: { isDefault: false } },
+    );
+    branch.isDefault = true;
+    await branch.save();
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'branch_set_default',
+      category: 'branch',
+      details: `Set default branch: ${branch.name}`,
+      metadata: { branchId: branch._id },
+      req,
+    });
+
+    res.json(branch);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
@@ -889,6 +946,7 @@ module.exports = {
   getBranch,
   updateBranch,
   deleteBranch,
+  setDefaultBranch,
   getBranchFinancials,
   getBranchAnalytics,
   addBranchExpense,
