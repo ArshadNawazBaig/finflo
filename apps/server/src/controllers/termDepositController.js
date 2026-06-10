@@ -20,6 +20,9 @@ const createTermDeposit = async (req, res) => {
     const { memberId, principal, duration, sourceAccount = 'current', notes, autoRollover = false } = req.body;
 
     if (!memberId || !principal || !duration) {
+      // Abort the transaction we opened above — returning without it leaks an
+      // open transaction that holds collection locks and stalls the next request.
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Member, principal, and duration are required' });
     }
 

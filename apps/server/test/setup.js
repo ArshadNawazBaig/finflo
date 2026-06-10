@@ -15,6 +15,18 @@ const mongoose = require('mongoose');
 beforeAll(async () => {
   if (mongoose.connection.readyState !== 1) {
     await mongoose.connect(process.env.MONGO_TEST_URI);
+    // The in-memory single-node replica set defaults to a 5ms transaction lock
+    // timeout, so back-to-back transactions in a fast test run spuriously fail
+    // with TransientTransactionError. Give transactions room to wait for locks
+    // (this is a test-env accommodation; it doesn't change production behaviour).
+    try {
+      await mongoose.connection.db.admin().command({
+        setParameter: 1,
+        maxTransactionLockRequestTimeoutMillis: 2000,
+      });
+    } catch {
+      // Non-fatal — if the parameter can't be set, tests still run (just tighter).
+    }
   }
 }, 180000);
 
