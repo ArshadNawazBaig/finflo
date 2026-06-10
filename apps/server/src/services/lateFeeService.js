@@ -80,14 +80,15 @@ const applyLateFees = async (req) => {
           continue;
         }
 
-        // Check if late fee was already applied this month (prevent double-charging)
+        // Check if a late fee was already applied this month by EITHER engine
+        // (prevent double-charging / stacking with the daily accrual cron).
         if (loan.lateFeeAppliedAt) {
           const lastApplied = new Date(loan.lateFeeAppliedAt);
           const sameMonth =
             lastApplied.getFullYear() === now.getFullYear() &&
             lastApplied.getMonth() === now.getMonth();
           if (sameMonth) {
-            continue; // Already applied this month
+            continue; // Already charged this month (by manual or accrual)
           }
         }
 
@@ -110,6 +111,7 @@ const applyLateFees = async (req) => {
             },
             $set: {
               lateFeeAppliedAt: now,
+              lateFeeSource: 'manual',
               overdueAt: loan.overdueAt || now,
               status: 'overdue',
             },

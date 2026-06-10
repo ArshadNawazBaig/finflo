@@ -69,7 +69,31 @@ const handleRaastWebhook = async (req, res) => {
         );
       }
 
-      // 2. Update Member Balance
+      // 2. Atomically CLAIM this deposit before crediting. Banks retry webhooks
+      // aggressively, often in parallel — the earlier `metadata.raastStatus` read
+      // was a non-atomic check, so two concurrent deliveries could both pass it and
+      // double-credit the member. This conditional flip can only succeed once.
+      const claimed = await Investment.findOneAndUpdate(
+        { _id: investment._id, 'metadata.raastStatus': { $ne: 'PAID' } },
+        {
+          $set: {
+            status: 'Completed',
+            'metadata.raastStatus': 'PAID',
+            'metadata.raastTransactionId': transaction_id,
+            'metadata.paidAt': new Date(),
+          },
+        },
+        { new: true, session },
+      );
+
+      if (!claimed) {
+        // Another delivery already processed this deposit — credit exactly once.
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(200).json({ message: 'Already processed' });
+      }
+
+      // 3. Update Member Balance (only reached for the single winning delivery)
       const updatedMember = await Member.findByIdAndUpdate(
         investment.member._id,
         {
@@ -81,16 +105,8 @@ const handleRaastWebhook = async (req, res) => {
         { new: true, session },
       );
 
-      // 3. Mark Investment as Paid
-      investment.status = 'Completed'; // Adjust if your schema has status. Assuming it's finalized here.
-      investment.balanceAfter = updatedMember.currentBalance;
-      investment.metadata = {
-        ...investment.metadata,
-        raastStatus: 'PAID',
-        raastTransactionId: transaction_id,
-        paidAt: new Date(),
-      };
-      await investment.save({ session });
+      claimed.balanceAfter = updatedMember.currentBalance;
+      await claimed.save({ session });
 
       // 4. Create Financial Transaction
       const financialTx = new FinancialTransaction({

@@ -95,6 +95,18 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         loan.paidAmount + currentPrincipal + currentPeriodInterest;
     }
 
+    // SAFETY CAP: an early settlement must never exceed what the borrower currently
+    // owes in total (paid so far + remaining = the contractual total, incl. any
+    // accrued fees). Pro-rated/period interest computed from actual day-counts can
+    // otherwise push the settlement ABOVE the contract — e.g. a simple loan settled
+    // on/after its own maturity date, or an EMI loan with no prior payments charged
+    // interest on the full principal for many days. The discount for genuinely-early
+    // payoff is preserved because the min() only bites when the figure overshoots.
+    actualSettlementAmount = Math.min(
+      actualSettlementAmount,
+      loan.paidAmount + loan.remainingAmount,
+    );
+
     // If this payment + previous payments >= settlement amount
     if (loan.paidAmount + repaymentAmount >= actualSettlementAmount) {
       isEarlySettlement = true;
@@ -105,6 +117,17 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       );
       repaymentAmount = Math.min(repaymentAmount, amountNeededToSettle);
     }
+  }
+
+  // Never let a non-settlement repayment exceed what is still owed. Without this
+  // an overpayment debits the wallet for the full amount, drives remainingAmount
+  // negative, and is then silently zeroed — over-collecting with no refund record.
+  if (!isEarlySettlement) {
+    repaymentAmount = Math.min(repaymentAmount, loan.remainingAmount);
+  }
+
+  if (repaymentAmount <= 0) {
+    throw new Error('Repayment amount must be greater than zero.');
   }
 
   // 1. Calculate Interest/Principal Split for the Repayment
@@ -196,8 +219,6 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     notes: isEarlySettlement ? `${notes} (Early Settlement Adjustment)` : notes,
   });
 
-  await repayment.save({ session });
-
   // Deduct repayment from linked Member's balance ONLY for auto-deductions or member-initiated payments
   // (e.g. deposit → auto loan deduction, or member portal self-pay). Manual teller payments
   // are direct cash collections and should NOT reduce the member's wallet balance.
@@ -263,11 +284,19 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       }
     }
   } catch (balanceError) {
+    // CRITICAL: do NOT swallow this. A failed wallet debit (e.g. insufficient
+    // funds) must abort the whole repayment so the loan is never marked paid and
+    // no repayment income is booked against money that never actually moved.
     console.error(
       'Failed to update member balance in repayment service:',
       balanceError,
     );
+    throw balanceError;
   }
+
+  // Persist the repayment only AFTER a successful wallet debit, so a failed debit
+  // never leaves an orphan Repayment that would skew settlement/split aggregations.
+  await repayment.save({ session });
 
   // Update loan stats atomically
   if (isEarlySettlement) {
@@ -278,6 +307,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         totalAmount: actualSettlementAmount,
         paidAmount: actualSettlementAmount,
         remainingAmount: 0,
+        outstandingPrincipal: 0,
         status: 'completed',
       },
       { new: true, session },
@@ -299,13 +329,19 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       req,
     });
   } else {
-    // Normal repayment: Atomic increment/decrement
-    const updatedLoan = await Loan.findByIdAndUpdate(
-      loan._id,
+    // Normal repayment: atomic increment/decrement, guarded by `remainingAmount
+    // >= repaymentAmount` so two concurrent payments can never drive the balance
+    // negative or over-collect. If the predicate fails (the balance changed under
+    // us), abort so the wallet debit rolls back rather than booking a phantom.
+    const updatedLoan = await Loan.findOneAndUpdate(
+      { _id: loan._id, remainingAmount: { $gte: repaymentAmount } },
       {
         $inc: {
           paidAmount: repaymentAmount,
           remainingAmount: -repaymentAmount,
+          // Reduce tracked principal by the principal portion only (not the
+          // interest/fee portion), so the interest base stays principal-only.
+          outstandingPrincipal: -principalAmount,
         },
         // If the loan was overdue, a payment brings it back to active
         ...(loan.status === 'overdue' ? { status: 'active' } : {}),
@@ -313,10 +349,24 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       { new: true, session },
     );
 
+    if (!updatedLoan) {
+      throw new Error(
+        'Loan balance changed concurrently; repayment not applied. Please retry.',
+      );
+    }
+
     // Safeguard remainingAmount (rounding or floating point issues)
     if (updatedLoan.remainingAmount < 0.01) {
       updatedLoan.remainingAmount = 0;
+      updatedLoan.outstandingPrincipal = 0;
       updatedLoan.status = 'completed';
+      await updatedLoan.save({ session });
+    } else if (
+      typeof updatedLoan.outstandingPrincipal === 'number' &&
+      updatedLoan.outstandingPrincipal < 0
+    ) {
+      // Never let principal tracking drift negative from rounding.
+      updatedLoan.outstandingPrincipal = 0;
       await updatedLoan.save({ session });
 
       // Log activity for auto-completion

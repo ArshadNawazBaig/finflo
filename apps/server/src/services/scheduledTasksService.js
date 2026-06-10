@@ -178,6 +178,20 @@ const runLateFeeAccrual = async () => {
         // If the loan is fully paid, skip
         if (loan.remainingAmount <= 0) continue;
 
+        // GATE: if the MANUAL flat-fee engine already charged this loan this
+        // calendar month, the daily accrual must not stack on top of it. The
+        // manual path is symmetrically gated by its own same-month guard, so the
+        // first engine to touch a loan in a month owns it for that month.
+        if (loan.lateFeeSource === 'manual' && loan.lateFeeAppliedAt) {
+          const applied = new Date(loan.lateFeeAppliedAt);
+          if (
+            applied.getFullYear() === today.getFullYear() &&
+            applied.getMonth() === today.getMonth()
+          ) {
+            continue;
+          }
+        }
+
         // Check grace period after tenure end
         const graceDeadline = new Date(tenureEndDate);
         graceDeadline.setDate(graceDeadline.getDate() + config.gracePeriodDays);
@@ -217,7 +231,7 @@ const runLateFeeAccrual = async () => {
               remainingAmount: applicableFee,
               totalAmount: applicableFee,
             },
-            $set: { lateFeeAppliedAt: new Date() },
+            $set: { lateFeeAppliedAt: new Date(), lateFeeSource: 'accrual' },
           },
           { new: true },
         );
@@ -865,28 +879,68 @@ const runCompoundInterestAccrual = async () => {
         // If the borrower is up to date, no compounding needed
         if (installmentsPaid >= monthsSinceStart) continue;
 
-        // Calculate one month's interest on the current remaining balance
-        const monthlyInterest = Math.round(
-          (loan.remainingAmount * loan.rate) / 1200
-        );
+        // Compound interest exactly ONCE per missed installment-period. The old
+        // code added a full month's interest every single day the loan stayed
+        // overdue (the daily `lastCompoundedAt < today` guard only blocked a second
+        // charge on the SAME day) — so one missed installment compounded ~30× per
+        // month and the balance exploded. We now track how many periods have
+        // already been capitalized (`compoundedPeriods`) and only charge the
+        // not-yet-compounded periods.
+        const overduePeriods = monthsSinceStart - installmentsPaid;
+        const alreadyCompounded = loan.compoundedPeriods || 0;
+        const periodsToCompound = overduePeriods - alreadyCompounded;
+        if (periodsToCompound <= 0) continue;
 
-        if (monthlyInterest <= 0) continue;
+        // Capitalize one month of interest for each missed period, compounding on
+        // OUTSTANDING PRINCIPAL only (interest-on-interest across distinct missed
+        // months, but never on accrued late fees). Falls back to remainingAmount for
+        // legacy loans not yet backfilled with outstandingPrincipal.
+        const hasOutstanding = typeof loan.outstandingPrincipal === 'number';
+        let runningBalance = hasOutstanding
+          ? loan.outstandingPrincipal
+          : loan.remainingAmount;
+        let interestToAdd = 0;
+        for (let p = 0; p < periodsToCompound; p++) {
+          const periodInterest = Math.round((runningBalance * loan.rate) / 1200);
+          if (periodInterest <= 0) break;
+          interestToAdd += periodInterest;
+          runningBalance += periodInterest;
+        }
 
-        // Daily de-duplication: only compound once per day
+        if (interestToAdd <= 0) continue;
+
+        const monthlyInterest = interestToAdd; // for the notification below
+
+        // CAS on compoundedPeriods makes this idempotent across duplicate/concurrent
+        // cron runs: only the run that observes the expected prior count wins.
+        // Loans created before this field existed have NO `compoundedPeriods` key;
+        // a plain `{ compoundedPeriods: 0 }` predicate would NOT match a missing
+        // field, so legacy overdue loans must also match absent/null.
+        const periodCas =
+          alreadyCompounded === 0
+            ? {
+                $or: [
+                  { compoundedPeriods: 0 },
+                  { compoundedPeriods: { $exists: false } },
+                  { compoundedPeriods: null },
+                ],
+              }
+            : { compoundedPeriods: alreadyCompounded };
         const updatedLoan = await Loan.findOneAndUpdate(
           {
             _id: loan._id,
-            $or: [
-              { lastCompoundedAt: { $exists: false } },
-              { lastCompoundedAt: null },
-              { lastCompoundedAt: { $lt: today } },
-            ],
+            ...periodCas,
           },
           {
             $inc: {
-              totalAmount: monthlyInterest,
-              remainingAmount: monthlyInterest,
-              compoundedAmount: monthlyInterest,
+              totalAmount: interestToAdd,
+              remainingAmount: interestToAdd,
+              compoundedAmount: interestToAdd,
+              compoundedPeriods: periodsToCompound,
+              // Capitalize the interest into principal so the next period compounds
+              // on it — but only for loans that actually track the field, so we
+              // never seed a wrong value on an un-backfilled legacy loan.
+              ...(hasOutstanding ? { outstandingPrincipal: interestToAdd } : {}),
             },
             $set: { lastCompoundedAt: new Date() },
           },
@@ -1405,6 +1459,11 @@ const runMemberBalanceReconcile = async () => {
               ],
             },
           },
+          totalLoanProceeds: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'loan_disbursement'] }, '$amount', 0],
+            },
+          },
         },
       },
     ]);
@@ -1433,6 +1492,7 @@ const runMemberBalanceReconcile = async () => {
       ledger.set(row._id.toString(), {
         totalInvested: row.totalInvested,
         totalWithdrawn: row.totalWithdrawn,
+        totalLoanProceeds: row.totalLoanProceeds,
         totalProfit: 0,
       });
     }
@@ -1441,6 +1501,7 @@ const runMemberBalanceReconcile = async () => {
       const entry = ledger.get(key) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
       entry.totalProfit = row.totalProfit;
@@ -1453,7 +1514,9 @@ const runMemberBalanceReconcile = async () => {
     let ops = [];
 
     const cursor = Member.find({})
-      .select('_id currentBalance totalInvested totalWithdrawn totalProfit')
+      .select(
+        '_id currentBalance totalInvested totalLoanProceeds totalWithdrawn totalProfit',
+      )
       .cursor();
 
     for await (const member of cursor) {
@@ -1462,14 +1525,20 @@ const runMemberBalanceReconcile = async () => {
       const entry = ledger.get(member._id.toString()) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
+      // Loan proceeds back the wallet too (not capital, but spendable).
       const expectedBalance =
-        entry.totalInvested - entry.totalWithdrawn + entry.totalProfit;
+        entry.totalInvested +
+        entry.totalLoanProceeds -
+        entry.totalWithdrawn +
+        entry.totalProfit;
 
       const drift =
         Math.abs(expectedBalance - (member.currentBalance || 0)) > 1 ||
         Math.abs(entry.totalInvested - (member.totalInvested || 0)) > 1 ||
+        Math.abs(entry.totalLoanProceeds - (member.totalLoanProceeds || 0)) > 1 ||
         Math.abs(entry.totalWithdrawn - (member.totalWithdrawn || 0)) > 1 ||
         Math.abs(entry.totalProfit - (member.totalProfit || 0)) > 1;
 
@@ -1482,6 +1551,7 @@ const runMemberBalanceReconcile = async () => {
             $set: {
               currentBalance: Math.round(expectedBalance),
               totalInvested: Math.round(entry.totalInvested),
+              totalLoanProceeds: Math.round(entry.totalLoanProceeds),
               totalWithdrawn: Math.round(entry.totalWithdrawn),
               totalProfit: Math.round(entry.totalProfit),
             },
