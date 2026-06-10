@@ -413,6 +413,16 @@ const createLoan = async (req, res) => {
       });
     }
 
+    // A loan must be attributed to a branch, so a tenant cannot issue loans until
+    // they have created at least one branch.
+    const { getDefaultBranchId, hasAnyBranch } = require('../utils/branchUtils');
+    if (!(await hasAnyBranch(req.user.effectiveOwnerId))) {
+      return res.status(400).json({
+        message: 'Create a branch before issuing loans.',
+        code: 'NO_BRANCH',
+      });
+    }
+
     let emi, totalAmount;
 
     if (interestType === 'simple' || interestType === 'compound') {
@@ -438,6 +448,10 @@ const createLoan = async (req, res) => {
     if (!resolvedBranchId && customer.memberId) {
       const branchMember = await Member.findById(customer.memberId).select('branchId');
       resolvedBranchId = branchMember?.branchId || resolvedBranchId;
+    }
+    // Final fallback: the tenant's default branch, so the loan is never branch-less.
+    if (!resolvedBranchId) {
+      resolvedBranchId = await getDefaultBranchId(req.user.effectiveOwnerId);
     }
 
     const loan = new Loan({
@@ -591,6 +605,16 @@ const requestLoan = async (req, res) => {
         message: 'Linked customer profile not found. Please contact support.',
       });
     }
+
+    // Loans must be attributed to a branch; the business must have created one.
+    const { getDefaultBranchId, hasAnyBranch } = require('../utils/branchUtils');
+    if (!(await hasAnyBranch(req.member.user))) {
+      return res.status(400).json({
+        message: 'Loans are not available yet. Please contact your branch.',
+        code: 'NO_BRANCH',
+      });
+    }
+    const requestDefaultBranchId = await getDefaultBranchId(req.member.user);
 
     if (
       !customer.accountNumber &&
@@ -783,7 +807,7 @@ const requestLoan = async (req, res) => {
     const loan = new Loan({
       user: req.member.user,
       customer: req.member.customer,
-      branchId: req.member.branchId || customer.branchId, // Set branchId for proper segregation
+      branchId: req.member.branchId || customer.branchId || requestDefaultBranchId, // Set branchId for proper segregation
       principal,
       rate,
       duration,
@@ -815,7 +839,7 @@ const requestLoan = async (req, res) => {
           title: 'New Grantor Request',
           message: `${req.member.name} has requested you to be Grantor 1 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
-          branchId: req.member.branchId || customer.branchId,
+          branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
           link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
           action: 'grantor_request',
         },
@@ -825,7 +849,7 @@ const requestLoan = async (req, res) => {
           title: 'New Grantor Request',
           message: `${req.member.name} has requested you to be Grantor 2 for a loan of Rs. ${principal.toLocaleString()}.`,
           type: 'info',
-          branchId: req.member.branchId || customer.branchId,
+          branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
           link: '/member/grantor-requests', // Grantors can see requests on their dedicated page
           action: 'grantor_request',
         },
@@ -841,7 +865,7 @@ const requestLoan = async (req, res) => {
         title: 'New Loan Request',
         message: `Member ${req.member.name} has requested a loan of Rs. ${principal.toLocaleString()}.`,
         type: 'info',
-        branchId: req.member.branchId || customer.branchId,
+        branchId: req.member.branchId || customer.branchId || requestDefaultBranchId,
         ownerId: req.member.user,
         link: '/loan-requests',
         metadata: {
@@ -2718,10 +2742,20 @@ const parseLoanDate = (s) => {
 const bulkImportLoans = async (req, res) => {
   try {
     const ownerId = req.user.effectiveOwnerId;
-    const branchId = req.user.branchId || null;
     if (!req.file || !req.file.buffer) {
       return res.status(400).json({ message: 'CSV file is required' });
     }
+
+    // Loans must be attributed to a branch — block imports until the tenant has
+    // one, and fall back to the default branch for admin-issued loans.
+    const { getDefaultBranchId, hasAnyBranch } = require('../utils/branchUtils');
+    if (!(await hasAnyBranch(ownerId))) {
+      return res.status(400).json({
+        message: 'Create a branch before importing loans.',
+        code: 'NO_BRANCH',
+      });
+    }
+    const branchId = req.user.branchId || (await getDefaultBranchId(ownerId));
 
     const { hash } = require('../utils/encryption');
     const csvText = req.file.buffer.toString('utf8').replace(/^﻿/, '');
@@ -3246,10 +3280,14 @@ const renewLoan = async (req, res) => {
       newInterestType,
     );
 
+    const { getDefaultBranchId } = require('../utils/branchUtils');
     const newLoan = new Loan({
       user: ownerId,
       customer: customer._id,
-      branchId: oldLoan.branchId || customer.branchId,
+      branchId:
+        oldLoan.branchId ||
+        customer.branchId ||
+        (await getDefaultBranchId(ownerId)),
       principal: newPrincipal,
       rate: newRate,
       duration: newDuration,
@@ -3384,10 +3422,13 @@ const requestLoanRenewal = async (req, res) => {
       interestType,
     );
 
+    const { getDefaultBranchId: getDefaultBranchIdForRenewal } = require('../utils/branchUtils');
+    const renewalBranchId =
+      oldLoan.branchId || (await getDefaultBranchIdForRenewal(ownerId));
     const newLoan = new Loan({
       user: ownerId,
       customer: oldLoan.customer,
-      branchId: oldLoan.branchId,
+      branchId: renewalBranchId,
       principal: newPrincipal,
       rate,
       duration,
