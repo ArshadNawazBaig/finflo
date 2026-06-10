@@ -102,12 +102,16 @@ const createTermDeposit = async (req, res) => {
       { session },
     );
 
-    // Record financial transaction
+    // Record financial transaction. This is NOT business income — the member is
+    // moving their OWN wallet money into a locked deposit (a liability reclass).
+    // Booking it as `income` double-counted the principal as revenue in income
+    // rollups. Record it as a debit (spendable funds leaving the wallet into the
+    // lock); the matching wallet decrement is also captured in the Investment ledger.
     await FinancialTransaction.create(
       [{
         user: req.user.effectiveOwnerId,
         branchId: member.branchId,
-        type: 'income',
+        type: 'debit',
         category: 'term_deposit',
         amount: principal,
         date: startDate,

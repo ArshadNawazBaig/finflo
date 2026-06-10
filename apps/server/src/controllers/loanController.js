@@ -440,6 +440,9 @@ const createLoan = async (req, res) => {
       totalAmount,
       startDate,
       remainingAmount: totalAmount,
+      // Principal still owed, tracked separately from remainingAmount so interest
+      // and late fees never accrue on top of fees/capitalized interest.
+      outstandingPrincipal: principal,
       interestType,
       status: 'pending',
       grantor1: grantor1Id,
@@ -777,6 +780,7 @@ const requestLoan = async (req, res) => {
       totalAmount,
       startDate: new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: principal,
       interestType: 'simple',
       status: 'pending',
       grantor1: grantor1._id,
@@ -3237,6 +3241,7 @@ const renewLoan = async (req, res) => {
       totalAmount,
       startDate: startDate ? new Date(startDate) : new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: newPrincipal,
       paidAmount: 0,
       interestType: newInterestType,
       status: 'active',
@@ -3374,6 +3379,7 @@ const requestLoanRenewal = async (req, res) => {
       totalAmount,
       startDate: new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: newPrincipal,
       paidAmount: 0,
       interestType,
       status: 'pending',

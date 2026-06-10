@@ -178,6 +178,20 @@ const runLateFeeAccrual = async () => {
         // If the loan is fully paid, skip
         if (loan.remainingAmount <= 0) continue;
 
+        // GATE: if the MANUAL flat-fee engine already charged this loan this
+        // calendar month, the daily accrual must not stack on top of it. The
+        // manual path is symmetrically gated by its own same-month guard, so the
+        // first engine to touch a loan in a month owns it for that month.
+        if (loan.lateFeeSource === 'manual' && loan.lateFeeAppliedAt) {
+          const applied = new Date(loan.lateFeeAppliedAt);
+          if (
+            applied.getFullYear() === today.getFullYear() &&
+            applied.getMonth() === today.getMonth()
+          ) {
+            continue;
+          }
+        }
+
         // Check grace period after tenure end
         const graceDeadline = new Date(tenureEndDate);
         graceDeadline.setDate(graceDeadline.getDate() + config.gracePeriodDays);
@@ -217,7 +231,7 @@ const runLateFeeAccrual = async () => {
               remainingAmount: applicableFee,
               totalAmount: applicableFee,
             },
-            $set: { lateFeeAppliedAt: new Date() },
+            $set: { lateFeeAppliedAt: new Date(), lateFeeSource: 'accrual' },
           },
           { new: true },
         );
@@ -878,8 +892,13 @@ const runCompoundInterestAccrual = async () => {
         if (periodsToCompound <= 0) continue;
 
         // Capitalize one month of interest for each missed period, compounding on
-        // the running balance (interest-on-interest across distinct missed months).
-        let runningBalance = loan.remainingAmount;
+        // OUTSTANDING PRINCIPAL only (interest-on-interest across distinct missed
+        // months, but never on accrued late fees). Falls back to remainingAmount for
+        // legacy loans not yet backfilled with outstandingPrincipal.
+        const hasOutstanding = typeof loan.outstandingPrincipal === 'number';
+        let runningBalance = hasOutstanding
+          ? loan.outstandingPrincipal
+          : loan.remainingAmount;
         let interestToAdd = 0;
         for (let p = 0; p < periodsToCompound; p++) {
           const periodInterest = Math.round((runningBalance * loan.rate) / 1200);
@@ -918,6 +937,10 @@ const runCompoundInterestAccrual = async () => {
               remainingAmount: interestToAdd,
               compoundedAmount: interestToAdd,
               compoundedPeriods: periodsToCompound,
+              // Capitalize the interest into principal so the next period compounds
+              // on it — but only for loans that actually track the field, so we
+              // never seed a wrong value on an un-backfilled legacy loan.
+              ...(hasOutstanding ? { outstandingPrincipal: interestToAdd } : {}),
             },
             $set: { lastCompoundedAt: new Date() },
           },

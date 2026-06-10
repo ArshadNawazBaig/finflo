@@ -307,6 +307,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         totalAmount: actualSettlementAmount,
         paidAmount: actualSettlementAmount,
         remainingAmount: 0,
+        outstandingPrincipal: 0,
         status: 'completed',
       },
       { new: true, session },
@@ -338,6 +339,9 @@ const processRepayment = async (loan, amount, req, options = {}) => {
         $inc: {
           paidAmount: repaymentAmount,
           remainingAmount: -repaymentAmount,
+          // Reduce tracked principal by the principal portion only (not the
+          // interest/fee portion), so the interest base stays principal-only.
+          outstandingPrincipal: -principalAmount,
         },
         // If the loan was overdue, a payment brings it back to active
         ...(loan.status === 'overdue' ? { status: 'active' } : {}),
@@ -354,7 +358,15 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     // Safeguard remainingAmount (rounding or floating point issues)
     if (updatedLoan.remainingAmount < 0.01) {
       updatedLoan.remainingAmount = 0;
+      updatedLoan.outstandingPrincipal = 0;
       updatedLoan.status = 'completed';
+      await updatedLoan.save({ session });
+    } else if (
+      typeof updatedLoan.outstandingPrincipal === 'number' &&
+      updatedLoan.outstandingPrincipal < 0
+    ) {
+      // Never let principal tracking drift negative from rounding.
+      updatedLoan.outstandingPrincipal = 0;
       await updatedLoan.save({ session });
 
       // Log activity for auto-completion

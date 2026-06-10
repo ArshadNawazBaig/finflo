@@ -93,7 +93,35 @@ but report boundaries used server-local time (**fixed: process anchored to Karac
 | M7 | Daily transfer-limit window used UTC midnight (05:00 PKT seam) | `services/transferLimits.js` (Karachi day boundaries) |
 | M8 | CTR report-number race drops a regulatory filing | `models/CurrencyTransactionReport.js` (unique suffix; recommend atomic counter) |
 
-### Documented for accounting-policy sign-off (NOT changed — changing them silently could break statement footing)
+### Accounting-policy items — RESOLVED & IMPLEMENTED (post sign-off)
+
+The owner signed off on the policy decisions below; all are implemented with tests:
+
+- **B1 — Two late-fee engines (decision: keep both, gate them).** Added `Loan.lateFeeSource`;
+  whichever engine charges a loan first in a calendar month owns it — the daily cron now
+  skips loans the manual flat-fee engine charged this month, and the manual path already
+  skips cron-charged loans. They can no longer stack. *(test: cron does not stack on a manual fee)*
+- **B2 — Distributions (decision: equity appropriation).** P&L `netIncome` is now
+  `revenue − operating expenses` only; distributions are reported below it with an explicit
+  `retainedEarningsMovement = netIncome − distributions` that ties to the balance sheet.
+- **B4 — Term deposits (decision: transfer + accrue over term).** TD funding is reclassified
+  from `income` to a `debit` (wallet→lock reclass, no phantom revenue). The balance sheet now
+  recognizes **accrued-to-date** TD profit (straight-line) in both the liability and the equity
+  offset — symmetric, so it still foots. *(test: obligation = principal + ~½ projected at mid-term)*
+- **B5/B8 — Principal tracking (decision: add outstandingPrincipal + fix disbursement).**
+  Added `Loan.outstandingPrincipal` (set at all 4 origination sites; decremented by the principal
+  portion of each repayment; zeroed on settlement). Compound interest now accrues on
+  **principal only** (capitalized into principal), never on accrued late fees or prior interest.
+  Backfill migration: `scripts/backfillOutstandingPrincipal.js`. *(tests: repayment decrements
+  principal; compound ignores late fees)*
+  **Partial:** the *disbursement-inflates-`totalInvested`* half is intentionally NOT shipped in
+  isolation — the member-balance reconciliation invariant is defined as
+  `totalInvested − totalWithdrawn + totalProfit`, so removing disbursement from `totalInvested`
+  alone would break a currently-passing reconcile and the balance-sheet foot. It needs a
+  coordinated change (new disbursement-proceeds field + reconcile + balance-sheet liability
+  classification) and is flagged as the one remaining structural item.
+
+### Still documented for sign-off (lower priority)
 
 - **B1 — Two late-fee engines.** `lateFeeService.applyLateFees` (manual, flat, monthly
   guard) and `scheduledTasksService.runLateFeeAccrual` (cron, daily-prorated) both
