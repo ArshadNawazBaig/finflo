@@ -6,6 +6,7 @@ const Repayment = require('../models/Repayment');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const Member = require('../models/Member');
+const Investment = require('../models/Investment');
 const { logActivity } = require('./activityLogController');
 const {
   calculatePercentageChange,
@@ -323,11 +324,6 @@ const deleteBranch = async (req, res) => {
 
     await Branch.findByIdAndDelete(req.params.id);
 
-    await User.updateMany(
-      { branchId: req.params.id },
-      { $unset: { branchId: '' } },
-    );
-
     // If we removed the default branch, promote the oldest remaining branch so a
     // tenant with branches always has exactly one default for member attribution.
     if (branch.isDefault) {
@@ -339,6 +335,33 @@ const deleteBranch = async (req, res) => {
         await next.save();
       }
     }
+
+    // Re-home everything that pointed at the deleted branch onto the surviving
+    // default branch (or unset when no branch remains). Skipping this orphans
+    // loans/customers/transactions on a dangling branchId — they then belong to
+    // no existing branch, so the Cross-Branch Comparison silently drops them and
+    // every per-branch KPI for the reassigned data reads 0.
+    const fallbackBranch = await Branch.findOne({
+      owner: req.user._id,
+      isDefault: true,
+    }).select('_id');
+    const reassign = fallbackBranch
+      ? { $set: { branchId: fallbackBranch._id } }
+      : { $unset: { branchId: '' } };
+
+    await Promise.all([
+      // Managers/staff lose their branch link entirely (a manager of a deleted
+      // branch is no longer a manager); members and their records move over.
+      User.updateMany(
+        { branchId: req.params.id },
+        { $unset: { branchId: '', managedBranchId: '' } },
+      ),
+      Member.updateMany({ branchId: req.params.id }, reassign),
+      Customer.updateMany({ branchId: req.params.id }, reassign),
+      Loan.updateMany({ branchId: req.params.id }, reassign),
+      FinancialTransaction.updateMany({ branchId: req.params.id }, reassign),
+      Investment.updateMany({ branchId: req.params.id }, reassign),
+    ]);
 
     // Log activity
     await logActivity({
