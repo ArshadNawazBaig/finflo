@@ -70,12 +70,21 @@ ctrSchema.index({ user: 1, filingStatus: 1 });
 ctrSchema.index({ user: 1, createdAt: -1 });
 ctrSchema.index({ reportNumber: 1 }, { unique: true });
 
-// Auto-generate report number
+// Auto-generate report number.
+// NOTE: `countDocuments + 1` is NOT atomic — two CTRs created concurrently for the
+// same tenant computed the same sequence number and the second save threw on the
+// unique index, silently DROPPING a regulatory filing. We append a short token
+// derived from the document's own _id so the number is always unique (no dropped
+// filing) while staying human-readable and roughly ordered. For strictly
+// contiguous numbering, replace this with an atomic counter document.
 ctrSchema.pre('save', async function () {
   if (!this.reportNumber) {
     const year = new Date().getFullYear();
-    const count = await mongoose.model('CurrencyTransactionReport').countDocuments({ user: this.user });
-    this.reportNumber = `CTR-${year}-${String(count + 1).padStart(5, '0')}`;
+    const count = await mongoose
+      .model('CurrencyTransactionReport')
+      .countDocuments({ user: this.user });
+    const uniqueSuffix = this._id.toString().slice(-4).toUpperCase();
+    this.reportNumber = `CTR-${year}-${String(count + 1).padStart(5, '0')}-${uniqueSuffix}`;
   }
 });
 

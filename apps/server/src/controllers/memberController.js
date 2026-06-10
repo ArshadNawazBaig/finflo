@@ -1617,46 +1617,73 @@ const addInvestment = async (req, res) => {
       ? { totalSavingDeposited: amount, savingBalance: amount }
       : { totalInvested: amount, currentBalance: amount };
 
-    const updatedMember = await Member.findOneAndUpdate(
-      { _id: id, user: userId },
-      { $inc: incFields },
-      { new: true },
-    );
+    // Wrap the balance mutation + both ledger writes in one transaction so a crash
+    // can never leave the member balance changed without a matching Investment /
+    // FinancialTransaction (ledger drift). Previously these were three unguarded
+    // sequential writes.
+    const depositSession = await mongoose.startSession();
+    let updatedMember;
+    let investment;
+    let balanceAfter;
+    try {
+      depositSession.startTransaction();
 
-    if (!updatedMember) {
-      return res.status(404).json({ message: 'Member not found' });
+      updatedMember = await Member.findOneAndUpdate(
+        { _id: id, user: userId },
+        { $inc: incFields },
+        { new: true, session: depositSession },
+      );
+
+      if (!updatedMember) {
+        throw new Error('Member not found');
+      }
+
+      balanceAfter = isSaving
+        ? updatedMember.savingBalance
+        : updatedMember.currentBalance;
+
+      const [createdInvestment] = await Investment.create(
+        [
+          {
+            user: userId,
+            member: id,
+            branchId: member.branchId,
+            type: 'deposit',
+            amount,
+            accountType,
+            description: description || systemDescription,
+            balanceAfter,
+          },
+        ],
+        { session: depositSession },
+      );
+      investment = createdInvestment;
+
+      const financialTx = new FinancialTransaction({
+        user: userId,
+        branchId: member.branchId,
+        type: 'credit',
+        category: isSaving ? 'saving_deposit' : 'investment',
+        amount,
+        date: new Date(),
+        description: description || systemDescription,
+        notes: userNotes || undefined,
+        paymentMethod,
+        member: member._id,
+        referenceId: investment._id,
+        referenceModel: 'Investment',
+      });
+      await financialTx.save({ session: depositSession });
+
+      await depositSession.commitTransaction();
+    } catch (depositErr) {
+      await depositSession.abortTransaction();
+      depositSession.endSession();
+      return res
+        .status(depositErr.message === 'Member not found' ? 404 : 500)
+        .json({ message: depositErr.message || 'Failed to add deposit' });
     }
-
-    const balanceAfter = isSaving ? updatedMember.savingBalance : updatedMember.currentBalance;
-
-    // Create investment record
-    const investment = await Investment.create({
-      user: userId,
-      member: id,
-      branchId: member.branchId,
-      type: 'deposit',
-      amount,
-      accountType,
-      description: description || systemDescription,
-      balanceAfter,
-    });
-
-    // Create Financial Transaction
-    const financialTx = new FinancialTransaction({
-      user: userId,
-      branchId: member.branchId,
-      type: 'credit',
-      category: isSaving ? 'saving_deposit' : 'investment',
-      amount,
-      date: new Date(),
-      description: description || systemDescription,
-      notes: userNotes || undefined,
-      paymentMethod,
-      member: member._id,
-      referenceId: investment._id,
-      referenceModel: 'Investment',
-    });
-    await financialTx.save();
+    depositSession.endSession();
 
     // Log activity with before/after state
     await logActivity({
@@ -1872,68 +1899,100 @@ const withdrawInvestment = async (req, res) => {
       : { currentBalance: -amount, totalWithdrawn: amount };
 
     const balanceField = isSaving ? 'savingBalance' : 'currentBalance';
-    const updatedMember = await Member.findOneAndUpdate(
-      { _id: id, user: userId, [balanceField]: { $gte: amount } },
-      { $inc: incFields },
-      { new: true },
-    );
 
-    if (!updatedMember) {
-      // Either the member is gone or another concurrent request consumed
-      // the funds — surface as insufficient balance to the caller.
-      return res
-        .status(400)
-        .json({ message: `Insufficient ${isSaving ? 'saving' : 'current'} account balance for withdrawal` });
-    }
+    // Wrap the balance decrement + ledger writes + checkbook leaf increment in one
+    // transaction so a crash can never leave the balance reduced without a matching
+    // withdrawal record (or a consumed check leaf without a debit). The `$gte`
+    // predicate still closes the concurrent-overdraft TOCTOU window.
+    const withdrawSession = await mongoose.startSession();
+    let updatedMember;
+    let investment;
+    let balanceAfter;
+    try {
+      withdrawSession.startTransaction();
 
-    const balanceAfter = isSaving ? updatedMember.savingBalance : updatedMember.currentBalance;
+      updatedMember = await Member.findOneAndUpdate(
+        { _id: id, user: userId, [balanceField]: { $gte: amount } },
+        { $inc: incFields },
+        { new: true, session: withdrawSession },
+      );
 
-    // Create investment record
-    const investment = await Investment.create({
-      user: userId,
-      member: id,
-      branchId: member.branchId,
-      type: 'withdrawal',
-      amount,
-      accountType,
-      description: (description || systemDescription) + checkbookLabel,
-      balanceAfter,
-      metadata: checkbookDoc
-        ? {
-            checkbookId: checkbookDoc._id,
-            checkbookNumber: checkbookDoc.checkbookNumber,
-            checkNo: checkNo || undefined,
-            ...(bearerInfo ? { bearer: bearerInfo } : {}),
-          }
-        : {},
-    });
-
-    // ── Increment checkbook used leaves ───────────────────────────────────
-    if (checkbookDoc) {
-      checkbookDoc.usedLeaves += 1;
-      if (checkbookDoc.usedLeaves >= checkbookDoc.numberOfLeaves) {
-        checkbookDoc.status = 'used';
+      if (!updatedMember) {
+        // Either the member is gone or another concurrent request consumed the
+        // funds — surface as insufficient balance to the caller.
+        throw new Error('INSUFFICIENT_BALANCE');
       }
-      await checkbookDoc.save();
-    }
 
-    // Create Financial Transaction
-    const financialTx = new FinancialTransaction({
-      user: userId,
-      branchId: member.branchId,
-      type: 'debit',
-      category: isSaving ? 'saving_withdrawal' : 'withdrawal',
-      amount,
-      date: new Date(),
-      description: (description || systemDescription) + checkbookLabel,
-      notes: userNotes || undefined,
-      paymentMethod,
-      member: member._id,
-      referenceId: investment._id,
-      referenceModel: 'Investment',
-      checkbookId: checkbookDoc?._id || undefined,
-    });
-    await financialTx.save();
+      balanceAfter = isSaving
+        ? updatedMember.savingBalance
+        : updatedMember.currentBalance;
+
+      const [createdInvestment] = await Investment.create(
+        [
+          {
+            user: userId,
+            member: id,
+            branchId: member.branchId,
+            type: 'withdrawal',
+            amount,
+            accountType,
+            description: (description || systemDescription) + checkbookLabel,
+            balanceAfter,
+            metadata: checkbookDoc
+              ? {
+                  checkbookId: checkbookDoc._id,
+                  checkbookNumber: checkbookDoc.checkbookNumber,
+                  checkNo: checkNo || undefined,
+                  ...(bearerInfo ? { bearer: bearerInfo } : {}),
+                }
+              : {},
+          },
+        ],
+        { session: withdrawSession },
+      );
+      investment = createdInvestment;
+
+      // ── Increment checkbook used leaves ───────────────────────────────────
+      if (checkbookDoc) {
+        checkbookDoc.usedLeaves += 1;
+        if (checkbookDoc.usedLeaves >= checkbookDoc.numberOfLeaves) {
+          checkbookDoc.status = 'used';
+        }
+        await checkbookDoc.save({ session: withdrawSession });
+      }
+
+      // Create Financial Transaction
+      const financialTx = new FinancialTransaction({
+        user: userId,
+        branchId: member.branchId,
+        type: 'debit',
+        category: isSaving ? 'saving_withdrawal' : 'withdrawal',
+        amount,
+        date: new Date(),
+        description: (description || systemDescription) + checkbookLabel,
+        notes: userNotes || undefined,
+        paymentMethod,
+        member: member._id,
+        referenceId: investment._id,
+        referenceModel: 'Investment',
+        checkbookId: checkbookDoc?._id || undefined,
+      });
+      await financialTx.save({ session: withdrawSession });
+
+      await withdrawSession.commitTransaction();
+    } catch (withdrawErr) {
+      await withdrawSession.abortTransaction();
+      withdrawSession.endSession();
+      if (withdrawErr.message === 'INSUFFICIENT_BALANCE') {
+        return res.status(400).json({
+          message: `Insufficient ${isSaving ? 'saving' : 'current'} account balance for withdrawal`,
+        });
+      }
+      return res
+        .status(500)
+        .json({ message: withdrawErr.message || 'Failed to process withdrawal' });
+    }
+    withdrawSession.endSession();
 
     // Log activity with before/after state
     await logActivity({
@@ -2350,13 +2409,38 @@ const distributeProfit = async (req, res) => {
           .json({ message: 'No weighted average balance found in period' });
       }
 
+      // Largest-remainder allocation: the sum of credited amounts must equal the
+      // declared pool EXACTLY. Rounding each member's share independently lost or
+      // created rupees (e.g. 100 split 3 ways → 33+33+33 = 99) and silently broke
+      // the "sum of payouts == pool" invariant. Floor everyone, then hand the
+      // leftover rupees to the largest fractional remainders, one each.
+      const profitAllocations = (() => {
+        const eligible = memberBalances.filter((i) => i.weightedBalance > 0);
+        const rows = eligible.map((i) => {
+          const exact = (i.weightedBalance / totalWeightedPool) * totalProfit;
+          const floorAmt = Math.floor(exact);
+          return { id: String(i.member._id), amount: floorAmt, frac: exact - floorAmt };
+        });
+        let leftover = Math.round(
+          totalProfit - rows.reduce((s, r) => s + r.amount, 0),
+        );
+        rows
+          .slice()
+          .sort((a, b) => b.frac - a.frac)
+          .forEach((r) => {
+            if (leftover > 0) {
+              r.amount += 1;
+              leftover -= 1;
+            }
+          });
+        return new Map(rows.map((r) => [r.id, r.amount]));
+      })();
+
       for (const item of memberBalances) {
         const { member, weightedBalance } = item;
         if (weightedBalance > 0) {
           const share = (weightedBalance / totalWeightedPool) * 100;
-          const profitAmount = Math.round(
-            (weightedBalance / totalWeightedPool) * totalProfit,
-          );
+          const profitAmount = profitAllocations.get(String(member._id)) || 0;
 
           if (profitAmount <= 0) continue;
 
@@ -2807,11 +2891,15 @@ const transferFunds = async (req, res) => {
     if (senderRes.modifiedCount !== 1) {
       throw new Error(`Insufficient ${accountType} balance`);
     }
+    // Credit the recipient into the SAME account type the sender debited. Crediting
+    // a saving-account debit into the recipient's CURRENT balance silently moved
+    // funds across account types and distorted the saving-profit accrual base.
+    const recipientInc = accountType === 'current'
+      ? { currentBalance: transferAmount, totalInvested: transferAmount }
+      : { savingBalance: transferAmount, totalSavingDeposited: transferAmount };
     await Member.updateOne(
       { _id: recipient._id },
-      {
-        $inc: { currentBalance: transferAmount, totalInvested: transferAmount },
-      },
+      { $inc: recipientInc },
       { session },
     );
 
@@ -2828,6 +2916,7 @@ const transferFunds = async (req, res) => {
       branchId: sender.branchId,
       type: 'transfer_send',
       amount: transferAmount,
+      accountType,
       balanceAfter: accountType === 'current' ? updatedSender.currentBalance : updatedSender.savingBalance,
       description: description || `Transfer to ${recipient.name}`,
       date: new Date(),
@@ -2846,7 +2935,8 @@ const transferFunds = async (req, res) => {
       branchId: recipient.branchId,
       type: 'transfer_receive',
       amount: transferAmount,
-      balanceAfter: updatedRecipient.currentBalance,
+      accountType,
+      balanceAfter: accountType === 'current' ? updatedRecipient.currentBalance : updatedRecipient.savingBalance,
       description: description || `Transfer from ${sender.name}`,
       date: new Date(),
       metadata: {
@@ -3859,6 +3949,37 @@ const distributeShareProfit = async (req, res) => {
         .json({ message: 'No weighted average share balance found in period' });
     }
 
+    // Largest-remainder allocation for the proportional (pool-based) path so the
+    // sum of credited share-profit equals the declared pool EXACTLY. The custom-rate
+    // path is per-member (rate% of own balance) and has no pool to conserve.
+    const shareAllocations = (() => {
+      if (useCustomRates || totalWeightedSharePool === 0) return new Map();
+      const eligible = memberShares.filter((i) => i.weightedShareBalance > 0);
+      const rows = eligible.map((i) => {
+        const exact =
+          (i.weightedShareBalance / totalWeightedSharePool) * profitPool;
+        const floorAmt = Math.floor(exact);
+        return {
+          id: String(i.member._id),
+          amount: floorAmt,
+          frac: exact - floorAmt,
+        };
+      });
+      let leftover = Math.round(
+        profitPool - rows.reduce((s, r) => s + r.amount, 0),
+      );
+      rows
+        .slice()
+        .sort((a, b) => b.frac - a.frac)
+        .forEach((r) => {
+          if (leftover > 0) {
+            r.amount += 1;
+            leftover -= 1;
+          }
+        });
+      return new Map(rows.map((r) => [r.id, r.amount]));
+    })();
+
     for (const item of memberShares) {
       const { member, weightedShareBalance } = item;
       let profitAmount = 0;
@@ -3878,9 +3999,7 @@ const distributeShareProfit = async (req, res) => {
       } else {
         if (weightedShareBalance > 0) {
           sharePercent = (weightedShareBalance / totalWeightedSharePool) * 100;
-          profitAmount = Math.round(
-            (weightedShareBalance / totalWeightedSharePool) * profitPool,
-          );
+          profitAmount = shareAllocations.get(String(member._id)) || 0;
           calculationInfo = `Proportional: ${sharePercent.toFixed(2)}% of pool based on Weighted Avg Share Balance (Rs. ${Math.round(weightedShareBalance).toLocaleString()})`;
         }
       }

@@ -46,8 +46,12 @@ const externalTransferSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Completed', 'Failed'],
-      default: 'Completed',
+      // 'Processing' is what the payout provider returns for an async, not-yet-settled
+      // transfer; without it ext.save() threw a ValidationError that was swallowed,
+      // leaving providerRef/status unpersisted. Outbound transfers must start life as
+      // 'Pending' (unconfirmed), never default to 'Completed'.
+      enum: ['Pending', 'Processing', 'Completed', 'Failed'],
+      default: 'Pending',
     },
     referenceId: {
       type: String,

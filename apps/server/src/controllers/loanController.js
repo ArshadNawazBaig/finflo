@@ -730,6 +730,12 @@ const requestLoan = async (req, res) => {
     let emi = 0,
       totalAmount = principal;
 
+    // Member self-service requests are always booked as simple interest (see the
+    // Loan document below: interestType: 'simple'). `interestType` was never
+    // destructured from req.body in this handler, so referencing it here threw a
+    // ReferenceError and broke every member loan request whenever rate > 0.
+    const interestType = 'simple';
+
     if (rate > 0) {
       const calcFn = interestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
       const result = calcFn(principal, rate, duration);

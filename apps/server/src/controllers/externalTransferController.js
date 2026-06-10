@@ -104,6 +104,7 @@ const initiateExternalTransfer = async (req, res) => {
 
     // ── Attempt Real Payout ───────────────────────────────────────────────
     let payoutResult;
+    let payoutFailed = false;
     try {
       payoutResult = await payoutService.sendTransfer({
         bankCode: bankName, // Or map bankName to bankCode if provider requires codes
@@ -124,8 +125,39 @@ const initiateExternalTransfer = async (req, res) => {
       }
     } catch (payoutError) {
       console.error('Payout Initiation Failed:', payoutError.message);
-      // We could either fail the whole request or keep it as 'Pending' for manual retry
-      // For now, let's keep it 'Pending' so admins can see it even if API failed once
+      payoutFailed = true;
+    }
+
+    if (payoutFailed) {
+      // The provider rejected the transfer outright (no money left the institution).
+      // Reverse the debit in the same transaction so the member is never left short
+      // with no money sent and no record of why, and mark the transfer Failed for
+      // an auditable trail. The earlier behaviour committed the debit and left the
+      // transfer 'Pending' forever — silently destroying the member's funds.
+      const reverted = await Member.findByIdAndUpdate(
+        memberId,
+        {
+          $inc: {
+            currentBalance: transferAmount,
+            totalWithdrawn: -transferAmount,
+          },
+        },
+        { new: true, session },
+      );
+
+      ext.status = 'Failed';
+      ext.balanceAfter = reverted.currentBalance;
+      await ext.save({ session });
+
+      await session.commitTransaction();
+
+      return res.status(502).json({
+        message:
+          'Transfer could not be initiated with the bank. Your balance has not been charged.',
+        referenceId: ext.referenceId,
+        balanceAfter: reverted.currentBalance,
+        transfer: ext,
+      });
     }
 
     await Investment.create(

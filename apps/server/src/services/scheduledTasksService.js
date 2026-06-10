@@ -865,28 +865,59 @@ const runCompoundInterestAccrual = async () => {
         // If the borrower is up to date, no compounding needed
         if (installmentsPaid >= monthsSinceStart) continue;
 
-        // Calculate one month's interest on the current remaining balance
-        const monthlyInterest = Math.round(
-          (loan.remainingAmount * loan.rate) / 1200
-        );
+        // Compound interest exactly ONCE per missed installment-period. The old
+        // code added a full month's interest every single day the loan stayed
+        // overdue (the daily `lastCompoundedAt < today` guard only blocked a second
+        // charge on the SAME day) — so one missed installment compounded ~30× per
+        // month and the balance exploded. We now track how many periods have
+        // already been capitalized (`compoundedPeriods`) and only charge the
+        // not-yet-compounded periods.
+        const overduePeriods = monthsSinceStart - installmentsPaid;
+        const alreadyCompounded = loan.compoundedPeriods || 0;
+        const periodsToCompound = overduePeriods - alreadyCompounded;
+        if (periodsToCompound <= 0) continue;
 
-        if (monthlyInterest <= 0) continue;
+        // Capitalize one month of interest for each missed period, compounding on
+        // the running balance (interest-on-interest across distinct missed months).
+        let runningBalance = loan.remainingAmount;
+        let interestToAdd = 0;
+        for (let p = 0; p < periodsToCompound; p++) {
+          const periodInterest = Math.round((runningBalance * loan.rate) / 1200);
+          if (periodInterest <= 0) break;
+          interestToAdd += periodInterest;
+          runningBalance += periodInterest;
+        }
 
-        // Daily de-duplication: only compound once per day
+        if (interestToAdd <= 0) continue;
+
+        const monthlyInterest = interestToAdd; // for the notification below
+
+        // CAS on compoundedPeriods makes this idempotent across duplicate/concurrent
+        // cron runs: only the run that observes the expected prior count wins.
+        // Loans created before this field existed have NO `compoundedPeriods` key;
+        // a plain `{ compoundedPeriods: 0 }` predicate would NOT match a missing
+        // field, so legacy overdue loans must also match absent/null.
+        const periodCas =
+          alreadyCompounded === 0
+            ? {
+                $or: [
+                  { compoundedPeriods: 0 },
+                  { compoundedPeriods: { $exists: false } },
+                  { compoundedPeriods: null },
+                ],
+              }
+            : { compoundedPeriods: alreadyCompounded };
         const updatedLoan = await Loan.findOneAndUpdate(
           {
             _id: loan._id,
-            $or: [
-              { lastCompoundedAt: { $exists: false } },
-              { lastCompoundedAt: null },
-              { lastCompoundedAt: { $lt: today } },
-            ],
+            ...periodCas,
           },
           {
             $inc: {
-              totalAmount: monthlyInterest,
-              remainingAmount: monthlyInterest,
-              compoundedAmount: monthlyInterest,
+              totalAmount: interestToAdd,
+              remainingAmount: interestToAdd,
+              compoundedAmount: interestToAdd,
+              compoundedPeriods: periodsToCompound,
             },
             $set: { lastCompoundedAt: new Date() },
           },

@@ -45,6 +45,10 @@ const loanSchema = new mongoose.Schema(
     },
     compoundedAmount: { type: Number, default: 0 },
     lastCompoundedAt: { type: Date },
+    // Number of distinct missed installment-periods that have already had interest
+    // capitalized. Used to compound interest exactly ONCE per missed period instead
+    // of every day the loan stays overdue. Acts as an idempotency/CAS key.
+    compoundedPeriods: { type: Number, default: 0 },
     notes: { type: String }, // Member-submitted purpose/notes
     documents: [
       {

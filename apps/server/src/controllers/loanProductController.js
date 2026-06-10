@@ -56,13 +56,17 @@ const updateLoanProduct = async (req, res) => {
   try {
     // Whitelist updatable fields — never pass req.body straight into Mongo,
     // or a caller can reassign `user` / `createdBy` and break tenant isolation.
+    // Field names MUST match the LoanProduct schema. The previous list used
+    // defaultRate/defaultDuration/minPrincipal/maxPrincipal — none of which exist
+    // on the schema — so editing a product's rate/duration/amounts silently no-oped
+    // (200 OK with stale values), letting mispriced terms propagate into new loans.
     const ALLOWED_FIELDS = [
       'name',
       'description',
-      'defaultRate',
-      'defaultDuration',
-      'minPrincipal',
-      'maxPrincipal',
+      'interestRate',
+      'duration',
+      'minAmount',
+      'maxAmount',
       'interestType',
       'isActive',
     ];

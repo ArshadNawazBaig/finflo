@@ -5,6 +5,7 @@ const User = require('../models/User');
 const {
   calculatePercentageChange,
   getMonthDates,
+  EXCLUDED_OPEX_CATEGORIES,
 } = require('../utils/reportUtils');
 
 const FinancialTransaction = require('../models/FinancialTransaction');
@@ -389,7 +390,26 @@ const getDashboardStats = async (req, res) => {
             $sum: { $cond: [{ $eq: ['$type', 'loan'] }, '$amount', 0] },
           },
           totalExpenses: {
-            $sum: { $cond: [{ $eq: ['$category', 'expense'] }, '$amount', 0] },
+            // Operating expenses = type:'expense' minus the non-opex/shadow
+            // categories (capital moves, profit-distribution shadows), excluding
+            // reversed originals and reversal counter-entries. The previous
+            // `category === 'expense'` never matched any row (categories are
+            // rent/salary/etc.), so this KPI was structurally always 0.
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$type', 'expense'] },
+                    { $not: [{ $in: ['$category', EXCLUDED_OPEX_CATEGORIES] }] },
+                    { $ne: ['$status', 'Reversed'] },
+                    // missing OR null originalTransaction = not a reversal counter-entry
+                    { $not: ['$originalTransaction'] },
+                  ],
+                },
+                '$amount',
+                0,
+              ],
+            },
           }, // for operating expenses
         },
       },
