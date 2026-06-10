@@ -83,15 +83,19 @@ const ensureSeededTiers = async (userId) => {
   return TransferLimitTier.find({ user: userId }).sort({ slot: 1 }).lean();
 };
 
-const getStartOfTodayUTC = () => {
+// Day boundaries in the application timezone (Asia/Karachi, anchored at process
+// start). Using UTC midnight here meant the daily limit reset at 05:00 PKT, so a
+// member could spend a full day's cap on either side of the 05:00 seam — i.e.
+// twice the intended limit within one Karachi calendar day.
+const getStartOfToday = () => {
   const d = new Date();
-  d.setUTCHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
   return d;
 };
 
-const getEndOfTodayUTC = () => {
+const getEndOfToday = () => {
   const d = new Date();
-  d.setUTCHours(23, 59, 59, 999);
+  d.setHours(23, 59, 59, 999);
   return d;
 };
 
@@ -121,7 +125,7 @@ const getDailyDebitSum = async (memberId) => {
     {
       $match: {
         member: new mongoose.Types.ObjectId(memberId),
-        date: { $gte: getStartOfTodayUTC(), $lte: getEndOfTodayUTC() },
+        date: { $gte: getStartOfToday(), $lte: getEndOfToday() },
         type: { $in: ['transfer_send', 'withdrawal'] },
         status: { $ne: 'Reversed' },
       },

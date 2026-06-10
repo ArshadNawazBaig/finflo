@@ -2,7 +2,11 @@ const calculatePercentageChange = (current, previous) => {
   if (previous === 0) {
     return current > 0 ? 100 : 0;
   }
-  const change = ((current - previous) / previous) * 100;
+  // Divide by |previous|, not previous. Several baselines here can be negative
+  // (net liquidity, net business capital, net income); dividing by a negative
+  // previous flipped the sign so an improvement (-10k → +10k) reported as a
+  // -200% decline.
+  const change = ((current - previous) / Math.abs(previous)) * 100;
   return Number(change.toFixed(1));
 };
 

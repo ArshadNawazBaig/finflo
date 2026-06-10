@@ -18,7 +18,17 @@ const investmentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['deposit', 'withdrawal', 'transfer_send', 'transfer_receive', 'profit'],
+      // 'loan_disbursement' credits the wallet like a deposit but is tracked
+      // separately (Member.totalLoanProceeds) so borrowed money is NOT counted as
+      // member capital / deposits in reports.
+      enum: [
+        'deposit',
+        'withdrawal',
+        'transfer_send',
+        'transfer_receive',
+        'profit',
+        'loan_disbursement',
+      ],
       required: true,
     },
     amount: { type: Number, required: true },
@@ -34,6 +44,8 @@ const investmentSchema = new mongoose.Schema(
     },
     date: { type: Date, default: Date.now },
     description: { type: String },
+    // Set for type 'loan_disbursement' so proceeds can be traced/backfilled.
+    loan: { type: mongoose.Schema.Types.ObjectId, ref: 'Loan' },
     balanceAfter: { type: Number }, // Member's balance after this transaction
     metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   },

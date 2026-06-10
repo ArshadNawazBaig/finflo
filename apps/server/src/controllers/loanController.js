@@ -429,10 +429,21 @@ const createLoan = async (req, res) => {
     const customerHistory = await Loan.find({ customer: customerId });
     const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
 
+    // Resolve the branch from the most reliable source so the loan lands on the
+    // SAME branch as the member/customer. Business owners usually have no
+    // branchId, and the Customer record can lack one even when the Member has it —
+    // without this fallback the loan (and its disbursement) gets a null branch and
+    // disappears from every per-branch report (Disbursed/Outstanding/Active/Outflow).
+    let resolvedBranchId = req.user.branchId || customer.branchId;
+    if (!resolvedBranchId && customer.memberId) {
+      const branchMember = await Member.findById(customer.memberId).select('branchId');
+      resolvedBranchId = branchMember?.branchId || resolvedBranchId;
+    }
+
     const loan = new Loan({
       user: req.user.effectiveOwnerId,
       customer: customerId,
-      branchId: req.user.branchId || customer.branchId, // Prioritize user's branch, fall back to customer's branch
+      branchId: resolvedBranchId, // member/customer branch (owner has none)
       principal,
       rate,
       duration,
@@ -440,6 +451,9 @@ const createLoan = async (req, res) => {
       totalAmount,
       startDate,
       remainingAmount: totalAmount,
+      // Principal still owed, tracked separately from remainingAmount so interest
+      // and late fees never accrue on top of fees/capitalized interest.
+      outstandingPrincipal: principal,
       interestType,
       status: 'pending',
       grantor1: grantor1Id,
@@ -730,6 +744,12 @@ const requestLoan = async (req, res) => {
     let emi = 0,
       totalAmount = principal;
 
+    // Member self-service requests are always booked as simple interest (see the
+    // Loan document below: interestType: 'simple'). `interestType` was never
+    // destructured from req.body in this handler, so referencing it here threw a
+    // ReferenceError and broke every member loan request whenever rate > 0.
+    const interestType = 'simple';
+
     if (rate > 0) {
       const calcFn = interestType === 'compound' ? calculateCompoundInterest : calculateSimpleInterest;
       const result = calcFn(principal, rate, duration);
@@ -771,6 +791,7 @@ const requestLoan = async (req, res) => {
       totalAmount,
       startDate: new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: principal,
       interestType: 'simple',
       status: 'pending',
       grantor1: grantor1._id,
@@ -1906,7 +1927,9 @@ const approveLoan = async (req, res) => {
     if (customerDoc?.isMember && customerDoc?.memberId) {
       const updatedMember = await Member.findByIdAndUpdate(
         customerDoc.memberId,
-        { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+        // Loan proceeds credit the wallet but are NOT member capital — track them
+        // in totalLoanProceeds, not totalInvested, so the deposit base stays clean.
+        { $inc: { currentBalance: loan.principal, totalLoanProceeds: loan.principal } },
         { new: true },
       );
 
@@ -1915,9 +1938,10 @@ const approveLoan = async (req, res) => {
           user: req.user.effectiveOwnerId,
           member: customerDoc.memberId,
           branchId: loan.branchId || updatedMember.branchId,
-          type: 'deposit',
+          type: 'loan_disbursement',
           amount: loan.principal,
           balanceAfter: updatedMember.currentBalance,
+          loan: loan._id,
           description: `Loan Disbursement — #${loan._id.toString().slice(-6).toUpperCase()}`,
           date: new Date(),
         });
@@ -2463,7 +2487,8 @@ const bulkApproveLoans = async (req, res) => {
         if (customerDoc?.isMember && customerDoc?.memberId) {
           const updatedMember = await Member.findByIdAndUpdate(
             customerDoc.memberId,
-            { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+            // Loan proceeds → totalLoanProceeds, not totalInvested (not capital).
+            { $inc: { currentBalance: loan.principal, totalLoanProceeds: loan.principal } },
             { new: true },
           );
 
@@ -2472,9 +2497,10 @@ const bulkApproveLoans = async (req, res) => {
               user: req.user.effectiveOwnerId,
               member: customerDoc.memberId,
               branchId: loan.branchId || updatedMember.branchId,
-              type: 'deposit',
+              type: 'loan_disbursement',
               amount: loan.principal,
               balanceAfter: updatedMember.currentBalance,
+              loan: loan._id,
               description: `Loan Disbursement (Bulk) — #${loan._id.toString().slice(-6).toUpperCase()}`,
               date: new Date(),
             });
@@ -3231,6 +3257,7 @@ const renewLoan = async (req, res) => {
       totalAmount,
       startDate: startDate ? new Date(startDate) : new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: newPrincipal,
       paidAmount: 0,
       interestType: newInterestType,
       status: 'active',
@@ -3368,6 +3395,7 @@ const requestLoanRenewal = async (req, res) => {
       totalAmount,
       startDate: new Date(),
       remainingAmount: totalAmount,
+      outstandingPrincipal: newPrincipal,
       paidAmount: 0,
       interestType,
       status: 'pending',

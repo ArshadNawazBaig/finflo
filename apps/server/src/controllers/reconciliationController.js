@@ -100,7 +100,7 @@ const getReconciliation = async (req, res) => {
 async function reconcileMemberBalances(query, dateRange = {}) {
   try {
     const members = await Member.find(query).select(
-      'name currentBalance totalInvested totalWithdrawn totalProfit branchId',
+      'name currentBalance totalInvested totalLoanProceeds totalWithdrawn totalProfit branchId',
     );
 
     const discrepancies = [];
@@ -108,9 +108,10 @@ async function reconcileMemberBalances(query, dateRange = {}) {
 
     for (const member of members) {
       checked++;
-      // Expected balance: totalInvested - totalWithdrawn + totalProfit
+      // Expected balance: totalInvested + totalLoanProceeds − totalWithdrawn + totalProfit
       const expected =
-        (member.totalInvested || 0) -
+        (member.totalInvested || 0) +
+        (member.totalLoanProceeds || 0) -
         (member.totalWithdrawn || 0) +
         (member.totalProfit || 0);
       const actual = member.currentBalance || 0;
@@ -263,7 +264,7 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
     }
 
     const baseQuery = user.isSuperAdmin ? {} : { user: user.effectiveOwnerId };
-    const members = await Member.find(baseQuery).select('totalInvested totalWithdrawn branchId totalSavingDeposited totalSavingWithdrawn totalShareInvested');
+    const members = await Member.find(baseQuery).select('totalInvested totalLoanProceeds totalWithdrawn branchId totalSavingDeposited totalSavingWithdrawn totalShareInvested');
     const loans = await Loan.find({ ...baseQuery, status: { $ne: 'rejected' } }).select(
       'principal paidAmount branchId',
     );
@@ -289,7 +290,10 @@ async function reconcileCashPosition(query, user, dateRange = {}) {
       const branchLoans = loans.filter((l) => l.branchId?.toString() === bid);
       const branchTxns = transactions.filter((t) => t.branchId?.toString() === bid);
 
-      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0) + (m.totalSavingDeposited || 0) + (m.totalShareInvested || 0), 0);
+      // Loan proceeds back the current-account wallet (they offset totalDisbursed
+      // below), so they belong in the cash-side deposit total even though they are
+      // not member capital.
+      const totalDeposits = branchMembers.reduce((s, m) => s + (m.totalInvested || 0) + (m.totalLoanProceeds || 0) + (m.totalSavingDeposited || 0) + (m.totalShareInvested || 0), 0);
       const totalWithdrawn = branchMembers.reduce((s, m) => s + (m.totalWithdrawn || 0) + (m.totalSavingWithdrawn || 0), 0);
       const totalRepaid = branchLoans.reduce((s, l) => s + (l.paidAmount || 0), 0);
       const totalDisbursed = branchLoans.reduce((s, l) => s + (l.principal || 0), 0);
@@ -702,6 +706,11 @@ const resolveMemberBalances = async (req, res) => {
               ],
             },
           },
+          totalLoanProceeds: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'loan_disbursement'] }, '$amount', 0],
+            },
+          },
         },
       },
     ]);
@@ -716,6 +725,7 @@ const resolveMemberBalances = async (req, res) => {
       ledger.set(row._id.toString(), {
         totalInvested: row.totalInvested,
         totalWithdrawn: row.totalWithdrawn,
+        totalLoanProceeds: row.totalLoanProceeds,
         totalProfit: 0,
       });
     }
@@ -724,6 +734,7 @@ const resolveMemberBalances = async (req, res) => {
       const entry = ledger.get(key) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
       entry.totalProfit = row.totalProfit;
@@ -735,21 +746,30 @@ const resolveMemberBalances = async (req, res) => {
     let ops = [];
 
     const cursor = Member.find(query)
-      .select('_id currentBalance totalInvested totalWithdrawn totalProfit')
+      .select(
+        '_id currentBalance totalInvested totalLoanProceeds totalWithdrawn totalProfit',
+      )
       .cursor();
 
     for await (const member of cursor) {
       const entry = ledger.get(member._id.toString()) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
+      // Loan proceeds back the wallet too, so they are part of the spendable
+      // balance even though they are not member capital.
       const expectedBalance =
-        entry.totalInvested - entry.totalWithdrawn + entry.totalProfit;
+        entry.totalInvested +
+        entry.totalLoanProceeds -
+        entry.totalWithdrawn +
+        entry.totalProfit;
 
       const drift =
         Math.abs(expectedBalance - (member.currentBalance || 0)) > 1 ||
         Math.abs(entry.totalInvested - (member.totalInvested || 0)) > 1 ||
+        Math.abs(entry.totalLoanProceeds - (member.totalLoanProceeds || 0)) > 1 ||
         Math.abs(entry.totalWithdrawn - (member.totalWithdrawn || 0)) > 1 ||
         Math.abs(entry.totalProfit - (member.totalProfit || 0)) > 1;
 
@@ -762,6 +782,7 @@ const resolveMemberBalances = async (req, res) => {
             $set: {
               currentBalance: Math.round(expectedBalance),
               totalInvested: Math.round(entry.totalInvested),
+              totalLoanProceeds: Math.round(entry.totalLoanProceeds),
               totalWithdrawn: Math.round(entry.totalWithdrawn),
               totalProfit: Math.round(entry.totalProfit),
             },

@@ -229,15 +229,18 @@ const contributeToGoal = async (req, res) => {
         throw new Error('Insufficient balance or member not found');
       }
 
-      // 2. Update goal amount atomically
+      // 2. Update goal amount atomically — only for an ACTIVE goal. Without the
+      // status guard a member could contribute into a completed/cancelled goal,
+      // debiting their balance and sweeping funds into a goal that is supposed to
+      // be closed (with no withdrawal path back out). Matches goalAutoContribute.
       const updatedGoal = await SavingGoal.findOneAndUpdate(
-        { _id: req.params.id, member: req.member._id },
+        { _id: req.params.id, member: req.member._id, status: 'active' },
         { $inc: { currentAmount: contributionAmount } },
         { session, new: true },
       );
 
       if (!updatedGoal) {
-        throw new Error('Goal not found');
+        throw new Error('Active goal not found');
       }
 
       // 3. Mark as completed if target met

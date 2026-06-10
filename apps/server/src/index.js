@@ -1,3 +1,10 @@
+// Anchor the whole process to Asia/Karachi BEFORE any Date is constructed. All
+// node-cron jobs and ledger writes already assume Karachi time; without this the
+// process defaults to UTC in production (Vercel/Docker), so report period
+// boundaries (getMonthDates, P&L windows, daily transfer-limit windows) landed up
+// to 5 hours off and shuffled boundary transactions into the wrong month/day.
+process.env.TZ = process.env.TZ || 'Asia/Karachi';
+
 const path = require('path');
 // Pre-load iconv-lite encodings
 try {

@@ -58,6 +58,11 @@ const memberSchema = new mongoose.Schema(
     profilePicture: { type: String },
     address: { type: String },
     totalInvested: { type: Number, default: 0 },
+    // Cumulative loan principal disbursed into the current-account wallet. Kept
+    // separate from totalInvested (genuine member capital) so reports don't count
+    // borrowed money as deposits. It still backs currentBalance:
+    // currentBalance = totalInvested + totalLoanProceeds − totalWithdrawn + totalProfit.
+    totalLoanProceeds: { type: Number, default: 0 },
     currentBalance: { type: Number, default: 0 },
     totalProfit: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },

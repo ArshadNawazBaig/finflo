@@ -33,11 +33,23 @@ const loanSchema = new mongoose.Schema(
     },
     lateFeeAmount: { type: Number, default: 0 },
     lateFeeAppliedAt: { type: Date },
+    // Which engine last applied a late fee this period: the daily cron accrual or
+    // the manual flat-fee route. Whichever touches a loan first in a calendar month
+    // "owns" it for that month; the other engine skips it, so the two can never
+    // stack a fee on the same loan in the same period.
+    lateFeeSource: { type: String, enum: ['accrual', 'manual', null], default: null },
     overdueAt: { type: Date },
     defaultedAt: { type: Date },
     defaultReason: { type: String },
     paidAmount: { type: Number, default: 0 },
     remainingAmount: { type: Number, required: true },
+    // Principal still outstanding. Distinct from remainingAmount (which blends
+    // principal + accrued interest + late fees) so that contractual interest and
+    // compounding accrue ONLY on principal, never on fees or already-capitalized
+    // interest. Initialized to `principal` at creation; decremented by the
+    // principal portion of each repayment; backfilled for legacy loans by
+    // scripts/backfillOutstandingPrincipal.js.
+    outstandingPrincipal: { type: Number },
     interestType: {
       type: String,
       enum: ['simple', 'emi', 'compound'],
@@ -45,6 +57,10 @@ const loanSchema = new mongoose.Schema(
     },
     compoundedAmount: { type: Number, default: 0 },
     lastCompoundedAt: { type: Date },
+    // Number of distinct missed installment-periods that have already had interest
+    // capitalized. Used to compound interest exactly ONCE per missed period instead
+    // of every day the loan stays overdue. Acts as an idempotency/CAS key.
+    compoundedPeriods: { type: Number, default: 0 },
     notes: { type: String }, // Member-submitted purpose/notes
     documents: [
       {

@@ -3,8 +3,9 @@ name: CI Pipeline
 # Gates every change before it reaches an environment.
 #   PRs into `staging`  → must pass before merging to test
 #   PRs into `main`     → must pass before merging to production
-#   Pushes to either    → re-verify (Railway performs the actual deploy from
-#                         these branches via its native GitHub integration).
+#   Pushes to either    → re-verify, including the full server unit-test suite
+#                         (Railway performs the actual deploy from these branches
+#                         via its native GitHub integration).
 on:
   push:
     branches:
@@ -63,9 +64,40 @@ jobs:
           find src -name '*.js' -print0 | xargs -0 -n1 node --check
           echo "Backend syntax verification passed."
 
+  # ── Server unit tests ──────────────────────────────────────────────────────
+  # Runs the full server test suite (vitest + an in-memory MongoDB replica set)
+  # on every push / PR to staging and main. Blocking: a failing test stops the
+  # gate, so broken financial logic never reaches an environment.
+  test:
+    name: Server Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies (workspaces)
+        run: npm install
+
+      # Cache the mongodb-memory-server binary so it isn't re-downloaded each run.
+      - name: Cache MongoDB binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-memory-server-${{ runner.os }}
+
+      - name: Run Server Tests
+        run: npm run test --workspace=apps/server
+
   ci-passed:
     name: CI Passed
-    needs: verify
+    needs: [verify, test]
     runs-on: ubuntu-latest
     steps:
       - name: Report

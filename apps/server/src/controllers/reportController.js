@@ -540,6 +540,12 @@ const getTrialBalance = async (req, res) => {
       (sum, m) => sum + (m.totalInvested || 0),
       0,
     );
+    // Loan proceeds back the wallet and offset totalDisbursed; included in cash,
+    // excluded from the (capital-only) deposit base.
+    const totalLoanProceeds = members.reduce(
+      (sum, m) => sum + (m.totalLoanProceeds || 0),
+      0,
+    );
     const totalWithdrawn = members.reduce(
       (sum, m) => sum + (m.totalWithdrawn || 0),
       0,
@@ -580,7 +586,7 @@ const getTrialBalance = async (req, res) => {
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const cashAtHand = totalDeposits - totalWithdrawn
+    const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn
       + totalShareInvested
       + totalRepaid - totalDisbursed
@@ -796,8 +802,15 @@ const getProfitAndLoss = async (req, res) => {
       totalDistributions += dist.total;
     });
 
-    // 4. Net Income
-    const netIncome = totalRevenue - totalExpenses - totalDistributions;
+    // 4. Net Income = operating income only (revenue − operating expenses).
+    // Profit distributions to members/shareholders are an APPROPRIATION OF EQUITY,
+    // not a P&L expense, so they are reported BELOW net income. Subtracting them
+    // from net income (the previous behaviour) double-counted them against the
+    // balance sheet, which already reduces retained earnings by distributions —
+    // so P&L net income never reconciled to the change in retained earnings.
+    const netIncome = totalRevenue - totalExpenses;
+    // This movement ties out to the balance sheet's retained-earnings contribution.
+    const retainedEarningsMovement = netIncome - totalDistributions;
 
     res.status(200).json({
       period: { startDate: dateFilter.$gte, endDate: dateFilter.$lte },
@@ -810,11 +823,13 @@ const getProfitAndLoss = async (req, res) => {
         breakdown: expensesBreakdown,
         totalExpenses: totalExpenses,
       },
+      netIncome: netIncome,
+      // Equity appropriation, presented below net income (not an expense).
       distributions: {
         breakdown: distributionsBreakdown,
         totalDistributions: totalDistributions,
       },
-      netIncome: netIncome,
+      retainedEarningsMovement: retainedEarningsMovement,
     });
   } catch (error) {
     console.error('Error fetching profit and loss:', error);
@@ -1099,6 +1114,10 @@ const getBalanceSheet = async (req, res) => {
     // ══════ ASSETS ══════
     // Current account cash flows
     const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
+    // Loan proceeds sit in member wallets (backed by the cash pool) and offset
+    // totalDisbursed below — include them in cash so the sheet still foots, while
+    // keeping totalDeposits as genuine member capital only.
+    const totalLoanProceeds = members.reduce((sum, m) => sum + (m.totalLoanProceeds || 0), 0);
     const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
 
     // Saving account cash flows (Bug Fix #1: these were missing from cashAtHand)
@@ -1143,7 +1162,7 @@ const getBalanceSheet = async (req, res) => {
     );
 
     // Complete cash position: all inflows minus all outflows
-    const cashAtHand = totalDeposits - totalWithdrawn
+    const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn   // Bug Fix #1
       + totalShareInvested                             // Bug Fix #1
       + totalRepaid - totalDisbursed
@@ -1156,9 +1175,23 @@ const getBalanceSheet = async (req, res) => {
     const memberSavingBalances = members.reduce((sum, m) => sum + (m.savingBalance || 0), 0);
     const memberShareBalances = members.reduce((sum, m) => sum + (m.shareBalance || 0), 0);
 
-    // Term deposit obligations (principal + projected profit owed back)
+    // Profit ACCRUED TO DATE on a term deposit (straight-line over the term),
+    // not the full projected profit. Recognizing 100% of future TD profit on day 1
+    // overstated the liability and understated equity by the unaccrued portion.
+    // Applied symmetrically to the liability and the equity offset below so the
+    // balance sheet still foots.
+    const tdAccruedProfit = (td) => {
+      const projected = td.projectedProfit || 0;
+      const start = td.startDate ? new Date(td.startDate).getTime() : null;
+      const end = td.maturityDate ? new Date(td.maturityDate).getTime() : null;
+      if (!start || !end || end <= start) return projected;
+      const frac = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
+      return Math.round(projected * frac);
+    };
+
+    // Term deposit obligations (principal + profit accrued to date owed back)
     const termDepositObligations = activeTermDeposits.reduce(
-      (sum, td) => sum + (td.principal || 0) + (td.projectedProfit || 0), 0,
+      (sum, td) => sum + (td.principal || 0) + tdAccruedProfit(td), 0,
     );
 
     const totalLiabilities = memberCurrentBalances + memberSavingBalances + memberShareBalances + termDepositObligations;
@@ -1197,9 +1230,11 @@ const getBalanceSheet = async (req, res) => {
     });
     const totalDistributed = distributions.reduce((sum, d) => sum + (d.amount || 0), 0);
 
-    // Term deposit projected profit is an obligation (liability) that also needs equity offset
+    // Term deposit profit accrued to date is an obligation (liability) that also
+    // needs an equity offset. Uses the SAME accrued-to-date figure as the liability
+    // above so assets, liabilities and equity stay in balance.
     const termDepositProfitObligation = activeTermDeposits.reduce(
-      (sum, td) => sum + (td.projectedProfit || 0), 0,
+      (sum, td) => sum + tdAccruedProfit(td), 0,
     );
 
     // Retained Earnings: revenue minus operating costs minus all profit distributions
@@ -1318,8 +1353,17 @@ const getAumTrend = async (req, res) => {
           y: { $year: '$date' },
           m: { $month: '$date' },
           signed: {
+            // Loan proceeds credit the wallet (currentBalance), so they must count
+            // as an AUM inflow here too — otherwise the reconstructed trend drifts
+            // from the current AUM by the disbursed amount. (Pre-reclassification
+            // these were type 'deposit'; keep them counted under the new type.)
             $cond: [
-              { $in: ['$type', ['deposit', 'transfer_receive', 'profit']] },
+              {
+                $in: [
+                  '$type',
+                  ['deposit', 'transfer_receive', 'profit', 'loan_disbursement'],
+                ],
+              },
               '$amount',
               { $multiply: ['$amount', -1] },
             ],
