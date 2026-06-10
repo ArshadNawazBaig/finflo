@@ -22,7 +22,7 @@ Run from the repo root unless noted.
 npm install                 # install all workspace deps
 npm run dev                 # server (:5001) + client (:5174) concurrently
 npm run build               # build client → moves apps/client/dist to repo-root /public (served by the server)
-npm run test                # runs test script in each workspace (none defined yet)
+npm run test                # runs the Vitest suite in BOTH workspaces (server + client)
 ```
 
 Server only ([apps/server](apps/server)):
@@ -41,7 +41,21 @@ npm run build:member / build:business   # build + swap in the matching capacitor
 
 Mobile (from [apps/client](apps/client)): rebuild web assets, then `npx cap sync`, then `npx cap open ios|android`.
 
-There is **no test runner configured** and there are no automated tests — `npm run test` is a no-op. Verify changes by running the app.
+## Testing
+
+Both workspaces use **Vitest**. Tests live under `apps/*/test/`, organised into folders by kind (`controllers/`, `services/`, `models/`, `middleware/`, `utils/` on the server; `lib/`, `hooks/`, `components/`, plus feature folders on the client). Keep files **small and single-purpose** — one controller/service/component per file — rather than monolithic suites. CI runs both suites on push/PR to `staging` and `main` (`.github/workflows/deploy.yml`).
+
+```bash
+npm run test --workspace=apps/server                       # full server suite
+npm run test --workspace=apps/client                       # full client suite
+npm run test:watch --workspace=apps/server                 # watch mode
+npx vitest run test/controllers/loanApproval.test.js       # one file (cd into the workspace first)
+npx vitest run -t "rejects a duplicate"                    # one test by name
+```
+
+**Server harness** ([apps/server/vitest.config.js](apps/server/vitest.config.js)) runs against a real in-memory MongoDB **replica set** (`mongodb-memory-server`) so production transactions/sessions execute for real — *not* mocked. One replica set + one mongoose connection are shared across the whole run (`globalSetup.js` starts it; `setup.js` connects once and wipes every collection `beforeEach`); `fileParallelism: false` + `isolate: false`. Use the fixture factories and `mockRes`/`ownerReq` helpers in [apps/server/test/helpers](apps/server/test/helpers) — call controllers directly with a fake `req`/`res`, scoped by `effectiveOwnerId`. Gotchas worth knowing: a required field auto-generated in `pre('save')` fails validation — generate it in `pre('validate')`; the replica set's tight transaction-lock timeout is relaxed to 2000ms in `setup.js`.
+
+**Client harness** ([apps/client/vitest.config.js](apps/client/vitest.config.js)) runs in jsdom with the React plugin and the `@`→`src` alias. jest-dom matchers are wired via the framework-agnostic `@testing-library/jest-dom/matchers` + `expect.extend` (the `/vitest` entry breaks under workspace hoisting). `renderWithProviders` in [apps/client/test/helpers/render.jsx](apps/client/test/helpers/render.jsx) wraps a component in a Jotai store + `MemoryRouter`; hydrate `atomWithStorage` atoms (e.g. `userAtom`) via its `atomValues` prop, since they read as null on first synchronous render. Gotchas: stub Radix portal components (Dialog/Select/Tooltip) or query them through `screen` (they portal to `document.body`); under fake timers use `getBy*` not `findBy*` (findBy polls on real timers); mock `@/lib/axios` and `sonner` per file with `vi.hoisted` refs.
 
 ## Deployment topology
 
