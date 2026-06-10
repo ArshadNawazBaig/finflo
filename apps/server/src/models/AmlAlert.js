@@ -103,7 +103,12 @@ amlAlertSchema.index({ member: 1 });
 amlAlertSchema.index({ alertNumber: 1 }, { unique: true });
 
 // Auto-generate alert number
-amlAlertSchema.pre('save', async function () {
+// Generate the alertNumber in pre('validate') — NOT pre('save') — because Mongoose
+// runs validation (which enforces `required: true` on alertNumber) BEFORE the save
+// hook. Generating it on save meant every AmlAlert.create() failed validation with
+// "alertNumber is required", silently breaking the entire AML alerting pipeline
+// (createAlert swallows the error).
+amlAlertSchema.pre('validate', async function () {
   if (!this.alertNumber) {
     const count = await mongoose.model('AmlAlert').countDocuments({ user: this.user });
     this.alertNumber = `AML-${String(count + 1).padStart(6, '0')}`;

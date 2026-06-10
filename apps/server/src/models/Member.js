@@ -152,6 +152,11 @@ const memberSchema = new mongoose.Schema(
     joinDate: { type: Date, default: Date.now },
     twoFactorSecret: { type: String },
     isTwoFactorEnabled: { type: Boolean, default: false },
+    // Brute-force lockout (mirrors the User side). Without these fields declared,
+    // Mongoose strict mode silently strips the $set in loginMember, so the lockout
+    // never persisted — a member account could be brute-forced indefinitely.
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date },
     onboardingStatus: {
       isCompleted: { type: Boolean, default: false },
       currentStep: { type: Number, default: 0 },

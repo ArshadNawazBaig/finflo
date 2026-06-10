@@ -531,5 +531,6 @@ module.exports = {
   seedDefaultRules,
   getDashboardStats,
   generateCTR,
+  calculateComplianceScore,
   DEFAULT_CTR_THRESHOLD,
 };

@@ -11,7 +11,9 @@
     "build:member": "VITE_APP_MODE=member vite build && cp capacitor.config.member.json capacitor.config.json",
     "build:business": "VITE_APP_MODE=business vite build && cp capacitor.config.business.json capacitor.config.json",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
@@ -59,6 +61,10 @@
     "three": "0.170.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
@@ -68,10 +74,12 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "jsdom": "^25.0.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
-    "vite": "^5.1.0"
+    "vite": "^5.1.0",
+    "vitest": "^4.1.8"
   },
   "optionalDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.0.0",

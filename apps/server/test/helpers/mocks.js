@@ -49,6 +49,15 @@ const mockRes = () => {
     r.headers[k] = v;
     return r;
   };
+  r.cookies = {};
+  r.cookie = (k, v, opts) => {
+    r.cookies[k] = { value: v, opts };
+    return r;
+  };
+  r.clearCookie = (k) => {
+    delete r.cookies[k];
+    return r;
+  };
   return r;
 };
 

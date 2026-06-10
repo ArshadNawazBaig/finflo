@@ -77,7 +77,10 @@ ctrSchema.index({ reportNumber: 1 }, { unique: true });
 // derived from the document's own _id so the number is always unique (no dropped
 // filing) while staying human-readable and roughly ordered. For strictly
 // contiguous numbering, replace this with an atomic counter document.
-ctrSchema.pre('save', async function () {
+// pre('validate'), not pre('save'): reportNumber is `required: true`, and Mongoose
+// validates before the save hook — generating it on save made every create() fail
+// validation, silently breaking CTR auto-generation.
+ctrSchema.pre('validate', async function () {
   if (!this.reportNumber) {
     const year = new Date().getFullYear();
     const count = await mongoose

@@ -52,6 +52,24 @@ const Loans = () => {
   const isMobile = useIsMobile();
   const [stats, setStats] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Loans must be attributed to a branch, so loan creation is blocked until the
+  // business has created at least one branch.
+  const [hasBranch, setHasBranch] = useState(true);
+  useEffect(() => {
+    let active = true;
+    api
+      .get('/branches')
+      .then(({ data }) => {
+        if (active) setHasBranch(Array.isArray(data) && data.length > 0);
+      })
+      .catch(() => {
+        if (active) setHasBranch(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const noBranch = !hasBranch;
 
   const observerTarget = useRef(null);
   const skipNextEffect = useRef(false);
@@ -192,15 +210,30 @@ const Loans = () => {
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
-            onClick={() => setIsImportOpen(true)}
-            className="group inline-flex items-center justify-center gap-2.5 px-6 py-3 h-auto rounded-full font-bold text-[13px] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+            onClick={() => {
+              if (noBranch) {
+                toast.error('Create a branch before importing loans.');
+                return;
+              }
+              setIsImportOpen(true);
+            }}
+            disabled={noBranch}
+            className="group inline-flex items-center justify-center gap-2.5 px-6 py-3 h-auto rounded-full font-bold text-[13px] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload size={14} strokeWidth={2.5} />
             Import Old Loans
           </Button>
           <Button
-            onClick={() => setIsModalOpen(true)}
-            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto"
+            onClick={() => {
+              if (noBranch) {
+                toast.error('Create a branch before issuing loans.');
+                return;
+              }
+              setIsModalOpen(true);
+            }}
+            disabled={noBranch}
+            title={noBranch ? 'Create a branch before issuing loans' : undefined}
+            className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             isLoading={loading && loans.length === 0}
           >
             <Plus size={14} strokeWidth={2.5} />

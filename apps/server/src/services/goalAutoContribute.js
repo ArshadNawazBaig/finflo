@@ -255,6 +255,7 @@ const runMonthlyAutoContributions = async () => {
 };
 
 module.exports = {
+  creditGoal,
   applyRoundupOnDebit,
   runMonthlyAutoContributions,
 };

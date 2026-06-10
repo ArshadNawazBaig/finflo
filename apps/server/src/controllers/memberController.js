@@ -785,6 +785,9 @@ const updateMember = async (req, res) => {
         address,
       };
 
+      // Keep the customer's branch in lock-step with the member's.
+      if (branchId) customerUpdate.branchId = branchId;
+
       if (nominee) {
         customerUpdate.nominee = {
           ...nominee,
@@ -793,6 +796,35 @@ const updateMember = async (req, res) => {
       }
 
       await Customer.findByIdAndUpdate(updatedMember.customer, customerUpdate);
+    }
+
+    // A branch reassignment must follow the member to every record that drives
+    // per-branch analytics — loans, transactions and investments. Otherwise
+    // those rows keep pointing at the member's previous (or a since-deleted)
+    // branch, so the new branch reads 0 for loans/disbursed/outstanding/cash-flow
+    // while the old branchId dangles, unattributable to any existing branch.
+    if (branchId) {
+      const branchSync = { $set: { branchId } };
+      const loanScope = {
+        user: userId,
+        $or: [
+          { member: updatedMember._id },
+          ...(updatedMember.customer
+            ? [{ customer: updatedMember.customer }]
+            : []),
+        ],
+      };
+      await Promise.all([
+        Loan.updateMany(loanScope, branchSync),
+        FinancialTransaction.updateMany(
+          { user: userId, member: updatedMember._id },
+          branchSync,
+        ),
+        Investment.updateMany(
+          { user: userId, member: updatedMember._id },
+          branchSync,
+        ),
+      ]);
     }
 
     // Log activity
