@@ -1353,8 +1353,17 @@ const getAumTrend = async (req, res) => {
           y: { $year: '$date' },
           m: { $month: '$date' },
           signed: {
+            // Loan proceeds credit the wallet (currentBalance), so they must count
+            // as an AUM inflow here too — otherwise the reconstructed trend drifts
+            // from the current AUM by the disbursed amount. (Pre-reclassification
+            // these were type 'deposit'; keep them counted under the new type.)
             $cond: [
-              { $in: ['$type', ['deposit', 'transfer_receive', 'profit']] },
+              {
+                $in: [
+                  '$type',
+                  ['deposit', 'transfer_receive', 'profit', 'loan_disbursement'],
+                ],
+              },
               '$amount',
               { $multiply: ['$amount', -1] },
             ],

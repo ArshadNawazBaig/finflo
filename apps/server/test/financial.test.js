@@ -415,6 +415,49 @@ describe('Loan-proceeds reclassification (B5 disbursement)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+describe('Branch Analytics card — loan attribution + deposits not inflated', () => {
+  it('a loan-funded member shows Disbursed=principal and Deposits=0 on its branch', async () => {
+    const owner = await makeOwner();
+    const branch = await Branch.create({
+      name: 'Main',
+      address: 'x',
+      contactNumber: '0300',
+      owner: owner._id,
+    });
+    // Member funded by a 50k loan: proceeds tracked apart from capital (B5).
+    await makeMember(owner, {
+      branchId: branch._id,
+      currentBalance: 50000,
+      totalInvested: 0,
+      totalLoanProceeds: 50000,
+    });
+    await makeLoan(owner, await makeCustomer(owner), {
+      branchId: branch._id,
+      principal: 50000,
+      totalAmount: 60000,
+      remainingAmount: 60000,
+      outstandingPrincipal: 50000,
+      status: 'active',
+    });
+
+    const req = {
+      user: { effectiveOwnerId: owner._id, role: 'admin', isSuperAdmin: false },
+      query: {},
+    };
+    const res = mockRes();
+    await reportController.getBranchSummary(req, res);
+
+    expect(res.statusCode).toBe(200);
+    const card = res.body.find((b) => String(b._id) === String(branch._id));
+    expect(card).toBeTruthy();
+    expect(card.stats.totalVolume).toBe(50000); // Disbursed — was 0 (branch mismatch)
+    expect(card.stats.totalInvested).toBe(0); // Deposits — was 50000 (proceeds bug)
+    expect(card.stats.activeLoans).toBe(1);
+    expect(card.stats.totalOutstanding).toBe(60000);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 describe('Late-fee engine gating (B1)', () => {
   it('the daily accrual cron does NOT stack on a fee the manual engine charged this month', async () => {
     const owner = await User.create({

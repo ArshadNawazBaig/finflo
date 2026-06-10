@@ -3471,7 +3471,8 @@ const recalculateBalance = async (req, res) => {
       for (const inv of investments) {
         if (
           inv.type === 'deposit' ||
-          inv.type === 'transfer_receive'
+          inv.type === 'transfer_receive' ||
+          inv.type === 'loan_disbursement' // proceeds credit the wallet too
         ) {
           computed += inv.amount;
         } else if (

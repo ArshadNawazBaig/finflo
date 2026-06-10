@@ -429,10 +429,21 @@ const createLoan = async (req, res) => {
     const customerHistory = await Loan.find({ customer: customerId });
     const riskDetails = calculateRiskScore(customer, { emi }, customerHistory);
 
+    // Resolve the branch from the most reliable source so the loan lands on the
+    // SAME branch as the member/customer. Business owners usually have no
+    // branchId, and the Customer record can lack one even when the Member has it —
+    // without this fallback the loan (and its disbursement) gets a null branch and
+    // disappears from every per-branch report (Disbursed/Outstanding/Active/Outflow).
+    let resolvedBranchId = req.user.branchId || customer.branchId;
+    if (!resolvedBranchId && customer.memberId) {
+      const branchMember = await Member.findById(customer.memberId).select('branchId');
+      resolvedBranchId = branchMember?.branchId || resolvedBranchId;
+    }
+
     const loan = new Loan({
       user: req.user.effectiveOwnerId,
       customer: customerId,
-      branchId: req.user.branchId || customer.branchId, // Prioritize user's branch, fall back to customer's branch
+      branchId: resolvedBranchId, // member/customer branch (owner has none)
       principal,
       rate,
       duration,
