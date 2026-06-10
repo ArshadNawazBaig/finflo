@@ -39,3 +39,7 @@ Thumbs.db
 /business-app.apk
 /apps/client/member-app.apk
 /apps/client/business-app.apk
+
+# Claude Code — personal, machine-local (not committed)
+.claude/settings.local.json
+.claude/CLAUDE.local.md
