@@ -326,6 +326,23 @@ const Settings = () => {
   const [stampLoading, setStampLoading] = useState(false);
   const [signatureLoading, setSignatureLoading] = useState(false);
   const [copiedSecurityCode, setCopiedSecurityCode] = useState(false);
+  // Members self-onboard into a branch, so the registration link is only useful
+  // once the business has created at least one branch. Gate the copy action on it.
+  const [hasBranch, setHasBranch] = useState(true);
+  useEffect(() => {
+    let active = true;
+    api
+      .get('/branches')
+      .then(({ data }) => {
+        if (active) setHasBranch(Array.isArray(data) && data.length > 0);
+      })
+      .catch(() => {
+        if (active) setHasBranch(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 2FA state
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
@@ -1521,15 +1538,29 @@ const Settings = () => {
                                 Member Registration Link
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Share this link to let members self-onboard
+                                {hasBranch
+                                  ? 'Share this link to let members self-onboard'
+                                  : 'Create a branch first — members self-onboard into a branch'}
                               </p>
                             </div>
                           </div>
                           <Button
                             variant="secondary"
                             size="sm"
-                            className="font-bold tracking-tight text-xs h-9 px-4"
+                            disabled={!hasBranch}
+                            title={
+                              hasBranch
+                                ? undefined
+                                : 'Create a branch before sharing the registration link'
+                            }
+                            className="font-bold tracking-tight text-xs h-9 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={async () => {
+                              if (!hasBranch) {
+                                toast.error(
+                                  'Create a branch before sharing the registration link',
+                                );
+                                return;
+                              }
                               const url = `${window.location.origin}/join/${user.securityCode || ''}`;
                               await copyToClipboard(url);
                               toast.success('Registration link copied!');

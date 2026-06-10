@@ -16,6 +16,7 @@ import {
   Trash2,
   UserCog,
   Loader2,
+  Star,
 } from 'lucide-react';
 import Tooltip from '@/components/ui/Tooltip';
 import { cn } from '@/lib/utils';
@@ -92,6 +93,7 @@ const Branches = () => {
   const [saving, setSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
+  const [defaultingId, setDefaultingId] = useState(null);
 
   const fetchBranches = async () => {
     try {
@@ -204,6 +206,22 @@ const Branches = () => {
       toast.error('Failed to update status');
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  // Mark a branch as the tenant default. New members (admin-created without an
+  // explicit branch, and self/Google-registered) are attributed here.
+  const setDefault = async (branch) => {
+    if (branch.isDefault) return;
+    try {
+      setDefaultingId(branch._id);
+      await api.put(`/branches/${branch._id}/default`);
+      toast.success(`"${branch.name}" is now the default branch`);
+      fetchBranches();
+    } catch (error) {
+      toast.error('Failed to set default branch');
+    } finally {
+      setDefaultingId(null);
     }
   };
 
@@ -344,16 +362,24 @@ const Branches = () => {
                           {branch.name}
                         </h3>
                       </div>
-                      <span
-                        className={cn(
-                          'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0',
-                          branch.isActive
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {branch.isDefault && (
+                          <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary flex items-center gap-1">
+                            <Star size={9} className="fill-current" />
+                            Default
+                          </span>
                         )}
-                      >
-                        {branch.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                        <span
+                          className={cn(
+                            'px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest',
+                            branch.isActive
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-rose-500/10 text-rose-500 dark:text-rose-400',
+                          )}
+                        >
+                          {branch.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Info rows */}
@@ -379,6 +405,37 @@ const Branches = () => {
 
                     {/* Action row */}
                     <div className="flex items-center justify-end gap-1 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      <Tooltip
+                        content={
+                          branch.isDefault
+                            ? 'Default branch'
+                            : 'Set as default branch'
+                        }
+                        position="top"
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={branch.isDefault}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDefault(branch);
+                          }}
+                          isLoading={defaultingId === branch._id}
+                          className={cn(
+                            'p-2 h-9 w-9 rounded-full transition-all active:scale-90',
+                            branch.isDefault
+                              ? 'text-primary cursor-default'
+                              : 'text-slate-400 hover:bg-primary/10 hover:text-primary',
+                          )}
+                        >
+                          <Star
+                            size={16}
+                            className={branch.isDefault ? 'fill-current' : ''}
+                          />
+                        </Button>
+                      </Tooltip>
+
                       <Tooltip content="Edit Branch" position="top">
                         <Button
                           variant="ghost"

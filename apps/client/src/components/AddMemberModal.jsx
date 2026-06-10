@@ -68,6 +68,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
           try {
             const { data } = await api.get('/branches');
             setBranches(data);
+            // Pre-select the tenant's default branch so new members land there
+            // unless the admin explicitly picks another.
+            const defaultBranch =
+              data.find((b) => b.isDefault) || data[0];
+            if (defaultBranch) setValue('branchId', defaultBranch._id);
           } catch (err) {
             console.error('Failed to fetch branches', err);
           } finally {
@@ -336,6 +341,10 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                   <div className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 italic">
                     Assigned to your branch
                   </div>
+                ) : !fetchingBranches && branches.length === 0 ? (
+                  <div className="w-full rounded-2xl border border-amber-200 dark:border-amber-500/20 bg-amber-50/60 dark:bg-amber-500/[0.06] px-4 py-3 text-xs font-bold text-amber-700 dark:text-amber-400">
+                    Create a branch first — members must belong to a branch.
+                  </div>
                 ) : (
                   <select
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
@@ -347,6 +356,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
                     {branches.map((b) => (
                       <option key={b._id} value={b._id}>
                         {b.name}
+                        {b.isDefault ? ' (Default)' : ''}
                       </option>
                     ))}
                   </select>
@@ -582,8 +592,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
           <Button
             form="add-member-form"
             type="submit"
-            disabled={loading}
-            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+            disabled={
+              loading ||
+              (user.role !== 'staff' && !fetchingBranches && branches.length === 0)
+            }
+            className="h-11 px-7 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />

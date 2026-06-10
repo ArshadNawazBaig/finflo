@@ -6,6 +6,7 @@ const {
   getBranch,
   updateBranch,
   deleteBranch,
+  setDefaultBranch,
   getBranchFinancials,
   getBranchAnalytics,
   addBranchExpense,
@@ -25,6 +26,7 @@ router
   .put(protect, admin, upload.single('logo'), updateBranch)
   .delete(protect, admin, deleteBranch);
 
+router.put('/:id/default', protect, admin, setDefaultBranch);
 router.get('/:id/financials', protect, getBranchFinancials);
 router.get('/:id/analytics', protect, getBranchAnalytics);
 router.post('/:id/expenses', protect, addBranchExpense);

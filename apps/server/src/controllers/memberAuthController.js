@@ -351,6 +351,17 @@ const googleRegister = async (req, res) => {
         .json({ message: 'Invalid business security code' });
     }
 
+    // The business must have a branch before accepting members. New members are
+    // attributed to the tenant's default branch (movable by an admin afterwards).
+    const { getDefaultBranchId } = require('../utils/branchUtils');
+    const defaultBranchId = await getDefaultBranchId(businessOwner._id);
+    if (!defaultBranchId) {
+      return res.status(400).json({
+        message: 'This business is not accepting registrations yet.',
+        code: 'NO_BRANCH',
+      });
+    }
+
     const ticket = await googleClient.verifyIdToken({
       idToken: googleToken,
       audience: googleAllowedAudiences,
@@ -382,6 +393,7 @@ const googleRegister = async (req, res) => {
 
     const member = await Member.create({
       user: businessOwner._id,
+      branchId: defaultBranchId,
       name,
       phone,
       email: emailLower,
@@ -405,6 +417,7 @@ const googleRegister = async (req, res) => {
       if (!customer) {
         customer = await Customer.create({
           user: businessOwner._id,
+          branchId: defaultBranchId,
           name,
           phone,
           email: emailLower,

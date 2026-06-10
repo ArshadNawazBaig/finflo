@@ -224,7 +224,15 @@ const Members = () => {
     });
   };
 
+  // Members must belong to a branch, so member creation is blocked until the
+  // business has created at least one branch.
+  const noBranches = !branchesLoading && branches.length === 0;
+
   const handleAddMember = () => {
+    if (noBranches) {
+      toast.error('Create a branch before adding members.');
+      return;
+    }
     setIsAddModalOpen(true);
   };
 
@@ -328,15 +336,26 @@ const Members = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setIsBulkImportOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 h-auto font-bold text-[12px]"
+              onClick={() => {
+                if (noBranches) {
+                  toast.error('Create a branch before importing members.');
+                  return;
+                }
+                setIsBulkImportOpen(true);
+              }}
+              disabled={noBranches}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 h-auto font-bold text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Upload size={14} strokeWidth={2.5} />
               Import CSV
             </Button>
             <Button
               onClick={handleAddMember}
-              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300"
+              disabled={noBranches}
+              title={
+                noBranches ? 'Create a branch before adding members' : undefined
+              }
+              className="group inline-flex items-center justify-center gap-2.5 bg-primary hover:bg-primary/90 text-white px-6 py-3 h-auto rounded-full font-bold text-[13px] shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               isLoading={loading && members.length === 0}
             >
               <Plus size={14} strokeWidth={2.5} />
