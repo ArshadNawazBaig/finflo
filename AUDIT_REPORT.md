@@ -114,12 +114,21 @@ The owner signed off on the policy decisions below; all are implemented with tes
   **principal only** (capitalized into principal), never on accrued late fees or prior interest.
   Backfill migration: `scripts/backfillOutstandingPrincipal.js`. *(tests: repayment decrements
   principal; compound ignores late fees)*
-  **Partial:** the *disbursement-inflates-`totalInvested`* half is intentionally NOT shipped in
-  isolation — the member-balance reconciliation invariant is defined as
-  `totalInvested − totalWithdrawn + totalProfit`, so removing disbursement from `totalInvested`
-  alone would break a currently-passing reconcile and the balance-sheet foot. It needs a
-  coordinated change (new disbursement-proceeds field + reconcile + balance-sheet liability
-  classification) and is flagged as the one remaining structural item.
+  **Disbursement reclassification — NOW IMPLEMENTED (coordinated structural change).**
+  Loan proceeds no longer inflate `totalInvested` (member capital). New
+  `Investment` type `loan_disbursement` + new `Member.totalLoanProceeds` field carry
+  borrowed money separately. The wallet invariant is now
+  `currentBalance = totalInvested + totalLoanProceeds − totalWithdrawn + totalProfit`,
+  updated in **every** place that derives it: both rebuild paths
+  (`resolveMemberBalances` + the `runMemberBalanceReconcile` cron), the simple
+  member-balance reconcile, the cash reconcile, both balance-sheet builders
+  (`getBalanceSheet` + `getTrialBalance`), dashboard liquidity, and the three
+  weighted-average-balance credit sets. Cash/foot computations use
+  `totalInvested + totalLoanProceeds`; the *deposit/capital* base uses
+  `totalInvested` alone (now accurate). Migration: `scripts/backfillLoanProceeds.js`
+  re-types historical disbursement rows and rebuilds the aggregates.
+  *(tests: rebuild separates proceeds from capital; balance sheet still foots when a
+  wallet is loan-funded)* — **No remaining structural items.**
 
 ### Still documented for sign-off (lower priority)
 

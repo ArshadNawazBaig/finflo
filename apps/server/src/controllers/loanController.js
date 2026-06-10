@@ -1916,7 +1916,9 @@ const approveLoan = async (req, res) => {
     if (customerDoc?.isMember && customerDoc?.memberId) {
       const updatedMember = await Member.findByIdAndUpdate(
         customerDoc.memberId,
-        { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+        // Loan proceeds credit the wallet but are NOT member capital — track them
+        // in totalLoanProceeds, not totalInvested, so the deposit base stays clean.
+        { $inc: { currentBalance: loan.principal, totalLoanProceeds: loan.principal } },
         { new: true },
       );
 
@@ -1925,9 +1927,10 @@ const approveLoan = async (req, res) => {
           user: req.user.effectiveOwnerId,
           member: customerDoc.memberId,
           branchId: loan.branchId || updatedMember.branchId,
-          type: 'deposit',
+          type: 'loan_disbursement',
           amount: loan.principal,
           balanceAfter: updatedMember.currentBalance,
+          loan: loan._id,
           description: `Loan Disbursement — #${loan._id.toString().slice(-6).toUpperCase()}`,
           date: new Date(),
         });
@@ -2473,7 +2476,8 @@ const bulkApproveLoans = async (req, res) => {
         if (customerDoc?.isMember && customerDoc?.memberId) {
           const updatedMember = await Member.findByIdAndUpdate(
             customerDoc.memberId,
-            { $inc: { currentBalance: loan.principal, totalInvested: loan.principal } },
+            // Loan proceeds → totalLoanProceeds, not totalInvested (not capital).
+            { $inc: { currentBalance: loan.principal, totalLoanProceeds: loan.principal } },
             { new: true },
           );
 
@@ -2482,9 +2486,10 @@ const bulkApproveLoans = async (req, res) => {
               user: req.user.effectiveOwnerId,
               member: customerDoc.memberId,
               branchId: loan.branchId || updatedMember.branchId,
-              type: 'deposit',
+              type: 'loan_disbursement',
               amount: loan.principal,
               balanceAfter: updatedMember.currentBalance,
+              loan: loan._id,
               description: `Loan Disbursement (Bulk) — #${loan._id.toString().slice(-6).toUpperCase()}`,
               date: new Date(),
             });

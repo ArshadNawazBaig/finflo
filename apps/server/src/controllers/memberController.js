@@ -1459,7 +1459,12 @@ const getAccountStatement = async (req, res) => {
 
     // Sign convention for each Investment type
     const signFor = (t) =>
-      t === 'deposit' || t === 'transfer_receive' || t === 'profit' ? 1 : -1;
+      t === 'deposit' ||
+      t === 'transfer_receive' ||
+      t === 'profit' ||
+      t === 'loan_disbursement'
+        ? 1
+        : -1;
 
     const baseQuery = {
       member: member._id,
@@ -2135,6 +2140,7 @@ const calculateWeightedAverageBalance = async (
                         'transfer_receive',
                         'external_receive',
                         'p2p_receive',
+                        'loan_disbursement',
                       ],
                     ],
                   },
@@ -2181,6 +2187,7 @@ const calculateWeightedAverageBalance = async (
           'transfer_receive',
           'external_receive',
           'p2p_receive',
+          'loan_disbursement',
         ].includes(i.type)
           ? i.amount
           : -i.amount,

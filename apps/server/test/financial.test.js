@@ -28,6 +28,7 @@ const ProfitDistribution = require('../src/models/ProfitDistribution');
 const ExternalTransfer = require('../src/models/ExternalTransfer');
 const TermDeposit = require('../src/models/TermDeposit');
 const reportController = require('../src/controllers/reportController');
+const reconciliationController = require('../src/controllers/reconciliationController');
 
 // ── Units under test ─────────────────────────────────────────────────────────
 const { processRepayment } = require('../src/services/loanRepaymentService');
@@ -343,6 +344,73 @@ describe('outstandingPrincipal (B5) — interest base is principal-only', () => 
     // Interest = 100000 * 24/1200 = 2000 (on principal), NOT 120000-based 2400.
     expect(freshLoan.remainingAmount).toBe(122000);
     expect(freshLoan.outstandingPrincipal).toBe(102000); // capitalized into principal
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Loan-proceeds reclassification (B5 disbursement)', () => {
+  it('rebuild separates loan proceeds from member capital; balance still backs out', async () => {
+    const owner = await makeOwner();
+    const member = await makeMember(owner, {
+      currentBalance: 0,
+      totalInvested: 0,
+      totalLoanProceeds: 0,
+    });
+    // A genuine deposit and a loan disbursement, both crediting the wallet.
+    await Investment.create({
+      user: owner._id,
+      member: member._id,
+      type: 'deposit',
+      accountType: 'current',
+      amount: 5000,
+    });
+    await Investment.create({
+      user: owner._id,
+      member: member._id,
+      type: 'loan_disbursement',
+      accountType: 'current',
+      amount: 20000,
+    });
+
+    const req = {
+      user: { effectiveOwnerId: owner._id, role: 'admin', isSuperAdmin: false },
+    };
+    await reconciliationController.resolveMemberBalances(req, mockRes());
+
+    const fresh = await Member.findById(member._id);
+    expect(fresh.totalInvested).toBe(5000); // capital only — NOT 25000
+    expect(fresh.totalLoanProceeds).toBe(20000); // borrowed money tracked apart
+    // Wallet still fully backed: capital + proceeds − withdrawn + profit.
+    expect(fresh.currentBalance).toBe(25000);
+  });
+
+  it('balance sheet still foots when a wallet is funded by a loan disbursement', async () => {
+    const owner = await makeOwner();
+    await makeMember(owner, {
+      currentBalance: 20000,
+      totalInvested: 0,
+      totalLoanProceeds: 20000,
+    });
+    await makeLoan(owner, await makeCustomer(owner), {
+      principal: 20000,
+      totalAmount: 24000,
+      remainingAmount: 24000,
+      outstandingPrincipal: 20000,
+      paidAmount: 0,
+      status: 'active',
+    });
+
+    const req = {
+      user: { effectiveOwnerId: owner._id, role: 'admin', isSuperAdmin: false },
+      query: {},
+    };
+    const res = mockRes();
+    await reportController.getBalanceSheet(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.balanceCheck.isBalanced).toBe(true);
+    expect(res.body.assets.loansReceivable).toBe(20000);
+    expect(res.body.liabilities.memberCurrentAccounts).toBe(20000);
   });
 });
 

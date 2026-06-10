@@ -1459,6 +1459,11 @@ const runMemberBalanceReconcile = async () => {
               ],
             },
           },
+          totalLoanProceeds: {
+            $sum: {
+              $cond: [{ $eq: ['$type', 'loan_disbursement'] }, '$amount', 0],
+            },
+          },
         },
       },
     ]);
@@ -1487,6 +1492,7 @@ const runMemberBalanceReconcile = async () => {
       ledger.set(row._id.toString(), {
         totalInvested: row.totalInvested,
         totalWithdrawn: row.totalWithdrawn,
+        totalLoanProceeds: row.totalLoanProceeds,
         totalProfit: 0,
       });
     }
@@ -1495,6 +1501,7 @@ const runMemberBalanceReconcile = async () => {
       const entry = ledger.get(key) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
       entry.totalProfit = row.totalProfit;
@@ -1507,7 +1514,9 @@ const runMemberBalanceReconcile = async () => {
     let ops = [];
 
     const cursor = Member.find({})
-      .select('_id currentBalance totalInvested totalWithdrawn totalProfit')
+      .select(
+        '_id currentBalance totalInvested totalLoanProceeds totalWithdrawn totalProfit',
+      )
       .cursor();
 
     for await (const member of cursor) {
@@ -1516,14 +1525,20 @@ const runMemberBalanceReconcile = async () => {
       const entry = ledger.get(member._id.toString()) || {
         totalInvested: 0,
         totalWithdrawn: 0,
+        totalLoanProceeds: 0,
         totalProfit: 0,
       };
+      // Loan proceeds back the wallet too (not capital, but spendable).
       const expectedBalance =
-        entry.totalInvested - entry.totalWithdrawn + entry.totalProfit;
+        entry.totalInvested +
+        entry.totalLoanProceeds -
+        entry.totalWithdrawn +
+        entry.totalProfit;
 
       const drift =
         Math.abs(expectedBalance - (member.currentBalance || 0)) > 1 ||
         Math.abs(entry.totalInvested - (member.totalInvested || 0)) > 1 ||
+        Math.abs(entry.totalLoanProceeds - (member.totalLoanProceeds || 0)) > 1 ||
         Math.abs(entry.totalWithdrawn - (member.totalWithdrawn || 0)) > 1 ||
         Math.abs(entry.totalProfit - (member.totalProfit || 0)) > 1;
 
@@ -1536,6 +1551,7 @@ const runMemberBalanceReconcile = async () => {
             $set: {
               currentBalance: Math.round(expectedBalance),
               totalInvested: Math.round(entry.totalInvested),
+              totalLoanProceeds: Math.round(entry.totalLoanProceeds),
               totalWithdrawn: Math.round(entry.totalWithdrawn),
               totalProfit: Math.round(entry.totalProfit),
             },

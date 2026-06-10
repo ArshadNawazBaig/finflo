@@ -540,6 +540,12 @@ const getTrialBalance = async (req, res) => {
       (sum, m) => sum + (m.totalInvested || 0),
       0,
     );
+    // Loan proceeds back the wallet and offset totalDisbursed; included in cash,
+    // excluded from the (capital-only) deposit base.
+    const totalLoanProceeds = members.reduce(
+      (sum, m) => sum + (m.totalLoanProceeds || 0),
+      0,
+    );
     const totalWithdrawn = members.reduce(
       (sum, m) => sum + (m.totalWithdrawn || 0),
       0,
@@ -580,7 +586,7 @@ const getTrialBalance = async (req, res) => {
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const cashAtHand = totalDeposits - totalWithdrawn
+    const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn
       + totalShareInvested
       + totalRepaid - totalDisbursed
@@ -1108,6 +1114,10 @@ const getBalanceSheet = async (req, res) => {
     // ══════ ASSETS ══════
     // Current account cash flows
     const totalDeposits = members.reduce((sum, m) => sum + (m.totalInvested || 0), 0);
+    // Loan proceeds sit in member wallets (backed by the cash pool) and offset
+    // totalDisbursed below — include them in cash so the sheet still foots, while
+    // keeping totalDeposits as genuine member capital only.
+    const totalLoanProceeds = members.reduce((sum, m) => sum + (m.totalLoanProceeds || 0), 0);
     const totalWithdrawn = members.reduce((sum, m) => sum + (m.totalWithdrawn || 0), 0);
 
     // Saving account cash flows (Bug Fix #1: these were missing from cashAtHand)
@@ -1152,7 +1162,7 @@ const getBalanceSheet = async (req, res) => {
     );
 
     // Complete cash position: all inflows minus all outflows
-    const cashAtHand = totalDeposits - totalWithdrawn
+    const cashAtHand = totalDeposits + totalLoanProceeds - totalWithdrawn
       + totalSavingDeposited - totalSavingWithdrawn   // Bug Fix #1
       + totalShareInvested                             // Bug Fix #1
       + totalRepaid - totalDisbursed

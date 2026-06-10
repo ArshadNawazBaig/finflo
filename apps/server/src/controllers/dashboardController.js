@@ -331,6 +331,7 @@ const getDashboardStats = async (req, res) => {
           _id: null,
           totalDeposits: { $sum: '$currentBalance' },
           totalInvested: { $sum: '$totalInvested' },
+          totalLoanProceeds: { $sum: '$totalLoanProceeds' },
           totalWithdrawn: { $sum: '$totalWithdrawn' },
           totalSavingDeposited: { $sum: '$totalSavingDeposited' },
           totalSavingWithdrawn: { $sum: '$totalSavingWithdrawn' },
@@ -343,6 +344,7 @@ const getDashboardStats = async (req, res) => {
     const {
       totalDeposits = 0,
       totalInvested = 0,
+      totalLoanProceeds = 0,
       totalWithdrawnByMembers = 0,
       totalSavingDeposited = 0,
       totalSavingWithdrawn = 0,
@@ -353,6 +355,7 @@ const getDashboardStats = async (req, res) => {
       return {
         totalDeposits: s.totalDeposits || 0,
         totalInvested: s.totalInvested || 0,
+        totalLoanProceeds: s.totalLoanProceeds || 0,
         totalWithdrawnByMembers: s.totalWithdrawn || 0,
         totalSavingDeposited: s.totalSavingDeposited || 0,
         totalSavingWithdrawn: s.totalSavingWithdrawn || 0,
@@ -422,9 +425,11 @@ const getDashboardStats = async (req, res) => {
       totalExpenses = 0,
     } = transactionStats[0] || {};
 
-    // Liquidity = Total money in (deposits + repayments) minus money out (disbursements + withdrawals + expenses)
+    // Liquidity = Total money in (deposits + loan proceeds in wallets + repayments)
+    // minus money out (disbursements + withdrawals + expenses). totalLoanProceeds
+    // offsets totalLoanDisbursed just as the inflated totalInvested used to.
     const netLiquidity = Math.round(
-      totalInvested + totalSavingDeposited + totalShareInvested
+      totalInvested + totalLoanProceeds + totalSavingDeposited + totalShareInvested
       + totalIncome - totalExpense - totalLoanDisbursed
       - totalWithdrawnByMembers - totalSavingWithdrawn,
     );
