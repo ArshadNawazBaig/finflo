@@ -68,11 +68,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
           try {
             const { data } = await api.get('/branches');
             setBranches(data);
-            // Pre-select the tenant's default branch so new members land there
-            // unless the admin explicitly picks another.
-            const defaultBranch =
-              data.find((b) => b.isDefault) || data[0];
-            if (defaultBranch) setValue('branchId', defaultBranch._id);
           } catch (err) {
             console.error('Failed to fetch branches', err);
           } finally {
@@ -83,6 +78,18 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
       }
     }
   }, [isOpen, user.role, user.branchId]);
+
+  // Pre-select the tenant's default branch once the options have rendered, so new
+  // members land there unless the admin explicitly picks another. This runs AFTER
+  // the branch <option>s are in the DOM (keyed on `branches`); setting the value
+  // during the fetch would race the option render and be ignored by the <select>.
+  useEffect(() => {
+    if (user.role !== 'staff' && branches.length > 0) {
+      const defaultBranch = branches.find((b) => b.isDefault) || branches[0];
+      if (defaultBranch) setValue('branchId', defaultBranch._id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branches]);
 
   const handleOcrData = (data) => {
     if (data.name) setValue('name', data.name);

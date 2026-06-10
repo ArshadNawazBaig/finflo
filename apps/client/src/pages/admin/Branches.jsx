@@ -416,6 +416,11 @@ const Branches = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          aria-label={
+                            branch.isDefault
+                              ? 'Default branch'
+                              : 'Set as default branch'
+                          }
                           disabled={branch.isDefault}
                           onClick={(e) => {
                             e.stopPropagation();

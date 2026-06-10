@@ -64,12 +64,13 @@ jobs:
           find src -name '*.js' -print0 | xargs -0 -n1 node --check
           echo "Backend syntax verification passed."
 
-  # ── Server unit tests ──────────────────────────────────────────────────────
-  # Runs the full server test suite (vitest + an in-memory MongoDB replica set)
-  # on every push / PR to staging and main. Blocking: a failing test stops the
-  # gate, so broken financial logic never reaches an environment.
+  # ── Unit tests ─────────────────────────────────────────────────────────────
+  # Runs the full server suite (vitest + an in-memory MongoDB replica set) and the
+  # client suite (vitest + Testing Library/jsdom) on every push / PR to staging and
+  # main. Blocking: a failing test stops the gate, so broken financial logic or UI
+  # regressions never reach an environment.
   test:
-    name: Server Unit Tests
+    name: Unit Tests (server + client)
     runs-on: ubuntu-latest
 
     steps:
@@ -94,6 +95,9 @@ jobs:
 
       - name: Run Server Tests
         run: npm run test --workspace=apps/server
+
+      - name: Run Client Tests
+        run: npm run test --workspace=apps/client
 
   ci-passed:
     name: CI Passed
