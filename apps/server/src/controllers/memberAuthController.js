@@ -1267,22 +1267,16 @@ const forceMemberChangePassword = async (req, res) => {
 // @access  Private (Member)
 const updateNotificationPreferences = async (req, res) => {
   try {
-    const { email, inApp } = req.body;
     const member = await Member.findById(req.member._id);
     if (!member) return res.status(404).json({ message: 'Member not found' });
 
-    // Deep merge preferences
-    if (email) {
-      member.notificationPreferences.email = {
-        ...member.notificationPreferences.email.toObject?.() || member.notificationPreferences.email,
-        ...email,
-      };
-    }
-    if (inApp) {
-      member.notificationPreferences.inApp = {
-        ...member.notificationPreferences.inApp.toObject?.() || member.notificationPreferences.inApp,
-        ...inApp,
-      };
+    // Deep-merge each provided channel (email | inApp | sms | push).
+    const prefs = member.notificationPreferences;
+    for (const channel of ['email', 'inApp', 'sms', 'push']) {
+      const incoming = req.body[channel];
+      if (!incoming) continue;
+      const current = prefs[channel]?.toObject?.() || prefs[channel] || {};
+      prefs[channel] = { ...current, ...incoming };
     }
 
     await member.save({ validateBeforeSave: false });

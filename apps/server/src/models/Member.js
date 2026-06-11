@@ -176,6 +176,22 @@ const memberSchema = new mongoose.Schema(
         securityAlerts: { type: Boolean, default: true },
         promotions: { type: Boolean, default: true },
       },
+      // SMS costs money and is the primary channel for this market: opt-OUT for
+      // the high-signal categories, opt-IN for promotions. Push mirrors in-app.
+      sms: {
+        loanUpdates: { type: Boolean, default: true },
+        paymentReminders: { type: Boolean, default: true },
+        profitCredits: { type: Boolean, default: false },
+        securityAlerts: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: false },
+      },
+      push: {
+        loanUpdates: { type: Boolean, default: true },
+        paymentReminders: { type: Boolean, default: true },
+        profitCredits: { type: Boolean, default: true },
+        securityAlerts: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: true },
+      },
     },
 
     // Transaction PIN for sensitive operations
