@@ -4,6 +4,7 @@ const {
 } = require('../utils/notificationHelper');
 const { sendEmailAsync } = require('../utils/email');
 const { sendSmsAsync, isSmsConfigured } = require('../utils/sms');
+const { sendPushAsync, isPushConfigured } = require('../utils/push');
 
 /**
  * Channel-agnostic notification dispatcher.
@@ -29,10 +30,10 @@ const { sendSmsAsync, isSmsConfigured } = require('../utils/sms');
  * @param {string} [opts.link]
  * @param {string} [opts.branchId]
  * @param {object} [opts.metadata]
- * @param {Array<'inApp'|'email'|'sms'>} [opts.channels] channels to attempt
+ * @param {Array<'inApp'|'email'|'sms'|'push'>} [opts.channels] channels to attempt
  * @param {{subject?: string, html: string}} [opts.email] email payload (skipped if absent)
  * @param {string} [opts.smsText] SMS body override (defaults to message)
- * @returns {Promise<{inApp: object|null, email: boolean, sms: boolean}>} per-channel outcome
+ * @returns {Promise<{inApp: object|null, email: boolean, sms: boolean, push: boolean}>} per-channel outcome
  */
 const dispatch = async ({
   member = null,
@@ -45,18 +46,20 @@ const dispatch = async ({
   link,
   branchId,
   metadata = {},
-  channels = ['inApp', 'email', 'sms'],
+  channels = ['inApp', 'email', 'sms', 'push'],
   email = null,
   smsText = null,
 } = {}) => {
-  const results = { inApp: null, email: false, sms: false };
+  const results = { inApp: null, email: false, sms: false, push: false };
 
   // Load the member once when an off-app channel needs phone/email/prefs.
   // A normal findById runs the post-hooks that decrypt phone — do NOT use .lean().
   let memberDoc = member;
   const needsMemberDoc =
     recipientModel === 'Member' &&
-    (channels.includes('email') || channels.includes('sms'));
+    (channels.includes('email') ||
+      channels.includes('sms') ||
+      channels.includes('push'));
   if (!memberDoc && needsMemberDoc && recipientId) {
     const Member = require('../models/Member');
     memberDoc = await Member.findById(recipientId);
@@ -98,6 +101,30 @@ const dispatch = async ({
   ) {
     sendSmsAsync({ to: memberDoc.phone, text: smsText || message });
     results.sms = true;
+  }
+
+  // 4. Push (member portal only). Best-effort: look up the member's active
+  // device tokens and fan one FCM send per device.
+  if (
+    channels.includes('push') &&
+    isPushConfigured() &&
+    recipientModel === 'Member' &&
+    recipientId &&
+    allowed('push')
+  ) {
+    const DeviceToken = require('../models/DeviceToken');
+    const devices = await DeviceToken.find({
+      owner: recipientId,
+      ownerType: 'Member',
+      isActive: true,
+    })
+      .select('token')
+      .lean();
+    const tokens = devices.map((d) => d.token).filter(Boolean);
+    if (tokens.length > 0) {
+      sendPushAsync({ tokens, title, body: smsText || message, data: { link } });
+      results.push = true;
+    }
   }
 
   return results;

@@ -6,7 +6,19 @@
  */
 const { dispatch } = require('../../src/services/notificationService');
 const Notification = require('../../src/models/Notification');
+const DeviceToken = require('../../src/models/DeviceToken');
 const { makeOwner, makeMember } = require('../helpers/factories');
+
+const enablePush = () => {
+  process.env.FCM_PROJECT_ID = 'proj';
+  process.env.FCM_CLIENT_EMAIL = 'svc@proj.iam.gserviceaccount.com';
+  process.env.FCM_PRIVATE_KEY = '-----BEGIN-----\\nK\\n-----END-----';
+};
+const clearPush = () => {
+  delete process.env.FCM_PROJECT_ID;
+  delete process.env.FCM_CLIENT_EMAIL;
+  delete process.env.FCM_PRIVATE_KEY;
+};
 
 const enableTelnyx = () => {
   process.env.TELNYX_API_KEY = 'KEY';
@@ -117,5 +129,101 @@ describe('notificationService.dispatch', () => {
     expect(results.email).toBe(false);
     expect(results.sms).toBe(false);
     expect(results.inApp).toBeTruthy();
+  });
+
+  describe('push channel', () => {
+    afterEach(clearPush);
+
+    it('selects push only when configured AND the member has active device tokens AND the pref is on', async () => {
+      enablePush();
+      const owner = await makeOwner();
+      const member = await makeMember(owner);
+      await DeviceToken.create({
+        user: owner._id,
+        owner: member._id,
+        ownerType: 'Member',
+        token: 'tok-push-1',
+        platform: 'android',
+        isActive: true,
+      });
+
+      const results = await dispatch({
+        recipientId: member._id,
+        action: 'upcoming_emi_reminder', // paymentReminders
+        title: 'Payment due',
+        message: 'due',
+        channels: ['push'],
+      });
+      expect(results.push).toBe(true);
+    });
+
+    it('does not select push when the member has no active device tokens', async () => {
+      enablePush();
+      const owner = await makeOwner();
+      const member = await makeMember(owner);
+      // Only an inactive token exists.
+      await DeviceToken.create({
+        user: owner._id,
+        owner: member._id,
+        ownerType: 'Member',
+        token: 'tok-inactive',
+        isActive: false,
+      });
+
+      const results = await dispatch({
+        recipientId: member._id,
+        action: 'upcoming_emi_reminder',
+        title: 'x',
+        message: 'y',
+        channels: ['push'],
+      });
+      expect(results.push).toBe(false);
+    });
+
+    it('does not select push when the member disabled that push category', async () => {
+      enablePush();
+      const owner = await makeOwner();
+      const member = await makeMember(owner);
+      member.notificationPreferences.push.paymentReminders = false;
+      await member.save();
+      await DeviceToken.create({
+        user: owner._id,
+        owner: member._id,
+        ownerType: 'Member',
+        token: 'tok-push-2',
+        isActive: true,
+      });
+
+      const results = await dispatch({
+        recipientId: member._id,
+        action: 'upcoming_emi_reminder',
+        title: 'x',
+        message: 'y',
+        channels: ['push'],
+      });
+      expect(results.push).toBe(false);
+    });
+
+    it('does not select push when FCM is unconfigured', async () => {
+      clearPush();
+      const owner = await makeOwner();
+      const member = await makeMember(owner);
+      await DeviceToken.create({
+        user: owner._id,
+        owner: member._id,
+        ownerType: 'Member',
+        token: 'tok-push-3',
+        isActive: true,
+      });
+
+      const results = await dispatch({
+        recipientId: member._id,
+        action: 'upcoming_emi_reminder',
+        title: 'x',
+        message: 'y',
+        channels: ['push'],
+      });
+      expect(results.push).toBe(false);
+    });
   });
 });

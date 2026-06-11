@@ -44,6 +44,7 @@ const routes = [
   ['/cash-flow-forecast', './cashFlowForecastRoutes'],
   ['/bulk-ops', './bulkOperationsRoutes'],
   ['/disputes', './disputeRoutes'],
+  ['/device-tokens', './deviceTokenRoutes'],
 ];
 
 routes.forEach(([path, route]) => {

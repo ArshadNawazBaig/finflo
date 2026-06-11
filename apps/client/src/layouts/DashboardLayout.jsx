@@ -15,6 +15,7 @@ import InstallPrompt from '@/components/InstallPrompt';
 import OnboardingGuide from '@/components/ui/OnboardingGuide';
 import { adminOnboardingSteps } from '@/config/onboardingSteps';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import usePushRegistration from '@/hooks/usePushRegistration';
 
 import api from '@/lib/axios';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
@@ -32,6 +33,9 @@ const DashboardLayout = () => {
 
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+
+  // Register for native push once the business user is authenticated (no-op on web).
+  usePushRegistration(!!user?.token, true);
 
   // Fetch latest user data and subscription
   const fetchData = async () => {
