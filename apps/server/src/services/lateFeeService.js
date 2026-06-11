@@ -5,6 +5,7 @@ const FinancialTransaction = require('../models/FinancialTransaction');
 const Customer = require('../models/Customer');
 const { logActivity } = require('../controllers/activityLogController');
 const { roundMoney } = require('../utils/money');
+const logger = require('../utils/logger');
 const {
   createTransactionNotification,
 } = require('../utils/notificationHelper');
@@ -193,7 +194,7 @@ const applyLateFees = async (req) => {
               },
             });
           } catch (notifErr) {
-            console.error('Late fee notification error:', notifErr);
+            logger.error({ err: notifErr, loanId: loan._id }, 'Late fee notification error');
           }
         }
 
@@ -217,7 +218,7 @@ const applyLateFees = async (req) => {
           reason: 'post_tenure',
         });
       } catch (err) {
-        console.error(`Error applying late fee to loan ${loan._id}:`, err);
+        logger.error({ err, loanId: loan._id }, 'Error applying late fee to loan');
       }
     }
 

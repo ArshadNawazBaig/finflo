@@ -11,6 +11,7 @@ const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
 const { calculateEffectiveBalance } = require('../utils/balanceUtils');
 const { roundMoney } = require('../utils/money');
+const logger = require('../utils/logger');
 
 /**
  * Shared service to process a loan repayment.
@@ -288,9 +289,9 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     // CRITICAL: do NOT swallow this. A failed wallet debit (e.g. insufficient
     // funds) must abort the whole repayment so the loan is never marked paid and
     // no repayment income is booked against money that never actually moved.
-    console.error(
-      'Failed to update member balance in repayment service:',
-      balanceError,
+    logger.error(
+      { err: balanceError, loanId: loan?._id },
+      'Failed to update member balance in repayment service',
     );
     throw balanceError;
   }
@@ -438,7 +439,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       await customer.save();
     }
   } catch (ratingError) {
-    console.error('Error updating trust rating in service:', ratingError);
+    logger.error({ err: ratingError }, 'Error updating trust rating in service');
   }
 
   // Log activity
@@ -541,7 +542,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       });
     }
   } catch (notifError) {
-    console.error('Repayment Notification Error in Service:', notifError);
+    logger.error({ err: notifError }, 'Repayment Notification Error in Service');
   }
 
   return { repayment, loan };

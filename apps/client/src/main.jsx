@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { initSentry } from '@/lib/sentry';
+
+// Initialise error tracking before anything else so startup crashes are caught.
+// No-op in local dev (see initSentry); active on deployed staging/production.
+initSentry();
 
 // NOTE: canonical-domain enforcement (www ↔ apex) must happen at the
 // hosting/CDN layer, not here. A client-side window.location.replace from
