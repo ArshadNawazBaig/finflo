@@ -34,6 +34,7 @@ const Branch = require('../models/Branch');
 const { updateMemberCreditLimit } = require('../services/creditLimitService');
 const { getEmailBranding } = require('../utils/brandingUtils');
 const { escapeRegExp } = require('../utils/stringUtils');
+const { roundMoney } = require('../utils/money');
 
 // @desc    Convert Customer to Member
 // @route   POST /api/members/convert
@@ -2362,47 +2363,69 @@ const distributeProfit = async (req, res) => {
 
           if (profitAmount <= 0) continue;
 
-          // Update member profit atomically
-          const updatedMember = await Member.findByIdAndUpdate(
-            member._id,
-            {
-              $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
-            },
-            { new: true },
-          );
+          // Credit the member's wallet, book the distribution record AND its
+          // ledger row as ONE atomic unit. These are three documents; without a
+          // transaction a crash between them leaves a member credited with no
+          // distribution/ledger row (or a distribution with no credit) — the
+          // missing-income / orphan-row drift the backfill scripts exist to repair.
+          let distribution;
+          const session = await mongoose.startSession();
+          try {
+            await session.withTransaction(async () => {
+              // Update member profit atomically
+              await Member.findByIdAndUpdate(
+                member._id,
+                {
+                  $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
+                },
+                { session },
+              );
 
-          // Create profit distribution record
-          const distribution = await ProfitDistribution.create({
-            user: userId,
-            member: member._id,
-            branchId: member.branchId,
-            amount: profitAmount,
-            type: 'regular',
-            period:
-              period ||
-              periodStart.toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric',
-              }),
-            calculationMethod: `Weighted Avg Balance (Rs. ${Math.round(weightedBalance).toLocaleString()}) × ${member.profitRate}% Rate`,
-            investmentShare: member.profitRate,
-          });
+              // Create profit distribution record
+              [distribution] = await ProfitDistribution.create(
+                [
+                  {
+                    user: userId,
+                    member: member._id,
+                    branchId: member.branchId,
+                    amount: profitAmount,
+                    type: 'regular',
+                    period:
+                      period ||
+                      periodStart.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      }),
+                    calculationMethod: `Weighted Avg Balance (Rs. ${roundMoney(weightedBalance).toLocaleString()}) × ${member.profitRate}% Rate`,
+                    investmentShare: member.profitRate,
+                  },
+                ],
+                { session },
+              );
 
-          // Create Financial Transaction
-          const financialTx = new FinancialTransaction({
-            user: userId,
-            branchId: member.branchId,
-            type: 'expense',
-            category: 'profit_distribution',
-            amount: profitAmount,
-            date: new Date(),
-            description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
-            member: member._id,
-            referenceId: distribution._id,
-            referenceModel: 'ProfitDistribution',
-            paymentMethod: 'online',
-          });
-          await financialTx.save();
+              // Create Financial Transaction
+              await FinancialTransaction.create(
+                [
+                  {
+                    user: userId,
+                    branchId: member.branchId,
+                    type: 'expense',
+                    category: 'profit_distribution',
+                    amount: profitAmount,
+                    date: new Date(),
+                    description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
+                    member: member._id,
+                    referenceId: distribution._id,
+                    referenceModel: 'ProfitDistribution',
+                    paymentMethod: 'online',
+                  },
+                ],
+                { session },
+              );
+            });
+          } finally {
+            await session.endSession();
+          }
 
           // Notify member
           try {
@@ -2509,49 +2532,69 @@ const distributeProfit = async (req, res) => {
 
           if (profitAmount <= 0) continue;
 
-          // Update member profit atomically
-          const updatedMember = await Member.findByIdAndUpdate(
-            member._id,
-            {
-              $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
-            },
-            { new: true },
-          );
+          // Credit the member's wallet, book the distribution record AND its
+          // ledger row as ONE atomic unit (see the custom-rate branch above for
+          // why) so a mid-loop crash can't half-apply a member's profit.
+          let distribution;
+          const session = await mongoose.startSession();
+          try {
+            await session.withTransaction(async () => {
+              // Update member profit atomically
+              await Member.findByIdAndUpdate(
+                member._id,
+                {
+                  $inc: { totalProfit: profitAmount, currentBalance: profitAmount },
+                },
+                { session },
+              );
 
-          // Create profit distribution record
-          const distribution = await ProfitDistribution.create({
-            user: userId,
-            member: member._id,
-            branchId: member.branchId,
-            amount: profitAmount,
-            type: 'regular',
-            period:
-              period ||
-              periodStart.toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric',
-              }),
-            calculationMethod:
-              description ||
-              `Weighted Avg Balance: Rs. ${Math.round(weightedBalance).toLocaleString()} (${share.toFixed(2)}% share of pool)`,
-            investmentShare: share,
-          });
+              // Create profit distribution record
+              [distribution] = await ProfitDistribution.create(
+                [
+                  {
+                    user: userId,
+                    member: member._id,
+                    branchId: member.branchId,
+                    amount: profitAmount,
+                    type: 'regular',
+                    period:
+                      period ||
+                      periodStart.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                      }),
+                    calculationMethod:
+                      description ||
+                      `Weighted Avg Balance: Rs. ${roundMoney(weightedBalance).toLocaleString()} (${share.toFixed(2)}% share of pool)`,
+                    investmentShare: share,
+                  },
+                ],
+                { session },
+              );
 
-          // Create Financial Transaction
-          const financialTx = new FinancialTransaction({
-            user: userId,
-            branchId: member.branchId,
-            type: 'expense',
-            category: 'profit_distribution',
-            amount: profitAmount,
-            date: new Date(),
-            description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
-            member: member._id,
-            referenceId: distribution._id,
-            referenceModel: 'ProfitDistribution',
-            paymentMethod: 'online',
-          });
-          await financialTx.save();
+              // Create Financial Transaction
+              await FinancialTransaction.create(
+                [
+                  {
+                    user: userId,
+                    branchId: member.branchId,
+                    type: 'expense',
+                    category: 'profit_distribution',
+                    amount: profitAmount,
+                    date: new Date(),
+                    description: `Profit distribution for ${period || 'current period'} (Weighted Avg)`,
+                    member: member._id,
+                    referenceId: distribution._id,
+                    referenceModel: 'ProfitDistribution',
+                    paymentMethod: 'online',
+                  },
+                ],
+                { session },
+              );
+            });
+          } finally {
+            await session.endSession();
+          }
 
           // Notify member
           try {
@@ -4072,72 +4115,101 @@ const distributeShareProfit = async (req, res) => {
 
       if (profitAmount <= 0) continue;
 
-      // Credit profit to share balance atomically.
+      // Credit profit to share balance, book the BusinessShare record, the
+      // ProfitDistribution row AND the ledger row as ONE atomic unit. Without a
+      // transaction a mid-loop crash leaves a member's shareBalance bumped with
+      // no matching records (or records with no credit) — the orphan-row /
+      // missing-income drift the backfill scripts exist to repair.
       // NOTE: totalProfit must NOT be incremented here. It tracks profit credited
       // to currentBalance only; share profits live in shareBalance and are
       // tracked by totalShareProfit. Including them in totalProfit caused the
       // Member Balance reconciliation to flag a phantom drift equal to the
       // cumulative share profit (currentBalance never sees this money).
-      const updatedMember = await Member.findByIdAndUpdate(
-        member._id,
-        {
-          $inc: {
-            shareBalance: profitAmount,
-            totalShareProfit: profitAmount,
-          },
-        },
-        { new: true },
-      );
+      let shareRecord;
+      let updatedMember;
+      const session = await mongoose.startSession();
+      try {
+        await session.withTransaction(async () => {
+          // Keep { new: true } — shareBalanceAfter reads the updated doc.
+          updatedMember = await Member.findByIdAndUpdate(
+            member._id,
+            {
+              $inc: {
+                shareBalance: profitAmount,
+                totalShareProfit: profitAmount,
+              },
+            },
+            { new: true, session },
+          );
 
-      const shareRecord = await BusinessShare.create({
-        user: userId,
-        member: member._id,
-        branchId: member.branchId,
-        type: 'share_profit',
-        amount: profitAmount,
-        description:
-          description ||
-          `Share profit (Weighted Avg) for ${period || periodStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`,
-        shareBalanceAfter: updatedMember.shareBalance,
-        period:
-          period ||
-          periodStart.toLocaleDateString('en-US', {
-            month: 'short',
-            year: 'numeric',
-          }),
-      });
+          [shareRecord] = await BusinessShare.create(
+            [
+              {
+                user: userId,
+                member: member._id,
+                branchId: member.branchId,
+                type: 'share_profit',
+                amount: profitAmount,
+                description:
+                  description ||
+                  `Share profit (Weighted Avg) for ${period || periodStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`,
+                shareBalanceAfter: updatedMember.shareBalance,
+                period:
+                  period ||
+                  periodStart.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric',
+                  }),
+              },
+            ],
+            { session },
+          );
 
-      // Create Profit Distribution record (Unified Hub)
-      await ProfitDistribution.create({
-        user: userId,
-        member: member._id,
-        branchId: member.branchId,
-        amount: profitAmount,
-        type: 'share',
-        period:
-          period ||
-          periodStart.toLocaleDateString('en-US', {
-            month: 'short',
-            year: 'numeric',
-          }),
-        calculationMethod: calculationInfo,
-        investmentShare: sharePercent,
-      });
+          // Create Profit Distribution record (Unified Hub)
+          await ProfitDistribution.create(
+            [
+              {
+                user: userId,
+                member: member._id,
+                branchId: member.branchId,
+                amount: profitAmount,
+                type: 'share',
+                period:
+                  period ||
+                  periodStart.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric',
+                  }),
+                calculationMethod: calculationInfo,
+                investmentShare: sharePercent,
+              },
+            ],
+            { session },
+          );
 
-      // FinancialTransaction
-      await FinancialTransaction.create({
-        user: userId,
-        branchId: member.branchId,
-        type: 'expense',
-        category: 'profit_distribution',
-        amount: profitAmount,
-        date: new Date(),
-        description: `Share profit: ${calculationInfo}`,
-        member: member._id,
-        referenceId: shareRecord._id,
-        referenceModel: 'BusinessShare',
-        paymentMethod: 'online',
-      });
+          // FinancialTransaction
+          await FinancialTransaction.create(
+            [
+              {
+                user: userId,
+                branchId: member.branchId,
+                type: 'expense',
+                category: 'profit_distribution',
+                amount: profitAmount,
+                date: new Date(),
+                description: `Share profit: ${calculationInfo}`,
+                member: member._id,
+                referenceId: shareRecord._id,
+                referenceModel: 'BusinessShare',
+                paymentMethod: 'online',
+              },
+            ],
+            { session },
+          );
+        });
+      } finally {
+        await session.endSession();
+      }
 
       // Notify member
       try {

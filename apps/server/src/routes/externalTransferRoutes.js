@@ -7,10 +7,11 @@ const {
 } = require('../controllers/externalTransferController');
 const { protectMember } = require('../middleware/memberAuthMiddleware');
 const { requireTransactionPin } = require('../middleware/transactionPinMiddleware');
+const { idempotency } = require('../middleware/idempotency');
 
 router.use(protectMember);
 
-router.post('/', requireTransactionPin, initiateExternalTransfer);
+router.post('/', idempotency, requireTransactionPin, initiateExternalTransfer);
 // SECURITY: /receive route removed — it allowed a logged-in member to credit
 // their own balance by simply posting an amount, with no bank-side proof of
 // funds. Incoming deposits must come through a verified webhook (Raast, etc.)

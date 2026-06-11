@@ -33,6 +33,34 @@ const authSegments = [
 
 const isOnAuthPage = (path) => authSegments.some((seg) => path.includes(seg));
 
+// Money-mutating endpoints that the server dedupes via the Idempotency-Key
+// header (see middleware/idempotency.js). We tag each such POST with a fresh
+// UUID so a retried/duplicated request moves money exactly once. Matched on the
+// request URL so no per-form wiring is needed.
+const MONEY_POST_PATTERNS = [
+  /\/external-transfers\/?$/,
+  /\/saving-goals\/.+\/contribute$/,
+  /\/checkbooks\/issue$/,
+  /\/repayments\/?$/,
+  /\/repayments\/member\/.+\/repay$/,
+  /\/members\/[^/]+\/(invest|withdraw|share-invest|share-withdraw)$/,
+  /\/members\/(distribute-profit|distribute-share-profit|admin\/transfer)$/,
+  /\/members\/portal\/(transfer|raast-deposit)$/,
+];
+
+const newIdempotencyKey = () =>
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `idem-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const tagIdempotency = (config) => {
+  if ((config.method || '').toLowerCase() !== 'post') return;
+  const url = config.url || '';
+  if (MONEY_POST_PATTERNS.some((re) => re.test(url))) {
+    config.headers['Idempotency-Key'] = newIdempotencyKey();
+  }
+};
+
 // Centralised "session is dead, send the user to login" handler.
 // Sets a global redirecting flag so the ErrorBoundary stays silent and any
 // component reading session atoms can render a minimal placeholder instead
@@ -86,6 +114,7 @@ api.interceptors.request.use(
     if (token && typeof token === 'string') {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    tagIdempotency(config);
     return config;
   },
   (error) => Promise.reject(error),

@@ -10,6 +10,7 @@ const { logActivity } = require('../controllers/activityLogController');
 const { sendEmail, sendEmailAsync } = require('../utils/email');
 const { transactionEmail } = require('../utils/emailTemplates');
 const { calculateEffectiveBalance } = require('../utils/balanceUtils');
+const { roundMoney } = require('../utils/money');
 
 /**
  * Shared service to process a loan repayment.
@@ -50,7 +51,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
 
-      const proRatedInterest = Math.round(dailyInterest * totalDaysPassed);
+      const proRatedInterest = roundMoney(dailyInterest * totalDaysPassed);
 
       actualSettlementAmount = loan.principal + proRatedInterest;
     } else if (loan.interestType === 'compound') {
@@ -86,7 +87,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       );
 
       const dailyInterest = (currentPrincipal * monthlyRate) / 30;
-      const currentPeriodInterest = Math.round(
+      const currentPeriodInterest = roundMoney(
         dailyInterest * currentDaysPassed,
       );
 
@@ -170,13 +171,13 @@ const processRepayment = async (loan, amount, req, options = {}) => {
     if (loan.interestType === 'simple') {
       const monthlyInterest = (loan.principal * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
-      interestAmount = Math.round(dailyInterest * daysPassed);
+      interestAmount = roundMoney(dailyInterest * daysPassed);
     } else if (loan.interestType === 'compound') {
       // Compound: interest calculated on remaining balance (which grows on missed payments)
       const currentOutstanding = loan.remainingAmount;
       const monthlyInterest = (currentOutstanding * loan.rate) / 1200;
       const dailyInterest = monthlyInterest / 30;
-      interestAmount = Math.round(dailyInterest * daysPassed);
+      interestAmount = roundMoney(dailyInterest * daysPassed);
     } else {
       // EMI (Reducing Balance)
       const monthlyRate = loan.rate / 12 / 100;
@@ -190,7 +191,7 @@ const processRepayment = async (loan, amount, req, options = {}) => {
       const currPrin = Math.max(0, loan.principal - prinPaid);
 
       const dailyInterest = (currPrin * monthlyRate) / 30;
-      interestAmount = Math.round(dailyInterest * daysPassed);
+      interestAmount = roundMoney(dailyInterest * daysPassed);
     }
 
     // Safety checks

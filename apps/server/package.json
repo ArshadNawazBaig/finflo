@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "migrate": "node src/scripts/migrate.js",
     "build": "echo 'No build needed for server'",
     "test": "vitest run",
     "test:watch": "vitest"

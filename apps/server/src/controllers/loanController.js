@@ -28,6 +28,7 @@ const {
   calculateCreditLimit,
 } = require('../services/creditLimitService');
 const { getEmailBranding } = require('../utils/brandingUtils');
+const { roundMoney } = require('../utils/money');
 
 /**
  * @desc    Send payment reminder emails to many loan holders in one request.
@@ -3017,57 +3018,81 @@ const applyRenewalSettlement = async ({ oldLoan, newLoan, renewalType, req }) =>
   const ownerId = req.user.effectiveOwnerId;
   const oldOutstanding = oldLoan.remainingAmount || 0;
 
-  // 1. Close the old loan — debt is moved into the new loan, not repaid.
-  oldLoan.status = 'renewed';
-  oldLoan.remainingAmount = 0;
-  oldLoan.renewedTo = newLoan._id;
-  oldLoan.lastRenewedAt = new Date();
-  await oldLoan.save();
+  // Close the old loan, disburse the top-up cash, credit the member's wallet and
+  // book both ledger rows as ONE atomic unit. These are up to four documents;
+  // without a transaction a mid-operation crash leaves the old loan closed with
+  // no top-up disbursement (or a disbursement with no wallet credit) — the
+  // orphan-row / missing-income drift the backfill scripts exist to repair.
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      // 1. Close the old loan — debt is moved into the new loan, not repaid.
+      oldLoan.status = 'renewed';
+      oldLoan.remainingAmount = 0;
+      oldLoan.renewedTo = newLoan._id;
+      oldLoan.lastRenewedAt = new Date();
+      await oldLoan.save({ session });
 
-  // 2. Top-up only: disburse the extra cash above the carried-over balance.
-  if (renewalType === 'topup') {
-    const extraCash = Math.max(
-      0,
-      Math.round((newLoan.principal || 0) - oldOutstanding),
-    );
-    if (extraCash > 0) {
-      const customerDoc = await Customer.findById(newLoan.customer);
-      await FinancialTransaction.create({
-        user: ownerId,
-        branchId: newLoan.branchId || customerDoc?.branchId,
-        type: 'loan',
-        category: 'loan_disbursement',
-        amount: extraCash,
-        date: new Date(),
-        description: `Loan top-up disbursement (renewal) for ${customerDoc?.name || 'customer'}`,
-        customer: newLoan.customer,
-        member: customerDoc?.memberId || null,
-        loan: newLoan._id,
-        referenceId: newLoan._id,
-        referenceModel: 'Loan',
-        paymentMethod: 'online',
-      });
-
-      if (customerDoc?.isMember && customerDoc?.memberId) {
-        const updatedMember = await Member.findByIdAndUpdate(
-          customerDoc.memberId,
-          { $inc: { currentBalance: extraCash, totalInvested: extraCash } },
-          { new: true },
+      // 2. Top-up only: disburse the extra cash above the carried-over balance.
+      if (renewalType === 'topup') {
+        const extraCash = Math.max(
+          0,
+          roundMoney((newLoan.principal || 0) - oldOutstanding),
         );
-        if (updatedMember) {
-          await Investment.create({
-            user: ownerId,
-            member: customerDoc.memberId,
-            branchId: newLoan.branchId || updatedMember.branchId,
-            type: 'deposit',
-            amount: extraCash,
-            balanceAfter: updatedMember.currentBalance,
-            description: `Loan Top-up — #${newLoan._id.toString().slice(-6).toUpperCase()}`,
-            date: new Date(),
-          });
+        if (extraCash > 0) {
+          const customerDoc = await Customer.findById(newLoan.customer).session(
+            session,
+          );
+          await FinancialTransaction.create(
+            [
+              {
+                user: ownerId,
+                branchId: newLoan.branchId || customerDoc?.branchId,
+                type: 'loan',
+                category: 'loan_disbursement',
+                amount: extraCash,
+                date: new Date(),
+                description: `Loan top-up disbursement (renewal) for ${customerDoc?.name || 'customer'}`,
+                customer: newLoan.customer,
+                member: customerDoc?.memberId || null,
+                loan: newLoan._id,
+                referenceId: newLoan._id,
+                referenceModel: 'Loan',
+                paymentMethod: 'online',
+              },
+            ],
+            { session },
+          );
+
+          if (customerDoc?.isMember && customerDoc?.memberId) {
+            const updatedMember = await Member.findByIdAndUpdate(
+              customerDoc.memberId,
+              { $inc: { currentBalance: extraCash, totalInvested: extraCash } },
+              { new: true, session },
+            );
+            if (updatedMember) {
+              await Investment.create(
+                [
+                  {
+                    user: ownerId,
+                    member: customerDoc.memberId,
+                    branchId: newLoan.branchId || updatedMember.branchId,
+                    type: 'deposit',
+                    amount: extraCash,
+                    balanceAfter: updatedMember.currentBalance,
+                    description: `Loan Top-up — #${newLoan._id.toString().slice(-6).toUpperCase()}`,
+                    date: new Date(),
+                  },
+                ],
+                { session },
+              );
+            }
+          }
         }
       }
-    }
+    });
+  } finally {
+    await session.endSession();
   }
 
   // 3. Audit log

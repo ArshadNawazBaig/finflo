@@ -12,6 +12,7 @@ const {
   savingGoalValidation,
   savingGoalContributionValidation,
 } = require('../middleware/validationMiddleware');
+const { idempotency } = require('../middleware/idempotency');
 
 // All routes require member authentication
 router.use(protectMember);
@@ -22,6 +23,6 @@ router.route('/:id').put(savingGoalValidation, updateGoal).delete(deleteGoal);
 
 router
   .route('/:id/contribute')
-  .post(savingGoalContributionValidation, contributeToGoal);
+  .post(idempotency, savingGoalContributionValidation, contributeToGoal);
 
 module.exports = router;
