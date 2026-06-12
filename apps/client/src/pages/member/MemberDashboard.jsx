@@ -27,9 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MemberDashboardSkeleton } from '@/components/ui/PageSkeletons';
 import MemberLoanRequestModal from '@/components/member/MemberLoanRequestModal';
-import CreditScoreCard from '@/components/member/CreditScoreCard';
-import FinancialHealthCard from '@/components/member/FinancialHealthCard';
-import AccountOverviewCard from '@/components/member/AccountOverviewCard';
+import MemberFinancialSnapshot from '@/components/member/MemberFinancialSnapshot';
 import FinancialCalendar from '@/components/member/FinancialCalendar';
 import TermDepositsWidget from '@/components/member/TermDepositsWidget';
 import DividendsWidget from '@/components/member/DividendsWidget';
@@ -371,23 +369,15 @@ const MemberDashboard = () => {
         </Button>
       </div>
 
-      {/* Credit Score, Financial Health & Account Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        <CreditScoreCard
-          creditScore={
-            member?.creditScore || {
-              score: 550,
-              grade: 'Fair',
-              factors: ['No credit history yet — build your profile over time'],
-            }
-          }
-        />
-        <FinancialHealthCard
-          member={member}
-          activeLoansCount={activeLoansCount}
-        />
-        <AccountOverviewCard member={member} />
-      </div>
+      {/* Financial snapshot hero — balance, active loan & credit score */}
+      <MemberFinancialSnapshot
+        member={member}
+        activeLoansCount={activeLoansCount}
+        onRequestLoan={() => setIsRequestModalOpen(true)}
+        onRepay={() =>
+          navigate(`/member/loans/${member?.activeLoan?._id || ''}`)
+        }
+      />
 
       {/* Financial Calendar — full width */}
       <FinancialCalendar className="my-8" />
