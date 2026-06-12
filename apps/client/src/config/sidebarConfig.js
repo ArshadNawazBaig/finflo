@@ -103,6 +103,14 @@ export const sidebarMenuConfig = [
         any: true,
       },
       {
+        to: '/groups',
+        icon: UsersRound,
+        label: 'Groups',
+        onboardingId: 'sidebar-groups',
+        permissions: ['view_all', 'manage_loans'],
+        any: true,
+      },
+      {
         to: '/loan-products',
         icon: BookOpen,
         label: 'Product Catalog',

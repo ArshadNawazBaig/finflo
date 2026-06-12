@@ -10,6 +10,8 @@ const Customer = require('../../src/models/Customer');
 const Loan = require('../../src/models/Loan');
 const Investment = require('../../src/models/Investment');
 const TermDeposit = require('../../src/models/TermDeposit');
+const LoanGroup = require('../../src/models/LoanGroup');
+const GroupLoan = require('../../src/models/GroupLoan');
 
 // Monotonic unique-ish suffix so emails / cnics never collide within a run.
 let seq = 0;
@@ -117,6 +119,41 @@ async function makeTermDeposit(owner, member, overrides = {}) {
   });
 }
 
+// A standing joint-liability group. `customers` is an array of Customer docs;
+// the first is the leader.
+async function makeGroup(owner, customers = [], overrides = {}) {
+  return LoanGroup.create({
+    user: owner._id,
+    name: `Group ${uid()}`,
+    members: customers.map((c, i) => ({
+      customer: c._id,
+      role: i === 0 ? 'leader' : 'member',
+      status: 'active',
+    })),
+    status: overrides.status ?? 'forming',
+    guaranteePolicy: overrides.guaranteePolicy ?? 'joint',
+    ...overrides,
+  });
+}
+
+// A pending group-loan cycle. `allocations` is [{ customer, loan, principal }].
+async function makeGroupLoan(owner, group, allocations = [], overrides = {}) {
+  return GroupLoan.create({
+    user: owner._id,
+    group: group._id,
+    allocations,
+    rate: overrides.rate ?? 24,
+    duration: overrides.duration ?? 12,
+    interestType: overrides.interestType ?? 'simple',
+    startDate: overrides.startDate ?? new Date(),
+    totalPrincipal:
+      overrides.totalPrincipal ??
+      allocations.reduce((s, a) => s + (a.principal || 0), 0),
+    status: overrides.status ?? 'pending',
+    ...overrides,
+  });
+}
+
 module.exports = {
   uid,
   makeOwner,
@@ -127,4 +164,6 @@ module.exports = {
   makeLoan,
   makeInvestment,
   makeTermDeposit,
+  makeGroup,
+  makeGroupLoan,
 };

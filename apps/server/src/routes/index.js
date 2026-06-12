@@ -6,6 +6,7 @@ const routes = [
   ['/member-auth', './memberAuthRoutes'],
   ['/customers', './customerRoutes'],
   ['/loans', './loanRoutes'],
+  ['/groups', './groupRoutes'],
   ['/staff', './staffRoutes'],
   ['/repayments', './repaymentRoutes'],
   ['/ledger', './ledgerRoutes'],

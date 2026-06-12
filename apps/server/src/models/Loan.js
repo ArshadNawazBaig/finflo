@@ -115,6 +115,21 @@ const loanSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LoanProduct',
     },
+    // ── Group / joint-liability linkage ──────────────────────────────────────
+    // When set, this loan is one member's sub-loan inside a group lending cycle.
+    // The individual-loan engine ignores these fields entirely and keeps working
+    // unchanged; they only let the group layer (groupLoanService + the crons'
+    // at-risk cascade) find a sub-loan's parent group.
+    groupLoan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'GroupLoan',
+      default: null,
+    },
+    loanGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LoanGroup',
+      default: null,
+    },
     // ── Renewal linkage ──────────────────────────────────────────────────────
     // renewedFrom is set on the NEW loan and points back to the loan it renewed.
     // renewedTo is set on the OLD loan and points forward to its replacement.
@@ -145,6 +160,7 @@ loanSchema.index({ branchId: 1 });
 loanSchema.index({ status: 1 });
 loanSchema.index({ createdAt: -1 });
 loanSchema.index({ renewedFrom: 1 });
+loanSchema.index({ groupLoan: 1 });
 
 // Money guardrail (P1.3): round all money fields to whole rupees at rest so a
 // fractional rupee can never be persisted, even if a caller forgets to round.

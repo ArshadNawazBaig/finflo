@@ -111,6 +111,12 @@ const runOverdueDowngrade = async () => {
 
         totalDowngraded++;
 
+        // Joint-liability cascade: if this loan belongs to a group, flag the
+        // whole group at-risk and notify co-members (no auto wallet debits).
+        if (loan.groupLoan) {
+          await require('./groupLoanService').cascadeGroupRisk(loan);
+        }
+
         // Notify member if applicable
         try {
           const customer = await Customer.findById(loan.customer);
@@ -746,6 +752,11 @@ const runLoanDefaultDetection = async () => {
             await Member.findByIdAndUpdate(loan.customer.memberId, {
               status: 'Inactive',
             });
+          }
+
+          // ── Joint-liability cascade: flag the group defaulted/at-risk ──
+          if (loan.groupLoan) {
+            await require('./groupLoanService').cascadeGroupRisk(loan);
           }
 
           // ── Notify member ──
