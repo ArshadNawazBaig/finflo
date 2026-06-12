@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calculator, Info, ChevronDown, Landmark, TableProperties, X } from 'lucide-react';
+import { Calculator, Info, ChevronDown, Landmark, TableProperties, X, Minus, Plus } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import ModernSlider from '@/components/ui/ModernSlider';
 
@@ -16,6 +16,9 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
   );
   const [showSchedule] = useState(true);
   const [mobileScheduleOpen, setMobileScheduleOpen] = useState(false);
+  // Compound-only: how many installments the borrower misses, for the late-
+  // payment (interest-on-interest) impact illustration.
+  const [missedInstallments, setMissedInstallments] = useState(1);
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -46,14 +49,15 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
       const x = Math.pow(1 + monthlyRate, n);
       const monthly = (principal * x * monthlyRate) / (x - 1);
       return { monthly, total: monthly * n, interest: monthly * n - principal };
-    } else if (interestType === 'simple') {
+    } else {
+      // Simple AND compound use flat interest at origination — this matches the
+      // server's issuance math (loanMath.calculateCompoundInterest is identical
+      // to simple). Compounding only ever applies dynamically to MISSED
+      // installments, which a forward-looking simulator can't project. Modelling
+      // compound as P·(1+r)ⁿ here produced a summary total that the amortization
+      // schedule (reducing-balance) could never reconcile with.
       const interest = principal * yearlyRate * (n / 12);
       const total = principal + interest;
-      return { monthly: total / n, total, interest };
-    } else {
-      // Compound
-      const total = principal * Math.pow(1 + monthlyRate, n);
-      const interest = total - principal;
       return { monthly: total / n, total, interest };
     }
   };
@@ -73,16 +77,17 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
       let interestPart, principalPart, emiAmount;
 
       if (interestType === 'emi' && monthlyRate > 0) {
+        // Reducing balance: interest accrues on the outstanding balance.
         emiAmount = result.monthly;
         interestPart = balance * monthlyRate;
-        principalPart = emiAmount - interestPart;
-      } else if (interestType === 'simple') {
-        emiAmount = result.monthly;
-        interestPart = (amount * (rate / 100)) / 12;
         principalPart = emiAmount - interestPart;
       } else {
+        // Simple, compound, and 0% EMI: flat interest on the ORIGINAL principal
+        // each month. This mirrors calculate() so the schedule's interest column
+        // sums to the summary's total interest and the balance amortizes to
+        // exactly zero (principal portion is a constant amount/term).
         emiAmount = result.monthly;
-        interestPart = balance * monthlyRate;
+        interestPart = (amount * (rate / 100)) / 12;
         principalPart = emiAmount - interestPart;
       }
 
@@ -100,6 +105,25 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
   };
 
   const scheduleData = generateSchedule();
+
+  // Compound late-payment impact. Mirrors the server cron
+  // (runCompoundInterestAccrual): for each MISSED installment, one month of
+  // interest is charged on the outstanding principal and capitalized into it,
+  // so the next missed month accrues interest-on-interest. This is the ONLY way
+  // compound diverges from simple — on time, they are identical.
+  const compoundImpact = () => {
+    let running = amount; // outstanding principal (worst case: behind from start)
+    let extra = 0;
+    const periods = Math.min(Math.max(0, missedInstallments), term);
+    for (let p = 0; p < periods; p++) {
+      const periodInterest = Math.round((running * rate) / 1200);
+      if (periodInterest <= 0) break;
+      extra += periodInterest;
+      running += periodInterest; // capitalize → next period compounds on it
+    }
+    return { extra, newTotal: Math.round(result.total + extra) };
+  };
+  const impact = compoundImpact();
 
   return (
     <div className="rounded-[2rem] bg-card border border-border/50 shadow-xs overflow-hidden">
@@ -247,6 +271,74 @@ const MemberLoanCalculator = ({ member, products = [] }) => {
               </div>
             </div>
           </div>
+
+          {/* Compound-only: Late Payment Impact (interest-on-interest) */}
+          {interestType === 'compound' && (
+            <div className="mt-5 p-5 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04]">
+              <div className="flex items-center justify-between mb-4 gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-500">
+                    Late Payment Impact
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                    Compound charges interest on unpaid interest
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    aria-label="Fewer missed installments"
+                    onClick={() =>
+                      setMissedInstallments((v) => Math.max(0, v - 1))
+                    }
+                    className="w-7 h-7 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-muted/40 active:scale-95 transition-all"
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <span className="w-16 text-center text-xs font-black tabular-nums">
+                    {missedInstallments}
+                    <span className="text-[9px] font-bold text-muted-foreground ml-1">
+                      missed
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="More missed installments"
+                    onClick={() =>
+                      setMissedInstallments((v) => Math.min(term, v + 1))
+                    }
+                    className="w-7 h-7 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-muted/40 active:scale-95 transition-all"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-card/60 border border-border/30">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-1">
+                    Extra interest-on-interest
+                  </p>
+                  <p className="text-sm font-black tabular-nums text-amber-600 dark:text-amber-500">
+                    {impact.extra > 0 ? '+' : ''}
+                    {formatCurrency(impact.extra)}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-card/60 border border-border/30">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-1">
+                    Projected payback
+                  </p>
+                  <p className="text-sm font-black tabular-nums">
+                    {formatCurrency(impact.newTotal)}
+                  </p>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground/80 font-medium mt-3 leading-relaxed">
+                Pay on time and you owe the on-time total above — identical to
+                simple interest. Each missed installment adds a month of interest
+                ({rate}%/yr) onto your balance, which then accrues more interest.
+              </p>
+            </div>
+          )}
 
           {/* Mobile: Show Schedule Button */}
           <div className="lg:hidden mt-6">
