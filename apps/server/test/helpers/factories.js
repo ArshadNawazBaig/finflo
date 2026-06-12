@@ -10,6 +10,9 @@ const Customer = require('../../src/models/Customer');
 const Loan = require('../../src/models/Loan');
 const Investment = require('../../src/models/Investment');
 const TermDeposit = require('../../src/models/TermDeposit');
+const LoanGroup = require('../../src/models/LoanGroup');
+const GroupLoan = require('../../src/models/GroupLoan');
+const Repayment = require('../../src/models/Repayment');
 
 // Monotonic unique-ish suffix so emails / cnics never collide within a run.
 let seq = 0;
@@ -117,6 +120,58 @@ async function makeTermDeposit(owner, member, overrides = {}) {
   });
 }
 
+// A standing joint-liability group. `customers` is an array of Customer docs;
+// the first is the leader.
+async function makeGroup(owner, customers = [], overrides = {}) {
+  return LoanGroup.create({
+    user: owner._id,
+    name: `Group ${uid()}`,
+    members: customers.map((c, i) => ({
+      customer: c._id,
+      role: i === 0 ? 'leader' : 'member',
+      status: 'active',
+    })),
+    status: overrides.status ?? 'forming',
+    guaranteePolicy: overrides.guaranteePolicy ?? 'joint',
+    ...overrides,
+  });
+}
+
+// A pending group-loan cycle. `allocations` is [{ customer, loan, principal }].
+async function makeGroupLoan(owner, group, allocations = [], overrides = {}) {
+  return GroupLoan.create({
+    user: owner._id,
+    group: group._id,
+    allocations,
+    rate: overrides.rate ?? 24,
+    duration: overrides.duration ?? 12,
+    interestType: overrides.interestType ?? 'simple',
+    startDate: overrides.startDate ?? new Date(),
+    totalPrincipal:
+      overrides.totalPrincipal ??
+      allocations.reduce((s, a) => s + (a.principal || 0), 0),
+    status: overrides.status ?? 'pending',
+    ...overrides,
+  });
+}
+
+// A repayment row against a loan, used to build punctuality history for credit
+// scoring. `date` vs the installment due date determines on-time/late.
+async function makeRepayment(owner, loan, customer, overrides = {}) {
+  return Repayment.create({
+    user: owner._id,
+    loan: loan._id,
+    customer: customer._id,
+    amount: overrides.amount ?? 5000,
+    interestAmount: overrides.interestAmount ?? 0,
+    principalAmount: overrides.principalAmount ?? (overrides.amount ?? 5000),
+    installmentNumber: overrides.installmentNumber ?? 1,
+    date: overrides.date ?? new Date(),
+    status: overrides.status ?? 'Completed',
+    ...overrides,
+  });
+}
+
 module.exports = {
   uid,
   makeOwner,
@@ -127,4 +182,7 @@ module.exports = {
   makeLoan,
   makeInvestment,
   makeTermDeposit,
+  makeGroup,
+  makeGroupLoan,
+  makeRepayment,
 };

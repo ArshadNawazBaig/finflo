@@ -449,7 +449,9 @@ const getDashboardStats = async (req, res) => {
 
     const txMatch = { user: req.user.effectiveOwnerId };
     if (query.branchId !== undefined) txMatch.branchId = query.branchId;
-    const historicalMetrics = await FinancialTransaction.aggregate([
+    // These two month-by-month aggregations are independent (different
+    // collections) — run them concurrently rather than back-to-back.
+    const historicalMetricsP = FinancialTransaction.aggregate([
       {
         $match: {
           ...txMatch,
@@ -513,7 +515,7 @@ const getDashboardStats = async (req, res) => {
     ]);
 
     // Fetch Profit separately from Repayments (contains interestAmount)
-    const profitMetrics = await Repayment.aggregate([
+    const profitMetricsP = Repayment.aggregate([
       {
         $match: {
           ...txMatch,
@@ -566,6 +568,11 @@ const getDashboardStats = async (req, res) => {
       },
     ]);
 
+    const [historicalMetrics, profitMetrics] = await Promise.all([
+      historicalMetricsP,
+      profitMetricsP,
+    ]);
+
     // Map to the required format
     const monthNames = [
       'Jan',
@@ -615,7 +622,11 @@ const getDashboardStats = async (req, res) => {
       if (query.user) loanForecastMatch.user = query.user;
       if (query.branchId !== undefined)
         loanForecastMatch.branchId = query.branchId;
-      const activeLoansList = await Loan.find(loanForecastMatch);
+      // The forecast loop only needs these three fields; lean + project avoids
+      // hydrating every active loan in full.
+      const activeLoansList = await Loan.find(loanForecastMatch)
+        .select('startDate duration emi')
+        .lean();
 
       const today = new Date();
       for (let i = 1; i <= 6; i++) {

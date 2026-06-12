@@ -4,45 +4,7 @@ const Customer = require('../models/Customer');
 const Repayment = require('../models/Repayment');
 const ActivityLog = require('../models/ActivityLog');
 const { logActivity } = require('./activityLogController');
-
-// Defuse CSV formula-injection: Excel / Sheets will execute a cell starting
-// with `=`, `+`, `-`, `@`, TAB or CR as a formula. Prefix any such cell with
-// a single-quote so it's treated as text.
-const defuseFormula = (s) => {
-  if (s.length > 0 && /^[=+\-@\t\r]/.test(s)) return `'${s}`;
-  return s;
-};
-
-// Helper function to convert JSON to CSV
-const jsonToCSV = (data, fields) => {
-  if (!data || data.length === 0) return '';
-
-  const headers = fields
-    .map((f) => (typeof f === 'object' ? f.label : f))
-    .join(',');
-  const rows = data.map((item) => {
-    return fields
-      .map((field) => {
-        const fieldKey = typeof field === 'object' ? field.key : field;
-        const value = fieldKey
-          .split('.')
-          .reduce((obj, key) => obj?.[key], item);
-        if (value === null || value === undefined) return '';
-        let stringValue = defuseFormula(String(value));
-        if (
-          stringValue.includes(',') ||
-          stringValue.includes('"') ||
-          stringValue.includes('\n')
-        ) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
-      })
-      .join(',');
-  });
-
-  return [headers, ...rows].join('\n');
-};
+const { jsonToCSV } = require('../utils/csv');
 
 // ... (exportUsers stays mostly the same)
 const exportUsers = async (req, res) => {

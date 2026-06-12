@@ -10,6 +10,7 @@ const {
   deleteDocument,
   updateDocumentStatus,
   getPendingDocuments,
+  getCustomerCreditScore,
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/customerUploadMiddleware');
@@ -20,6 +21,7 @@ router
   .get(protect, getCustomers)
   .post(protect, customerValidation, createCustomer);
 router.get('/documents/pending', protect, getPendingDocuments);
+router.get('/:id/credit-score', protect, getCustomerCreditScore);
 
 router
   .route('/:id')

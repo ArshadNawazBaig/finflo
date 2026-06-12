@@ -7,6 +7,8 @@
  * Each installment shows interest for exactly 30 days (one billing period).
  * This matches the actual backend logic in loanRepaymentService.js.
  */
+const { roundMoney } = require('./money');
+
 const generateAmortizationSchedule = (loan) => {
   const { principal, rate, duration, startDate, interestType, emi } = loan;
 
@@ -17,8 +19,8 @@ const generateAmortizationSchedule = (loan) => {
 
   // For simple interest: each installment earns 30 days of interest on principal
   const dailySimpleInterest = principal * dailyRate;
-  const interestPer30Days = Math.round(dailySimpleInterest * 30);
-  const principalPerInstallment = Math.round(principal / (duration || 1));
+  const interestPer30Days = roundMoney(dailySimpleInterest * 30);
+  const principalPerInstallment = roundMoney(principal / (duration || 1));
 
   // Running totals so the LAST installment can absorb any rounding residual.
   // Without this, sum(schedule) drifts from the loan's totalAmount by a few units.
@@ -52,8 +54,8 @@ const generateAmortizationSchedule = (loan) => {
     } else {
       // EMI (Reducing Balance): interest is proportional to remaining principal
       // 30 days of daily interest on current principal balance
-      interest = Math.round(currentPrincipal * dailyRate * 30);
-      principalPortion = Math.round(emi - interest);
+      interest = roundMoney(currentPrincipal * dailyRate * 30);
+      principalPortion = roundMoney(emi - interest);
       principalPortion = Math.max(
         0,
         Math.min(principalPortion, currentPrincipal),
@@ -72,9 +74,9 @@ const generateAmortizationSchedule = (loan) => {
     schedule.push({
       installment: i,
       dueDate,
-      amount: Math.round(installmentTotal),
-      interest: Math.round(interest),
-      principal: Math.round(principalPortion),
+      amount: roundMoney(installmentTotal),
+      interest: roundMoney(interest),
+      principal: roundMoney(principalPortion),
       status: 'pending',
     });
   }

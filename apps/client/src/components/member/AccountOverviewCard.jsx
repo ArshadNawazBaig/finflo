@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   LayoutDashboard,
-  Wallet,
-  PiggyBank,
-  Users,
   Clock,
-  ArrowUpRight,
   ArrowDownLeft,
   Info,
   Eye,
@@ -177,6 +173,7 @@ const AccountOverviewCard = ({ member }) => {
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

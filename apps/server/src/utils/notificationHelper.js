@@ -203,4 +203,6 @@ const notifyAdminsOfMemberAction = async ({
 module.exports = {
   createTransactionNotification,
   notifyAdminsOfMemberAction,
+  emitNotification,
+  ACTION_TO_PREFERENCE,
 };

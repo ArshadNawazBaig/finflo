@@ -9,6 +9,8 @@ const { generateAmortizationSchedule } = require('../utils/amortizationUtils');
 const {
   createTransactionNotification,
 } = require('../utils/notificationHelper');
+const { wrap } = require('./jobHealth');
+const logger = require('../utils/logger');
 
 // ─── Fallback Constants (used only if config fails) ─────────────────────────
 const DEFAULT_GRACE_PERIOD_DAYS = 3;
@@ -108,6 +110,12 @@ const runOverdueDowngrade = async () => {
         });
 
         totalDowngraded++;
+
+        // Joint-liability cascade: if this loan belongs to a group, flag the
+        // whole group at-risk and notify co-members (no auto wallet debits).
+        if (loan.groupLoan) {
+          await require('./groupLoanService').cascadeGroupRisk(loan);
+        }
 
         // Notify member if applicable
         try {
@@ -514,9 +522,11 @@ const runSavingProfitAccrual = async () => {
                   $add: [
                     { $ifNull: ['$pendingSavingProfit', 0] },
                     {
+                      // Keep 2 dp (paisa) so sub-rupee daily profit isn't lost;
+                      // it accumulates and is paid out monthly.
                       $round: [
                         { $multiply: ['$savingBalance', dailyRate] },
-                        0,
+                        2,
                       ],
                     },
                   ],
@@ -530,7 +540,8 @@ const runSavingProfitAccrual = async () => {
 
         if (!updatedMember) continue;
 
-        const dailyProfit = Math.round(updatedMember.savingBalance * dailyRate);
+        const dailyProfit =
+          Math.round(updatedMember.savingBalance * dailyRate * 100) / 100;
         if (dailyProfit <= 0) continue;
 
         // Daily accruals no longer create ledger entries immediately;
@@ -743,6 +754,11 @@ const runLoanDefaultDetection = async () => {
             });
           }
 
+          // ── Joint-liability cascade: flag the group defaulted/at-risk ──
+          if (loan.groupLoan) {
+            await require('./groupLoanService').cascadeGroupRisk(loan);
+          }
+
           // ── Notify member ──
           if (loan.customer?.isMember && loan.customer.memberId) {
             try {
@@ -818,6 +834,15 @@ const runLoanDefaultDetection = async () => {
               }
             } catch (ratingErr) {
               console.error('[CRON] Trust rating update error:', ratingErr.message);
+            }
+
+            // Refresh the credit-score snapshot so the default reflects in the
+            // borrower's score (and their limit) immediately.
+            try {
+              const { refreshCreditScore } = require('./creditScoringService');
+              await refreshCreditScore(loan.customer._id);
+            } catch (scoreErr) {
+              console.error('[CRON] Credit score refresh error:', scoreErr.message);
             }
           }
         } catch (loanErr) {
@@ -1718,61 +1743,106 @@ const runDocumentExpiryScan = async () => {
   }
 };
 
+// ─── Job: Credit Score Refresh ────────────────────────────────────────────────
+/**
+ * Recompute every active customer's credit-score snapshot daily so scores stay
+ * current even between repayment/default events (e.g. tenure ageing, group
+ * standing changes). Best-effort per customer — one failure never aborts the run.
+ */
+const runCreditScoreRefresh = async () => {
+  console.log('[CRON] runCreditScoreRefresh: starting...');
+  try {
+    const { refreshCreditScore } = require('./creditScoringService');
+    const customers = await Customer.find({ status: 'Active' }).select('_id');
+    let processed = 0;
+    for (const customer of customers) {
+      try {
+        await refreshCreditScore(customer._id);
+        processed += 1;
+      } catch (e) {
+        console.error(
+          `[CRON] runCreditScoreRefresh: ${customer._id} failed:`,
+          e.message,
+        );
+      }
+    }
+    console.log(`[CRON] runCreditScoreRefresh: ${processed} customer(s) scored.`);
+  } catch (err) {
+    console.error('[CRON] runCreditScoreRefresh ERROR:', err);
+  }
+};
+
 // ─── Initializer ─────────────────────────────────────────────────────────────
 
 const initScheduledTasks = () => {
+  // Every job is wrapped with jobHealth.wrap so each run's outcome (success /
+  // failure / duration) is recorded and surfaced via /api/health — a silently
+  // failing money job is now visible and alertable.
+
   // Job 1: Mark overdue loans daily at 00:05
-  cron.schedule('5 0 * * *', runOverdueDowngrade, { timezone: 'Asia/Karachi' });
+  cron.schedule('5 0 * * *', wrap('runOverdueDowngrade', runOverdueDowngrade), {
+    timezone: 'Asia/Karachi',
+  });
 
   // Job 2: Apply late fees daily at 01:00 (only after tenure expiry)
-  cron.schedule('0 1 * * *', runLateFeeAccrual, { timezone: 'Asia/Karachi' });
+  cron.schedule('0 1 * * *', wrap('runLateFeeAccrual', runLateFeeAccrual), {
+    timezone: 'Asia/Karachi',
+  });
 
   // Job 3: Send repayment reminders daily at 09:00
-  cron.schedule('0 9 * * *', runRepaymentReminders, {
+  cron.schedule('0 9 * * *', wrap('runRepaymentReminders', runRepaymentReminders), {
     timezone: 'Asia/Karachi',
   });
 
   // Job 4: Recalculate trust ratings every Sunday at 02:00
-  cron.schedule('0 2 * * 0', runTrustRatingRecalc, {
+  cron.schedule('0 2 * * 0', wrap('runTrustRatingRecalc', runTrustRatingRecalc), {
     timezone: 'Asia/Karachi',
   });
 
   // Job 5: Daily saving profit accrual at 02:30
-  cron.schedule('30 2 * * *', runSavingProfitAccrual, {
+  cron.schedule('30 2 * * *', wrap('runSavingProfitAccrual', runSavingProfitAccrual), {
     timezone: 'Asia/Karachi',
   });
 
   // Job 6: Monthly saving profit distribution at 03:00 on the 1st of every month
-  cron.schedule('0 3 1 * *', runMonthlySavingProfitDistribution, {
-    timezone: 'Asia/Karachi',
-  });
+  cron.schedule(
+    '0 3 1 * *',
+    wrap('runMonthlySavingProfitDistribution', runMonthlySavingProfitDistribution),
+    { timezone: 'Asia/Karachi' },
+  );
 
   // Job 7: Loan default detection daily at 01:30
-  cron.schedule('30 1 * * *', runLoanDefaultDetection, {
+  cron.schedule('30 1 * * *', wrap('runLoanDefaultDetection', runLoanDefaultDetection), {
     timezone: 'Asia/Karachi',
   });
 
   // Job 8: Compound interest accrual daily at 00:30
-  cron.schedule('30 0 * * *', runCompoundInterestAccrual, {
-    timezone: 'Asia/Karachi',
-  });
+  cron.schedule(
+    '30 0 * * *',
+    wrap('runCompoundInterestAccrual', runCompoundInterestAccrual),
+    { timezone: 'Asia/Karachi' },
+  );
 
   // Job 9: Recurring scheduled payments daily at 06:00
-  cron.schedule('0 6 * * *', runScheduledPayments, {
+  cron.schedule('0 6 * * *', wrap('runScheduledPayments', runScheduledPayments), {
     timezone: 'Asia/Karachi',
   });
 
   // Job 10: Auto-mature term deposits daily at 04:00
-  cron.schedule('0 4 * * *', runTermDepositAutoMaturity, {
-    timezone: 'Asia/Karachi',
-  });
+  cron.schedule(
+    '0 4 * * *',
+    wrap('runTermDepositAutoMaturity', runTermDepositAutoMaturity),
+    { timezone: 'Asia/Karachi' },
+  );
 
   // Job 11: Member balance reconciliation daily at 05:00.
   // Runs AFTER TD maturity (04:00) and BEFORE scheduled payments (06:00) so
   // the rebuild reflects the night's accruals and isn't races against debits.
-  cron.schedule('0 5 * * *', runMemberBalanceReconcile, {
-    timezone: 'Asia/Karachi',
-  });
+  cron.schedule(
+    '0 5 * * *',
+    wrap('runMemberBalanceReconcile', runMemberBalanceReconcile),
+    { timezone: 'Asia/Karachi' },
+  );
 
   // Job 12: Goal auto-contribute (recurring) daily at 06:15. Runs after the
   // scheduled-payments job (06:00) so the source balance reflects any other
@@ -1780,32 +1850,33 @@ const initScheduledTasks = () => {
   // semantics; running daily is just a polling cadence.
   cron.schedule(
     '15 6 * * *',
-    async () => {
-      try {
-        const {
-          runMonthlyAutoContributions,
-        } = require('./goalAutoContribute');
-        const summary = await runMonthlyAutoContributions();
-        if (summary.total > 0) {
-          console.log(
-            `[CRON] runMonthlyAutoContributions: ${summary.success} ok, ${summary.skipped} skipped, ${summary.failed} failed of ${summary.total} due.`,
-          );
-        }
-      } catch (err) {
-        console.error('[CRON] runMonthlyAutoContributions ERROR:', err);
+    wrap('runMonthlyAutoContributions', async () => {
+      const { runMonthlyAutoContributions } = require('./goalAutoContribute');
+      const summary = await runMonthlyAutoContributions();
+      if (summary.total > 0) {
+        logger.info(
+          { job: 'runMonthlyAutoContributions', ...summary },
+          `[CRON] runMonthlyAutoContributions: ${summary.success} ok, ${summary.skipped} skipped, ${summary.failed} failed of ${summary.total} due.`,
+        );
       }
-    },
+    }),
     { timezone: 'Asia/Karachi' },
   );
 
   // Job 13: Document expiry scan + reminder fire at 07:00. Runs after the
   // morning reconcile/payment jobs so notifications don't compete for
   // member attention with payment alerts.
-  cron.schedule('0 7 * * *', runDocumentExpiryScan, {
+  cron.schedule('0 7 * * *', wrap('runDocumentExpiryScan', runDocumentExpiryScan), {
     timezone: 'Asia/Karachi',
   });
 
-  console.log('[CRON] Scheduled Tasks Engine initialized. 13 jobs registered.');
+  // Job 14: Refresh credit-score snapshots daily at 02:45 (after savings
+  // accrual, before the morning reconcile/payment jobs).
+  cron.schedule('45 2 * * *', wrap('runCreditScoreRefresh', runCreditScoreRefresh), {
+    timezone: 'Asia/Karachi',
+  });
+
+  logger.info('[CRON] Scheduled Tasks Engine initialized. 14 jobs registered.');
 };
 
 module.exports = {
@@ -1823,5 +1894,6 @@ module.exports = {
   runTermDepositAutoMaturity,
   runMemberBalanceReconcile,
   runDocumentExpiryScan,
+  runCreditScoreRefresh,
 };
 

@@ -31,4 +31,9 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Indexes — the bell list (recipient + newest-first) and the unread badge count
+// (recipient + read:false) fire on every app load; both were full scans before.
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ recipient: 1, read: 1 });
+
 module.exports = mongoose.model('Notification', notificationSchema);

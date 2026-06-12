@@ -99,4 +99,11 @@ termDepositSchema.index({ member: 1 });
 termDepositSchema.index({ status: 1 });
 termDepositSchema.index({ maturityDate: 1 });
 
+// Money guardrail (P1.3): whole-rupee principal/profit amounts at rest.
+require('../utils/money').applyMoneySetter(termDepositSchema, [
+  'principal',
+  'projectedProfit',
+  'actualProfit',
+]);
+
 module.exports = mongoose.model('TermDeposit', termDepositSchema);

@@ -117,7 +117,27 @@ const sendReminder = async (loan, installment, type) => {
       });
     }
 
-    // 3. Update Loan state to record communication
+    // 3. SMS (member-only). Routed through the dispatcher with channels:['sms']
+    // so it reuses phone normalisation, Telnyx config gating, and the member's
+    // SMS preference (paymentReminders category) — no duplicate in-app/email.
+    if (customer.isMember && customer.memberId) {
+      try {
+        const { dispatch } = require('./notificationService');
+        await dispatch({
+          recipientId: customer.memberId,
+          recipientModel: 'Member',
+          action: 'upcoming_emi_reminder', // → paymentReminders preference
+          title,
+          message,
+          channels: ['sms'],
+          smsText: message,
+        });
+      } catch (smsErr) {
+        console.error('Reminder SMS error (non-fatal):', smsErr);
+      }
+    }
+
+    // 4. Update Loan state to record communication
     loan.automatedReminders.push({
       type,
       installmentNumber: installment.installment,

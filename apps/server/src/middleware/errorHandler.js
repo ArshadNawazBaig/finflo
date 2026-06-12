@@ -1,13 +1,29 @@
 const crypto = require('crypto');
+const logger = require('../utils/logger');
+const { captureException } = require('../config/sentry');
 
 module.exports = (err, req, res, next) => {
   // Always log server-side with a correlation ID; never leak internals to clients.
   const correlationId = crypto.randomBytes(6).toString('hex');
-  console.error(`[${correlationId}] ${req.method} ${req.originalUrl} - ${err.message}`);
-  if (err.stack) console.error(err.stack);
-
   const statusCode = err.http_code || err.status || 500;
   const isProd = process.env.NODE_ENV === 'production';
+
+  logger.error(
+    {
+      correlationId,
+      method: req.method,
+      url: req.originalUrl,
+      statusCode,
+      err,
+    },
+    `${req.method} ${req.originalUrl} - ${err.message}`,
+  );
+
+  // Report genuine server faults (5xx) to Sentry; 4xx are expected client/
+  // validation errors and would just be noise.
+  if (statusCode >= 500) {
+    captureException(err, { tags: { correlationId }, extra: { url: req.originalUrl } });
+  }
 
   // For 4xx errors the message is usually safe (validation feedback, e.g.
   // "Insufficient balance"). For 5xx errors in production return a generic

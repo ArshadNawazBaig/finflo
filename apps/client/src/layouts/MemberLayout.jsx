@@ -13,6 +13,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import useAppLock from '@/hooks/useAppLock';
+import usePushRegistration from '@/hooks/usePushRegistration';
 import api from '@/lib/axios';
 
 const MemberLayout = () => {
@@ -26,6 +27,9 @@ const MemberLayout = () => {
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
   const { isLocked, unlock } = useAppLock();
+
+  // Register for native push once the member is authenticated (no-op on web).
+  usePushRegistration(!!member?.token, false);
 
   const fetchData = async () => {
     try {

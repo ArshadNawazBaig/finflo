@@ -48,6 +48,12 @@ const { corsMiddleware, helmetMiddleware, apiLimiter, authLimiter, otpLimiter, s
 const setupStandardMiddleware = require('./middleware/standard');
 const errorHandler = require('./middleware/errorHandler');
 const { initSocket } = require('./socket/socketHandler');
+const logger = require('./utils/logger');
+const { initSentry } = require('./config/sentry');
+const { getJobHealth, hasFailingJob } = require('./services/jobHealth');
+
+// Initialise error tracking early (inert unless SENTRY_DSN is set).
+initSentry();
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -200,10 +206,22 @@ app.use('/api', require('./routes'));
 app.get('/api/health', async (req, res) => {
   try {
     await connectDB();
-    res.json({
-      status: 'ok',
-      db: mongoose.connection.readyState,
+    const jobs = getJobHealth();
+    const degraded = hasFailingJob();
+    res.status(degraded ? 503 : 200).json({
+      // `status` stays 'ok' for backward compatibility with existing probes;
+      // `degraded` flags a failing scheduled job (money cron silently broke).
+      status: degraded ? 'degraded' : 'ok',
+      db: mongoose.connection.readyState, // 1 = connected
       mongoUriSet: !!process.env.MONGO_URI,
+      jobs: {
+        registered: jobs.length,
+        failing: jobs.filter(
+          (j) => j.lastErrorAt && (!j.lastSuccessAt || j.lastErrorAt > j.lastSuccessAt),
+        ).length,
+        detail: jobs,
+      },
+      uptimeSeconds: Math.round(process.uptime()),
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
