@@ -46,6 +46,18 @@ import UITooltip from '@/components/ui/Tooltip';
 import Pagination from '@/components/ui/Pagination';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
+// Wallet cash-flow classification, keyed off the activity feed's `type`
+// (Investment types + the synthesized profit/repayment/goal rows). Money in vs
+// money out of the member's wallet.
+const CASH_INFLOW_TYPES = new Set([
+  'deposit',
+  'transfer_receive',
+  'external_receive',
+  'profit',
+  'loan_disbursement',
+]);
+const CASH_OUTFLOW_TYPES = new Set(['withdrawal', 'transfer_send']);
+
 // Tooltip for the bucketed/cumulative cash-flow chart.
 const CashFlowTooltip = ({ active, payload, label, mode }) => {
   if (!active || !payload || !payload.length) return null;
@@ -282,13 +294,16 @@ const MemberDashboard = () => {
       if (monthIndex !== -1 && item.amount) {
         const amount = parseFloat(item.amount) || 0;
 
-        // Categorize based on type field
-        if (item.type === 'deposit' || item.type === 'transfer_receive') {
+        // Categorize every wallet movement by its type. Money IN includes
+        // deposits, received transfers, profit credits, AND loan disbursements
+        // (borrowed cash still lands in the wallet) — previously these last two
+        // were dropped, which left the chart flat at zero for members whose only
+        // activity was a loan payout. Money OUT covers withdrawals, sent
+        // transfers, repayments, and goal allocations (all typed 'withdrawal'/
+        // 'transfer_send' by the activity feed).
+        if (CASH_INFLOW_TYPES.has(item.type)) {
           last6Months[monthIndex].inflow += amount;
-        } else if (
-          item.type === 'withdrawal' ||
-          item.type === 'transfer_send'
-        ) {
+        } else if (CASH_OUTFLOW_TYPES.has(item.type)) {
           last6Months[monthIndex].outflow += amount;
         }
       }
