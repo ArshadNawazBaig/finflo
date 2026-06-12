@@ -16,8 +16,17 @@ const {
   admin,
   authorizePermissions,
 } = require('../middleware/authMiddleware');
+const {
+  exportAccounting,
+  exportEntities,
+} = require('../controllers/accountingExportController');
 
 router.route('/export').get(protect, exportLedgerExcel);
+// Accounting-software-compatible CSV export (generic | quickbooks | xero | journal)
+router.route('/accounting-export').get(protect, exportAccounting);
+// Position/schedule exports (loans receivable, member balances, customers) —
+// admin-gated because these listings carry member/customer PII.
+router.route('/entity-export').get(protect, admin, exportEntities);
 router.route('/cash-opening').post(protect, setCashOpening);
 router.route('/cash-summary').get(protect, getCashSummary);
 router.route('/daily-close').post(protect, closeDay).get(protect, getDailyClose);
