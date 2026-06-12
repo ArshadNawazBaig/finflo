@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ChevronLeft, ChevronRight, Quote, MessageSquareQuote } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 // Generate a consistent color from a name string
 const getInitialColor = (name) => {
@@ -153,7 +153,11 @@ const Testimonials = () => {
           </h2>
         </motion.div>
 
-        {/* Testimonial card */}
+        {/* Testimonial card. The card flows in normal layout (not absolute) so
+            the container grows with the content — a long review on a narrow
+            screen no longer overflows upward into the heading. The slide uses
+            transforms (x/scale), which don't affect layout, so it's preserved.
+            `min-h` only sets a floor for short reviews. */}
         <div className="relative max-w-3xl mx-auto min-h-[340px] flex items-center justify-center">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
@@ -168,7 +172,7 @@ const Testimonials = () => {
                 opacity: { duration: 0.2 },
                 scale: { duration: 0.3 },
               }}
-              className="absolute w-full px-4"
+              className="w-full px-4"
             >
               <div className="relative bg-white dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] p-8 md:p-12 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-sm">
                 {/* Quote icon */}
