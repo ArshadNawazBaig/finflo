@@ -72,9 +72,15 @@ const Documentation = () => {
               <strong className="text-foreground">P2P fund transfers</strong>,
               and automated reporting, providing everything you need to run a
               successful lending business. Features include an{' '}
-              <strong className="text-foreground">Interactive Onboarding Experience</strong>,
-              a powerful <strong className="text-foreground">Member Portal</strong>,
-              and <strong className="text-foreground">Automated Credit Limits</strong>.
+              <strong className="text-foreground">
+                Interactive Onboarding Experience
+              </strong>
+              , a powerful{' '}
+              <strong className="text-foreground">Member Portal</strong>, and{' '}
+              <strong className="text-foreground">
+                Automated Credit Limits
+              </strong>
+              .
             </p>
           </div>
 
@@ -184,11 +190,11 @@ const Documentation = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The risk engine calculates Expected Credit Loss (ECL) and
                 Automated Credit Limits in real-time. Financial operations like
-                profit distribution and late fee accrual use **Atomic
-                Idempotent Operations** to ensure data integrity and prevent
-                duplicate distributions in high-availability environments.
-                Credit limits are automatically recalculated every 24 hours
-                based on active investment balances and repayment scoring.
+                profit distribution and late fee accrual use **Atomic Idempotent
+                Operations** to ensure data integrity and prevent duplicate
+                distributions in high-availability environments. Credit limits
+                are automatically recalculated every 24 hours based on active
+                investment balances and repayment scoring.
               </p>
             </div>
 
@@ -244,7 +250,7 @@ const Documentation = () => {
           {/* ... content remains same ... */}
           <div className="space-y-8">
             <div className="flex gap-6 p-6 rounded-[2rem] bg-card/30 border border-border/50 hover:bg-card/50 transition-colors duration-300">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl ">
                 1
               </div>
               <div className="space-y-2">
@@ -257,7 +263,7 @@ const Documentation = () => {
               </div>
             </div>
             <div className="flex gap-6 p-6 rounded-[2rem] bg-card/30 border border-border/50 hover:bg-card/50 transition-colors duration-300">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl ">
                 2
               </div>
               <div className="space-y-2">
@@ -273,7 +279,7 @@ const Documentation = () => {
               </div>
             </div>
             <div className="flex gap-6 p-6 rounded-[2rem] bg-card/30 border border-border/50 hover:bg-card/50 transition-colors duration-300">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl ">
                 3
               </div>
               <div className="space-y-2">
@@ -286,7 +292,7 @@ const Documentation = () => {
               </div>
             </div>
             <div className="flex gap-6 p-6 rounded-[2rem] bg-card/30 border border-border/50 hover:bg-card/50 transition-colors duration-300">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl shadow-inner">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl ">
                 4
               </div>
               <div className="space-y-2">
@@ -652,7 +658,10 @@ const Documentation = () => {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors">
-              <ArrowLeft size={15} className="text-slate-500 dark:text-slate-400" />
+              <ArrowLeft
+                size={15}
+                className="text-slate-500 dark:text-slate-400"
+              />
             </div>
             <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
               Home

@@ -8,7 +8,7 @@ const EmptyState = ({ icon: Icon, title, description, className, action }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className={cn(
-        'flex flex-col items-center justify-center p-8 rounded-[2rem] border border-dashed border-border/60 bg-muted/5 backdrop-blur-sm shadow-inner overflow-hidden relative',
+        'flex flex-col items-center justify-center p-8 rounded-[2rem] border border-dashed border-border/60 bg-muted/5 backdrop-blur-sm  overflow-hidden relative',
         className,
       )}
     >

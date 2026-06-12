@@ -1,15 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import {
-  FileText, Calculator, DollarSign, Clock, User, ShieldCheck,
-  Loader2, Upload, X, File, Image, ChevronRight, ChevronLeft, Check,
+  FileText,
+  Calculator,
+  DollarSign,
+  Clock,
+  User,
+  ShieldCheck,
+  Loader2,
+  Upload,
+  X,
+  File,
+  Image,
+  ChevronRight,
+  ChevronLeft,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog, DialogContent, DialogTitle, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
@@ -22,20 +41,33 @@ const STEPS = [
 ];
 
 const DOC_TYPES = [
-  'Pay Slip', 'Business Registration', 'Collateral Photo',
-  'Bank Statement', 'ID Card (CNIC)', 'Other',
+  'Pay Slip',
+  'Business Registration',
+  'Collateral Photo',
+  'Bank Statement',
+  'ID Card (CNIC)',
+  'Other',
 ];
 
 const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const {
-    register, handleSubmit, watch, reset, setValue, setError, clearErrors,
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      principal: '', duration: '', notes: '',
-      grantor1Identifier: '', grantor2Identifier: '',
+      principal: '',
+      duration: '',
+      notes: '',
+      grantor1Identifier: '',
+      grantor2Identifier: '',
     },
   });
 
@@ -88,73 +120,135 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   // Grantor 1 lookup
   useEffect(() => {
     const lookup = async () => {
-      if (grantor1Identifier && grantor1Identifier.length >= 3 && !g1BackendId && grantor1Identifier !== grantor1Name) {
+      if (
+        grantor1Identifier &&
+        grantor1Identifier.length >= 3 &&
+        !g1BackendId &&
+        grantor1Identifier !== grantor1Name
+      ) {
         setIsLookingUp1(true);
         try {
-          const { data } = await api.get(`/members/portal/lookup?identifier=${grantor1Identifier}`);
-          let filtered = currentMember ? data.filter((m) => m._id !== currentMember._id) : data;
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${grantor1Identifier}`,
+          );
+          let filtered = currentMember
+            ? data.filter((m) => m._id !== currentMember._id)
+            : data;
           const g2Val = watch('grantor2Identifier');
-          if (g2Val) filtered = filtered.filter((m) => m.cnic !== g2Val && m.phone !== g2Val && m.name !== g2Val);
+          if (g2Val)
+            filtered = filtered.filter(
+              (m) => m.cnic !== g2Val && m.phone !== g2Val && m.name !== g2Val,
+            );
           setSearchResults1(filtered);
           const normalize = (val) => val?.replace(/\D/g, '') || '';
           const target = normalize(grantor1Identifier);
-          const exact = filtered.find((m) => normalize(m.cnic) === target || normalize(m.phone) === target);
+          const exact = filtered.find(
+            (m) =>
+              normalize(m.cnic) === target || normalize(m.phone) === target,
+          );
           setGrantor1Name(exact && target.length >= 11 ? exact.name : '');
-        } catch { setSearchResults1([]); setGrantor1Name(''); }
-        finally { setIsLookingUp1(false); }
-      } else if (!g1BackendId) { setSearchResults1([]); setGrantor1Name(''); }
-      else { setSearchResults1([]); }
+        } catch {
+          setSearchResults1([]);
+          setGrantor1Name('');
+        } finally {
+          setIsLookingUp1(false);
+        }
+      } else if (!g1BackendId) {
+        setSearchResults1([]);
+        setGrantor1Name('');
+      } else {
+        setSearchResults1([]);
+      }
     };
     const t = setTimeout(lookup, 500);
     return () => clearTimeout(t);
-  }, [grantor1Identifier, g1BackendId, currentMember, watch('grantor2Identifier'), g2BackendId]);
+  }, [
+    grantor1Identifier,
+    g1BackendId,
+    currentMember,
+    watch('grantor2Identifier'),
+    g2BackendId,
+  ]);
 
   // Grantor 2 lookup
   useEffect(() => {
     const lookup = async () => {
-      if (grantor2Identifier && grantor2Identifier.length >= 3 && !g2BackendId && grantor2Identifier !== grantor2Name) {
+      if (
+        grantor2Identifier &&
+        grantor2Identifier.length >= 3 &&
+        !g2BackendId &&
+        grantor2Identifier !== grantor2Name
+      ) {
         setIsLookingUp2(true);
         try {
-          const { data } = await api.get(`/members/portal/lookup?identifier=${grantor2Identifier}`);
-          let filtered = currentMember ? data.filter((m) => m._id !== currentMember._id) : data;
+          const { data } = await api.get(
+            `/members/portal/lookup?identifier=${grantor2Identifier}`,
+          );
+          let filtered = currentMember
+            ? data.filter((m) => m._id !== currentMember._id)
+            : data;
           const g1Val = watch('grantor1Identifier');
-          if (g1Val) filtered = filtered.filter((m) => m.cnic !== g1Val && m.phone !== g1Val && m.name !== g1Val);
+          if (g1Val)
+            filtered = filtered.filter(
+              (m) => m.cnic !== g1Val && m.phone !== g1Val && m.name !== g1Val,
+            );
           setSearchResults2(filtered);
           const normalize = (val) => val?.replace(/\D/g, '') || '';
           const target = normalize(grantor2Identifier);
-          const exact = filtered.find((m) => normalize(m.cnic) === target || normalize(m.phone) === target);
+          const exact = filtered.find(
+            (m) =>
+              normalize(m.cnic) === target || normalize(m.phone) === target,
+          );
           setGrantor2Name(exact && target.length >= 11 ? exact.name : '');
-        } catch { setSearchResults2([]); setGrantor2Name(''); }
-        finally { setIsLookingUp2(false); }
-      } else if (!g2BackendId) { setSearchResults2([]); setGrantor2Name(''); }
-      else { setSearchResults2([]); }
+        } catch {
+          setSearchResults2([]);
+          setGrantor2Name('');
+        } finally {
+          setIsLookingUp2(false);
+        }
+      } else if (!g2BackendId) {
+        setSearchResults2([]);
+        setGrantor2Name('');
+      } else {
+        setSearchResults2([]);
+      }
     };
     const t = setTimeout(lookup, 500);
     return () => clearTimeout(t);
-  }, [grantor2Identifier, g2BackendId, currentMember, watch('grantor1Identifier'), g1BackendId]);
+  }, [
+    grantor2Identifier,
+    g2BackendId,
+    currentMember,
+    watch('grantor1Identifier'),
+    g1BackendId,
+  ]);
 
-  const estimatedMonthlyPayment = principal && duration
-    ? (() => {
-        const p = Number(principal);
-        const r = defaultInterestRate / 100;
-        const n = Number(duration);
-        const totalInterest = p * r * (n / 12);
-        return Math.round((p + totalInterest) / n);
-      })()
-    : 0;
+  const estimatedMonthlyPayment =
+    principal && duration
+      ? (() => {
+          const p = Number(principal);
+          const r = defaultInterestRate / 100;
+          const n = Number(duration);
+          const totalInterest = p * r * (n / 12);
+          return Math.round((p + totalInterest) / n);
+        })()
+      : 0;
 
   // File handling
-  const addFiles = useCallback((newFiles) => {
-    const remaining = 5 - files.length;
-    if (remaining <= 0) return toast.error('Maximum 5 documents allowed');
-    const toAdd = Array.from(newFiles).slice(0, remaining);
-    const mapped = toAdd.map((f) => ({
-      file: f,
-      type: 'Other',
-      preview: f.type.startsWith('image/') ? URL.createObjectURL(f) : null,
-    }));
-    setFiles((prev) => [...prev, ...mapped]);
-  }, [files.length]);
+  const addFiles = useCallback(
+    (newFiles) => {
+      const remaining = 5 - files.length;
+      if (remaining <= 0) return toast.error('Maximum 5 documents allowed');
+      const toAdd = Array.from(newFiles).slice(0, remaining);
+      const mapped = toAdd.map((f) => ({
+        file: f,
+        type: 'Other',
+        preview: f.type.startsWith('image/') ? URL.createObjectURL(f) : null,
+      }));
+      setFiles((prev) => [...prev, ...mapped]);
+    },
+    [files.length],
+  );
 
   const removeFile = (idx) => {
     setFiles((prev) => {
@@ -193,7 +287,10 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     if (payload.grantor1Identifier === payload.grantor2Identifier) {
-      setError('grantor2Identifier', { type: 'manual', message: 'Grantor 1 and Grantor 2 cannot be the same member.' });
+      setError('grantor2Identifier', {
+        type: 'manual',
+        message: 'Grantor 1 and Grantor 2 cannot be the same member.',
+      });
       setStep(2);
       return;
     }
@@ -217,7 +314,6 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
       await api.post('/loans/request', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-
         },
       });
       toast.success('Loan request submitted successfully!');
@@ -253,22 +349,29 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
             type="text"
             {...register(fieldName, {
               required: `Grantor ${num} is required`,
-              onChange: () => { setBackendId(''); setName(''); },
+              onChange: () => {
+                setBackendId('');
+                setName('');
+              },
             })}
             autoComplete="off"
-            className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize shadow-inner"
+            className="w-full px-5 py-3.5 rounded-2xl border border-border/50 bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 capitalize "
             placeholder="Search by name, CNIC or phone"
           />
           {isLooking && results.length === 0 && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2 size={14} className="animate-spin text-primary opacity-50" />
+              <Loader2
+                size={14}
+                className="animate-spin text-primary opacity-50"
+              />
             </div>
           )}
           {results.length > 0 && !name && (
             <div className="absolute z-[100] left-0 right-0 top-full mt-2 p-2 rounded-[1.8rem] bg-card border border-border/50 shadow-2xl space-y-1 backdrop-blur-xl">
               {results.map((member) => (
                 <button
-                  key={member._id} type="button"
+                  key={member._id}
+                  type="button"
                   onClick={() => {
                     setValue(fieldName, member.name);
                     setBackendId(member._id);
@@ -278,12 +381,16 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                   }}
                   className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted text-left transition-colors group"
                 >
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shadow-inner">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors ">
                     <User size={14} />
                   </div>
                   <div>
-                    <p className="text-xs font-black tracking-tight capitalize">{member.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">{member.cnic || member.phone}</p>
+                    <p className="text-xs font-black tracking-tight capitalize">
+                      {member.name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      {member.cnic || member.phone}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -292,12 +399,16 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           {name && (
             <div className="mx-1 mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600">
               <ShieldCheck size={12} className="shrink-0" />
-              <span className="text-[10px] font-black uppercase tracking-tighter">Verified: {name}</span>
+              <span className="text-[10px] font-black uppercase tracking-tighter">
+                Verified: {name}
+              </span>
             </div>
           )}
         </div>
         {errors[fieldName] && (
-          <p className="text-[10px] text-destructive font-bold ml-1">{errors[fieldName].message}</p>
+          <p className="text-[10px] text-destructive font-bold ml-1">
+            {errors[fieldName].message}
+          </p>
         )}
       </div>
     );
@@ -306,7 +417,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md !p-0 !gap-0 flex flex-col overflow-hidden">
-        <DialogDescription className="sr-only">Multi-step loan application form.</DialogDescription>
+        <DialogDescription className="sr-only">
+          Multi-step loan application form.
+        </DialogDescription>
 
         {/* Header with step indicator */}
         <div className="p-6 sm:p-7 pb-5 border-b border-slate-100 dark:border-white/[0.06] bg-white dark:bg-slate-950 z-10 shrink-0 relative">
@@ -329,19 +442,27 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="flex items-center gap-2">
             {STEPS.map((s, i) => (
               <div key={s.id} className="flex items-center flex-1">
-                <div className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full text-xs font-extrabold transition-all duration-300 shrink-0',
-                  step > s.id ? 'bg-emerald-500 text-white' :
-                  step === s.id ? 'bg-primary text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]' :
-                  'bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500',
-                )}>
+                <div
+                  className={cn(
+                    'flex items-center justify-center w-8 h-8 rounded-full text-xs font-extrabold transition-all duration-300 shrink-0',
+                    step > s.id
+                      ? 'bg-emerald-500 text-white'
+                      : step === s.id
+                        ? 'bg-primary text-white shadow-[0_10px_30px_-10px_rgba(99,102,241,0.5)]'
+                        : 'bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500',
+                  )}
+                >
                   {step > s.id ? <Check size={14} /> : s.id}
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={cn(
-                    'flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300',
-                    step > s.id ? 'bg-emerald-500' : 'bg-slate-100 dark:bg-white/[0.06]',
-                  )} />
+                  <div
+                    className={cn(
+                      'flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300',
+                      step > s.id
+                        ? 'bg-emerald-500'
+                        : 'bg-slate-100 dark:bg-white/[0.06]',
+                    )}
+                  />
                 )}
               </div>
             ))}
@@ -350,15 +471,20 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-6 sm:p-7 custom-scrollbar">
-          <form id="loan-request-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-
+          <form
+            id="loan-request-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-5"
+          >
             {/* Step 1: Loan Details */}
             {step === 1 && (
               <>
                 {currentMember && (
                   <div className="rounded-2xl border border-amber-500/15 bg-amber-500/5 p-4 flex items-center justify-between hover:bg-amber-500/10 transition-colors">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400">Current Loan Eligibility</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400">
+                        Current Loan Eligibility
+                      </p>
                       <p className="text-2xl font-extrabold tracking-tight tabular-nums text-amber-600 dark:text-amber-400">
                         {formatCurrency(currentMember.creditLimit || 0)}
                       </p>
@@ -371,32 +497,56 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <DollarSign className="w-3 h-3 text-emerald-500" /> Loan Amount (PKR)
+                    <DollarSign className="w-3 h-3 text-emerald-500" /> Loan
+                    Amount (PKR)
                   </label>
                   <input
                     type="number"
-                    {...register('principal', { required: 'Amount is required', min: { value: 1000, message: 'Minimum amount is 1000' } })}
+                    {...register('principal', {
+                      required: 'Amount is required',
+                      min: { value: 1000, message: 'Minimum amount is 1000' },
+                    })}
                     className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                     placeholder="e.g. 50000"
                   />
-                  {errors.principal && <p className="text-[10px] text-rose-500 font-bold">{errors.principal.message}</p>}
+                  {errors.principal && (
+                    <p className="text-[10px] text-rose-500 font-bold">
+                      {errors.principal.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-indigo-500" /> Duration (Months)
+                    <Clock className="w-3 h-3 text-indigo-500" /> Duration
+                    (Months)
                   </label>
-                  <Select onValueChange={(value) => { setValue('duration', value); clearErrors('duration'); }}>
+                  <Select
+                    onValueChange={(value) => {
+                      setValue('duration', value);
+                      clearErrors('duration');
+                    }}
+                  >
                     <SelectTrigger className="w-full rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] px-4 py-3 h-auto text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all">
                       <SelectValue placeholder="Select Duration" />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-slate-100 dark:border-white/[0.06]">
                       {[3, 6, 9, 12, 18, 24, 36].map((m) => (
-                        <SelectItem key={m} value={m.toString()} className="text-sm rounded-xl">{m} Months</SelectItem>
+                        <SelectItem
+                          key={m}
+                          value={m.toString()}
+                          className="text-sm rounded-xl"
+                        >
+                          {m} Months
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.duration && <p className="text-[10px] text-rose-500 font-bold">{errors.duration.message}</p>}
+                  {errors.duration && (
+                    <p className="text-[10px] text-rose-500 font-bold">
+                      {errors.duration.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -417,10 +567,16 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                       <Calculator />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">Estimated Monthly Payment</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                        Estimated Monthly Payment
+                      </p>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">PKR {Number(estimatedMonthlyPayment).toLocaleString()}</p>
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">/mo</span>
+                        <p className="text-2xl font-extrabold tracking-tight tabular-nums text-slate-900 dark:text-white">
+                          PKR {Number(estimatedMonthlyPayment).toLocaleString()}
+                        </p>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          /mo
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -443,13 +599,21 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                 <div
                   className={cn(
                     'border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer',
-                    isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-slate-200 dark:border-white/[0.08] hover:border-primary/30 hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
+                    isDragging
+                      ? 'border-primary bg-primary/5 scale-[1.02]'
+                      : 'border-slate-200 dark:border-white/[0.08] hover:border-primary/30 hover:bg-slate-50/40 dark:hover:bg-white/[0.02]',
                     files.length >= 5 && 'opacity-50 pointer-events-none',
                   )}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
-                  onClick={() => { if (files.length < 5) document.getElementById('doc-file-input').click(); }}
+                  onClick={() => {
+                    if (files.length < 5)
+                      document.getElementById('doc-file-input').click();
+                  }}
                 >
                   <input
                     id="doc-file-input"
@@ -457,11 +621,19 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     multiple
                     accept="image/*,.pdf"
                     className="hidden"
-                    onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+                    onChange={(e) => {
+                      addFiles(e.target.files);
+                      e.target.value = '';
+                    }}
                   />
-                  <Upload size={28} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                  <Upload
+                    size={28}
+                    className="mx-auto text-slate-300 dark:text-slate-600 mb-3"
+                  />
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    {isDragging ? 'Drop files here' : 'Drag & drop or click to upload'}
+                    {isDragging
+                      ? 'Drop files here'
+                      : 'Drag & drop or click to upload'}
                   </p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">
                     JPG, PNG, PDF — Max 5MB each — Up to 5 files
@@ -474,18 +646,29 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                       Uploaded ({files.length}/5)
                     </p>
                     {files.map((f, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] group">
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] group"
+                      >
                         {/* Thumbnail */}
                         <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.04] flex items-center justify-center overflow-hidden shrink-0">
                           {f.preview ? (
-                            <img src={f.preview} alt="" className="w-full h-full object-cover" />
+                            <img
+                              src={f.preview}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <File size={18} className="text-rose-500" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold truncate text-slate-900 dark:text-white">{f.file.name}</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{(f.file.size / 1024).toFixed(0)} KB</p>
+                          <p className="text-xs font-bold truncate text-slate-900 dark:text-white">
+                            {f.file.name}
+                          </p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                            {(f.file.size / 1024).toFixed(0)} KB
+                          </p>
                         </div>
                         {/* Type selector */}
                         <select
@@ -494,7 +677,9 @@ const MemberLoanRequestModal = ({ isOpen, onClose, onSuccess }) => {
                           className="text-[10px] font-bold bg-slate-50 dark:bg-white/[0.04] border-none rounded-lg px-2 py-1 focus:ring-1 focus:ring-primary/30 cursor-pointer"
                         >
                           {DOC_TYPES.map((t) => (
-                            <option key={t} value={t}>{t}</option>
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
                           ))}
                         </select>
                         <button

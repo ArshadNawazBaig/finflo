@@ -152,7 +152,7 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl shadow-inner text-white bg-gradient-to-br from-emerald-500 to-teal-500">
+            <div className="p-2.5 rounded-2xl  text-white bg-gradient-to-br from-emerald-500 to-teal-500">
               <HeartPulse size={20} />
             </div>
             <div>
@@ -210,13 +210,21 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
               <Wallet size={11} className="text-primary" />
-              <span>Assets: {valuesVisible ? formatCurrency(metrics.totalAssets) : maskedValue}</span>
+              <span>
+                Assets:{' '}
+                {valuesVisible
+                  ? formatCurrency(metrics.totalAssets)
+                  : maskedValue}
+              </span>
             </div>
             {metrics.loanRemaining > 0 && (
               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
                 <TrendingUp size={11} className="text-red-400" />
                 <span>
-                  Debt: {valuesVisible ? formatCurrency(metrics.loanRemaining) : maskedValue}
+                  Debt:{' '}
+                  {valuesVisible
+                    ? formatCurrency(metrics.loanRemaining)
+                    : maskedValue}
                 </span>
               </div>
             )}
@@ -234,9 +242,7 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
                 <span
                   className={cn(
                     'text-xs font-black tabular-nums',
-                    ind.good
-                      ? 'text-emerald-500'
-                      : 'text-muted-foreground',
+                    ind.good ? 'text-emerald-500' : 'text-muted-foreground',
                   )}
                 >
                   {ind.value}
@@ -259,7 +265,12 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
         <div className="mt-6 flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/20 text-[10px] font-bold text-muted-foreground">
             <PiggyBank size={11} />
-            <span>{valuesVisible ? formatCurrency(member?.savingBalance || 0) : maskedValue} saved</span>
+            <span>
+              {valuesVisible
+                ? formatCurrency(member?.savingBalance || 0)
+                : maskedValue}{' '}
+              saved
+            </span>
           </div>
           {activeLoansCount > 0 && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/20 text-[10px] font-bold text-muted-foreground">
@@ -273,7 +284,10 @@ const FinancialHealthCard = ({ member, activeLoansCount = 0 }) => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-600">
               <TrendingUp size={11} />
               <span>
-                {valuesVisible ? formatCurrency(member.totalSavingProfit) : maskedValue} profit
+                {valuesVisible
+                  ? formatCurrency(member.totalSavingProfit)
+                  : maskedValue}{' '}
+                profit
               </span>
             </div>
           )}

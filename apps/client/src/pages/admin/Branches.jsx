@@ -322,8 +322,7 @@ const Branches = () => {
                     className="h-24 relative"
                     style={{
                       background: `linear-gradient(135deg, ${
-                        branch.branding?.primaryColor ||
-                        'hsl(var(--primary))'
+                        branch.branding?.primaryColor || 'hsl(var(--primary))'
                       } 0%, ${
                         branch.branding?.secondaryColor ||
                         'hsl(var(--primary)/.8)'
@@ -656,7 +655,7 @@ const Branches = () => {
                     <Label>Branch Logo</Label>
                     <div className="flex items-center gap-6">
                       <div className="relative group">
-                        <div className="w-24 h-24 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-primary/40 transition-all duration-500">
+                        <div className="w-24 h-24 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center overflow-hidden  group-hover:border-primary/40 transition-all duration-500">
                           {logoPreview || formData.branding.logoUrl ? (
                             <img
                               src={logoPreview || formData.branding.logoUrl}

@@ -157,7 +157,7 @@ const CreditScoreCard = ({ creditScore }) => {
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                'p-2.5 rounded-2xl shadow-inner text-white bg-primary transition-transform duration-500',
+                'p-2.5 rounded-2xl  text-white bg-primary transition-transform duration-500',
                 isHovered && 'scale-110 rotate-6',
               )}
             >
@@ -356,11 +356,18 @@ const CreditScoreCard = ({ creditScore }) => {
                     )}
                     style={{
                       transitionDelay: isExpanded ? `${idx * 80}ms` : '0ms',
-                      transform: isExpanded ? 'translateY(0)' : 'translateY(-8px)',
+                      transform: isExpanded
+                        ? 'translateY(0)'
+                        : 'translateY(-8px)',
                       opacity: isExpanded ? 1 : 0,
                     }}
                   >
-                    <div className={cn('mt-1 h-1.5 w-1.5 rounded-full shrink-0', styles.bg)} />
+                    <div
+                      className={cn(
+                        'mt-1 h-1.5 w-1.5 rounded-full shrink-0',
+                        styles.bg,
+                      )}
+                    />
                     <span className="text-[11px] font-medium leading-tight text-muted-foreground">
                       {factor}
                     </span>

@@ -54,7 +54,7 @@ export function DateRangePicker({ className, date, setDate }) {
             <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
 
             <div className="relative flex items-center w-full">
-              <div className="bg-primary/20 p-2 rounded-xl mr-3 group-hover:scale-110 group-hover:bg-primary/30 transition-all duration-500 shadow-inner">
+              <div className="bg-primary/20 p-2 rounded-xl mr-3 group-hover:scale-110 group-hover:bg-primary/30 transition-all duration-500 ">
                 <CalendarIcon className="h-4 w-4 text-primary" />
               </div>
 
