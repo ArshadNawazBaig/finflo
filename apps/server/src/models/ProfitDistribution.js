@@ -45,4 +45,8 @@ const profitDistributionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Money guardrail (P1.3): whole-rupee payout amount at rest (investmentShare is
+// a percentage, not money — left alone).
+require('../utils/money').applyMoneySetter(profitDistributionSchema, ['amount']);
+
 module.exports = mongoose.model('ProfitDistribution', profitDistributionSchema);

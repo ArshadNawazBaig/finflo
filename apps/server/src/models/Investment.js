@@ -52,4 +52,10 @@ const investmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Money guardrail (P1.3): whole-rupee amounts at rest.
+require('../utils/money').applyMoneySetter(investmentSchema, [
+  'amount',
+  'balanceAfter',
+]);
+
 module.exports = mongoose.model('Investment', investmentSchema);

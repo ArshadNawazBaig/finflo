@@ -146,4 +146,17 @@ loanSchema.index({ status: 1 });
 loanSchema.index({ createdAt: -1 });
 loanSchema.index({ renewedFrom: 1 });
 
+// Money guardrail (P1.3): round all money fields to whole rupees at rest so a
+// fractional rupee can never be persisted, even if a caller forgets to round.
+require('../utils/money').applyMoneySetter(loanSchema, [
+  'principal',
+  'emi',
+  'totalAmount',
+  'lateFeeAmount',
+  'paidAmount',
+  'remainingAmount',
+  'outstandingPrincipal',
+  'compoundedAmount',
+]);
+
 module.exports = mongoose.model('Loan', loanSchema);

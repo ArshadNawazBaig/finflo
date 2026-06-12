@@ -516,9 +516,11 @@ const runSavingProfitAccrual = async () => {
                   $add: [
                     { $ifNull: ['$pendingSavingProfit', 0] },
                     {
+                      // Keep 2 dp (paisa) so sub-rupee daily profit isn't lost;
+                      // it accumulates and is paid out monthly.
                       $round: [
                         { $multiply: ['$savingBalance', dailyRate] },
-                        0,
+                        2,
                       ],
                     },
                   ],
@@ -532,7 +534,8 @@ const runSavingProfitAccrual = async () => {
 
         if (!updatedMember) continue;
 
-        const dailyProfit = Math.round(updatedMember.savingBalance * dailyRate);
+        const dailyProfit =
+          Math.round(updatedMember.savingBalance * dailyRate * 100) / 100;
         if (dailyProfit <= 0) continue;
 
         // Daily accruals no longer create ledger entries immediately;

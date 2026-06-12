@@ -96,4 +96,10 @@ savingGoalSchema.virtual('progress').get(function () {
 savingGoalSchema.set('toJSON', { virtuals: true });
 savingGoalSchema.set('toObject', { virtuals: true });
 
+// Money guardrail (P1.3): whole-rupee goal amounts at rest.
+require('../utils/money').applyMoneySetter(savingGoalSchema, [
+  'targetAmount',
+  'currentAmount',
+]);
+
 module.exports = mongoose.model('SavingGoal', savingGoalSchema);

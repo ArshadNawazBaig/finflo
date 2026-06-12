@@ -35,4 +35,11 @@ repaymentSchema.index({ customer: 1 });
 repaymentSchema.index({ branchId: 1 });
 repaymentSchema.index({ status: 1 });
 
+// Money guardrail (P1.3): whole-rupee amounts at rest.
+require('../utils/money').applyMoneySetter(repaymentSchema, [
+  'amount',
+  'interestAmount',
+  'principalAmount',
+]);
+
 module.exports = mongoose.model('Repayment', repaymentSchema);

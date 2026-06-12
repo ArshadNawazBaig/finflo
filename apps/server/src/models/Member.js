@@ -322,4 +322,24 @@ memberSchema.post('find', (docs) => {
   if (Array.isArray(docs)) docs.forEach(decryptMemberPII);
 });
 
+// Money guardrail (P1.3): round all wallet/share/saving balances to whole rupees
+// at rest so a fractional rupee can never be persisted.
+require('../utils/money').applyMoneySetter(memberSchema, [
+  'currentBalance',
+  'totalInvested',
+  'totalLoanProceeds',
+  'totalProfit',
+  'totalWithdrawn',
+  'creditLimit',
+  'shareBalance',
+  'totalShareInvested',
+  'totalShareProfit',
+  'savingBalance',
+  'pendingSavingProfit',
+  'totalSavingDeposited',
+  'totalSavingWithdrawn',
+  'totalSavingProfit',
+  'monthlyIncome',
+]);
+
 module.exports = mongoose.model('Member', memberSchema);
