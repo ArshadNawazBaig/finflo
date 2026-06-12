@@ -107,59 +107,77 @@ const getLedger = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // Calculate full summary ignoring pagination but respecting search/date filters.
-    // Include 'date' and 'createdAt' so we can sort chronologically (with
-    // createdAt as a tiebreaker for same-day entries) when computing the
-    // running total.
-    const allMatching = await FinancialTransaction.find(query).select(
-      'type category amount date createdAt',
-    );
-    
-    const isIncome = (t) => {
-      const type = (t.type || '').toLowerCase();
-      const cat = (t.category || '').toLowerCase();
-      return type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment';
+    // Income/expense classification expressed for aggregation — mirrors the old
+    // JS rules exactly: income = type 'income' OR category containing
+    // repayment/deposit OR exactly 'investment'; expense = type 'expense'/'loan'
+    // OR category containing withdrawal/disbursement. ($toLower returns '' for
+    // null/missing, so a missing type/category is simply non-matching.)
+    const lowerType = { $toLower: '$type' };
+    const lowerCat = { $toLower: '$category' };
+    const isIncomeExpr = {
+      $or: [
+        { $eq: [lowerType, 'income'] },
+        { $regexMatch: { input: lowerCat, regex: 'repayment' } },
+        { $regexMatch: { input: lowerCat, regex: 'deposit' } },
+        { $eq: [lowerCat, 'investment'] },
+      ],
+    };
+    const isExpenseExpr = {
+      $or: [
+        { $eq: [lowerType, 'expense'] },
+        { $eq: [lowerType, 'loan'] },
+        { $regexMatch: { input: lowerCat, regex: 'withdrawal' } },
+        { $regexMatch: { input: lowerCat, regex: 'disbursement' } },
+      ],
+    };
+    const amt = { $ifNull: ['$amount', 0] };
+
+    // Full summary (respects search/date filters, ignores pagination), summed in
+    // the DB rather than loading every matching transaction into the process.
+    const [sumAgg = {}] = await FinancialTransaction.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: null,
+          totalIncome: { $sum: { $cond: [isIncomeExpr, amt, 0] } },
+          totalExpense: { $sum: { $cond: [isExpenseExpr, amt, 0] } },
+        },
+      },
+    ]);
+    const summary = {
+      totalIncome: sumAgg.totalIncome || 0,
+      totalExpense: sumAgg.totalExpense || 0,
+      totalTransactions: totalEntries,
     };
 
-    const summary = allMatching.reduce((acc, t) => {
-      const type = (t.type || '').toLowerCase();
-      const cat = (t.category || '').toLowerCase();
-      const amt = t.amount || 0;
-
-      if (type === 'income' || cat.includes('repayment') || cat.includes('deposit') || cat === 'investment') {
-        acc.totalIncome += amt;
-      } else if (type === 'expense' || type === 'loan' || cat.includes('withdrawal') || cat.includes('disbursement')) {
-        acc.totalExpense += amt;
-      }
-      return acc;
-    }, { totalIncome: 0, totalExpense: 0, totalTransactions: totalEntries });
-
-    // Calculate priorPageBalance: the cumulative running total of all transactions
-    // that are chronologically BEFORE this page's transactions.
-    // Sort all matching transactions chronologically (ascending by date), with
-    // createdAt as a tiebreaker so two transactions on the same calendar day
-    // appear in the order they were actually entered — otherwise the running
-    // balance shown next to each row may not match the real sequence.
-    allMatching.sort((a, b) => {
-      const dateDiff = new Date(a.date) - new Date(b.date);
-      if (dateDiff !== 0) return dateDiff;
-      return new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date);
-    });
-
-    // For descending sort (newest first): older txns are on later pages.
-    //   The chronologically-prior count = totalEntries - skip - limit
-    // For ascending sort (oldest first): older txns are on earlier pages.
-    //   The chronologically-prior count = skip
+    // priorPageBalance: the signed running total of all transactions
+    // chronologically BEFORE this page. For a descending sort (newest first) the
+    // older txns sit on later pages; for ascending, on earlier pages.
     const currentPageSize = Math.min(limit, Math.max(0, totalEntries - skip));
-    const chronoPriorCount = sortOrder === -1
-      ? Math.max(0, totalEntries - skip - currentPageSize)
-      : skip;
+    const chronoPriorCount =
+      sortOrder === -1
+        ? Math.max(0, totalEntries - skip - currentPageSize)
+        : skip;
 
     let priorPageBalance = 0;
-    for (let i = 0; i < chronoPriorCount && i < allMatching.length; i++) {
-      const t = allMatching[i];
-      const amt = t.amount || 0;
-      priorPageBalance += isIncome(t) ? amt : -amt;
+    if (chronoPriorCount > 0) {
+      // Sum the signed amount over the chronologically-first `chronoPriorCount`
+      // rows (income +, everything else −). It's a sum, so same-day tie ordering
+      // doesn't affect the result.
+      const [balAgg = {}] = await FinancialTransaction.aggregate([
+        { $match: query },
+        { $sort: { date: 1, createdAt: 1 } },
+        { $limit: chronoPriorCount },
+        {
+          $group: {
+            _id: null,
+            bal: {
+              $sum: { $cond: [isIncomeExpr, amt, { $subtract: [0, amt] }] },
+            },
+          },
+        },
+      ]);
+      priorPageBalance = balAgg.bal || 0;
     }
 
     res.json({
