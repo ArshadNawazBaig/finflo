@@ -34,6 +34,9 @@ repaymentSchema.index({ user: 1, date: -1 });
 repaymentSchema.index({ customer: 1 });
 repaymentSchema.index({ branchId: 1 });
 repaymentSchema.index({ status: 1 });
+// Credit-scoring punctuality and the member activity feed both read a customer's
+// repayments tenant-scoped and newest-first.
+repaymentSchema.index({ customer: 1, user: 1, date: -1 });
 
 // Money guardrail (P1.3): whole-rupee amounts at rest.
 require('../utils/money').applyMoneySetter(repaymentSchema, [

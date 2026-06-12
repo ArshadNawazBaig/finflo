@@ -242,56 +242,31 @@ const getMembers = async (req, res) => {
 
     const count = await Member.countDocuments(query);
 
-    // Get active loans count for each member
-    // Import Loan model first (add to top of file if not present, but I see it's missing in imports so I will add it via a separate edit or assume it's there.
-    // Wait, I need to check imports. Line 1: const Member = require('../models/Member'); Line 2: ...
-    // Loan is NOT imported. I need to import it.
+    // Active-loan count per member in ONE aggregation (was an N+1: a separate
+    // Loan.countDocuments per member row on the page).
+    const Loan = mongoose.model('Loan');
+    const customerIds = members
+      .map((m) => m.customer?._id || m.customer)
+      .filter(Boolean);
+    const loanCounts = customerIds.length
+      ? await Loan.aggregate([
+          { $match: { customer: { $in: customerIds }, status: 'active' } },
+          { $group: { _id: '$customer', count: { $sum: 1 } } },
+        ])
+      : [];
+    const loanCountMap = new Map(loanCounts.map((r) => [String(r._id), r.count]));
 
-    // I will do this in two steps. First, import Loan.
-    // Actually, I can do it here if I am careful.
-    // But let's look at the file content again.
-    // Step 1122 shows exports. It does NOT show Loan being imported.
-
-    // So I need to add `const Loan = require('../models/Loan');` at the top.
-
-    // Refactoring: I will just return the modified function here, and assume I will add the import in the next step or same step if possible.
-    // I can't modify top of file here. So I will just modify the function and use `mongoose.model('Loan')` or similar if I want to avoid import...
-    // No, I should import it properly.
-
-    // I will use `const Loan = require('../models/Loan');` inside the function for now if duplicate import validation is strict, OR I will make a separate edit to add the import at the top.
-
-    // Let's modify the function to use Promise.all and map.
-
-    const membersWithLoans = await Promise.all(
-      members.map(async (member) => {
-        let activeLoans = 0;
-        if (member.customer) {
-          // member.customer is populated object or ID? logic says populated.
-          // If populated, member.customer._id
-          // If not populated (e.g. null), then 0.
-          const customerId = member.customer._id || member.customer;
-          // We need to import Loan. Since I can't add it to top in this single block easily without replacing whole file,
-          // I will use a require here for safety or relying on a separate edit.
-          // I'll assume I'll add the import in a previous or subsequent step.
-          // Wait, I can't rely on assumptions.
-          // I will use mongoose.model('Loan') to get the model without direct import if it's already registered, which it is.
-          const Loan = mongoose.model('Loan');
-          activeLoans = await Loan.countDocuments({
-            customer: customerId,
-            status: 'active',
-          });
-        }
-        return {
-          ...member.toObject(),
-          activeLoans,
-          savingAccountNumber:
-            member.savingAccountNumber || member.customer?.savingAccountNumber,
-          currentAccountNumber:
-            member.currentAccountNumber ||
-            member.customer?.currentAccountNumber,
-        };
-      }),
-    );
+    const membersWithLoans = members.map((member) => {
+      const customerId = member.customer?._id || member.customer;
+      return {
+        ...member.toObject(),
+        activeLoans: customerId ? loanCountMap.get(String(customerId)) || 0 : 0,
+        savingAccountNumber:
+          member.savingAccountNumber || member.customer?.savingAccountNumber,
+        currentAccountNumber:
+          member.currentAccountNumber || member.customer?.currentAccountNumber,
+      };
+    });
 
     res.json({
       data: membersWithLoans,

@@ -517,13 +517,30 @@ const getMe = async (req, res) => {
       memberObj.businessName = member.user?.businessName;
       memberObj.businessAddress = member.user?.businessAddress;
 
-      // Fetch active/overdue loan for this member (via linked customer)
+      // Loan + grade + credit score for this member (via linked customer).
       if (member.customer) {
-        const activeLoan = await Loan.findOne({
+        // These three reads are independent of one another — run them in
+        // parallel instead of three serial round-trips on this hot, per-session
+        // endpoint. The credit score is best-effort: a failure resolves to null
+        // (omit the card) rather than rejecting the whole dashboard.
+        const {
+          computeCreditScore,
+        } = require('../services/creditScoringService');
+        const loanFilter = {
           customer: member.customer,
           user: member.user._id,
-          status: { $in: ['active', 'overdue'] },
-        }).sort({ createdAt: -1 });
+        };
+        const [activeLoan, gradedLoan, cs] = await Promise.all([
+          Loan.findOne({ ...loanFilter, status: { $in: ['active', 'overdue'] } })
+            .sort({ createdAt: -1 })
+            .select(
+              'remainingAmount totalAmount principal paidAmount emi status',
+            ),
+          Loan.findOne({ ...loanFilter, 'riskDetails.grade': { $exists: true } })
+            .sort({ createdAt: -1 })
+            .select('riskDetails'),
+          computeCreditScore(member.customer).catch(() => null),
+        ]);
 
         if (activeLoan) {
           memberObj.activeLoan = {
@@ -537,15 +554,6 @@ const getMe = async (req, res) => {
           };
         }
 
-        // Fetch member grade from the most recent loan with riskDetails
-        const gradedLoan = await Loan.findOne({
-          customer: member.customer,
-          user: member.user._id,
-          'riskDetails.grade': { $exists: true },
-        })
-          .sort({ createdAt: -1 })
-          .select('riskDetails');
-
         if (gradedLoan?.riskDetails) {
           memberObj.memberGrade = {
             grade: gradedLoan.riskDetails.grade,
@@ -556,14 +564,11 @@ const getMe = async (req, res) => {
         }
 
         // ── Credit Score — authoritative engine ──────────────────
-        // Single source of truth: the SAME 0-100 model that drives the
-        // member's credit limit and loan eligibility (creditScoringService),
-        // mapped to the familiar 300-850 gauge so a member never sees a number
-        // that contradicts what actually governs their borrowing. Best-effort —
-        // omit the card rather than break the dashboard.
-        try {
-          const { computeCreditScore } = require('../services/creditScoringService');
-          const cs = await computeCreditScore(member.customer);
+        // Single source of truth: the SAME 0-100 model that drives the member's
+        // credit limit and loan eligibility (creditScoringService), mapped to
+        // the familiar 300-850 gauge so a member never sees a number that
+        // contradicts what actually governs their borrowing.
+        if (cs) {
           const displayScore = 300 + Math.round((cs.score / 100) * 550);
           memberObj.creditScore = {
             score: displayScore, // 300-850 for the gauge
@@ -571,8 +576,6 @@ const getMe = async (req, res) => {
             factors: cs.factors,
             rawScore: cs.score, // 0-100 (authoritative)
           };
-        } catch (scoreErr) {
-          // Leave creditScore unset; the dashboard hides the card gracefully.
         }
       }
 

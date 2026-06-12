@@ -102,4 +102,9 @@ require('../utils/money').applyMoneySetter(savingGoalSchema, [
   'currentAmount',
 ]);
 
+// Indexes — the member's goals list (member + newest-first) renders on the
+// portal home, and the auto-contribute crons scan member + active goals.
+savingGoalSchema.index({ member: 1, createdAt: -1 });
+savingGoalSchema.index({ member: 1, status: 1 });
+
 module.exports = mongoose.model('SavingGoal', savingGoalSchema);

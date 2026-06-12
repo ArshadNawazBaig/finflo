@@ -161,6 +161,14 @@ loanSchema.index({ status: 1 });
 loanSchema.index({ createdAt: -1 });
 loanSchema.index({ renewedFrom: 1 });
 loanSchema.index({ groupLoan: 1 });
+// Compound indexes matching the real query shapes: the per-customer status
+// lookup (member dashboard, "active loan per customer" guards, member-list
+// counts) and tenant-scoped status lists/dashboards, both newest-first.
+loanSchema.index({ customer: 1, status: 1, createdAt: -1 });
+loanSchema.index({ user: 1, status: 1, createdAt: -1 });
+// Guarantor lookups (member detail page lists loans a member co-signed).
+loanSchema.index({ grantor1: 1 });
+loanSchema.index({ grantor2: 1 });
 
 // Money guardrail (P1.3): round all money fields to whole rupees at rest so a
 // fractional rupee can never be persisted, even if a caller forgets to round.

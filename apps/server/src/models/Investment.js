@@ -58,4 +58,11 @@ require('../utils/money').applyMoneySetter(investmentSchema, [
   'balanceAfter',
 ]);
 
+// Indexes — every Investment read is member-scoped and time-ordered (account
+// statements, member ledger, weighted-average-balance windows). Without these
+// the collection was fully scanned on each query.
+investmentSchema.index({ member: 1, date: -1 });
+investmentSchema.index({ member: 1, accountType: 1, status: 1, date: -1 });
+investmentSchema.index({ user: 1, member: 1, date: -1 });
+
 module.exports = mongoose.model('Investment', investmentSchema);

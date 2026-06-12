@@ -209,6 +209,12 @@ memberSchema.index({ branchId: 1 });
 memberSchema.index({ email: 1 });
 memberSchema.index({ approvalStatus: 1 });
 memberSchema.index({ user: 1, cnic: 1 }, { unique: true });
+// Compound indexes for the tenant-scoped member list (default filter is
+// approvalStatus, sorted newest-first), the active-members scan used in profit
+// distribution, and the staff branch-scoped view.
+memberSchema.index({ user: 1, approvalStatus: 1, createdAt: -1 });
+memberSchema.index({ user: 1, status: 1 });
+memberSchema.index({ user: 1, branchId: 1, createdAt: -1 });
 
 // Hash password before saving
 memberSchema.pre('save', async function () {
